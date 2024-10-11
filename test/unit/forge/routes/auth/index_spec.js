@@ -49,6 +49,7 @@ describe('Accounts API', async function () {
             app.settings.set('user:signup', false)
             app.settings.set('team:user:invite:external', false)
             app.settings.set('user:team:auto-create', false)
+            app.settings.set('team:user:invite:external', false)
         })
 
         async function expectRejection (opts, reason) {
@@ -424,6 +425,73 @@ describe('Accounts API', async function () {
 
                 application.Instances.length.should.equal(1)
                 application.Instances[0].safeName.should.match(/team-pez-cuckow-user5-(\w)+/)
+
+                // cleanup else this becomes the new default and breaks other tests
+                newTeamType.active = false
+                await newTeamType.save()
+                app.settings.set('user:team:auto-create:teamType', null)
+            })
+
+            it('Does not create personal team/instance when invites to other teams present', async function () {
+                app.settings.set('user:signup', true)
+                app.settings.set('user:team:auto-create', true)
+                app.settings.set('user:team:auto-create:instanceType', app.projectType.hashid)
+                app.settings.set('team:user:invite:external', true)
+
+                // Allow this new project type to be used by the new team type
+                const teamTypeProperties = { instances: {} }
+                teamTypeProperties.instances[app.projectType.hashid] = {
+                    active: true,
+                    limit: 2,
+                    free: 2
+                }
+                const newTeamType = await app.db.models.TeamType.create({
+                    name: 'new-starter-test-1',
+                    properties: teamTypeProperties
+                })
+                app.settings.set('user:team:auto-create:teamType', newTeamType.hashid)
+
+                // Create existing team
+                const existingTeam = await app.factory.createTeam({ name: 'ExistingTeam' })
+                await existingTeam.addUser(app.adminUser, { through: { role: app.factory.Roles.Roles.Owner } })
+                // Alice invite External User to ExistingTeam
+                await login('alice', 'aaPassword')
+                const inviteResponse = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${existingTeam.hashid}/invitations`,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        user: 'user6@example.com',
+                        role: app.factory.Roles.Roles.Owner
+                    }
+                })
+                const result = inviteResponse.json()
+                result.should.have.property('status', 'okay')
+
+                const response = await registerUser({
+                    username: 'user6',
+                    password: '12345678',
+                    name: 'Pez Cuckow',
+                    email: 'user6@example.com'
+                })
+                response.statusCode.should.equal(200)
+
+                // Process only runs after email verification
+                const user = await app.db.models.User.findOne({ where: { username: 'user6' } })
+                const verificationToken = await app.db.controllers.User.generateEmailVerificationToken(user)
+                const verifyResponse = await app.inject({
+                    method: 'POST',
+                    url: '/account/verify/token',
+                    payload: {
+                        token: verificationToken.token
+                    },
+                    cookies: { sid: TestObjects.tokens.user6 }
+                })
+                verifyResponse.statusCode.should.equal(200)
+
+                const teams = await app.db.models.Team.forUser(user)
+                teams.length.should.equal(1)
+                teams[0].Team.id.should.equal(existingTeam.id)
 
                 // cleanup else this becomes the new default and breaks other tests
                 newTeamType.active = false

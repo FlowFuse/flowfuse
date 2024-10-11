@@ -1,10 +1,13 @@
 <template>
     <ff-button
         v-if="!hidden"
+        type="anchor"
         kind="secondary"
         data-action="open-dashboard"
+        :to="dashboardURL"
+        :target="target"
         :disabled="buttonDisabled"
-        @click.stop="openDashboard()"
+        class="whitespace-nowrap"
     >
         <template v-if="showText" #icon-left>
             <ChartPieIcon />
@@ -22,16 +25,7 @@
 
 import { ChartPieIcon } from '@heroicons/vue/outline'
 
-// utility function to remove leading and trailing slashes
-const removeSlashes = (str, leading = true, trailing = true) => {
-    if (leading && str.startsWith('/')) {
-        str = str.slice(1)
-    }
-    if (trailing && str.endsWith('/')) {
-        str = str.slice(0, -1)
-    }
-    return str
-}
+import { removeSlashes } from '../../../composables/String.js'
 
 export default {
     name: 'DashboardLink',
@@ -58,19 +52,19 @@ export default {
     computed: {
         buttonDisabled () {
             return this.disabled || !this.instance?.settings?.dashboard2UI
-        }
-    },
-    methods: {
-        openDashboard () {
-            if (this.disabled || !this.instance?.settings?.dashboard2UI) {
-                return
+        },
+        dashboardURL () {
+            if (this.buttonDisabled) {
+                return null
             }
             // The dashboard url will *always* be relative to the root as we
             // do not expose `httpNodeRoot` to customise the base path
             const baseURL = new URL(removeSlashes(this.instance.url, false, true))
             baseURL.pathname = removeSlashes(this.instance.settings.dashboard2UI, true, false)
-            const fixedTarget = '_db2_' + this.instance.id
-            window.open(baseURL.toString(), fixedTarget)
+            return baseURL.toString()
+        },
+        target () {
+            return '_db2_' + (this.instance?.id || '')
         }
     }
 }

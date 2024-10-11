@@ -26,13 +26,13 @@ jobs:
     if: |
       ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
       ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.21.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.34.0'
     with:
       package_name: flowfuse
       build_package: true
       publish_package: true
       package_dependencies: |
-        @flowfuse/driver-localfs
+        @flowfuse/driver-localfs=nightly
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
       sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}

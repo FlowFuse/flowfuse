@@ -1,8 +1,8 @@
 <template>
     <form class="space-y-6">
         <TemplateSectionPalette v-model="editableTemplate" :editTemplate="true" />
-        <TemplateSectionCatalogue v-if="catalogFeatureAvailable" v-model="editableTemplate" :editTemplate="true" :project="project" />
-        <TemplateSectionNPM v-if="catalogFeatureAvailable" v-model="editableTemplate" :editTemplate="true" :project="project" />
+        <TemplateSectionCatalogue v-model="editableTemplate" :editTemplate="true" :project="project" />
+        <TemplateSectionNPM v-model="editableTemplate" :editTemplate="true" :project="project" />
         <TemplateSectionPaletteModules
             v-model="editableTemplate" :editTemplate="true" :readOnly="false" :project="project"
             header="Default Modules"

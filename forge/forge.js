@@ -14,7 +14,9 @@ const db = require('./db')
 const ee = require('./ee')
 const housekeeper = require('./housekeeper')
 const license = require('./licensing')
+const notifications = require('./notifications')
 const postoffice = require('./postoffice')
+const product = require('./product')
 const routes = require('./routes')
 const settings = require('./settings')
 const { finishSetup } = require('./setup')
@@ -264,8 +266,8 @@ module.exports = async (options = {}) => {
                         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
                         'worker-src': ["'self'", 'blob:'],
                         'connect-src': ["'self'"],
-                        'img-src': ["'self'", 'data:', 'flowfuse.com', 'www.gravatar.com'],
-                        'font-src': ["'self'", 'data'],
+                        'img-src': ["'self'", 'data:', '*'],
+                        'font-src': ["'self'", 'data:'],
                         'style-src': ["'self'", 'https:', "'unsafe-inline'"],
                         'upgrade-insecure-requests': null,
                         'frame-ancestors': ["'self'"]
@@ -336,20 +338,6 @@ module.exports = async (options = {}) => {
                 } else {
                     contentSecurityPolicy.directives['script-src'] = googleDomains
                 }
-                const googleImageDomains = [
-                    'www.google.com',
-                    'www.google.co.*',
-                    'www.google.com.*',
-                    'www.google.*',
-                    'googleads.g.doubleclick.net',
-                    'www.googleadservices.com',
-                    'www.googletagmanager.com'
-                ]
-                if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
-                    contentSecurityPolicy.directives['img-src'].push(...googleImageDomains)
-                } else {
-                    contentSecurityPolicy.directives['img-src'] = googleImageDomains
-                }
                 const googleConnectDomains = [
                     'www.google.com',
                     'google.com'
@@ -393,16 +381,6 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['script-src'].push(...hubspotDomains)
                 } else {
                     contentSecurityPolicy.directives['script-src'] = hubspotDomains
-                }
-                const hubspotImageDomains = [
-                    '*.hsforms.com',
-                    '*.hubspot.com',
-                    '*.hsforms.net'
-                ]
-                if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
-                    contentSecurityPolicy.directives['img-src'].push(...hubspotImageDomains)
-                } else {
-                    contentSecurityPolicy.directives['img-src'] = hubspotImageDomains
                 }
                 const hubspotConnectDomains = [
                     '*.hubspot.com',
@@ -460,6 +438,9 @@ module.exports = async (options = {}) => {
         await server.register(routes, { logLevel: server.config.logging.http })
         // Post Office : handles email
         await server.register(postoffice)
+        await server.register(notifications)
+        // Product service handles reporting to PostHog
+        await server.register(product, runtimeConfig.telemetry.frontend?.posthog)
         // Comms : real-time communication broker
         await server.register(comms)
         // Containers:
@@ -476,7 +457,7 @@ module.exports = async (options = {}) => {
         await server.db.controllers.TeamType.ensureDefaultTypeExists()
 
         // Create ff-admin
-        if (server.config.create_admin) {
+        if (server.config.create_admin && !server.settings.get('setup:initialised')) {
             await createAdminUser(server)
             await finishSetup(server)
         }

@@ -1,7 +1,8 @@
 <template>
     <FeatureUnavailableToTeam v-if="teamUserLimitReached" fullMessage="You have reached the user limit for this team." class="mt-0" />
     <ff-loading v-if="loading" message="Loading Team..." />
-    <form v-else class="mb-8">
+    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+    <form v-else class="mb-14">
         <div class="text-right" />
         <ff-data-table data-el="members-table" :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
             <template v-if="hasPermission('team:user:invite')" #actions>
@@ -27,12 +28,12 @@ import { UserAddIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../../forge/lib/roles.js'
 import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
+import { Roles } from '../../../utils/roles.js'
 import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog.vue'
 import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog.vue'
 import InviteMemberDialog from '../dialogs/InviteMemberDialog.vue'

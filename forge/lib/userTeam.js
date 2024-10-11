@@ -6,6 +6,22 @@ const crypto = require('crypto')
  *   - accepts any invitations matching the email
  */
 async function completeUserSignup (app, user) {
+    // Process invites first to see if user is in any teams
+    const pendingInvitations = await app.db.models.Invitation.forExternalEmail(user.email)
+    for (let i = 0; i < pendingInvitations.length; i++) {
+        const invite = pendingInvitations[i]
+        // For now we'll auto-accept any invites for this user
+        // See https://github.com/FlowFuse/flowfuse/issues/275#issuecomment-1040113991
+        await app.db.controllers.Invitation.acceptInvitation(invite, user)
+        // // If we go back to having the user be able to accept invites
+        // // as a secondary step, the following code will convert the external
+        // // invite into an internal one.
+        // invite.external = false
+        // invite.inviteeId = user.id
+        // await invite.save()
+    }
+
+    let personalTeam
     if (app.settings.get('user:team:auto-create')) {
         const teamLimit = app.license.get('teams')
         const teamCount = await app.db.models.Team.count()
@@ -32,34 +48,21 @@ async function completeUserSignup (app, user) {
                 slug: user.username,
                 TeamTypeId: teamTypeId
             }
-            const team = await app.db.controllers.Team.createTeamForUser(teamProperties, user)
-            await app.auditLog.Platform.platform.team.created(user, null, team)
-            await app.auditLog.User.account.verify.autoCreateTeam(user, null, team)
+            personalTeam = await app.db.controllers.Team.createTeamForUser(teamProperties, user)
+            await app.auditLog.Platform.platform.team.created(user, null, personalTeam)
+            await app.auditLog.User.account.verify.autoCreateTeam(user, null, personalTeam)
 
             if (app.license.active() && app.billing) {
                 // This checks to see if the team should be in trial mode
-                await app.billing.setupTrialTeamSubscription(team, user)
+                await app.billing.setupTrialTeamSubscription(personalTeam, user)
             }
         }
     }
-    const pendingInvitations = await app.db.models.Invitation.forExternalEmail(user.email)
-    for (let i = 0; i < pendingInvitations.length; i++) {
-        const invite = pendingInvitations[i]
-        // For now we'll auto-accept any invites for this user
-        // See https://github.com/FlowFuse/flowfuse/issues/275#issuecomment-1040113991
-        await app.db.controllers.Invitation.acceptInvitation(invite, user)
-        // // If we go back to having the user be able to accept invites
-        // // as a secondary step, the following code will convert the external
-        // // invite into an internal one.
-        // invite.external = false
-        // invite.inviteeId = user.id
-        // await invite.save()
-    }
-    await app.auditLog.User.account.verify.verifyToken(user, null)
 
     // only create a starting instance if the flag is set and this user and their teams have no instances
     if (app.settings.get('user:team:auto-create:instanceType') &&
-    !((await app.db.models.Project.byUser(user)).length)) {
+            personalTeam &&
+            !((await app.db.models.Project.byUser(user)).length)) {
         const instanceTypeId = app.settings.get('user:team:auto-create:instanceType')
 
         const instanceType = await app.db.models.ProjectType.byId(instanceTypeId)
@@ -78,9 +81,7 @@ async function completeUserSignup (app, user) {
             throw new Error('Unable to find the default instance template from which to auto-create user instance')
         }
 
-        const userTeam = userTeamMemberships[0].Team
-
-        const applications = await app.db.models.Application.byTeam(userTeam.id)
+        const applications = await app.db.models.Application.byTeam(personalTeam.id)
         let application
         if (applications.length > 0) {
             application = applications[0]
@@ -89,19 +90,19 @@ async function completeUserSignup (app, user) {
 
             application = await app.db.models.Application.create({
                 name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
-                TeamId: userTeam.id
+                TeamId: personalTeam.id
             })
 
-            await app.auditLog.User.account.verify.autoCreateTeam(user, null, application)
+            await app.auditLog.User.account.verify.autoCreateApplication(user, null, application)
         }
 
-        const safeTeamName = userTeam.name.toLowerCase().replace(/[\W_]/g, '-')
+        const safeTeamName = personalTeam.name.toLowerCase().replace(/[\W_]/g, '-')
         const safeUserName = user.username.toLowerCase().replace(/[\W_]/g, '-')
 
         const instanceProperties = {
             name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
         }
-        const instance = await app.db.controllers.Project.create(userTeam, application, user, instanceType, instanceStack, instanceTemplate, instanceProperties)
+        const instance = await app.db.controllers.Project.create(personalTeam, application, user, instanceType, instanceStack, instanceTemplate, instanceProperties)
 
         await app.auditLog.User.account.verify.autoCreateInstance(user, null, instance)
     }

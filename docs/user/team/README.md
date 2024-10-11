@@ -55,7 +55,7 @@ table summaries what actions are available to the different roles.
 | • Modify Flows                       | ✓     | ✓      | -      | -              |
 | **Snapshots**                        |       |        |        |                |
 | • Create Snapshot                    | ✓     | ✓      | -      | -              |
-| • Deploy Snapshot                    | ✓     | ✓      | -      | -              |
+| • Restore Snapshot                    | ✓     | ✓      | -      | -              |
 | • Set as Device Target               | ✓     | ✓      | -      | -              |
 | • View Snapshots                     | ✓     | ✓      | ✓      | -              |
 | • Download Snapshot                  | ✓     | ✓      | -      | -              |
@@ -68,6 +68,7 @@ table summaries what actions are available to the different roles.
 | • Assign to/Remove from Application  | ✓     | -      | -      | -              |
 | • Assign to/Remove from Instance     | ✓     | -      | -      | -              |
 | • Delete Device                      | ✓     | -      | -      | -              |
+| • Bulk Move Devices                  | ✓     | -      | -      | -              |
 | • Bulk Delete Devices                | ✓     | -      | -      | -              |
 | **Team Members**                     |       |        |        |                |
 | • Invite User                        | ✓     | -      | -      | -              |

@@ -1,5 +1,14 @@
 ---
 navTitle: Install FlowFuse on Kubernetes
+meta: 
+   description: Install FlowFuse on Kubernetes using Helm charts for easy configuration and management. Ensure efficient data storage and enable MQTT broker integration seamlessly.
+   tags:
+      - kubernetes
+      - helm
+      - postgresql
+      - dns
+      - email
+      - mqtt
 ---
 
 # Kubernetes Install
@@ -55,10 +64,37 @@ with the following values:
 - `postgresql.auth.password`
 - `postgresql.auth.database`
 
+
+#### Database Backups
+
+If using Kubernetes CronJobs to backup the database then remember to add the `app: flowforge` label
+to the job to ensure it has access to the database. This is because the Helm Chart includes
+network rules to prevent the Node-RED instances having direct access to the FlowFuse Database.
+
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  labels:
+    app: flowforge
+spec:
+  schedule: "5 23 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: postgres
+ ...
+```
+
 ### DNS
 
-A wildcard DNS entry will be needed to point to the domain that is used for the 
-project instances. This will need to point to the K8s Ingress controller.
+A [wildcard DNS entry](https://en.wikipedia.org/wiki/Wildcard_DNS_record) will be needed 
+to point to the domain that is used for the project instances. This will need to point 
+to the K8s Ingress controller.
 
 For example if you want projects to be access able as `[project-name].example.com`
 you will need to ensure that `*.example.com` is mapped to the IP address used by 

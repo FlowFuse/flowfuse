@@ -2,10 +2,21 @@ const state = () => ({
     rightDrawer: {
         state: false,
         component: null
+    },
+    tours: {
+        welcome: false,
+        education: false
     }
 })
 
-const getters = {}
+const getters = {
+    shouldShowLeftMenu: (state, getters, rootState, rootGetters) => (route) => {
+        return rootGetters['account/hasAvailableTeams'] || route.path.includes('/account/')
+    },
+    shouldShowEducationModal: (state) => {
+        return state.tours.education
+    }
+}
 
 const mutations = {
     openRightDrawer (state, { component }) {
@@ -15,6 +26,12 @@ const mutations = {
     closeRightDrawer (state) {
         state.rightDrawer.state = false
         state.rightDrawer.component = null
+    },
+    activateTour (state, tour) {
+        state.tours[tour] = true
+    },
+    deactivateTour (state, tour) {
+        state.tours[tour] = false
     }
 }
 
@@ -24,6 +41,15 @@ const actions = {
     },
     closeRightDrawer ({ commit }) {
         commit('closeRightDrawer')
+    },
+    activateTour ({ commit }, tour) {
+        commit('activateTour', tour)
+    },
+    deactivateTour ({ commit, state }, tour) {
+        if (tour === 'welcome') {
+            commit('activateTour', 'education')
+        }
+        commit('deactivateTour', tour)
     }
 }
 
@@ -32,5 +58,12 @@ export default {
     state,
     getters,
     mutations,
-    actions
+    actions,
+    meta: {
+        persistence: {
+            tours: {
+                storage: 'localStorage'
+            }
+        }
+    }
 }

@@ -1,151 +1,246 @@
 .ff-notification-interview {
-    max-width: 450px;
-    border: 1px solid $ff-grey-400;
-    background-color: $ff-white;
-    box-shadow: -6px 6px 6px #00000040;
-    border-radius: 0 6px 6px 0;
-    padding: 12px 9px 12px 18px;
-    border: 1px solid $ff-blue-700;
-    border-left: 8px solid $ff-blue-700;
-    h3 {
-        font-size: 1.1rem;
-        margin-bottom: 12px;
+  max-width: 450px;
+  background-color: $ff-white;
+  box-shadow: -6px 6px 6px #00000040;
+  border-radius: 0 6px 6px 0;
+  padding: 12px 9px 12px 18px;
+  border: 1px solid $ff-blue-700;
+  border-left: 8px solid $ff-blue-700;
+
+  h3 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 1.1rem;
+  }
+
+  &--actions {
+    margin-top: 24px;
+    gap: 12px;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    font-size: 1rem;
+
+    .ff-btn.ff-btn--primary {
+      background-color: $ff-blue-700;
+      border-color: $ff-blue-700;
+
+      &:hover {
+        background-color: $ff-blue-800;
+      }
     }
-    p {
-        font-size: 1.1rem;
-    }
-    &--actions {
-        margin-top: 24px;
-        gap: 12px;
-        display: flex;
-        flex-direction: row-reverse;
-        justify-content: space-between;
-        font-size: 1rem;
-        .ff-btn.ff-btn--primary {
-            background-color: $ff-blue-700;
-            border-color: $ff-blue-700;
-            &:hover {
-                background-color: $ff-blue-800;
-            }
-        }
-    }
+  }
 }
 
-$ff-notifications-drawer-side-padding: 12px;
+$ff-notifications-drawer-side-padding: 6px;
 
 .ff-notifications-drawer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+
+  > .header {
+    border-bottom: 1px solid $ff-grey-300;
+    padding: 10px 0;
     width: 100%;
-    
-    > .header {
-        border-bottom: 1px solid $ff-grey-300;
-        padding: 10px 0;
-        width: 100%;
 
-        .title {
-            padding: 0 $ff-notifications-drawer-side-padding;
-            margin: 0;
-            color: $ff-grey-800;
-            font-weight: bold;
-            font-size: 1.25rem;
-            line-height: 1.75rem;
-        }
+    .content {
+      padding: 0 $ff-notifications-drawer-side-padding*2;
+      display: flex;
+      align-items: baseline;
 
-        .actions {
-            padding: 0 5px;
-            display: flex;
-            gap: 5px;
+      .title {
+        margin: 0;
+        color: $ff-grey-800;
+        font-weight: bold;
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+      }
 
-            .forge-badge {
-                background-color: $ff-grey-100;
-
-                &:hover {
-                    cursor: pointer;
-                    background-color: $ff-grey-300
-                }
-
-                &.disabled {
-                    color: $ff-grey-400;
-
-                    &:hover {
-                        cursor: not-allowed;
-                    }
-                }
-            }
-        }
+      .ff-checkbox {
+        margin: 0;
+      }
     }
 
-    .messages-wrapper {
-        flex: 1;
-        width: 100%;
+    .actions {
+      margin-top: 5px;
+      padding: 0 12px;
+      display: flex;
+      gap: 5px;
+
+      .forge-badge {
         background-color: $ff-grey-100;
-        
-        .message {
-            background-color: $ff-white;
-            border-bottom: 1px solid $ff-grey-300;
-            padding: 9px $ff-notifications-drawer-side-padding;
-            transition: ease-in-out .3s;
-            cursor: pointer;
+        border-radius: 5px;
 
-            &:hover .title {
-                color: $ff-blue-500;
-            }
+        &:hover {
+          cursor: pointer;
+          background-color: $ff-grey-300
+        }
 
-            .body {
-                flex: 1;
-                display: flex;
-                align-items: center;
-            }
+        &.disabled {
+          color: $ff-grey-400;
 
-            .text {
-                padding: 0 $ff-notifications-drawer-side-padding;
-                flex-grow: 1;
-            }
-
-            .header {
-                display: flex;
-                justify-content: space-between;
-                .title {
-                    flex: 1;
-                    transition: ease-in-out .3s;
-                    h4 {
-                        margin: 0;
-                    }
-                }
-
-                input {
-                    &:hover {
-                        cursor: pointer;
-                    }
-                }
-            }
-
-            .footer {
-                margin-top: 6px;
-                text-align: right;
-                color: $ff-grey-400;
-                font-size: 80%;
-                padding: 0 $ff-notifications-drawer-side-padding;
-            }
-
-            &:hover {
-                background-color: $ff-grey-100;
-            }
-        }   
+          &:hover {
+            cursor: not-allowed;
+          }
+        }
+      }
     }
-    
-    .empty {
+  }
+
+  .messages-wrapper {
+    flex: 1;
+    width: 100%;
+    background-color: $ff-grey-100;
+    $read: $ff-grey-400;
+    $info: blue;
+    $warning: $ff-yellow-600;
+    $error: $ff-red-500;
+
+    .message-wrapper {
+      display: flex;
+      flex-direction: row;
+      color: $ff-grey-400;
+      background-color: $ff-white;
+      border-bottom: 1px solid $ff-grey-300;
+      border-left: 3px solid rgba(0, 0, 0, 0);
+      transition: ease-in-out .3s;
+      cursor: pointer;
+
+      .counter {
+        margin-top: 0.2rem;
+
+        .ff-notification-pill {
+          background-color: $read;
+          color: white;
+          padding: 2px 7px;
+          border-radius: 6px;
+          font-size: 0.65rem;
+        }
+      }
+
+      .action {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 40px;
+        cursor: default;
+
+        .ff-checkbox {
+          height: 13px;
+          width: 13px;
+          padding: 0;
+
+          span {
+            margin: 0;
+            padding: 0;
+          }
+        }
+      }
+
+      &:hover .title {
+        color: $ff-blue-500;
+      }
+
+      &.unread {
+        border-left: 3px solid $info;
+        border-left-color: $ff-blue-500;
+        color: $ff-grey-800;
+
+        &.warning {
+          border-left: 3px solid $warning;
+
+          .counter .ff-notification-pill {
+            background-color: $warning;
+          }
+        }
+
+        &.error {
+          border-left: 3px solid $error;
+
+          .counter .ff-notification-pill {
+            background-color: $error;
+          }
+        }
+
+        .counter .ff-notification-pill {
+          background-color: $info;
+        }
+      }
+
+      .body {
         flex: 1;
         display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        color: $ff-grey-400;
-        width: 100%;
+        flex-direction: column;
+        padding: 9px $ff-notifications-drawer-side-padding*2 9px $ff-notifications-drawer-side-padding;
+
+        .header {
+          gap: 5px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .ff-icon {
+            height: 20px;
+            min-width: 20px;
+            min-height: 20px;
+            max-width: fit-content;
+            max-height: fit-content;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .title {
+            flex: 1;
+            transition: ease-in-out .3s;
+            margin: 0;
+          }
+
+          input {
+            &:hover {
+              cursor: pointer;
+            }
+          }
+        }
+
+        .text {
+          display: flex;
+          margin: 10px 0;
+          align-items: center;
+          line-height: 1.5rem;
+        }
+
+        .footer {
+          display: flex;
+          text-align: right;
+          color: $ff-grey-400;
+          font-size: 80%;
+          padding: 0 $ff-notifications-drawer-side-padding;
+          justify-content: flex-end;
+        }
+      }
+
+      &:hover {
         background-color: $ff-grey-100;
+      }
     }
-    
+  }
+
+  .empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: $ff-grey-400;
+    width: 100%;
+    background-color: $ff-grey-100;
+  }
+
 }

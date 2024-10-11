@@ -48,21 +48,19 @@
     </template>
     <template v-else-if="entry.event === 'team.user.role-changed' || entry.event === 'user.roleChanged'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.user">The role for '{{ entry.body.user.name }}' has been changed <AuditEntryUpdates :updates="entry.body.updates" />.</span>
+        <span v-if="!error && entry.body?.user">The role for '{{ entry.body.user.name }}' has been changed.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
 
     <!-- Team Settings Events -->
     <template v-else-if="entry.event === 'team.settings.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.updates">The following updates have been made to the team settings: <AuditEntryUpdates :updates="entry.body.updates" />.</span>
-        <span v-else-if="!error">Updates not found in audit entry.</span>
+        <span v-if="!error">Team settings have been changed.</span>
     </template>
 
     <!-- Team Type Events -->
     <template v-else-if="entry.event === 'team.type.changed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <!-- <span v-if="!error && entry.body?.updates">The team type changed from '{{ entry.body.updates.typeName?.old || entry.body.updates.type.old }}' to '{{ entry.body.updates.typeName?.new || entry.body.updates.type.new }}'.</span> -->
         <span v-if="!error && entry.body?.info">The team type changed from '{{ entry.body.info.old.name }}' to '{{ entry.body.info.new.name }}'.</span>
         <span v-else-if="!error">Details not found in audit entry.</span>
     </template>
@@ -107,7 +105,7 @@
     </template>
     <template v-else-if="entry.event === 'team.device.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" />.</span>
+        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has been updated.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'team.device.assigned'">
@@ -134,7 +132,7 @@
     </template>
     <template v-else-if="entry.event === 'team.device.provisioning.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.info">Token name '{{ entry.body.info.tokenName }}' with ID '{{ entry.body.info.tokenId }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-if="!error && entry.body?.info">Token name '{{ entry.body.info.tokenName }}' with ID '{{ entry.body.info.tokenId }}' has been updated.</span>
         <span v-else-if="!error">Provisioning data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'team.device.provisioning.deleted'">
@@ -254,7 +252,7 @@
     </template>
     <template v-else-if="entry.event === 'users.updated-user'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.user">User '{{ entry.body.user?.name }}' has been updated, with the following changes {{ entry.body.updates }}.</span>
+        <span v-if="!error && entry.body?.user">User '{{ entry.body.user?.name }}' has been updated.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'users.auto-created-team'">
@@ -296,6 +294,11 @@
         <span v-if="!error && typeof entry.body?.info === 'object'">Type: '{{ entry.body.info.resource }}', Limit: {{ entry.body.info.limit }}, Count: {{ entry.body.info.count }}</span>
         <span v-else-if="!error">License data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'platform.license.expired'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.license">License has expired: {{ entry.body.license }}</span>
+        <span v-else-if="!error">License data not found in audit entry.</span>
+    </template>
     <!-- Platform instance type Events -->
     <template v-else-if="entry.event === 'platform.project-type.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -309,7 +312,7 @@
     </template>
     <template v-else-if="entry.event === 'platform.project-type.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.projectType">Instance type '{{ entry.body.projectType }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-if="!error && entry.body?.projectType">Instance type '{{ entry.body.projectType }}' has been updated.</span>
         <span v-else-if="!error">Instance Type data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.stack.created'">
@@ -324,13 +327,12 @@
     </template>
     <template v-else-if="entry.event === 'platform.stack.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.stack">Node-RED Version '{{ entry.body.stack.name }}' has been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-if="!error && entry.body?.stack">Node-RED Version '{{ entry.body.stack.name }}' has been updated.</span>
         <span v-else-if="!error">Node-RED Version data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'platform.settings.updated' || entry.event === 'platform.settings.update'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.updates">Platform settings have been updated with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
-        <span v-else-if="!error">Update data not found in audit entry.</span>
+        <span v-if="!error">Platform settings have been updated.</span>
     </template>
 
     <!-- Application Events -->
@@ -341,8 +343,7 @@
     </template>
     <template v-else-if="entry.event === 'application.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.updates">The following updates have been made to the Application: <AuditEntryUpdates :updates="entry.body.updates" />.</span>
-        <span v-else-if="!error">Updates not found in audit entry.</span>
+        <span v-if="!error">The Application has been updated.</span>
     </template>
     <template v-else-if="entry.event === 'application.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -356,7 +357,7 @@
     </template>
     <template v-else-if="entry.event === 'application.pipeline.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.pipeline">DevOps Pipeline '{{ entry.body.pipeline?.name }}' was updated {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }} with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-if="!error && entry.body?.pipeline">DevOps Pipeline '{{ entry.body.pipeline?.name }}' was updated {{ entry.body.application ? `in Application '${entry.body.application.name}'` : '' }}.</span>
         <span v-else-if="!error">Pipeline data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'application.pipeline.deleted'">
@@ -392,6 +393,10 @@
         <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been been created from Application owned Device '{{ entry.body.device?.name }}'.</span>
         <span v-else-if="!error">Device or Snapshot data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'application.device.snapshot.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error">Snapshot '{{ entry.body.snapshot?.name }}' of Application owned Device '{{ entry.body.device?.name }}' has been been updated</span>
+    </template>
     <template v-else-if="entry.event === 'application.device.snapshot.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device && entry.body.snapshot">Snapshot '{{ entry.body.snapshot?.name }}' has been been deleted for Application owned Device '{{ entry.body.device?.name }}'.</span>
@@ -414,14 +419,14 @@
     </template>
     <template v-else-if="entry.event === 'device.settings.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has had the following changes made to its settings: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-if="!error && entry.body?.device">Device '{{ entry.body.device?.name }}' has had changes made to its settings.</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
 
     <!-- Application Device Group Events -->
     <template v-else-if="entry.event === 'application.deviceGroup.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' was updated for Application '{{ entry.body.application?.name }}' with the following changes: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' was updated for Application '{{ entry.body.application?.name }}'.</span>
         <span v-else-if="!error">Device Group data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'application.deviceGroup.created'">
@@ -533,13 +538,18 @@
     </template>
     <template v-else-if="entry.event === 'project.settings.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project?.name }}' has had the following changes made to its settings: <AuditEntryUpdates :updates="entry.body.updates" /></span>
+        <span v-if="!error && entry.body?.project">Instance '{{ entry.body.project?.name }}' has had changes made to its settings.</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.snapshot.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.project && entry.body.snapshot">A new Snapshot '{{ entry.body.snapshot?.name }}' has been created for Instance '{{ entry.body.project?.name }}'.</span>
         <span v-else-if="!error">Instance data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'project.snapshot.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body">Snapshot '{{ entry.body.snapshot?.name }}' of Instance '{{ entry.body.project?.name }}' has been been updated.</span>
+        <span v-else-if="!error">Change data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'project.device.snapshot.created'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -577,7 +587,7 @@
     </template>
     <template v-else-if="entry.event === 'project.httpToken.updated'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error">HTTP Bearer Token has been Updated <AuditEntryUpdates :updates="entry.body.updates" />.</span>
+        <span v-if="!error">HTTP Bearer Token has been updated.</span>
     </template>
     <template v-else-if="entry.event === 'project.httpToken.deleted'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -655,8 +665,20 @@
                 <ChevronRightIcon class="ff-icon ff-icon-sm" />
                 Show Error
             </summary>
-            <span>
+            <span class="font-mono ml-3 whitespace-pre">
                 {{ entry.body }}
+                <ChevronDownIcon class="ff-icon ff-icon-sm" />
+            </span>
+        </details>
+    </template>
+    <template v-if="updates">
+        <details class="ff-audit-entry--error">
+            <summary>
+                <ChevronRightIcon class="ff-icon ff-icon-sm" />
+                Show Details
+            </summary>
+            <span class="font-mono ml-3 whitespace-pre">
+                <AuditEntryUpdates :entry="entry" />
                 <ChevronDownIcon class="ff-icon ff-icon-sm" />
             </span>
         </details>
@@ -681,6 +703,9 @@ export default {
     computed: {
         error: function () {
             return this.entry.body?.error !== undefined
+        },
+        updates: function () {
+            return this.entry.body?.updates && this.entry.body.updates.length ? this.entry.body.updates : null
         }
     },
     setup () {

@@ -1,18 +1,7 @@
-const { registerPermissions } = require('../../../lib/permissions')
-const { Roles } = require('../../../lib/roles.js')
-
 const hasValueChanged = (requestProp, existingProp) => (requestProp !== undefined && existingProp !== requestProp)
 
 module.exports = async function (app) {
     app.config.features.register('flowBlueprints', true, true)
-
-    registerPermissions({
-        'flow-blueprint:create': { description: 'Create a Flow Blueprint', role: Roles.Admin },
-        'flow-blueprint:list': { description: 'List all Flow Blueprints' },
-        'flow-blueprint:read': { description: 'View a Flow Blueprint' },
-        'flow-blueprint:delete': { description: 'Delete a Flow Blueprint', role: Roles.Admin },
-        'flow-blueprint:edit': { description: 'Edit a Flow Blueprint', role: Roles.Admin }
-    })
 
     app.get('/', {
         preHandler: app.needsPermission('flow-blueprint:list'),

@@ -99,14 +99,43 @@ module.exports = {
                 // determine if this user owns any teams
                 // throw an error if we would orphan any teams
                 const teams = await app.db.models.Team.forUser(user)
+                const teamBlockers = []
+                const ownedTeams = []
                 for (const team of teams) {
                     const owners = await team.Team.getOwners()
                     const isOwner = owners.find((owner) => owner.id === user.id)
 
-                    // if this user is the only owner of this team, throw an error
                     if (isOwner && owners.length <= 1) {
-                        throw new Error('Cannot delete the last owner of a team')
+                        const instanceCount = await team.Team.instanceCount()
+                        const deviceCount = await team.Team.deviceCount()
+                        const members = await team.Team.memberCount()
+
+                        ownedTeams.push(team.Team)
+
+                        // throw error if the team has other members assigned to it
+                        if (members > 1) {
+                            teamBlockers.push(`Team ${team.Team.name} which is being deleted alongside your account still has users in it.`)
+                        }
+
+                        // throw error if the team has remaining instances assigned to it
+                        if (instanceCount > 0) {
+                            teamBlockers.push(`Team ${team.Team.name} which is being deleted alongside your account still has instances assigned to it.`)
+                        }
+
+                        // throw error if the team has remaining devices assigned to it
+                        if (deviceCount > 0) {
+                            teamBlockers.push(`Team ${team.Team.name} which is being deleted alongside your account still has devices assigned to it.`)
+                        }
                     }
+                }
+
+                if (teamBlockers.length) {
+                    throw new Error(teamBlockers[0])
+                }
+
+                // delete remaining owned teams
+                for (const ownedTeam of ownedTeams) {
+                    await ownedTeam.destroy()
                 }
 
                 // Need to do this in beforeDestroy as the Session.UserId field

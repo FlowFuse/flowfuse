@@ -60,8 +60,51 @@ module.exports = function (app) {
         })
         return logEntries
     }
+    app.addSchema({
+        $id: 'TimelineEntry',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            createdAt: { type: 'string' },
+            user: { $ref: 'User' },
+            event: { type: 'string' },
+            data: { type: 'object', additionalProperties: true }
+        }
+    })
+
+    app.addSchema({
+        $id: 'TimelineList',
+        type: 'array',
+        items: {
+            $ref: 'TimelineEntry'
+        }
+    })
+
+    function timelineEntry (timelineEntry) {
+        const logEntry = app.auditLog.formatters.formatLogEntry(timelineEntry)
+        let user = logEntry.User
+        if (!user && logEntry.trigger && logEntry.trigger.hashid) {
+            user = logEntry.trigger
+            user.username = user.username || user.name
+            user.avatar = user.avatar || app.db.utils.generateUserAvatar(user.username)
+        }
+        // catch all for missing user
+        user = user || { id: 0, type: 'system', hashid: 'system', name: 'FlowFuse Platform', username: 'System', avatar: '/avatar/camera.svg' }
+        return {
+            id: timelineEntry.hashid,
+            createdAt: timelineEntry.createdAt,
+            user: app.db.views.User.userSummary(user),
+            event: logEntry.event,
+            data: logEntry.body
+        }
+    }
+
+    function timelineList (timeline) {
+        return timeline.map(timelineEntry)
+    }
 
     return {
-        auditLog
+        auditLog,
+        timelineList
     }
 }

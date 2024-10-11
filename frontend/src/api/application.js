@@ -321,10 +321,12 @@ const deleteDeviceGroup = async (applicationId, groupId) => {
  * Update a device group
  * @param {string} applicationId - The ID of application
  * @param {string} groupId - The ID of the group
- * @param {object} group
+ * @param {object} name - The new name for the group (use `undefined` to keep the current name)
+ * @param {object} description - The new description for the group (use `undefined` to keep the current description)
+ * @param {string} targetSnapshotId - The new target snapshot ID for the group (use `undefined` to keep the current target, use `null` to remove the target)
  */
-const updateDeviceGroup = async (applicationId, groupId, name, description) => {
-    return client.put(`/api/v1/applications/${applicationId}/device-groups/${groupId}`, { name, description })
+const updateDeviceGroup = async (applicationId, groupId, name, description, targetSnapshotId = undefined) => {
+    return client.put(`/api/v1/applications/${applicationId}/device-groups/${groupId}`, { name, description, targetSnapshotId })
 }
 
 /**
@@ -338,6 +340,16 @@ const updateDeviceGroup = async (applicationId, groupId, name, description) => {
  */
 const updateDeviceGroupMembership = async (applicationId, groupId, { add, remove, set } = {}) => {
     return client.patch(`/api/v1/applications/${applicationId}/device-groups/${groupId}`, { add, remove, set })
+}
+
+/**
+ * Get a list of Dependencies / Bill of Materials
+ * @param applicationId
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+const getDependencies = (applicationId) => {
+    return client.get(`/api/v1/applications/${applicationId}/bom`)
+        .then(res => res.data)
 }
 
 export default {
@@ -360,5 +372,6 @@ export default {
     createDeviceGroup,
     deleteDeviceGroup,
     updateDeviceGroup,
-    updateDeviceGroupMembership
+    updateDeviceGroupMembership,
+    getDependencies
 }

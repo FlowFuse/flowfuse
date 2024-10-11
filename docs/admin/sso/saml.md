@@ -147,6 +147,7 @@ with FlowFuse SAML SSO.
  - [Google Workspace](#google-workspace)
  - [OneLogin](#onelogin)
  - [Okta](#okta)
+ - [Keycloak](#keycloak)
 
 ### Microsoft Entra
 

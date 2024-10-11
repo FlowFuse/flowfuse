@@ -1,18 +1,52 @@
 <template>
     <div class="ff-notifications-drawer" data-el="notifications-drawer">
         <div class="header">
-            <h2 class="title">Notifications</h2>
-            <!--            <div class="actions">-->
-            <!--                <span class="forge-badge" :class="{disabled: !canSelectAll}" @click="selectAll">select all</span>-->
-            <!--                <span class="forge-badge" :class="{disabled: !canDeselectAll}" @click="deselectAll">deselect all</span>-->
-            <!--                <span class="forge-badge disabled">mark as read</span>-->
-            <!--                <span class="forge-badge disabled">mark as unread</span>-->
-            <!--            </div>-->
+            <div class="flex content">
+                <h2 class="title flex-grow">Notifications</h2>
+                <ff-checkbox v-model="hideReadNotifications" class=" mt-2 mr-4" data-action="show-read-check">
+                    Hide Read
+                </ff-checkbox>
+            </div>
+
+            <div class="actions">
+                <span
+                    class="forge-badge"
+                    :class="{disabled: !canSelectAll}"
+                    data-action="select-all"
+                    @click="selectAll"
+                >
+                    select all
+                </span>
+                <span
+                    class="forge-badge"
+                    :class="{disabled: !canDeselectAll}"
+                    data-action="deselect-all"
+                    @click="deselectAll"
+                >
+                    deselect all
+                </span>
+                <span
+                    class="forge-badge"
+                    :class="{disabled: !canMarkAsRead}"
+                    data-action="mark-as-read"
+                    @click="bulkNotificationAction(true)"
+                >
+                    mark as read
+                </span>
+                <span
+                    class="forge-badge"
+                    :class="{disabled: !canMarkAsUnread}"
+                    data-action="mark-as-unread"
+                    @click="bulkNotificationAction(false)"
+                >
+                    mark as unread
+                </span>
+            </div>
         </div>
         <ul v-if="hasNotificationMessages" class="messages-wrapper" data-el="messages-wrapper">
-            <li v-for="notification in notificationMessages" :key="notification.id" data-el="message">
+            <li v-for="notification in filteredNotifications" :key="notification.id" data-el="message">
                 <component
-                    :is="notificationsComponentMap['team-invitation']"
+                    :is="getNotificationsComponent(notification)"
                     :notification="notification"
                     :selections="selections"
                     @selected="onSelected"
@@ -20,42 +54,82 @@
                 />
             </li>
         </ul>
+        <div v-else-if="hideReadNotifications" class="empty">
+            <p>No unread notifications...</p>
+        </div>
         <div v-else class="empty">
-            <p>Nothing so far...</p>
+            <p>No notifications...</p>
         </div>
     </div>
 </template>
 
 <script>
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
-import TeamInvitationNotification from '../../notifications/TeamInvitationNotification.vue'
+import userAPI from '../../../api/user.js'
+
+import alerts from '../../../services/alerts.js'
+import GenericNotification from '../../notifications/Generic.vue'
+import TeamInvitationAcceptedNotification from '../../notifications/invitations/Accepted.vue'
+import TeamInvitationReceivedNotification from '../../notifications/invitations/Received.vue'
 
 export default {
     name: 'NotificationsDrawer',
     data () {
         return {
-            notificationsComponentMap: {
-                // todo replace hardcoded value with actual notification type
-                'team-invitation': markRaw(TeamInvitationNotification)
-            },
-            selections: []
+            componentCache: {},
+            selections: [],
+            hideReadNotifications: true
         }
     },
     computed: {
-        ...mapGetters('account', ['notificationMessages']),
+        ...mapGetters('account', ['notifications']),
         canSelectAll () {
-            return this.notificationMessages.length !== this.selections.length
+            return this.filteredNotifications.length !== this.selections.length
         },
         canDeselectAll () {
             return this.selections.length > 0
         },
+        canMarkAsRead () {
+            return this.selections.filter(s => s.read === false).length > 0
+        },
+        canMarkAsUnread () {
+            return this.selections.filter(s => s.read === true).length > 0
+        },
         hasNotificationMessages () {
-            return this.notificationMessages.length > 0
+            return this.filteredNotifications.length > 0
+        },
+        filteredNotifications () {
+            return this.hideReadNotifications ? this.notifications.filter(n => !n.read) : this.notifications
         }
     },
+    unmounted () {
+        this.selections = []
+    },
     methods: {
+        ...mapActions('account', ['setNotifications']),
+        getNotificationsComponent (notification) {
+            let comp = this.componentCache[notification.type]
+            if (comp) {
+                return comp
+            }
+            // return specific notification component based on type
+            switch (notification.type) {
+            case 'team-invite':
+                comp = markRaw(TeamInvitationReceivedNotification)
+                break
+            case 'team-invite-accepted-invitor':
+                comp = markRaw(TeamInvitationAcceptedNotification)
+                break
+            default:
+                // default to generic notification
+                comp = markRaw(GenericNotification)
+                break
+            }
+            this.componentCache[notification.type] = comp
+            return comp
+        },
         onSelected (notification) {
             this.selections.push(notification)
         },
@@ -66,10 +140,18 @@ export default {
             }
         },
         selectAll () {
-            this.selections = [...this.notificationMessages]
+            this.selections = [...this.filteredNotifications]
         },
         deselectAll () {
             this.selections = []
+        },
+        bulkNotificationAction (markAsRead = true) {
+            userAPI.markNotificationsBulk(this.selections.map(n => n.id), { read: markAsRead })
+                .then(response => this.setNotifications(response.notifications))
+                .catch(() => alerts.emit('Whoops! Something went wrong.', 'warning'))
+                .finally(() => {
+                    this.selections = []
+                })
         }
     }
 }

@@ -21,6 +21,14 @@
                 </FormRow>
                 <template v-if="billingEnabled">
                     <FormHeading>Billing</FormHeading>
+                    <div class="space-y-2">
+                        <FormRow v-model="input.properties.billing.requireContact" type="checkbox" class="mb-4">Require contact to upgrade</FormRow>
+                        <div v-if="input.properties.billing.requireContact" class="grid gap-2 grid-cols-2 pl-4">
+                            <FormRow v-model="input.properties.billing.contactHSPortalId" :type="editDisabled?'uneditable':''">HubSpot Portal Id</FormRow>
+                            <FormRow v-model="input.properties.billing.contactHSFormId" :type="editDisabled?'uneditable':''">HubSpot Form Id</FormRow>
+                        </div>
+                    </div>
+
                     <div class="grid gap-2 grid-cols-3">
                         <FormRow v-model="input.properties.billing.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
                         <FormRow v-model="input.properties.billing.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
@@ -71,11 +79,14 @@
                 <div class="grid gap-3 grid-cols-4">
                     <div class="grid gap-3 grid-cols-2">
                         <FormRow v-model="input.properties.devices.limit"># Limit</FormRow>
-                        <FormRow v-if="billingEnabled" v-model="input.properties.devices.free"># Free</FormRow>
+                        <FormRow v-if="billingEnabled" v-model="input.properties.devices.free" :disabled="input.properties.devices.combinedFreeType !== '_'"># Free</FormRow>
                     </div>
                     <FormRow v-if="billingEnabled" v-model="input.properties.devices.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
                     <FormRow v-if="billingEnabled" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
                     <FormRow v-if="billingEnabled" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                </div>
+                <div v-if="billingEnabled" class="grid gap-3 grid-cols-1">
+                    <FormRow v-model="input.properties.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">Share free allocation with instance type:</FormRow>
                 </div>
 
                 <FormHeading>Features</FormHeading>
@@ -92,8 +103,10 @@
                     <FormRow v-model="input.properties.features.instanceAutoSnapshot" type="checkbox">Instance Auto Snapshot</FormRow>
                     <FormRow v-model="input.properties.features.editorLimits" type="checkbox">API/Debug Length Limits</FormRow>
                     <FormRow v-model="input.properties.features.customHostnames" type="checkbox">Custom Hostnames</FormRow>
-                    <!-- BEN -->
-                    <!-- <span /> to make the grid work nicely, only needed if there is an odd number of checkbox features above -->
+                    <FormRow v-model="input.properties.features.staticAssets" type="checkbox">Static Assets</FormRow>
+                    <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
+                    <!-- <span />-->
+                    <FormRow v-model="input.properties.features.bom" type="checkbox">Bill of Materials / Dependencies</FormRow>
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
@@ -135,7 +148,14 @@ export default {
                 const instanceTypes = await instanceTypesApi.getInstanceTypes()
                 instanceTypes.types.sort((A, B) => A.order - B.order)
                 this.instanceTypes = instanceTypes.types
+                this.deviceFreeOptions = [
+                    { label: 'None - use own free limit', value: '_' }
+                ]
                 this.trialInstanceTypes = this.instanceTypes.map(it => {
+                    this.deviceFreeOptions.push({
+                        value: it.id,
+                        label: it.name
+                    })
                     return {
                         value: it.id,
                         label: `Single ${it.name} instance`
@@ -245,6 +265,7 @@ export default {
                 { label: 'Generate invoice for each change', value: 'always_invoice' },
                 { label: 'Add proration items to monthly invoice', value: 'create_prorations' }
             ],
+            deviceFreeOptions: [],
             input: {
                 name: '',
                 active: true,
@@ -321,6 +342,11 @@ export default {
                     for (const instanceProperties of Object.values(opts.properties.instances)) {
                         formatNumber(instanceProperties, 'free')
                     }
+                    if (opts.properties.devices.combinedFreeType === '_') {
+                        delete opts.properties.devices.combinedFreeType
+                    } else if (opts.properties.devices.combinedFreeType) {
+                        delete opts.properties.devices.free
+                    }
                     opts.properties.billing = { ...this.input.properties.billing }
                     if (this.input.properties.trial.active) {
                         opts.properties.trial = { ...this.input.properties.trial }
@@ -330,6 +356,10 @@ export default {
                         }
                     } else {
                         opts.properties.trial = { active: false }
+                    }
+                    if (!opts.properties.billing.requireContact) {
+                        delete opts.properties.billing.contactHSPortalId
+                        delete opts.properties.billing.contactHSFormId
                     }
                 }
                 formatNumber(opts.properties.features, 'fileStorageLimit')

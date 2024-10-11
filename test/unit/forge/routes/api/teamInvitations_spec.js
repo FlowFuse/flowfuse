@@ -59,6 +59,9 @@ describe('Team Invitations API', function () {
         // POST /api/v1/teams/:teamId/invitations
 
         it('team owner can invite user to team', async () => {
+            let chrisNotifications = await app.db.models.Notification.forUser(TestObjects.chris)
+            chrisNotifications.should.have.property('count', 0)
+
             // Alice invite Chris to ATeam
             const response = await app.inject({
                 method: 'POST',
@@ -76,6 +79,9 @@ describe('Team Invitations API', function () {
             const invites = await app.db.models.Invitation.findAll()
             invites.should.have.lengthOf(1)
             invites[0].should.have.property('role', Roles.Viewer)
+
+            chrisNotifications = await app.db.models.Notification.forUser(TestObjects.chris)
+            chrisNotifications.should.have.property('count', 1)
         })
 
         it('team member cannot invite user to team', async () => {
@@ -310,6 +316,8 @@ describe('Team Invitations API', function () {
             invites = await app.db.controllers.Invitation.createInvitations(TestObjects.bob, TestObjects.BTeam, ['alice', 'chris'], Roles.Member)
         })
         it('team owner can delete an invitation', async () => {
+            let aliceNotifications = await app.db.models.Notification.forUser(TestObjects.alice)
+            const startNotificationCount = aliceNotifications.count
             const response = await app.inject({
                 method: 'DELETE',
                 url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations/${invites.alice.hashid}`,
@@ -317,6 +325,9 @@ describe('Team Invitations API', function () {
             })
             response.statusCode.should.equal(200)
             ;(await app.db.models.Invitation.count()).should.equal(1)
+
+            aliceNotifications = await app.db.models.Notification.forUser(TestObjects.alice)
+            aliceNotifications.should.have.property('count', startNotificationCount - 1)
         })
         it('non-team member cannot delete an invitation', async () => {
             const response = await app.inject({

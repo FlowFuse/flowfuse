@@ -510,35 +510,30 @@ async function init (app, opts) {
             tags: ['Authentication', 'X-HIDDEN']
         }
     }, async (request, reply) => {
+        let sessionUser
+        if (request.sid) {
+            request.session = await app.db.controllers.Session.getOrExpire(request.sid)
+            sessionUser = request.session?.User
+        }
+        let verifiedUser
         try {
-            let sessionUser
-            if (request.sid) {
-                request.session = await app.db.controllers.Session.getOrExpire(request.sid)
-                sessionUser = request.session?.User
-            }
-            let verifiedUser
-            try {
-                verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.body.token)
-            } catch (err) {
-                const resp = { code: 'invalid_request', error: err.toString() }
-                await app.auditLog.User.account.verify.verifyToken(request.session?.User, resp)
-                reply.code(400).send(resp)
-                return
-            }
-
-            await completeUserSignup(app, verifiedUser)
-            reply.send({ status: 'okay' })
+            verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.body.token)
+            await app.auditLog.User.account.verify.verifyToken(verifiedUser, null)
         } catch (err) {
-            if (err.message === 'team_limit_reached') {
-                const resp = { code: 'team_limit_reached', error: 'Unable to auto create user team: license limit reached' }
-                reply.code(400).send(resp)
-                return
-            }
-            app.log.error(`/account/verify/token error - ${err.toString()}`)
-            const resp = { code: 'unexpected_error', error: err.toString() }
+            const resp = { code: 'invalid_request', error: err.toString() }
             await app.auditLog.User.account.verify.verifyToken(request.session?.User, resp)
             reply.code(400).send(resp)
+            return
         }
+        try {
+            await completeUserSignup(app, verifiedUser)
+        } catch (err) {
+            // At this point, the user is verified. So we need to respond with success.
+            // However, an error was hit whilst completing their post-signup tasks.
+            await app.auditLog.User.account.verify.verifyToken(sessionUser, { error: err.toString() })
+            app.log.error(`/account/verify/token error - ${err.stack}`)
+        }
+        reply.send({ status: 'okay' })
     })
 
     /**

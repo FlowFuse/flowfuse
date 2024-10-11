@@ -59,9 +59,30 @@ module.exports = {
         }
 
         for (let i = 0; i < pendingInvites.length; i++) {
-            const invite = await app.db.models.Invitation.create(pendingInvites[i].opts)
+            let invite = await app.db.models.Invitation.create(pendingInvites[i].opts)
             // Re-get the new invite so the User/Team properties are pre-fetched
-            results[pendingInvites[i].userDetail] = await app.db.models.Invitation.byId(invite.hashid)
+            invite = await app.db.models.Invitation.byId(invite.hashid)
+            results[pendingInvites[i].userDetail] = invite
+            if (!invite.external) {
+                await app.notifications.send(
+                    invite.invitee,
+                    'team-invite',
+                    {
+                        invite: {
+                            id: invite.hashid
+                        },
+                        team: {
+                            id: invite.team.hashid,
+                            name: invite.team.name
+                        },
+                        invitor: {
+                            username: invitor.username
+                        },
+                        role
+                    },
+                    `team-invite:${invite.hashid}`
+                )
+            }
         }
         return results
     },
@@ -80,13 +101,56 @@ module.exports = {
             throw new Error('Cannot identify user for this invitation')
         }
         await app.db.controllers.Team.addUser(invitation.team, invitedUser, role)
+        const notificationReference = `team-invite:${invitation.hashid}`
         await invitation.destroy()
+        await app.notifications.remove(invitedUser, notificationReference)
+
+        // detail in audit log
         app.auditLog.Team.team.user.invite.accepted(user, null, invitation.team, invitedUser, role)
+
+        const team = {
+            id: invitation.team.hashid,
+            name: invitation.team.name,
+            slug: invitation.team.slug
+        }
+        const invitee = {
+            id: invitedUser.hashid,
+            username: invitedUser.username
+        }
+        const invitor = {
+            id: invitation.invitor.hashid,
+            username: invitation.invitor.username
+        }
+        // send invitor a notification
+        app.notifications.send(invitation.invitor, 'team-invite-accepted-invitor', {
+            team,
+            invitee,
+            invitor,
+            role
+        })
+
+        // record acceptance in product analytics tool
+        app.product.capture(invitedUser.username, '$ff-invite-accepted', {
+            'accepted-at': new Date().toISOString(),
+            'invite-id': invitation.hashid
+        }, {
+            team: invitation.team.hashid
+        })
     },
 
     rejectInvitation: async (app, invitation, user) => {
         const role = invitation.role || Roles.Member
+        let invitedUser = invitation.invitee
+        if (!invitedUser && invitation.external) {
+            // This won't have a full user object attached as they had not registered
+            // when the invitation was created.
+            if (user.email === invitation.email) {
+                invitedUser = user
+            }
+        }
+        const notificationReference = `team-invite:${invitation.hashid}`
         await invitation.destroy()
+        await app.notifications.remove(invitedUser, notificationReference)
         app.auditLog.Team.team.user.invite.rejected(user, null, invitation.team, invitation.invitee, role)
     }
 }

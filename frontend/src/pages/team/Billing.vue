@@ -62,7 +62,7 @@
                             You have <span class="font-bold" v-text="trialEndsIn" /> left of your trial.
                         </p>
                         <p>
-                            During the trial you can make full use of the features available to your team. To keep things running you will need to setup your billing details.
+                            You must add billing details in order to continue using FlowFuse.
                         </p>
                     </template>
                     <template v-else>
@@ -72,7 +72,7 @@
                     </template>
                 </template>
                 <template #actions>
-                    <ff-button data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
+                    <ff-button v-if="hasPermission('team:edit')" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
                 </template>
             </EmptyState>
             <EmptyState v-else>

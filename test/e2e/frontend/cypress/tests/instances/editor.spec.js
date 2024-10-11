@@ -235,7 +235,9 @@ describe('FlowForge - Instance editor', () => {
                 })
 
             cy.get('[data-el="tabs-drawer"]').within(() => {
-                cy.get('[data-action="open-dashboard"]').should('exist').should('be.disabled')
+                // cy.get('[data-action="open-dashboard"]').should('exist').should('be.disabled')
+                // anchors with disabled attribute fail the above assertion! so we need to check the attribute directly
+                cy.get('[data-action="open-dashboard"]').should('exist').should('have.attr', 'disabled')
             })
         })
     })

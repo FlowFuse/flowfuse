@@ -6,11 +6,14 @@
                 <div v-for="route in navigation.general" :key="route.label">
                     <router-link
                         v-if="route.label"
-                        :class="{'router-link-active': atNestedRoute(route)}"
+                        :class="{'router-link-active': atNestedRoute(route), 'disabled': route.disabled}"
                         :to="'/team/' + team.slug + route.to" :data-nav="route.tag"
                         @click="$emit('option-selected')"
                     >
-                        <nav-item :label="route.label" :icon="route.icon" :featureUnavailable="route.featureUnavailable" />
+                        <nav-item
+                            :label="route.label" :icon="route.icon"
+                            :featureUnavailable="route.featureUnavailable"
+                        />
                     </router-link>
                     <div v-else class="ff-side-navigation-divider" />
                 </div>
@@ -23,6 +26,7 @@
                 <router-link
                     v-for="route in navigation.admin" :key="route.label"
                     :to="'/team/' + team.slug + route.to"
+                    :class="{'disabled': route.disabled}"
                     :data-nav="route.tag"
                 >
                     <nav-item :icon="route.icon" :label="route.label" :featureUnavailable="route.featureUnavailable" />
@@ -37,7 +41,7 @@
 
 <script>
 import { ChipIcon, CogIcon, CurrencyDollarIcon, DatabaseIcon, FolderIcon, TemplateIcon, UsersIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import permissionsMixin from '../mixins/Permissions.js'
 
@@ -65,6 +69,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'features', 'notifications']),
+        ...mapGetters('account', ['noBilling']),
         nested: function () {
             return (this.$slots['nested-menu'] && this.loaded) || this.closeNested
         },
@@ -74,20 +79,23 @@ export default {
                     label: 'Applications',
                     to: '/applications',
                     tag: 'team-applications',
-                    icon: TemplateIcon
+                    icon: TemplateIcon,
+                    disabled: this.noBilling
                 },
                 {},
                 {
                     label: 'Instances',
                     to: '/instances',
                     tag: 'team-instances',
-                    icon: ProjectsIcon
+                    icon: ProjectsIcon,
+                    disabled: this.noBilling
                 },
                 {
                     label: 'Devices',
                     to: '/devices',
                     tag: 'team-devices',
-                    icon: ChipIcon
+                    icon: ChipIcon,
+                    disabled: this.noBilling
                 },
                 {},
                 {
@@ -95,19 +103,22 @@ export default {
                     to: '/library',
                     tag: 'shared-library',
                     icon: FolderIcon,
+                    disabled: this.noBilling,
                     featureUnavailable: !this.features?.['shared-library'] || this.team?.type.properties.features?.['shared-library'] === false
                 },
                 {
                     label: 'Members',
-                    to: '/members',
+                    to: '/members/general',
                     tag: 'team-members',
-                    icon: UsersIcon
+                    icon: UsersIcon,
+                    disabled: this.noBilling
                 }],
                 admin: [{
                     label: 'Audit Log',
                     to: '/audit-log',
                     tag: 'team-audit',
-                    icon: DatabaseIcon
+                    icon: DatabaseIcon,
+                    disabled: this.noBilling
                 },
                 {
                     label: 'Team Settings',

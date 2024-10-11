@@ -79,6 +79,7 @@
                 data-form="stage-instance"
                 :placeholder="instanceDropdownPlaceholder"
                 :disabled="instanceDropdownDisabled"
+                class="flex-grow"
             >
                 <template #default>
                     Choose Instance
@@ -92,6 +93,7 @@
                 data-form="stage-device"
                 :placeholder="deviceDropdownPlaceholder"
                 :disabled="deviceDropdownDisabled"
+                class="flex-grow"
             >
                 <template #default>
                     Choose Device
@@ -302,7 +304,7 @@ export default {
                 instanceId: stage.instances?.[0].id, // API supports multiple instances per stage but UI only exposes one
                 deviceId: stage.devices?.[0].id, // API supports multiple devices per stage but UI only exposes one
                 deviceGroupId: stage.deviceGroups?.[0].id, // API supports multiple devices per stage but UI only exposes one
-                action: stage?.action,
+                action: stage?.action || 'none',
                 deployToDevices: stage.deployToDevices || false,
                 stageType: stage.stageType || StageType.INSTANCE
             },
@@ -329,6 +331,9 @@ export default {
                 // if there are stages, then this cannot be the first stage
                 return false
             }
+        },
+        isLastStage () {
+            return !this.isEdit || this.pipeline.stages[this.pipeline.stages.length - 1].id === this.stage.id
         },
         formDirty () {
             return (
@@ -447,6 +452,9 @@ export default {
                 options.unshift({ value: StageAction.CREATE_SNAPSHOT, label: 'Create new instance snapshot' })
             } else if (this.input.stageType === StageType.DEVICE) {
                 options.unshift({ value: StageAction.USE_ACTIVE_SNAPSHOT, label: 'Use active snapshot' })
+            }
+            if (!this.isFirstStage && this.isLastStage) {
+                options.unshift({ value: StageAction.NONE, label: 'Do nothing' })
             }
 
             return options

@@ -2,6 +2,12 @@
 navTitle: Docker on Digital Ocean
 meta:
    description: Deploy FlowFuse on Digital Ocean Droplets with Docker Compose effortlessly. Set up DNS, configure SMTP, and manage Node-RED applications seamlessly.
+   tags:
+      - digital ocean
+      - nodered
+      - flowfuse
+      - docker
+      - deploy
 ---
 
 # 1-Click Digital Ocean Droplet Install

@@ -32,7 +32,8 @@ const BANNED_NAME_LIST = [
     'status',
     'billing',
     'mqtt',
-    'broker'
+    'broker',
+    'egress'
 ]
 
 /** @type {FFModel} */
@@ -88,6 +89,20 @@ module.exports = {
             get () {
                 return this.getDataValue('safeName') || this.getDataValue('name')?.toLowerCase()
             }
+        },
+        versions: {
+            type: DataTypes.TEXT,
+            get () {
+                const rawValue = this.getDataValue('versions')
+                return rawValue ? JSON.parse(rawValue) : {}
+            },
+            set (value) {
+                if (Object.keys(value).length === 0) {
+                    this.setDataValue('versions', null)
+                    return
+                }
+                this.setDataValue('versions', JSON.stringify(value))
+            }
         }
     },
     indexes: [
@@ -133,6 +148,13 @@ module.exports = {
                 const { instances } = await app.license.usage('instances')
                 if (instances.count > instances.limit) {
                     await app.auditLog.Platform.platform.license.overage('system', null, instances)
+                }
+            },
+            beforeUpdate: async (project, opts) => {
+                if (project.changed('name')) {
+                    if (project.state !== 'suspended') {
+                        throw new Error('Name can only be changed when suspended')
+                    }
                 }
             },
             afterDestroy: async (project, opts) => {
@@ -289,6 +311,21 @@ module.exports = {
                         }
                     } else {
                         result.meta = await app.containers.details(this) || { state: 'unknown' }
+                        if (result.meta.versions) {
+                            const currentVersionInfo = { ...this.versions }
+                            let changed = false
+                            for (const [key, value] of Object.entries(result.meta.versions)) {
+                                currentVersionInfo[key] = currentVersionInfo[key] || {}
+                                if (currentVersionInfo[key].current !== value) {
+                                    currentVersionInfo[key].current = value
+                                    changed = true
+                                }
+                            }
+                            if (changed) {
+                                this.versions = currentVersionInfo
+                                await this.save()
+                            }
+                        }
                     }
 
                     result.meta.isDeploying = isDeploying
@@ -317,7 +354,7 @@ module.exports = {
                     return this.findAll({
                         include: {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended'],
                             include: [
                                 {
                                     model: M.TeamMember,
@@ -334,7 +371,7 @@ module.exports = {
                     const include = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
                         },
                         {
                             model: M.Application,
@@ -387,7 +424,7 @@ module.exports = {
                     const include = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
                         },
                         {
                             model: M.Application,
@@ -432,32 +469,40 @@ module.exports = {
                         include
                     })
                 },
-                byTeam: async (teamHashId) => {
+                byTeam: async (teamHashId, { includeSettings = false } = {}) => {
                     const teamId = M.Team.decodeHashid(teamHashId)
-                    return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                where: { id: teamId },
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
-                            },
-                            {
-                                model: M.Application,
-                                attributes: ['hashid', 'id', 'name', 'links']
-                            },
-                            {
-                                model: M.ProjectType,
-                                attributes: ['hashid', 'id', 'name']
-                            },
-                            {
-                                model: M.ProjectStack
-                            },
-                            {
-                                model: M.ProjectTemplate,
-                                attributes: ['hashid', 'id', 'name', 'links']
-                            }
-                        ]
-                    })
+                    const include = [
+                        {
+                            model: M.Team,
+                            where: { id: teamId },
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                        },
+                        {
+                            model: M.Application,
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        },
+                        {
+                            model: M.ProjectType,
+                            attributes: ['hashid', 'id', 'name']
+                        },
+                        {
+                            model: M.ProjectStack
+                        },
+                        {
+                            model: M.ProjectTemplate,
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        }
+                    ]
+
+                    if (includeSettings) {
+                        include.push({
+                            model: M.ProjectSettings,
+                            attributes: ['id', 'key', 'value', 'ProjectId'],
+                            where: { key: 'settings' }
+                        })
+                    }
+
+                    return this.findAll({ include })
                 },
                 getProjectTeamId: async (id) => {
                     const project = await this.findOne({
@@ -470,9 +515,29 @@ module.exports = {
                         return project.TeamId
                     }
                 },
-
                 generateCredentialSecret () {
                     return crypto.randomBytes(32).toString('hex')
+                },
+                byTeamForDashboard: async (teamHashId) => {
+                    const teamId = M.Team.decodeHashid(teamHashId)
+                    return this.findAll({
+                        include: [
+                            {
+                                model: M.Team,
+                                where: { id: teamId },
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
+                            },
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id', 'name', 'links']
+                            },
+                            {
+                                model: M.ProjectSettings,
+                                attributes: ['id', 'key', 'value', 'ProjectId'],
+                                where: { key: 'settings' }
+                            }
+                        ]
+                    })
                 }
             }
         }

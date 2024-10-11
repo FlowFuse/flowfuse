@@ -1,5 +1,15 @@
 ---
 navTitle: FlowFuse Architecture
+meta:
+   description: Overview of FlowFuse architecture and deployment options.
+   tags: 
+      - flowFuse
+      - architecture
+      - contributing
+      - nodered
+      - kubernetes
+      - docker
+      - container orchestration
 ---
 
 # FlowFuse Architecture

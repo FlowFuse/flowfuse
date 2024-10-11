@@ -333,7 +333,7 @@ module.exports = async function (app) {
                 reply.send(response)
             } finally {
                 if (app.license.active() && app.billing) {
-                    await app.billing.updateTeamDeviceCount(team)
+                    await app.billing.updateTeamBillingCounts(team)
                 }
             }
         } catch (err) {
@@ -378,7 +378,7 @@ module.exports = async function (app) {
             await request.device.destroy()
             await app.auditLog.Team.team.device.deleted(request.session.User, null, team, request.device)
             if (app.license.active() && app.billing) {
-                await app.billing.updateTeamDeviceCount(team)
+                await app.billing.updateTeamBillingCounts(team)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
@@ -940,6 +940,61 @@ module.exports = async function (app) {
         const logEntries = await app.db.models.AuditLog.forDevice(request.device.id, paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
         reply.send(result)
+    })
+
+    /**
+     * @name /api/v1/devices/:id/audit-log/export
+     * @memberof forge.routes.api.devices
+     */
+    app.get('/:deviceId/audit-log/export', {
+        preHandler: app.needsPermission('device:audit-log'),
+        schema: {
+            summary: '',
+            tags: ['Devices'],
+            params: {
+                type: 'object',
+                properties: {
+                    deviceId: { type: 'string' }
+                }
+            },
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    content: {
+                        'text/csv': {
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forDevice(request.device.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.type('text/csv').send([
+            ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
+            ...result.log.map(row => [
+                row.id,
+                row.event,
+                `"${row.body ? JSON.stringify(row.body).replace(/"/g, '""') : ''}"`,
+                `"${JSON.stringify(row.scope).replace(/"/g, '""')}"`,
+                `"${JSON.stringify(row.trigger).replace(/"/g, '""')}"`,
+                row.createdAt?.toISOString()
+            ])
+        ]
+            .map(row => row.join(','))
+            .join('\r\n'))
     })
 
     async function assignDeviceToProject (device, project) {

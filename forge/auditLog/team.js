@@ -10,6 +10,12 @@ module.exports = {
             async deleted (actionedBy, error, team) {
                 await log('team.deleted', actionedBy, team?.id, generateBody({ error, team }))
             },
+            async suspended (actionedBy, error, team) {
+                await log('team.suspended', actionedBy, team?.id, generateBody({ error, team }))
+            },
+            async unsuspended (actionedBy, error, team) {
+                await log('team.unsuspended', actionedBy, team?.id, generateBody({ error, team }))
+            },
             user: {
                 async added (actionedBy, error, team, user) {
                     const body = generateBody({ error, user })

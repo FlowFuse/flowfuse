@@ -9,48 +9,39 @@
         <div v-else-if="canAccessTeam && team">
             <Teleport v-if="mounted" to="#platform-banner">
                 <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
-                <SubscriptionExpiredBanner :team="team" />
+                <TeamSuspendedBanner v-if="team.suspended" :team="team" />
+                <SubscriptionExpiredBanner v-else :team="team" />
                 <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
             </Teleport>
             <router-view />
         </div>
         <div v-else-if="!canAccessTeam">
-            <EmptyState>
-                <template #img>
-                    <img src="../../images/empty-states/no-access_dashboard-only.png">
-                </template>
-                <template #header>No Access</template>
-                <template #message>
-                    <p>You have a dashboard-only role in this team.</p>
-                    <p>
-                        This means you can access the pages created by the Node-RED instances in this team, but
-                        you cannot access their FlowFuse settings.
-                    </p>
-                </template>
-            </EmptyState>
+            <TeamInstances :dashboard-role-only="true" />
         </div>
     </div>
 </template>
 
 <script>
 import { useRoute } from 'vue-router'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles.js'
-
-import EmptyState from '../../components/EmptyState.vue'
 import Loading from '../../components/Loading.vue'
 import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
+import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import { Roles } from '../../utils/roles.js'
+
+import TeamInstances from './Instances.vue'
 
 export default {
     name: 'TeamPage',
     components: {
-        EmptyState,
+        TeamInstances,
         Loading,
         SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
+        TeamSuspendedBanner,
         TeamTrialBanner
     },
     async beforeRouteUpdate (to, from, next) {
@@ -67,6 +58,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
+        ...mapGetters('account', ['noBilling', 'isAdminUser']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -78,7 +70,7 @@ export default {
             return true
         },
         canAccessTeam: function () {
-            return this.teamMembership?.role >= Roles.Viewer
+            return this.isAdminUser || this.teamMembership?.role >= Roles.Viewer
         }
     },
     mounted () {
@@ -104,12 +96,7 @@ export default {
         },
         checkBilling: async function () {
             // Team Billing
-            if (!this.user.admin &&
-                this.features.billing &&
-                (!this.team.billing?.unmanaged) &&
-                (!this.team.billing?.trial || this.team.billing?.trialEnded) &&
-                !this.team.billing?.active
-            ) {
+            if (this.noBilling) {
                 this.$router.push({
                     path: `/team/${this.team.slug}/billing`
                 })

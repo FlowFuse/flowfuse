@@ -81,7 +81,7 @@ export default {
     watch: {
         'input.username': function (v) {
             if (v && !/^[a-z0-9-_]+$/i.test(v)) {
-                this.errors.username = 'Must only contain a-z 0-9 - _'
+                this.errors.username = 'Must only contain a-z A-Z 0-9 - _'
             } else {
                 this.errors.username = ''
             }
