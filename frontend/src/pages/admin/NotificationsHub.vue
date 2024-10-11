@@ -11,10 +11,10 @@
                             Announcement Title
                             <template #description>Enter a concise title for your announcement.</template>
                         </FormRow>
-                        <FormRow v-model="form.text">
+                        <FormRow v-model="form.message">
                             Announcement Text
                             <template #description>Provide the details of your announcement.</template>
-                            <template #input><textarea v-model="form.text" class="w-full max-h-80 min-h-40" rows="4" /></template>
+                            <template #input><textarea v-model="form.message" class="w-full max-h-80 min-h-40" rows="4" /></template>
                         </FormRow>
                     </section>
                     <section>
@@ -52,7 +52,7 @@ export default {
         return {
             form: {
                 title: '',
-                text: '',
+                message: '',
                 roles: []
             },
             errors: {
@@ -66,7 +66,7 @@ export default {
         },
         canSubmit () {
             return this.form.title.length > 0 &&
-                this.form.text.length > 0 &&
+                this.form.message.length > 0 &&
                 this.form.roles.length > 0
         }
     },
@@ -95,7 +95,7 @@ export default {
                     if (!mock) {
                         alerts.emit(`Announcement sent to ${res.recipientCount} recipients.`, 'confirmation')
                         this.form.title = ''
-                        this.form.text = ''
+                        this.form.message = ''
                         this.form.roles = []
                     }
                     return res

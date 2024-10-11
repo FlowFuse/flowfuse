@@ -422,9 +422,9 @@ module.exports = async function (app) {
             tags: ['Platform', 'Notifications', 'Announcements'],
             body: {
                 type: 'object',
-                required: ['text', 'title', 'recipientRoles'],
+                required: ['message', 'title', 'recipientRoles'],
                 properties: {
-                    text: { type: 'string' },
+                    message: { type: 'string' },
                     title: { type: 'string' },
                     recipientRoles: { type: 'array', items: { type: 'number' } },
                     mock: { type: 'boolean' }
@@ -445,7 +445,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const {
             title,
-            text,
+            message,
             recipientRoles,
             mock
         } = request.body
@@ -462,7 +462,7 @@ module.exports = async function (app) {
 
         const data = {
             title,
-            text,
+            message,
             recipientRoles
         }
 
