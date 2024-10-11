@@ -1,6 +1,13 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 
+async function clearUserNotifications (app, user) {
+    const notifications = await app.db.models.Notification.forUser(user)
+    if (notifications) {
+        notifications.notifications.forEach(n => n.destroy())
+    }
+}
+
 describe('User Notifications API', async function () {
     let app
     const TestObjects = {}
@@ -15,9 +22,11 @@ describe('User Notifications API', async function () {
 
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword', admin: true, sso_enabled: true })
+        TestObjects.colin = await app.db.models.User.create({ username: 'colin', name: 'Colin Solo', email: 'colin@example.com', email_verified: true, password: 'ccPassword', admin: false, sso_enabled: true })
 
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
+        await login('colin', 'ccPassword')
     }
 
     before(async function () {
@@ -175,6 +184,80 @@ describe('User Notifications API', async function () {
             const aliceNotifications3 = await getNotifications(TestObjects.tokens.alice)
             aliceNotifications3.notifications[0].should.have.property('read', false)
             aliceNotifications3.notifications[1].should.have.property('read', false)
+        })
+        it('user can mark notification as read/unread in bulk', async function () {
+            const notificationType = 'crashed'
+            const notificationRef = `${notificationType}:${TestObjects.Project1.id}`
+            await app.notifications.send(TestObjects.colin, notificationType, { user: 'colin', i: 1 }, notificationRef, { upsert: false })
+            await app.notifications.send(TestObjects.colin, notificationType, { user: 'colin', i: 1 }, notificationRef, { upsert: false })
+
+            const colinNotifications = await getNotifications(TestObjects.tokens.colin)
+            colinNotifications.should.have.property('count', 2)
+
+            const ids = colinNotifications.notifications.map(n => n.id)
+            const response1 = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/notifications/',
+                payload: { read: true, ids },
+                cookies: { sid: TestObjects.tokens.colin }
+            })
+            response1.statusCode.should.equal(200)
+
+            const colinNotifications2 = await getNotifications(TestObjects.tokens.colin)
+            colinNotifications2.notifications[0].should.have.property('read', true)
+            colinNotifications2.notifications[1].should.have.property('read', true)
+
+            const response2 = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/notifications/',
+                payload: { read: false, ids },
+                cookies: { sid: TestObjects.tokens.colin }
+            })
+            response2.statusCode.should.equal(200)
+
+            const colinNotifications3 = await getNotifications(TestObjects.tokens.colin)
+            colinNotifications3.notifications[0].should.have.property('read', false)
+            colinNotifications3.notifications[1].should.have.property('read', false)
+        })
+        it('will return a 400 response if receives an incorrect payload', async () => {
+            await clearUserNotifications(app, TestObjects.colin)
+
+            const notificationType = 'crashed'
+            const notificationRef = `${notificationType}:${TestObjects.Project1.id}`
+            await app.notifications.send(TestObjects.colin, notificationType, { user: 'colin', i: 1 }, notificationRef, { upsert: false })
+            await app.notifications.send(TestObjects.colin, notificationType, { user: 'colin', i: 1 }, notificationRef, { upsert: false })
+
+            const colinNotifications = await getNotifications(TestObjects.tokens.colin)
+            colinNotifications.should.have.property('count', 2)
+            const ids = [{}]
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/notifications/',
+                payload: { read: true, ids },
+                cookies: { sid: TestObjects.tokens.colin }
+            })
+            response.statusCode.should.equal(400)
+        })
+        it('can handle invalid notifications ids', async () => {
+            await clearUserNotifications(app, TestObjects.colin)
+
+            const notificationType = 'crashed'
+            const notificationRef = `${notificationType}:${TestObjects.Project1.id}`
+            await app.notifications.send(TestObjects.colin, notificationType, { user: 'colin', i: 1 }, notificationRef, { upsert: false })
+            await app.notifications.send(TestObjects.colin, notificationType, { user: 'colin', i: 1 }, notificationRef, { upsert: false })
+
+            const colinNotifications = await getNotifications(TestObjects.tokens.colin)
+            colinNotifications.should.have.property('count', 2)
+            const ids = ['non-existing', 92828292, null, undefined, false, true]
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/notifications/',
+                payload: { read: true, ids },
+                cookies: { sid: TestObjects.tokens.colin }
+            })
+            response.statusCode.should.equal(200)
         })
         it('user cannot modify another users notification', async function () {
             const aliceNotifications = await getNotifications(TestObjects.tokens.alice)
