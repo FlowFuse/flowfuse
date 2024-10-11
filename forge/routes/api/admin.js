@@ -426,7 +426,8 @@ module.exports = async function (app) {
                 properties: {
                     text: { type: 'string' },
                     title: { type: 'string' },
-                    recipientRoles: { type: 'array', items: { type: 'number' } }
+                    recipientRoles: { type: 'array', items: { type: 'number' } },
+                    mock: { type: 'boolean' }
                 }
             },
             response: {
@@ -445,7 +446,8 @@ module.exports = async function (app) {
         const {
             title,
             text,
-            recipientRoles
+            recipientRoles,
+            mock
         } = request.body
 
         if (!recipientRoles.every(value => Object.values(Roles).includes(value))) {
@@ -463,14 +465,17 @@ module.exports = async function (app) {
             text,
             recipientRoles
         }
-        for (const recipient of recipients) {
-            await app.notifications.send(
-                recipient,
-                notificationType,
-                data,
-                reference,
-                { upsert: false }
-            )
+
+        if (!mock || mock === false) {
+            for (const recipient of recipients) {
+                await app.notifications.send(
+                    recipient,
+                    notificationType,
+                    data,
+                    reference,
+                    { upsert: false }
+                )
+            }
         }
 
         reply.send({

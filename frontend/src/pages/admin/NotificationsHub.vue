@@ -30,7 +30,7 @@
                     </section>
                 </section>
                 <section class="actions">
-                    <ff-button :disabled="!canSubmit" @click.stop.prevent="sendAnnouncement"> Send Announcement </ff-button>
+                    <ff-button :disabled="!canSubmit" @click.stop.prevent="submitForm"> Send Announcement </ff-button>
                 </section>
             </form>
         </div>
@@ -41,6 +41,7 @@
 import adminApi from '../../api/admin.js'
 import FormRow from '../../components/FormRow.vue'
 import alerts from '../../services/alerts.js'
+import Dialog from '../../services/dialog.js'
 import FfButton from '../../ui-components/components/Button.vue'
 import { RoleNames, Roles } from '../../utils/roles.js'
 
@@ -74,16 +75,34 @@ export default {
             return adminApi.getAnnouncementNotifications()
                 .then(res => console.info(res))
         },
-        sendAnnouncement () {
-            return adminApi.sendAnnouncementNotification({
+        submitForm () {
+            return this.sendAnnouncementNotification({ mock: true })
+                .then(mockRes => Dialog.show({
+                    header: 'Platform Wide Announcement',
+                    kind: 'danger',
+                    text: `You are about to send an announcement to ${mockRes.recipientCount} recipients.`,
+                    confirmLabel: 'Continue'
+                }, async () => this.sendAnnouncementNotification({ mock: false })))
+        },
+        sendAnnouncementNotification ({ mock = true }) {
+            const payload = {
+                mock,
                 ...this.form,
                 recipientRoles: this.form.roles.map(r => Roles[r])
-            })
-                .then(res => alerts.emit(`Announcement sent to ${res.recipientCount} recipients.`, 'confirmation'))
-                .then(() => {
-                    this.form.title = ''
-                    this.form.text = ''
-                    this.form.roles = []
+            }
+            return adminApi.sendAnnouncementNotification(payload)
+                .then(res => {
+                    if (!mock) {
+                        alerts.emit(`Announcement sent to ${res.recipientCount} recipients.`, 'confirmation')
+                        this.form.title = ''
+                        this.form.text = ''
+                        this.form.roles = []
+                    }
+                    return res
+                })
+                .catch(err => {
+                    alerts.emit('Something went wrong', 'warning')
+                    console.warn(err)
                 })
         },
         toggleRole (role) {
