@@ -30,8 +30,8 @@ Before you begin, ensure you have the following:
 
 Before running the FlowFuse, you need to configure your fully qualified domain name settings:
 
-1. Point your main domain (e.g., `example.com`) to your server's IP address (this works with subdomain as well e.g. `flowfuse.example.com).
-2. Set up a wildcard DNS record (e.g., `*.example.com`) to point to your server's IP address.
+1. Set up a A record for your domain (e.g., `example.com`) to your server's IP address (this works with subdomain as well e.g. `flowfuse.example.com`).
+2. In the same manner, set up a wildcard DNS record (e.g., `*.example.com`) to point to your server's IP address.
 
 This step is crucial for the proper functioning of the application. FlowFuse will not run properly on `localhost` domain.
 
