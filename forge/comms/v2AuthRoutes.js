@@ -51,19 +51,25 @@ module.exports = async function (app) {
                 })
             }
         } else {
-            const auth = await app.db.controllers.TeamBrokerClient.authenticateCredentials(username, password)
-            // this test is to ensure that only a fixed number of clients can connect
-            if (auth && username === clientId) {
-                const parts = username.split('@')
-                // we might pass ACL values here
-                // const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1])
-                reply.send({
-                    result: 'allow',
-                    is_superuser: false,
-                    client_attrs: {
-                        team: `teams/${parts[1]}/`
-                    }
-                })
+            if (app.license.active()) {
+                const auth = await app.db.controllers.TeamBrokerClient.authenticateCredentials(username, password)
+                // this test is to ensure that only a fixed number of clients can connect
+                if (auth && username === clientId) {
+                    const parts = username.split('@')
+                    // we might pass ACL values here
+                    // const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1])
+                    reply.send({
+                        result: 'allow',
+                        is_superuser: false,
+                        client_attrs: {
+                            team: `teams/${parts[1]}/`
+                        }
+                    })
+                } else {
+                    reply.send({
+                        result: 'deny'
+                    })
+                }
             } else {
                 reply.send({
                     result: 'deny'
