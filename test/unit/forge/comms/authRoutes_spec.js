@@ -897,7 +897,9 @@ describe('Broker Auth API', async function () {
         })
     })
     describe('Test EMQX MQTT Broker user auth', function () {
+
         before(async function () {
+            await setupCE()
             await app.inject({
                 method: 'POST',
                 url: `/api/v1/teams/${app.team.hashid}/broker/user`,
@@ -920,6 +922,7 @@ describe('Broker Auth API', async function () {
                 url: `/api/v1/teams/${app.team.hashid}/broker/user/alice`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
+            await app.close()
         })
         it('Test Authentication pass', async function () {
             const response = await app.inject({
