@@ -227,7 +227,20 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    credentialSecret: { type: 'string' }
+                    credentialSecret: { type: 'string' },
+                    components: {
+                        type: 'object',
+                        properties: {
+                            flows: { type: 'boolean', default: true },
+                            credentials: { type: 'boolean', default: true },
+                            envVars: {
+                                anyOf: [
+                                    { type: 'string', enum: ['all', 'keys'] },
+                                    { type: 'boolean', enum: [false] }
+                                ]
+                            }
+                        }
+                    }
                 }
             },
             response: {
@@ -243,7 +256,8 @@ module.exports = async function (app) {
         const options = {
             credentialSecret: request.body.credentialSecret,
             credentials: request.body.credentials,
-            owner: request.owner // the instance or device that owns the snapshot
+            owner: request.owner, // the instance or device that owns the snapshot
+            components: request.body.components
         }
 
         if (!options.credentialSecret) {
@@ -304,7 +318,20 @@ module.exports = async function (app) {
                         },
                         required: ['name', 'flows', 'settings']
                     },
-                    credentialSecret: { type: 'string' }
+                    credentialSecret: { type: 'string' },
+                    components: {
+                        type: 'object',
+                        properties: {
+                            flows: { type: 'boolean', default: true },
+                            credentials: { type: 'boolean', default: true },
+                            envVars: {
+                                anyOf: [
+                                    { type: 'string', enum: ['all', 'keys'] },
+                                    { type: 'boolean', enum: [false] }
+                                ]
+                            }
+                        }
+                    }
                 }
             },
             response: {
@@ -323,12 +350,17 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'bad_request', error: 'owner and snapshot are mandatory in the body' })
             return
         }
-        if (snapshot.flows.credentials?.$ && !request.body.credentialSecret) {
-            reply.code(400).send({ code: 'bad_request', error: 'Credential secret is required when importing a snapshot with credentials' })
-            return
+        if (request.body.components?.credentials !== false) {
+            if (snapshot.flows.credentials?.$ && !request.body.credentialSecret) {
+                reply.code(400).send({ code: 'bad_request', error: 'Credential secret is required when importing a snapshot with credentials' })
+                return
+            }
         }
         try {
-            const newSnapshot = await snapshotController.uploadSnapshot(owner, snapshot, request.body.credentialSecret, request.session.User)
+            const options = {
+                components: request.body.components || null
+            }
+            const newSnapshot = await snapshotController.uploadSnapshot(owner, snapshot, request.body.credentialSecret, request.session.User, options)
             if (!newSnapshot) {
                 throw new Error('Failed to upload snapshot')
             }
