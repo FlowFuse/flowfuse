@@ -65,8 +65,8 @@ const getAnnouncementNotifications = async () => {
         })
 }
 
-const sendAnnouncementNotification = async ({ title, message, recipientRoles, mock }) => {
-    return client.post('/api/v1/admin/announcements', { message, title, recipientRoles, mock })
+const sendAnnouncementNotification = async ({ title, message, recipientRoles, mock, to, url }) => {
+    return client.post('/api/v1/admin/announcements', { message, title, recipientRoles, mock, to, url })
         .then(res => {
             return res.data
         })
