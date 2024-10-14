@@ -4,6 +4,7 @@
  */
 const { DataTypes, Op, fn, col, where } = require('sequelize')
 
+const { Roles } = require('../../lib/roles.js')
 const { hash, generateUserAvatar, buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
@@ -281,13 +282,18 @@ module.exports = {
                     }
                 },
                 byTeamRole: async (roles = []) => {
+                    const includesAdmins = roles.includes(Roles.Admin)
+
                     return M.User.findAll({
+                        where: {
+                            [Op.or]: [
+                                includesAdmins ? { admin: 1 } : {},
+                                { '$TeamMembers.role$': { [Op.in]: roles } }
+                            ]
+                        },
                         include: {
                             model: M.TeamMember,
-                            attributes: ['role'],
-                            where: {
-                                role: roles
-                            }
+                            attributes: ['role']
                         }
                     })
                 }
