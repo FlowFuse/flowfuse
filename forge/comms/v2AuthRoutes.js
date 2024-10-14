@@ -116,22 +116,24 @@ module.exports = async function (app) {
             }
             // return
         } else {
-            const parts = request.body.username.split('@')
-            const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1])
-            const acls = JSON.parse(user.acls)
-            for (const acl in acls) {
-                if (request.body.action === 'subscribe') {
-                    if (mqttMatch(acls[acl].pattern, request.body.topic)) {
-                        if (acls[acl].action === 'both' || acls[acl].action === 'subscribe') {
-                            reply.send({ result: 'allow' })
-                            return
+            if (app.license.active()) {
+                const parts = request.body.username.split('@')
+                const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1])
+                const acls = JSON.parse(user.acls)
+                for (const acl in acls) {
+                    if (request.body.action === 'subscribe') {
+                        if (mqttMatch(acls[acl].pattern, request.body.topic)) {
+                            if (acls[acl].action === 'both' || acls[acl].action === 'subscribe') {
+                                reply.send({ result: 'allow' })
+                                return
+                            }
                         }
-                    }
-                } else {
-                    if (mqttMatch(acls[acl].pattern, request.body.topic)) {
-                        if (acls[acl].action === 'both' || acls[acl].action === 'publish') {
-                            reply.send({ result: 'allow' })
-                            return
+                    } else {
+                        if (mqttMatch(acls[acl].pattern, request.body.topic)) {
+                            if (acls[acl].action === 'both' || acls[acl].action === 'publish') {
+                                reply.send({ result: 'allow' })
+                                return
+                            }
                         }
                     }
                 }
