@@ -71,7 +71,7 @@ export default {
                     return { path: this.notification.data.to }
                 }
 
-            case this.notification.data?.instance?.id:
+            case typeof this.notification.data?.instance?.id === 'string':
                 return {
                     name: 'instance-overview',
                     params: { id: this.notification.data.instance.id }
