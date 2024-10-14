@@ -4,23 +4,23 @@
             <ff-page-header title="Notifications Hub" />
         </div>
         <div class="px-3 py-3 md:px-6 md:py-6">
-            <form class="flex flex-col gap-5" @submit.prevent>
+            <form class="flex flex-col gap-5" data-el="notification-form" @submit.prevent>
                 <section class="flex gap-10">
                     <section>
-                        <FormRow v-model="form.title" type="input" placeholder="Title" class="mb-5">
+                        <FormRow v-model="form.title" type="input" placeholder="Title" class="mb-5" data-el="notification-title">
                             Announcement Title
                             <template #description>Enter a concise title for your announcement.</template>
                         </FormRow>
-                        <FormRow v-model="form.message" class="mb-5">
+                        <FormRow v-model="form.message" class="mb-5" data-el="notification-message">
                             Announcement Text
                             <template #description>Provide the details of your announcement.</template>
                             <template #input><textarea v-model="form.message" class="w-full max-h-80 min-h-40" rows="4" /></template>
                         </FormRow>
-                        <FormRow v-model="form.url" type="input" :placeholder="urlPlaceholder" class="mb-5">
+                        <FormRow v-model="form.url" type="input" :placeholder="urlPlaceholder" class="mb-5" data-el="notification-external-url">
                             URL Link
                             <template #description>Provide an url where users will be redirected when they click on the notification.</template>
                         </FormRow>
-                        <ff-checkbox v-model="form.externalUrl">
+                        <ff-checkbox v-model="form.externalUrl" data-el="notification-external-url-toggle">
                             External URL
                         </ff-checkbox>
                     </section>
@@ -29,15 +29,23 @@
                         <div class="ff-description mb-2 space-y-1">Select the audience of your announcement.</div>
 
                         <label class="block text-sm font-medium mb-2">By User Roles</label>
-                        <label v-for="(role, $key) in roleIds" :key="$key" class="ff-checkbox mb-2" @keydown.space.prevent="toggleRole(role)">
-                            <span ref="input" class="checkbox" :checked="form.roles.includes(role)" tabindex="0" @keydown.space.prevent="console.log(2)" />
-                            <input v-model="form.roles" type="checkbox" :value="role" @keydown.space.prevent="console.log(3)">
+                        <label
+                            v-for="(role, $key) in roleIds"
+                            :key="$key"
+                            class="ff-checkbox mb-2"
+                            :data-el="`audience-role-${role}`"
+                            @keydown.space.prevent="toggleRole(role)"
+                        >
+                            <span ref="input" class="checkbox" :checked="form.roles.includes(role)" tabindex="0" @keydown.space.prevent />
+                            <input v-model="form.roles" type="checkbox" :value="role" @keydown.space.prevent>
                             {{ role }}
                         </label>
                     </section>
                 </section>
                 <section class="actions">
-                    <ff-button :disabled="!canSubmit" @click.stop.prevent="submitForm"> Send Announcement </ff-button>
+                    <ff-button :disabled="!canSubmit" data-action="submit" @click.stop.prevent="submitForm">
+                        Send Announcement
+                    </ff-button>
                 </section>
             </form>
         </div>
