@@ -104,14 +104,10 @@ export default {
             const payload = {
                 mock,
                 ...form,
-                recipientRoles: this.form.roles.map(r => Roles[r])
+                recipientRoles: this.form.roles.map(r => Roles[r]),
+                ...(this.form.externalUrl ? { url: this.form.url } : { to: JSON.parse(this.form.url) })
             }
 
-            if (this.form.externalUrl) {
-                payload.url = this.form.url
-            } else {
-                payload.to = JSON.parse(this.form.url)
-            }
             return adminApi.sendAnnouncementNotification(payload)
                 .then(res => {
                     if (!mock) {
