@@ -79,11 +79,14 @@
                 <div class="grid gap-3 grid-cols-4">
                     <div class="grid gap-3 grid-cols-2">
                         <FormRow v-model="input.properties.devices.limit"># Limit</FormRow>
-                        <FormRow v-if="billingEnabled" v-model="input.properties.devices.free"># Free</FormRow>
+                        <FormRow v-if="billingEnabled" v-model="input.properties.devices.free" :disabled="input.properties.devices.combinedFreeType !== '_'"># Free</FormRow>
                     </div>
                     <FormRow v-if="billingEnabled" v-model="input.properties.devices.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
                     <FormRow v-if="billingEnabled" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
                     <FormRow v-if="billingEnabled" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                </div>
+                <div v-if="billingEnabled" class="grid gap-3 grid-cols-1">
+                    <FormRow v-model="input.properties.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">Share free allocation with instance type:</FormRow>
                 </div>
 
                 <FormHeading>Features</FormHeading>
@@ -145,7 +148,14 @@ export default {
                 const instanceTypes = await instanceTypesApi.getInstanceTypes()
                 instanceTypes.types.sort((A, B) => A.order - B.order)
                 this.instanceTypes = instanceTypes.types
+                this.deviceFreeOptions = [
+                    { label: 'None - use own free limit', value: '_' }
+                ]
                 this.trialInstanceTypes = this.instanceTypes.map(it => {
+                    this.deviceFreeOptions.push({
+                        value: it.id,
+                        label: it.name
+                    })
                     return {
                         value: it.id,
                         label: `Single ${it.name} instance`
@@ -255,6 +265,7 @@ export default {
                 { label: 'Generate invoice for each change', value: 'always_invoice' },
                 { label: 'Add proration items to monthly invoice', value: 'create_prorations' }
             ],
+            deviceFreeOptions: [],
             input: {
                 name: '',
                 active: true,
@@ -330,6 +341,11 @@ export default {
                     formatNumber(opts.properties.devices, 'free')
                     for (const instanceProperties of Object.values(opts.properties.instances)) {
                         formatNumber(instanceProperties, 'free')
+                    }
+                    if (opts.properties.devices.combinedFreeType === '_') {
+                        delete opts.properties.devices.combinedFreeType
+                    } else if (opts.properties.devices.combinedFreeType) {
+                        delete opts.properties.devices.free
                     }
                     opts.properties.billing = { ...this.input.properties.billing }
                     if (this.input.properties.trial.active) {

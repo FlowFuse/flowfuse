@@ -192,8 +192,7 @@ module.exports = function (app) {
         await this._updateTeamType(teamType)
         // Update the device/instance count items on stripe with the new billing
         // details
-        await app.billing.updateTeamDeviceCount(this)
-        await app.billing.updateTeamInstanceCount(this)
+        await app.billing.updateTeamBillingCounts(this)
     }
 
     /**
