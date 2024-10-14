@@ -46,7 +46,7 @@ curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-com
 Run the following command to deploy FlowFuse. Replace the  `yourdomain.com` with your domain name configured in step 1.:
 
 ```bash
-DOMAIN=example.com docker compose -p flowfuse up -d
+DOMAIN=example.com docker compose up -d
 ```
 
 This command will download the necessary Docker images, run initial setup and start all the required services in detached mode.
@@ -62,7 +62,7 @@ For detailed information about first setup and configuration, please follow [thi
 To stop and remove the FlowFuse application, run the following command. Replace `yourdomain.com` with your domain name:
 
 ```bash
-DOMAIN=example.com docker compose -p flowfuse down -v
+DOMAIN=example.com docker compose down -v
 ```
 
 ## Troubleshooting
