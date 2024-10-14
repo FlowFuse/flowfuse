@@ -17,7 +17,14 @@ meta:
 
 # Quick Start Guide
 
-This guide will help you quickly set up and run FlowFuse platform using Docker and docker-compose.
+This guide provides a streamlined process for setting up and running the FlowFuse platform using Docker and docker-compose. 
+
+The provided docker-compose file facilitates the deployment of the following services:
+* FlowFuse platform components, including the core application, MQTT broker, and file server for storage
+* A pre-configured database for storing platform data
+* A pre-configured proxy server for managing HTTP traffic
+
+For a advanced installation guide, please refer to the dedicated page for [running FlowFuse on Docker](../install/docker/README.md).
 
 ## Prerequisites
 
