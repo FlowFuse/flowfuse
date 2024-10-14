@@ -30,8 +30,8 @@ Before you begin, ensure you have the following:
 
 Before running the FlowFuse, you need to configure your fully qualified domain name settings:
 
-1. Point your main domain (e.g., `yourdomain.com`) to your server's IP address (works with subdomain as well).
-2. Set up a wildcard DNS record (e.g., `*.yourdomain.com`) to point to your server's IP address.
+1. Point your main domain (e.g., `example.com`) to your server's IP address (this works with subdomain as well e.g. `flowfuse.example.com).
+2. Set up a wildcard DNS record (e.g., `*.example.com`) to point to your server's IP address.
 
 This step is crucial for the proper functioning of the application. FlowFuse will not run properly on `localhost` domain.
 
@@ -46,14 +46,14 @@ curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-com
 Run the following command to deploy FlowFuse. Replace the  `yourdomain.com` with your domain name configured in step 1.:
 
 ```bash
-DOMAIN=yourdomain.com docker compose -p flowfuse up -d
+DOMAIN=example.com docker compose -p flowfuse up -d
 ```
 
 This command will download the necessary Docker images, run initial setup and start all the required services in detached mode.
 
 ## Step 4: Complete the application Setup
 
-Open your web browser and navigate to `http://forge.yourdomain.com` . You will be redirected to the setup page where you can create your admin account and set up your instance.
+Open your web browser and navigate to `http://forge.example.com/setup` . You will be redirected to the setup page where you can create your admin account and set up your instance.
 For detailed information about first setup and configuration, please follow [this guide](../install/first-run.md).
 
 
@@ -62,7 +62,7 @@ For detailed information about first setup and configuration, please follow [thi
 To stop and remove the FlowFuse application, run the following command. Replace `yourdomain.com` with your domain name:
 
 ```bash
-DOMAIN=yourdomain.com docker compose -p flowfuse down -v
+DOMAIN=example.com docker compose -p flowfuse down -v
 ```
 
 ## Troubleshooting
