@@ -63,7 +63,7 @@ export default {
                 { name: 'Templates', path: '/admin/templates', tag: 'admin-templates', icon: TemplateIcon },
                 { name: 'Flow Blueprints', path: '/admin/flow-blueprints', tag: 'admin-flow-blueprints', icon: TemplateIcon, featureUnavailable: !this.features.flowBlueprints },
                 { name: 'Activity', path: '/admin/audit-log', tag: 'admin-auditlog', icon: DatabaseIcon },
-                { name: 'Notifications Hub', path: { name: 'NotificationsHub' }, tag: 'admin-settings', icon: ChatIcon },
+                { name: 'Notifications Hub', path: { name: 'NotificationsHub' }, tag: 'notifications-hub', icon: ChatIcon },
                 { name: 'Settings', path: '/admin/settings', tag: 'admin-settings', icon: CogIcon }
             ]
         }
