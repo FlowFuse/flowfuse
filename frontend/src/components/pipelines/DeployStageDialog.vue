@@ -34,7 +34,7 @@
                 </p>
             </template>
             <p class="my-4">
-                NOTE: Environment Variable keys that already exist in the target {{ targetTypeName }} will not be overwritten.
+                NOTE: Environment variables in the target {{ targetTypeName }} that already have a value will not be overwritten.
             </p>
 
             <template v-if="(promptForSnapshot || useLatestSnapshot) && loadingSnapshots">
