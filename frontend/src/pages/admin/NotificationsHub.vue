@@ -7,15 +7,22 @@
             <form class="flex flex-col gap-5" @submit.prevent>
                 <section class="flex gap-10">
                     <section>
-                        <FormRow v-model="form.title" type="input" placeholder="Title">
+                        <FormRow v-model="form.title" type="input" placeholder="Title" class="mb-5">
                             Announcement Title
                             <template #description>Enter a concise title for your announcement.</template>
                         </FormRow>
-                        <FormRow v-model="form.message">
+                        <FormRow v-model="form.message" class="mb-5">
                             Announcement Text
                             <template #description>Provide the details of your announcement.</template>
                             <template #input><textarea v-model="form.message" class="w-full max-h-80 min-h-40" rows="4" /></template>
                         </FormRow>
+                        <FormRow v-model="form.url" type="input" :placeholder="urlPlaceholder" class="mb-5">
+                            URL Link
+                            <template #description>Provide an url where users will be redirected when they click on the notification.</template>
+                        </FormRow>
+                        <ff-checkbox v-model="form.externalUrl">
+                            External URL
+                        </ff-checkbox>
                     </section>
                     <section>
                         <label class="block text-sm font-medium mb-1">Audience</label>
@@ -43,17 +50,20 @@ import FormRow from '../../components/FormRow.vue'
 import alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import FfButton from '../../ui-components/components/Button.vue'
+import FfCheckbox from '../../ui-components/components/form/Checkbox.vue'
 import { RoleNames, Roles } from '../../utils/roles.js'
 
 export default {
     name: 'NotificationsHub',
-    components: { FfButton, FormRow },
+    components: { FfCheckbox, FfButton, FormRow },
     data () {
         return {
             form: {
                 title: '',
                 message: '',
-                roles: []
+                url: '',
+                roles: [],
+                externalUrl: true
             },
             errors: {
 
@@ -68,6 +78,9 @@ export default {
             return this.form.title.length > 0 &&
                 this.form.message.length > 0 &&
                 this.form.roles.length > 0
+        },
+        urlPlaceholder () {
+            return this.form.externalUrl ? 'https://flowfuse.com' : '{ name: "<component-name>", params: {id: "<id>"} }'
         }
     },
     methods: {
@@ -85,10 +98,19 @@ export default {
                 }, async () => this.sendAnnouncementNotification({ mock: false })))
         },
         sendAnnouncementNotification ({ mock = true }) {
+            const form = { ...this.form }
+            delete form.url
+
             const payload = {
                 mock,
-                ...this.form,
+                ...form,
                 recipientRoles: this.form.roles.map(r => Roles[r])
+            }
+
+            if (this.form.externalUrl) {
+                payload.url = this.form.url
+            } else {
+                payload.to = JSON.parse(this.form.url)
             }
             return adminApi.sendAnnouncementNotification(payload)
                 .then(res => {
@@ -96,6 +118,7 @@ export default {
                         alerts.emit(`Announcement sent to ${res.recipientCount} recipients.`, 'confirmation')
                         this.form.title = ''
                         this.form.message = ''
+                        this.form.url = ''
                         this.form.roles = []
                     }
                     return res

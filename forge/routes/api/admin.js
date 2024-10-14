@@ -427,7 +427,9 @@ module.exports = async function (app) {
                     message: { type: 'string' },
                     title: { type: 'string' },
                     recipientRoles: { type: 'array', items: { type: 'number' } },
-                    mock: { type: 'boolean' }
+                    mock: { type: 'boolean' },
+                    to: { type: 'object' },
+                    url: { type: 'string' }
                 }
             },
             response: {
@@ -447,7 +449,9 @@ module.exports = async function (app) {
             title,
             message,
             recipientRoles,
-            mock
+            mock,
+            to,
+            url
         } = request.body
 
         if (!recipientRoles.every(value => Object.values(Roles).includes(value))) {
@@ -460,11 +464,7 @@ module.exports = async function (app) {
         const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2)
         const reference = `${uniqueId}:${titleSlug}`
 
-        const data = {
-            title,
-            message,
-            recipientRoles
-        }
+        const data = { title, message, recipientRoles, ...(to && { to }), ...(url && { url }) }
 
         if (!mock || mock === false) {
             for (const recipient of recipients) {
