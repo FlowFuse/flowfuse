@@ -1,5 +1,5 @@
 <template>
-    <h1 class="text-center"> >> History Timeline Goes Here << </h1>
+    <h1 class="text-center">  History Timeline Goes Here  </h1>
 </template>
 
 <script>
