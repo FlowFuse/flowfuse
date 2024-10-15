@@ -34,13 +34,13 @@ module.exports = async function (app) {
 
     /**
      * Get the Teams MQTT Clients
-     * @name /api/v1/team/:teamId/broker/users
+     * @name /api/v1/teams/:teamId/broker/clients
      * @static
      * @memberof forge.routes.api.team.broker
      */
-    app.get('/users', {
+    app.get('/clients', {
         schema: {
-            summary: 'List MQTT users for the team',
+            summary: 'List MQTT clients for the team',
             tags: ['MQTT Broker'],
             query: { $ref: 'PaginationParams' },
             params: {
@@ -73,9 +73,16 @@ module.exports = async function (app) {
         reply.send(app.db.views.TeamBrokerClient.users(users))
     })
 
-    app.post('/user', {
+    /**
+     * Creates a new MQTT Client
+     * @name /api/v1/teams/:teamId/broker/client
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
+    app.post('/client', {
+        preHandler: app.needsPermission('project:create'),
         schema: {
-            summary: 'Create new MQTT user for the team',
+            summary: 'Create new MQTT client for the team',
             tags: ['MQTT Broker'],
             params: {
                 type: 'object',
@@ -125,9 +132,15 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/user/:username', {
+    /**
+     * Get a specific MQTT Client
+     * @name /api/v1/teams/:teamId/broker/client/:username
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
+    app.get('/client/:username', {
         schema: {
-            summary: 'Get details about a specific MQTT User',
+            summary: 'Get details about a specific MQTT client',
             tags: ['MQTT Broker'],
             params: {
                 type: 'object',
@@ -162,9 +175,16 @@ module.exports = async function (app) {
         }
     })
 
-    app.delete('/user/:username', {
+    /**
+     * Delete a MQTT Clients
+     * @name /api/v1/teams/:teamId/broker/client/:username
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
+    app.delete('/client/:username', {
+        preHandler: app.needsPermission('project:create'),
         schema: {
-            summary: 'Delete a MQTT User',
+            summary: 'Delete a MQTT client',
             tags: ['MQTT Broker'],
             params: {
                 type: 'object',

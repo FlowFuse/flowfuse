@@ -54,7 +54,7 @@ describe('Team Broker API', function () {
         it('Create MQTT Broker User', async function () {
             const response = await app.inject({
                 method: 'POST',
-                url: `/api/v1/teams/${app.team.hashid}/broker/user`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/client`,
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: 'alice',
@@ -79,7 +79,7 @@ describe('Team Broker API', function () {
         it('Get all MQTT broker users for a team', async function () {
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${app.team.hashid}/broker/users`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/clients`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
@@ -91,7 +91,7 @@ describe('Team Broker API', function () {
         it('Get specific MQTT broker user for a team', async function () {
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${app.team.hashid}/broker/user/alice`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/client/alice`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
@@ -102,7 +102,7 @@ describe('Team Broker API', function () {
         it('Get specific MQTT broker user for a team who doesn\'t exist', async function () {
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${app.team.hashid}/broker/user/bob`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/client/bob`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(404)
@@ -111,7 +111,7 @@ describe('Team Broker API', function () {
         it('Limit number of MQTT broker users allowed', async function () {
             let response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${app.team.hashid}/broker/users`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/clients`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
@@ -121,7 +121,7 @@ describe('Team Broker API', function () {
             for (let i = start; i < MAX_BROKER_USERS; i++) {
                 const create = await app.inject({
                     method: 'POST',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/user`,
+                    url: `/api/v1/teams/${app.team.hashid}/broker/client`,
                     cookies: { sid: TestObjects.tokens.alice },
                     body: {
                         username: `alice-${i}`,
@@ -138,7 +138,7 @@ describe('Team Broker API', function () {
             }
             response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${app.team.hashid}/broker/users`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/clientss`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             result = response.json()
@@ -146,7 +146,7 @@ describe('Team Broker API', function () {
 
             response = await app.inject({
                 method: 'POST',
-                url: `/api/v1/teams/${app.team.hashid}/broker/user`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/client`,
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: 'alice-5',
@@ -167,7 +167,7 @@ describe('Team Broker API', function () {
         it('Delete MQTT Broker User', async function () {
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/teams/${app.team.hashid}/broker/user/alice`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/client/alice`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
@@ -178,7 +178,7 @@ describe('Team Broker API', function () {
         it('Delete MQTT Broker User who doesn\'t exist', async function () {
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/teams/${app.team.hashid}/broker/user/bob`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/client/bob`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(404)
@@ -188,7 +188,7 @@ describe('Team Broker API', function () {
         before(async function () {
             await app.inject({
                 method: 'POST',
-                url: `/api/v1/teams/${app.team.hashid}/broker/user`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/client`,
                 cookies: { sid: TestObjects.tokens.alice },
                 body: {
                     username: 'alice',
@@ -205,7 +205,7 @@ describe('Team Broker API', function () {
         after(async function () {
             await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/teams/${app.team.hashid}/broker/user/alice`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/client/alice`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
         })
