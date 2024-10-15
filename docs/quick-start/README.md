@@ -20,11 +20,11 @@ meta:
 This guide provides a streamlined process for setting up and running the FlowFuse platform using Docker and docker-compose. 
 
 The provided docker-compose file facilitates the deployment of the following services:
-* FlowFuse platform components, including the core application, MQTT broker, and file server for storage
-* A pre-configured database for storing platform data
-* A pre-configured proxy server for managing HTTP traffic
+* **FlowFuse Platform**: Includes the core application, MQTT broker, and file server for storage
+* **Database:** A pre-configured database for storing platform data
+* **Proxy Server:** A pre-configured proxy server for managing HTTP traffic
 
-For a advanced installation guide, please refer to the dedicated page for [running FlowFuse on Docker](../install/docker/README.md).
+For an advanced installation guide, please refer to the dedicated page for [running FlowFuse on Docker](../install/docker/README.md).
 
 ## Prerequisites
 
@@ -35,10 +35,10 @@ Before you begin, ensure you have the following:
 
 ## Step 1: Configure DNS
 
-Before running the FlowFuse, you need to configure your fully qualified domain name settings:
+Before running FlowFuse, you need to configure your fully qualified domain name settings:
 
-1. Set up a A record for your domain (e.g., `example.com`) to your server's IP address (this works with subdomain as well e.g. `flowfuse.example.com`).
-2. In the same manner, set up a wildcard DNS record (e.g., `*.example.com`, `*.flowfuse.example.com`) to point to your server's IP address.
+1. Set up an A record for your domain (e.g., `example.com`) to your server's IP address (this works with subdomain as well e.g. `flowfuse.example.com`). FlowFuse will run here.
+2. In the same manner, set up a wildcard DNS record (e.g., `*.example.com`, `*.flowfuse.example.com`) to point to your server's IP address. Any Node-RED instances setup by FlowFuse will run here.
 
 This step is crucial for the proper functioning of the application. FlowFuse will not run properly on `localhost` domain.
 
