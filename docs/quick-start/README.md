@@ -24,7 +24,7 @@ The provided docker-compose file facilitates the deployment of the following ser
 * **Database:** A pre-configured database for storing platform data
 * **Proxy Server:** A pre-configured proxy server for managing HTTP traffic
 
-For an advanced installation guide, please refer to the dedicated page for [running FlowFuse on Docker](../install/docker/README.md).
+For a full installation guide, including how to setup FlowFuse in a production environment, please refer to the dedicated page for [running FlowFuse on Docker](../install/docker/README.md).
 
 ## Prerequisites
 
