@@ -18,6 +18,7 @@ import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
 import CreateInstance from './createInstance.vue'
+import Broker from './Broker/index.vue'
 
 import Team from './index.vue'
 
@@ -77,6 +78,14 @@ export default [
                     return { name: 'LibraryTeamLibrary' }
                 },
                 children: [...LibraryRoutes]
+            },
+            {
+                name: 'TeamBroker',
+                path: 'broker',
+                component: Broker,
+                meta: {
+                    title: ' Team - Broker'
+                }
             },
             {
                 path: 'members',
