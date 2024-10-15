@@ -37,6 +37,7 @@
         :instance="instance"
         @show-import-snapshot-dialog="showImportSnapshotDialog"
         @show-create-snapshot-dialog="showCreateSnapshotDialog"
+        @instance-updated="$emit('instance-updated')"
     />
 
     <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
@@ -80,6 +81,7 @@ export default {
             required: true
         }
     },
+    emits: ['instance-updated'],
     data () {
         return {
             busyMakingSnapshot: false,
@@ -101,7 +103,6 @@ export default {
             this.$refs.snapshotImportDialog.show()
         },
         snapshotCreated (snapshot) {
-            this.snapshots.unshift(snapshot)
             // on next tick, update the table data to ensure
             // the new snapshot is shown and the correct status are shown
             this.$emit('instance-updated')

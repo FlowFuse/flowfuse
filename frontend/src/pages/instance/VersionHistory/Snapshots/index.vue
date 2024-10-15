@@ -33,14 +33,6 @@
                         to the respective Instance.
                     </p>
                 </template>
-                <template v-if="hasPermission('project:snapshot:create')" #actions>
-                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" @click="$emit('show-import-snapshot-dialog')">
-                        <template #icon-left><UploadIcon /></template>Upload Snapshot
-                    </ff-button>
-                    <ff-button kind="primary" data-action="create-snapshot" @click="$emit('show-create-snapshot-dialog')">
-                        <template #icon-left><PlusSmIcon /></template>Create Snapshot
-                    </ff-button>
-                </template>
             </EmptyState>
         </template>
         <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="onSnapshotEdit" />
@@ -51,7 +43,6 @@
 </template>
 
 <script>
-import { PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -81,8 +72,6 @@ export default {
         EmptyState,
         SnapshotEditDialog,
         SnapshotExportDialog,
-        PlusSmIcon,
-        UploadIcon,
         AssetDetailDialog,
         AssetCompareDialog
     },
@@ -157,15 +146,20 @@ export default {
     },
     watch: {
         'team.id': 'fetchData',
-        'instance.id': 'fetchData'
+        instance: {
+            handler: function () {
+                this.fetchData(true)
+            },
+            deep: true
+        }
     },
     mounted () {
         this.fetchData()
     },
     methods: {
-        fetchData: async function () {
+        fetchData: async function (withoutAnimation = false) {
             if (this.instance.id) {
-                this.loading = true
+                if (!withoutAnimation) this.loading = true
                 const deviceCounts = await this.countDevices()
                 const data = await SnapshotApi.getInstanceSnapshots(this.instance.id) // TODO Move to instances?
                 this.snapshots = applySystemUserDetails(data.snapshots, this.instance).map((s) => {
