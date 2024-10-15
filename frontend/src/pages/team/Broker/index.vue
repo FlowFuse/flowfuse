@@ -27,8 +27,8 @@
                         </ff-button>
                     </template>
                     <template #context-menu="{row}">
-                        <ff-list-item label="edit" @click="editClient(row)"></ff-list-item>
-                        <ff-list-item label="delete" kind="danger" @click="removeClient(row)"></ff-list-item>
+                        <ff-list-item label="edit" data-action="edit-client" @click="editClient(row)" />
+                        <ff-list-item label="delete" kind="danger" data-action="delete-client" @click="removeClient(row)" />
                     </template>
                 </ff-data-table>
                 <EmptyState v-else>
@@ -92,8 +92,15 @@ export default {
         fetchData: async function () {
             this.loading = true
             this.clients = (await brokerApi.getClients(this.team.id)).clients
-            console.log(this.clients)
             this.loading = false
+        },
+        async removeClient (row) {
+            console.log(row)
+            await brokerApi.deleteClient(this.team.id, row.username)
+            this.fetchData()
+        },
+        async editClient (row) {
+            
         }
     }
 }
