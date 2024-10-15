@@ -19,6 +19,7 @@
                             v-if="hasPermission('project:create')"
                             data-action="create-client"
                             kind="primary"
+                            @click="createClient()"
                         >
                             <template #icon-left>
                                 <PlusSmIcon />
@@ -41,6 +42,7 @@
                             v-if="hasPermission('project:create')"
                             data-action="create-client"
                             kind="primary"
+                            @click="createClient()"
                         >
                             <template #icon-left>
                                 <PlusSmIcon />
@@ -51,22 +53,28 @@
                 </EmptyState>
             </template>
         </div>
+        <ClientDialog ref="clientDialog" :team="team" @client-created="fetchData"/>
     </ff-page>
 </template>
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
+import {mapState } from 'vuex'
+
 
 import brokerApi from '../../../api/broker.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 
+import ClientDialog from './dialogs/ClientDialog.vue'
+
 export default {
     name: 'TeamBroker',
     components: {
         PlusSmIcon,
-        EmptyState
+        EmptyState,
+        ClientDialog
     },
     mixins: [permissionsMixin],
     data () {
@@ -80,7 +88,7 @@ export default {
         }
     },
     computed: {
-
+        ...mapState('account', ['user', 'team', 'teamMembership', 'features'])
     },
     watch : {
         team: 'fetchData'
@@ -99,8 +107,11 @@ export default {
             await brokerApi.deleteClient(this.team.id, row.username)
             this.fetchData()
         },
+        async createClient () {
+            this.$refs.clientDialog.showCreate()
+        },
         async editClient (row) {
-            
+
         }
     }
 }
