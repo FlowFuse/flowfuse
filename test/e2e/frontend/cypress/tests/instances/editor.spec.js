@@ -101,10 +101,10 @@ describe('FlowForge - Instance editor', () => {
         cy.get('@tabs-wrapper').contains('Devices')
         cy.get('@tabs-wrapper').contains('A list of all edge devices registered to this instance.')
 
-        cy.get('[data-nav="instance-snapshots"]').as('snapshots-tab').should('exist')
+        cy.get('[data-nav="instance-version-history"]').as('snapshots-tab').should('exist')
         cy.get('@snapshots-tab').click()
-        cy.get('@tabs-wrapper').contains('Snapshots')
-        cy.get('@tabs-wrapper').contains('Create your First Snapshot')
+        cy.get('@tabs-wrapper').contains('History Timeline Goes Here')
+        // cy.get('@tabs-wrapper').contains('Create your First Snapshot')
 
         cy.get('[data-nav="instance-activity"]').as('activity-tab').should('exist')
         cy.get('@activity-tab').click()
