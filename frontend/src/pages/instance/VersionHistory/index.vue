@@ -108,7 +108,7 @@ export default {
             this.$emit('instance-updated')
         },
         onSnapshotImportSuccess (snapshot) {
-            this.snapshots.unshift(snapshot)
+            this.$emit('instance-updated')
             this.busyImportingSnapshot = false
         },
         onSnapshotImportFailed (err) {
