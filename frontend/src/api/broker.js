@@ -3,16 +3,16 @@ import paginateUrl from '../utils/paginateUrl.js'
 import client from './client.js'
 
 const getClients = (teamId, params, cursor, limit) => {
-    const url = paginateUrl(`/api/v1/teams/${teamId}/broker/users`, cursor, limit)
+    const url = paginateUrl(`/api/v1/teams/${teamId}/broker/clients`, cursor, limit)
     return client.get(url, { params }).then(res => res.data)
 }
 
 const getClient = (teamId, username) => {
-    return client.get(`/api/v1/teams/${teamId}/broker/user/${username}`).then( res =>  res.data )
+    return client.get(`/api/v1/teams/${teamId}/broker/client/${username}`).then( res =>  res.data )
 }
 
 const createClient = (teamId, username, password, acls) => {
-    return client.post(`/api/v1/teams/${teamId}/broker/user`,{
+    return client.post(`/api/v1/teams/${teamId}/broker/client`,{
         username,
         password,
         acls
@@ -20,11 +20,11 @@ const createClient = (teamId, username, password, acls) => {
 }
 
 const deleteClient = (teamId, username) => {
-    return client.delete(`/api/v1/teams/${teamId}/broker/user/${username}`).then( res => res.data )
+    return client.delete(`/api/v1/teams/${teamId}/broker/client/${username}`).then( res => res.data )
 }
 
 const modifyClient = (teamId, username, acls) => {
-    return client.put(`/api/v1/teams/${teamId}/broker/user/${username}`,{
+    return client.put(`/api/v1/teams/${teamId}/broker/client/${username}`,{
         acls
     }).then( res => res.data )
 }
