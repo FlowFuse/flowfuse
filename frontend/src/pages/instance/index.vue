@@ -113,7 +113,7 @@ export default {
             return [
                 { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
                 { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
-                { label: 'Snapshots', to: { name: 'instance-snapshots', params: { id: this.instance.id } }, tag: 'instance-snapshots' },
+                { label: 'Version History', to: { name: 'instance-version-history', params: { id: this.instance.id } }, tag: 'instance-version-history' },
                 { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasAMinimumTeamRoleOf(Roles.Member) },
                 { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
                 { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },

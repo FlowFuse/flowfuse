@@ -1,0 +1,128 @@
+<template>
+    <SectionTopMenu>
+        <template #hero>
+            <router-link :to="{name: 'instance-version-history-timeline'}">Timeline</router-link>
+            <router-link :to="{name: 'instance-snapshots'}">Snapshots</router-link>
+            <!--            <ff-toggle-switch v-model="currentPage" />-->
+        </template>
+        <template #helptext>
+            <p>Snapshots generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
+            <p>Snapshots are also required for deploying to devices. In the Deployments page of a Project, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
+            <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/FlowFuse/nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
+        </template>
+        <template #tools>
+            <section class="flex gap-2 items-center self-center">
+                <ff-button
+                    v-if="hasPermission('snapshot:import')"
+                    kind="secondary"
+                    data-action="import-snapshot"
+                    :disabled="busy"
+                    @click="showImportSnapshotDialog"
+                >
+                    <template #icon-left><UploadIcon /></template>Upload Snapshot
+                </ff-button>
+                <ff-button
+                    kind="primary"
+                    data-action="create-snapshot"
+                    :disabled="busy"
+                    @click="showCreateSnapshotDialog"
+                >
+                    <template #icon-left><PlusSmIcon /></template>Create Snapshot
+                </ff-button>
+            </section>
+        </template>
+    </SectionTopMenu>
+
+    <router-view
+        :instance="instance"
+        @show-import-snapshot-dialog="showImportSnapshotDialog"
+        @show-create-snapshot-dialog="showCreateSnapshotDialog"
+    />
+
+    <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
+    <SnapshotImportDialog
+        ref="snapshotImportDialog"
+        title="Upload Snapshot"
+        data-el="dialog-import-snapshot"
+        :owner="instance"
+        owner-type="instance"
+        @snapshot-import-success="onSnapshotImportSuccess"
+        @snapshot-import-failed="onSnapshotImportFailed"
+        @canceled="onSnapshotImportCancel"
+    />
+</template>
+
+<script>
+import { PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
+
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
+
+import permissionsMixin from '../../../mixins/Permissions.js'
+import Alerts from '../../../services/alerts.js'
+
+import SnapshotCreateDialog from './Snapshots/dialogs/SnapshotCreateDialog.vue'
+
+export default {
+    name: 'VersionHistory',
+    components: {
+        SnapshotImportDialog,
+        SnapshotCreateDialog,
+        PlusSmIcon,
+        UploadIcon,
+        SectionTopMenu
+    },
+    mixins: [permissionsMixin],
+    inheritAttrs: false,
+    props: {
+        instance: {
+            type: Object,
+            required: true
+        }
+    },
+    data () {
+        return {
+            busyMakingSnapshot: false,
+            busyImportingSnapshot: false,
+            currentPage: true
+        }
+    },
+    computed: {
+        busy () {
+            return this.busyMakingSnapshot || this.busyImportingSnapshot
+        }
+    },
+    methods: {
+        showCreateSnapshotDialog () {
+            this.$refs.snapshotCreateDialog.show()
+        },
+        showImportSnapshotDialog () {
+            this.busyImportingSnapshot = true
+            this.$refs.snapshotImportDialog.show()
+        },
+        snapshotCreated (snapshot) {
+            this.snapshots.unshift(snapshot)
+            // on next tick, update the table data to ensure
+            // the new snapshot is shown and the correct status are shown
+            this.$emit('instance-updated')
+        },
+        onSnapshotImportSuccess (snapshot) {
+            this.snapshots.unshift(snapshot)
+            this.busyImportingSnapshot = false
+        },
+        onSnapshotImportFailed (err) {
+            console.error(err)
+            const message = err.response?.data?.error || 'Failed to import snapshot.'
+            Alerts.emit(message, 'warning')
+            this.busyImportingSnapshot = false
+        },
+        onSnapshotImportCancel () {
+            this.busyImportingSnapshot = false
+        }
+    }
+}
+</script>
+
+<style scoped lang="scss">
+
+</style>

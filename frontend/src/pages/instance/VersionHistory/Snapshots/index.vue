@@ -1,22 +1,9 @@
 <template>
-    <div class="mb-3">
-        <SectionTopMenu hero="Snapshots" help-header="FlowFuse - Snapshots">
-            <template #helptext>
-                <p>Snapshots generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
-                <p>Snapshots are also required for deploying to devices. In the Deployments page of a Project, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
-                <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/FlowFuse/nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
-            </template>
-        </SectionTopMenu>
-    </div>
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
             <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
             <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
-                <template v-if="hasPermission('project:snapshot:create')" #actions>
-                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" :disabled="busy" @click="showImportSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload Snapshot</ff-button>
-                    <ff-button kind="primary" data-action="create-snapshot" :disabled="busy" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
-                </template>
                 <template #context-menu="{row}">
                     <ff-list-item :disabled="!hasPermission('project:snapshot:rollback')" label="Restore Snapshot" @click="showRollbackDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
@@ -32,7 +19,7 @@
         <template v-else-if="!loading">
             <EmptyState>
                 <template #img>
-                    <img src="../../../images/empty-states/instance-snapshots.png">
+                    <img src="../../../../images/empty-states/instance-snapshots.png">
                 </template>
                 <template #header>Create your First Snapshot</template>
                 <template #message>
@@ -47,19 +34,17 @@
                     </p>
                 </template>
                 <template v-if="hasPermission('project:snapshot:create')" #actions>
-                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" @click="showImportSnapshotDialog">
+                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" @click="$emit('show-import-snapshot-dialog')">
                         <template #icon-left><UploadIcon /></template>Upload Snapshot
                     </ff-button>
-                    <ff-button kind="primary" data-action="create-snapshot" @click="showCreateSnapshotDialog">
+                    <ff-button kind="primary" data-action="create-snapshot" @click="$emit('show-create-snapshot-dialog')">
                         <template #icon-left><PlusSmIcon /></template>Create Snapshot
                     </ff-button>
                 </template>
             </EmptyState>
         </template>
-        <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
         <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="onSnapshotEdit" />
         <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
-        <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :owner="instance" owner-type="instance" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
         <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
         <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
     </div>
@@ -70,39 +55,32 @@ import { PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import InstanceApi from '../../../api/instances.js'
-import SnapshotApi from '../../../api/projectSnapshots.js'
-import SnapshotsApi from '../../../api/snapshots.js'
+import InstanceApi from '../../../../api/instances.js'
+import SnapshotApi from '../../../../api/projectSnapshots.js'
+import SnapshotsApi from '../../../../api/snapshots.js'
 
-import EmptyState from '../../../components/EmptyState.vue'
-import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-import AssetCompareDialog from '../../../components/dialogs/AssetCompareDialog.vue'
-import AssetDetailDialog from '../../../components/dialogs/AssetDetailDialog.vue'
-import SnapshotEditDialog from '../../../components/dialogs/SnapshotEditDialog.vue'
-import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
-import UserCell from '../../../components/tables/cells/UserCell.vue'
-import { downloadData } from '../../../composables/Download.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
-import Alerts from '../../../services/alerts.js'
-import Dialog from '../../../services/dialog.js'
-import Product from '../../../services/product.js'
-import { applySystemUserDetails } from '../../../transformers/snapshots.transformer.js'
-import DaysSince from '../../application/Snapshots/components/cells/DaysSince.vue'
-import DeviceCount from '../../application/Snapshots/components/cells/DeviceCount.vue'
-import SnapshotName from '../../application/Snapshots/components/cells/SnapshotName.vue'
-import SnapshotExportDialog from '../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
-
-import SnapshotCreateDialog from './dialogs/SnapshotCreateDialog.vue'
+import EmptyState from '../../../../components/EmptyState.vue'
+import AssetCompareDialog from '../../../../components/dialogs/AssetCompareDialog.vue'
+import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
+import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
+import UserCell from '../../../../components/tables/cells/UserCell.vue'
+import { downloadData } from '../../../../composables/Download.js'
+import permissionsMixin from '../../../../mixins/Permissions.js'
+import Alerts from '../../../../services/alerts.js'
+import Dialog from '../../../../services/dialog.js'
+import Product from '../../../../services/product.js'
+import { applySystemUserDetails } from '../../../../transformers/snapshots.transformer.js'
+import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
+import DeviceCount from '../../../application/Snapshots/components/cells/DeviceCount.vue'
+import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
+import SnapshotExportDialog from '../../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 export default {
     name: 'InstanceSnapshots',
     components: {
-        SectionTopMenu,
         EmptyState,
-        SnapshotCreateDialog,
         SnapshotEditDialog,
         SnapshotExportDialog,
-        SnapshotImportDialog,
         PlusSmIcon,
         UploadIcon,
         AssetDetailDialog,
@@ -116,7 +94,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'show-import-snapshot-dialog', 'show-create-snapshot-dialog'],
     data () {
         return {
             loading: false,
@@ -254,15 +232,6 @@ export default {
                 this.$emit('instance-updated')
             })
         },
-        showCreateSnapshotDialog () {
-            this.$refs.snapshotCreateDialog.show()
-        },
-        snapshotCreated (snapshot) {
-            this.snapshots.unshift(snapshot)
-            // on next tick, update the table data to ensure
-            // the new snapshot is shown and the correct status are shown
-            this.$emit('instance-updated')
-        },
         async downloadSnapshotPackage (snapshot) {
             Product.capture('ff-snapshot-download', {
                 'snapshot-id': snapshot.id
@@ -309,24 +278,6 @@ export default {
                     console.error(err)
                     Alerts.emit('Failed to get snapshot.', 'warning')
                 })
-        },
-        // snapshot actions - import
-        showImportSnapshotDialog () {
-            this.busyImportingSnapshot = true
-            this.$refs.snapshotImportDialog.show()
-        },
-        onSnapshotImportSuccess (snapshot) {
-            this.snapshots.unshift(snapshot)
-            this.busyImportingSnapshot = false
-        },
-        onSnapshotImportFailed (err) {
-            console.error(err)
-            const message = err.response?.data?.error || 'Failed to import snapshot.'
-            Alerts.emit(message, 'warning')
-            this.busyImportingSnapshot = false
-        },
-        onSnapshotImportCancel () {
-            this.busyImportingSnapshot = false
         },
         showEditSnapshotDialog (snapshot) {
             this.$refs.snapshotEditDialog.show(snapshot)

@@ -124,9 +124,9 @@ export default {
                     tag: 'instance-remote'
                 },
                 {
-                    label: 'Snapshots',
-                    to: { name: 'instance-editor-snapshots', params: { id: this.instance.id } },
-                    tag: 'instance-snapshots'
+                    label: 'Version History',
+                    to: { name: 'instance-editor-version-history', params: { id: this.instance.id } },
+                    tag: 'instance-version-history'
                 },
                 {
                     label: 'Assets',
