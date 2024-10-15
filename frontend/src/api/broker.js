@@ -8,21 +8,30 @@ const getClients = (teamId, params, cursor, limit) => {
 }
 
 const getClient = (teamId, username) => {
-
+    return client.get(`/api/v1/teams/${teamId}/broker/user/${username}`).then( res =>  res.data )
 }
 
-const createClient = (teamId, username, password, topics) => {
-
+const createClient = (teamId, username, password, acls) => {
+    return client.post(`/api/v1/teams/${teamId}/broker/user`,{
+        username,
+        password,
+        acls
+    }).then(res => res.data)
 }
 
 const deleteClient = (teamId, username) => {
-
+    return client.delete(`/api/v1/teams/${teamId}/broker/user/${username}`).then( res => res.data )
 }
 
-const modifyClient = (teamId, username, topics) => {
-
+const modifyClient = (teamId, username, acls) => {
+    return client.put(`/api/v1/teams/${teamId}/broker/user/${username}`,{
+        acls
+    }).then( res => res.data )
 }
 
 export default {
-    getClients
+    getClients,
+    getClient,
+    createClient,
+    deleteClient
 }
