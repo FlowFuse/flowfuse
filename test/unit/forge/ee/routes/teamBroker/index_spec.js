@@ -138,7 +138,7 @@ describe('Team Broker API', function () {
             }
             response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${app.team.hashid}/broker/clientss`,
+                url: `/api/v1/teams/${app.team.hashid}/broker/clients`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             result = response.json()
