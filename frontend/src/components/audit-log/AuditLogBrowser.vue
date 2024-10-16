@@ -9,23 +9,21 @@
             <slot name="extraFilters" />
             <FormHeading class="mt-4">Event Type:</FormHeading>
             <div data-el="filter-event-types">
-                <ff-dropdown v-model="auditFilters.type" class="w-full">
-                    <ff-dropdown-option label="Show All" :value="undefined" />
-                    <ff-dropdown-option
-                        v-for="eType in auditFilters.types" :key="eType[1]"
-                        :label="`${eType[0]}`" :value="eType[1]"
-                    />
-                </ff-dropdown>
+                <ff-listbox
+                    v-model="auditFilters.type"
+                    :options="typeOptions"
+                    placeholder="Show All"
+                    class="w-full"
+                />
             </div>
             <FormHeading class="mt-4">User:</FormHeading>
             <div data-el="filter-users">
-                <ff-dropdown v-model="auditFilters.user" class="w-full">
-                    <ff-dropdown-option label="Show All" :value="undefined" />
-                    <ff-dropdown-option
-                        v-for="user in auditFilters.users" :key="user.username"
-                        :label="`${user.name} (${user.username})`" :value="user.username"
-                    />
-                </ff-dropdown>
+                <ff-listbox
+                    v-model="auditFilters.user"
+                    :options="userOptions"
+                    placeholder="Show All"
+                    class="w-full"
+                />
             </div>
         </div>
     </div>
@@ -35,6 +33,7 @@
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 import AuditEventsService from '../../services/audit-events.js'
+import FfListbox from '../../ui-components/components/form/ListBox.vue'
 import FormHeading from '../FormHeading.vue'
 
 import AuditLog from './AuditLog.vue'
@@ -42,6 +41,7 @@ import AuditLog from './AuditLog.vue'
 export default {
     name: 'AuditLogPage',
     components: {
+        FfListbox,
         AuditLog,
         SectionTopMenu,
         FormHeading
@@ -73,6 +73,24 @@ export default {
                 users: [],
                 scope: undefined
             }
+        }
+    },
+    computed: {
+        typeOptions () {
+            return [
+                { label: 'Show All', value: undefined },
+                ...this.auditFilters.types.map(type => ({ label: type[0], value: type[1][0] }))
+            ]
+        },
+        userOptions () {
+            return [
+                { label: 'Show All', value: undefined },
+                ...this.auditFilters.users.map(user => ({
+                    label: `${user.name} (${user.username})`,
+                    value: user.username
+                }
+                ))
+            ]
         }
     },
     watch: {
@@ -120,9 +138,7 @@ export default {
                 params.append('username', this.auditFilters.user)
             }
             if (this.auditFilters.type) {
-                this.auditFilters.type.forEach((evt) => {
-                    params.append('event', evt)
-                })
+                params.append('event', this.auditFilters.type)
             }
 
             this.$emit('load-entries', params)
