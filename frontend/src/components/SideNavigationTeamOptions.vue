@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import { ChipIcon, CogIcon, CurrencyDollarIcon, DatabaseIcon, FolderIcon, TemplateIcon, UsersIcon } from '@heroicons/vue/solid'
+import { ChipIcon, CogIcon, CurrencyDollarIcon, DatabaseIcon, FolderIcon, TemplateIcon, RssIcon, UsersIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState } from 'vuex'
 
 import permissionsMixin from '../mixins/Permissions.js'
@@ -96,6 +96,14 @@ export default {
                     tag: 'team-devices',
                     icon: ChipIcon,
                     disabled: this.noBilling
+                },
+                {
+                    label: 'Broker',
+                    to: '/broker',
+                    tag: 'team-broker',
+                    icon: RssIcon,
+                    disabled: this.noBilling,
+                    featureUnavailable: !this.features?.['teamBroker'] || this.team?.type.properties.features?.['teamBroker'] === false
                 },
                 {},
                 {
