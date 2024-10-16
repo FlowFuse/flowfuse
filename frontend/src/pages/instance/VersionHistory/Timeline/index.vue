@@ -2,7 +2,7 @@
     <section id="visual-timeline">
         <ul class="timeline">
             <li v-for="event in timeline" :key="event.id">
-                <timeline-event :event="event" />
+                <timeline-event :event="event" :timeline="timeline" />
             </li>
         </ul>
     </section>
