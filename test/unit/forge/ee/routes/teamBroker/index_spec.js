@@ -399,7 +399,7 @@ describe('Team Broker API', function () {
             result.should.have.property('result', 'allow')
             result.should.have.property('is_superuser', false)
             result.should.have.property('client_attrs')
-            result.client_attrs.should.have.property('team', 'ff/v1/internal/c')
+            result.client_attrs.should.have.property('team', 'ff/v1/internal/c/')
         })
         it('Test Authentication forge_platform fail', async function () {
             const response = await app.inject({
