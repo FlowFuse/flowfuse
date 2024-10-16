@@ -12,9 +12,9 @@ module.exports = {
                 this.setDataValue('password', hash(value))
             }
         },
-        acls: { type: DataTypes.STRING, defaultValue: '#' }
+        acls: { type: DataTypes.STRING, defaultValue: '{ "action": "both", pattern: "#" }' }
     },
-    indexs: [
+    indexes: [
         { name: 'broker_users_team_unique', fields: ['username', 'TeamId'], unique: true }
     ],
     associations: function (M) {
