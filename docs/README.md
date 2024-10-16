@@ -43,6 +43,12 @@ It covers everything from setup, to usage, and development. All [contributions](
       <p>Run FlowFuse yourself on your own infrastructure.</p>
       <ul style="margin-top: 0; margin-bottom: 0;">
          <li class="ff-offering-cta">
+            <a href="/docs/quick-start/">
+               Quick Start Instructions
+               <icon-chevron-right class="ff-icon ff-icon-sm" />
+            </a>
+         </li>
+         <li class="ff-offering-cta">
             <a href="/docs/install/introduction/">
                Install FlowFuse Self-Hosted
                <icon-chevron-right class="ff-icon ff-icon-sm" />
