@@ -1,4 +1,5 @@
 const aliceInviteToATeam = require('../fixtures/notifications/alice-invites-to-ateam.json')
+const announcement = require('../fixtures/notifications/announcement.json')
 const bobInviteToATeam = require('../fixtures/notifications/bob-invites-to-bteam.json')
 const eddyAcceptedInvite = require('../fixtures/notifications/eddy-accepted-invite-to-ateam.json')
 const instanceCrash = require('../fixtures/notifications/instance-crashed.json')
@@ -246,6 +247,61 @@ describe('FlowForge - Notifications', () => {
                 cy.get('[data-el="generic-notification"]').contains('Node-RED Instance Crashed').click()
                 cy.wait('@markInvitationRead')
                 cy.url().should('match', /instance\/.*\/overview/)
+            })
+        })
+    })
+
+    describe('Platform Announcements', () => {
+        it('appear as notification messages', () => {
+            cy.login('alice', 'aaPassword')
+
+            cy.intercept('/api/*/user').as('getUser')
+            cy.intercept('/api/*/settings').as('getSettings')
+            cy.intercept('/api/*/user/teams').as('getTeams')
+            cy.intercept('/api/*/user/notifications', {
+                meta: {},
+                count: 1,
+                notifications: [
+                    {
+                        ...announcement,
+                        createdAt: new Date().setTime((new Date()).getTime() - 3600000)
+                    }
+                ]
+            }).as('getNotifications')
+
+            cy.intercept('PUT', '/api/*/user/notifications/*', {}).as('markInvitationRead')
+
+            cy.intercept('/api/*/admin/stats').as('getAdminStats')
+            cy.intercept('/api/*/admin/license').as('getAdminLicense')
+
+            cy.visit('/')
+
+            cy.wait('@getUser')
+            cy.wait('@getSettings')
+            cy.wait('@getTeams')
+            cy.wait('@getNotifications')
+
+            cy.get('[data-el="desktop-nav-right"]').within(() => {
+                cy.get('[data-el="notifications-button"]')
+                    .should('exist')
+                    .contains(1)
+
+                cy.get('[data-el="notifications-button"]').click()
+            })
+
+            cy.get('[data-el="right-drawer"]').should('be.visible')
+
+            cy.get('[data-el="right-drawer"]').within(() => {
+                cy.get('[data-el="notifications-drawer"]')
+
+                cy.get('[data-el="generic-notification"]').should('have.length', 1)
+
+                cy.get('[data-el="generic-notification"]').contains('Platform Wide Notification')
+                cy.get('[data-el="generic-notification"]').contains('Hello, I\'m your friendly neighborhood platform wide notification.')
+
+                cy.get('[data-el="generic-notification"]').contains('Platform Wide Notification').click()
+                cy.wait('@markInvitationRead')
+                cy.url().should('match', /application\/application-id\/instances/i)
             })
         })
     })
