@@ -176,6 +176,88 @@ module.exports = async function (app) {
     })
 
     /**
+     * Update a specific MQTT Client
+     * @name /api/v1/teams/:teamId/broker/client/:username
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
+    app.patch('/client/:username', {
+        preHandler: app.needsPermission('project:create'),
+        schema: {
+            summary: 'Modify a MQTT Client',
+            tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    username: { type: 'string' }
+                }
+            },
+            body: {
+                anyOf: [
+                    {
+                        type: 'object',
+                        properties: {
+                            password: { type: 'string' },
+                            acls: { type: 'array' }
+                        }
+                    },
+                    {
+                        type: 'object',
+                        properties: {
+                            password: { type: 'string' }
+                        }
+                    },
+                    {
+                        type: 'object',
+                        properties: {
+                            acls: { type: 'array' }
+                        }
+                    }
+                ]
+            },
+            response: {
+                201: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        username: { type: 'string' },
+                        acls: { type: 'array' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
+            if (!user) {
+                return reply.status(404).send({})
+            }
+            if (request.body.password) {
+                user.password = request.body.password
+            }
+            if (request.body.acls) {
+                user.acls = JSON.stringify(request.body.acls)
+            }
+            await user.save()
+            reply.status(201).send(app.db.views.TeamBrokerClient.user(user))
+        } catch (err) {
+            return reply
+                .code(err.statusCode || 400)
+                .send({
+                    code: err.code || 'unknown_error',
+                    error: err.error || err.message
+                })
+        }
+    })
+
+    /**
      * Delete a MQTT Clients
      * @name /api/v1/teams/:teamId/broker/client/:username
      * @static

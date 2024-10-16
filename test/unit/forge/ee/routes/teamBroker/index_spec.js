@@ -99,6 +99,26 @@ describe('Team Broker API', function () {
             result.should.have.property('username', 'alice')
         })
 
+        it('Modify an existing MQTT broker user for a team', async function () {
+            const response = await app.inject({
+                method: 'PATCH',
+                url: `/api/v1/teams/${app.team.hashid}/broker/client/alice`,
+                body: {
+                    acls: [
+                        { pattern: 'foo/#', action: 'both' },
+                        { pattern: 'bar/test', action: 'publish' }
+                    ]
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(201)
+            const result = response.json()
+            result.should.have.property('username', 'alice')
+            result.should.have.property('acls')
+            result.acls.should.have.lengthOf(2)
+            result.acls[1].should.have.property('pattern', 'bar/test')
+        })
+
         it('Get specific MQTT broker user for a team who doesn\'t exist', async function () {
             const response = await app.inject({
                 method: 'GET',
@@ -241,6 +261,33 @@ describe('Team Broker API', function () {
             response.statusCode.should.equal(200)
             const result = response.json()
             result.should.have.property('result', 'deny')
+        })
+        it('Test Authentication pass after password change', async function () {
+            let response = await app.inject({
+                method: 'PATCH',
+                url: `/api/v1/teams/${app.team.hashid}/broker/client/alice`,
+                body: {
+                    password: 'ccPassword'
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(201)
+            response = await app.inject({
+                method: 'POST',
+                url: '/api/comms/v2/auth',
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    username: `alice@${app.team.hashid}`,
+                    password: 'ccPassword',
+                    clientId: `alice@${app.team.hashid}`
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('result', 'allow')
+            result.should.have.property('is_superuser', false)
+            result.should.have.property('client_attrs')
+            result.client_attrs.should.have.property('team')
         })
         it('Test Authentication fail none existent user', async function () {
             const response = await app.inject({
