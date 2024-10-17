@@ -131,7 +131,7 @@ export default {
                 snapshotsApi.exportSnapshot(this.snapshot.id, opts).then((data) => {
                     return data
                 }).then(data => {
-                    const snapshotDate = this.snapshot.updatedAt.replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-')
+                    const snapshotDate = data.updatedAt.replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-')
                     downloadData(data, `snapshot-${this.snapshot.id}-${snapshotDate}.json`)
                     alerts.emit('Snapshot exported.', 'confirmation')
                     this.$refs.dialog.close()
