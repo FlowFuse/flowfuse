@@ -7,11 +7,11 @@
             </tr>
             <tr>
                 <td class="font-medium pr-4">Customer ID:</td>
-                <td><div class="py-2">{{ team.billing.customer || 'none' }}</div></td>
+                <td><div class="py-2"><a v-if="stripeCustomerUrl" :href="stripeCustomerUrl" class="underline" target="_blank">{{ team.billing.customer }}</a><span v-else>none</span></div></td>
             </tr>
             <tr>
                 <td class="font-medium pr-4">Subscription ID:</td>
-                <td><div class="py-2">{{ team.billing.subscription || 'none' }}</div></td>
+                <td><div class="py-2"><a v-if="stripeSubscriptionUrl" :href="stripeSubscriptionUrl" class="underline" target="_blank">{{ team.billing.subscription }}</a><span v-else>none</span></div></td>
             </tr>
         </table>
         <div v-if="!isUnmanaged && trialMode" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
@@ -119,6 +119,18 @@ export default {
         },
         trialEndDate () {
             return this.formatDateTime(this.team.billing?.trialEndsAt)
+        },
+        stripeCustomerUrl () {
+            if (this.team.billing?.customer) {
+                return `https://dashboard.stripe.com/customers/${this.team.billing.customer}`
+            }
+            return null
+        },
+        stripeSubscriptionUrl () {
+            if (this.team.billing?.subscription) {
+                return `https://dashboard.stripe.com/subscriptions/${this.team.billing.subscription}`
+            }
+            return null
         }
     },
     methods: {
