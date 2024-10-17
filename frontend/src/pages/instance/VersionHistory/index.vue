@@ -12,9 +12,16 @@
             </div>
         </template>
         <template #helptext>
-            <p>Snapshots generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
-            <p>Snapshots are also required for deploying to devices. In the Deployments page of a Project, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
-            <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/FlowFuse/nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
+            <template v-if="$route.name.includes('timeline')">
+                <p>The <b>Timeline</b> provides a concise, chronological view of key activities within your Node-RED instance.</p>
+                <p>It tracks various events such as pipeline stage deployments, snapshot restorations, flow deployments, snapshot creations, and updates to instance settings.</p>
+                <p>This compact view helps you quickly understand the history of your instance, offering clear insight into when and what changes have been made.</p>
+            </template>
+            <template v-else-if="$route.name.includes('snapshots')">
+                <p><b>Snapshots</b> generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
+                <p>Snapshots are also required for deploying to devices. In the Deployments page of a Project, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
+                <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/FlowFuse/nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
+            </template>
         </template>
         <template #tools>
             <section class="flex gap-2 items-center self-center">
