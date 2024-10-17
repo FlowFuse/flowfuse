@@ -6,7 +6,7 @@
 
                 <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
                 <!-- it's pb- in this case -->
-                <ul v-else class="timeline pb-14 " :style="{height: `${listHeight}px`}">
+                <ul v-else class="timeline pb-14 " :style="{'max-height': `${listHeight}px`}">
                     <li v-for="event in timeline" :key="event.id">
                         <timeline-event
                             :event="event"
