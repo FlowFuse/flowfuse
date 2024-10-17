@@ -72,7 +72,10 @@ export default {
     methods: {
         async fetchData () {
             this.loading = true
-            if (this.instance.id) {
+
+            // handling a specific scenario where users can navigate to the source snapshot instance, and when they click back,
+            // we retrieve the timeline for that instance and display it for a short period of time
+            if (this.instance.id && this.instance.id === this.$route.params.id) {
                 projectHistoryAPI.getHistory(this.instance.id)
                     .then((response) => {
                         this.loading = false
