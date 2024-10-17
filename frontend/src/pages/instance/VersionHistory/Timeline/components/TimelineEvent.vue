@@ -4,7 +4,12 @@
 
         <div class="body flex flex-1 justify-between gap-2 items-center">
             <div class="content flex flex-1 flex-col justify-start">
-                <div class="title">{{ title }}</div>
+                <component
+                    :is="title"
+                    class="title"
+                    @preview-snapshot="$emit('preview-snapshot', event.data.snapshot)"
+                    @preview-instance="openInstance"
+                />
                 <div class="details">
                     <span>{{ shortTitle }}</span> | <span>{{ createdAt }}</span>
                 </div>
@@ -20,6 +25,8 @@
 </template>
 
 <script>
+import { defineComponent } from 'vue'
+
 import daysSince from '../../../../../utils/daysSince.js'
 
 import TimelineGraph from './TimelineGraph.vue'
@@ -37,6 +44,7 @@ export default {
             required: true
         }
     },
+    emits: ['preview-snapshot'],
     computed: {
         createdAt () {
             return daysSince(this.event.createdAt, true)
@@ -46,19 +54,63 @@ export default {
             case this.event.event === 'project.snapshot.imported':
                 // eslint-disable-next-line no-case-declarations
                 const splitName = this.event.data.snapshot.name.split(' - Deploy')[0] ?? ''
-                return `${splitName} Snapshot deployed from ${this.event.data.sourceProject.name}`
+                return defineComponent({
+                    emits: ['preview-snapshot', 'preview-instance'],
+                    methods: {
+                        previewSnapshot () { this.$emit('preview-snapshot') },
+                        previewInstance () { this.$emit('preview-instance') }
+                    },
+                    template: `
+                        <span>
+                            <a href="#" @click.prevent.stop="previewSnapshot">
+                                ${splitName}
+                            </a>
+                            Snapshot deployed from
+                            <a href="#" @click.stop.prevent="previewInstance">${this.event.data.sourceProject.name}</a>
+                        </span>`
+                })
+
             case this.event.event === 'project.snapshot.rolled-back':
-                return `Snapshot Restored: ${this.event.data.snapshot.name}`
-            case this.event.event === 'flows.set':
-                return 'Flows Deployed From Editor'
+                return defineComponent({
+                    emits: ['preview-snapshot'],
+                    methods: {
+                        previewSnapshot () { this.$emit('preview-snapshot') }
+                    },
+                    template: `
+                        <span>
+                            Snapshot Restored:
+                            <a href="#" @click.stop.prevent="previewSnapshot">${this.event.data.snapshot.name}</a>
+                        </span>`
+                })
             case this.event.event === 'project.snapshot.created':
-                return `Snapshot Captured: ${this.event.data.snapshot.name}`
+                return defineComponent({
+                    emits: ['preview-snapshot'],
+                    methods: {
+                        previewSnapshot () { this.$emit('preview-snapshot') }
+                    },
+                    template: `
+                        <span>
+                            Snapshot Captured:
+                            <i v-if="${!this.event.data.info.snapshotExists}">${this.event.data.snapshot.name}</i>
+                            <a href="#" v-else @click.stop.prevent="previewSnapshot">${this.event.data.snapshot.name}</a>
+                        </span>`
+                })
+            case this.event.event === 'flows.set':
+                return defineComponent({
+                    template: '<span>Flows Deployed From Editor</span>'
+                })
             case this.event.event === 'project.created':
-                return 'Instance Created'
+                return defineComponent({
+                    template: '<span>Instance Created</span>'
+                })
             case this.event.event === 'project.settings.updated':
-                return 'Instance Settings Updated'
+                return defineComponent({
+                    template: '<span>Instance Settings Updated</span>'
+                })
             default:
-                return this.event.event
+                return defineComponent({
+                    template: `<span>${this.event.event}</span>`
+                })
             }
         },
         shortTitle () {
@@ -82,11 +134,16 @@ export default {
         isSnapshot () {
             return this.event.event === 'project.snapshot.created'
         }
+    },
+    methods: {
+        openInstance () {
+            this.$router.push({ name: 'instance-overview', params: { id: this.event.data.sourceProject.id } })
+        }
     }
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .event {
 
     .body {
@@ -101,6 +158,10 @@ export default {
             .title {
                 overflow: hidden;
                 text-overflow: ellipsis;
+
+                a {
+                    color: $ff-blue-600;
+                }
             }
 
             .details {
