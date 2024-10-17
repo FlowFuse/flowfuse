@@ -50,12 +50,17 @@
         </template>
     </SectionTopMenu>
 
-    <router-view
-        :instance="instance"
-        @show-import-snapshot-dialog="showImportSnapshotDialog"
-        @show-create-snapshot-dialog="showCreateSnapshotDialog"
-        @instance-updated="$emit('instance-updated')"
-    />
+    <router-view v-slot="{ Component }">
+        <transition name="page-fade">
+            <component
+                :is="Component"
+                :instance="instance"
+                @show-import-snapshot-dialog="showImportSnapshotDialog"
+                @show-create-snapshot-dialog="showCreateSnapshotDialog"
+                @instance-updated="$emit('instance-updated')"
+            />
+        </transition>
+    </router-view>
 
     <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
     <SnapshotImportDialog
@@ -149,5 +154,12 @@ export default {
             }
         }
     }
+}
+.page-fade-enter-active, .page-fade-leave-active {
+    transition: opacity .2s ease-in-out;
+}
+
+.page-fade-enter, .page-fade-leave-to {
+    opacity: 0;
 }
 </style>

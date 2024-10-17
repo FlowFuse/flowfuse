@@ -1,25 +1,32 @@
 <template>
-    <section id="visual-timeline">
-        <ul class="timeline">
-            <li v-for="event in timeline" :key="event.id">
-                <timeline-event
-                    :event="event"
-                    :timeline="timeline"
-                    @preview-snapshot="showViewSnapshotDialog"
-                    @restore-snapshot="forceRefresh($event, showRollbackDialog)"
-                    @compare-snapshot="forceRefresh($event, showCompareSnapshotDialog)"
-                    @delete-snapshot="forceRefresh($event, showDeleteSnapshotDialog)"
-                    @edit-snapshot="showEditSnapshotDialog"
-                    @download-snapshot="showDownloadSnapshotDialog"
-                    @download-package-json="downloadSnapshotPackage"
-                    @set-device-target="showDeviceTargetDialog"
-                />
-            </li>
-        </ul>
-    </section>
-    <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
-    <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
-    <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="fetchData" />
+    <div>
+        <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+        <section id="visual-timeline" class="mb-14 relative">
+            <transition name="fade">
+                <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
+
+                <ul v-else class="timeline">
+                    <li v-for="event in timeline" :key="event.id">
+                        <timeline-event
+                            :event="event"
+                            :timeline="timeline"
+                            @preview-snapshot="showViewSnapshotDialog"
+                            @restore-snapshot="forceRefresh($event, showRollbackDialog)"
+                            @compare-snapshot="forceRefresh($event, showCompareSnapshotDialog)"
+                            @delete-snapshot="forceRefresh($event, showDeleteSnapshotDialog)"
+                            @edit-snapshot="showEditSnapshotDialog"
+                            @download-snapshot="showDownloadSnapshotDialog"
+                            @download-package-json="downloadSnapshotPackage"
+                            @set-device-target="showDeviceTargetDialog"
+                        />
+                    </li>
+                </ul>
+            </transition>
+        </section>
+        <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+        <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
+        <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="fetchData" />
+    </div>
 </template>
 
 <script>
@@ -43,7 +50,8 @@ export default {
     },
     data () {
         return {
-            timeline: []
+            timeline: [],
+            loading: true
         }
     },
     watch: {
@@ -56,10 +64,14 @@ export default {
     },
     methods: {
         async fetchData () {
-            // todo should add loading screen
+            this.loading = true
             if (this.instance.id) {
-                const payload = await projectHistoryAPI.getHistory(this.instance.id)
-                this.timeline = payload.timeline
+                projectHistoryAPI.getHistory(this.instance.id)
+                    .then((response) => {
+                        this.loading = false
+                        this.timeline = response.timeline
+                    })
+                    .catch(e => e)
             }
         },
         async forceRefresh (payload, callback) {
@@ -73,6 +85,8 @@ export default {
 
 <style scoped lang="scss">
 #visual-timeline {
+    min-height: 200px;
+
     .timeline {
         border: 1px solid $ff-grey-300;
         border-radius: 3px;
