@@ -11,9 +11,9 @@
                             :event="event"
                             :timeline="timeline"
                             @preview-snapshot="showViewSnapshotDialog"
-                            @restore-snapshot="forceRefresh($event, showRollbackDialog)"
-                            @compare-snapshot="forceRefresh($event, showCompareSnapshotDialog)"
-                            @delete-snapshot="forceRefresh($event, showDeleteSnapshotDialog)"
+                            @restore-snapshot="forceRefresh(showRollbackDialog, $event, true)"
+                            @compare-snapshot="forceRefresh(showCompareSnapshotDialog, $event)"
+                            @delete-snapshot="forceRefresh(showDeleteSnapshotDialog, $event)"
                             @edit-snapshot="showEditSnapshotDialog"
                             @download-snapshot="showDownloadSnapshotDialog"
                             @download-package-json="downloadSnapshotPackage"
@@ -74,8 +74,8 @@ export default {
                     .catch(e => e)
             }
         },
-        async forceRefresh (payload, callback) {
-            callback(payload)
+        async forceRefresh (callback, ...payload) {
+            callback(...payload)
                 .then(() => this.fetchData())
                 .catch(e => console.warn(e))
         }

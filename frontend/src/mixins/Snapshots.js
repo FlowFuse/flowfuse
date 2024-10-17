@@ -22,7 +22,7 @@ export default {
             })
         },
         // snapshot actions - rollback
-        showRollbackDialog (snapshot) {
+        showRollbackDialog (snapshot, alterLoadingState = false) {
             return new Promise((resolve) => {
                 Dialog.show({
                     header: 'Restore Snapshot',
@@ -32,9 +32,12 @@ export default {
                        Are you sure you want to deploy to this snapshot?`,
                     confirmLabel: 'Confirm'
                 }, async () => {
-                    await SnapshotApi.rollbackSnapshot(this.instance.id, snapshot.id)
-                    Alerts.emit('Successfully deployed snapshot.', 'confirmation')
-                    resolve()
+                    if (alterLoadingState) this.loading = true
+                    return SnapshotApi.rollbackSnapshot(this.instance.id, snapshot.id)
+                        .then(() => {
+                            Alerts.emit('Successfully deployed snapshot.', 'confirmation')
+                            resolve()
+                        })
                 })
             })
         },

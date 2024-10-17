@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
-        <template v-if="snapshots.length > 0">
+        <template v-if="snapshots.length > 0 && !loading">
             <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
             <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
                 <template #context-menu="{row}">
