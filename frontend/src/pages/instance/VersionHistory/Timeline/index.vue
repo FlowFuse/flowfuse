@@ -1,11 +1,12 @@
 <template>
     <div>
-        <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-        <section id="visual-timeline" class="mb-14 relative">
+        <section id="visual-timeline" class="relative" :style="{height: `${listHeight}px`}">
             <transition name="fade">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
 
-                <ul v-else class="timeline">
+                <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+                <!-- it's pb- in this case -->
+                <ul v-else class="timeline pb-14 " :style="{height: `${listHeight}px`}">
                     <li v-for="event in timeline" :key="event.id">
                         <timeline-event
                             :event="event"
@@ -51,7 +52,8 @@ export default {
     data () {
         return {
             timeline: [],
-            loading: true
+            loading: true,
+            listHeight: 0
         }
     },
     watch: {
@@ -61,6 +63,11 @@ export default {
     },
     mounted () {
         this.fetchData()
+        this.computeTimelineListMaxHeight()
+        window.addEventListener('resize', this.computeTimelineListMaxHeight)
+    },
+    beforeUnmount () {
+        window.removeEventListener('resize', this.computeTimelineListMaxHeight)
     },
     methods: {
         async fetchData () {
@@ -78,6 +85,17 @@ export default {
             callback(...payload)
                 .then(() => this.fetchData())
                 .catch(e => console.warn(e))
+        },
+        computeTimelineListMaxHeight () {
+            const sectionHeader = document.querySelector('.ff-section-header')
+
+            if (sectionHeader) {
+                const rect = sectionHeader.getBoundingClientRect()
+                const heightToBottom = window.innerHeight - rect.bottom
+
+                // also deduct the <main> tag padding and .ff-section-header's margin-bottom
+                this.listHeight = heightToBottom - 24.5 - 7
+            }
         }
     }
 }
@@ -85,11 +103,10 @@ export default {
 
 <style scoped lang="scss">
 #visual-timeline {
-    min-height: 200px;
-
     .timeline {
         border: 1px solid $ff-grey-300;
         border-radius: 3px;
+        overflow: auto;
     }
 }
 </style>
