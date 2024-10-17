@@ -1,6 +1,6 @@
 <template>
     <div class="ff-section-header flex flex-nowrap border-b border-gray-400 mb-4 sm:mb-2 text-gray-500 justify-between h-12">
-        <div class="w-full wrapper flex items-center md:w-auto mb-2 gap-x-2">
+        <div class="w-full wrapper flex md:w-auto mb-2 gap-x-2">
             <div class="flex gap-2 items-center">
                 <slot name="hero">
                     <div class="flex">
@@ -9,7 +9,7 @@
                 </slot>
                 <InformationCircleIcon v-if="hasInfoDialog" class="min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />
             </div>
-            <span v-if="info" class="hidden sm:block text-gray-400 info">{{ info }}</span>
+            <div v-if="info" class="hidden sm:block text-gray-400 info">{{ info }}</div>
             <div class="actions">
                 <ul v-if="options.length > 0" class="flex">
                     <li v-for="item in options" :key="item.name" class="mr-8 pt-1 flex">
@@ -88,12 +88,12 @@ export default {
 <style lang="scss">
 .wrapper {
     flex: 1;
-    align-items: baseline;
 
     .info {
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
+        align-self:center;
     }
 
     .actions {

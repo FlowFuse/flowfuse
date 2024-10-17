@@ -31,21 +31,21 @@ describe('FlowForge - Instance Snapshots', () => {
             })
             .then((response) => {
                 projectId = response.body.projects[0].id
-                cy.visit(`/instance/${projectId}/snapshots`)
+                cy.visit(`/instance/${projectId}/version-history/snapshots`)
                 cy.wait('@getProjectSnapshots')
             })
     })
 
     it('shows a placeholder message when no snapshots have been created', () => {
         cy.intercept('GET', '/api/*/projects/*/snapshots', { count: 0, snapshots: [] }).as('getEmptyProjectSnapshots')
-        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@getEmptyProjectSnapshots')
         cy.get('main').contains('Create your First Snapshot')
     })
 
     it('provides functionality to create a snapshot', () => {
         cy.intercept('GET', '/api/*/projects/*/snapshots', { count: 0, snapshots: [] }).as('snapshotData')
-        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@snapshotData')
 
         cy.get('button[data-action="create-snapshot"]').click()
@@ -60,6 +60,13 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').should('not.be.disabled')
         cy.get('[data-el="dialog-create-snapshot"] [data-form="snapshot-description"] textarea').type('snapshot1 description')
 
+        cy.intercept('GET', '/api/*/projects/*/snapshots', {
+            count: 1,
+            snapshots: [{
+                ...instanceSnapshot,
+                name: 'snapshot1'
+            }]
+        }).as('snapshotData')
         // click "Create"
         cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').click()
         cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', 1)
@@ -68,7 +75,7 @@ describe('FlowForge - Instance Snapshots', () => {
 
     it('offers correct options in snapshot table kebab menu', () => {
         cy.intercept('GET', '/api/*/projects/*/snapshots', instanceSnapshots).as('snapshotData')
-        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@snapshotData')
 
         // click kebab menu in row 1
@@ -188,7 +195,7 @@ describe('FlowForge - Instance Snapshots', () => {
         // ensure the downloads folder is empty before the test
         cy.task('clearDownloads')
         cy.intercept('GET', '/api/*/projects/*/snapshots').as('snapshotData')
-        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@snapshotData')
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
@@ -385,7 +392,7 @@ describe('FlowForge - Instance Snapshots', () => {
     it('download snapshot package.json', () => {
         cy.intercept('GET', '/api/*/projects/*/snapshots', instanceSnapshots).as('snapshotData')
         cy.intercept('GET', '/api/*/snapshots/*', instanceSnapshot).as('instanceSnapshot')
-        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@snapshotData')
 
         // ensure package.json does not exist in the downloads folder before the test

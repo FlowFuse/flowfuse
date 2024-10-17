@@ -1,5 +1,7 @@
 import InstanceSettings from '../Settings/index.vue'
 import InstanceSettingsRoutes from '../Settings/routes.js'
+import VersionHistory from '../VersionHistory/index.vue'
+import VersionHistoryRoutes from '../VersionHistory/routes.js'
 import { children } from '../routes.js'
 
 import InstanceEditor from './index.vue'
@@ -17,7 +19,7 @@ export default [
             return { name: 'instance-editor-overview', params: { id: to.params.id } }
         },
         children: [
-            ...children.filter(child => !['settings'].includes(child.path)).map(child => {
+            ...children.filter(child => !['settings', 'version-history'].includes(child.path)).map(child => {
                 return {
                     ...child,
                     name: child.name.replace('instance-', 'instance-editor-')
@@ -33,12 +35,34 @@ export default [
                 redirect: to => {
                     return { name: 'instance-editor-settings-general', params: { id: to.params.id } }
                 },
-                children: [...InstanceSettingsRoutes.map(child => {
-                    return {
-                        ...child,
-                        name: child.name.replace('instance-settings', 'instance-editor-settings')
-                    }
-                })]
-            }]
+                children: [
+                    ...InstanceSettingsRoutes.map(child => {
+                        return {
+                            ...child,
+                            name: child.name.replace('instance-settings', 'instance-editor-settings')
+                        }
+                    })
+                ]
+            },
+            {
+                path: 'version-history',
+                name: 'instance-editor-version-history',
+                component: VersionHistory,
+                meta: {
+                    title: 'Instance - Version History'
+                },
+                redirect: to => {
+                    return { name: 'instance-editor-version-history-timeline', params: { id: to.params.id } }
+                },
+                children: [
+                    ...VersionHistoryRoutes.map(child => {
+                        return {
+                            ...child,
+                            name: child.name.replace('instance-', 'instance-editor-')
+                        }
+                    })
+                ]
+            }
+        ]
     }
 ]
