@@ -6,8 +6,8 @@
                     <span>View:</span>
                 </div>
                 <div class="toggle">
-                    <router-link :to="{name: 'instance-snapshots'}">Snapshots</router-link>
-                    <router-link :to="{name: 'instance-version-history-timeline'}">Timeline</router-link>
+                    <router-link :to="{path: './snapshots'}">Snapshots</router-link>
+                    <router-link :to="{path: './timeline'}">Timeline</router-link>
                 </div>
             </div>
         </template>
