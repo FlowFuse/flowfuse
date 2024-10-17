@@ -1,9 +1,15 @@
 <template>
     <SectionTopMenu>
         <template #hero>
-            <router-link :to="{name: 'instance-version-history-timeline'}">Timeline</router-link>
-            <router-link :to="{name: 'instance-snapshots'}">Snapshots</router-link>
-            <!--            <ff-toggle-switch v-model="currentPage" />-->
+            <div class="page-toggle">
+                <div class="title">
+                    <span>View:</span>
+                </div>
+                <div class="toggle">
+                    <router-link :to="{name: 'instance-snapshots'}">Snapshots</router-link>
+                    <router-link :to="{name: 'instance-version-history-timeline'}">Timeline</router-link>
+                </div>
+            </div>
         </template>
         <template #helptext>
             <p>Snapshots generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
@@ -125,5 +131,33 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.page-toggle {
+    display: flex;
+    gap: 15px;
+    align-items: center;
 
+    .title {
+        color: $ff-black;
+        font-weight: 400;
+    }
+
+    .toggle {
+        border: 1px solid $ff-blue-800;
+        display: flex;
+        gap: 10px;
+        border-radius: 5px;
+
+        a {
+            padding: 5px 10px;
+            margin: 1px;
+            border-radius: 5px;
+            transition: ease-in-out .2s;
+
+            &.router-link-active {
+                background: $ff-blue-800;
+                color: $ff-white;
+            }
+        }
+    }
+}
 </style>
