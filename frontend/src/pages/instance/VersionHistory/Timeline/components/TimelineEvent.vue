@@ -19,13 +19,52 @@
             </div>
         </div>
         <div class="actions">
-            ...
+            <ff-kebab-menu v-if="snapshotExists" ref="kebab" menu-align="right">
+                <ff-list-item
+                    :disabled="!hasPermission('project:snapshot:rollback')"
+                    label="Restore Snapshot"
+                    @click="$emit('restore-snapshot', event.data.snapshot)"
+                />
+                <ff-list-item
+                    label="Edit Snapshot"
+                    :disabled="!hasPermission('snapshot:edit')"
+                    @click="$emit('edit-snapshot', event.data.snapshot)"
+                />
+                <ff-list-item
+                    :disabled="!hasPermission('snapshot:full')"
+                    label="View Snapshot"
+                    @click="$emit('preview-snapshot', event.data.snapshot)"
+                />
+                <ff-list-item
+                    :disabled="!hasPermission('project:snapshot:export')"
+                    label="Download Snapshot"
+                    @click="$emit('download-snapshot', event.data.snapshot)"
+                />
+                <ff-list-item
+                    :disabled="!hasPermission('project:snapshot:read')"
+                    label="Download package.json"
+                    @click="$emit('download-package-json', event.data.snapshot)"
+                />
+                <ff-list-item
+                    :disabled="!hasPermission('project:snapshot:set-target')"
+                    label="Set as Device Target"
+                    @click="$emit('set-device-target', event.data.snapshot)"
+                />
+                <ff-list-item
+                    :disabled="!hasPermission('project:snapshot:delete')"
+                    label="Delete Snapshot"
+                    kind="danger"
+                    @click="$emit('delete-snapshot', event.data.snapshot)"
+                />
+            </ff-kebab-menu>
         </div>
     </div>
 </template>
 
 <script>
 import { defineComponent } from 'vue'
+
+import permissionsMixin from '../../../../../mixins/Permissions.js'
 
 import daysSince from '../../../../../utils/daysSince.js'
 
@@ -34,6 +73,7 @@ import TimelineGraph from './TimelineGraph.vue'
 export default {
     name: 'TimelineEvent',
     components: { TimelineGraph },
+    mixins: [permissionsMixin],
     props: {
         event: {
             type: Object,
@@ -44,7 +84,16 @@ export default {
             required: true
         }
     },
-    emits: ['preview-snapshot'],
+    emits: [
+        'preview-snapshot',
+        'restore-snapshot',
+        'compare-snapshot',
+        'download-snapshot',
+        'download-package-json',
+        'delete-snapshot',
+        'edit-snapshot',
+        'set-device-target'
+    ],
     computed: {
         createdAt () {
             return daysSince(this.event.createdAt, true)
@@ -133,6 +182,9 @@ export default {
         },
         isSnapshot () {
             return this.event.event === 'project.snapshot.created'
+        },
+        snapshotExists () {
+            return this.isSnapshot && this.event.data.info.snapshotExists
         }
     },
     methods: {
@@ -177,6 +229,7 @@ export default {
 
     .actions {
         padding: 15px 10px;
+        min-width: 40px;
     }
 
     &.is-snapshot {
