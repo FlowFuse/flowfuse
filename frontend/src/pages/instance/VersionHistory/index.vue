@@ -35,7 +35,6 @@
                     v-if="hasPermission('snapshot:import')"
                     kind="secondary"
                     data-action="import-snapshot"
-                    :disabled="busy"
                     @click="showImportSnapshotDialog"
                 >
                     <template #icon-left><UploadIcon /></template>Upload Snapshot
@@ -43,7 +42,6 @@
                 <ff-button
                     kind="primary"
                     data-action="create-snapshot"
-                    :disabled="busy"
                     @click="showCreateSnapshotDialog"
                 >
                     <template #icon-left><PlusSmIcon /></template>Create Snapshot
@@ -68,7 +66,6 @@
         owner-type="instance"
         @snapshot-import-success="onSnapshotImportSuccess"
         @snapshot-import-failed="onSnapshotImportFailed"
-        @canceled="onSnapshotImportCancel"
     />
 </template>
 
@@ -101,18 +98,6 @@ export default {
         }
     },
     emits: ['instance-updated'],
-    data () {
-        return {
-            busyMakingSnapshot: false,
-            busyImportingSnapshot: false,
-            currentPage: true
-        }
-    },
-    computed: {
-        busy () {
-            return this.busyMakingSnapshot || this.busyImportingSnapshot
-        }
-    },
     methods: {
         showCreateSnapshotDialog () {
             this.$refs.snapshotCreateDialog.show()
@@ -122,22 +107,14 @@ export default {
             this.$refs.snapshotImportDialog.show()
         },
         snapshotCreated (snapshot) {
-            // on next tick, update the table data to ensure
-            // the new snapshot is shown and the correct status are shown
             this.$emit('instance-updated')
         },
         onSnapshotImportSuccess (snapshot) {
             this.$emit('instance-updated')
-            this.busyImportingSnapshot = false
         },
         onSnapshotImportFailed (err) {
-            console.error(err)
             const message = err.response?.data?.error || 'Failed to import snapshot.'
             Alerts.emit(message, 'warning')
-            this.busyImportingSnapshot = false
-        },
-        onSnapshotImportCancel () {
-            this.busyImportingSnapshot = false
         }
     }
 }
