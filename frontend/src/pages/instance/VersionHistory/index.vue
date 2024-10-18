@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu>
         <template #hero>
-            <div class="page-toggle">
+            <div class="page-toggle" data-nav="page-toggle">
                 <div class="title">
                     <span>View:</span>
                 </div>
