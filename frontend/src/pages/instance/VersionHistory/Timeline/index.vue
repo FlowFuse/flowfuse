@@ -57,8 +57,11 @@ export default {
         }
     },
     watch: {
-        'instance.id': function () {
-            this.fetchData()
+        instance: {
+            handler: function () {
+                this.fetchData()
+            },
+            deep: true
         }
     },
     mounted () {
