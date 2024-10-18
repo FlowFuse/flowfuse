@@ -1,7 +1,7 @@
 <template>
     <div>
         <FeatureUnavailable v-if="!isTimelineFeatureEnabledForPlatform" />
-        <FeatureUnavailableToTeam v-if="!isTimelineFeatureEnabledForTeam" />
+        <FeatureUnavailableToTeam v-else-if="!isTimelineFeatureEnabledForTeam" />
         <section v-if="isTimelineFeatureEnabled" id="visual-timeline" class="relative" :style="{height: `${listHeight}px`}">
             <transition name="fade">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
