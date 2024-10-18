@@ -5,10 +5,7 @@
         <section v-if="isTimelineFeatureEnabled" id="visual-timeline" class="relative" :style="{height: `${listHeight}px`}">
             <transition name="fade" mode="out-in">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
-
-                <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-                <!-- it's pb- in this case -->
-                <ul v-else ref="timeline" class="timeline pb-14 " :style="{'max-height': `${listHeight}px`}">
+                <ul v-else ref="timeline" class="timeline" :style="{'max-height': `${listHeight}px`}">
                     <li v-for="event in activeTimeline" :key="event.id">
                         <timeline-event
                             :event="event"
@@ -175,6 +172,10 @@ export default {
         border: 1px solid $ff-grey-300;
         border-radius: 3px;
         overflow: auto;
+
+        li {
+
+        }
     }
 }
 </style>
