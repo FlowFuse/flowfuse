@@ -177,7 +177,7 @@ export default {
                     template: `
                         <span>
                             Snapshot Captured:
-                            <i v-if="${!data.info.snapshotExists}">${data.snapshot.name}</i>
+                            <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i>
                             <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
                         </span>`
                 })
@@ -230,7 +230,7 @@ export default {
             return this.event.event === 'project.snapshot.created' || isImportedSnapshot
         },
         snapshotExists () {
-            return this.isSnapshot && this.event.data.info.snapshotExists
+            return this.isSnapshot && this.event.data?.info?.snapshotExists
         },
         isLoadMore () {
             return this.event.event === 'load-more'
