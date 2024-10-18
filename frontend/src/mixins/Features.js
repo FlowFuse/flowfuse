@@ -53,6 +53,15 @@ export default {
         },
         isBOMFeatureEnabled () {
             return this.isBOMFeatureEnabledForPlatform && this.isBOMFeatureEnabledForTeam
+        },
+        isTimelineFeatureEnabledForPlatform () {
+            return !!this.features.projectHistory
+        },
+        isTimelineFeatureEnabledForTeam () {
+            return !!this.team?.type?.properties?.features?.projectHistory
+        },
+        isTimelineFeatureEnabled () {
+            return this.isTimelineFeatureEnabledForPlatform && this.isTimelineFeatureEnabledForTeam
         }
     }
 }
