@@ -47,6 +47,11 @@ export default {
         instance: {
             type: Object,
             required: true
+        },
+        reloadHooks: {
+            type: Array,
+            required: false,
+            default: () => []
         }
     },
     data () {
@@ -57,12 +62,11 @@ export default {
         }
     },
     watch: {
-        instance: {
-            handler: function () {
-                this.fetchData()
-            },
+        reloadHooks: {
+            handler: 'fetchData',
             deep: true
-        }
+        },
+        'instance.id': 'fetchData'
     },
     mounted () {
         this.fetchData()

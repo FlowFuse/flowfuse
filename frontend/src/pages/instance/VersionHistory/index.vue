@@ -55,6 +55,7 @@
             <component
                 :is="Component"
                 :instance="instance"
+                :reloadHooks="reloadHooks"
                 @show-import-snapshot-dialog="showImportSnapshotDialog"
                 @show-create-snapshot-dialog="showCreateSnapshotDialog"
                 @instance-updated="$emit('instance-updated')"
@@ -103,6 +104,11 @@ export default {
         }
     },
     emits: ['instance-updated'],
+    data () {
+        return {
+            reloadHooks: []
+        }
+    },
     methods: {
         showCreateSnapshotDialog () {
             this.$refs.snapshotCreateDialog.show()
@@ -112,10 +118,10 @@ export default {
             this.$refs.snapshotImportDialog.show()
         },
         snapshotCreated (snapshot) {
-            this.$emit('instance-updated')
+            this.reloadHooks.push({ event: 'snapshot-created', payload: snapshot })
         },
         onSnapshotImportSuccess (snapshot) {
-            this.$emit('instance-updated')
+            this.reloadHooks.push({ event: 'snapshot-imported', payload: snapshot })
         },
         onSnapshotImportFailed (err) {
             const message = err.response?.data?.error || 'Failed to import snapshot.'
