@@ -2,6 +2,21 @@
  *
  * @param {Element} $el
  * @param {'auto' || 'instant' || 'smooth'} behavior
+ * @param {number}  top - Specifies the number of pixels along the Y axis to scroll the window or element.
+ * @param {number} left - Specifies the number of pixels along the X axis to scroll the window or element.
+ */
+export function scrollTo ($el, {
+    behavior = 'smooth',
+    top = 0,
+    left = 0
+} = {}) {
+    $el.scrollTo({ behavior, top, left })
+}
+
+/**
+ *
+ * @param {Element} $el
+ * @param {'auto' || 'instant' || 'smooth'} behavior
  * @param {'center' || 'end' || 'nearest' || 'start'}  block
  * @param {'center' || 'end' || 'nearest' || 'start'} inline
  */

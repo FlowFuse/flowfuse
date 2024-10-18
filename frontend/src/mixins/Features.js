@@ -43,7 +43,7 @@ export default {
             return this.isStaticAssetFeatureEnabledForPlatform && this.isStaticAssetsFeatureEnabledForTeam
         },
         isHTTPBearerTokensFeatureEnabledForTeam () {
-            return this.settings.features.httpBearerTokens && this.team.type.properties.features.teamHttpSecurity
+            return this.settings?.features.httpBearerTokens && this.team.type.properties.features.teamHttpSecurity
         },
         isBOMFeatureEnabledForPlatform () {
             return !!this.features.bom
@@ -53,6 +53,15 @@ export default {
         },
         isBOMFeatureEnabled () {
             return this.isBOMFeatureEnabledForPlatform && this.isBOMFeatureEnabledForTeam
+        },
+        isTimelineFeatureEnabledForPlatform () {
+            return !!this.features.projectHistory
+        },
+        isTimelineFeatureEnabledForTeam () {
+            return !!this.team?.type?.properties?.features?.projectHistory
+        },
+        isTimelineFeatureEnabled () {
+            return this.isTimelineFeatureEnabledForPlatform && this.isTimelineFeatureEnabledForTeam
         }
     }
 }
