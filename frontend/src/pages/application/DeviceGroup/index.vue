@@ -116,7 +116,7 @@ export default {
                 {
                     label: 'Settings',
                     to: {
-                        name: 'ApplicationDeviceGroupSettings',
+                        name: 'ApplicationDeviceGroupSettingsGeneral',
                         params: {
                             applicationId: this.application?.id,
                             deviceGroupId: this.deviceGroup?.id
@@ -154,7 +154,6 @@ export default {
     methods: {
         async load () {
             const applicationId = this.$route.params.applicationId
-
             // See https://github.com/FlowFuse/flowfuse/issues/2929
             if (!applicationId) {
                 return

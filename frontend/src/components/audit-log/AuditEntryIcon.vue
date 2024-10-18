@@ -208,7 +208,8 @@ const iconMap = {
         'application.deviceGroup.created',
         'application.deviceGroup.updated',
         'application.deviceGroup.deleted',
-        'application.deviceGroup.members.changed'
+        'application.deviceGroup.members.changed',
+        'application.deviceGroup.settings.updated'
     ],
     beaker: [
         'team.device.developer-mode.enabled',

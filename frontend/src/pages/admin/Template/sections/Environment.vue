@@ -3,9 +3,21 @@
         <FormHeading>
             <div class="flex">
                 <div class="mr-4">Environment Variables</div>
+                <div v-if="hasInfoDialog" class="flex justify-center mr-4"><InformationCircleIcon class="w-5 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" /></div>
                 <div class="flex justify-center"><ChangeIndicator :value="editable.changed.env" /></div>
             </div>
         </FormHeading>
+        <ff-dialog v-if="hasInfoDialog" ref="help-dialog" class="ff-dialog-box--info" :header="helpHeader || 'FlowFuse Info'">
+            <template #default>
+                <div class="flex gap-8">
+                    <slot name="pictogram"><img src="../../../../images/pictograms/snapshot_red.png"></slot>
+                    <div><slot name="helptext" /></div>
+                </div>
+            </template>
+            <template #actions>
+                <ff-button @click="$refs['help-dialog'].close()">Close</ff-button>
+            </template>
+        </ff-dialog>
         <div class="min-w-min">
             <!-- NOTE:  `:columns:[,,,]` is necessary to instruct the empty row to apply a col-span of 4 -->
             <ff-data-table
@@ -100,8 +112,7 @@
 </template>
 
 <script>
-
-import { DocumentDownloadIcon, ExclamationIcon, LockClosedIcon, PlusSmIcon, TrashIcon } from '@heroicons/vue/outline'
+import { DocumentDownloadIcon, ExclamationIcon, InformationCircleIcon, LockClosedIcon, PlusSmIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
@@ -121,7 +132,8 @@ export default {
         TrashIcon,
         PlusSmIcon,
         LockClosedIcon,
-        ExclamationIcon
+        ExclamationIcon,
+        InformationCircleIcon
     },
     props: {
         editTemplate: {
@@ -135,6 +147,11 @@ export default {
         readOnly: {
             type: Boolean,
             default: false
+        },
+        helpHeader: {
+            // for the dialog that opens, e.g. "FlowFuse - Device Group Environment Variables"
+            type: String,
+            default: null
         }
     },
     emits: ['update:modelValue'],
@@ -164,6 +181,9 @@ export default {
         },
         noDataMessage: function () {
             return this.search === '' ? 'No environment variables' : 'Not found! Try a different search term.'
+        },
+        hasInfoDialog () {
+            return !!this.$slots.helptext
         }
     },
     watch: {
@@ -196,6 +216,9 @@ export default {
         this.validate()
     },
     methods: {
+        openInfoDialog () {
+            this.$refs['help-dialog'].show()
+        },
         validate () {
             const envVars = this.editable?.settings?.env || []
             this.updateLookup()

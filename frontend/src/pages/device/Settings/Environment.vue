@@ -125,7 +125,7 @@ export default {
                     value: field.value
                 })
             })
-            deviceApi.updateSettings(this.device.id, settings)
+            await deviceApi.updateSettings(this.device.id, settings)
             this.$emit('device-updated')
             alerts.emit('Device settings successfully updated. NOTE: changes will be applied once the device restarts.', 'confirmation', 6000)
         }

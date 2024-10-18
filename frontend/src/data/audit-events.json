@@ -55,7 +55,8 @@
         "application.deviceGroup.created": "Device Group Created",
         "application.deviceGroup.updated": "Device Group Updated",
         "application.deviceGroup.deleted": "Device Group Deleted",
-        "application.deviceGroup.members.changed": "Device Group Members Changed"
+        "application.deviceGroup.members.changed": "Device Group Members Changed",
+        "application.deviceGroup.settings.updated": "Device Group Settings Updated"
     },
     "project": {
         "project.created": "Instance Created",

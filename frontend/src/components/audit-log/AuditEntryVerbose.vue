@@ -441,7 +441,12 @@
     </template>
     <template v-else-if="entry.event === 'application.deviceGroup.members.changed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' members in Application '{{ entry.body.application?.name }} updated: {{ entry.body?.info?.info ?? 'No changes' }}.</span>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' members in Application '{{ entry.body.application?.name }}' updated: {{ entry.body?.info?.info ?? 'No changes' }}.</span>
+        <span v-else-if="!error">Device Group data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.deviceGroup.settings.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' settings in Application '{{ entry.body.application?.name }}' updated.</span>
         <span v-else-if="!error">Device Group data not found in audit entry.</span>
     </template>
 
