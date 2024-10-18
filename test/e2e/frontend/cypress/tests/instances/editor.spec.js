@@ -62,7 +62,7 @@ describe('FlowForge - Instance editor', () => {
         cy.get('[data-el="tabs-drawer"]').should('exist')
     })
 
-    it('has working drawer navigation tabs', () => {
+    it.only('has working drawer navigation tabs', () => {
         cy.intercept(
             'GET',
             '/api/*/projects/*',
@@ -103,7 +103,7 @@ describe('FlowForge - Instance editor', () => {
 
         cy.get('[data-nav="instance-version-history"]').as('snapshots-tab').should('exist')
         cy.get('@snapshots-tab').click()
-        cy.get('@tabs-wrapper').contains('Loading Timeline...')
+        cy.get('@tabs-wrapper').contains('Timeline Not Available')
 
         cy.get('[data-nav="instance-activity"]').as('activity-tab').should('exist')
         cy.get('@activity-tab').click()

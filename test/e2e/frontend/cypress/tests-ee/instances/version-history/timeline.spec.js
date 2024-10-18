@@ -1,0 +1,56 @@
+describe('FlowForge - Version History', () => {
+    let projectId
+
+    beforeEach(() => {
+        cy.login('alice', 'aaPassword')
+        cy.home()
+
+        cy.request('GET', '/api/v1/teams/')
+            .then((response) => {
+                const team = response.body.teams[0]
+                return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
+            })
+            .then((response) => {
+                projectId = response.body.projects[0].id
+            })
+    })
+
+    it('has the version history tab and can access the timeline and snapshots pages', () => {
+        cy.intercept('GET', '/api/*/projects/*/snapshots', {
+            meta: {},
+            count: 0,
+            snapshots: []
+        }).as('getProjectSnapshots')
+        cy.visit(`/instance/${projectId}/overview`)
+
+        cy.get('[data-nav="instance-version-history"]').click()
+
+        // check that the timeline tab is default, data not important
+        cy.contains('Timeline Not Available')
+
+        cy.get('[data-action="import-snapshot"]').should('exist').should('not.be.disabled')
+        cy.get('[data-action="create-snapshot"]').should('exist').should('not.be.disabled')
+
+        cy.get('[data-nav="page-toggle"]').within(() => {
+            cy.contains('Timeline').should('exist').should('not.be.disabled')
+            cy.contains('Snapshots').should('exist').should('not.be.disabled')
+
+            cy.contains('Snapshots').click()
+        })
+
+        cy.wait('@getProjectSnapshots')
+
+        cy.contains('Create your First Snapshot')
+    })
+
+    it('The Timeline is not available for non licensed users', () => {
+        const spy = cy.spy().as('historyRequest')
+        cy.intercept('GET', '/api/*/projects/*/history', spy)
+        cy.visit(`/instance/${projectId}/version-history/timeline`)
+
+        cy.contains('This feature is not available for your current Team. Please upgrade your Team in order to use it.')
+        cy.contains('Timeline Not Available')
+
+        cy.get('@historyRequest').should('not.have.been.called')
+    })
+})
