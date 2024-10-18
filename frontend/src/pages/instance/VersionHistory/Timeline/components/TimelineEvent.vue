@@ -99,10 +99,34 @@ export default {
             return daysSince(this.event.createdAt, true)
         },
         title () {
+            let name
+            const data = this.event.data
+
             switch (true) {
             case this.event.event === 'project.snapshot.imported':
-                // eslint-disable-next-line no-case-declarations
-                const splitName = this.event.data.snapshot.name.split(' - Deploy')[0] ?? ''
+                name = data.snapshot.name.split(' - Deploy')[0] ?? ''
+
+                if (Object.prototype.hasOwnProperty.call(data ?? {}, 'sourceProject')) {
+                    // we can only differentiate between a plain snapshot import and a devops deployment history event
+                    // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
+
+                    return defineComponent({
+                        emits: ['preview-snapshot', 'preview-instance'],
+                        methods: {
+                            previewSnapshot () { this.$emit('preview-snapshot') },
+                            previewInstance () { this.$emit('preview-instance') }
+                        },
+                        template: `
+                        <span>
+                            <a href="#" @click.prevent.stop="previewSnapshot">
+                                ${name}
+                            </a>
+                            Snapshot deployed from
+                            <a href="#" @click.stop.prevent="previewInstance">${this.event.data.sourceProject.name}</a>
+                        </span>`
+                    })
+                }
+
                 return defineComponent({
                     emits: ['preview-snapshot', 'preview-instance'],
                     methods: {
@@ -111,11 +135,11 @@ export default {
                     },
                     template: `
                         <span>
+                            Imported
                             <a href="#" @click.prevent.stop="previewSnapshot">
-                                ${splitName}
+                                ${name}
                             </a>
-                            Snapshot deployed from
-                            <a href="#" @click.stop.prevent="previewInstance">${this.event.data.sourceProject.name}</a>
+                            snapshot
                         </span>`
                 })
 
@@ -128,7 +152,7 @@ export default {
                     template: `
                         <span>
                             Snapshot Restored:
-                            <a href="#" @click.stop.prevent="previewSnapshot">${this.event.data.snapshot.name}</a>
+                            <a href="#" @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
                         </span>`
                 })
             case this.event.event === 'project.snapshot.created':
@@ -140,8 +164,8 @@ export default {
                     template: `
                         <span>
                             Snapshot Captured:
-                            <i v-if="${!this.event.data.info.snapshotExists}">${this.event.data.snapshot.name}</i>
-                            <a href="#" v-else @click.stop.prevent="previewSnapshot">${this.event.data.snapshot.name}</a>
+                            <i v-if="${!data.info.snapshotExists}">${data.snapshot.name}</i>
+                            <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
                         </span>`
                 })
             case this.event.event === 'flows.set':
@@ -165,7 +189,11 @@ export default {
         shortTitle () {
             switch (true) {
             case this.event.event === 'project.snapshot.imported':
-                return 'Pipeline Stage Pushed'
+                if (Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')) {
+                    // we can only differentiate between a plain snapshot import and a devops deployment history events
+                    // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
+                    return 'Pipeline Stage Pushed'
+                } else return 'Snapshot Imported'
             case this.event.event === 'project.snapshot.rolled-back':
                 return 'Snapshot Restored'
             case this.event.event === 'flows.set':
@@ -181,7 +209,12 @@ export default {
             }
         },
         isSnapshot () {
-            return this.event.event === 'project.snapshot.created'
+            // we can only differentiate between a plain snapshot import and a devops deployment history events
+            // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
+            const isImportedSnapshot = this.event.event === 'project.snapshot.imported' &&
+                !Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')
+
+            return this.event.event === 'project.snapshot.created' || isImportedSnapshot
         },
         snapshotExists () {
             return this.isSnapshot && this.event.data.info.snapshotExists

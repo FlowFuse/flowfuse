@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { AdjustmentsIcon, CameraIcon, PlusIcon } from '@heroicons/vue/outline'
+import { AdjustmentsIcon, CameraIcon, DownloadIcon, PlusIcon } from '@heroicons/vue/outline'
 
 import PipelinesIcon from '../../../../../components/icons/Pipelines.js'
 import ProjectsIcon from '../../../../../components/icons/Projects.js'
@@ -39,7 +39,11 @@ export default {
         icon () {
             switch (true) {
             case this.event.event === 'project.snapshot.imported':
-                return PipelinesIcon
+                // we can only differentiate between a plain snapshot import and a devops deployment history events
+                // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
+                if (Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')) {
+                    return PipelinesIcon
+                } else return DownloadIcon
             case this.event.event === 'project.snapshot.rolled-back':
                 return UndoIcon
             case this.event.event === 'flows.set':
@@ -65,23 +69,42 @@ export default {
             return this.timeline[currentIndex + 1]
         },
         isPrecededBySnapshot () {
-            return this.isPrecededBy?.event === 'project.snapshot.created'
+            // we can only differentiate between a plain snapshot import and a devops deployment history events
+            // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
+            const isPrecededByImportedSnapshot = this.isPrecededBy?.event === 'project.snapshot.imported' &&
+                !Object.prototype.hasOwnProperty.call(this.isPrecededBy?.data, 'sourceProject')
+
+            return this.isPrecededBy?.event === 'project.snapshot.created' || isPrecededByImportedSnapshot
         },
         isSucceededBy () {
             const currentIndex = this.timeline.findIndex(event => event.id === this.event.id)
             return this.timeline[currentIndex - 1]
         },
         isSucceededBySnapshot () {
-            return this.isSucceededBy?.event === 'project.snapshot.created'
+            // we can only differentiate between a plain snapshot import and a devops deployment history events
+            // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
+            const isSucceededByImportedSnapshot = this.isSucceededBy?.event === 'project.snapshot.imported' &&
+                !Object.prototype.hasOwnProperty.call(this.isSucceededBy?.data, 'sourceProject')
+
+            return this.isSucceededBy?.event === 'project.snapshot.created' || isSucceededByImportedSnapshot
         },
         isSnapshot () {
-            return this.event.event === 'project.snapshot.created'
+            // we can only differentiate between a plain snapshot import and a devops deployment history events
+            // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
+            const isImportedSnapshot = this.event.event === 'project.snapshot.imported' &&
+                !Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')
+
+            return this.event.event === 'project.snapshot.created' || isImportedSnapshot
         },
         hasSomethingToChainTo () {
             const currentIndex = this.timeline.findIndex(event => event.id === this.event.id)
             for (const id in this.timeline.slice(0, currentIndex)) {
-                if ([
-                    'project.snapshot.imported',
+                if ((this.timeline[id]?.event) === 'project.snapshot.imported') {
+                    // we can only differentiate between a plain snapshot import and a devops deployment history events
+                    // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
+                    const isPipelineDeployment = Object.prototype.hasOwnProperty.call(this.timeline[id]?.data, 'sourceProject')
+                    if (isPipelineDeployment) return true
+                } else if ([
                     'project.snapshot.rolled-back',
                     'flows.set',
                     'project.created',
