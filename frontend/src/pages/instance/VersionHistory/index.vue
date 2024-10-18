@@ -51,7 +51,7 @@
     </SectionTopMenu>
 
     <router-view v-slot="{ Component }">
-        <transition name="page-fade">
+        <transition name="page-fade" mode="out-in">
             <component
                 :is="Component"
                 :instance="instance"
@@ -63,7 +63,12 @@
         </transition>
     </router-view>
 
-    <SnapshotCreateDialog ref="snapshotCreateDialog" data-el="dialog-create-snapshot" :project="instance" @snapshot-created="snapshotCreated" />
+    <SnapshotCreateDialog
+        ref="snapshotCreateDialog"
+        data-el="dialog-create-snapshot"
+        :project="instance"
+        @snapshot-created="snapshotCreated"
+    />
     <SnapshotImportDialog
         ref="snapshotImportDialog"
         title="Upload Snapshot"

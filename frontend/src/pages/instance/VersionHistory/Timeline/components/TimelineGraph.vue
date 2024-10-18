@@ -1,6 +1,6 @@
 <template>
     <div class="graph" :class="{'is-snapshot': isSnapshot}">
-        <span v-if="isSucceededBySnapshot && !isSnapshot" class="connector top snapshot" />
+        <span v-if="isSucceededBySnapshot && (!isSnapshot || isLoadMore)" class="connector top snapshot" />
         <span
             v-if="hasSomethingToChainTo || (isSnapshot && !hasSomethingToChainTo && !isLastTimelineEvent)"
             class="connector top"
@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { AdjustmentsIcon, CameraIcon, DownloadIcon, PlusIcon } from '@heroicons/vue/outline'
+import { AdjustmentsIcon, CameraIcon, DotsVerticalIcon, DownloadIcon, PlusIcon } from '@heroicons/vue/outline'
 
 import PipelinesIcon from '../../../../../components/icons/Pipelines.js'
 import ProjectsIcon from '../../../../../components/icons/Projects.js'
@@ -54,6 +54,8 @@ export default {
                 return AdjustmentsIcon
             case this.event.event === 'project.created':
                 return PlusIcon
+            case this.event.event === 'load-more':
+                return DotsVerticalIcon
             default:
                 return null
             }
@@ -116,6 +118,9 @@ export default {
         },
         isLastTimelineEvent () {
             return this.isSucceededBy === undefined
+        },
+        isLoadMore () {
+            return this.event.event === 'load-more'
         }
     }
 }

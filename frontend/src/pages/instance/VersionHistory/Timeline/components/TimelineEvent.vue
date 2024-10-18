@@ -1,63 +1,75 @@
 <template>
-    <div class="event flex justify-between gap-1 items-center" :class="{'is-snapshot': isSnapshot}">
+    <div
+        class="event flex justify-between gap-1 items-center"
+        :class="{'is-snapshot': isSnapshot, 'load-more': isLoadMore}"
+        @click="loadMore"
+    >
         <timeline-graph :event="event" :timeline="timeline" />
 
-        <div class="body flex flex-1 justify-between gap-2 items-center">
-            <div class="content flex flex-1 flex-col justify-start">
-                <component
-                    :is="title"
-                    class="title"
-                    @preview-snapshot="$emit('preview-snapshot', event.data.snapshot)"
-                    @preview-instance="openInstance"
-                />
-                <div class="details">
-                    <span>{{ shortTitle }}</span> | <span>{{ createdAt }}</span>
+        <template v-if="!isLoadMore">
+            <div class="body flex flex-1 justify-between gap-2 items-center">
+                <div class="content flex flex-1 flex-col justify-start">
+                    <component
+                        :is="title"
+                        class="title"
+                        @preview-snapshot="$emit('preview-snapshot', event.data.snapshot)"
+                        @preview-instance="openInstance"
+                    />
+                    <div class="details">
+                        <span>{{ shortTitle }}</span> | <span>{{ createdAt }}</span>
+                    </div>
+                </div>
+                <div class="username">
+                    {{ event.user.name }}
                 </div>
             </div>
-            <div class="username">
-                {{ event.user.name }}
+            <div class="actions">
+                <ff-kebab-menu v-if="snapshotExists" ref="kebab" menu-align="right">
+                    <ff-list-item
+                        :disabled="!hasPermission('project:snapshot:rollback')"
+                        label="Restore Snapshot"
+                        @click="$emit('restore-snapshot', event.data.snapshot)"
+                    />
+                    <ff-list-item
+                        label="Edit Snapshot"
+                        :disabled="!hasPermission('snapshot:edit')"
+                        @click="$emit('edit-snapshot', event.data.snapshot)"
+                    />
+                    <ff-list-item
+                        :disabled="!hasPermission('snapshot:full')"
+                        label="View Snapshot"
+                        @click="$emit('preview-snapshot', event.data.snapshot)"
+                    />
+                    <ff-list-item
+                        :disabled="!hasPermission('project:snapshot:export')"
+                        label="Download Snapshot"
+                        @click="$emit('download-snapshot', event.data.snapshot)"
+                    />
+                    <ff-list-item
+                        :disabled="!hasPermission('project:snapshot:read')"
+                        label="Download package.json"
+                        @click="$emit('download-package-json', event.data.snapshot)"
+                    />
+                    <ff-list-item
+                        :disabled="!hasPermission('project:snapshot:set-target')"
+                        label="Set as Device Target"
+                        @click="$emit('set-device-target', event.data.snapshot)"
+                    />
+                    <ff-list-item
+                        :disabled="!hasPermission('project:snapshot:delete')"
+                        label="Delete Snapshot"
+                        kind="danger"
+                        @click="$emit('delete-snapshot', event.data.snapshot)"
+                    />
+                </ff-kebab-menu>
             </div>
-        </div>
-        <div class="actions">
-            <ff-kebab-menu v-if="snapshotExists" ref="kebab" menu-align="right">
-                <ff-list-item
-                    :disabled="!hasPermission('project:snapshot:rollback')"
-                    label="Restore Snapshot"
-                    @click="$emit('restore-snapshot', event.data.snapshot)"
-                />
-                <ff-list-item
-                    label="Edit Snapshot"
-                    :disabled="!hasPermission('snapshot:edit')"
-                    @click="$emit('edit-snapshot', event.data.snapshot)"
-                />
-                <ff-list-item
-                    :disabled="!hasPermission('snapshot:full')"
-                    label="View Snapshot"
-                    @click="$emit('preview-snapshot', event.data.snapshot)"
-                />
-                <ff-list-item
-                    :disabled="!hasPermission('project:snapshot:export')"
-                    label="Download Snapshot"
-                    @click="$emit('download-snapshot', event.data.snapshot)"
-                />
-                <ff-list-item
-                    :disabled="!hasPermission('project:snapshot:read')"
-                    label="Download package.json"
-                    @click="$emit('download-package-json', event.data.snapshot)"
-                />
-                <ff-list-item
-                    :disabled="!hasPermission('project:snapshot:set-target')"
-                    label="Set as Device Target"
-                    @click="$emit('set-device-target', event.data.snapshot)"
-                />
-                <ff-list-item
-                    :disabled="!hasPermission('project:snapshot:delete')"
-                    label="Delete Snapshot"
-                    kind="danger"
-                    @click="$emit('delete-snapshot', event.data.snapshot)"
-                />
-            </ff-kebab-menu>
-        </div>
+        </template>
+
+        <template v-else>
+            <div class="body flex flex-1 justify-between gap-2 items-center cursor-pointer text-center">
+                <h5 class="w-full">Load More</h5>
+            </div>
+        </template>
     </div>
 </template>
 
@@ -92,7 +104,8 @@ export default {
         'download-package-json',
         'delete-snapshot',
         'edit-snapshot',
-        'set-device-target'
+        'set-device-target',
+        'load-more'
     ],
     computed: {
         createdAt () {
@@ -218,11 +231,17 @@ export default {
         },
         snapshotExists () {
             return this.isSnapshot && this.event.data.info.snapshotExists
+        },
+        isLoadMore () {
+            return this.event.event === 'load-more'
         }
     },
     methods: {
         openInstance () {
             this.$router.push({ name: 'instance-overview', params: { id: this.event.data.sourceProject.id } })
+        },
+        loadMore () {
+            if (this.isLoadMore) this.$emit('load-more')
         }
     }
 }
@@ -268,6 +287,12 @@ export default {
     &.is-snapshot {
         background: $ff-grey-100;
         color: $ff-grey-500;
+    }
+
+    &.load-more {
+        background: $ff-grey-200;
+        color: $ff-blue-500;
+        cursor: pointer;
     }
 }
 </style>

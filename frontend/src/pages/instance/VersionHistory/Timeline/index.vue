@@ -3,16 +3,16 @@
         <FeatureUnavailable v-if="!isTimelineFeatureEnabledForPlatform" />
         <FeatureUnavailableToTeam v-else-if="!isTimelineFeatureEnabledForTeam" />
         <section v-if="isTimelineFeatureEnabled" id="visual-timeline" class="relative" :style="{height: `${listHeight}px`}">
-            <transition name="fade">
+            <transition name="fade" mode="out-in">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
 
                 <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
                 <!-- it's pb- in this case -->
-                <ul v-else class="timeline pb-14 " :style="{'max-height': `${listHeight}px`}">
-                    <li v-for="event in timeline" :key="event.id">
+                <ul v-else ref="timeline" class="timeline pb-14 " :style="{'max-height': `${listHeight}px`}">
+                    <li v-for="event in activeTimeline" :key="event.id">
                         <timeline-event
                             :event="event"
-                            :timeline="timeline"
+                            :timeline="activeTimeline"
                             @preview-snapshot="showViewSnapshotDialog"
                             @restore-snapshot="forceRefresh(showRollbackDialog, $event, true)"
                             @compare-snapshot="forceRefresh(showCompareSnapshotDialog, $event)"
@@ -21,6 +21,7 @@
                             @download-snapshot="showDownloadSnapshotDialog"
                             @download-package-json="downloadSnapshotPackage"
                             @set-device-target="showDeviceTargetDialog"
+                            @load-more="fetchData(true)"
                         />
                     </li>
                 </ul>
@@ -54,6 +55,7 @@ import FeatureUnavailable from '../../../../components/banners/FeatureUnavailabl
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
 import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
+import { scrollTo } from '../../../../composables/Ux.js'
 import featuresMixin from '../../../../mixins/Features.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
 import SnapshotExportDialog from '../../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
@@ -87,7 +89,21 @@ export default {
         return {
             timeline: [],
             loading: false,
-            listHeight: 0
+            listHeight: 0,
+            next_cursor: undefined
+        }
+    },
+    computed: {
+        canLoadMore () {
+            return this.next_cursor !== undefined
+        },
+        activeTimeline () {
+            if (this.canLoadMore) {
+                return [...this.timeline, {
+                    event: 'load-more',
+                    id: 'load-more'
+                }]
+            } else return this.timeline
         }
     },
     watch: {
@@ -106,17 +122,28 @@ export default {
         window.removeEventListener('resize', this.computeTimelineListMaxHeight)
     },
     methods: {
-        async fetchData () {
+        async fetchData (loadMore = false) {
             if (this.isTimelineFeatureEnabled) {
-                this.loading = true
+                if (!loadMore) {
+                    this.loading = true
+                }
 
                 // handling a specific scenario where users can navigate to the source snapshot instance, and when they click back,
                 // we retrieve the timeline for that instance and display it for a short period of time
                 if (this.instance.id && this.instance.id === this.$route.params.id) {
-                    projectHistoryAPI.getHistory(this.instance.id)
+                    projectHistoryAPI.getHistory(this.instance.id, this.next_cursor, 10)
                         .then((response) => {
                             this.loading = false
-                            this.timeline = response.timeline
+                            if (loadMore) {
+                                response.timeline.forEach(ev => {
+                                    this.timeline.push(ev)
+                                    this.$nextTick(() => scrollTo(this.$refs.timeline, {
+                                        top: this.$refs.timeline.scrollHeight,
+                                        behavior: 'smooth'
+                                    }))
+                                })
+                            } else this.timeline = response.timeline
+                            this.next_cursor = response.meta.next_cursor
                         })
                         .catch(e => e)
                 }
