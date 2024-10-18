@@ -21,12 +21,53 @@ module.exports = {
             }
         },
         description: { type: DataTypes.TEXT },
-        targetSnapshotId: { type: DataTypes.INTEGER, allowNull: true }
+        targetSnapshotId: { type: DataTypes.INTEGER, allowNull: true },
+        settings: {
+            type: DataTypes.TEXT,
+            set (value) {
+                this.setDataValue('settings', JSON.stringify(value))
+            },
+            get () {
+                const rawValue = this.getDataValue('settings') || '{}'
+                return JSON.parse(rawValue)
+            }
+        }
     },
     associations: function (M) {
         this.belongsTo(M.Application, { onDelete: 'CASCADE' })
         this.belongsTo(M.ProjectSnapshot, { as: 'targetSnapshot' })
         this.hasMany(M.Device)
+    },
+    hooks: function (M, app) {
+        return {
+            afterUpdate: async (deviceGroup, options) => {
+                // if `settings` is updated, we need to update the settings hash
+                // of any member devices
+                if (deviceGroup.changed('settings')) {
+                    const include = [
+                        { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
+                        {
+                            model: M.DeviceGroup,
+                            attributes: ['hashid', 'id', 'ApplicationId', 'settings']
+                        },
+                        { model: M.Application, attributes: ['hashid', 'id', 'name', 'links'] }
+                    ]
+                    const where = {
+                        DeviceGroupId: deviceGroup.id,
+                        ApplicationId: deviceGroup.ApplicationId
+                    }
+                    const devices = await M.Device.findAll({ where, include })
+                    const updateAndSave = async (device) => {
+                        await device.updateSettingsHash()
+                        await device.save({
+                            hooks: false, // skip the afterSave hook for device model (we have only updated the settings hash)
+                            transaction: options?.transaction // pass the transaction (if any)
+                        })
+                    }
+                    await Promise.all(devices.map(updateAndSave))
+                }
+            }
+        }
     },
     finders: function (M) {
         const self = this

@@ -217,7 +217,9 @@ module.exports = async function (app) {
             hash: request.device.settingsHash,
             env: {}
         }
-        const settings = await request.device.getAllSettings()
+        const settings = await request.device.getAllSettings({
+            mergeDeviceGroupSettings: true
+        })
         Object.keys(settings).forEach(key => {
             if (key === 'env') {
                 settings.env.forEach(envVar => {

@@ -580,6 +580,225 @@ describe('Application Device Groups API', function () {
         })
     })
 
+    describe('Update Device Settings', async function () {
+        async function prepare () {
+            const sid = await login('bob', 'bbPassword')
+            const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+            const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') + ' original name', description: 'original desc' }, application)
+            deviceGroup.should.have.property('name').and.endWith('original name')
+            deviceGroup.should.have.property('description', 'original desc')
+
+            const device1of2 = await factory.createDevice({ name: generateName('device 1') }, TestObjects.BTeam, null, application)
+            const device2of2 = await factory.createDevice({ name: generateName('device 2') }, TestObjects.BTeam, null, application)
+
+            // add the devices to the group
+            await controller.updateDeviceGroupMembership(deviceGroup, { addDevices: [device1of2.id, device2of2.id] })
+            await device1of2.reload({ include: [app.db.models.Team, app.db.models.Application] })
+            await device2of2.reload({ include: [app.db.models.Team, app.db.models.Application] })
+
+            // manually set some env-vars on the group
+            deviceGroup.settings = {
+                env: [{ name: 'ENV1', value: 'group value' }, { name: 'ENV2', value: 'group value' }, { name: 'ENV3', value: 'group value' }]
+            }
+            await deviceGroup.save()
+
+            // set some env-vars on the devices
+            await device1of2.updateSettings({ env: [{ name: 'ENV1', value: 'device 1 value 1' }, { name: 'ENV2', value: 'device 1 value 2' }] })
+            await device2of2.updateSettings({ env: [{ name: 'ENV1', value: 'device 2 value 2' }, { name: 'ENV2', value: '' }] })
+
+            const tokens = {
+                device1: await device1of2.refreshAuthTokens({ refreshOTC: false }),
+                device2: await device2of2.refreshAuthTokens({ refreshOTC: false })
+            }
+
+            // reset the mock call history
+            app.comms.devices.sendCommand.resetHistory()
+
+            return { sid, tokens, application, deviceGroup, device1of2, device2of2, device1SettingsHash: device1of2.settingsHash, device2SettingsHash: device2of2.settingsHash }
+        }
+        /**
+         * Call the API to update the device group settings
+         * e.g http://xxxxx/api/v1/applications/ZdEbXMg9mD/device-groups/50z9ynpNdO/settings
+         * @param {*} sid - session id
+         * @param {Object} application - application object
+         * @param {Object} deviceGroup - device group object
+         * @param {{ env: [{name: String, value: String}]}} settings - settings to update
+         * @returns {Promise} - the response object
+         */
+        async function callSettingsUpdate (sid, application, deviceGroup, settings) {
+            return app.inject({
+                method: 'PUT',
+                url: `/api/v1/applications/${application.hashid}/device-groups/${deviceGroup.hashid}/settings`,
+                cookies: { sid },
+                payload: settings
+            })
+        }
+        /** /api/v1/devices/:deviceId/live/settings */
+        async function callDeviceAgentLiveSettingsAPI (token, device) {
+            return app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${device.hashid}/live/settings`,
+                headers: {
+                    authorization: `Bearer ${token}`,
+                    'content-type': 'application/json'
+                }
+            })
+        }
+
+        it('Owner can update a device group settings', async function () {
+            const { sid, tokens, application, deviceGroup, device1of2, device2of2, device1SettingsHash, device2SettingsHash } = await prepare()
+
+            const groupEnv = deviceGroup.settings.env.map(e => ({ ...e })) // clone the group env vars before modifying
+            groupEnv.find(e => e.name === 'ENV3').value = 'group value updated' // update the value of ENV3
+
+            // reset the mock call history
+            app.comms.devices.sendCommand.resetHistory()
+
+            // update an env var that is not overridden by the devices
+            const response = await callSettingsUpdate(sid, application, deviceGroup, {
+                env: groupEnv
+            })
+            response.statusCode.should.equal(200) // ensure success
+
+            // check the group env is updated
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            updatedDeviceGroup.should.have.property('settings').and.be.an.Object()
+            updatedDeviceGroup.settings.should.have.property('env').and.be.an.Array()
+            const gEnv3 = updatedDeviceGroup.settings.env.find(e => e.name === 'ENV3')
+            gEnv3.should.have.property('value', 'group value updated')
+
+            // check device settings hash has changed
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+            updatedDevice1.should.have.property('settingsHash').and.not.equal(device1SettingsHash) // device 1 should have a new settings hash
+            updatedDevice2.should.have.property('settingsHash').and.not.equal(device2SettingsHash) // device 2 should have a new settings hash
+
+            // check the settings.env delivered to the devices are merged with the group settings
+            const d1SettingsResponse = await callDeviceAgentLiveSettingsAPI(tokens.device1.token, updatedDevice1)
+            const d1Settings = d1SettingsResponse.json()
+            d1Settings.should.have.property('hash', updatedDevice1.settingsHash)
+            d1Settings.should.have.property('env').and.be.an.Object()
+            d1Settings.env.should.have.property('ENV1', 'device 1 value 1') // device value should not be changed
+            d1Settings.env.should.have.property('ENV2', 'device 1 value 2') // device value should not be changed
+            d1Settings.env.should.have.property('ENV3', 'group value updated') // device value should be overridden by the updated group value since ENV3 is not set on the device
+
+            const d2SettingsResponse = await callDeviceAgentLiveSettingsAPI(tokens.device2.token, updatedDevice2)
+            const d2Settings = d2SettingsResponse.json()
+            d2Settings.should.have.property('hash', updatedDevice2.settingsHash)
+            d2Settings.should.have.property('env').and.be.an.Object()
+            d2Settings.env.should.have.property('ENV1', 'device 2 value 2') // device value should not be changed
+            d2Settings.env.should.have.property('ENV2', 'group value') // device value should be overridden by original group value (since it is empty on the device)
+            d2Settings.env.should.have.property('ENV3', 'group value updated') // device value should be overridden by the updated group value since ENV3 is not set on the device
+
+            // check devices got an update request
+            app.comms.devices.sendCommand.callCount.should.equal(2)
+            const calls = app.comms.devices.sendCommand.getCalls()
+            checkDeviceUpdateCall(calls, device1of2)
+            checkDeviceUpdateCall(calls, device2of2)
+        })
+
+        it('Merges new Group Env Var', async function () {
+            const { sid, tokens, application, deviceGroup, device1of2, device2of2, device1SettingsHash, device2SettingsHash } = await prepare()
+
+            const groupEnv = deviceGroup.settings.env.map(e => ({ ...e })) // clone the group env vars before modifying
+            groupEnv.push({ name: 'ENV4', value: 'group value 4' }) // add a new env var
+
+            // update an env var that is not overridden by the devices
+            const response = await callSettingsUpdate(sid, application, deviceGroup, {
+                env: groupEnv
+            })
+            response.statusCode.should.equal(200) // ensure success
+
+            // check the group env is updated
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            updatedDeviceGroup.should.have.property('settings').and.be.an.Object()
+            updatedDeviceGroup.settings.should.have.property('env').and.be.an.Array()
+            updatedDeviceGroup.settings.env.length.should.equal(4)
+            const gEnv4 = updatedDeviceGroup.settings.env.find(e => e.name === 'ENV4')
+            gEnv4.should.have.property('value', 'group value 4')
+
+            // check device settings hash has changed
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+            updatedDevice1.should.have.property('settingsHash').and.not.equal(device1SettingsHash)
+            updatedDevice2.should.have.property('settingsHash').and.not.equal(device2SettingsHash)
+
+            // check the settings.env delivered to the devices are merged with the group settings
+            const d1SettingsResponse = await callDeviceAgentLiveSettingsAPI(tokens.device1.token, updatedDevice1)
+            const d1Settings = d1SettingsResponse.json()
+            d1Settings.should.have.property('hash', updatedDevice1.settingsHash)
+            d1Settings.env.should.have.keys('ENV1', 'ENV2', 'ENV3', 'ENV4')
+            d1Settings.env.should.have.property('ENV4', 'group value 4') // device should inherit the new group value
+
+            const d2SettingsResponse = await callDeviceAgentLiveSettingsAPI(tokens.device2.token, updatedDevice2)
+            const d2Settings = d2SettingsResponse.json()
+            d2Settings.should.have.property('hash', updatedDevice2.settingsHash)
+            d2Settings.env.should.have.keys('ENV1', 'ENV2', 'ENV3', 'ENV4')
+            d2Settings.env.should.have.property('ENV4', 'group value 4') // device should inherit the new group value
+        })
+
+        it('Only updates a device settings hash if the group env var change affects the merged settings env', async function () {
+            const { sid, application, deviceGroup, device1of2, device2of2, device1SettingsHash, device2SettingsHash } = await prepare()
+
+            // reset the mock call history
+            app.comms.devices.sendCommand.resetHistory()
+
+            const groupEnv = deviceGroup.settings.env.map(e => ({ ...e })) // clone the group env vars before modifying
+            groupEnv.find(e => e.name === 'ENV2').value = 'device 1 value 2' // set the value of ENV2 to the same as the device 1s current value
+            const response = await callSettingsUpdate(sid, application, deviceGroup, {
+                env: groupEnv
+            })
+            response.statusCode.should.equal(200) // ensure success
+
+            // check the group env is updated
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            updatedDeviceGroup.should.have.property('settings').and.be.an.Object()
+            updatedDeviceGroup.settings.should.have.property('env').and.be.an.Array()
+            const gEnv2 = updatedDeviceGroup.settings.env.find(e => e.name === 'ENV2')
+            gEnv2.should.have.property('value', 'device 1 value 2') // the group value should now be the same as the device 1 value
+
+            // check device 1 settings hash has NOT changed but device 2 has!
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+            updatedDevice1.should.have.property('settingsHash').and.equal(device1SettingsHash)
+            updatedDevice2.should.have.property('settingsHash').and.not.equal(device2SettingsHash)
+
+            // check devices got an update request
+            app.comms.devices.sendCommand.callCount.should.equal(2)
+            const calls = app.comms.devices.sendCommand.getCalls()
+            checkDeviceUpdateCall(calls, device1of2)
+            checkDeviceUpdateCall(calls, device2of2)
+        })
+
+        it('Member can not update a device group settings (403)', async function () {
+            const sid = await login('chris', 'ccPassword')
+            const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+            const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
+            const response = await callSettingsUpdate(sid, application, deviceGroup, {
+                env: [{ name: 'ENV1', value: 'new group value' }]
+            })
+
+            response.statusCode.should.equal(403)
+
+            const result = response.json()
+            result.should.have.property('code', 'unauthorized')
+            result.should.have.property('error')
+        })
+
+        it('Non Member can not update a device group settings (404)', async function () {
+            const sid = await login('dave', 'ddPassword')
+            const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
+            const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
+            const response = await callSettingsUpdate(sid, application, deviceGroup, {
+                name: 'updated name',
+                description: 'updated description',
+                targetSnapshotId: null
+            })
+
+            response.statusCode.should.be.equal(404)
+        })
+    })
+
     describe('Delete Device Group', async function () {
         it('Owner can delete a device group', async function () {
             const sid = await login('bob', 'bbPassword')
