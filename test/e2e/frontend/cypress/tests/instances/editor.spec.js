@@ -62,7 +62,7 @@ describe('FlowForge - Instance editor', () => {
         cy.get('[data-el="tabs-drawer"]').should('exist')
     })
 
-    it.only('has working drawer navigation tabs', () => {
+    it('has working drawer navigation tabs', () => {
         cy.intercept(
             'GET',
             '/api/*/projects/*',
