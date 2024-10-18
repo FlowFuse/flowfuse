@@ -2,10 +2,13 @@
     <div>
         <FeatureUnavailable v-if="!isTimelineFeatureEnabledForPlatform" />
         <FeatureUnavailableToTeam v-else-if="!isTimelineFeatureEnabledForTeam" />
-        <section v-if="isTimelineFeatureEnabled" id="visual-timeline" class="relative" :style="{height: `${listHeight}px`}">
+        <section
+            v-if="isTimelineFeatureEnabled" id="visual-timeline" class="relative"
+            :style="{height: listHeightCss}"
+        >
             <transition name="fade" mode="out-in">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
-                <ul v-else ref="timeline" class="timeline" :style="{'max-height': `${listHeight}px`}">
+                <ul v-else ref="timeline" class="timeline" :style="{'max-height': listHeightCss}">
                     <li v-for="event in activeTimeline" :key="event.id">
                         <timeline-event
                             :event="event"
@@ -101,6 +104,9 @@ export default {
                     id: 'load-more'
                 }]
             } else return this.timeline
+        },
+        listHeightCss () {
+            return this.listHeight ? `${this.listHeight}px` : '800px'
         }
     },
     watch: {
@@ -134,10 +140,12 @@ export default {
                             if (loadMore) {
                                 response.timeline.forEach(ev => {
                                     this.timeline.push(ev)
-                                    this.$nextTick(() => scrollTo(this.$refs.timeline, {
-                                        top: this.$refs.timeline.scrollHeight,
-                                        behavior: 'smooth'
-                                    }))
+                                    if (this.$refs.timeline) {
+                                        this.$nextTick(() => scrollTo(this.$refs.timeline, {
+                                            top: this.$refs.timeline.scrollHeight,
+                                            behavior: 'smooth'
+                                        }))
+                                    }
                                 })
                             } else this.timeline = response.timeline
                             this.next_cursor = response.meta.next_cursor
@@ -152,14 +160,16 @@ export default {
                 .catch(e => console.warn(e))
         },
         computeTimelineListMaxHeight () {
-            const sectionHeader = document.querySelector('.ff-section-header')
+            if (!this.$route.path.includes('editor')) {
+                const sectionHeader = document.querySelector('.ff-section-header')
 
-            if (sectionHeader) {
-                const rect = sectionHeader.getBoundingClientRect()
-                const heightToBottom = window.innerHeight - rect.bottom
+                if (sectionHeader) {
+                    const rect = sectionHeader.getBoundingClientRect()
+                    const heightToBottom = window.innerHeight - rect.bottom
 
-                // also deduct the <main> tag padding and .ff-section-header's margin-bottom
-                this.listHeight = heightToBottom - 24.5 - 7
+                    // also deduct the <main> tag padding and .ff-section-header's margin-bottom
+                    this.listHeight = heightToBottom - 24.5 - 7
+                }
             }
         }
     }
