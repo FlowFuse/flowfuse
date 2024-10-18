@@ -118,9 +118,11 @@ export default {
             this.$refs.snapshotImportDialog.show()
         },
         snapshotCreated (snapshot) {
+            this.$emit('instance-updated')
             this.reloadHooks.push({ event: 'snapshot-created', payload: snapshot })
         },
         onSnapshotImportSuccess (snapshot) {
+            this.$emit('instance-updated')
             this.reloadHooks.push({ event: 'snapshot-imported', payload: snapshot })
         },
         onSnapshotImportFailed (err) {
