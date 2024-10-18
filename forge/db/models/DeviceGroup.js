@@ -21,7 +21,17 @@ module.exports = {
             }
         },
         description: { type: DataTypes.TEXT },
-        targetSnapshotId: { type: DataTypes.INTEGER, allowNull: true }
+        targetSnapshotId: { type: DataTypes.INTEGER, allowNull: true },
+        settings: {
+            type: DataTypes.TEXT,
+            set (value) {
+                this.setDataValue('settings', JSON.stringify(value))
+            },
+            get () {
+                const rawValue = this.getDataValue('settings') || '{}'
+                return JSON.parse(rawValue)
+            }
+        }
     },
     associations: function (M) {
         this.belongsTo(M.Application, { onDelete: 'CASCADE' })
