@@ -12,6 +12,14 @@ module.exports = {
         // Reinflate the object now the user has been added
         const team = await app.db.models.Team.bySlug(newTeam.slug)
 
+        // Record in our Product tracking
+        app.product.capture(user.username, '$ff-team-created', {
+            'team-name': team.name,
+            'created-at': team.createdAt
+        }, {
+            team: team.id
+        })
+
         return team
     },
 
