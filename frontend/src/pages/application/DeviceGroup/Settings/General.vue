@@ -37,15 +37,15 @@
 <script>
 import { mapState } from 'vuex'
 
-import ApplicationApi from '../../../api/application.js'
-import FormHeading from '../../../components/FormHeading.vue'
-import FormRow from '../../../components/FormRow.vue'
-import permissionsMixin from '../../../mixins/Permissions.js'
-import Alerts from '../../../services/alerts.js'
-import Dialog from '../../../services/dialog.js'
+import ApplicationApi from '../../../../api/application.js'
+import FormHeading from '../../../../components/FormHeading.vue'
+import FormRow from '../../../../components/FormRow.vue'
+import permissionsMixin from '../../../../mixins/Permissions.js'
+import Alerts from '../../../../services/alerts.js'
+import Dialog from '../../../../services/dialog.js'
 
 export default {
-    name: 'ApplicationDeviceGroupSettings',
+    name: 'ApplicationDeviceGroupSettingsGeneral',
     components: {
         FormRow,
         FormHeading
