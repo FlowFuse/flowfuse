@@ -57,7 +57,7 @@ Notes on how to setup DNS can be found [here](../dns-setup.md).
 
 ### Download installation files
 
-Download the latest version of the FlowFuse compose file and example `.env` file used for installation configuration:
+Download the latest version of the FlowFuse Docker Compose file and example `.env` file used for installation configuration:
 
 ```bash
 curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose.yml
