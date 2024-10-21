@@ -1,9 +1,9 @@
 /// <reference types="cypress" />
 
-import deviceSnapshots from '../../fixtures/snapshots/device-snapshots.json'
-import deviceFullSnapshot from '../../fixtures/snapshots/device2-full-snapshot1.json'
-import instanceSnapshots from '../../fixtures/snapshots/instance-snapshots.json'
-import instanceFullSnapshot from '../../fixtures/snapshots/instance2-full-snapshot2.json'
+import deviceSnapshots from '../../fixtures/version-history/snapshots/device-snapshots.json'
+import deviceFullSnapshot from '../../fixtures/version-history/snapshots/device2-full-snapshot1.json'
+import instanceSnapshots from '../../fixtures/version-history/snapshots/instance-snapshots.json'
+import instanceFullSnapshot from '../../fixtures/version-history/snapshots/instance2-full-snapshot2.json'
 const snapshots = {
     count: 2,
     snapshots: [deviceSnapshots.snapshots[0], instanceSnapshots.snapshots[0]]

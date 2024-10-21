@@ -1,9 +1,9 @@
 /// <reference types="cypress" />
 import should from 'should'
 
-import instanceSnapshots from '../../../fixtures/snapshots/instance-snapshots.json'
-import instanceFullSnapshot from '../../../fixtures/snapshots/instance2-full-snapshot2.json'
-import instanceSnapshot from '../../../fixtures/snapshots/instance2-snapshot2.json'
+import instanceSnapshots from '../../../fixtures/version-history/snapshots/instance-snapshots.json'
+import instanceFullSnapshot from '../../../fixtures/version-history/snapshots/instance2-full-snapshot2.json'
+import instanceSnapshot from '../../../fixtures/version-history/snapshots/instance2-snapshot2.json'
 // import instanceFullSnapshot from '../../fixtures/snapshots/snapshot-with-credentials.json'
 let idx = 0
 const IDX_DEPLOY_SNAPSHOT = idx++
