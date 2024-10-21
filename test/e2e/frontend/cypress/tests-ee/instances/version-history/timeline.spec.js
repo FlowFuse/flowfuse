@@ -36,7 +36,12 @@ describe('FlowForge - Version History', () => {
 
         cy.get('[data-nav="instance-version-history"]').click()
 
-        // check that the timeline tab is default, data not important
+        // check that the snapshots tab is default, data not important
+        cy.contains('Create your First Snapshot')
+
+        // manually switch to the timeline tab
+        cy.get('[data-nav="page-toggle"]').contains('Timeline').click()
+
         cy.contains('Timeline Not Available')
 
         cy.get('[data-action="import-snapshot"]').should('exist').should('not.be.disabled')

@@ -103,7 +103,7 @@ describe('FlowForge - Instance editor', () => {
 
         cy.get('[data-nav="instance-version-history"]').as('snapshots-tab').should('exist')
         cy.get('@snapshots-tab').click()
-        cy.get('@tabs-wrapper').contains('Timeline Not Available')
+        cy.url().should('match', /^.*\/instance\/.*\/version-history\/snapshots/) // defaults to snapshots if no feature/team enabled
 
         cy.get('[data-nav="instance-activity"]').as('activity-tab').should('exist')
         cy.get('@activity-tab').click()
