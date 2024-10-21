@@ -55,6 +55,11 @@ module.exports = {
                 },
                 async membersChanged (actionedBy, error, application, deviceGroup, updates, info) {
                     await log('application.deviceGroup.members.changed', actionedBy, application?.id, generateBody({ error, application, deviceGroup, updates, info }))
+                },
+                settings: {
+                    async updated (actionedBy, error, application, deviceGroup, updates) {
+                        await log('application.deviceGroup.settings.updated', actionedBy, application?.id, generateBody({ error, application, deviceGroup, updates }))
+                    }
                 }
             }
         }
