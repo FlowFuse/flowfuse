@@ -39,6 +39,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.broker
      */
     app.get('/clients', {
+        preHandler: app.needsPermission('broker:clients:list'),
         schema: {
             summary: 'List MQTT clients for the team',
             tags: ['MQTT Broker'],
@@ -80,7 +81,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.broker
      */
     app.post('/client', {
-        preHandler: app.needsPermission('project:create'),
+        preHandler: app.needsPermission('broker:clients:create'),
         schema: {
             summary: 'Create new MQTT client for the team',
             tags: ['MQTT Broker'],
@@ -139,6 +140,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.broker
      */
     app.get('/client/:username', {
+        preHandler: app.needsPermission('broker:clients:list'),
         schema: {
             summary: 'Get details about a specific MQTT client',
             tags: ['MQTT Broker'],
@@ -181,8 +183,8 @@ module.exports = async function (app) {
      * @static
      * @memberof forge.routes.api.team.broker
      */
-    app.patch('/client/:username', {
-        preHandler: app.needsPermission('project:create'),
+    app.put('/client/:username', {
+        preHandler: app.needsPermission('broker:clients:edit'),
         schema: {
             summary: 'Modify a MQTT Client',
             tags: ['MQTT Broker'],
@@ -264,7 +266,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.broker
      */
     app.delete('/client/:username', {
-        preHandler: app.needsPermission('project:create'),
+        preHandler: app.needsPermission('broker:clients:delete'),
         schema: {
             summary: 'Delete a MQTT client',
             tags: ['MQTT Broker'],

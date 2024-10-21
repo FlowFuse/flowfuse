@@ -191,7 +191,7 @@ export default {
         },
         isGroupOptionsValid () {
             return !this.input.options.groupMapping || (
-                (this.input.options.type === 'saml' ? this.isGroupAssertionNameValid : this.isGroupsDNValid) &&
+                (this.input.type === 'saml' ? this.isGroupAssertionNameValid : this.isGroupsDNValid) &&
                   this.isGroupAdminNameValid
             )
         },
