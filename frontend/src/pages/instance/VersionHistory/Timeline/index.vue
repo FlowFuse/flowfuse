@@ -111,7 +111,9 @@ export default {
     },
     watch: {
         reloadHooks: {
-            handler: 'fetchData',
+            handler: function () {
+                this.fetchData(false)
+            },
             deep: true
         },
         'instance.id': 'fetchData'
@@ -134,7 +136,8 @@ export default {
                 // handling a specific scenario where users can navigate to the source snapshot instance, and when they click back,
                 // we retrieve the timeline for that instance and display it for a short period of time
                 if (this.instance.id && this.instance.id === this.$route.params.id) {
-                    projectHistoryAPI.getHistory(this.instance.id, this.next_cursor, 10)
+                    const nextCursor = loadMore ? this.next_cursor : undefined
+                    projectHistoryAPI.getHistory(this.instance.id, nextCursor, 10)
                         .then((response) => {
                             this.loading = false
                             if (loadMore) {
