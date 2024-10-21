@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { AdjustmentsIcon, CameraIcon, DotsVerticalIcon, DownloadIcon, PlusIcon } from '@heroicons/vue/outline'
+import { AdjustmentsIcon, CameraIcon, DotsHorizontalIcon, DownloadIcon, PlusIcon } from '@heroicons/vue/outline'
 
 import PipelinesIcon from '../../../../../components/icons/Pipelines.js'
 import ProjectsIcon from '../../../../../components/icons/Projects.js'
@@ -55,7 +55,7 @@ export default {
             case this.event.event === 'project.created':
                 return PlusIcon
             case this.event.event === 'load-more':
-                return DotsVerticalIcon
+                return DotsHorizontalIcon
             default:
                 return null
             }
