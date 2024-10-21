@@ -14,32 +14,21 @@ meta:
 
 # Docker Install
 
-This version of the FlowFuse platform is intended for running in the Docker Container management system. Typically suited for small/medium on premise deployments.
+This guide walks you through detailed set up of FlowFuse Platform on a Docker container envoronment using Docker Compose. Typically suited for small/medium on premise deployments.
+By the end, you will have a fully functioning FlowFuse instance running in a Docker container.
+
+For a FlowFuse platform evaluation purposes, check out our [Quick Start Guide](../../quick-start/README.md).
 
 ## Prerequisites
 
-### Platform
+Before you begin, ensure you have the following:
 
-The following instructions assume you are running Docker on a Linux or MacOS host system.
+1. A domain name that you own and can configure DNS settings for (explained in [DNS](#dns))
+2. [Docker Engine](https://docs.docker.com/engine/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your system (either as a standalone binary or as docker plugin)
 
-#### Digital Ocean
-
-If you are using the Digital Ocean Docker Droplet to host FlowFuse you will need to ensure that port 80 & 443 are opened in the UFW firewall before starting.
-
-```bash
-sudo ufw apply http
-sudo ufw apply https
-```
-
-We have a 1-Click Digital Ocean Droplet that will install and configure FlowFuse for you. Details can be found [here](./digital-ocean.md)
-
-### Docker Compose
-
-FlowFuse uses Docker Compose to install and manage the required components. Instructions on how to install Docker Compose on your system can be found here:
-
-[https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
-
-FlowFuse requires docker-compose v2
+For a production-ready environment, we also recommend: 
+* prepare dedicated database on a external database server (see FAQ for more details)
+* prepare TLS certificate for your domain and configure FlowFuse plarform to use it (see [Enable HTTPS](#enable-https-optional))
 
 ### DNS
 
@@ -49,7 +38,7 @@ To make this work you will need to configure a DNS server to map a [wildcard dom
 
 The FlowFuse Application will be hosted on `http://forge.example.com`
 
-**Note** When testing locally you can add entries for each Node-RED instance to your `/etc/hosts` file but you must use the external IP address of the host machine, not the loopback address (`127.0.0.1`).
+**Note** At this moment FlowFuse platform is not capable to run on localhost. You must point your domain to the external IP address of the host machine, not the loopback address (`127.0.0.1`).
 
 Notes on how to setup DNS can be found [here](../dns-setup.md).
 
@@ -169,32 +158,6 @@ For more information, follow [this guide](../first-run.md).
 
 Once you have finished setting up the admin user there are some Docker specific items to consider.
 
-
-### Using FlowFuse File Storage
-
-Node-RED instances running in Docker do not have direct access to a persistent
-file system to store files or use for storing context data.
-
-FlowFuse includes a File Storage service that can be enabled to provide persistent
-storage.
-
-#### Disabling the default File nodes
-
-To remove the default Node-RED file nodes from the palette:
-
-1. Edit the Template to add `10-file.js,23-watch.js` to the "Exclude nodes by filename" section
-
-<img src="../images/file-node-template.png" width=500 />
-
-
-#### Configuring the File Storage service
-
-Full details on configuring the file storage service are available [here](../file-storage/).
-
-#### Enabling the File Storage service
-
-Docker Compose file enables FlowFuse File Storage component by default, no additional actions are required in this area.
-
 ## Upgrade
 
 1. Find the Docker Compose project name:
@@ -226,4 +189,54 @@ Docker Compose file enables FlowFuse File Storage component by default, no addit
     ```bash
     docker compose -f docker-compose.yml -f docker-compose-tls.override.yml -p $projectName up -d
     ```
+
+## Common Questions
+
+<!-- ### How to use external database server?
+
+FlowFuse platform uses PostgreSQL database to store its data. By default, the database is created and managed by the Docker Compose. 
+If you want to use an external database server, you need to provide the connection details in the `.env` file. -->
+
+### How can I provide my own TLS certificate?
+
+If you have your own TLS certificate, you can use it in FlowFuse platform installation as well. See [Enable HTTPS](#enable-https-optional) section for more details.
+
+### After starting the platform, I can't access it in the browser - I see Connection Refused error
+
+If you are using the Digital Ocean Docker Droplet to host FlowFuse you will need to ensure that port 80 & 443 are opened in the UFW firewall before starting.
+
+FlowFuse platform is running on ports 80 and 443, so you need to open these ports in the firewall. Below are examples of commands to open these ports:
+
+Ubuntu:
+```bash
+sudo ufw apply http
+sudo ufw apply https
+```
+
+CentOS:
+```bash
+sudo firewall-cmd --zone=public --add-service=http --permanent
+sudo firewall-cmd --zone=public --add-service=https --permanent
+sudo firewall-cmd --reload
+```
+
+Windows:
+```bash
+netsh advfirewall firewall add rule name="Open Port 80" dir=in action=allow protocol=TCP localport=80
+netsh advfirewall firewall add rule name="Open Port 443" dir=in action=allow protocol=TCP localport=443
+```
+
+### How can I enable persistent storage for Node-RED instances?
+
+Node-RED instances running in Docker do not have direct access to a persistent file system to store files or use for storing context data.
+
+FlowFuse includes a File Storage service that can be enabled to provide persistent storage.
+
+To disable the default File nodes, edit the Template and add `10-file.js,23-watch.js` to the "Exclude nodes by filename" section
+
+<img src="../images/file-node-template.png" width=500 />
+
+FlowFuse Docker Compose files includes FlowFuse File Storage component by default and starts it along with the platform.
+
+Full details on configuring the File Storage service are available [here](../file-storage/).
 
