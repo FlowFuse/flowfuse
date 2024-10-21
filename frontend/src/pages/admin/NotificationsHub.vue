@@ -20,9 +20,6 @@
                             URL Link
                             <template #description>Provide an url where users will be redirected when they click on the notification.</template>
                         </FormRow>
-                        <ff-checkbox v-model="form.externalUrl" data-el="notification-external-url-toggle">
-                            External URL
-                        </ff-checkbox>
                     </section>
                     <section>
                         <label class="block text-sm font-medium mb-1">Audience</label>
@@ -58,12 +55,11 @@ import FormRow from '../../components/FormRow.vue'
 import alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import FfButton from '../../ui-components/components/Button.vue'
-import FfCheckbox from '../../ui-components/components/form/Checkbox.vue'
 import { RoleNames, Roles } from '../../utils/roles.js'
 
 export default {
     name: 'NotificationsHub',
-    components: { FfCheckbox, FfButton, FormRow },
+    components: { FfButton, FormRow },
     data () {
         return {
             form: {
