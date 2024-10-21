@@ -265,7 +265,7 @@ module.exports = {
         // delete all devices
         await app.db.models.Device.destroy({ where: { id: ids } })
         if (app.license.active() && app.billing) {
-            await app.billing.updateTeamDeviceCount(team)
+            await app.billing.updateTeamBillingCounts(team)
         }
 
         // Log the deletion

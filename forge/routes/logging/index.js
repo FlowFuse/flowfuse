@@ -47,7 +47,11 @@ module.exports = async function (app) {
         const auditEvent = request.body
         const event = auditEvent.event
         const error = auditEvent.error
-        const userId = auditEvent.user ? app.db.models.User.decodeHashid(auditEvent.user) : undefined
+        let user = request.session?.User || null
+        if (!user && auditEvent?.user && typeof auditEvent.user === 'string') {
+            user = await app.db.models.User.byId(auditEvent.user) || null
+        }
+        const userId = user?.id || null
 
         // first check to see if the event is a known structured event
         if (event === 'start-failed') {
@@ -114,7 +118,7 @@ module.exports = async function (app) {
                 setImmediate(async () => {
                     // when after the response is sent & IO is done, perform the snapshot
                     try {
-                        const meta = { user: request.session.User }
+                        const meta = { user }
                         const options = { clean: true, setAsTarget: false }
                         const snapshot = await snapshotController.doInstanceAutoSnapshot(request.project, auditEvent.type, options, meta)
                         if (!snapshot) {

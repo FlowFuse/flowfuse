@@ -36,7 +36,7 @@ async function setSnapShotAsTarget (app, snapshot, instance, user) {
 }
 
 /**
- * Generate a name for a deploy snapshot
+ * Generate a name for a restore snapshot
  * Optionally using the name of the source snapshot, stripping out the deploy timing info
  * @param {*} sourceSnapshot
  * @returns string

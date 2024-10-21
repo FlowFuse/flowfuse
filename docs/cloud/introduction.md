@@ -55,6 +55,49 @@ When a user signs up for FlowFuse Cloud an email will be sent to verify it.
 If this email doesn't get delivered one can be resend by signing in to FlowFuse
 and click the button to resend it.
 
+## Team Types
+
+FlowFuse Cloud has three different Team Type aimed at different sorts of users
+
+### Starter
+
+Good for getting to know the platform, allows 2 small Instances, 2 Devices and 2 Team members
+
+### Team
+
+Has access to more features e.g.
+
+- Shared Team Library
+- Project Nodes
+- Team-based Dashboard/API security
+- Email alerts for Instance crashes
+- Has access to larger Instance Types
+
+Also includes 5 Instances in the base price
+
+### Enterprise
+
+All features from the Team Level plus
+
+ - HA for Instances
+ - SSO
+ - Better Support SLA
+
+Includes 10 instances in the base price
+
+### Changing Team Type
+
+You can change Team Type by selecting the "Team Settings" option from the left hand
+menu, then clicking on the "Change Team Type" button
+
+![Change Team Type](images/change-team-type.png)
+
+From here you will be presented with a choice of Team Types. You will not be able
+to downgrade to a lower Team Type if you already have more resources than allowed at 
+that level. Please Suspend or Delete any no longer required Instances or Devices.
+
+![Available Team Types](images/availble-team-types.png)
+
 ## Node-RED on FlowFuse Cloud
 
 FlowFuse currently offers Node-RED 4.x, 3.x and 2.x to customers. When creating a

@@ -254,10 +254,7 @@ export default {
             this.loading = true
             AssetsAPI.createFolder(this.instanceId, this.baseURI, this.forms.newFolder.name)
                 .then(() => this.$emit('items-updated'))
-                .catch(error => {
-                    console.error(error)
-                    Alerts.emit(error.response.data.error, 'warning')
-                })
+                .catch(() => Alerts.emit(`Unable to create folder with name '${this.forms.newFolder.name}'`, 'warning'))
                 .finally(() => {
                     this.forms.newFolder.name = ''
                     this.loading = false
@@ -278,10 +275,7 @@ export default {
                     this.forms.newFolder = { name: '' }
                     this.$emit('items-updated')
                 })
-                .catch(error => {
-                    console.error(error)
-                    Alerts.emit(error.response.data.error, 'warning')
-                })
+                .catch(() => Alerts.emit(`Unable to update folder name to '${this.forms.newFolder.name}'`, 'warning'))
                 .finally(() => {
                     this.loading = false
                 })
@@ -332,10 +326,7 @@ export default {
             this.loading = true
             AssetsAPI.uploadFile(this.instanceId, pwd, filename, this.forms.file)
                 .then(() => this.$emit('items-updated'))
-                .catch(error => {
-                    console.error(error)
-                    Alerts.emit(error.response.data.error, 'warning')
-                })
+                .catch(() => Alerts.emit('Unable to upload file', 'warning'))
                 .finally(() => {
                     this.forms.file = null
                     this.$refs.fileUpload.clear()

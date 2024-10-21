@@ -1,7 +1,10 @@
 /// <reference types="cypress" />
+import should from 'should'
+
 import instanceSnapshots from '../../fixtures/snapshots/instance-snapshots.json'
 import instanceFullSnapshot from '../../fixtures/snapshots/instance2-full-snapshot2.json'
 import instanceSnapshot from '../../fixtures/snapshots/instance2-snapshot2.json'
+// import instanceFullSnapshot from '../../fixtures/snapshots/snapshot-with-credentials.json'
 let idx = 0
 const IDX_DEPLOY_SNAPSHOT = idx++
 const IDX_EDIT_SNAPSHOT = idx++
@@ -73,7 +76,7 @@ describe('FlowForge - Instance Snapshots', () => {
 
         // check the options are present
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').should('have.length', MENU_ITEM_COUNT)
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).contains('Deploy Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).contains('Restore Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_EDIT_SNAPSHOT).contains('Edit Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).contains('Compare Snapshot...')
@@ -158,8 +161,8 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').should('be.disabled')
 
         // select the snapshot to compare with
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] .ff-dropdown[disabled=false]').click()
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"]').click()
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] .ff-options > .ff-option:first').click()
         // click compare button
         cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').click()
         cy.wait('@fullSnapshot')
@@ -168,19 +171,44 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-compare-snapshot"] .ff-dialog-content svg').should('exist')
     })
 
-    it('download snapshot', () => {
+    function prepareDownloadSnapshot (projectId, name) {
+        // if (!testSnapshotUploaded) {
+        // first upload a known snapshot so that download tests can be run against it
+        // directly POST to api/v1/snapshots/import the upload1.json snapshot
+        cy.fixture('snapshots/upload-for-download.json').then((snapshot) => {
+            snapshot.name = name
+            cy.request('POST', '/api/v1/snapshots/import', {
+                ownerId: projectId,
+                ownerType: 'instance',
+                snapshot,
+                credentialSecret: 'correct secret',
+                components: { flows: true, credentials: true, env: true }
+            })
+        })
         // ensure the downloads folder is empty before the test
         cy.task('clearDownloads')
-
-        cy.intercept('POST', '/api/*/snapshots/*/export').as('exportSnapshot')
-
+        cy.intercept('GET', '/api/*/projects/*/snapshots').as('snapshotData')
+        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.wait('@snapshotData')
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
         // click the Download Snapshot option
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).click()
-
         // wait for SnapshotExportDialog dialog to appear
         cy.get('[data-el="dialog-export-snapshot"]').should('be.visible')
+    }
+
+    it('download snapshot options and validation work as expected', () => {
+        // Premise: the snapshot has components and these can be included or excluded from the download as per users choice
+        // Rules:
+        // - By default, all components are included
+        // - The download button is enabled, the secret field is visible and populated with a random string
+        // - Excluding flows and/or credentials should hide the secret field
+        // - Excluding flows component disables the credentials component
+        // - Excluding env should disable the radio buttons
+        // - Excluding all components should disable the download & a validation message should appear
+
+        prepareDownloadSnapshot(projectId, 'a-snapshot')
 
         // by default, the secret should be populated with a random string and the download button should be enabled
         cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').invoke('val').should('not.be.empty')
@@ -214,27 +242,144 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').type('                   ')
         cy.get('[data-el="dialog-export-snapshot"] [data-el="form-row-error"]').contains('Secret cannot start or end with a space')
 
+        // download button should be enabled & secret field should be visible and populated
         cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').clear()
         cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').type('a valid secret')
+        cy.get('[data-el="dialog-export-snapshot"] button').contains('Download').should('not.be.disabled')
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"]').should('exist')
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"] input').invoke('val').should('not.be.empty')
 
-        // operate the data-action="dialog-confirm" button
-        cy.get('[data-el="dialog-export-snapshot"] [data-action="dialog-confirm"]').click()
+        // check the component options are present & default state
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"]').should('exist')
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"]').within(() => {
+            cy.get('[data-form="component-flows"]').contains('Flows')
+            cy.get('[data-form="component-flows"] input[type="checkbox"]').should('be.checked')
 
-        // wait for `api/v1/snapshots/*/export` to respond
-        cy.wait('@exportSnapshot').then(interception => {
-            // At this point, the endpoint has returned but occasionally, the test fails as the file is not yet written to the filesystem.
-            // To counter this, there is a short 250ms wait to allow time for the file to be written to the filesystem.
-            // A better solution would be to use a cy.command (named waitForFileDownload) that polls the downloads folder
-            // and calls `cy.wait` with timeout and retry. This would allow the test to wait for the file in a more reliable way.
-            // For now, a small delay here gets the job done.
-            cy.wait(250) // eslint-disable-line cypress/no-unnecessary-waiting
+            cy.get('[data-form="component-credentials"]').contains('Credentials')
+            cy.get('[data-form="component-credentials"] input[type="checkbox"]').should('be.checked')
+            cy.get('[data-form="component-credentials"] input[type="checkbox"]').should('not.be.disabled')
 
-            const response = interception.response.body
-            // check the downloaded file
-            const downloadsFolder = Cypress.config('downloadsFolder')
-            // generate the expected snapshot filename structure
-            cy.task('fileExists', { dir: downloadsFolder, fileRE: `snapshot-${response.id}-\\d{8}-\\d{6}\\.json` })
+            cy.get('[data-form="component-environment-variables"]').contains('Environment Variables')
+            cy.get('[data-form="component-environment-variables"] input[type="checkbox"]').should('be.checked')
+
+            cy.get('[data-form="component-environment-variables-options"]').should('exist')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').should('have.length', 2)
+
+            // by default, the first radio button should be checked
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(0).should('not.be.disabled')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(0).contains('Keys and Values')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn span.checkbox').eq(0).should('have.attr', 'checked', 'checked')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(1).should('not.be.disabled')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(1).contains('Keys Only')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(1).contains('Keys Only').should('not.have.attr', 'checked')
         })
+
+        // now, click the `flows` check which should disable the `credentials` field (no flows, no creds!). Also, the secret field should be hidden
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"]').within(() => {
+            cy.get('[data-form="component-flows"] .ff-checkbox').click()
+            cy.get('[data-form="component-credentials"] input[type="checkbox"]').should('be.disabled')
+            cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"]').should('not.exist')
+        })
+
+        // now, click the `environment variables`, the `key and values` & `keys only` radio buttons should be disabled
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"]').within(() => {
+            cy.get('[data-form="component-environment-variables"] .ff-checkbox').click()
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(0).should('have.attr', 'disabled')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(1).should('have.attr', 'disabled')
+        })
+
+        // ensure the validation message appears when all components are excluded & the download button is disabled
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"] [data-el="form-row-error"]').contains('At least one component must be selected')
+        cy.get('[data-el="dialog-export-snapshot"] button').contains('Download').should('be.disabled')
+
+        // re-check the flows (the validation should clear), then uncheck credentials
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"]').within(() => {
+            cy.get('[data-form="component-flows"] .ff-checkbox').click()
+            cy.get('[data-form="component-credentials"] input[type="checkbox"]').should('not.be.disabled')
+            cy.get('[data-form="component-credentials"] .ff-checkbox').click() // exclude credentials
+        })
+        // validation message should be gone, secret field should be hidden and download button should be enabled
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"] [data-el="form-row-error"]').should('not.exist')
+        cy.get('[data-el="dialog-export-snapshot"] [data-form="snapshot-secret"]').should('not.exist')
+        cy.get('[data-el="dialog-export-snapshot"] button').contains('Download').should('not.be.disabled')
+    })
+
+    function downloadSnapshotWithComponentOptionsTest (excludeFlows, excludeCredentials, excludeEnv, envKeysOnly) {
+        const nameBuilder = ['for-download']
+        nameBuilder.push(excludeFlows ? 'exclude-flows' : 'include-flows')
+        nameBuilder.push(excludeCredentials ? 'exclude-creds' : 'include-creds')
+        nameBuilder.push(excludeEnv ? 'exclude-env' : 'include-env')
+        if (!excludeEnv) {
+            nameBuilder.push(envKeysOnly ? 'keys-only' : 'keys-and-values')
+        }
+        const name = nameBuilder.join(' ')
+
+        prepareDownloadSnapshot(projectId, name)
+        cy.intercept('POST', '/api/*/snapshots/*/export').as('exportSnapshot')
+
+        if (excludeFlows) {
+            cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"] [data-form="component-flows"] .ff-checkbox').click()
+        }
+        if (excludeCredentials) {
+            cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"] [data-form="component-credentials"] .ff-checkbox').click()
+        }
+        if (excludeEnv) {
+            cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"] [data-form="component-environment-variables"] .ff-checkbox').click()
+        } else if (envKeysOnly) {
+            cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"] [data-form="component-environment-variables-options"] .ff-radio-btn').eq(1).click()
+        }
+        // click the `Download` button
+        cy.get('[data-el="dialog-export-snapshot"] button').contains('Download').click()
+        const downloadsFolder = Cypress.config('downloadsFolder')
+        cy.wait('@exportSnapshot').then(interception => {
+            cy.wait(250) // eslint-disable-line cypress/no-unnecessary-waiting
+            const response = interception.response.body
+            return cy.task('fileExists', { dir: downloadsFolder, fileRE: `snapshot-${response.id}-\\d{8}-\\d{6}\\.json` })
+        }).then((filename) => {
+            return cy.readFile(`${downloadsFolder}/${filename}`)
+        }).then((packageObject) => {
+            expect(packageObject).to.have.property('name', name) // ensure we get the correct snapshot
+            expect(packageObject.flows).to.have.keys('flows', 'credentials')
+            if (excludeFlows) {
+                expect(packageObject.flows).to.have.property('flows').and.to.be.an('array').and.to.have.length(0)
+            } else {
+                expect(packageObject.flows).to.have.property('flows').and.to.be.an('array').and.to.have.length(4)
+            }
+            expect(packageObject.flows).to.have.property('credentials').and.to.be.an('object')
+            if (excludeFlows || excludeCredentials) {
+                expect(packageObject.flows.credentials).to.deep.equal({})
+            } else {
+                expect(packageObject.flows.credentials).to.have.property('$')
+            }
+            expect(packageObject.settings).to.have.property('env')
+            if (excludeEnv) {
+                expect(packageObject.settings.env || {}).to.deep.equal({})
+            } else if (envKeysOnly) {
+                expect(packageObject.settings.env).to.deep.equal({ key1: '', key2: '' })
+            } else {
+                expect(packageObject.settings.env).to.deep.equal({ key1: 'value1', key2: 'value2' })
+            }
+        })
+    }
+
+    it('download full snapshot, include all', () => {
+        downloadSnapshotWithComponentOptionsTest(false, false, false, false)
+    })
+
+    it('download snapshot, exclude flows', () => {
+        downloadSnapshotWithComponentOptionsTest(true, false, false, false)
+    })
+
+    it('download snapshot, exclude credentials', () => {
+        downloadSnapshotWithComponentOptionsTest(false, true, false, false)
+    })
+
+    it('download snapshot, exclude env', () => {
+        downloadSnapshotWithComponentOptionsTest(false, false, true, false)
+    })
+
+    it('download snapshot, env keys only', () => {
+        downloadSnapshotWithComponentOptionsTest(false, false, false, true)
     })
 
     it('download snapshot package.json', () => {
@@ -293,7 +438,16 @@ describe('FlowForge - Instance Snapshots', () => {
         })
     })
 
-    it('upload snapshot with credentials', () => {
+    it('upload snapshot options and validation work as expected', () => {
+        // Premise: the snapshot has components and these can be included or excluded from the download as per users choice
+        // Rules:
+        // - By default, all components are included
+        // - The upload button is enabled, the secret field is visible
+        // - excluding flows and/or credentials should hide the secret field
+        // - excluding flows component disables the credentials component
+        // - Excluding all components should disable the upload & a validation message should appear
+        // - Excluding env should disable the radio buttons
+
         cy.fixture('snapshots/snapshot-with-credentials.json', null).as('snapshot')
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
 
@@ -327,21 +481,72 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"] input').type('correct secret')
         cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"]').should('not.contain', '[data-el="form-row-error"]')
 
-        // set a description
-        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-description"] textarea').type('snapshot1 description')
+        // Upload button should be enabled & secret field should be visible and populated
+        cy.get('[data-el="dialog-import-snapshot"] button').contains('Upload').should('not.be.disabled')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"]').should('exist')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"] input').invoke('val').should('not.be.empty')
 
-        // click import button
-        cy.get('[data-el="dialog-import-snapshot"] [data-action="dialog-confirm"]').click()
+        // check the component options are present & default state
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-components"]').should('exist')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-components"]').within(() => {
+            cy.get('[data-form="component-flows"]').contains('Flows')
+            cy.get('[data-form="component-flows"] input[type="checkbox"]').should('be.checked')
 
-        cy.wait('@importSnapshot')
+            cy.get('[data-form="component-credentials"]').contains('Credentials')
+            cy.get('[data-form="component-credentials"] input[type="checkbox"]').should('be.checked')
+            cy.get('[data-form="component-credentials"] input[type="checkbox"]').should('not.be.disabled')
 
-        // check the snapshot is now in the table
-        cy.get('[data-el="snapshots"] tbody').find('tr').contains('uploaded snapshot1')
-        cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot1 description')
+            cy.get('[data-form="component-environment-variables"]').contains('Environment Variables')
+            cy.get('[data-form="component-environment-variables"] input[type="checkbox"]').should('be.checked')
+
+            cy.get('[data-form="component-environment-variables-options"]').should('exist')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').should('have.length', 2)
+
+            // by default, the first radio button should be checked
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(0).should('not.be.disabled')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(0).contains('Keys and Values')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn span.checkbox').eq(0).should('have.attr', 'checked', 'checked')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(1).should('not.be.disabled')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(1).contains('Keys Only')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(1).contains('Keys Only').should('not.have.attr', 'checked')
+        })
+
+        // now, click the `flows` check which should disable the `credentials` field (no flows, no creds!). Also, the secret field should be hidden
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-components"]').within(() => {
+            cy.get('[data-form="component-flows"] .ff-checkbox').click()
+            cy.get('[data-form="component-credentials"] input[type="checkbox"]').should('be.disabled')
+        })
+        cy.get('[data-form="import-snapshot-secret"]').should('not.exist')
+
+        // now, click the `environment variables`, the `key and values` & `keys only` radio buttons should be disabled
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-components"]').within(() => {
+            cy.get('[data-form="component-environment-variables"] .ff-checkbox').click()
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(0).should('have.attr', 'disabled')
+            cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(1).should('have.attr', 'disabled')
+            cy.get('[data-el="form-row-error"]').contains('At least one component must be selected')
+        })
+        cy.get('[data-el="dialog-import-snapshot"] button').contains('Upload').should('be.disabled')
+
+        // re-check the flows (the validation should clear), then disable credentials, the secret field should not be shown
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-components"]').within(() => {
+            cy.get('[data-form="component-flows"] .ff-checkbox').click()
+            cy.get('[data-form="component-credentials"] input[type="checkbox"]').should('not.be.disabled')
+            cy.get('[data-form="component-credentials"] .ff-checkbox').click() // exclude credentials
+            cy.get('[data-el="form-row-error"]').should('not.exist') // validation message should be gone
+            cy.get('[data-form="import-snapshot-secret"]').should('not.exist') // secret field should be hidden
+        })
+        cy.get('[data-el="dialog-import-snapshot"] button').contains('Upload').should('not.be.disabled') // Upload button should be re-enabled now
     })
 
-    it('upload snapshot without credentials', () => {
-        cy.fixture('snapshots/instance2-full-snapshot2.json', null).as('snapshot')
+    function uploadWithComponentOptionsTest (excludeFlows, excludeCredentials, excludeEnv, envKeysOnly, fixture) {
+        const summary = [excludeFlows, excludeCredentials, excludeEnv, envKeysOnly].map((v) => v ? 'exclude' : 'include').join('-')
+        const fixtureFilename = fixture.split('/').pop()
+        let fixtureHasCredentials = true
+        cy.fixture(fixture, 'utf8', { timeout: 5000 }).as('snapshot-' + summary).then((snapshot) => {
+            if (!snapshot.flows.credentials || Object.hasOwnProperty.call(snapshot.flows.credentials, '$') === false) {
+                fixtureHasCredentials = false
+            }
+        })
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
 
         // click data-action="import-snapshot" to open the dialog
@@ -352,34 +557,114 @@ describe('FlowForge - Instance Snapshots', () => {
         // check the dialog header
         cy.get('[data-el="dialog-import-snapshot"] .ff-dialog-header').contains('Upload Snapshot')
 
-        // upload the snapshot file that has credentials (the credentials secret field should become visible)
-        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-filename"] input[type="file"]').selectFile({ contents: '@snapshot' }, { force: true }) // force because the input is hidden
+        // upload the snapshot file that has credentials (the credentials secret field be visible since the snapshot has credentials)
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-filename"] input[type="file"]').selectFile(
+            { contents: '@snapshot-' + summary, filename: fixture },
+            { force: true } // force because the input is hidden
+        )
 
         // check file field input text is the filename
-        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-filename"] input[type="text"]').should('have.value', 'instance2-full-snapshot2.json')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-filename"] input[type="text"]').should('have.value', fixtureFilename)
         // check name field is the name from within the snapshot file
-        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] input').should('have.value', 'instance-2 snapshot-2')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] input').should('have.value', fixtureFilename)
 
-        // check credentials secret field is not visible
-        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"]').should('not.exist')
-
-        // check validation of name field
+        // set a unique name and description
+        const time = new Date().toISOString()
+        const name = `name @ ${time}`
+        const desc = `description @ ${time}`
         cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] input').clear()
-        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] [data-el="form-row-error"]').should('contain.text', 'Name is required')
-        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] input').type('uploaded snapshot2')
-        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"]').should('not.contain', '[data-el="form-row-error"]')
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-name"] input').type(name)
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-description"] textarea').clear()
+        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-description"] textarea').type(desc)
 
-        // set a description
-        cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-description"] textarea').type('snapshot2 description')
+        // if the fixture doesnt contain credentials, the secret field should not be visible
+        if (fixtureHasCredentials === false) {
+            cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"]').should('not.exist')
+        }
+
+        // set the component options
+        if (excludeFlows) {
+            cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-components"] [data-form="component-flows"] .ff-checkbox').click()
+        }
+        if (fixtureHasCredentials && excludeCredentials === true) {
+            cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-components"] [data-form="component-credentials"] .ff-checkbox').click()
+        }
+        if (excludeEnv) {
+            cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-components"] [data-form="component-environment-variables"] .ff-checkbox').click()
+        } else if (envKeysOnly) {
+            cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-components"] [data-form="component-environment-variables-options"] .ff-radio-btn').eq(1).click()
+        }
+        if (fixtureHasCredentials && excludeFlows === false && excludeCredentials === false) {
+            cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-secret"] input').type('correct secret')
+        }
 
         // click import button
         cy.get('[data-el="dialog-import-snapshot"] [data-action="dialog-confirm"]').click()
 
-        cy.wait('@importSnapshot')
+        cy.wait('@importSnapshot').then(interception => {
+            const body = interception.request.body
+            should(body.snapshot.name).equal(name)
+            should(body.snapshot.description).equal(desc)
+            if (fixtureHasCredentials && excludeFlows === false && excludeCredentials === false) {
+                should(body.credentialSecret).equal('correct secret')
+            }
+            should(body.components).have.property('credentials', !excludeCredentials)
+            should(body.components).have.property('flows', !excludeFlows)
+            should(body.components).have.property('envVars', excludeEnv ? false : (envKeysOnly ? 'keys' : 'all'))
+            should(body.snapshot.flows.flows).be.an.Array()
+            if (excludeFlows) {
+                should(body.snapshot.flows.flows).have.length(0)
+            } else {
+                should(body.snapshot.flows.flows).have.length(4)
+            }
+            if (fixtureHasCredentials) {
+                should(body.snapshot.flows.credentials).be.an.Object()
+                if (excludeFlows || excludeCredentials) {
+                    should(body.snapshot.flows.credentials).not.have.property('$')
+                } else {
+                    should(body.snapshot.flows.credentials).have.property('$')
+                }
+            }
+            should(body.snapshot.settings.env).be.an.Object()
+            if (excludeEnv) {
+                should(body.snapshot.settings.env).not.have.property('key1')
+                should(body.snapshot.settings.env).not.have.property('key2')
+            } else if (envKeysOnly) {
+                should(body.snapshot.settings.env).have.property('key1', '')
+                should(body.snapshot.settings.env).have.property('key2', '')
+            } else {
+                should(body.snapshot.settings.env).have.property('key1', 'value1')
+                should(body.snapshot.settings.env).have.property('key2', 'value2')
+            }
+        })
 
-        // check the snapshot is now in the table
-        cy.get('[data-el="snapshots"] tbody').find('tr').contains('uploaded snapshot2')
-        cy.get('[data-el="snapshots"] tbody').find('tr').contains('snapshot2 description')
+        // check the topmost snapshot is the one just uploaded
+        cy.get('[data-el="snapshots"] tbody').find('tr').eq(0).contains(name)
+        cy.get('[data-el="snapshots"] tbody').find('tr').eq(0).contains(desc)
+    }
+
+    it('upload full snapshot, include all', () => {
+        uploadWithComponentOptionsTest(false, false, false, false, 'snapshots/upload1.json')
+    })
+
+    it('upload full snapshot, exclude flows', () => {
+        uploadWithComponentOptionsTest(true, false, false, false, 'snapshots/upload2.json')
+    })
+
+    it('upload full snapshot, exclude credentials', () => {
+        uploadWithComponentOptionsTest(false, true, false, false, 'snapshots/upload3.json')
+    })
+
+    it('upload full snapshot, exclude env', () => {
+        uploadWithComponentOptionsTest(false, false, true, false, 'snapshots/upload4.json')
+    })
+
+    it('upload full snapshot, env keys only', () => {
+        uploadWithComponentOptionsTest(false, false, false, true, 'snapshots/upload5.json')
+    })
+
+    it('upload snapshot which has no credentials', () => {
+        uploadWithComponentOptionsTest(false, null, false, false, 'snapshots/upload6.json')
     })
 
     it('Can rollback a snapshot', () => {
@@ -393,7 +678,7 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).click()
 
         cy.get('[data-el="platform-dialog"]').should('be.visible')
-        cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Deploy Snapshot')
+        cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Restore Snapshot')
 
         // find .ff-btn--danger with text "Confirm" and click it
         cy.get('[data-el="platform-dialog"] .ff-btn--danger').contains('Confirm').click()
@@ -431,15 +716,15 @@ describe('FlowForge shows audit logs', () => {
     })
 
     it('for when a snapshot is created', () => {
-        cy.get('.ff-audit-entry').contains('Instance Snapshot Created')
+        cy.get('.ff-audit-entry').contains('Instance Snapshot Created', { includeShadowDom: true, force: true }) // force check to inspect items off screen
     })
     it('for when a snapshot is deleted', () => {
-        cy.get('.ff-audit-entry').contains('Instance Snapshot Deleted')
+        cy.get('.ff-audit-entry').contains('Instance Snapshot Deleted', { includeShadowDom: true, force: true }) // force check to inspect items off screen
     })
     it('for when a snapshot is exported', () => {
-        cy.get('.ff-audit-entry').contains('Instance Snapshot Exported')
+        cy.get('.ff-audit-entry').contains('Instance Snapshot Exported', { includeShadowDom: true, force: true }) // force check to inspect items off screen
     })
     it('for when a snapshot is imported', () => {
-        cy.get('.ff-audit-entry').contains('Snapshot Imported')
+        cy.get('.ff-audit-entry').contains('Snapshot Imported', { includeShadowDom: true, force: true }) // force check to inspect items off screen
     })
 })

@@ -73,12 +73,15 @@ const getters = {
     offline (state) {
         return state.offline
     },
-    noBilling (state) {
+    noBilling (state, getters) {
         return !state.user.admin &&
         state.features.billing &&
         (!state.team.billing?.unmanaged) &&
-        (!state.team.billing?.trial || state.team.billing?.trialEnded) &&
+        (!getters.isTrialAccount || state.team.billing?.trialEnded) &&
         !state.team.billing?.active
+    },
+    isTrialAccount (state) {
+        return state.team?.billing?.trial
     },
     isAdminUser: (state) => !!state.user.admin,
     defaultUserTeam: (state, getters) => {
@@ -386,6 +389,9 @@ const actions = {
             })
             .catch(_ => {})
     },
+    setNotifications (state, notifications) {
+        state.commit('setNotifications', notifications)
+    },
     async getInvitations (state) {
         await userApi.getTeamInvitations()
             .then((invitations) => {
@@ -405,6 +411,15 @@ export default {
         persistence: {
             redirectUrlAfterLogin: {
                 storage: 'localStorage'
+            },
+            features: {
+                storage: 'localStorage'
+            },
+            teamMembership: {
+                storage: 'sessionStorage'
+            },
+            team: {
+                storage: 'sessionStorage'
             }
         }
     }
