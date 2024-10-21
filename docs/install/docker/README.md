@@ -67,7 +67,7 @@ The following guide walks through a full production-ready deployment. If you wan
   <div class="checklist">
     <label>Prerequisites</label>
     <div>
-      <checklist-item task="DNS"></checklist-item>
+      <checklist-item task="Domain Name DNS"></checklist-item>
       <checklist-item task="Docker Engine & Docker Compose"></checklist-item>
       <checklist-item type="recommended" task="Setup Dedicated Database"></checklist-item>
       <checklist-item type="recommended" task="Prepare TLS Certification"></checklist-item>
@@ -88,12 +88,12 @@ The following guide walks through a full production-ready deployment. If you wan
 
 Before you begin, ensure you have the following:
 
-1. A domain name that you own and can configure DNS settings for (explained in [DNS](#dns))
-2. [Docker Engine](https://docs.docker.com/engine/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your system (either as a standalone binary or as docker plugin)
+1. **Domain Name & DNS:** A domain name that you own and can configure DNS settings for (explained in [DNS](#dns))
+2. **Install Docker:** [Docker Engine](https://docs.docker.com/engine/) and [Docker Compose](https://docs.docker.com/compose/install/) must be installed on your system (either as a standalone binary or as docker plugin)
 
 For a production-ready environment, we also recommend: 
-* prepare dedicated database on a external database server (see FAQ for more details)
-* prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#enable-https-optional))
+* **Database:** Prepare dedicated database on a external database server (see FAQ for more details)
+* **TLS Certification:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#enable-https-optional))
 
 ### DNS
 
