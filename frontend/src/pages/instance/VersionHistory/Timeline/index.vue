@@ -6,7 +6,7 @@
             v-if="isTimelineFeatureEnabled" id="visual-timeline" class="relative"
             :style="{height: listHeightCss}"
         >
-            <transition name="fade" mode="out-in">
+            <transition-group name="fade">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
                 <ul v-else ref="timeline" data-el="timeline-list" class="timeline" :style="{'max-height': listHeightCss}">
                     <li v-for="event in activeTimeline" :key="event.id">
@@ -25,7 +25,7 @@
                         />
                     </li>
                 </ul>
-            </transition>
+            </transition-group>
         </section>
         <section v-else>
             <empty-state>
