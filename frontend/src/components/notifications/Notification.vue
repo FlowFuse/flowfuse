@@ -1,27 +1,28 @@
 <template>
-    <div class="message" :class="messageClass" @click="go(to)">
+    <div class="message-wrapper" :class="messageClass" @click="go(to)">
+        <div class="action" @click.prevent.stop>
+            <ff-checkbox v-model="isSelected" data-action="select-notification" @click="toggleSelection" />
+        </div>
         <div class="body">
-            <div class="icon ff-icon ff-icon-lg">
-                <slot name="icon" />
+            <div class="header">
+                <div class="icon ff-icon ff-icon-lg">
+                    <slot name="icon" />
+                </div>
+                <h4 class="title"><slot name="title" /></h4>
+                <div class="counter">
+                    <slot name="counter">
+                        <ff-notification-pill v-if="counter" v-ff-tooltip:left="counter + ' occurrences'" :count="counter" />
+                    </slot>
+                </div>
             </div>
             <div class="text">
-                <div class="header">
-                    <h4 class="title"><slot name="title" /></h4>
-                    <div class="counter">
-                        <slot name="counter">
-                            <ff-notification-pill v-if="counter" v-ff-tooltip:left="counter + ' occurrences'" :count="counter" />
-                        </slot>
-                    </div>
-                </div>
-                <div class="content">
-                    <slot name="message" />
-                </div>
+                <slot name="message" />
             </div>
-        </div>
-        <div class="footer">
-            <slot name="timestamp">
-                <span v-ff-tooltip:left="tooltip"> {{ notification.createdSince }} </span>
-            </slot>
+            <div class="footer">
+                <slot name="timestamp">
+                    <span v-ff-tooltip:left="tooltip"> {{ notification.createdSince }} </span>
+                </slot>
+            </div>
         </div>
     </div>
 </template>
@@ -62,7 +63,8 @@ export default {
             return {
                 unread: !this.notification.read,
                 warning: this.notification.data?.meta?.severity === 'warning',
-                error: this.notification.data?.meta?.severity === 'error'
+                error: this.notification.data?.meta?.severity === 'error',
+                selected: this.isSelected
             }
         }
     },
@@ -82,59 +84,3 @@ export default {
     }
 }
 </script>
-
-<style scoped lang="scss">
-.messages-wrapper {
-    $read: $ff-grey-400;
-    $info: blue;
-    $warning: $ff-yellow-600;
-    $error: $ff-red-500;
-    .message {
-        .icon {
-            min-width: 20px;
-            min-height: 20px;
-            max-width: fit-content;
-            max-height: fit-content;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .counter {
-            margin-top: 0.2rem;
-
-            .ff-notification-pill {
-                background-color: $read;
-                color: white;
-                padding: 2px 7px;
-                border-radius: 6px;
-                font-size: 0.65rem;
-            }
-        }
-
-        &.unread {
-            border-left: 3px solid $info;
-
-            &.warning {
-                border-left: 3px solid $warning;
-
-                .counter .ff-notification-pill {
-                    background-color: $warning;
-                }
-            }
-
-            &.error {
-                border-left: 3px solid $error;
-
-                .counter .ff-notification-pill {
-                    background-color: $error;
-                }
-            }
-
-            .counter .ff-notification-pill {
-                background-color: $info;
-            }
-        }
-    }
-}
-</style>

@@ -89,7 +89,6 @@ export default {
 .wrapper {
     flex: 1;
     align-items: baseline;
-    overflow: hidden;
 
     .info {
         text-overflow: ellipsis;

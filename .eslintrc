@@ -253,8 +253,6 @@
                 "frontend/src/components/tables/cells/TeamTypeCell.vue",
                 "frontend/src/components/tables/cells/UserCell.vue",
                 "frontend/src/components/tables/cells/UserRoleCell.vue",
-                "frontend/src/pages/application/components/ExportProjectComponents.vue",
-                "frontend/src/pages/application/components/ImportProjectComponents.vue",
                 "frontend/src/pages/application/Debug.vue",
                 "frontend/src/pages/device/components/DeviceLastSeenBadge.vue",
                 "frontend/src/pages/device/Overview.vue",

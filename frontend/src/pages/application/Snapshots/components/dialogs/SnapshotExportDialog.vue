@@ -1,29 +1,36 @@
 <template>
     <ff-dialog ref="dialog" header="Download Snapshot" confirm-label="Download" :closeOnConfirm="false" :disable-primary="!formValid" data-el="snapshot-download-dialog" @confirm="confirm()">
         <template #default>
-            <form class="space-y-6 mt-2" data-form="snapshot-export" @submit.prevent>
-                <p>Please make a note of the secret used to encrypt the snapshot credentials. It will be required when importing the snapshot.</p>
-                <FormRow containerClass="w-auto" :error="errors.secret" data-form="snapshot-secret">
-                    Secret
-                    <template #description>
-                        <p class="text-sm">A key used to encrypt any credentials in the snapshot.</p>
-                    </template>
-                    <template #input>
-                        <div class="flex items-center w-full">
-                            <ff-text-input ref="secret" v-model="input.secret" type="text" placeholder="Secret" />
-                            <ff-button v-ff-tooltip:top="'Random Secret'" kind="secondary" size="small" class="ml-2" data-el="refresh" @click="input.secret = generateRandomKey()">
-                                <template #icon>
-                                    <RefreshIcon />
-                                </template>
-                            </ff-button>
-                            <ff-button v-if="clipboardSupported" v-ff-tooltip:top="'Copy to Clipboard'" kind="secondary" size="small" class="ml-2" @click="copySecret()">
-                                <template #icon>
-                                    <ClipboardCopyIcon />
-                                </template>
-                            </ff-button>
-                        </div>
-                    </template>
-                </FormRow>
+            <form data-form="snapshot-export" @submit.prevent>
+                <ExportInstanceComponents
+                    v-model="parts"
+                    :error="errors.parts" header="Select the components to include in the snapshot"
+                    data-form="export-snapshot-components"
+                />
+                <template v-if="needsSecret">
+                    <FormRow containerClass="w-auto mt-6" :error="errors.secret" data-form="snapshot-secret">
+                        Secret
+                        <template #description>
+                            <p class="text-sm">A key used to encrypt any credentials in the snapshot's flow.</p>
+                        </template>
+                        <template #input>
+                            <div class="flex items-center w-full">
+                                <ff-text-input ref="secret" v-model="input.secret" type="text" placeholder="Secret" />
+                                <ff-button v-ff-tooltip:top="'Random Secret'" kind="secondary" size="small" class="ml-2" data-el="refresh" @click="input.secret = generateRandomKey()">
+                                    <template #icon>
+                                        <RefreshIcon />
+                                    </template>
+                                </ff-button>
+                                <ff-button v-if="clipboardSupported" v-ff-tooltip:top="'Copy to Clipboard'" kind="secondary" size="small" class="ml-2" @click="copySecret()">
+                                    <template #icon>
+                                        <ClipboardCopyIcon />
+                                    </template>
+                                </ff-button>
+                            </div>
+                        </template>
+                    </FormRow>
+                    <div class="mt-2">Please make a note of the secret used to encrypt the snapshot credentials. It will be required when importing the snapshot.</div>
+                </template>
             </form>
         </template>
     </ff-dialog>
@@ -32,16 +39,17 @@
 import { ClipboardCopyIcon, RefreshIcon } from '@heroicons/vue/outline'
 
 import snapshotsApi from '../../../../../api/snapshots.js'
-
 import FormRow from '../../../../../components/FormRow.vue'
 import { downloadData } from '../../../../../composables/Download.js'
 import clipboardMixin from '../../../../../mixins/Clipboard.js'
 import alerts from '../../../../../services/alerts.js'
+import ExportInstanceComponents from '../../../../instance/components/ExportImportComponents.vue'
 
 export default {
     name: 'SnapshotExportDialog',
     components: {
         ClipboardCopyIcon,
+        ExportInstanceComponents,
         FormRow,
         RefreshIcon
     },
@@ -53,9 +61,8 @@ export default {
                 this.input.secret = this.generateRandomKey()
                 this.snapshot = snapshot
                 this.submitted = false
-                this.errors = {
-                    secret: ''
-                }
+                this.errors.secret = ''
+                this.errors.parts = ''
                 this.$refs.secret.focus()
             }
         }
@@ -67,34 +74,59 @@ export default {
                 secret: ''
             },
             snapshot: null,
-            errors: {}
+            errors: {
+                secret: '',
+                parts: ''
+            },
+            parts: {
+                flows: true,
+                credentials: true,
+                envVars: 'all'
+            }
         }
     },
     computed: {
         formValid () {
             return this.validate()
+        },
+        needsSecret () {
+            return this.parts.flows && this.parts.credentials
         }
     },
     mounted () {
     },
     methods: {
         validate () {
-            if (!this.input.secret) {
-                this.errors.secret = 'Secret is required'
-            } else if (this.input.secret.length < 8) {
-                this.errors.secret = 'Secret must be at least 8 characters'
-            } else if (/^\s/.test(this.input.secret) || /\s$/.test(this.input.secret)) {
-                this.errors.secret = 'Secret cannot start or end with a space'
+            if (this.needsSecret) {
+                if (!this.input.secret) {
+                    this.errors.secret = 'Secret is required'
+                } else if (this.input.secret.length < 8) {
+                    this.errors.secret = 'Secret must be at least 8 characters'
+                } else if (/^\s/.test(this.input.secret) || /\s$/.test(this.input.secret)) {
+                    this.errors.secret = 'Secret cannot start or end with a space'
+                } else {
+                    this.errors.secret = ''
+                }
             } else {
                 this.errors.secret = ''
             }
-            return !this.submitted && !!(this.input.secret) && !this.errors.secret
+            if (this.parts.flows === false && this.parts.envVars === false) {
+                this.errors.parts = 'At least one component must be selected'
+            } else {
+                this.errors.parts = ''
+            }
+            return !this.submitted && !this.errors.parts && !this.errors.secret
         },
         confirm () {
             if (this.validate()) {
                 this.submitted = true
                 const opts = {
-                    credentialSecret: this.input.secret
+                    credentialSecret: this.input.secret,
+                    components: {
+                        flows: this.parts.flows,
+                        credentials: this.parts.credentials,
+                        envVars: this.parts.envVars
+                    }
                 }
                 snapshotsApi.exportSnapshot(this.snapshot.id, opts).then((data) => {
                     return data
