@@ -8,7 +8,7 @@
         >
             <transition name="fade" mode="out-in">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
-                <ul v-else ref="timeline" class="timeline" :style="{'max-height': listHeightCss}">
+                <ul v-else ref="timeline" data-el="timeline-list" class="timeline" :style="{'max-height': listHeightCss}">
                     <li v-for="event in activeTimeline" :key="event.id">
                         <timeline-event
                             :event="event"
