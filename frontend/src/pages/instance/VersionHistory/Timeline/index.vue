@@ -44,7 +44,7 @@
         </section>
         <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
         <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
-        <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="fetchData" />
+        <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="fetchData(false)" />
     </div>
 </template>
 
@@ -159,7 +159,7 @@ export default {
         },
         async forceRefresh (callback, ...payload) {
             callback(...payload)
-                .then(() => this.fetchData())
+                .then(() => this.fetchData(false))
                 .catch(e => console.warn(e))
         },
         computeTimelineListMaxHeight () {
