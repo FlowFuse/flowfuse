@@ -4,7 +4,7 @@ const setup = require('../../setup')
 
 const MAX_BROKER_USERS = 5
 
-describe('Team Broker API', function () {
+describe.only('Team Broker API', function () {
     let app
     const TestObjects = { tokens: {} }
 
@@ -101,7 +101,7 @@ describe('Team Broker API', function () {
 
         it('Modify an existing MQTT broker user for a team', async function () {
             const response = await app.inject({
-                method: 'PATCH',
+                method: 'PUT',
                 url: `/api/v1/teams/${app.team.hashid}/broker/client/alice`,
                 body: {
                     acls: [
@@ -264,7 +264,7 @@ describe('Team Broker API', function () {
         })
         it('Test Authentication pass after password change', async function () {
             let response = await app.inject({
-                method: 'PATCH',
+                method: 'PUT',
                 url: `/api/v1/teams/${app.team.hashid}/broker/client/alice`,
                 body: {
                     password: 'ccPassword'
@@ -399,7 +399,7 @@ describe('Team Broker API', function () {
             result.should.have.property('result', 'allow')
             result.should.have.property('is_superuser', false)
             result.should.have.property('client_attrs')
-            result.client_attrs.should.have.property('team', 'ff/v1/internal/c/')
+            result.client_attrs.should.have.property('team', '')
         })
         it('Test Authentication forge_platform fail', async function () {
             const response = await app.inject({

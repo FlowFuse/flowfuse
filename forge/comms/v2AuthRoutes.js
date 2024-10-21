@@ -42,7 +42,7 @@ module.exports = async function (app) {
                     result: 'allow',
                     is_superuser: false,
                     client_attrs: {
-                        team: 'ff/v1/internal/c/'
+                        team: ''
                     }
                 })
             } else {
