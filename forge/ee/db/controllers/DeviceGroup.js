@@ -243,58 +243,6 @@ module.exports = {
         await app.db.models.Device.update({ DeviceGroupId: null }, { where: { id: deviceIds.removeList, DeviceGroupId: deviceGroup.id }, transaction })
     },
 
-    // updateSettings: async function (app, deviceGroup, settings, user) {
-    //     // NOTE: For now, device group settings only support environment variables
-    //     if (!hasProperty(settings, 'env')) {
-    //         return // nothing to do
-    //     }
-
-    //     // validate settings
-    //     if (!Array.isArray(settings.env)) {
-    //         throw new ValidationError('Invalid settings')
-    //     }
-    //     settings.env.forEach((envVar) => {
-    //         if (!envVar?.name?.match(/^[a-zA-Z_]+[a-zA-Z0-9_]*$/)) {
-    //             throw new ValidationError(`Invalid Env Var name '${envVar.name}'`)
-    //         }
-    //     })
-    //     // find duplicates
-    //     const seen = new Set()
-    //     const duplicates = settings.env.some(item => { return seen.size === seen.add(item.name).size })
-    //     if (duplicates) {
-    //         throw new ValidationError('Duplicate Env Var names provided')
-    //     }
-
-    //     // for audit log
-    //     const deviceGroupLogger = getApplicationLogger(app)
-    //     const updates = new app.auditLog.formatters.UpdatesCollection()
-    //     if (!deviceGroup.Application) {
-    //         await deviceGroup.reload({ include: [{ model: app.db.models.Application }] })
-    //     }
-    //     // transform the env arrays to a map for better logging format
-    //     const currentEnv = (deviceGroup.settings?.env || []).reduce((acc, e) => {
-    //         acc[e.name] = e.value
-    //         return acc
-    //     }, {})
-    //     const newEnv = settings.env.reduce((acc, e) => {
-    //         acc[e.name] = e.value
-    //         return acc
-    //     }, {})
-    //     updates.pushDifferences({ env: currentEnv }, { env: newEnv })
-
-    //     // perform update & log
-    //     if (updates.length === 0) {
-    //         return // nothing to do
-    //     }
-    //     deviceGroup.settings = {
-    //         ...deviceGroup.settings,
-    //         env: settings.env
-    //     }
-    //     await deviceGroup.save()
-
-    //     await deviceGroupLogger.application.deviceGroup.settings.updated(user, null, deviceGroup.Application, deviceGroup, updates)
-    // },
-
     /**
      * Sends an update to all devices in the group and/or the specified list of devices
      * so that they can determine what/if it needs to be updated
