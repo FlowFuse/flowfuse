@@ -4,7 +4,7 @@ const setup = require('../../setup')
 
 const MAX_BROKER_USERS = 5
 
-describe.only('Team Broker API', function () {
+describe('Team Broker API', function () {
     let app
     const TestObjects = { tokens: {} }
 
