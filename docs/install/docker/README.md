@@ -12,12 +12,77 @@ meta:
       - nodered
 ---
 
+<script>     
+   class ChecklistItem extends HTMLElement {
+
+      static observedAttributes = ["type", "task"];
+
+      constructor() {
+         super();   
+         this.type = 'required'
+         this.task = ''
+      }
+
+      attributeChangedCallback(name, oldValue, newValue) {
+        if (name === "type") {
+            this.type = newValue;
+        } else if (name === "task") {
+            this.task = newValue;
+        }
+      }
+      
+      connectedCallback () {
+        const iconRequired = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`
+        const iconRecommended = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`
+        const iconOptional = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`
+        
+        let icon = iconRequired
+        let tooltip = "Required for Operation"
+        if (this.type === 'recommended') {
+          icon = iconRecommended
+          tooltip = "Recommended for Production"
+        } else if (this.type === 'optional') {
+          icon = iconOptional
+          tooltip = "Optional"
+        }
+        this.innerHTML = `<div class="checklist-item checklist-item--${this.type}"><span class="tooltip" data-tooltip="${tooltip}"><span class="checklist-item-status">${icon}</span><span>${this.task}</span></span></div>`
+      }
+   }
+   
+   customElements.define('checklist-item', ChecklistItem);
+</script>
+
 # Docker Install
 
 This guide walks you through detailed set up of FlowFuse Platform on a Docker container envoronment using Docker Compose. Typically suited for small/medium on premise deployments.
 By the end, you will have a fully functioning FlowFuse instance running in a Docker container.
 
 For a FlowFuse platform evaluation purposes, check out our [Quick Start Guide](../../quick-start/README.md).
+
+The following guide walks through a full production-ready deployment. If you want to install FlowFuse for evaluation purposes, please refer to the [Quick Start Guide](../../quick-start/README.md).
+
+## Checklist
+
+<div class="grid grid-cols-2 gap-8">
+  <div class="checklist">
+    <label>Prerequisites</label>
+    <div>
+      <checklist-item task="DNS"></checklist-item>
+      <checklist-item task="Docker Engine & Docker Compose"></checklist-item>
+      <checklist-item type="recommended" task="Setup Dedicated Database"></checklist-item>
+      <checklist-item type="recommended" task="Prepare TLS Certification"></checklist-item>
+    </div>
+  </div>
+
+  <div class="checklist">
+    <label>Installation</label>
+    <div>
+      <checklist-item task="Download FlowFuse"></checklist-item>
+      <checklist-item task="Configure FlowFuse"></checklist-item>
+      <checklist-item type="recommended" task="Enable HTTPS"></checklist-item>
+    </div>
+  </div>
+</div>
 
 ## Prerequisites
 
@@ -28,7 +93,7 @@ Before you begin, ensure you have the following:
 
 For a production-ready environment, we also recommend: 
 * prepare dedicated database on a external database server (see FAQ for more details)
-* prepare TLS certificate for your domain and configure FlowFuse plarform to use it (see [Enable HTTPS](#enable-https-optional))
+* prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#enable-https-optional))
 
 ### DNS
 
@@ -239,4 +304,3 @@ To disable the default File nodes, edit the Template and add `10-file.js,23-watc
 FlowFuse Docker Compose files includes FlowFuse File Storage component by default and starts it along with the platform.
 
 Full details on configuring the File Storage service are available [here](../file-storage/).
-
