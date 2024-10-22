@@ -193,9 +193,50 @@ describe('FlowForge - Sign Up Page', () => {
         // the text in the span should state: Password must be 8 characters or more
         cy.get('[data-form="signup-password"] + span.ff-error-inline').should('contain', 'Password must be 8 characters or more')
 
+        // check the signup button is disabled
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+    })
+    it('shows password error only even when repeat password is matching', () => {
+        // ensures the main focus is setting a valid password before
+        // complaining about the repeat password!
+
+        cy.intercept('GET', '/api/*/settings').as('getUserSettings')
+        cy.visit('/account/create')
+        cy.wait('@getUserSettings')
+
+        // fill out the form
+        cy.get('[data-form="signup-username"] input').type('username')
+        cy.get('[data-form="signup-fullname"] input').type('fullname')
+        cy.get('[data-form="signup-email"] input').type('email@example.com')
+        cy.get('[data-form="signup-password"] input').type('passpass') // long enough but too simple
+        cy.get('[data-form="signup-repeat-password"] input').type('passpass') // matching!
+
+        // check the error message is displayed for the password only
         cy.get('[data-form="signup-password"] + span.ff-error-inline').should('not.be.empty')
-        // the text in the span should state: Password needs to be longer than 8 chars
-        cy.get('[data-form="signup-password"] + span.ff-error-inline').should('contain', 'Password needs to be longer than 8 chars')
+        cy.get('[data-form="signup-repeat-password"] + span.ff-error-inline').should('be.empty')
+        // the text in the span should state: Password needs to be more complex
+        cy.get('[data-form="signup-password"] + span.ff-error-inline').should('contain', 'Password needs to be more complex')
+
+        // check the signup button is disabled
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+    })
+    it('disables signup button for mismatched repeat password', () => {
+        cy.intercept('GET', '/api/*/settings').as('getUserSettings')
+        cy.visit('/account/create')
+        cy.wait('@getUserSettings')
+
+        // fill out the form
+        cy.get('[data-form="signup-username"] input').type('username')
+        cy.get('[data-form="signup-fullname"] input').type('fullname')
+        cy.get('[data-form="signup-email"] input').type('email@example.com')
+        cy.get('[data-form="signup-password"] input').type('Andréx_$$$') // PW long and strong and has accented é
+        cy.get('[data-form="signup-repeat-password"] input').type('Andrex_$$$') // Does NOT have accented e
+
+        // check the error message is displayed for the repeat password only
+        cy.get('[data-form="signup-password"] + span.ff-error-inline').should('be.empty')
+        cy.get('[data-form="signup-repeat-password"] + span.ff-error-inline').should('not.be.empty')
+        // the text in the span should state: Password must be 8 characters or more
+        cy.get('[data-form="signup-repeat-password"] + span.ff-error-inline').should('contain', 'Passwords do not match')
 
         // check the signup button is disabled
         cy.get('[data-action="sign-up"]').should('be.disabled')
