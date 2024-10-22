@@ -125,7 +125,7 @@ module.exports = async function (app) {
                 .code(409)
                 .send({
                     code: 'client_already_exists',
-                    err: 'Client Already exists with username'
+                    error: 'Client Already exists with username'
                 })
         }
         try {
