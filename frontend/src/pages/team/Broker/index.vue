@@ -247,6 +247,7 @@ export default {
                        .toggle {
                            grid-column: span 3;
                            text-align: right;
+                           padding-right: 10px;
 
                            .edit, .delete {
                                margin-left: 15px
