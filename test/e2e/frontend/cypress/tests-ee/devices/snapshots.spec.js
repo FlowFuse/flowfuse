@@ -1,8 +1,8 @@
 /// <reference types="cypress" />
 
-import deviceSnapshots from '../../fixtures/snapshots/device-snapshots.json'
-import deviceFullSnapshot from '../../fixtures/snapshots/device2-full-snapshot1.json'
-import instanceSnapshots from '../../fixtures/snapshots/instance-snapshots.json'
+import deviceSnapshots from '../../fixtures/version-history/snapshots/device-snapshots.json'
+import deviceFullSnapshot from '../../fixtures/version-history/snapshots/device2-full-snapshot1.json'
+import instanceSnapshots from '../../fixtures/version-history/snapshots/instance-snapshots.json'
 const snapshots = {
     count: 2,
     snapshots: [deviceSnapshots.snapshots[0], instanceSnapshots.snapshots[0]]
@@ -244,7 +244,7 @@ describe('FlowForge - Devices - With Billing', () => {
     })
 
     it('upload snapshot with credentials', () => {
-        cy.fixture('snapshots/snapshot-with-credentials.json', null).as('snapshot')
+        cy.fixture('version-history/snapshots/snapshot-with-credentials.json', null).as('snapshot')
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
 
         cy.contains('span', 'application-device-a').click()
@@ -294,7 +294,7 @@ describe('FlowForge - Devices - With Billing', () => {
     })
 
     it('upload snapshot without credentials', () => {
-        cy.fixture('snapshots/instance2-full-snapshot2.json', null).as('snapshot')
+        cy.fixture('version-history/snapshots/instance2-full-snapshot2.json', null).as('snapshot')
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
 
         cy.contains('span', 'application-device-a').click()

@@ -9,7 +9,8 @@ import InstanceLogs from './Logs.vue'
 import InstanceOverview from './Overview.vue'
 import InstanceSettings from './Settings/index.vue'
 import InstanceSettingsRoutes from './Settings/routes.js'
-import InstanceSnapshots from './Snapshots/index.vue'
+import VersionHistory from './VersionHistory/index.vue'
+import VersionHistoryRoutes from './VersionHistory/routes.js'
 import Instance from './index.vue'
 
 const children = [
@@ -64,12 +65,16 @@ const children = [
         children: [...InstanceSettingsRoutes]
     },
     {
-        path: 'snapshots',
-        name: 'instance-snapshots',
-        component: InstanceSnapshots,
+        path: 'version-history',
+        name: 'instance-version-history',
+        component: VersionHistory,
         meta: {
-            title: 'Instance - Snapshots'
-        }
+            title: 'Instance - Version History'
+        },
+        redirect: to => {
+            return { name: 'instance-version-history-timeline', params: { id: to.params.id } }
+        },
+        children: [...VersionHistoryRoutes]
     }
 ]
 
