@@ -123,7 +123,7 @@ module.exports = async function (app) {
         if (await app.db.models.TeamBrokerClient.byUsername(request.body.username, request.team.hashid)) {
             return reply
                 .code(409)
-                send({
+                .send({
                     code: 'client_already_exists',
                     err: 'Client Already exists with username'
                 })
