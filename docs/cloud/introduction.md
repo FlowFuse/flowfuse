@@ -82,8 +82,9 @@ All features from the Team Level plus
  - HA for Instances
  - SSO
  - Better Support SLA
+ - MQTT Broker
 
-Includes 10 instances in the base price
+Includes 10 instances and 20 MQTT Clients in the base price
 
 ### Changing Team Type
 
@@ -183,6 +184,29 @@ MQTT Connections to an external broker using the standard MQTT nodes will work f
 FlowFuse does not provide an MQTT broker for general use by Node-RED instances. However the
 Project Nodes can be used to easily pass messages between Node-RED instances running in the
 platform.
+
+#### Enterprise Team Broker
+
+Enterprise level teams come with their own MQTT broker. You can provision clients from the broker tab in the left hand menu.
+
+Teams will initially come with up to 20 clients, with the ability to add more coming in later releases.
+
+The broker is available on `broker.flowfuse.cloud` and supports the following connection types:
+
+ - MQTT on port `1883`
+ - MQTT over TLS on port `8883`
+ - MQTT over secure WebSockets on port `443`
+
+ When creating clients you can specify a username, but it will prepended to the the Team's id e.g. `alice` will become `alice@abcd1234`.
+ Clients must also use the username as the MQTT Client ID in order to connect.
+
+ TODO: insert image of broker client page
+
+ e.g.
+
+ ```
+ mosquitto_sub -u "alice@abcd1234" -i "alice@abcd1234" -P "password" -h broker.flowfuse.cloud -t "#"
+ ```
 
 ### IP Addresses
 
