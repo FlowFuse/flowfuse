@@ -120,6 +120,14 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        if (await app.db.models.TeamBrokerClient.byUsername(request.body.username, request.team.hashid)) {
+            return reply
+                .code(409)
+                send({
+                    code: 'client_already_exists',
+                    err: 'Client Already exists with username'
+                })
+        }
         try {
             const newUser = request.body
             newUser.acls = JSON.stringify(newUser.acls)
