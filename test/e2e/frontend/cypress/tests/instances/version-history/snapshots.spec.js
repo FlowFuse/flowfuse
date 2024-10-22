@@ -1,9 +1,9 @@
 /// <reference types="cypress" />
 import should from 'should'
 
-import instanceSnapshots from '../../fixtures/snapshots/instance-snapshots.json'
-import instanceFullSnapshot from '../../fixtures/snapshots/instance2-full-snapshot2.json'
-import instanceSnapshot from '../../fixtures/snapshots/instance2-snapshot2.json'
+import instanceSnapshots from '../../../fixtures/version-history/snapshots/instance-snapshots.json'
+import instanceFullSnapshot from '../../../fixtures/version-history/snapshots/instance2-full-snapshot2.json'
+import instanceSnapshot from '../../../fixtures/version-history/snapshots/instance2-snapshot2.json'
 // import instanceFullSnapshot from '../../fixtures/snapshots/snapshot-with-credentials.json'
 let idx = 0
 const IDX_DEPLOY_SNAPSHOT = idx++
@@ -31,21 +31,21 @@ describe('FlowForge - Instance Snapshots', () => {
             })
             .then((response) => {
                 projectId = response.body.projects[0].id
-                cy.visit(`/instance/${projectId}/snapshots`)
+                cy.visit(`/instance/${projectId}/version-history/snapshots`)
                 cy.wait('@getProjectSnapshots')
             })
     })
 
     it('shows a placeholder message when no snapshots have been created', () => {
         cy.intercept('GET', '/api/*/projects/*/snapshots', { count: 0, snapshots: [] }).as('getEmptyProjectSnapshots')
-        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@getEmptyProjectSnapshots')
         cy.get('main').contains('Create your First Snapshot')
     })
 
     it('provides functionality to create a snapshot', () => {
         cy.intercept('GET', '/api/*/projects/*/snapshots', { count: 0, snapshots: [] }).as('snapshotData')
-        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@snapshotData')
 
         cy.get('button[data-action="create-snapshot"]').click()
@@ -60,6 +60,13 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').should('not.be.disabled')
         cy.get('[data-el="dialog-create-snapshot"] [data-form="snapshot-description"] textarea').type('snapshot1 description')
 
+        cy.intercept('GET', '/api/*/projects/*/snapshots', {
+            count: 1,
+            snapshots: [{
+                ...instanceSnapshot,
+                name: 'snapshot1'
+            }]
+        }).as('snapshotData')
         // click "Create"
         cy.get('[data-el="dialog-create-snapshot"] button.ff-btn.ff-btn--primary').click()
         cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', 1)
@@ -68,7 +75,7 @@ describe('FlowForge - Instance Snapshots', () => {
 
     it('offers correct options in snapshot table kebab menu', () => {
         cy.intercept('GET', '/api/*/projects/*/snapshots', instanceSnapshots).as('snapshotData')
-        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@snapshotData')
 
         // click kebab menu in row 1
@@ -175,7 +182,7 @@ describe('FlowForge - Instance Snapshots', () => {
         // if (!testSnapshotUploaded) {
         // first upload a known snapshot so that download tests can be run against it
         // directly POST to api/v1/snapshots/import the upload1.json snapshot
-        cy.fixture('snapshots/upload-for-download.json').then((snapshot) => {
+        cy.fixture('version-history/snapshots/upload-for-download.json').then((snapshot) => {
             snapshot.name = name
             cy.request('POST', '/api/v1/snapshots/import', {
                 ownerId: projectId,
@@ -188,7 +195,7 @@ describe('FlowForge - Instance Snapshots', () => {
         // ensure the downloads folder is empty before the test
         cy.task('clearDownloads')
         cy.intercept('GET', '/api/*/projects/*/snapshots').as('snapshotData')
-        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@snapshotData')
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
@@ -385,7 +392,7 @@ describe('FlowForge - Instance Snapshots', () => {
     it('download snapshot package.json', () => {
         cy.intercept('GET', '/api/*/projects/*/snapshots', instanceSnapshots).as('snapshotData')
         cy.intercept('GET', '/api/*/snapshots/*', instanceSnapshot).as('instanceSnapshot')
-        cy.visit(`/instance/${projectId}/snapshots`)
+        cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@snapshotData')
 
         // ensure package.json does not exist in the downloads folder before the test
@@ -448,7 +455,7 @@ describe('FlowForge - Instance Snapshots', () => {
         // - Excluding all components should disable the upload & a validation message should appear
         // - Excluding env should disable the radio buttons
 
-        cy.fixture('snapshots/snapshot-with-credentials.json', null).as('snapshot')
+        cy.fixture('version-history/snapshots/snapshot-with-credentials.json', null).as('snapshot')
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
 
         // click data-action="import-snapshot" to open the dialog
@@ -644,27 +651,27 @@ describe('FlowForge - Instance Snapshots', () => {
     }
 
     it('upload full snapshot, include all', () => {
-        uploadWithComponentOptionsTest(false, false, false, false, 'snapshots/upload1.json')
+        uploadWithComponentOptionsTest(false, false, false, false, 'version-history/snapshots/upload1.json')
     })
 
     it('upload full snapshot, exclude flows', () => {
-        uploadWithComponentOptionsTest(true, false, false, false, 'snapshots/upload2.json')
+        uploadWithComponentOptionsTest(true, false, false, false, 'version-history/snapshots/upload2.json')
     })
 
     it('upload full snapshot, exclude credentials', () => {
-        uploadWithComponentOptionsTest(false, true, false, false, 'snapshots/upload3.json')
+        uploadWithComponentOptionsTest(false, true, false, false, 'version-history/snapshots/upload3.json')
     })
 
     it('upload full snapshot, exclude env', () => {
-        uploadWithComponentOptionsTest(false, false, true, false, 'snapshots/upload4.json')
+        uploadWithComponentOptionsTest(false, false, true, false, 'version-history/snapshots/upload4.json')
     })
 
     it('upload full snapshot, env keys only', () => {
-        uploadWithComponentOptionsTest(false, false, false, true, 'snapshots/upload5.json')
+        uploadWithComponentOptionsTest(false, false, false, true, 'version-history/snapshots/upload5.json')
     })
 
     it('upload snapshot which has no credentials', () => {
-        uploadWithComponentOptionsTest(false, null, false, false, 'snapshots/upload6.json')
+        uploadWithComponentOptionsTest(false, null, false, false, 'version-history/snapshots/upload6.json')
     })
 
     it('Can rollback a snapshot', () => {
