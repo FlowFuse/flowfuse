@@ -200,7 +200,7 @@ The broker is available on `broker.flowfuse.cloud` and supports the following co
  When creating clients you can specify a username, but it will prepended to the the Team's id e.g. `alice` will become `alice@abcd1234`.
  Clients must also use the username as the MQTT Client ID in order to connect.
 
- TODO: insert image of broker client page
+ ![Create Broker Client](./images/create-broker-client.png)
 
  e.g.
 
