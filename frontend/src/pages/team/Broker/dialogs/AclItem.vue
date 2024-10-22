@@ -72,6 +72,9 @@ export default {
             return this.orderKey !== 0
         }
     },
+    mounted () {
+        this.model.pattern = this.modelValue.pattern
+    },
     methods: {
         update () {
             this.$emit('update:modelValue', this.model)

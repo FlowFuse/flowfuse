@@ -92,7 +92,7 @@ export default {
                 acls: [
                     {
                         action: '',
-                        pattern: ''
+                        pattern: '#'
                     }
                 ]
             },
