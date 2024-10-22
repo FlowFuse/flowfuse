@@ -22,6 +22,8 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-email"] input').type('email@example.com')
         cy.get('[data-action="sign-up"]').should('be.disabled')
         cy.get('[data-form="signup-password"] input').type('aw3li8vb')
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+        cy.get('[data-form="signup-repeat-password"] input').type('aw3li8vb')
         cy.get('[data-action="sign-up"]').should('not.be.disabled')
 
         // Now the form is valid, check additional constraints
@@ -64,6 +66,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-fullname"] input').type('fullname')
         cy.get('[data-form="signup-email"] input').type('email@example.com')
         cy.get('[data-form="signup-password"] input').type('aw3li8vb')
+        cy.get('[data-form="signup-repeat-password"] input').type('aw3li8vb')
         cy.get('[data-action="sign-up"]').should('be.disabled')
         cy.get('[data-form="signup-accept-tcs"] span.checkbox').click()
         cy.get('[data-action="sign-up"]').should('not.be.disabled')
@@ -83,6 +86,8 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-email"] input').type('email@example.com')
         cy.get('[data-action="sign-up"]').should('be.disabled')
         cy.get('[data-form="signup-password"] input').type('aw3li8vb')
+        cy.get('[data-action="sign-up"]').should('be.disabled')
+        cy.get('[data-form="signup-repeat-password"] input').type('aw3li8vb')
 
         // all fields are filled in, so the signup button should be enabled
         cy.get('[data-action="sign-up"]').should('not.be.disabled')
@@ -97,6 +102,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-fullname"] input').type('fullname')
         cy.get('[data-form="signup-email"] input').type('email@example.com')
         cy.get('[data-form="signup-password"] input').type('email@example.com')
+        cy.get('[data-form="signup-repeat-password"] input').type('email@example.com')
 
         // check the error message is displayed
         cy.get('[data-form="signup-password"] + span.ff-error-inline').should('not.be.empty')
@@ -116,6 +122,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-fullname"] input').type('username')
         cy.get('[data-form="signup-email"] input').type('email@example.com')
         cy.get('[data-form="signup-password"] input').type('i-am-the-password')
+        cy.get('[data-form="signup-repeat-password"] input').type('i-am-the-password')
 
         // check the error message is displayed
         cy.get('[data-form="signup-password"] + span.ff-error-inline').should('not.be.empty')
@@ -135,6 +142,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-fullname"] input').type('fullname')
         cy.get('[data-form="signup-email"] input').type('email')
         cy.get('[data-form="signup-password"] input').type('aw3li8vb')
+        cy.get('[data-form="signup-repeat-password"] input').type('aw3li8vb')
 
         // check the error message is displayed
         cy.get('[data-form="signup-email"] + span.ff-error-inline').should('not.be.empty')
@@ -157,6 +165,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-fullname"] input').type('fullname')
         cy.get('[data-form="signup-email"] input').type('1111@222222') // passes basic client side validation
         cy.get('[data-form="signup-password"] input').type('aw3li8vb')
+        cy.get('[data-form="signup-repeat-password"] input').type('aw3li8vb')
 
         // click the signup button which posts to /account/register and wait for the response
         cy.get('[data-action="sign-up"]').click()
@@ -178,7 +187,12 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-email"] input').type('email@example.com')
         cy.get('[data-form="signup-password"] input').type('1234')
 
-        // check the error message is displayed
+        // check the error message is displayed for password only
+        cy.get('[data-form="signup-password"] + span.ff-error-inline').should('not.be.empty')
+        cy.get('[data-form="signup-repeat-password"] + span.ff-error-inline').should('be.empty')
+        // the text in the span should state: Password must be 8 characters or more
+        cy.get('[data-form="signup-password"] + span.ff-error-inline').should('contain', 'Password must be 8 characters or more')
+
         cy.get('[data-form="signup-password"] + span.ff-error-inline').should('not.be.empty')
         // the text in the span should state: Password needs to be longer than 8 chars
         cy.get('[data-form="signup-password"] + span.ff-error-inline').should('contain', 'Password needs to be longer than 8 chars')
@@ -196,6 +210,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-fullname"] input').type('fullname')
         cy.get('[data-form="signup-email"] input').type('email@example.com')
         cy.get('[data-form="signup-password"] input').type('aw3li8vb')
+        cy.get('[data-form="signup-repeat-password"] input').type('aw3li8vb')
 
         // check the error message is displayed
         cy.get('[data-form="signup-username"] + span.ff-error-inline').should('not.be.empty')
@@ -215,6 +230,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-fullname"] input').type('i-am-the-passwor')
         cy.get('[data-form="signup-email"] input').type('email@example.com')
         cy.get('[data-form="signup-password"] input').type('i-am-the-password')
+        cy.get('[data-form="signup-repeat-password"] input').type('i-am-the-password')
 
         // check the signup button is enabled
         cy.get('[data-action="sign-up"]').should('not.be.disabled')
@@ -240,6 +256,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-fullname"] input').type('alice')
         cy.get('[data-form="signup-email"] input').type('email@example')
         cy.get('[data-form="signup-password"] input').type('email@example.com')
+        cy.get('[data-form="signup-repeat-password"] input').type('email@example.com')
 
         // check the signup button is enabled
         cy.get('[data-action="sign-up"]').should('not.be.disabled')
@@ -277,6 +294,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-fullname"] input').type('fullname')
         cy.get('[data-form="signup-email"] input').type('email@example.com')
         cy.get('[data-form="signup-password"] input').type('aw3li8vb')
+        cy.get('[data-form="signup-repeat-password"] input').type('aw3li8vb')
         cy.get('[data-action="sign-up"]').should('be.disabled')
 
         cy.get('[data-form="signup-join-reason"] span.checkbox').first().click()
