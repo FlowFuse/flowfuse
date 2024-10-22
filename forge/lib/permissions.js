@@ -176,9 +176,9 @@ const Permissions = {
 
     // Team Broker
     'broker:clients:list': { description: 'List Team Broker clients', role: Roles.Member },
-    'broker:clients:create': { description: 'Create Team Broker clients', role: Roles.Admin },
-    'broker:clients:edit': { description: 'Edit Team Broker clients', role: Roles.Admin },
-    'broker:clients:delete': { description: 'Delete Team Broker clients', role: Roles.Admin }
+    'broker:clients:create': { description: 'Create Team Broker clients', role: Roles.Owner },
+    'broker:clients:edit': { description: 'Edit Team Broker clients', role: Roles.Owner },
+    'broker:clients:delete': { description: 'Delete Team Broker clients', role: Roles.Owner }
 }
 
 module.exports = {

@@ -30,6 +30,9 @@ module.exports = async function (app) {
                 }
             }
         }
+        if (!request.teamMembership) {
+            request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
+        }
     })
 
     /**
