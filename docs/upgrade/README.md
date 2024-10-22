@@ -1,6 +1,6 @@
 ---
 navGroup: FlowFuse Self-Hosted
-navOrder: 2
+navOrder: 3
 navTitle: Upgrading FlowFuse
 meta:
    description: Learn how to upgrade your FlowFuse instance with detailed guidelines for LocalFS, Docker, and Kubernetes deployments.

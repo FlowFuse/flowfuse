@@ -20,6 +20,7 @@ module.exports = fp(async function (app, _opts) {
     if (app.config.broker && app.config.broker.url) {
         // Register the authentication routes the broker will be using
         await app.register(require('./authRoutes'), { prefix: '/api/comms/auth', logLevel: app.config.logging.http })
+        await app.register(require('./v2AuthRoutes'), { prefix: '/api/comms/v2', logLevel: app.config.logging.http })
 
         // Ensure we have a BrokerClient object (auth details) for use by the platform
         await app.db.controllers.BrokerClient.ensurePlatformClient()

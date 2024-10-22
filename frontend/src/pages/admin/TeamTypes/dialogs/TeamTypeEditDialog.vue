@@ -85,6 +85,16 @@
                     <FormRow v-if="billingEnabled" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
                     <FormRow v-if="billingEnabled" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                 </div>
+
+                <template v-if="teamBrokerEnabled">
+                    <FormHeading>Team Broker</FormHeading>
+                    <div class="grid gap-3 grid-cols-4">
+                        <div class="grid gap-3 grid-cols-1">
+                            <FormRow v-model="input.properties.teamBroker.clients.limit"># Client Limit</FormRow>
+                        </div>
+                    </div>
+                </template>
+
                 <div v-if="billingEnabled" class="grid gap-3 grid-cols-1">
                     <FormRow v-model="input.properties.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">Share free allocation with instance type:</FormRow>
                 </div>
@@ -105,10 +115,12 @@
                     <FormRow v-model="input.properties.features.customHostnames" type="checkbox">Custom Hostnames</FormRow>
                     <FormRow v-model="input.properties.features.staticAssets" type="checkbox">Static Assets</FormRow>
                     <FormRow v-model="input.properties.features.bom" type="checkbox">Bill of Materials / Dependencies</FormRow>
-                    <FormRow v-model="input.properties.features.projectHistory" type="checkbox">Version History Timeline</FormRow>
+                    <FormRow v-model="input.properties.features.teamBroker" type="checkbox">Team Broker</FormRow>
                     <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
-                    <span /><FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
+                    <span />
+                    <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
+                    <FormRow v-model="input.properties.features.projectHistory" type="checkbox">Version History Timeline</FormRow>
                 </div>
             </form>
         </template>
@@ -184,6 +196,12 @@ export default {
                     }
                     this.input.order = '' + (teamType.order || 0)
 
+                    if (this.input.properties.teamBroker?.clients === undefined) {
+                        this.input.properties.teamBroker = {
+                            clients: {}
+                        }
+                    }
+
                     // Apply default feature values if undefined
                     if (this.input.properties.features['shared-library'] === undefined) {
                         this.input.properties.features['shared-library'] = true
@@ -236,7 +254,10 @@ export default {
                             runtimes: {},
                             devices: {},
                             instances: {},
-                            features: {}
+                            features: {},
+                            teamBroker: {
+                                clients: {}
+                            }
                         }
                     }
                 }
@@ -281,7 +302,8 @@ export default {
                     users: {},
                     instances: {},
                     features: {},
-                    trial: {}
+                    trial: {},
+                    teamBroker: {}
                 }
             },
             errors: {},
@@ -305,6 +327,9 @@ export default {
         },
         billingEnabled () {
             return !!this.features.billing
+        },
+        teamBrokerEnabled () {
+            return !!this.input.properties.features.teamBroker
         }
     },
     methods: {
@@ -320,7 +345,8 @@ export default {
                         runtimes: { ...this.input.properties.runtimes },
                         devices: { ...this.input.properties.devices },
                         instances: { ...this.input.properties.instances },
-                        features: { ...this.input.properties.features }
+                        features: { ...this.input.properties.features },
+                        teamBroker: { ...this.input.properties.teamBroker }
                     }
                 }
                 // Utility function that ensures the specific property is
@@ -367,6 +393,9 @@ export default {
                 }
                 formatNumber(opts.properties.features, 'fileStorageLimit')
                 formatNumber(opts.properties.features, 'contextLimit')
+                if (opts.properties.teamBroker?.clients?.limit) {
+                    formatNumber(opts.properties.teamBroker.clients, 'limit')
+                }
 
                 if (this.teamType) {
                     // For edits, we cannot touch the properties
