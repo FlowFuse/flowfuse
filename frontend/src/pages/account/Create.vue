@@ -25,8 +25,8 @@
                 <label>Password</label>
                 <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="showErrors.password ? errors.password : ''" type="password" />
                 <span class="ff-error-inline">{{ showErrors.password ? errors.password : '' }}</span>
-                <label>Repeat Password</label>
-                <ff-text-input ref="signup-repeat-password" v-model="input.repeatPassword" data-form="signup-repeat-password" label="Repeat Password" :error="showErrors.repeatPassword ? errors.repeatPassword : ''" type="password" />
+                <label>Confirm Password</label>
+                <ff-text-input ref="signup-repeat-password" v-model="input.repeatPassword" data-form="signup-repeat-password" label="Confirm Password" :error="showErrors.repeatPassword ? errors.repeatPassword : ''" type="password" />
                 <span class="ff-error-inline">{{ showErrors.repeatPassword ? errors.repeatPassword : '' }}</span>
             </div>
             <div v-if="askJoinReason" class="pt-3">
