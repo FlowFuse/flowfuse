@@ -25,6 +25,9 @@
                 <label>Password</label>
                 <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="showErrors.password ? errors.password : ''" type="password" />
                 <span class="ff-error-inline">{{ showErrors.password ? errors.password : '' }}</span>
+                <label>Repeat Password</label>
+                <ff-text-input ref="signup-repeat-password" v-model="input.repeatPassword" data-form="signup-repeat-password" label="Repeat Password" :error="showErrors.repeatPassword ? errors.repeatPassword : ''" type="password" />
+                <span class="ff-error-inline">{{ showErrors.repeatPassword ? errors.repeatPassword : '' }}</span>
             </div>
             <div v-if="askJoinReason" class="pt-3">
                 <ff-radio-group
@@ -86,6 +89,7 @@ export default {
                 username: false,
                 email: false,
                 password: false,
+                repeatPassword: false,
                 name: false
             },
             teams: [],
@@ -95,6 +99,7 @@ export default {
                 username: '',
                 email: '',
                 password: '',
+                repeatPassword: '',
                 join_reason: null,
                 tcs_accepted: false,
                 code: ''
@@ -102,6 +107,7 @@ export default {
             errors: {
                 email: '',
                 password: '',
+                repeatPassword: '',
                 username: '',
                 name: '',
                 general: ''
@@ -122,6 +128,7 @@ export default {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
                    (this.input.password && !this.errors.password) &&
+                   (this.input.repeatPassword && !this.errors.repeatPassword) &&
                    (this.askJoinReason ? this.input.join_reason : true) &&
                    (this.settings['user:tcs-required'] ? this.input.tcs_accepted : true) &&
                    (!this.errors.name)
@@ -143,8 +150,9 @@ export default {
                 if (newVal.email) {
                     this.showErrors.email = true
                 }
-                if (newVal.password) {
+                if (newVal.password || newVal.repeatPassword) {
                     this.showErrors.password = true
+                    this.showErrors.repeatPassword = true
                 }
                 this.validateFormInputs()
             },
@@ -184,10 +192,11 @@ export default {
                 this.errors.email = ''
             }
 
+            let checkRepeat = false
             if (!this.input.password) {
                 this.errors.password = 'Password is required'
             } else if (this.input.password.length < 8) {
-                this.errors.password = 'Password needs to be longer than 8 chars'
+                this.errors.password = 'Password must be 8 characters or more'
             } else if (this.input.password.length > 128) {
                 this.errors.password = 'Password too long'
             } else if (this.input.password === this.input.username.trim()) {
@@ -200,9 +209,16 @@ export default {
                 this.errors.password = 'Password needs to be more complex'
             } else {
                 this.errors.password = ''
+                checkRepeat = true
             }
 
-            return !this.errors.username && !this.errors.email && !this.errors.password && !this.errors.name
+            if (checkRepeat && this.input.password !== this.input.repeatPassword) {
+                this.errors.repeatPassword = 'Passwords do not match'
+            } else {
+                this.errors.repeatPassword = ''
+            }
+
+            return !this.errors.username && !this.errors.email && !this.errors.password && !this.errors.repeatPassword && !this.errors.name
         },
         registerUser () {
             // ensure errors are shown
@@ -210,6 +226,7 @@ export default {
                 username: true,
                 email: true,
                 password: true,
+                repeatPassword: true,
                 name: true
             }
             const inputsValid = this.validateFormInputs()
