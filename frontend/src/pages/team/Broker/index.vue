@@ -8,7 +8,7 @@
             </ff-page-header>
         </template>
         <div class="space-y-6">
-            <ff-loading v-if="loading" message="Loading Clients..."/>
+            <ff-loading v-if="loading" message="Loading Clients..." />
             <template v-else>
                 <ff-data-table
                     v-if="clients.length > 0"
@@ -53,15 +53,13 @@
                 </EmptyState>
             </template>
         </div>
-        <ClientDialog ref="clientDialog" :team="team" @client-created="fetchData"/>
+        <ClientDialog ref="clientDialog" :clients="clients" :team="team" @client-created="fetchData" />
     </ff-page>
 </template>
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
-import { markRaw } from 'vue'
-import {mapState } from 'vuex'
-
+import { mapState } from 'vuex'
 
 import brokerApi from '../../../api/broker.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -90,7 +88,7 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'features'])
     },
-    watch : {
+    watch: {
         team: 'fetchData'
     },
     mounted () {
@@ -103,7 +101,6 @@ export default {
             this.loading = false
         },
         async removeClient (row) {
-            console.log(row)
             await brokerApi.deleteClient(this.team.id, row.username)
             this.fetchData()
         },
