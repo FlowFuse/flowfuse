@@ -17,6 +17,10 @@
                 </div>
             </div>
         </template>
+        <template #pictogram>
+            <img v-if="$route.name.includes('timeline')" alt="info" src="../../../images/pictograms/timeline_red.png">
+            <img v-else-if="$route.name.includes('snapshots')" alt="info" src="../../../images/pictograms/snapshot_red.png">
+        </template>
         <template #helptext>
             <template v-if="$route.name.includes('timeline')">
                 <p>The <b>Timeline</b> provides a concise, chronological view of key activities within your Node-RED instance.</p>
