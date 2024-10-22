@@ -74,6 +74,7 @@ import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpi
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import InstanceActionsButton from '../../components/instance/ActionButton.vue'
 
+import featuresMixin from '../../mixins/Features.js'
 import instanceMixin from '../../mixins/Instance.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 import { Roles } from '../../utils/roles.js'
@@ -96,7 +97,7 @@ export default {
         TeamTrialBanner,
         InstanceEditorLink
     },
-    mixins: [permissionsMixin, instanceMixin],
+    mixins: [permissionsMixin, instanceMixin, featuresMixin],
     data: function () {
         return {
             mounted: false,
@@ -109,11 +110,22 @@ export default {
         ...mapState('account', ['teamMembership', 'team']),
         navigation () {
             if (!this.instance.id) return []
-
+            let versionHistoryRoute
+            if (!this.isTimelineFeatureEnabled) {
+                versionHistoryRoute = {
+                    name: 'instance-snapshots',
+                    params: { id: this.instance.id }
+                }
+            } else {
+                versionHistoryRoute = {
+                    name: 'instance-version-history',
+                    params: { id: this.instance.id }
+                }
+            }
             return [
                 { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
                 { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
-                { label: 'Version History', to: { name: 'instance-version-history', params: { id: this.instance.id } }, tag: 'instance-version-history' },
+                { label: 'Version History', to: versionHistoryRoute, tag: 'instance-version-history' },
                 { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasAMinimumTeamRoleOf(Roles.Member) },
                 { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
                 { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },

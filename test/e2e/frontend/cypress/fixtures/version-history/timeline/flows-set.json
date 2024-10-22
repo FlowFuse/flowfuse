@@ -1,0 +1,15 @@
+{
+  "id": "QKPYbJQle7",
+  "createdAt": "2024-10-18T09:41:28.786Z",
+  "user": {
+    "id": "qMN5ng9xYv",
+    "username": "lando_00",
+    "name": "Lando Calrissian"
+  },
+  "event": "flows.set",
+  "data": {
+    "flowsSet": {
+      "type": "full"
+    }
+  }
+}

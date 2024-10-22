@@ -112,6 +112,18 @@ export default {
     computed: {
         navigation () {
             if (!this.instance.id) return []
+            let versionHistoryRoute
+            if (!this.isTimelineFeatureEnabled) {
+                versionHistoryRoute = {
+                    name: 'instance-editor-snapshots',
+                    params: { id: this.instance.id }
+                }
+            } else {
+                versionHistoryRoute = {
+                    name: 'instance-editor-version-history',
+                    params: { id: this.instance.id }
+                }
+            }
             return [
                 {
                     label: 'Overview',
@@ -125,7 +137,7 @@ export default {
                 },
                 {
                     label: 'Version History',
-                    to: { name: 'instance-editor-version-history', params: { id: this.instance.id } },
+                    to: versionHistoryRoute,
                     tag: 'instance-version-history'
                 },
                 {

@@ -1,9 +1,9 @@
 /// <reference types="cypress" />
 import should from 'should'
 
-import instanceSnapshots from '../../fixtures/snapshots/instance-snapshots.json'
-import instanceFullSnapshot from '../../fixtures/snapshots/instance2-full-snapshot2.json'
-import instanceSnapshot from '../../fixtures/snapshots/instance2-snapshot2.json'
+import instanceSnapshots from '../../../fixtures/version-history/snapshots/instance-snapshots.json'
+import instanceFullSnapshot from '../../../fixtures/version-history/snapshots/instance2-full-snapshot2.json'
+import instanceSnapshot from '../../../fixtures/version-history/snapshots/instance2-snapshot2.json'
 // import instanceFullSnapshot from '../../fixtures/snapshots/snapshot-with-credentials.json'
 let idx = 0
 const IDX_DEPLOY_SNAPSHOT = idx++
@@ -182,7 +182,7 @@ describe('FlowForge - Instance Snapshots', () => {
         // if (!testSnapshotUploaded) {
         // first upload a known snapshot so that download tests can be run against it
         // directly POST to api/v1/snapshots/import the upload1.json snapshot
-        cy.fixture('snapshots/upload-for-download.json').then((snapshot) => {
+        cy.fixture('version-history/snapshots/upload-for-download.json').then((snapshot) => {
             snapshot.name = name
             cy.request('POST', '/api/v1/snapshots/import', {
                 ownerId: projectId,
@@ -455,7 +455,7 @@ describe('FlowForge - Instance Snapshots', () => {
         // - Excluding all components should disable the upload & a validation message should appear
         // - Excluding env should disable the radio buttons
 
-        cy.fixture('snapshots/snapshot-with-credentials.json', null).as('snapshot')
+        cy.fixture('version-history/snapshots/snapshot-with-credentials.json', null).as('snapshot')
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
 
         // click data-action="import-snapshot" to open the dialog
@@ -651,27 +651,27 @@ describe('FlowForge - Instance Snapshots', () => {
     }
 
     it('upload full snapshot, include all', () => {
-        uploadWithComponentOptionsTest(false, false, false, false, 'snapshots/upload1.json')
+        uploadWithComponentOptionsTest(false, false, false, false, 'version-history/snapshots/upload1.json')
     })
 
     it('upload full snapshot, exclude flows', () => {
-        uploadWithComponentOptionsTest(true, false, false, false, 'snapshots/upload2.json')
+        uploadWithComponentOptionsTest(true, false, false, false, 'version-history/snapshots/upload2.json')
     })
 
     it('upload full snapshot, exclude credentials', () => {
-        uploadWithComponentOptionsTest(false, true, false, false, 'snapshots/upload3.json')
+        uploadWithComponentOptionsTest(false, true, false, false, 'version-history/snapshots/upload3.json')
     })
 
     it('upload full snapshot, exclude env', () => {
-        uploadWithComponentOptionsTest(false, false, true, false, 'snapshots/upload4.json')
+        uploadWithComponentOptionsTest(false, false, true, false, 'version-history/snapshots/upload4.json')
     })
 
     it('upload full snapshot, env keys only', () => {
-        uploadWithComponentOptionsTest(false, false, false, true, 'snapshots/upload5.json')
+        uploadWithComponentOptionsTest(false, false, false, true, 'version-history/snapshots/upload5.json')
     })
 
     it('upload snapshot which has no credentials', () => {
-        uploadWithComponentOptionsTest(false, null, false, false, 'snapshots/upload6.json')
+        uploadWithComponentOptionsTest(false, null, false, false, 'version-history/snapshots/upload6.json')
     })
 
     it('Can rollback a snapshot', () => {
