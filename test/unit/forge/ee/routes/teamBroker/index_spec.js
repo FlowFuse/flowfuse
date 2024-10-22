@@ -203,7 +203,7 @@ describe('Team Broker API', function () {
             response.statusCode.should.equal(409)
             const result = response.json()
             result.should.have.property('error')
-            result.should.have.property('code', 'user_already_exists')
+            result.should.have.property('code', 'client_already_exists')
         })
 
         it('Delete MQTT Broker User', async function () {
