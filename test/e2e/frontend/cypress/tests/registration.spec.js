@@ -42,7 +42,10 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-form="signup-password"] input').clear()
         cy.get('[data-form="signup-password"] input').type('1234')
         cy.get('[data-action="sign-up"]').should('be.disabled')
+        cy.get('[data-form="signup-password"] input').clear()
         cy.get('[data-form="signup-password"] input').type('aw3li8vb')
+        cy.get('[data-form="signup-repeat-password"] input').clear()
+        cy.get('[data-form="signup-repeat-password"] input').type('aw3li8vb')
         cy.get('[data-action="sign-up"]').should('not.be.disabled')
     })
 
