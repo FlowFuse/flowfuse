@@ -42,7 +42,7 @@ Node-RED default value.
 
 If making use of the Persistent Storage feature you will need to provide a StorageClass that support MultiPod mounting.
 
-e.g. Azure Disks backed Persistent Volumes
+e.g. Azure Files backed Persistent Volumes
 
 
 You should also set the `nobrl` Mount Option to ensure things like SQLite databases work correctly if using the Azure Files back Persistent Volumes.
