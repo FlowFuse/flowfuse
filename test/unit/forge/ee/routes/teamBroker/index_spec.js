@@ -184,6 +184,28 @@ describe('Team Broker API', function () {
             result.should.have.property('code', 'broker_client_limit_reached')
         })
 
+        it('Fail to Create existing MQTT Broker User', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/broker/client`,
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {
+                    username: 'alice',
+                    password: 'aaPassword',
+                    acls: [
+                        {
+                            pattern: 'foo/#',
+                            action: 'both'
+                        }
+                    ]
+                }
+            })
+            response.statusCode.should.equal(409)
+            const result = response.json()
+            result.should.have.property('err')
+            result.should.have.property('code','user_already_exists')
+        })
+
         it('Delete MQTT Broker User', async function () {
             const response = await app.inject({
                 method: 'DELETE',
