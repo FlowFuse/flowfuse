@@ -1,0 +1,23 @@
+
+{
+  "id": "neDkr7blYy",
+  "createdAt": "2024-10-18T09:37:09.936Z",
+  "user": {
+    "id": "qMN5ng9xYv",
+    "username": "amidala",
+    "name": "Princess Amidala"
+  },
+  "event": "project.snapshot.imported",
+  "data": {
+    "sourceProject": {
+      "name": "instance-1-1"
+    },
+    "snapshot": {
+      "name": "Tatooine CNC Shop",
+      "description": "Snapshot created for pipeline deployment from first stage to another stage as part of pipeline From somewhere else to cautios"
+    },
+    "info": {
+      "snapshotExists": true
+    }
+  }
+}

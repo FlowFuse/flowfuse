@@ -16,8 +16,11 @@ meta:
 
 FlowFuse can be installed to run in Docker or Kubernetes based environments.
 
- - [Docker Install Guide](/docs/install/docker/README.md)
- - [Kubernetes Install Guide](/docs/install/kubernetes/README.md)
+ - **Docker:**
+    - [Quick Start Guide](/docs/quick-start)
+    - [Full Install](/docs/install/docker/README.md)
+ - **Kubernetes:**
+    - [Install Guide](/docs/install/kubernetes/README.md)
 
 We also provide one-click installs of the Docker version:
 

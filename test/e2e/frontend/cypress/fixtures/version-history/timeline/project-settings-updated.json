@@ -1,0 +1,20 @@
+{
+  "id": "7VP4ANKl2q",
+  "createdAt": "2024-10-16T12:58:53.121Z",
+  "user": {
+    "id": "qMN5ng9xYv",
+    "username": "ahso_t",
+    "name": "Ahsoka Tano"
+  },
+  "event": "project.settings.updated",
+  "data": {
+    "updates": [
+      {
+        "key": "emailAlerts.recipients",
+        "old": "owners",
+        "new": "both",
+        "dif": "updated"
+      }
+    ]
+  }
+}
