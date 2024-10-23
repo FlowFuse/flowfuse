@@ -218,9 +218,28 @@ export default {
                     this.errors.acls[key].pattern = 'The pattern cannot be empty.'
                     passesValidation = false
                 }
+                if (!this.validatePattern(acl.pattern)) {
+                    this.errors.acls[key].pattern = 'The pattern is not valid'
+                    passesValidation = false
+                }
             })
 
             return passesValidation
+        },
+        validatePattern (pattern) {
+            const parts = pattern.split('/')
+            for (let i = 0; parts.length; i++) {
+                if (parts[i] === '+') {
+                    continue
+                }
+                if (parts[i] === '#') {
+                    return i === parts.length -1
+                }
+                if (parts[i].indexOf('+') !== -1 || parts[i].indexOf['#'] !== -1) {
+                    return false
+                }
+            }
+            return true
         },
         addAcl () {
             this.input.acls.push({
