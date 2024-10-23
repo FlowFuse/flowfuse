@@ -70,7 +70,7 @@
                                     <ff-accordion class="max-w-full w-full">
                                         <template #label>
                                             <div class="username text-left">
-                                                {{ client.username }}
+                                                {{ client.username }}<span class="italic">@{{ team.id }}</span>
                                             </div>
                                             <div class="rules text-left">
                                                 <span>{{ client.acls.length }} Rule{{ client.acls.length > 1 ? 's' : '' }}</span>
@@ -84,7 +84,7 @@
                                             />
                                             <TrashIcon
                                                 v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
-                                                class="ff-icon-sm hover:cursor-pointer delete"
+                                                class="ff-icon-sm hover:cursor-pointer delete text-red-500"
                                                 @click.prevent.stop="deleteClient"
                                             />
                                         </template>
