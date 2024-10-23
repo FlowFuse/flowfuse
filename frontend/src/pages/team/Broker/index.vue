@@ -180,6 +180,9 @@ export default {
         team: 'fetchData'
     },
     mounted () {
+        if (!this.hasAMinimumTeamRoleOf(Roles.Member)) {
+            return this.$router.push({ name: 'Home' })
+        }
         this.fetchData()
     },
     methods: {
