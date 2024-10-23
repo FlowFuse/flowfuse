@@ -62,7 +62,7 @@
                         </div>
                         <div class="clients-wrapper">
                             <div class="header grid grid-cols-6 gap-4 font-bold">
-                                <span class="username">Username</span>
+                                <span class="username">Username/ClientId</span>
                                 <span class="rules">Rules</span>
                             </div>
                             <ul data-el="clients-list" class="clients-list">
