@@ -239,7 +239,7 @@ export default {
                     continue
                 }
                 if (parts[i] === '#') {
-                    return i === parts.length -1
+                    return i === parts.length - 1
                 }
                 if (parts[i].indexOf('+') !== -1 || parts[i].indexOf('#') !== -1) {
                     return false
@@ -268,7 +268,7 @@ export default {
                 this.errors.acls[$key].pattern = 'The pattern cannot be empty.'
             } else {
                 if (!this.validatePattern(acl.pattern)) {
-                    this.errors.acls[key].pattern = 'The pattern is not valid'
+                    this.errors.acls[$key].pattern = 'The pattern is not valid'
                 } else {
                     this.errors.acls[$key].pattern = null
                 }
