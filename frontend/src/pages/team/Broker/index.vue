@@ -21,7 +21,7 @@
                             <template #icon><SearchIcon /></template>
                         </ff-text-input>
                         <ff-button
-                            v-if="hasPermission('project:create')"
+                            v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
                             data-action="create-client"
                             kind="primary"
                             @click="createClient()"
@@ -49,8 +49,16 @@
                                         </div>
                                     </template>
                                     <template #meta>
-                                        <PencilIcon class="ff-icon-sm hover:cursor-pointer edit" @click.prevent.stop="editClient" />
-                                        <TrashIcon class="ff-icon-sm hover:cursor-pointer delete" @click.prevent.stop="deleteClient" />
+                                        <PencilIcon
+                                            v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
+                                            class="ff-icon-sm hover:cursor-pointer edit"
+                                            @click.prevent.stop="editClient"
+                                        />
+                                        <TrashIcon
+                                            v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
+                                            class="ff-icon-sm hover:cursor-pointer delete"
+                                            @click.prevent.stop="deleteClient"
+                                        />
                                     </template>
                                     <template #content>
                                         <ul class="acl-list">
@@ -124,6 +132,7 @@ import brokerApi from '../../../api/broker.js'
 import FfAccordion from '../../../components/Accordion.vue'
 import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
+import { Roles } from '../../../utils/roles.js'
 
 import ClientDialog from './dialogs/ClientDialog.vue'
 
@@ -153,6 +162,9 @@ export default {
         }
     },
     computed: {
+        Roles () {
+            return Roles
+        },
         ...mapState('account', ['user', 'team', 'teamMembership', 'features']),
         filteredClients () {
             if (!this.filterTerm.length) return this.clients
