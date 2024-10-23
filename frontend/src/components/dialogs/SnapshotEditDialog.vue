@@ -18,7 +18,7 @@
         </template>
         <template #actions>
             <ff-button kind="secondary" data-action="dialog-cancel" :disabled="submitted" @click="cancel()">Cancel</ff-button>
-            <ff-button :kind="kind" data-action="dialog-confirm" :disabled="!formValid" @click="confirm()">Update</ff-button>
+            <ff-button kind="primary" data-action="dialog-confirm" :disabled="!formValid" @click="confirm()">Update</ff-button>
         </template>
     </ff-dialog>
 </template>
