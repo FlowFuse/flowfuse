@@ -279,6 +279,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
             cy.get('[data-form="signup-fullname"]').type(newUser.fullName)
             cy.get('[data-form="signup-email"]').type(newUser.email)
             cy.get('[data-form="signup-password"]').type(newUser.password)
+            cy.get('[data-form="signup-repeat-password"]').type(newUser.password)
 
             cy.get('[data-action="sign-up"]').click()
 
@@ -337,6 +338,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
             cy.get('[data-form="signup-fullname"]').type(newUser.fullName)
             cy.get('[data-form="signup-email"]').type(newUser.email)
             cy.get('[data-form="signup-password"]').type(newUser.password)
+            cy.get('[data-form="signup-repeat-password"]').type(newUser.password)
 
             cy.get('[data-action="sign-up"]').click()
 
@@ -406,6 +408,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
                     cy.get('[data-form="signup-fullname"]').type(newUser.fullName)
                     cy.get('[data-form="signup-email"]').type(newUser.email)
                     cy.get('[data-form="signup-password"]').type(newUser.password)
+                    cy.get('[data-form="signup-repeat-password"]').type(newUser.password)
 
                     cy.get('[data-action="sign-up"]').click()
 
