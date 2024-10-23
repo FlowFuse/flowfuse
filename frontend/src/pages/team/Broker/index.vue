@@ -130,9 +130,10 @@
                         </div>
                     </section>
                     <EmptyState v-else>
-                        <template #header>Create first Broker Client</template>
+                        <template #header>No MQTT Clients Yet</template>
                         <template #message>
-                            <p>HelloWorld</p>
+                            <p>It looks like you haven't created any MQTT clients.</p>
+                            <p>Get started by adding your first client to manage topic permissions and secure communications within your broker.</p>
                         </template>
                         <template #actions>
                             <ff-button
