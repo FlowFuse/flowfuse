@@ -136,7 +136,7 @@
                         </template>
                         <template #actions>
                             <ff-button
-                                v-if="hasPermission('project:create')"
+                                v-if="hasPermission('broker:clients:create')"
                                 data-action="create-client"
                                 kind="primary"
                                 @click="createClient()"
