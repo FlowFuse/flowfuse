@@ -66,7 +66,7 @@
                                 <span class="rules">Rules</span>
                             </div>
                             <ul data-el="clients-list" class="clients-list">
-                                <li v-for="client in filteredClients" :key="client.id" class="client">
+                                <li v-for="client in filteredClients" :key="client.id" class="client" data-el="client">
                                     <ff-accordion class="max-w-full w-full">
                                         <template #label>
                                             <div class="username text-left">
@@ -77,13 +77,21 @@
                                             </div>
                                         </template>
                                         <template #meta>
-                                            <span class="edit hover:cursor-pointer" @click.prevent.stop="editClient(client)">
+                                            <span
+                                                class="edit hover:cursor-pointer"
+                                                data-action="edit-client"
+                                                @click.prevent.stop="editClient(client)"
+                                            >
                                                 <PencilIcon
                                                     v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
                                                     class="ff-icon-sm"
                                                 />
                                             </span>
-                                            <span class="delete hover:cursor-pointer " @click.prevent.stop="deleteClient(client)">
+                                            <span
+                                                class="delete hover:cursor-pointer "
+                                                data-action="delete-client"
+                                                @click.prevent.stop="deleteClient(client)"
+                                            >
                                                 <TrashIcon
                                                     v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
                                                     class="ff-icon-sm text-red-500"
@@ -92,7 +100,7 @@
                                         </template>
                                         <template #content>
                                             <ul class="acl-list">
-                                                <li v-for="(acl, $key) in client.acls" :key="$key" class="acl grid grid-cols-6 gap-4">
+                                                <li v-for="(acl, $key) in client.acls" :key="$key" class="acl grid grid-cols-6 gap-4" data-el="acl">
                                                     <div class="action col-start-2 flex gap-2.5">
                                                         <span
                                                             :class="{

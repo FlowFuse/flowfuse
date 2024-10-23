@@ -17,10 +17,12 @@
                     class="mb-2"
                     placeholder="Client Username"
                     :disabled="isEditing"
+                    data-el="username"
                 >
                     Username
                 </FormRow>
-                <FormRow v-model="input.password" class="mb-2" type="password" :placeholder="passwordPlaceholder">
+
+                <FormRow v-model="input.password" class="mb-2" type="password" :placeholder="passwordPlaceholder" data-el="password">
                     Password
                 </FormRow>
                 <FormRow
@@ -28,6 +30,7 @@
                     class="mb-2" type="password"
                     :error="errors.password"
                     :placeholder="passwordConfirmationPlaceholder"
+                    data-el="confirm-password"
                 >
                     Confirm Password
                 </FormRow>
@@ -35,7 +38,9 @@
             <div class="acls">
                 <h3 class="flex justify-between">
                     <span>ACL's</span>
-                    <span><PlusIcon class="ff-icon hover:cursor-pointer" @click="addAcl" /></span>
+                    <span>
+                        <PlusIcon class="ff-icon hover:cursor-pointer" data-action="add-acl" @click="addAcl" />
+                    </span>
                 </h3>
                 <div class="headers flex gap-2.5 items-center">
                     <label class="flex-1 text-gray-800 block text-sm font-medium mb-1">
