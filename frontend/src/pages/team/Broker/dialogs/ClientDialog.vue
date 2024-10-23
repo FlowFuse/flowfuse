@@ -222,10 +222,11 @@ export default {
                 if (!acl.pattern.length) {
                     this.errors.acls[key].pattern = 'The pattern cannot be empty.'
                     passesValidation = false
-                }
-                if (!this.validatePattern(acl.pattern)) {
-                    this.errors.acls[key].pattern = 'The pattern is not valid'
-                    passesValidation = false
+                } else {
+                    if (!this.validatePattern(acl.pattern)) {
+                        this.errors.acls[key].pattern = 'The pattern is not valid'
+                        passesValidation = false
+                    }
                 }
             })
 
@@ -240,7 +241,7 @@ export default {
                 if (parts[i] === '#') {
                     return i === parts.length -1
                 }
-                if (parts[i].indexOf('+') !== -1 || parts[i].indexOf['#'] !== -1) {
+                if (parts[i].indexOf('+') !== -1 || parts[i].indexOf('#') !== -1) {
                     return false
                 }
             }
@@ -266,7 +267,11 @@ export default {
             if (!acl.pattern.length) {
                 this.errors.acls[$key].pattern = 'The pattern cannot be empty.'
             } else {
-                this.errors.acls[$key].pattern = null
+                if (!this.validatePattern(acl.pattern)) {
+                    this.errors.acls[key].pattern = 'The pattern is not valid'
+                } else {
+                    this.errors.acls[$key].pattern = null
+                }
             }
         },
         onRemoveAcl ($key) {
