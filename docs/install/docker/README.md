@@ -67,10 +67,10 @@ The following guide walks through a full production-ready deployment. If you wan
   <div class="checklist">
     <label>Prerequisites</label>
     <div>
-      <checklist-item task="Domain Name DNS"></checklist-item>
+      <checklist-item task="Domain Name"></checklist-item>
       <checklist-item task="Docker Engine & Docker Compose"></checklist-item>
       <checklist-item type="recommended" task="Setup Dedicated Database"></checklist-item>
-      <checklist-item type="recommended" task="Prepare TLS Certification"></checklist-item>
+      <checklist-item type="recommended" task="Prepare TLS Certificates"></checklist-item>
     </div>
   </div>
 
