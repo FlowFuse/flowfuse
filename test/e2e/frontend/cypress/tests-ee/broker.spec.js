@@ -20,6 +20,7 @@ describe('FlowForge - Broker', () => {
     })
 
     describe('is accessible to feature enabled teams ', () => {
+        let projectId
         beforeEach(() => {
             cy.intercept('GET', '/api/*/teams/*', (req) => {
                 req.reply((response) => {
@@ -30,6 +31,11 @@ describe('FlowForge - Broker', () => {
             }).as('getTeam')
             cy.login('alice', 'aaPassword')
             cy.home()
+
+            cy.request('GET', '/api/v1/teams/')
+                .then((response) => {
+                    projectId = response.body.teams[0].id
+                })
         })
         it('should have the broker menu entry without the missing feature icon', () => {
             cy.get('[data-nav="team-broker"]').should('exist')
@@ -42,7 +48,7 @@ describe('FlowForge - Broker', () => {
                 meta: {},
                 count: 0
             }).as('getClients')
-            cy.intercept('POST', 'http://localhost:3002/api/v1/teams/X3grNnryK6/broker/client', { statusCode: 201 }).as('submitClient')
+            cy.intercept('POST', `http://localhost:3002/api/v1/teams/${projectId}/broker/client`, { statusCode: 201 }).as('submitClient')
 
             cy.get('[data-nav="team-broker"]').click()
 
@@ -120,17 +126,17 @@ describe('FlowForge - Broker', () => {
 
             cy.get('[data-el="clients-list"]').within(() => {
                 cy.get('[data-el="client"]')
-                    .contains('john@X3grNnryK6')
+                    .contains(`john@${projectId}`)
                     .contains('3 Rules')
                 cy.get('[data-el="client"]')
-                    .contains('matt@X3grNnryK6')
+                    .contains(`matt@${projectId}`)
                     .contains('2 Rules')
 
                 cy.get('[data-el="client"]')
-                    .contains('john@X3grNnryK6')
+                    .contains(`john@${projectId}`)
                     .click()
                 cy.get('[data-el="client"]')
-                    .contains('john@X3grNnryK6')
+                    .contains(`john@${projectId}`)
                     .parent()
                     .parent()
                     .within(() => {
@@ -141,10 +147,10 @@ describe('FlowForge - Broker', () => {
                             })
                     })
                 cy.get('[data-el="client"]')
-                    .contains('matt@X3grNnryK6')
+                    .contains(`matt@${projectId}`)
                     .click()
                 cy.get('[data-el="client"]')
-                    .contains('matt@X3grNnryK6')
+                    .contains(`matt@${projectId}`)
                     .parent()
                     .parent()
                     .within(() => {
@@ -205,7 +211,7 @@ describe('FlowForge - Broker', () => {
 
             cy.get('[data-el="create-client-dialog"]').should('not.be.visible')
             cy.get('[data-el="client"]')
-                .contains('matt@X3grNnryK6')
+                .contains(`matt@${projectId}`)
                 .within(() => {
                     cy.get('[data-action="edit-client"]').click()
                 })
