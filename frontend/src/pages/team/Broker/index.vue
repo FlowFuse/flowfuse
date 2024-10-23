@@ -130,9 +130,9 @@
                         </div>
                     </section>
                     <EmptyState v-else>
-                        <template #header>Create first Broker Client</template>
+                        <template #header>Create your first Broker Client</template>
                         <template #message>
-                            <p>HelloWorld</p>
+                            <img src="../../../images/pictograms/mqtt_broker_red.png" alt="logo" >
                         </template>
                         <template #actions>
                             <ff-button
