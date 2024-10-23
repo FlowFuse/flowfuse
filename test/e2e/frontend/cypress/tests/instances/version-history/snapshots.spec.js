@@ -49,6 +49,7 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@snapshotData')
 
+        // eslint-disable-next-line cypress/require-data-selectors
         cy.get('button[data-action="create-snapshot"]').click()
 
         cy.get('[data-el="dialog-create-snapshot"]').should('be.visible')
