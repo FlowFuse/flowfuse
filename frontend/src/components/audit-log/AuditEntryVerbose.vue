@@ -192,7 +192,7 @@
     </template>
     <template v-else-if="entry.event === 'account.forgot-password'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.user">'{{ entry.body.user?.name }}' has forgotten their password.</span>
+        <span v-if="!error && entry.body?.user">'{{ entry.body.user?.name || entry.body.user?.email }}' has forgotten their password.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'account.reset-password'">
