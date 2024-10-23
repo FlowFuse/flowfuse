@@ -130,14 +130,13 @@
                         </div>
                     </section>
                     <EmptyState v-else>
-                        <template #header>No MQTT Clients Yet</template>
+                        <template #header>Create your first Broker Client</template>
                         <template #message>
-                            <p>It looks like you haven't created any MQTT clients.</p>
-                            <p>Get started by adding your first client to manage topic permissions and secure communications within your broker.</p>
+                            <img src="../../../images/pictograms/mqtt_broker_red.png" alt="logo" >
                         </template>
                         <template #actions>
                             <ff-button
-                                v-if="hasPermission('project:create')"
+                                v-if="hasPermission('broker:clients:create')"
                                 data-action="create-client"
                                 kind="primary"
                                 @click="createClient()"
