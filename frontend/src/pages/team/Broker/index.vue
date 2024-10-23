@@ -131,7 +131,7 @@
                     </section>
                     <EmptyState v-else>
                         <template #img>
-                            <img src="../../../images/pictograms/mqtt_broker_red.png" class="max-h-80" alt="logo">
+                            <img src="../../../images/empty-states/mqtt.png" alt="logo">
                         </template>
                         <template #header>Create your first Broker Client</template>
                         <template #message>
