@@ -160,9 +160,6 @@ import { mapState } from 'vuex'
 import brokerApi from '../../../api/broker.js'
 import FfAccordion from '../../../components/Accordion.vue'
 import EmptyState from '../../../components/EmptyState.vue'
-import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
-import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
@@ -172,9 +169,6 @@ import ClientDialog from './dialogs/ClientDialog.vue'
 export default {
     name: 'TeamBroker',
     components: {
-        SectionTopMenu,
-        FeatureUnavailable,
-        FeatureUnavailableToTeam,
         FfAccordion,
         SearchIcon,
         PlusSmIcon,
