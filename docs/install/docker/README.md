@@ -143,13 +143,13 @@ Otherwise you will need to contact a SSL Certificate vendor and configure Nginx 
 
 **Note: Automatic TLS generation is possible only for the publicly available servers**
 
-Download additional Docker Compose file:
+In the `.env` file, set the `TLS_ENABLED` variable to `true`:
 
 ```bash
-curl -o docker-compose-tls.override.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose-tls.override.yml
+TLS_ENABLED=true
 ```
 
-Proceed to the [next paragraph](#start-flowfuse-platform) to start the platform.
+Proceed to the [next paragraph](#start-flowfuse-platform) to start the platform with automatically generated TLS certificate.
 
 #### Custom TLS Certificate
 
@@ -159,11 +159,12 @@ To configure FlowFuse platform with your certificate, you need to have:
 * certificate key file
 * certificate's full chain (server certificate and intermediate certificates bundled into single file)
 
-To add your certificate to the platform, edit the `.env` file downloaded earlier and set values for `TLS_CERTIFICATE` and `TLS_KEY` variables. `TLS_CERTIFICATE` should contain the full chain of the certificate while `TLS_KEY` should contain the key file.
-Example of `.env` file with TLS certificate configuration:
+To add your certificate to the platform, edit the `.env` file downloaded earlier and set values for `TLS_ENABLED`, `TLS_CERTIFICATE` and `TLS_KEY` variables. `TLS_ENABLED` variable should be set to `true`.
+`TLS_CERTIFICATE` should contain the full chain of the certificate while `TLS_KEY` should contain the key file.
+Example of `.env` file with the custom TLS certificate configuration:
 
 ```bash
-DOMAIN=example
+TLS_ENABLED=true
 TLS_CERTIFICATE="
 -----BEGIN CERTIFICATE-----
 MIIFfzCCBKegAwIBAgISA0
@@ -182,12 +183,6 @@ MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD
 "
 ```
 
-Lastly, download the `docker-compose-tls.override.yml` file:
-
-```bash
-curl -o docker-compose-tls.override.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose-tls.override.yml
-```
-
 ## Start FlowFuse platform
 
 **Note: Make sure all configuration are done above before proceeding.**
@@ -197,19 +192,21 @@ curl -o docker-compose-tls.override.yml https://raw.githubusercontent.com/FlowFu
 #### With automatic TLS certificate generation
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose-tls.override.yml --profile autossl -p flowfuse up -d
-```
-#### With custom TLS certificate
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose-tls.override.yml -p flowfuse up -d
+docker compose --profile autotls -p flowfuse up -d
 ```
 
-#### In all other cases
+#### In all other scenarios, including custom TLS certificate
 
 ```bash
 docker compose -p flowfuse up -d
 ```
+
+The platform will take a few minutes to start up. You can check the status of the containers by running:
+
+```bash
+docker compose -p flowfuse ps
+```
+
 
 Visit `forge.example.com` (replace `example.com` with the domain configured in the `.env` file) in your browser to access the FlowFuse platform.
 
@@ -225,6 +222,8 @@ Once you have finished setting up the admin user there are some Docker specific 
 
 ## Upgrade
 
+**Note: If you are upgrading from version `2.9.0` or lower, please follow [this guide](https://github.com/FlowFuse/docker-compose/blob/main/UPGRADE.md)**
+
 1. Find the Docker Compose project name:
     ```bash
     docker compose ls
@@ -237,30 +236,32 @@ Once you have finished setting up the admin user there are some Docker specific 
 3. Download the latest Docker Compose files:
     ```bash
     curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose.yml
-    curl -o docker-compose-tls.override.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose-tls.override.yml
     ```
-4. Make sure the `.env` file is present and contains your installaction-specific configuration
+4. Make sure the `.env` file is present and contains your installaction-specific configuration. Download an example `.env` file if needed:
+    ```bash
+    curl -o .env.example https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/.env.example
+    ```
 5. Start the project depending on the TLS configuration (replace `$projectName` with your project name):
 
-  - no TLS:
-    ```bash
-    docker compose -p $projectName up -d
-    ```
   - automatic TLS:
     ```bash
-    docker compose -f docker-compose.yml -f docker-compose-tls.override.yml --profile autossl -p $projectName up -d
+    docker compose --profile autossl -p $projectName up -d
     ```
-  - custom TLS:
+  - any other scenario:
     ```bash
-    docker compose -f docker-compose.yml -f docker-compose-tls.override.yml -p $projectName up -d
+    docker compose -p $projectName up -d
     ```
 
 ## Common Questions
 
-<!-- ### How to use external database server?
+### How to use external database server?
 
 FlowFuse platform uses PostgreSQL database to store its data. By default, the database is created and managed by the Docker Compose. 
-If you want to use an external database server, you need to provide the connection details in the `.env` file. -->
+If you want to use an external database server, you need to:
+* on your database server, create `flowforge` and `ff-context` databases as well as a user with access to both of them (see `configs.postgres_db_setup` and `configs.postgres_context_setup` in the `docker-compose.yml` file for the reference) 
+* configure the connection to the database in the `.env` file. Set the `DB_HOST`, `DB_USER`, `DB_PASSWORD` variables to the connection details of the external database server
+
+Once ready, [start the application](#start-flowfuse-platform) .
 
 ### How can I provide my own TLS certificate?
 
