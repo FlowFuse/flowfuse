@@ -23,10 +23,11 @@ const deleteClient = (teamId, username) => {
     return client.delete(`/api/v1/teams/${teamId}/broker/client/${username}`).then(res => res.data)
 }
 
-const modifyClient = (teamId, username, acls, password) => {
+const updateClient = (teamId, username, { acls, password, newUsername }) => {
     return client.put(`/api/v1/teams/${teamId}/broker/client/${username}`, {
         acls,
-        password
+        password,
+        username: newUsername
     }).then(res => res.data)
 }
 
@@ -34,6 +35,6 @@ export default {
     getClients,
     getClient,
     createClient,
-    modifyClient,
+    updateClient,
     deleteClient
 }

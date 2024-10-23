@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { MinusIcon } from '@heroicons/vue/outline'
+import { MinusIcon } from '@heroicons/vue/solid'
 
 import FormRow from '../../../../components/FormRow.vue'
 import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
@@ -73,6 +73,7 @@ export default {
         }
     },
     mounted () {
+        this.model.action = this.modelValue.action
         this.model.pattern = this.modelValue.pattern
     },
     methods: {

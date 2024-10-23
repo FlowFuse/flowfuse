@@ -77,7 +77,7 @@
                                             </div>
                                         </template>
                                         <template #meta>
-                                            <span class="edit hover:cursor-pointer" @click.prevent.stop="editClient">
+                                            <span class="edit hover:cursor-pointer" @click.prevent.stop="editClient(client)">
                                                 <PencilIcon
                                                     v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
                                                     class="ff-icon-sm"
@@ -150,7 +150,13 @@
                     </EmptyState>
                 </template>
             </div>
-            <ClientDialog ref="clientDialog" :clients="clients" :team="team" @client-created="fetchData" />
+            <ClientDialog
+                ref="clientDialog"
+                :clients="clients"
+                :team="team"
+                @client-created="fetchData"
+                @client-updated="fetchData"
+            />
         </template>
     </ff-page>
 </template>
@@ -236,8 +242,8 @@ export default {
         async createClient () {
             this.$refs.clientDialog.showCreate()
         },
-        async editClient (row) {
-            console.log('editing')
+        async editClient (client) {
+            this.$refs.clientDialog.showEdit(client)
         },
         async deleteClient (client) {
             await Dialog.show({

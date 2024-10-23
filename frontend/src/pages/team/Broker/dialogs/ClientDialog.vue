@@ -7,16 +7,22 @@
         :closeOnConfirm="false"
         :disablePrimary="disableConfirm"
         @confirm="confirm"
+        @cancel="clearData"
     >
         <template #default>
             <div class="mb-5">
-                <FormRow v-model="input.username" :error="errors.username" class="mb-2">
+                <FormRow v-model="input.username" :error="errors.username" class="mb-2" placeholder="Client Username">
                     Username
                 </FormRow>
-                <FormRow v-model="input.password" class="mb-2" type="password">
+                <FormRow v-model="input.password" class="mb-2" type="password" :placeholder="passwordPlaceholder">
                     Password
                 </FormRow>
-                <FormRow v-model="input.passwordConfirm" class="mb-2" type="password" :error="errors.password">
+                <FormRow
+                    v-model="input.passwordConfirm"
+                    class="mb-2" type="password"
+                    :error="errors.password"
+                    :placeholder="passwordConfirmationPlaceholder"
+                >
                     Confirm Password
                 </FormRow>
             </div>
@@ -50,7 +56,7 @@
 </template>
 
 <script>
-import { PlusIcon } from '@heroicons/vue/outline'
+import { PlusIcon } from '@heroicons/vue/solid'
 
 import brokerApi from '../../../../api/broker.js'
 import FormRow from '../../../../components/FormRow.vue'
@@ -74,24 +80,43 @@ export default {
             type: Array
         }
     },
-    emits: ['client-created'],
+    emits: ['client-created', 'client-updated'],
     setup () {
         return {
             showCreate () {
-                this.clearData()
+                this.isEditing = false
+                this.$refs.dialog.show()
+            },
+            showEdit (client) {
+                this.isEditing = true
+                this.username = client.username
+                this.input = {
+                    username: client.username,
+                    password: '',
+                    passwordConfirm: ''
+                }
+                this.input.acls = [...client.acls]
+                client.acls.forEach((acl, key) => {
+                    this.errors.acls[key] = {
+                        action: null,
+                        pattern: null
+                    }
+                })
                 this.$refs.dialog.show()
             }
         }
     },
     data () {
         return {
+            isEditing: false,
+            username: '',
             input: {
                 username: '',
                 password: '',
                 passwordConfirm: '',
                 acls: [
                     {
-                        action: '',
+                        action: 'both',
                         pattern: '#'
                     }
                 ]
@@ -113,7 +138,23 @@ export default {
             if (!this.input.username) {
                 return true
             }
-            return !this.input.password
+            if (this.isEditing) {
+                return false
+            }
+            return !this.input.password || !this.input.passwordConfirm
+        },
+        passwordPlaceholder () {
+            if (this.isEditing) {
+                return 'Leave blank to keep current password'
+            }
+            return 'Client Password'
+        },
+        passwordConfirmationPlaceholder () {
+            if (this.isEditing) {
+                return 'Leave blank to keep current password'
+            }
+
+            return 'Confirm Client Password'
         }
     },
     methods: {
@@ -122,18 +163,35 @@ export default {
                 return
             }
 
-            return brokerApi.createClient(
-                this.team.id,
-                this.input.username,
-                this.input.password,
-                this.input.acls
-            )
-                .then(() => {
-                    this.$emit('client-created')
+            if (this.isEditing) {
+                return brokerApi.updateClient(
+                    this.team.id,
+                    this.username,
+                    {
+                        acls: this.input.acls,
+                        newUsername: this.input.username,
+                        password: this.input.password
+                    }
+                ).then(() => {
+                    this.$emit('client-updated')
                     this.$refs.dialog.close()
                     this.clearData()
                 })
-                .catch(err => console.error(err))
+                    .catch(err => console.error(err))
+            } else {
+                return brokerApi.createClient(
+                    this.team.id,
+                    this.input.username,
+                    this.input.password,
+                    this.input.acls
+                )
+                    .then(() => {
+                        this.$emit('client-created')
+                        this.$refs.dialog.close()
+                        this.clearData()
+                    })
+                    .catch(err => console.error(err))
+            }
         },
         validateForm () {
             let passesValidation = true
@@ -144,7 +202,7 @@ export default {
                 this.errors.password = null
             }
 
-            if (this.clients.find(c => c.username === this.input.username)) {
+            if (!this.isEditing && this.clients.find(c => c.username === this.input.username)) {
                 this.errors.username = 'Client name already exists.'
                 passesValidation = false
             } else {
