@@ -1,126 +1,155 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Broker">
+            <ff-page-header title="MQTT Broker">
                 <template #context>
-                    Manage Access to the MQTT Broker
+                    Central hub for managing MQTT clients and defining ACL-based topic permissions.
+                </template>
+                <template #pictogram>
+                    <img alt="info" src="../../../images/pictograms/timeline_red.png">
+                </template>
+                <template #helptext>
+                    <p>The <b>MQTT Broker</b> page offers a streamlined interface for managing your broker instance and defining client connections.</p>
+                    <p>You can create and manage MQTT clients, each with customizable Access Control List (ACL) rules to ensure secure and controlled communication. The ACL rules allow for fine-grained control over each client’s access to specific topics, supporting both publishing and subscribing actions.</p>
+                    <p>This overview provides a clear and organized view of your broker’s configuration, helping you manage client connections, security settings, and message flow efficiently.</p>
                 </template>
             </ff-page-header>
         </template>
-        <div class="space-y-6">
-            <ff-loading v-if="loading" message="Loading Clients..." />
-            <template v-else>
-                <section v-if="clients.length > 0">
-                    <div class="header ff-data-table--options">
-                        <ff-text-input
-                            v-model="filterTerm"
-                            class="ff-data-table--search"
-                            data-form="search"
-                            placeholder="Search Clients..."
-                        >
-                            <template #icon><SearchIcon /></template>
-                        </ff-text-input>
-                        <ff-button
-                            v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
-                            data-action="create-client"
-                            kind="primary"
-                            @click="createClient()"
-                        >
-                            <template #icon-left>
-                                <PlusSmIcon />
-                            </template>
-                            Create Client
-                        </ff-button>
-                    </div>
-                    <div class="clients-wrapper">
-                        <div class="header grid grid-cols-6 gap-4 font-bold">
-                            <span class="username">Username</span>
-                            <span class="rules">Rules</span>
-                        </div>
-                        <ul data-el="clients-list" class="clients-list">
-                            <li v-for="client in filteredClients" :key="client.id" class="client">
-                                <ff-accordion class="max-w-full w-full">
-                                    <template #label>
-                                        <div class="username text-left">
-                                            {{ client.username }}
-                                        </div>
-                                        <div class="rules text-left">
-                                            <span>{{ client.acls.length }} Rule{{ client.acls.length > 1 ? 's' : '' }}</span>
-                                        </div>
-                                    </template>
-                                    <template #meta>
-                                        <PencilIcon
-                                            v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
-                                            class="ff-icon-sm hover:cursor-pointer edit"
-                                            @click.prevent.stop="editClient"
-                                        />
-                                        <TrashIcon
-                                            v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
-                                            class="ff-icon-sm hover:cursor-pointer delete"
-                                            @click.prevent.stop="deleteClient"
-                                        />
-                                    </template>
-                                    <template #content>
-                                        <ul class="acl-list">
-                                            <li v-for="(acl, $key) in client.acls" :key="$key" class="acl grid grid-cols-6 gap-4">
-                                                <div class="action col-start-2 flex gap-2.5">
-                                                    <span
-                                                        :class="{
-                                                            'text-green-500': ['publish', 'both'].includes(acl.action),
-                                                            'text-red-500': ['subscribe'].includes(acl.action)
-                                                        } "
-                                                    >
-                                                        <CheckIcon v-if="['publish', 'both'].includes(acl.action)" class="ff-icon-sm" />
-                                                        <XIcon v-else class="ff-icon-sm" />
-                                                        pub
-                                                    </span>
-                                                    <span
-                                                        :class="{
-                                                            'text-green-500': ['subscribe', 'both'].includes(acl.action),
-                                                            'text-red-500': ['publish'].includes(acl.action)
-                                                        } "
-                                                    >
-                                                        <CheckIcon v-if="['subscribe', 'both'].includes(acl.action)" class="ff-icon-sm" />
-                                                        <XIcon v-else class="ff-icon-sm" />
-                                                        sub
-                                                    </span>
-                                                </div>
-                                                <div class="pattern">
-                                                    {{ acl.pattern }}
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </template>
-                                </ff-accordion>
-                            </li>
-                            <li v-if="!filteredClients.length" class="text-center p-5">
-                                No clients found by that name.
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-                <EmptyState v-else>
-                    <template #header>Create first Broker Client</template>
-                    <template #message>
-                        <p>HelloWorld</p>
-                    </template>
-                    <template #actions>
-                        <ff-button
-                            v-if="hasPermission('project:create')"
-                            data-action="create-client"
-                            kind="primary"
-                            @click="createClient()"
-                        >
-                            <template #icon-left>
-                                <PlusSmIcon />
-                            </template>
-                            Create Client
-                        </ff-button>
-                    </template>
-                </EmptyState>
+
+        <EmptyState
+            v-if="!isMqttBrokerFeatureEnabled"
+            :featureUnavailable="!isMqttBrokerFeatureEnabledForPlatform"
+            :featureUnavailableToTeam="!isMqttBrokerFeatureEnabledForTeam"
+        >
+            <template #img>
+                <img src="../../../images/empty-states/instance-timeline.png" alt="pipelines-logo">
             </template>
-        </div>
-        <ClientDialog ref="clientDialog" :clients="clients" :team="team" @client-created="fetchData" />
+            <template #header>
+                <span>Broker Not Available</span>
+            </template>
+            <template #message>
+                <p>The <b>MQTT Broker</b> page offers a streamlined interface for managing your broker instance and defining client connections.</p>
+                <p>You can create and manage MQTT clients, each with customizable Access Control List (ACL) rules to ensure secure and controlled communication. The ACL rules allow for fine-grained control over each client’s access to specific topics, supporting both publishing and subscribing actions.</p>
+                <p>This overview provides a clear and organized view of your broker’s configuration, helping you manage client connections, security settings, and message flow efficiently.</p>
+            </template>
+        </EmptyState>
+
+        <template v-else>
+            <div class="space-y-6">
+                <ff-loading v-if="loading" message="Loading Clients..." />
+                <template v-else>
+                    <section v-if="clients.length > 0">
+                        <div class="header ff-data-table--options">
+                            <ff-text-input
+                                v-model="filterTerm"
+                                class="ff-data-table--search"
+                                data-form="search"
+                                placeholder="Search Clients..."
+                            >
+                                <template #icon><SearchIcon /></template>
+                            </ff-text-input>
+                            <ff-button
+                                v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
+                                data-action="create-client"
+                                kind="primary"
+                                @click="createClient()"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Create Client
+                            </ff-button>
+                        </div>
+                        <div class="clients-wrapper">
+                            <div class="header grid grid-cols-6 gap-4 font-bold">
+                                <span class="username">Username</span>
+                                <span class="rules">Rules</span>
+                            </div>
+                            <ul data-el="clients-list" class="clients-list">
+                                <li v-for="client in filteredClients" :key="client.id" class="client">
+                                    <ff-accordion class="max-w-full w-full">
+                                        <template #label>
+                                            <div class="username text-left">
+                                                {{ client.username }}
+                                            </div>
+                                            <div class="rules text-left">
+                                                <span>{{ client.acls.length }} Rule{{ client.acls.length > 1 ? 's' : '' }}</span>
+                                            </div>
+                                        </template>
+                                        <template #meta>
+                                            <PencilIcon
+                                                v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
+                                                class="ff-icon-sm hover:cursor-pointer edit"
+                                                @click.prevent.stop="editClient"
+                                            />
+                                            <TrashIcon
+                                                v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
+                                                class="ff-icon-sm hover:cursor-pointer delete"
+                                                @click.prevent.stop="deleteClient"
+                                            />
+                                        </template>
+                                        <template #content>
+                                            <ul class="acl-list">
+                                                <li v-for="(acl, $key) in client.acls" :key="$key" class="acl grid grid-cols-6 gap-4">
+                                                    <div class="action col-start-2 flex gap-2.5">
+                                                        <span
+                                                            :class="{
+                                                                'text-green-500': ['publish', 'both'].includes(acl.action),
+                                                                'text-red-500': ['subscribe'].includes(acl.action)
+                                                            } "
+                                                        >
+                                                            <CheckIcon v-if="['publish', 'both'].includes(acl.action)" class="ff-icon-sm" />
+                                                            <XIcon v-else class="ff-icon-sm" />
+                                                            pub
+                                                        </span>
+                                                        <span
+                                                            :class="{
+                                                                'text-green-500': ['subscribe', 'both'].includes(acl.action),
+                                                                'text-red-500': ['publish'].includes(acl.action)
+                                                            } "
+                                                        >
+                                                            <CheckIcon v-if="['subscribe', 'both'].includes(acl.action)" class="ff-icon-sm" />
+                                                            <XIcon v-else class="ff-icon-sm" />
+                                                            sub
+                                                        </span>
+                                                    </div>
+                                                    <div class="pattern">
+                                                        {{ acl.pattern }}
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </template>
+                                    </ff-accordion>
+                                </li>
+                                <li v-if="!filteredClients.length" class="text-center p-5">
+                                    No clients found by that name.
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+                    <EmptyState v-else>
+                        <template #header>Create first Broker Client</template>
+                        <template #message>
+                            <p>HelloWorld</p>
+                        </template>
+                        <template #actions>
+                            <ff-button
+                                v-if="hasPermission('project:create')"
+                                data-action="create-client"
+                                kind="primary"
+                                @click="createClient()"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Create Client
+                            </ff-button>
+                        </template>
+                    </EmptyState>
+                </template>
+            </div>
+            <ClientDialog ref="clientDialog" :clients="clients" :team="team" @client-created="fetchData" />
+        </template>
     </ff-page>
 </template>
 
@@ -131,6 +160,10 @@ import { mapState } from 'vuex'
 import brokerApi from '../../../api/broker.js'
 import FfAccordion from '../../../components/Accordion.vue'
 import EmptyState from '../../../components/EmptyState.vue'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
+import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
@@ -139,6 +172,9 @@ import ClientDialog from './dialogs/ClientDialog.vue'
 export default {
     name: 'TeamBroker',
     components: {
+        SectionTopMenu,
+        FeatureUnavailable,
+        FeatureUnavailableToTeam,
         FfAccordion,
         SearchIcon,
         PlusSmIcon,
@@ -149,7 +185,7 @@ export default {
         EmptyState,
         ClientDialog
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, featuresMixin],
     data () {
         return {
             loading: false,
@@ -186,10 +222,18 @@ export default {
         this.fetchData()
     },
     methods: {
-        fetchData: async function () {
-            this.loading = true
-            this.clients = (await brokerApi.getClients(this.team.id)).clients
-            this.loading = false
+        async fetchData () {
+            if (this.isMqttBrokerFeatureEnabled) {
+                this.loading = true
+                return await brokerApi.getClients(this.team.id)
+                    .then(response => {
+                        this.clients = response.clients
+                    })
+                    .catch(err => console.error(err))
+                    .finally(() => {
+                        this.loading = false
+                    })
+            }
         },
         async removeClient (row) {
             await brokerApi.deleteClient(this.team.id, row.username)
