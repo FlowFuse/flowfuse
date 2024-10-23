@@ -100,6 +100,7 @@ export default {
                         icon: ChipIcon,
                         disabled: this.noBilling
                     },
+                    {},
                     {
                         label: 'Broker',
                         to: '/broker',
@@ -109,7 +110,6 @@ export default {
                         featureUnavailable: !this.isMqttBrokerFeatureEnabled,
                         hidden: this.hasALowerOrEqualTeamRoleThan(Roles.Member)
                     },
-                    {},
                     {
                         label: 'Library',
                         to: '/library',
