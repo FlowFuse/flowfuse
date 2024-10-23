@@ -6,7 +6,7 @@
                     Central hub for managing MQTT clients and defining ACL-based topic permissions.
                 </template>
                 <template #pictogram>
-                    <img alt="info" src="../../../images/pictograms/timeline_red.png">
+                    <img alt="info" src="../../../images/pictograms/mqtt_broker_red.png">
                 </template>
                 <template #helptext>
                     <p>The <b>MQTT Broker</b> page offers a streamlined interface for managing your broker instance and defining client connections.</p>
@@ -22,7 +22,7 @@
             :featureUnavailableToTeam="!isMqttBrokerFeatureEnabledForTeam"
         >
             <template #img>
-                <img src="../../../images/empty-states/instance-timeline.png" alt="pipelines-logo">
+                <img src="../../../images/empty-states/mqtt.png" alt="pipelines-logo">
             </template>
             <template #header>
                 <span>Broker Not Available</span>
