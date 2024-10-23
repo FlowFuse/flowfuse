@@ -92,7 +92,7 @@ Before you begin, ensure you have the following:
 2. **Install Docker:** [Docker Engine](https://docs.docker.com/engine/) and [Docker Compose](https://docs.docker.com/compose/install/) must be installed on your system (either as a standalone binary or as docker plugin)
 
 For a production-ready environment, we also recommend: 
-* **Database:** Prepare dedicated database on a external database server (see FAQ for more details)
+* **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
 * **TLS Certification:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#enable-https-optional))
 
 ### DNS
