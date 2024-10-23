@@ -43,6 +43,7 @@
 import { ChipIcon, CogIcon, CurrencyDollarIcon, DatabaseIcon, FolderIcon, RssIcon, TemplateIcon, UsersIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState } from 'vuex'
 
+import featuresMixin from '../mixins/Features.js'
 import permissionsMixin from '../mixins/Permissions.js'
 import { Roles } from '../utils/roles.js'
 
@@ -54,7 +55,7 @@ export default {
     components: {
         NavItem
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, featuresMixin],
     props: {
         mobileMenuOpen: {
             type: Boolean,
@@ -105,7 +106,7 @@ export default {
                         tag: 'team-broker',
                         icon: RssIcon,
                         disabled: this.noBilling,
-                        featureUnavailable: !this.features?.teamBroker || this.team?.type.properties.features?.teamBroker === false,
+                        featureUnavailable: !this.isMqttBrokerFeatureEnabled,
                         hidden: this.hasALowerOrEqualTeamRoleThan(Roles.Member)
                     },
                     {},
