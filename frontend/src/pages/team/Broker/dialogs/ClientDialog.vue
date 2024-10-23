@@ -11,7 +11,13 @@
     >
         <template #default>
             <div class="mb-5">
-                <FormRow v-model="input.username" :error="errors.username" class="mb-2" placeholder="Client Username">
+                <FormRow
+                    v-model="input.username"
+                    :error="errors.username"
+                    class="mb-2"
+                    placeholder="Client Username"
+                    :disabled="isEditing"
+                >
                     Username
                 </FormRow>
                 <FormRow v-model="input.password" class="mb-2" type="password" :placeholder="passwordPlaceholder">
@@ -85,6 +91,10 @@ export default {
         return {
             showCreate () {
                 this.isEditing = false
+                this.input.acls.push({
+                    action: 'both',
+                    pattern: '#'
+                })
                 this.$refs.dialog.show()
             },
             showEdit (client) {
@@ -114,12 +124,7 @@ export default {
                 username: '',
                 password: '',
                 passwordConfirm: '',
-                acls: [
-                    {
-                        action: 'both',
-                        pattern: '#'
-                    }
-                ]
+                acls: []
             },
             errors: {
                 username: null,
@@ -273,12 +278,7 @@ export default {
                 username: '',
                 password: '',
                 passwordConfirm: '',
-                acls: [
-                    {
-                        action: '',
-                        pattern: ''
-                    }
-                ]
+                acls: []
             }
             this.errors = {
                 username: null,

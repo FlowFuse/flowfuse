@@ -250,9 +250,6 @@ module.exports = async function (app) {
             if (request.body.acls) {
                 user.acls = JSON.stringify(request.body.acls)
             }
-            if (request.body.username) {
-                user.username = request.body.username
-            }
             await user.save()
             reply.status(201).send(app.db.views.TeamBrokerClient.user(user))
         } catch (err) {
