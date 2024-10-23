@@ -77,16 +77,18 @@
                                             </div>
                                         </template>
                                         <template #meta>
-                                            <PencilIcon
-                                                v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
-                                                class="ff-icon-sm hover:cursor-pointer edit"
-                                                @click.prevent.stop="editClient"
-                                            />
-                                            <TrashIcon
-                                                v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
-                                                class="ff-icon-sm hover:cursor-pointer delete text-red-500"
-                                                @click.prevent.stop="deleteClient"
-                                            />
+                                            <span class="edit hover:cursor-pointer" @click.prevent.stop="editClient">
+                                                <PencilIcon
+                                                    v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
+                                                    class="ff-icon-sm"
+                                                />
+                                            </span>
+                                            <span class="delete hover:cursor-pointer " @click.prevent.stop="deleteClient(client)">
+                                                <TrashIcon
+                                                    v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
+                                                    class="ff-icon-sm text-red-500"
+                                                />
+                                            </span>
                                         </template>
                                         <template #content>
                                             <ul class="acl-list">
@@ -162,6 +164,8 @@ import FfAccordion from '../../../components/Accordion.vue'
 import EmptyState from '../../../components/EmptyState.vue'
 import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
+import Alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 import { Roles } from '../../../utils/roles.js'
 
 import ClientDialog from './dialogs/ClientDialog.vue'
@@ -229,18 +233,23 @@ export default {
                     })
             }
         },
-        async removeClient (row) {
-            await brokerApi.deleteClient(this.team.id, row.username)
-            this.fetchData()
-        },
         async createClient () {
             this.$refs.clientDialog.showCreate()
         },
         async editClient (row) {
             console.log('editing')
         },
-        async deleteClient () {
-            console.log('deleting')
+        async deleteClient (client) {
+            await Dialog.show({
+                header: 'Delete Client',
+                text: 'Are you sure you want to delete this Client?',
+                kind: 'danger',
+                confirmLabel: 'Delete'
+            }, async () => {
+                await brokerApi.deleteClient(this.team.id, client.username)
+                await this.fetchData()
+                Alerts.emit('Successfully deleted Client.', 'confirmation')
+            })
         }
     }
 }
@@ -301,9 +310,39 @@ export default {
                            grid-column: span 3;
                            text-align: right;
                            padding-right: 10px;
+                           display: flex;
+                           align-items: center;
+                           justify-content: flex-end;
 
                            .edit, .delete {
-                               margin-left: 15px
+                               padding: 24px 15px;
+                               display: inline-block;
+                               position: relative;
+                               align-self: stretch;
+
+                               .ff-icon-sm {
+                                   position: absolute;
+                                   top: 50%;
+                                   left: 50%;
+                                   transform: translate(-50%, -50%);
+                                   transition: ease-in-out .3s;
+                               }
+
+                               &:hover {
+                                   .ff-icon-sm {
+                                       width: 20px;
+                                       height: 20px;
+                                   }
+                               }
+                           }
+
+                           .edit:hover {
+                               //color: green;
+                               color: $ff-grey-700;
+                           }
+                           .delete:hover {
+                               //color: yellow;
+                               color: $ff-red-700;
                            }
                        }
                    }

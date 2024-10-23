@@ -8,11 +8,11 @@ const getClients = (teamId, params, cursor, limit) => {
 }
 
 const getClient = (teamId, username) => {
-    return client.get(`/api/v1/teams/${teamId}/broker/client/${username}`).then( res =>  res.data )
+    return client.get(`/api/v1/teams/${teamId}/broker/client/${username}`).then(res => res.data)
 }
 
 const createClient = (teamId, username, password, acls) => {
-    return client.post(`/api/v1/teams/${teamId}/broker/client`,{
+    return client.post(`/api/v1/teams/${teamId}/broker/client`, {
         username,
         password,
         acls
@@ -20,14 +20,14 @@ const createClient = (teamId, username, password, acls) => {
 }
 
 const deleteClient = (teamId, username) => {
-    return client.delete(`/api/v1/teams/${teamId}/broker/client/${username}`).then( res => res.data )
+    return client.delete(`/api/v1/teams/${teamId}/broker/client/${username}`).then(res => res.data)
 }
 
 const modifyClient = (teamId, username, acls, password) => {
-    return client.put(`/api/v1/teams/${teamId}/broker/client/${username}`,{
+    return client.put(`/api/v1/teams/${teamId}/broker/client/${username}`, {
         acls,
         password
-    }).then( res => res.data )
+    }).then(res => res.data)
 }
 
 export default {
