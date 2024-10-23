@@ -139,7 +139,7 @@ export default {
                         to: '/billing',
                         tag: 'team-billing',
                         icon: CurrencyDollarIcon,
-                        hidden: !this.features?.billing
+                        hidden: !!this.features?.billing
                     },
                     {
                         label: 'Team Settings',
