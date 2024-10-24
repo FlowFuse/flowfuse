@@ -82,6 +82,7 @@ import daysSince from '../../../../../utils/daysSince.js'
 
 import TimelineGraph from './TimelineGraph.vue'
 
+// eslint-disable-next-line vue/one-component-per-file
 export default {
     name: 'TimelineEvent',
     components: { TimelineGraph },
@@ -123,6 +124,7 @@ export default {
                     // we can only differentiate between a plain snapshot import and a devops deployment history event
                     // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
 
+                    // eslint-disable-next-line vue/one-component-per-file
                     return defineComponent({
                         emits: ['preview-snapshot', 'preview-instance'],
                         methods: {
@@ -140,6 +142,7 @@ export default {
                     })
                 }
 
+                // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     emits: ['preview-snapshot', 'preview-instance'],
                     methods: {
@@ -157,6 +160,7 @@ export default {
                 })
 
             case this.event.event === 'project.snapshot.rolled-back':
+                // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     emits: ['preview-snapshot'],
                     methods: {
@@ -169,6 +173,7 @@ export default {
                         </span>`
                 })
             case this.event.event === 'project.snapshot.created':
+                // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     emits: ['preview-snapshot'],
                     methods: {
@@ -182,18 +187,22 @@ export default {
                         </span>`
                 })
             case this.event.event === 'flows.set':
+                // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: '<span>Flows Deployed From Editor</span>'
                 })
             case this.event.event === 'project.created':
+                // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: '<span>Instance Created</span>'
                 })
             case this.event.event === 'project.settings.updated':
+                // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: '<span>Instance Settings Updated</span>'
                 })
             default:
+                // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: `<span>${this.event.event}</span>`
                 })
