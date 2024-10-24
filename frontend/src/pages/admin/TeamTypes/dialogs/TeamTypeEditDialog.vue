@@ -194,13 +194,9 @@ export default {
                     if (this.input.properties.trial.active && !this.input.properties.trial.instanceType) {
                         this.input.properties.trial.instanceType = '_'
                     }
+                    this.input.properties.teamBroker = teamType.properties?.teamBroker || { clients: {} }
                     this.input.order = '' + (teamType.order || 0)
 
-                    if (this.input.properties.teamBroker?.clients === undefined) {
-                        this.input.properties.teamBroker = {
-                            clients: {}
-                        }
-                    }
 
                     // Apply default feature values if undefined
                     if (this.input.properties.features['shared-library'] === undefined) {
