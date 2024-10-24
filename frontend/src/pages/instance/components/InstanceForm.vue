@@ -82,7 +82,7 @@
                     <template v-if="creatingNew" #appended-description>
                         <p v-if="hasValidName" class="instance-name-confirmation">
                             <CheckCircleIcon class="ff-btn--icon" />
-                            <span>Your instance will be created as "<i>{{ instanceName }}</i>".</span>
+                            <span>Your instance hostname will be "<i>{{ instanceName.toLowerCase() }}</i>".</span>
                         </p>
                         The instance name is used to access the editor, so it must be suitable for use in a URL. It is not currently possible to rename the instance after it has been created.
                     </template>
@@ -255,7 +255,7 @@ import NameGenerator from '../../../utils/name-generator/index.js'
 
 import BlueprintTileSmall from '../Blueprints/BlueprintTileSmall.vue'
 
-import ExportInstanceComponents from './ExportInstanceComponents.vue'
+import ExportInstanceComponents from './ExportImportComponents.vue'
 import InstanceChargesTable from './InstanceChargesTable.vue'
 import InstanceCreditBanner from './InstanceCreditBanner.vue'
 
@@ -470,7 +470,7 @@ export default {
             return this.projectTypes.filter(pt => !pt.disabled)
         },
         instanceName () {
-            return this.input.name.trim().replace(/\s/g, '-').toLowerCase()
+            return this.input.name.trim().replace(/\s/g, '-')
         },
         hasValidName () {
             return this.validateName(this.input.name)
@@ -562,7 +562,11 @@ export default {
                 // Need to combine the projectType billing info with any overrides
                 // from the current teamType
                 const teamTypeInstanceProperties = this.team.type.properties.instances[pt.id]
-                const existingInstanceCount = this.team.instanceCountByType?.[pt.id] || 0
+                let existingInstanceCount = this.team.instanceCountByType?.[pt.id] || 0
+                if (this.team.type.properties.devices?.combinedFreeType === pt.id) {
+                    // Need to include device count as they use a combined free allocation
+                    existingInstanceCount += this.team.deviceCount
+                }
                 pt.price = ''
                 pt.priceInterval = ''
                 pt.currency = ''

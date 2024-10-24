@@ -1,0 +1,18 @@
+{
+  "id": "kGP6N0pPj8",
+  "createdAt": "2024-07-12T09:00:28.031Z",
+  "user": {
+    "id": "qMN5ng9xYv",
+    "username": "monmot",
+    "name": "Mon Mothma"
+  },
+  "event": "project.created",
+  "data": {
+    "team": {
+      "id": "9BJDyKnA7Q",
+      "name": "ATeam",
+      "slug": "ateam",
+      "type": null
+    }
+  }
+}

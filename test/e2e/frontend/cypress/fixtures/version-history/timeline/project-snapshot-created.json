@@ -1,0 +1,20 @@
+{
+  "id": "zQ5g2EoDpr",
+  "createdAt": "2024-10-18T09:41:28.819Z",
+  "user": {
+    "id": "qMN5ng9xYv",
+    "username": "windu_m",
+    "name": "Mace Windu"
+  },
+  "event": "project.snapshot.created",
+  "data": {
+    "snapshot": {
+      "id": "6p38g0e5qJ",
+      "name": "Auto Snapshot - 2024-10-18 12:41:28",
+      "description": "Instance Auto Snapshot taken following a Full deployment"
+    },
+    "info": {
+      "snapshotExists": true
+    }
+  }
+}

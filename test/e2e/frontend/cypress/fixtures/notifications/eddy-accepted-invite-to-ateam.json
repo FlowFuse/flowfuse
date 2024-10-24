@@ -1,0 +1,18 @@
+{
+  "id": "vkg9yBPJ5E",
+  "type": "team-invite-accepted-invitor",
+  "createdAt": "2024-08-26T14:01:33.710Z",
+  "read": false,
+  "data": {
+    "team": {
+      "name": "Alice's Team"
+    },
+    "invitee": {
+      "username": "eddy"
+    },
+    "invitor": {
+      "username": "alice"
+    },
+    "role": 5
+  }
+}

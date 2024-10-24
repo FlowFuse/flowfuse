@@ -89,6 +89,25 @@ module.exports = {
                         count,
                         notifications: rows
                     }
+                },
+                updateNotificationsState: async ({ read = true, ids = [] }, user) => {
+                    if (ids.length === 0) {
+                        return
+                    }
+
+                    ids = ids.map(id => typeof id === 'string'
+                        ? M.Notification.decodeHashid(id)?.[0]
+                        : id)
+
+                    await M.Notification.update(
+                        { read: read ? 1 : 0 },
+                        {
+                            where: {
+                                id: ids.filter(e => e),
+                                UserId: user.id
+                            }
+                        }
+                    )
                 }
             }
         }

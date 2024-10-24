@@ -3,6 +3,8 @@
         :notification="notification"
         :selections="selections"
         data-el="invitation-message" :to="to"
+        @selected="onSelect"
+        @deselected="onDeselect"
     >
         <template #icon>
             <UserAddIcon />
@@ -11,7 +13,13 @@
             Team Invitation: Accepted
         </template>
         <template #message>
-            <i>"{{ inviteeName }}"</i> has accepted your invitation to join <i>"{{ teamName }}"</i> as a <i>"{{ role }}".</i>
+            <p>
+                <i>"{{ inviteeName }}"</i>
+                has accepted your invitation to join
+                <i>"{{ teamName }}"</i>
+                as a
+                <i>"{{ role }}".</i>
+            </p>
         </template>
     </NotificationMessage>
 </template>

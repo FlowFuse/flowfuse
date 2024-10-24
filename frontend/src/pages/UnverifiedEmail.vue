@@ -3,10 +3,13 @@
         <form class="px-4 sm:px-6 lg:px-8 mt-8 mx-auto space-y-6 max-w-md" @submit.prevent>
             <p>
                 Before you can access the platform, we need to verify your email
-                address.
+                address. We have sent a code in an email to:
+            </p>
+            <p class="font-bold pl-4">
+                {{ user.email }}
             </p>
             <p>
-                We sent you an email with a code in it. Enter the code below to continue.
+                Please enter the code below to continue.
             </p>
             <div>
                 <ff-text-input v-model="token" data-form="verify-token" maxlength="6" label="token" @enter="submitVerificationToken" />

@@ -1,0 +1,16 @@
+{
+  "id": "EJbDk594Xk",
+  "type": "instance-crashed",
+  "createdAt": null,
+  "read": false,
+  "data": {
+    "instance": {
+      "id": "cda79585-1112-420e-8652-852fbebb69d7",
+      "name": "instance-1-1"
+    },
+    "meta": {
+      "severity": "error",
+      "counter": 2
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "2",
+  "type": "team-invite",
+  "createdAt": null,
+  "read": false,
+  "data": {
+    "invite": {
+      "id": "abcd2"
+    },
+    "team": {
+      "id": "gY9GQjDb2k",
+      "name": "BTeam"
+    },
+    "invitor": {
+      "username": "bob"
+    },
+    "role": 30
+  }
+}

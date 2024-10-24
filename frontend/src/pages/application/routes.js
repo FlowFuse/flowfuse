@@ -6,9 +6,11 @@
  */
 import ApplicationActivity from './Activity.vue'
 import Dependencies from './Dependencies/Dependencies.vue'
+import ApplicationDeviceGroupSettingsEnvironment from './DeviceGroup/Settings/Environment.vue'
+import ApplicationDeviceGroupSettingsGeneral from './DeviceGroup/Settings/General.vue'
+import ApplicationDeviceGroupSettings from './DeviceGroup/Settings/index.vue'
 import ApplicationDeviceGroupDevices from './DeviceGroup/devices.vue'
 import ApplicationDeviceGroupIndex from './DeviceGroup/index.vue'
-import ApplicationDeviceGroupSettings from './DeviceGroup/settings.vue'
 import ApplicationDeviceGroups from './DeviceGroups.vue'
 import ApplicationDevices from './Devices.vue'
 import ApplicationLogs from './Logs.vue'
@@ -183,7 +185,29 @@ export default [
                 component: ApplicationDeviceGroupSettings,
                 meta: {
                     title: 'Application - Device Group - Settings'
-                }
+                },
+                redirect: to => {
+                    return `/application/${to.params.applicationId}/device-group/${to.params.deviceGroupId}/settings/general`
+                },
+                children: [
+                    {
+                        path: 'general',
+                        name: 'ApplicationDeviceGroupSettingsGeneral',
+                        component: ApplicationDeviceGroupSettingsGeneral,
+                        meta: {
+                            title: 'Application - Device Group - Settings - General'
+                        }
+                    },
+                    {
+                        path: 'environment',
+                        name: 'ApplicationDeviceGroupSettingsEnvironment',
+                        component: ApplicationDeviceGroupSettingsEnvironment,
+                        meta: {
+                            title: 'Application - Device Group - Settings - Environment'
+                        }
+                    }
+
+                ]
             }
         ]
     }
