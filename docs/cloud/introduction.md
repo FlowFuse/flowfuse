@@ -181,8 +181,9 @@ Node-RED inside the FlowFuse Cloud platform.
 
 MQTT Connections to an external broker using the standard MQTT nodes will work fine as the connection is initiated by Node-RED.
 
-FlowFuse does not provide an MQTT broker for general use by Node-RED instances. However the
-Project Nodes can be used to easily pass messages between Node-RED instances running in the
+FlowFuse provides an MQTT broker for general use by Enterprise Team's Node-RED instances. See the following section.
+
+Also the Project Nodes can be used to easily pass messages between Node-RED instances running in the
 platform.
 
 #### Enterprise Team Broker
