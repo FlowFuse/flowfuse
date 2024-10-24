@@ -3,6 +3,7 @@ import ensurePermission from '../../utils/ensurePermission.js'
 import TeamApplications from './Applications/index.vue'
 import TeamAuditLog from './AuditLog.vue'
 import TeamBilling from './Billing.vue'
+import Broker from './Broker/index.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamInstances from './Instances.vue'
 import Library from './Library/index.vue'
@@ -77,6 +78,14 @@ export default [
                     return { name: 'LibraryTeamLibrary' }
                 },
                 children: [...LibraryRoutes]
+            },
+            {
+                name: 'TeamBroker',
+                path: 'broker',
+                component: Broker,
+                meta: {
+                    title: ' Team - Broker'
+                }
             },
             {
                 path: 'members',
