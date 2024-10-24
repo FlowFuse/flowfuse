@@ -189,7 +189,7 @@ platform.
 
 Enterprise level teams come with their own MQTT broker. You can provision clients from the broker tab in the left hand menu.
 
-Teams will initially come with up to 20 clients, with the ability to add more coming in later releases.
+Teams can register up to 20 clients as part of their plan. The ability to purchase additional packs of clients will come in a future release.
 
 The broker is available on `broker.flowfuse.cloud` and supports the following connection types:
 
