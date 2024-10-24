@@ -24,7 +24,10 @@ module.exports = async function (settings = {}, config = {}) {
         },
         // configure a broker so that device app.comms is loaded and can be stubbed
         broker: {
-            url: ':test:'
+            url: ':test:',
+            teamBroker: {
+                enabled: true
+            }
         }
     }
 

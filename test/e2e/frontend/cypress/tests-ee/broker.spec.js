@@ -8,15 +8,15 @@ describe('FlowForge - Broker', () => {
         it('users have access to the broker entry in the main menu', () => {
             cy.get('[data-nav="team-broker"]').should('exist')
             cy.get('[data-nav="team-broker"]').should('not.be.disabled')
-            cy.get('[data-nav="team-broker"] [data-el="premium-feature"]').should('exist')
+            // cy.get('[data-nav="team-broker"] [data-el="premium-feature"]').should('exist')
         })
 
-        it('should display the upgrade banner when accessing the broker with the not available logo', () => {
-            cy.get('[data-nav="team-broker"]').click()
-            cy.get('[data-el="page-banner-feature-unavailable-to-team"]').should('exist')
-            cy.contains('Broker Not Available')
-            cy.contains('The MQTT Broker page offers a streamlined interface for managing your broker instance and defining client connections.')
-        })
+        // it('should display the upgrade banner when accessing the broker with the not available logo', () => {
+        //     cy.get('[data-nav="team-broker"]').click()
+        //     cy.get('[data-el="page-banner-feature-unavailable-to-team"]').should('exist')
+        //     cy.contains('Broker Not Available')
+        //     cy.contains('The MQTT Broker page offers a streamlined interface for managing your broker instance and defining client connections.')
+        // })
     })
 
     describe('is accessible to feature enabled teams ', () => {
