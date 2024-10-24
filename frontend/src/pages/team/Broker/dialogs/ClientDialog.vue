@@ -37,7 +37,7 @@
             </div>
             <div class="acls">
                 <h3 class="flex justify-between">
-                    <span>ACL's</span>
+                    <span>Access Control Rules</span>
                     <span>
                         <PlusIcon class="ff-icon hover:cursor-pointer" data-action="add-acl" @click="addAcl" />
                     </span>
