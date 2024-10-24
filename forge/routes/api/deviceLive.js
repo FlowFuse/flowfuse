@@ -187,6 +187,18 @@ module.exports = async function (app) {
                     await applyOverrides(device, settings)
                 }
 
+                // ensure the snapshot has the correct FF_ environment variables
+                try {
+                    // since transmit env in key/value pairs for a snapshot, we need to convert them to the same
+                    // format as we store them in the database, then we can update the FF_ env vars before
+                    // re-converting to key/value pairs ready for the snapshot
+                    const envArray = Object.entries(settings.env || {}).map(([name, value]) => ({ name, value }))
+                    const updatedEnv = app.db.controllers.Device.insertPlatformSpecificEnvVars(device, envArray)
+                    settings.env = Object.fromEntries(updatedEnv.map(({ name, value }) => [name, value]))
+                } catch (err) {
+                    app.log.error('Failed to update environment variables in snapshot', err)
+                }
+
                 const result = {
                     id: device.targetSnapshot.hashid,
                     name: snapshot.name,
