@@ -30,7 +30,7 @@
         <section v-else>
             <empty-state>
                 <template #img>
-                    <img src="../../../../images/empty-states/application-pipelines.png" alt="pipelines-logo">
+                    <img src="../../../../images/empty-states/instance-timeline.png" alt="pipelines-logo">
                 </template>
                 <template #header>
                     <span>Timeline Not Available</span>

@@ -62,6 +62,15 @@ export default {
         },
         isTimelineFeatureEnabled () {
             return this.isTimelineFeatureEnabledForPlatform && this.isTimelineFeatureEnabledForTeam
+        },
+        isMqttBrokerFeatureEnabledForPlatform () {
+            return !!this.features.teamBroker
+        },
+        isMqttBrokerFeatureEnabledForTeam () {
+            return !!this.team?.type?.properties?.features?.teamBroker
+        },
+        isMqttBrokerFeatureEnabled () {
+            return this.isMqttBrokerFeatureEnabledForPlatform && this.isMqttBrokerFeatureEnabledForTeam
         }
     }
 }
