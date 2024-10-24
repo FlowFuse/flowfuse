@@ -197,7 +197,6 @@ export default {
                     this.input.properties.teamBroker = teamType.properties?.teamBroker || { clients: {} }
                     this.input.order = '' + (teamType.order || 0)
 
-
                     // Apply default feature values if undefined
                     if (this.input.properties.features['shared-library'] === undefined) {
                         this.input.properties.features['shared-library'] = true
