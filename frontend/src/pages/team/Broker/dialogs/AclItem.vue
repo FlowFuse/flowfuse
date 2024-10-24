@@ -52,7 +52,7 @@ export default {
                 pattern: ''
             },
             actions: [
-                { label: 'Both', value: 'both' },
+                { label: 'Publish & Subscribe', value: 'both' },
                 { label: 'Subscribe', value: 'subscribe' },
                 { label: 'Publish', value: 'publish' }
             ]
