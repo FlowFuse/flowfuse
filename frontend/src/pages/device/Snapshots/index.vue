@@ -1,6 +1,9 @@
 <template>
     <div class="mb-3">
         <SectionTopMenu hero="Snapshots" help-header="FlowFuse - Snapshots">
+            <template #pictogram>
+                <img alt="info" src="../../../images/pictograms/snapshot_red.png">
+            </template>
             <template #helptext>
                 <p>Snapshots generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
                 <p>Snapshots are also required for deploying to devices. In the Deployments page of a Project, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
