@@ -69,8 +69,11 @@
                                 <li v-for="client in filteredClients" :key="client.id" class="client" data-el="client">
                                     <ff-accordion class="max-w-full w-full">
                                         <template #label>
-                                            <div class="username text-left">
-                                                {{ client.username }}<span class="italic">@{{ team.id }}</span>
+                                            <div class="username text-left flex">
+                                                <span class="mt-1 font-bold">{{ client.username }}</span><span class="italic mt-1">@{{ team.id }}</span>
+                                                <ff-button v-if="!!clipboardSupported" class="ml-2" kind="tertiary" size="small" @click.prevent.stop="copy(client)">
+                                                    <template #icon-right><ClipboardCopyIcon /></template>
+                                                </ff-button>
                                             </div>
                                             <div class="rules text-left">
                                                 <span>{{ client.acls.length }} Rule{{ client.acls.length > 1 ? 's' : '' }}</span>
@@ -174,12 +177,13 @@
 </template>
 
 <script>
-import { CheckIcon, PencilIcon, PlusSmIcon, SearchIcon, TrashIcon, XIcon } from '@heroicons/vue/outline'
+import { CheckIcon, ClipboardCopyIcon, PencilIcon, PlusSmIcon, SearchIcon, TrashIcon, XIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import brokerApi from '../../../api/broker.js'
 import FfAccordion from '../../../components/Accordion.vue'
 import EmptyState from '../../../components/EmptyState.vue'
+import clipboardMixin from '../../../mixins/Clipboard.js'
 import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
@@ -199,9 +203,10 @@ export default {
         CheckIcon,
         XIcon,
         EmptyState,
-        ClientDialog
+        ClientDialog,
+        ClipboardCopyIcon
     },
-    mixins: [permissionsMixin, featuresMixin],
+    mixins: [permissionsMixin, featuresMixin, clipboardMixin],
     data () {
         return {
             loading: false,
@@ -267,6 +272,15 @@ export default {
                 await brokerApi.deleteClient(this.team.id, client.username)
                 await this.fetchData()
                 Alerts.emit('Successfully deleted Client.', 'confirmation')
+            })
+        },
+        copy (client) {
+            const username = `${client.username}@${this.team.id}`
+            this.copyToClipboard(username).then(() => {
+                Alerts.emit('Coppied to Clipboard.', 'confirmation')
+            }).catch((err) => {
+                console.warn('Clipboard write permission denied: ', err)
+                Alerts.emit('Clipboard write permission denied.', 'warning')
             })
         }
     }
