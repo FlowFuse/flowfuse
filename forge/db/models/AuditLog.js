@@ -96,6 +96,112 @@ module.exports = {
                         count,
                         log: rows
                     }
+                },
+                forProjectHistory: async (projectId, pagination = {}) => {
+                    // Premise:
+                    //  we want to generate a timeline of events for a project, including snapshots
+                    //  so that user can see "things that changed" the project and any immediate snapshots.
+                    // Approach:
+                    //  * Get all log entries for the project starting from the pagination cursor & limited by the pagination limit
+                    //    where they meet the criteria for project history (see Op.in filter below)
+                    //  * If the log entry has a snapshot, match it up to the actual snapshot object and replace in in the body
+                    //    This updates any stale snapshot references in the log entries
+                    //    Additionally, flag snapshot existence in the info object as { snapshotExists: true/false }
+                    //    (The info object is a permitted field in the audit log entry body (schema))
+                    // * Return the log entries as { meta: Object, count: Number, timeline: Array<Object> }
+
+                    const limit = parseInt(pagination.limit) || 100
+                    const where = {
+                        entityId: projectId,
+                        entityType: 'project',
+                        event: {
+                            [Op.in]: [
+                                'project.created',
+                                'project.deleted',
+                                'flows.set', // flows deployed by user
+                                'project.settings.updated',
+                                'project.snapshot.created', // snapshot created manually or automatically
+                                'project.snapshot.rolled-back', // snapshot rolled back by user
+                                'project.snapshot.imported' // result of a pipeline deployment
+                            ]
+                        }
+                    }
+                    const result = {
+                        meta: {},
+                        count: 0,
+                        timeline: []
+                    }
+
+                    //  1. Get log entries
+                    if (pagination.cursor) {
+                        // As we aren't using the default cursor behaviour (Op.gt)
+                        // set the appropriate clause and delete cursor so that
+                        // buildPaginationSearchClause doesn't do it for us
+                        where.id = { [Op.lt]: M.AuditLog.decodeHashid(pagination.cursor) }
+                        delete pagination.cursor
+                    }
+                    const rows = await this.findAll({
+                        where: buildPaginationSearchClause(
+                            pagination,
+                            where,
+                            // These are the columns that are searched using the `query` query param
+                            ['AuditLog.event', 'AuditLog.body', 'User.username', 'User.name'],
+                            // These map additional query params to specific columns to allow filtering
+                            {
+                                event: 'AuditLog.event',
+                                username: 'User.username'
+                            }
+                        ),
+                        order: [['createdAt', 'DESC']],
+                        include: {
+                            model: M.User,
+                            attributes: ['id', 'hashid', 'username', 'name', 'avatar']
+                        },
+                        limit
+                    })
+
+                    // guard: no log entries (no need to process further)
+                    if (!rows || !rows.length) {
+                        return result
+                    }
+
+                    // 2. sanitise log entries
+                    for (const row of rows) {
+                        try {
+                            row.body = typeof row.body === 'string' ? JSON.parse(row.body) : JSON.parse('' + row.body)
+                            delete row.body.project // we don't need to include the project object in specific project history
+                        } catch (_e) {
+                            row.body = {}
+                        }
+                    }
+
+                    // 3. update snapshot references
+                    const snapshotRows = rows.filter(row => row.body?.snapshot)
+                    if (snapshotRows.length) {
+                        const snapshotIds = snapshotRows.length && snapshotRows.map(entry => entry.body.snapshot.id)
+                        const snapshots = await M.ProjectSnapshot.findAll({
+                            where: { id: { [Op.in]: snapshotIds } },
+                            attributes: ['id', 'hashid', 'name', 'description', 'createdAt']
+                        })
+                        if (snapshots?.length) {
+                            for (const row of snapshotRows) {
+                                if (row.body?.snapshot) {
+                                    if (typeof row.body.info !== 'object') {
+                                        row.body.info = row.body.info ? { _info: row.body.info } : {}
+                                    }
+                                    const snapshot = snapshots.find(s => s.id === row.body.snapshot.id)
+                                    row.body.snapshot = snapshot || row.body.snapshot
+                                    row.body.info.snapshotExists = !!snapshot
+                                }
+                            }
+                        }
+                    }
+
+                    // 4. Return the log entries
+                    result.meta.next_cursor = rows.length < limit ? undefined : rows[rows.length - 1].hashid
+                    result.count = rows.length
+                    result.timeline = rows
+                    return result
                 }
             }
         }

@@ -206,7 +206,8 @@ curl -ks -w "\n" -XPOST \
                        "fileStorageLimit": null,
                        "contextLimit": null,
                        "customHostnames":false,
-                       "staticAssets":false
+                       "staticAssets":false,
+                       "teamBroker":true
                   },
                   "instances": {
                       "'"$projectTypeId"'": {
@@ -248,7 +249,9 @@ curl -ks -w "\n" -XPOST \
                         "protectedInstance":true,
                         "editorLimits":true,
                         "customHostnames":true,
-                        "staticAssets":true
+                        "staticAssets":true,
+                        "projectHistory":true,
+                        "teamBroker":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
@@ -290,7 +293,10 @@ curl -ks -w "\n" -XPOST \
                         "protectedInstance":true,
                         "editorLimits":true,
                         "customHostnames":true,
-                        "staticAssets":true
+                        "staticAssets":true,
+                        "bom":true,
+                        "projectHistory":true,
+                        "teamBroker":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {

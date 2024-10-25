@@ -14,8 +14,7 @@ module.exports = {
 
             // This *could* be a trial team that has devices in it. In which case,
             // we need to reconcile the subscription device and instance count
-            await app.billing.updateTeamInstanceCount(team)
-            await app.billing.updateTeamDeviceCount(team)
+            await app.billing.updateTeamBillingCounts(team)
             return existingSub
         } else {
             // Create the subscription

@@ -45,12 +45,13 @@ const exportSnapshot = (snapshotId, options) => {
  * @param {Object} snapshot - snapshot object to import
  * @param {String} [credentialSecret] - secret to use when decrypting credentials in the snapshot object (optional/only required when the snapshot contains credentials)
  */
-const importSnapshot = async (ownerId, ownerType, snapshot, credentialSecret) => {
+const importSnapshot = async (ownerId, ownerType, snapshot, credentialSecret, options) => {
     return client.post('/api/v1/snapshots/import', {
         ownerId,
         ownerType,
         snapshot,
-        credentialSecret
+        credentialSecret,
+        components: options?.components
     }).then(res => {
         const props = {
             'snapshot-id': res.data.id

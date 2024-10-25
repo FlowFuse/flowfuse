@@ -147,7 +147,7 @@ describe('Audit Log > Application', async function () {
         logEntry.body.should.only.have.keys('device', 'snapshot')
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -164,7 +164,7 @@ describe('Audit Log > Application', async function () {
         logEntry.body.should.only.have.keys('device', 'snapshot', 'updates')
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
         logEntry.body.updates.should.be.an.Array().and.have.length(1)
     })
@@ -180,7 +180,7 @@ describe('Audit Log > Application', async function () {
         logEntry.body.should.only.have.keys('device', 'snapshot')
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -195,7 +195,7 @@ describe('Audit Log > Application', async function () {
         logEntry.body.should.only.have.keys('device', 'snapshot')
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -210,7 +210,7 @@ describe('Audit Log > Application', async function () {
         logEntry.body.should.only.have.keys('device', 'snapshot')
         logEntry.body.device.should.only.have.keys('id', 'name')
         logEntry.body.device.id.should.equal(DEVICE.hashid)
-        logEntry.body.snapshot.should.only.have.keys('id', 'name')
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
         logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 
@@ -276,6 +276,24 @@ describe('Audit Log > Application', async function () {
         logEntry.body.application.id.should.equal(APPLICATION.id)
         logEntry.body.deviceGroup.should.only.have.keys('id', 'name')
         logEntry.body.info.should.have.property('info', info)
+    })
+
+    it('Provides a logger for updating device group settings', async function () {
+        const updates = new UpdatesCollection()
+        updates.pushDifferences({ name: 'before' }, { name: 'after' })
+        await logger.application.deviceGroup.settings.updated(ACTIONED_BY, null, APPLICATION, DEVICEGROUP, updates)
+
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'application.deviceGroup.settings.updated')
+        logEntry.should.have.property('scope', { id: APPLICATION.hashid, type: 'application' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('application', 'deviceGroup', 'updates')
+        logEntry.body.application.should.only.have.keys('id', 'name')
+        logEntry.body.application.id.should.equal(APPLICATION.id)
+        logEntry.body.deviceGroup.should.only.have.keys('id', 'name')
+        logEntry.body.updates.should.be.an.Array().and.have.length(1)
     })
 
     // #endregion
