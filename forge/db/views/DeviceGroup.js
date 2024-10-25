@@ -97,6 +97,7 @@ module.exports = function (app) {
                 application: item.Application ? app.db.views.Application.applicationSummary(item.Application) : null,
                 deviceCount: item.deviceCount || 0,
                 devices: item.Devices ? item.Devices.map(app.db.views.Device.device) : [],
+                settings: item.settings,
                 targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(item.targetSnapshot)
             }
             return filtered

@@ -10,6 +10,7 @@
 const { ValidationError } = require('sequelize')
 
 const { UpdatesCollection } = require('../../../auditLog/formatters.js')
+const { Roles } = require('../../../lib/roles.js')
 const { DeviceGroupMembershipValidationError } = require('../../db/controllers/DeviceGroup.js')
 
 // Declare getLogger function to provide type hints / quick code nav / code completion
@@ -369,6 +370,80 @@ module.exports = async function (app) {
         await group.destroy()
         await deviceGroupLogger.deleted(request.session.User, null, request.application, group)
         reply.send({})
+    })
+
+    /**
+     * Update Device Group Settings (Environment Variables)
+     * @method PUT
+     * @name /api/v1/applications/:applicationId/device-groups/:groupId/settings
+     * @memberof forge.routes.api.application
+     */
+    app.put('/:groupId/settings', {
+        preHandler: app.needsPermission('application:device-group:update'), // re-use update permission (owner only)
+        schema: {
+            summary: 'Update a Device Group Settings',
+            tags: ['Application Device Groups'],
+            body: {
+                type: 'object',
+                properties: {
+                    env: { type: 'array', items: { type: 'object', additionalProperties: true } }
+                }
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' },
+                    groupId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        /** @type {Model} */
+        const deviceGroup = request.deviceGroup
+        const isMember = request.teamMembership.role === Roles.Member
+        /** @type {import('../../db/controllers/DeviceGroup.js')} */
+        const deviceGroupController = app.db.controllers.DeviceGroup
+        try {
+            let bodySettings
+            if (isMember) {
+                bodySettings = {
+                    env: request.body.env
+                }
+            } else {
+                bodySettings = request.body
+            }
+
+            // for audit log
+            const updates = new app.auditLog.formatters.UpdatesCollection()
+            // transform the env arrays to a map for better logging format
+            const currentEnv = (deviceGroup.settings?.env || []).reduce((acc, e) => {
+                acc[e.name] = e.value
+                return acc
+            }, {})
+            const newEnv = bodySettings.env.reduce((acc, e) => {
+                acc[e.name] = e.value
+                return acc
+            }, {})
+            updates.pushDifferences({ env: currentEnv }, { env: newEnv })
+
+            // perform update & log
+            await deviceGroupController.updateDeviceGroup(deviceGroup, { settings: bodySettings })
+            if (updates.length > 0) {
+                await deviceGroupLogger.settings.updated(request.session.User, null, request.application, deviceGroup, updates)
+            }
+
+            reply.send({})
+        } catch (err) {
+            return handleError(err, reply)
+        }
     })
 
     function handleError (err, reply) {

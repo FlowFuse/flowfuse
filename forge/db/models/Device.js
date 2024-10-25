@@ -148,17 +148,36 @@ module.exports = {
                     })
                 },
                 async updateSettingsHash (settings) {
-                    const _settings = settings || await this.getAllSettings()
+                    const _settings = settings || await this.getAllSettings({ mergeDeviceGroupSettings: true })
                     delete _settings.autoSnapshot // autoSnapshot is not part of the settings hash
                     this.settingsHash = hashSettings(_settings)
                 },
-                async getAllSettings () {
+                async getAllSettings (options = { mergeDeviceGroupSettings: false }) {
+                    const mergeDeviceGroupSettings = options.mergeDeviceGroupSettings || false
                     const result = {}
                     const settings = await this.getDeviceSettings()
                     settings.forEach(setting => {
                         result[setting.key] = setting.value
                     })
                     result.env = Controllers.Device.insertPlatformSpecificEnvVars(this, result.env) // add platform specific device env vars
+                    // if the device is a group member, we need to merge the group settings
+                    if (mergeDeviceGroupSettings && this.DeviceGroupId) {
+                        const group = this.DeviceGroup || await M.DeviceGroup.byId(this.DeviceGroupId)
+                        if (group) {
+                            const groupEnv = await group.settings.env || []
+                            // Merge rule: If the device has an env var AND it has a value, it remains unchanged.
+                            // Otherwise, the value is taken from the group.
+                            // This is to allow the device to override a (global) group env setting.
+                            groupEnv.forEach(env => {
+                                const existing = result.env.find(e => e.name === env.name)
+                                if (!existing) {
+                                    result.env.push(env)
+                                } else if (existing && !existing.value) {
+                                    existing.value = env.value
+                                }
+                            })
+                        }
+                    }
                     if (!Object.prototype.hasOwnProperty.call(result, 'autoSnapshot')) {
                         result.autoSnapshot = DEFAULT_SETTINGS.autoSnapshot
                     }

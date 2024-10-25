@@ -343,6 +343,17 @@ const updateDeviceGroupMembership = async (applicationId, groupId, { add, remove
 }
 
 /**
+ * Update the settings of a device group
+ * NOTE: Only ENV VARS are supported at the moment
+ * @param {string} applicationId - The ID of application
+ * @param {string} groupId - The ID of the group
+ * @param {{ env: [{name: String, value: String}]}} settings - The new settings for the group
+ */
+const updateDeviceGroupSettings = async (applicationId, groupId, settings) => {
+    return client.put(`/api/v1/applications/${applicationId}/device-groups/${groupId}/settings`, settings)
+}
+
+/**
  * Get a list of Dependencies / Bill of Materials
  * @param applicationId
  * @returns {Promise<axios.AxiosResponse<any>>}
@@ -373,5 +384,6 @@ export default {
     deleteDeviceGroup,
     updateDeviceGroup,
     updateDeviceGroupMembership,
+    updateDeviceGroupSettings,
     getDependencies
 }
