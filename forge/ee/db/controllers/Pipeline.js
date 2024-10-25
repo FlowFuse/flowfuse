@@ -194,7 +194,7 @@ module.exports = {
             await transaction.commit()
             return stage
         } catch (err) {
-            transaction.rollback()
+            await transaction.rollback()
             throw err
         }
     },
@@ -467,7 +467,7 @@ module.exports = {
                 await transaction.commit()
             } catch (error) {
                 // rollback the transaction
-                transaction.rollback()
+                await transaction.rollback()
                 throw error
             }
 
