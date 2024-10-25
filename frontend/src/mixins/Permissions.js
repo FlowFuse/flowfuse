@@ -46,6 +46,22 @@ export default {
             }
 
             return this.teamMembership?.role >= role
+        },
+
+        /**
+         * Check if the user has a lower role than given role.
+         * @param {Role} role - The role to check against.
+         * @returns {boolean} True if the user has a lower role than the given one, otherwise false.
+         * @example
+         * // Check if the user has role lower than 'Member' role
+         * const isMemberOrHigher = hasALowerTeamRoleThan(Roles.Member)
+         */
+        hasALowerOrEqualTeamRoleThan (role) {
+            if (this.isVisitingAdmin) {
+                return true
+            }
+
+            return role <= this.teamMembership?.role
         }
     }
 }
