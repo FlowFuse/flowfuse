@@ -277,7 +277,7 @@ export default {
         copy (client) {
             const username = `${client.username}@${this.team.id}`
             this.copyToClipboard(username).then(() => {
-                Alerts.emit('Coppied to Clipboard.', 'confirmation')
+                Alerts.emit('Copied to Clipboard.', 'confirmation')
             }).catch((err) => {
                 console.warn('Clipboard write permission denied: ', err)
                 Alerts.emit('Clipboard write permission denied.', 'warning')
