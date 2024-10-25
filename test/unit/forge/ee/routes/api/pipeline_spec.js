@@ -2535,6 +2535,10 @@ describe('Pipelines API', function () {
                     const body = await response.json()
                     body.should.have.property('status', 'importing')
 
+                    // Wait for the deploy to complete & check the target snapshot has been set on the device group member `deviceTwo`
+                    const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                    snapshot.hashid.should.equal(targetSnapshotHashid)
+
                     // call the GET pipelines and check the status of the device group is deploying
                     const responseGetPipelines = await app.inject({
                         method: 'GET',
@@ -2555,6 +2559,7 @@ describe('Pipelines API', function () {
                     const deviceGroup = deviceGroupData.groups[0]
                     device.should.have.property('targetSnapshotId', snapshot.id)
                     deviceGroup.should.have.property('targetSnapshotId', snapshot.id)
+                    console.warn('DEBUG: TEST END')
                 })
             })
 
