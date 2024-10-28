@@ -5,7 +5,7 @@ module.exports = async (app) => {
     if (app.license.active()) {
         blueprintCount = await app.db.models.FlowTemplate?.count()
         sharedLibraryEntries = await app.db.models.StorageSharedLibrary?.count()
-        teamBrokerClients = await app.db.models.teamBrokerClients?.count()
+        teamBrokerClients = await app.db.models.TeamBrokerClient?.count()
     }
     const licenseType = () => {
         if (app.license.active()) {
