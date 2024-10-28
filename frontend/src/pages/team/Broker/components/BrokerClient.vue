@@ -37,32 +37,8 @@
         </template>
         <template #content>
             <ul class="acl-list">
-                <li v-for="(acl, $key) in client.acls" :key="$key" class="acl grid grid-cols-6 gap-4" data-el="acl">
-                    <div class="action col-start-2 flex gap-2.5">
-                        <span
-                            :class="{
-                                'text-green-500': ['publish', 'both'].includes(acl.action),
-                                'text-red-500': ['subscribe'].includes(acl.action)
-                            } "
-                        >
-                            <CheckIcon v-if="['publish', 'both'].includes(acl.action)" class="ff-icon-sm" />
-                            <XIcon v-else class="ff-icon-sm" />
-                            pub
-                        </span>
-                        <span
-                            :class="{
-                                'text-green-500': ['subscribe', 'both'].includes(acl.action),
-                                'text-red-500': ['publish'].includes(acl.action)
-                            } "
-                        >
-                            <CheckIcon v-if="['subscribe', 'both'].includes(acl.action)" class="ff-icon-sm" />
-                            <XIcon v-else class="ff-icon-sm" />
-                            sub
-                        </span>
-                    </div>
-                    <div class="pattern">
-                        {{ acl.pattern }}
-                    </div>
+                <li v-for="(acl, $key) in client.acls" :key="$key" class="acl-wrapper" data-el="acl">
+                    <BrokerAclRule :acl="acl" />
                 </li>
             </ul>
         </template>
@@ -70,22 +46,23 @@
 </template>
 
 <script>
-import { CheckIcon, PencilIcon, TrashIcon, XIcon } from '@heroicons/vue/outline'
+import { PencilIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import FfAccordion from '../../../../components/Accordion.vue'
 import TextCopier from '../../../../components/TextCopier.vue'
 import permissionsMixin from '../../../../mixins/Permissions.js'
 import { Roles } from '../../../../utils/roles.js'
 
+import BrokerAclRule from './BrokerAclRule.vue'
+
 export default {
     name: 'BrokerClient',
     components: {
+        BrokerAclRule,
         TextCopier,
         PencilIcon,
-        CheckIcon,
         FfAccordion,
-        TrashIcon,
-        XIcon
+        TrashIcon
     },
     mixins: [permissionsMixin],
     props: {
@@ -172,7 +149,7 @@ export default {
     .ff-accordion--content {
         background: $ff-grey-100;
         .acl-list {
-            .acl {
+            .acl-wrapper {
                 border-bottom: 1px solid $ff-grey-200;
                 padding: 15px 10px;
                 gap: 10px;
