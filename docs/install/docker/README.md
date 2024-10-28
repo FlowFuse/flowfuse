@@ -267,7 +267,7 @@ Once ready, [start the application](#start-flowfuse-platform) .
 
 If you have your own TLS certificate, you can use it in FlowFuse platform installation as well. See [Enable HTTPS](#enable-https-optional) section for more details.
 
-### I would like to invity my team members to the platform with e-mail, how can I do that?
+### I would like to invite my team members to the platform with e-mail, how can I do that?
 
 In order to configure FlowFuse platform with external e-mail server, you need to adjust `EMAIL_*` variables in the `.env` file.
 Find the `.env` file end edit `Email configuration` section with following details:
