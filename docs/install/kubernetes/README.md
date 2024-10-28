@@ -49,7 +49,7 @@ You can run a small scale Proof-of-Concept on a single node cluster, details of 
 The Helm chart can either install a dedicated PostgreSQL database into the same K8s 
 cluster or can configure the install to use an external instance.
 
-This is controlled by setting the `forge.localPostrgresql` value to true/false.
+This is controlled by setting the `forge.localPostgresql` value to true/false.
 
 If using the bundled dedicated PostgreSQL database the Bitnami PostgreSQL chart will 
 be used to install an instance of PostgreSQL 14. The Bitnami chart for v14 supports both x86_64 and arm64
