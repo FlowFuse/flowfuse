@@ -1,7 +1,7 @@
 <template>
     <div class="acl flex gap-2.5 mb-3 items-start" data-el="acl-item">
         <div>
-            <ff-listbox v-model="model.action" :options="actions" @update:model-value="update" />
+            <ff-listbox :key="orderKey" v-model="model.action" :options="actions" @update:model-value="update" />
             <div v-if="validationError.action" data-el="form-row-error" class="ml-4 text-red-400 text-xs">{{ validationError.action }}</div>
         </div>
         <div class="w-full">
@@ -15,9 +15,11 @@
                 @update:model-value="update"
             />
         </div>
+
         <MinusIcon
-            v-if="canBeRemoved" class="ff-icon hover:cursor-pointer self-center p-1"
-            @click="$emit('remove-acl', orderKey)"
+            class="ff-icon hover:cursor-pointer self-center p-1"
+            :class="{'hover:cursor-not-allowed': !canBeRemoved}"
+            @click="removeAcl"
         />
     </div>
 </template>
@@ -43,6 +45,10 @@ export default {
         orderKey: {
             required: true,
             type: Number
+        },
+        acls: {
+            required: true,
+            type: Array
         }
     },
     emits: ['update:modelValue', 'remove-acl'],
@@ -70,7 +76,7 @@ export default {
             return this.hasActionError || this.hasPatternError
         },
         canBeRemoved () {
-            return this.orderKey !== 0
+            return this.acls.length > 1
         }
     },
     mounted () {
@@ -80,6 +86,11 @@ export default {
     methods: {
         update () {
             this.$emit('update:modelValue', this.model)
+        },
+        removeAcl () {
+            if (this.canBeRemoved) {
+                this.$emit('remove-acl', this.orderKey)
+            }
         }
     }
 }

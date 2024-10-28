@@ -55,6 +55,7 @@
                         <AclItem
                             v-model="input.acls[$key]"
                             :order-key="$key"
+                            :acls="input.acls"
                             :validation-error="errors.acls[$key]"
                             @update:model-value="onAclUpdated($event, $key)"
                             @remove-acl="onRemoveAcl"
@@ -278,8 +279,8 @@ export default {
             }
         },
         onRemoveAcl ($key) {
-            this.errors.acls = this.errors.acls.filter((item, key) => key !== $key || key === 0)
-            this.input.acls = this.input.acls.filter((item, key) => key !== $key || key === 0)
+            this.errors.acls = this.errors.acls.filter((item, key) => key !== $key)
+            this.input.acls = this.input.acls.filter((item, key) => key !== $key)
         },
         clearData () {
             this.input = {
