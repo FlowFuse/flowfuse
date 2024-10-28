@@ -222,7 +222,7 @@ Once you have finished setting up the admin user there are some Docker specific 
 
 ## Upgrade
 
-**Note: If you are upgrading from version `2.9.0` or lower, please follow [this guide](https://github.com/FlowFuse/docker-compose/blob/main/UPGRADE.md)**
+**Note: If you are upgrading from version `2.10.0` or lower, please follow [this guide](https://github.com/FlowFuse/docker-compose/blob/main/UPGRADE.md)**
 
 1. Find the Docker Compose project name:
     ```bash
@@ -266,6 +266,23 @@ Once ready, [start the application](#start-flowfuse-platform) .
 ### How can I provide my own TLS certificate?
 
 If you have your own TLS certificate, you can use it in FlowFuse platform installation as well. See [Enable HTTPS](#enable-https-optional) section for more details.
+
+### I would like to invity my team members to the platform with e-mail, how can I do that?
+
+In order to configure FlowFuse platform with external e-mail server, you need to adjust `EMAIL_*` variables in the `.env` file.
+Find the `.env` file end edit `Email configuration` section with following details:
+* `EMAIL_ENABLED` - set to `true` to enable e-mail functionality
+* `EMAIL_HOST` - provide SMTP server host
+* `EMAIL_PORT` - provide SMTP server port (default is `587`)
+* `EMAIL_SECURE` - set to `true` if the connection should be secured
+* `EMAIL_USER` - provide SMTP server username
+* `EMAIL_PASSWORD` - provide SMTP for the user defined in `EMAIL_USER`
+
+Restart the core application to apply the changes:
+  
+```bash
+docker compose restart forge
+```
 
 ### After starting the platform, I can't access it in the browser - I see Connection Refused error
 
