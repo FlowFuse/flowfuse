@@ -68,6 +68,7 @@
 
 <script>
 import { PlusIcon } from '@heroicons/vue/solid'
+import { mapState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
 import FormRow from '../../../../components/FormRow.vue'
@@ -82,10 +83,6 @@ export default {
         PlusIcon
     },
     props: {
-        team: {
-            type: Object,
-            required: true
-        },
         clients: {
             required: true,
             type: Array
@@ -144,6 +141,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         disableConfirm () {
             if (!this.input.username) {
                 return true

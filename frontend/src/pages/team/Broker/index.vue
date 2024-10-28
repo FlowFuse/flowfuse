@@ -107,7 +107,6 @@
             <ClientDialog
                 ref="clientDialog"
                 :clients="clients"
-                :team="team"
                 @client-created="fetchData"
                 @client-updated="fetchData"
             />
@@ -146,11 +145,7 @@ export default {
         return {
             loading: false,
             clients: [],
-            filterTerm: '',
-            columns: [
-                { label: 'Username', class: ['flex-grow'], key: 'username', sortable: true },
-                { label: 'ACLS', class: ['w-44'], key: 'acls', sortable: false }
-            ]
+            filterTerm: ''
         }
     },
     computed: {
