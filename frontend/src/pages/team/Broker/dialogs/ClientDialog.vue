@@ -38,8 +38,8 @@
             <div class="acls">
                 <h3 class="flex justify-between">
                     <span>Access Control Rules</span>
-                    <span>
-                        <PlusIcon class="ff-icon hover:cursor-pointer" data-action="add-acl" @click="addAcl" />
+                    <span data-action="add-acl">
+                        <PlusIcon class="ff-icon hover:cursor-pointer" @click="addAcl" />
                     </span>
                 </h3>
                 <div class="headers flex gap-2.5 items-center">
@@ -50,7 +50,7 @@
                         Pattern
                     </label>
                 </div>
-                <ul>
+                <ul data-el="acl-list">
                     <li v-for="(acl, $key) in input.acls" :key="$key">
                         <AclItem
                             v-model="input.acls[$key]"

@@ -1,16 +1,12 @@
 <template>
     <div class="acl-rule grid grid-cols-6 gap-4">
         <div class="action col-start-2 flex gap-2.5">
-            <span
-                :class="pubClass"
-            >
+            <span :class="pubClass" data-el="pub">
                 <CheckIcon v-if="canPublish" class="ff-icon-sm" />
                 <XIcon v-else class="ff-icon-sm" />
                 pub
             </span>
-            <span
-                :class="subClass"
-            >
+            <span :class="subClass" data-el="sub">
                 <CheckIcon v-if="canSubscribe" class="ff-icon-sm" />
                 <XIcon v-else class="ff-icon-sm" />
                 sub

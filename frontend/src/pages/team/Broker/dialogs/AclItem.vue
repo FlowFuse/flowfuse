@@ -1,5 +1,5 @@
 <template>
-    <div class="acl flex gap-2.5 mb-3 items-start">
+    <div class="acl flex gap-2.5 mb-3 items-start" data-el="acl-item">
         <div>
             <ff-listbox v-model="model.action" :options="actions" @update:model-value="update" />
             <div v-if="validationError.action" data-el="form-row-error" class="ml-4 text-red-400 text-xs">{{ validationError.action }}</div>
@@ -10,6 +10,7 @@
                 class="flex-1"
                 type="input"
                 containerClass="max-w-full"
+                data-input="pattern"
                 :error="validationError.pattern"
                 @update:model-value="update"
             />

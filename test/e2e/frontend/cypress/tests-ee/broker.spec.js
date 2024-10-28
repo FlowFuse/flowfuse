@@ -42,6 +42,7 @@ describe('FlowForge - Broker', () => {
             cy.get('[data-nav="team-broker"]').should('not.be.disabled')
             cy.get('[data-nav="team-broker"] [data-el="premium-feature"]').should('not.exist')
         })
+
         it('should display the empty state visible when no clients created and can create a client', () => {
             cy.intercept('GET', '/api/*/teams/*/broker/clients', {
                 clients: [],
@@ -76,6 +77,7 @@ describe('FlowForge - Broker', () => {
 
             cy.wait('@getClients')
         })
+
         it('should correctly display a list of clients ', () => {
             cy.intercept('GET', '/api/*/teams/*/broker/clients', {
                 clients: [
@@ -113,7 +115,7 @@ describe('FlowForge - Broker', () => {
                     }
                 ],
                 meta: {},
-                count: 0
+                count: 2
             }).as('getClients')
             cy.get('[data-nav="team-broker"]').click()
 
@@ -142,8 +144,13 @@ describe('FlowForge - Broker', () => {
                     .within(() => {
                         cy.get('[data-el="accordion"]')
                             .within(() => {
-                                // todo check for more data
                                 cy.get('[data-el="acl"]').should('have.length', 3)
+
+                                // checking how sub/pub is displayed based on provided input
+                                cy.get('[data-el="acl"] [data-el="pub"].text-green-500').should('have.length', 2)
+                                cy.get('[data-el="acl"] [data-el="pub"].text-red-500').should('have.length', 1)
+                                cy.get('[data-el="acl"] [data-el="sub"].text-green-500').should('have.length', 2)
+                                cy.get('[data-el="acl"] [data-el="sub"].text-red-500').should('have.length', 1)
                             })
                     })
                 cy.get('[data-el="client"]')
@@ -156,15 +163,102 @@ describe('FlowForge - Broker', () => {
                     .within(() => {
                         cy.get('[data-el="accordion"]')
                             .within(() => {
-                                // todo check for more data
                                 cy.get('[data-el="acl"]').should('have.length', 2)
+                                // checking how sub/pub is displayed based on provided input
+                                cy.get('[data-el="acl"] [data-el="pub"].text-green-500').should('have.length', 1)
+                                cy.get('[data-el="acl"] [data-el="pub"].text-red-500').should('have.length', 1)
+                                cy.get('[data-el="acl"] [data-el="sub"].text-green-500').should('have.length', 1)
+                                cy.get('[data-el="acl"] [data-el="sub"].text-red-500').should('have.length', 1)
                             })
                     })
             })
         })
+
         it('should validate the create client input modal', () => {
-            // todo test modal validation
+            cy.intercept('POST', '/api/*/teams/*/broker/client', { statusCode: 200 })
+                .as('saveClient')
+            cy.intercept('GET', '/api/*/teams/*/broker/clients', {
+                clients: [
+                    {
+                        id: '1',
+                        username: 'john',
+                        acls: [
+                            {
+                                action: 'both',
+                                pattern: 'both/#'
+                            },
+                            {
+                                action: 'subscribe',
+                                pattern: 'subscribe/#'
+                            },
+                            {
+                                action: 'publish',
+                                pattern: 'publish/#'
+                            }
+                        ]
+                    }
+
+                ],
+                meta: {},
+                count: 1
+            }).as('getClients')
+
+            cy.get('[data-nav="team-broker"]').click()
+
+            cy.get('[data-el="create-client-dialog"]').should('not.be.visible')
+            cy.get('[data-action="create-client"]').should('not.be.disabled')
+            cy.get('[data-action="create-client"]').click()
+            cy.get('[data-el="create-client-dialog"]').should('be.visible')
+
+            cy.get('[data-el="create-client-dialog"]').within(() => {
+                cy.get('[data-action="dialog-confirm"]').should('be.disabled')
+
+                // filling in the username with an already existing one
+                cy.get('[data-el="username"] input').should('have.value', '')
+                cy.get('[data-el="username"] input').should('not.be.disabled')
+                cy.get('[data-el="username"] input').type('john')
+                cy.get('[data-action="dialog-confirm"]').should('be.disabled')
+
+                // filling in the password
+                cy.get('[data-el="password"] input').should('have.value', '')
+                cy.get('[data-el="password"] input').type('password')
+                cy.get('[data-action="dialog-confirm"]').should('be.disabled')
+
+                // filling in the confirm-password with a mismatched password to trigger an error
+                cy.get('[data-el="confirm-password"] input').should('have.value', '')
+                cy.get('[data-el="confirm-password"] input').type('another-password')
+                cy.get('[data-action="dialog-confirm"]').should('not.be.disabled')
+
+                cy.get('[data-el="acl-item"]').should('have.length', 1)
+                cy.get('[data-action="add-acl"]').click()
+                cy.get('[data-el="acl-item"]').should('have.length', 2)
+
+                cy.get('[data-action="dialog-confirm"]').click()
+
+                cy.contains('Client name already exists.')
+                cy.contains('The provided passwords do not match.')
+                cy.contains('Please select an action.')
+                cy.contains('The pattern cannot be empty.')
+
+                // fill in valid data
+                cy.get('[data-el="username"] input').clear()
+                cy.get('[data-el="username"] input').type('new-client')
+
+                cy.get('[data-el="confirm-password"] input').clear()
+                cy.get('[data-el="confirm-password"] input').type('password')
+
+                cy.get('[data-el="acl-item"]').last().within(() => {
+                    cy.get('[data-el="listbox"]').click()
+                    cy.get('[data-option="Subscribe"]').click()
+                    cy.get('[data-input="pattern"] input').type('topic/#')
+                })
+
+                cy.get('[data-action="dialog-confirm"]').click()
+            })
+            cy.wait('@saveClient')
+            cy.wait('@getClients')
         })
+
         it('should allow to edit an existing client', () => {
             cy.intercept('GET', '/api/*/teams/*/broker/clients', {
                 clients: [
@@ -202,8 +296,11 @@ describe('FlowForge - Broker', () => {
                     }
                 ],
                 meta: {},
-                count: 0
+                count: 2
             }).as('getClients')
+            cy.intercept('PUT', '/api/*/teams/*/broker/client/*', {
+                statusCode: 200
+            }).as('updateClient')
 
             cy.get('[data-nav="team-broker"]').click()
 
@@ -217,9 +314,39 @@ describe('FlowForge - Broker', () => {
                 })
 
             cy.get('[data-el="create-client-dialog"]').should('be.visible')
-            // todo check update modal validation & loaded data
-            // todo check that confirming the update modal refreshes the data
+
+            cy.get('[data-el="create-client-dialog"]')
+                .within(() => {
+                    cy.get('[data-el="username"] input').should('have.value', 'matt')
+                    cy.get('[data-el="username"] input').should('be.disabled')
+
+                    cy.get('[data-action="add-acl"]').should('exist')
+
+                    cy.get('[data-el="password"] input').should('have.attr', 'placeholder', 'Leave blank to keep current password')
+                    cy.get('[data-el="confirm-password"] input').should('have.attr', 'placeholder', 'Leave blank to keep current password')
+
+                    cy.get('[data-el="acl-item"]').should('have.length', 2)
+
+                    cy.get('[data-el="acl-list"] li:first-child')
+                        .within(() => {
+                            cy.get('[data-el="listbox"] input').should('have.value', 'Subscribe')
+                            cy.get('[data-input="pattern"] input').should('have.value', 'subscribe/#')
+                        })
+
+                    cy.get('[data-el="acl-list"] li:last-child')
+                        .within(() => {
+                            cy.get('[data-el="listbox"] input').should('have.value', 'Publish')
+                            cy.get('[data-input="pattern"] input').should('have.value', 'publish/#')
+                        })
+
+                    cy.get('[data-action="dialog-confirm"]').should('not.be.disabled')
+                    cy.get('[data-action="dialog-confirm"]').click()
+                })
+
+            cy.wait('@updateClient')
+            cy.wait('@getClients')
         })
+
         it('should allow to delete an existing client', () => {
             cy.intercept('DELETE', '/api/*/teams/*/broker/client/*', {
                 statusCode: 200,
@@ -247,7 +374,7 @@ describe('FlowForge - Broker', () => {
                     }
                 ],
                 meta: {},
-                count: 0
+                count: 1
             }).as('getClients')
 
             cy.get('[data-nav="team-broker"]').click()
