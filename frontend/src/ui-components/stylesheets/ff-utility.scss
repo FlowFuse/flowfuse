@@ -3,10 +3,10 @@
 */
 
 // screen sizes
-$ff-screen-sm: 640px; 
-$ff-screen-md: 768px; 
-$ff-screen-lg: 1024px; 
-$ff-screen-xl: 1280px; 
+$ff-screen-sm: 640px;
+$ff-screen-md: 768px;
+$ff-screen-lg: 1024px;
+$ff-screen-xl: 1280px;
 $ff-screen-2xl: 1536px;
 
 // unit
@@ -22,3 +22,9 @@ $ff-funit-sm: 0.85rem;
 $ff-funit-md: 1rem;
 $ff-funit-lg: 1.5rem;
 $ff-funit-xl: 2rem;
+
+@mixin ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

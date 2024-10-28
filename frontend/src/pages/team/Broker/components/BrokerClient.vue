@@ -3,7 +3,7 @@
         <template #label>
             <div class="username text-left flex">
                 <text-copier :text="client.username + '@' + team.id" @click.prevent.stop>
-                    <span :title="client.username + '@' + team.id">
+                    <span :title="client.username + '@' + team.id" class="title-wrapper">
                         <span class="mt-1 font-bold">{{ client.username }}</span>
                         <span class="italic mt-1">@{{ team.id }}</span>
                     </span>
@@ -95,6 +95,18 @@ export default {
         .username {
             padding: 15px 10px;
             grid-column: span 2;
+            overflow: hidden;
+
+            .ff-text-copier {
+                @include ellipsis;
+                & > span {
+                    @include ellipsis;
+                }
+                .title-wrapper {
+                    @include ellipsis;
+                }
+
+            }
 
             .ff-icon {
                 margin-left: 0;
