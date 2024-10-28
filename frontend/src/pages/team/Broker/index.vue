@@ -22,7 +22,7 @@
             :featureUnavailableToTeam="!isMqttBrokerFeatureEnabledForTeam"
         >
             <template #img>
-                <img src="../../../images/empty-states/mqtt.png" alt="pipelines-logo">
+                <img src="../../../images/empty-states/mqtt-forbidden.png" alt="pipelines-logo">
             </template>
             <template #header>
                 <span>Broker Not Available</span>
@@ -81,7 +81,7 @@
                     </section>
                     <EmptyState v-else>
                         <template #img>
-                            <img src="../../../images/empty-states/mqtt.png" alt="logo">
+                            <img src="../../../images/empty-states/mqtt-empty.png" alt="logo">
                         </template>
                         <template #header>Create your first Broker Client</template>
                         <template #message>
