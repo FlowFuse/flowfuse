@@ -117,7 +117,7 @@ export default {
                     passwordConfirm: ''
                 }
                 this.input.acls = [...client.acls.map(acl => ({ ...acl, id: generateUuid() }))]
-                client.acls.forEach((acl) => {
+                this.input.acls.forEach((acl) => {
                     this.errors.acls[acl.id] = {
                         id: acl.id,
                         action: null,
