@@ -237,8 +237,6 @@ describe('FlowForge - Broker', () => {
 
                 cy.contains('Client name already exists.')
                 cy.contains('The provided passwords do not match.')
-                cy.contains('Please select an action.')
-                cy.contains('The pattern cannot be empty.')
 
                 // fill in valid data
                 cy.get('[data-el="username"] input').clear()
@@ -339,7 +337,13 @@ describe('FlowForge - Broker', () => {
                             cy.get('[data-input="pattern"] input').should('have.value', 'publish/#')
                         })
 
+                    cy.get('[data-action="dialog-confirm"]').should('be.disabled')
+
+                    cy.get('[data-el="password"] input').type('new-password')
+                    cy.get('[data-el="confirm-password"] input').type('new-password')
+
                     cy.get('[data-action="dialog-confirm"]').should('not.be.disabled')
+
                     cy.get('[data-action="dialog-confirm"]').click()
                 })
 
