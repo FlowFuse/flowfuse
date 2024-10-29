@@ -55,6 +55,7 @@ export default {
     data () {
         return {
             model: {
+                id: '',
                 action: '',
                 pattern: ''
             },
@@ -80,6 +81,7 @@ export default {
         }
     },
     mounted () {
+        this.model.id = this.modelValue.id
         this.model.action = this.modelValue.action
         this.model.pattern = this.modelValue.pattern
     },
@@ -89,7 +91,7 @@ export default {
         },
         removeAcl () {
             if (this.canBeRemoved) {
-                this.$emit('remove-acl', this.orderKey)
+                this.$emit('remove-acl', this.model)
             }
         }
     }
