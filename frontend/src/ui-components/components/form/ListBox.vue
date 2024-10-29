@@ -149,8 +149,12 @@ export default {
   .ff-button {
     border: 1px solid $ff-grey-300;
     padding: 5px 5px 5px 10px;
-    &:focus-visible, &:focus {
-      outline: none;
+    &:focus-visible {
+        outline: none;
+    }
+
+    &:focus {
+        border-color: $ff-blue-500;
     }
 
     .icon {
