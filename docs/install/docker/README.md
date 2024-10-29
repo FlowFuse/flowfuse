@@ -57,8 +57,6 @@ meta:
 This guide walks you through detailed set up of FlowFuse Platform on a Docker container envoronment using Docker Compose. Typically suited for small/medium on premise deployments.
 By the end, you will have a fully functioning FlowFuse instance running in a Docker container.
 
-For a FlowFuse platform evaluation purposes, check out our [Quick Start Guide](../../quick-start/README.md).
-
 The following guide walks through a full production-ready deployment. If you want to install FlowFuse for evaluation purposes, please refer to the [Quick Start Guide](../../quick-start/README.md).
 
 ## Checklist
