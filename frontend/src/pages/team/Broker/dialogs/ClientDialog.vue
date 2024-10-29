@@ -124,6 +124,7 @@ export default {
                         pattern: null
                     }
                 })
+                this.originalState = JSON.stringify(this.input)
                 this.$refs.dialog.show()
             }
         }
@@ -142,7 +143,8 @@ export default {
                 username: null,
                 password: null,
                 acls: {}
-            }
+            },
+            originalState: null
         }
     },
     computed: {
@@ -152,7 +154,7 @@ export default {
                 return true
             }
             if (this.isEditing) {
-                return false
+                return this.isDirty
             }
             return !this.input.password || !this.input.passwordConfirm
         },
@@ -168,6 +170,12 @@ export default {
             }
 
             return 'Confirm Client Password'
+        },
+        isDirty () {
+            if (!this.isEditing) {
+                return false
+            }
+            return this.originalState === JSON.stringify(this.input)
         }
     },
     methods: {
