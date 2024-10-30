@@ -322,3 +322,10 @@ To disable the default File nodes, edit the Template and add `10-file.js,23-watc
 FlowFuse Docker Compose files includes FlowFuse File Storage component by default and starts it along with the platform.
 
 Full details on configuring the File Storage service are available [here](../file-storage/).
+
+
+## Uninstall
+
+- Bring the services down with `docker compose -p flowfuse down -v` (note the extra `-v` to delete all the volumes, only include this if you do not want to reuse this install)
+- Use `docker images` to list container images
+- Use `docker rmi [imagename]:[tag]` to remove all images that start with `flowfuse/`
