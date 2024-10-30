@@ -33,7 +33,7 @@ sudo npm install -g @flowfuse/device-agent
 npm install -g @flowfuse/device-agent
 ```
 
-For full install instructions, follow the [install instructions here](/docs/device-agent/install).
+For full install instructions, follow the [install instructions here](/docs/device-agent/install.md).
 
 ### Step 2: Register Device (On FlowFuse)
 
@@ -74,7 +74,7 @@ Your device is now connected to FlowFuse and ready to be used.
 There are two approaches to running flows on your Devices.
 
 - **Developer Mode**: This mode allows you to edit and deploy flows directly from the FlowFuse platform.
-- **DevOps Pipelines**: FlowFuse provides [DevOps Pipelines](/docs/user/devops-pipelines) as a way of pushing flows from one Instance/Device to another (or several in the case of [Device Groups](/docs/user/device-groups)). This is the recommended approach if you're pushing from development environments (e.g. test devices) out to production devices.
+- **DevOps Pipelines**: FlowFuse provides [DevOps Pipelines](/docs/user/devops-pipelines.md) as a way of pushing flows from one Instance/Device to another (or several in the case of [Device Groups](/docs/user/device-groups.md)). This is the recommended approach if you're pushing from development environments (e.g. test devices) out to production devices.
 
 ### Developer Mode
 
@@ -101,7 +101,7 @@ There are two approaches to running flows on your Devices.
 ![Screenshot showing the user interface for creating and running DevOps Pipelines in FlowFuse](../user/images/ui-devops-pipelines.png){width=750}{data-zoomable}
 _Screenshot showing the user interface for creating and running DevOps Pipelines in FlowFuse_
 
-To work with Pipelines, you need at least one other Instance or Device to push _from_/_to_. You can follow hte instructions on setting up a Pipeline and deploying your flows between Instances/Devices [DevOps Pipelines](/docs/user/devops-pipelines).
+To work with Pipelines, you need at least one other Instance or Device to push _from_/_to_. You can follow hte instructions on setting up a Pipeline and deploying your flows between Instances/Devices [DevOps Pipelines](/docs/user/devops-pipelines.md).
 
 ## Next Steps
 
