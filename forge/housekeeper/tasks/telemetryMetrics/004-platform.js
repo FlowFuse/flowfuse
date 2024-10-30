@@ -1,9 +1,11 @@
 module.exports = async (app) => {
     let sharedLibraryEntries = 0
     let blueprintCount = 0
+    let teamBrokerClients = 0
     if (app.license.active()) {
         blueprintCount = await app.db.models.FlowTemplate?.count()
         sharedLibraryEntries = await app.db.models.StorageSharedLibrary?.count()
+        teamBrokerClients = await app.db.models.TeamBrokerClient?.count()
     }
     const licenseType = () => {
         if (app.license.active()) {
@@ -31,6 +33,7 @@ module.exports = async (app) => {
         'platform.counts.libraryEntries': await app.db.models.StorageLibrary.count(),
         'platform.counts.blueprints': blueprintCount,
         'platform.counts.sharedLibraryEntries': sharedLibraryEntries,
+        'platform.counts.teamBrokerClients': teamBrokerClients,
 
         'platform.config.driver': app.config.driver.type,
         'platform.config.broker.enabled': !!app.config.broker,
