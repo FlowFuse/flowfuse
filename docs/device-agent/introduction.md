@@ -12,8 +12,12 @@ meta:
 
 # FlowFuse Device Agent
 
-The FlowFuse platform can be used to manage Node-RED instances running on remote Devices.
-A Device runs a software agent that connects back to FlowFuse in order to receive updates.
+![FlowFuse Device Agent Workflow](./images/device-agent-workflow.png){data-zoomable}
+_Workflow to onboard new Edge Devices through the FlowFuse Platform and Device Agent_
+
+The FlowFuse platform can be used to manage Node-RED instances running on remote hardware, e.g. devices on your factory floor.
+
+By installing the FlowFuse Device Agent, you can securely connect your hardware to FlowFuse in order to manage and deploy Node-RED flows remotely.
 
 In order to connect your device to FlowFuse, and to allow FlowFuse to manage it, you'll need to do the following steps:
 
