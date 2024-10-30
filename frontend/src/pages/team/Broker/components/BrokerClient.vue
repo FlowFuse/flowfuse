@@ -98,12 +98,12 @@ export default {
             overflow: hidden;
 
             .ff-text-copier {
-                @include ellipsis;
+                @include truncate;
                 & > span {
-                    @include ellipsis;
+                    @include truncate;
                 }
                 .title-wrapper {
-                    @include ellipsis;
+                    @include truncate;
                 }
 
             }

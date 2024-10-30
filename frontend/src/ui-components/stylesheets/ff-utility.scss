@@ -23,7 +23,7 @@ $ff-funit-md: 1rem;
 $ff-funit-lg: 1.5rem;
 $ff-funit-xl: 2rem;
 
-@mixin ellipsis {
+@mixin truncate {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

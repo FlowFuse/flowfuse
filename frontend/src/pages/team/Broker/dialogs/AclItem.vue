@@ -15,12 +15,15 @@
                 @update:model-value="update"
             />
         </div>
-
-        <MinusIcon
-            class="ff-icon hover:cursor-pointer self-center p-1"
-            :class="{'hover:cursor-not-allowed': !canBeRemoved}"
+        <ff-button
+            kind="tertiary"
+            size="small"
+            class="self-top p-1 mt-1.5"
+            :disabled="!canBeRemoved"
             @click="removeAcl"
-        />
+        >
+            <MinusIcon class="ff-icon" />
+        </ff-button>
     </div>
 </template>
 

@@ -39,7 +39,9 @@
                 <h3 class="flex justify-between">
                     <span>Access Control Rules</span>
                     <span data-action="add-acl">
-                        <PlusIcon class="ff-icon hover:cursor-pointer" @click="addAcl" />
+                        <ff-button kind="tertiary" size="small" @click="addAcl">
+                            <PlusIcon class="ff-icon" />
+                        </ff-button>
                     </span>
                 </h3>
                 <div class="headers flex gap-2.5 items-center">
