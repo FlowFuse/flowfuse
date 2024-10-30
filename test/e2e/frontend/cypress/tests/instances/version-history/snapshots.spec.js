@@ -40,8 +40,7 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.intercept('GET', '/api/*/projects/*/snapshots', { count: 0, snapshots: [] }).as('getEmptyProjectSnapshots')
         cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@getEmptyProjectSnapshots')
-        // eslint-disable-next-line cypress/require-data-selectors
-        cy.get('main').contains('Create your First Snapshot')
+        cy.get('[data-el="empty-state"]').contains('h1', 'Create your First Snapshot')
     })
 
     it('provides functionality to create a snapshot', () => {
@@ -49,15 +48,12 @@ describe('FlowForge - Instance Snapshots', () => {
         cy.visit(`/instance/${projectId}/version-history/snapshots`)
         cy.wait('@snapshotData')
 
-        // eslint-disable-next-line cypress/require-data-selectors
-        cy.get('button[data-action="create-snapshot"]').click()
+        cy.get('[data-action="create-snapshot"]').click()
 
         cy.get('[data-el="dialog-create-snapshot"]').should('be.visible')
-        // eslint-disable-next-line cypress/require-data-selectors
-        cy.get('.ff-dialog-header').contains('Create Snapshot')
+        cy.get('[data-el="dialog-create-snapshot"] .ff-dialog-header').contains('Create Snapshot')
         // disabled primary button by default
-        // eslint-disable-next-line cypress/require-data-selectors
-        cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').should('be.disabled')
+        cy.get('[data-el="dialog-create-snapshot"] .ff-dialog-box button.ff-btn.ff-btn--primary').should('be.disabled')
 
         cy.get('[data-el="dialog-create-snapshot"] [data-form="snapshot-name"] input[type="text"]').type('snapshot1')
         // inserting snapshot name is enough to enable button
@@ -442,8 +438,7 @@ describe('FlowForge - Instance Snapshots', () => {
             cy.get('[data-el="platform-dialog"] .ff-btn--danger').click()
             cy.wait('@deleteSnapshot')
             if (count === 1) {
-                // eslint-disable-next-line cypress/require-data-selectors
-                cy.get('main').contains('Create your First Snapshot')
+                cy.get('[data-el="empty-state"]').contains('h1', 'Create your First Snapshot')
             } else {
                 cy.get('[data-el="snapshots"] tbody').find('tr').should('have.length', count - 1)
             }
@@ -728,19 +723,15 @@ describe('FlowForge shows audit logs', () => {
     })
 
     it('for when a snapshot is created', () => {
-        // eslint-disable-next-line cypress/require-data-selectors
-        cy.get('.ff-audit-entry').contains('Instance Snapshot Created', { includeShadowDom: true, force: true }) // force check to inspect items off screen
+        cy.get('[data-el="accordion"] .ff-audit-entry').contains('Instance Snapshot Created', { includeShadowDom: true, force: true }) // force check to inspect items off screen
     })
     it('for when a snapshot is deleted', () => {
-        // eslint-disable-next-line cypress/require-data-selectors
-        cy.get('.ff-audit-entry').contains('Instance Snapshot Deleted', { includeShadowDom: true, force: true }) // force check to inspect items off screen
+        cy.get('[data-el="accordion"] .ff-audit-entry').contains('Instance Snapshot Deleted', { includeShadowDom: true, force: true }) // force check to inspect items off screen
     })
     it('for when a snapshot is exported', () => {
-        // eslint-disable-next-line cypress/require-data-selectors
-        cy.get('.ff-audit-entry').contains('Instance Snapshot Exported', { includeShadowDom: true, force: true }) // force check to inspect items off screen
+        cy.get('[data-el="accordion"] .ff-audit-entry').contains('Instance Snapshot Exported', { includeShadowDom: true, force: true }) // force check to inspect items off screen
     })
     it('for when a snapshot is imported', () => {
-        // eslint-disable-next-line cypress/require-data-selectors
-        cy.get('.ff-audit-entry').contains('Snapshot Imported', { includeShadowDom: true, force: true }) // force check to inspect items off screen
+        cy.get('[data-el="accordion"] .ff-audit-entry').contains('Snapshot Imported', { includeShadowDom: true, force: true }) // force check to inspect items off screen
     })
 })
