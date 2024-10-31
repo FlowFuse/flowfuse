@@ -49,6 +49,12 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
                 secure: false,
                 debug: true
             }
+        },
+        broker: {
+            url: ':test:',
+            teamBroker: {
+                enabled: true
+            }
         }
     })
 
@@ -60,7 +66,6 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
     defaultTeamTypeProperties.features.deviceGroups = true
     defaultTeamTypeProperties.features.protectedInstance = true
     defaultTeamTypeProperties.features.teamHttpSecurity = true
-    defaultTeamTypeProperties.features.teamBroker = true
     defaultTeamType.properties = defaultTeamTypeProperties
     await defaultTeamType.save()
 
