@@ -8,11 +8,6 @@ describe('Broker Auth API', async function () {
     let factory = null
     const TestObjects = {}
 
-    const ACC = {
-        READ: 1,
-        WRITE: 2,
-        SUBSCRIBE: 4
-    }
     async function setupCE () {
         app = await setup()
         await setupTestObjects()
@@ -57,7 +52,6 @@ describe('Broker Auth API', async function () {
     async function denyRead (opts) {
         // Due to the way mosquitto auth checks work, we need to check
         // both READ and SUBSCRIBE access
-        opts.acc = ACC.READ
         opts.action = 'subscribe'
         const response = await sendACLPost(opts)
         response.statusCode.should.equal(200)
