@@ -172,17 +172,21 @@ $nav_height: 60px;
 }
 
 .ff-layout--platform--wrapper{
-    display: grid;
-    flex-grow: 1;
     padding-top: $nav_height;
     position: absolute;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    display: flex;
+    flex-direction: row;
+
     .ff-view {
         position: relative;
         overflow-y: auto;
         overflow-x: hidden;
+        width: 100%;
+        height: 100%;
+        transition: ease-in-out margin-left .3s;
     }
     main {
         background-color: $ff-grey-50;
@@ -657,7 +661,6 @@ $nav_height: 60px;
         border: 1px solid $ff-red-700;
     }
     .ff-side-navigation--options-back {
-        // width: 100%;
         li {
             border-top: 1px solid $ff-grey-600;
         }
@@ -669,17 +672,6 @@ $nav_height: 60px;
     /* Box */
     .ff-layout--box--wrapper {
         width: 85%;
-    }
-    /* Platform */
-    .ff-layout--platform--wrapper {
-        grid-template-columns: $sidenav_width 1fr;
-
-        &.closed {
-            grid-template-columns: 1fr;
-            #platform-sidenav {
-                display: none;
-            }
-        }
     }
     .ff-navigation {
         left: 0;
@@ -699,59 +691,84 @@ $nav_height: 60px;
     }
 }
 
+#ff-app {
+    #left-drawer {
+        position: relative;
+        transition: ease-in-out left .3s;
+        height: 100%;
+        z-index: 100;
+        left: 0;
 
-.ff-main-navigation {
-    .ff-menu-groups {
-        padding-top: 10px;
+        .ff-main-navigation {
+            min-width: $sidenav_width;
 
-        .ff-menu-group {
-            padding: 5px;
+            .ff-menu-groups {
+                padding-top: 10px;
 
-            .ff-group-title {
-                margin: 10px 0 15px;
-                padding: 0 10px;
-                text-transform: uppercase;
-                color: $ff-grey-400; // todo replace with themed variables not colors
-                font-size: 12px;
-            }
+                .ff-menu-group {
+                    padding: 5px;
 
-            .ff-menu-entries {
-
-                .ff-menu-entry {
-                    margin-bottom: 5px;
-
-                    &:last-of-type {
-                        margin-bottom: 0;
+                    .ff-group-title {
+                        margin: 10px 0 15px;
+                        padding: 0 10px;
+                        text-transform: uppercase;
+                        color: $ff-grey-400; // todo replace with themed variables not colors
+                        font-size: 12px;
                     }
 
-                    .ff-nav-item {
-                        padding: 5px 10px;
-                        border-radius: 5px;
+                    .ff-menu-entries {
 
-                        & > div {
-                            gap: 5px;
-                        }
+                        .ff-menu-entry {
+                            margin-bottom: 5px;
 
-                        &:hover {
-                            background: $ff-grey-100; // todo replace with themed variables not colors
-                        }
-                    }
+                            &:last-of-type {
+                                margin-bottom: 0;
+                            }
 
-                    .router-link-active {
-                        .ff-nav-item {
-                            background: $ff-indigo-800; // todo replace with themed variables not colors
-                            color: white;
-                        }
-                    }
+                            .ff-nav-item {
+                                padding: 5px 10px;
+                                border-radius: 5px;
 
-                    .disabled {
-                        .ff-nav-item {
-                            color: $ff-grey-400; // todo replace with themed variables not colors
-                            cursor: not-allowed;
+                                & > div {
+                                    gap: 5px;
+                                }
+
+                                &:hover {
+                                    background: $ff-grey-100; // todo replace with themed variables not colors
+                                }
+                            }
+
+                            .router-link-active {
+                                .ff-nav-item {
+                                    background: $ff-indigo-800; // todo replace with themed variables not colors
+                                    color: white;
+                                }
+                            }
+
+                            .disabled {
+                                .ff-nav-item {
+                                    color: $ff-grey-400; // todo replace with themed variables not colors
+                                    cursor: not-allowed;
+                                }
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+
+    &.floating-left-bar {
+        #left-drawer {
+            left: -$sidenav_width;
+
+            &.active {
+                left: 0;
+            }
+        }
+
+        .ff-view {
+            margin-left:  -$sidenav_width;
         }
     }
 }

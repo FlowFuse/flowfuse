@@ -1,5 +1,5 @@
 <template>
-    <div id="ff-app" class="min-h-screen flex flex-col">
+    <div id="ff-app" class="min-h-screen flex flex-col" :class="{'floating-left-bar': hasFloatingLeftBar}">
         <template v-if="offline">
             <main class="ff-bg-dark flex-grow flex flex-col">
                 <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -88,6 +88,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
+        ...mapGetters('ux', ['hasFloatingLeftBar']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },
@@ -121,9 +122,26 @@ export default {
             return ['platform', 'modal', 'plain'].includes(layout) ? layout : 'platform'
         }
     },
+    watch: {
+        hasFloatingLeftBar: {
+            handler: function (value) {
+                if (value) {
+                    this.closeLeftDrawer()
+                } else this.openLeftDrawer()
+            },
+            immediate: true
+        }
+    },
     mounted () {
         this.$store.dispatch('account/checkState')
         this.$store.dispatch('product/checkFlags')
+        this.setupResizeListener()
+    },
+    unmounted () {
+        this.removeResizeListener()
+    },
+    methods: {
+        ...mapActions('ux', ['setupResizeListener', 'removeResizeListener', 'closeLeftDrawer', 'openLeftDrawer'])
     }
 }
 </script>

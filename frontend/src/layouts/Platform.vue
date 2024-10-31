@@ -1,6 +1,6 @@
 <template>
     <div class="ff-layout--platform">
-        <PageHeader :mobileMenuOpen="mobileMenuOpen" @menu-toggle="toggleMenu" />
+        <PageHeader />
         <div class="ff-layout--platform--wrapper" :class="{closed: !isMenuVisible}">
             <LeftDrawer />
 
@@ -50,32 +50,24 @@ export default {
         InterviewPopup
     },
     mixins: [AlertsMixin, DialogMixin],
-    data () {
-        return {
-            mobileMenuOpen: false
-        }
-    },
     computed: {
         ...mapState('product', ['interview']),
+        ...mapState('ux', ['leftDrawer']),
         ...mapGetters('account', ['hasAvailableTeams']),
-        ...mapGetters('ux', ['shouldShowLeftMenu']),
+        ...mapGetters('ux', ['shouldShowLeftBar']),
         isMenuVisible () {
-            return this.shouldShowLeftMenu(this.$route)
+            return this.shouldShowLeftBar(this.$route)
         }
     },
     watch: {
         $route: function () {
             this.checkRouteMeta()
-            this.mobileMenuOpen = false
         }
     },
     mounted () {
         this.checkRouteMeta()
     },
     methods: {
-        toggleMenu () {
-            this.mobileMenuOpen = !this.mobileMenuOpen
-        },
         checkRouteMeta () {
             for (let l = 0; l < this.$route.matched.length; l++) {
                 const level = this.$route.matched[l]
