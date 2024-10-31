@@ -1,7 +1,8 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions />
-    </Teleport>
+    <!--    todo fix teleport -->
+    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
+    <!--        <SideNavigationTeamOptions />-->
+    <!--    </Teleport>-->
     <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
     <main v-else-if="!instance?.id">
         <ff-loading message="Loading Instance..." />

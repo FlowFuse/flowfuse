@@ -1,13 +1,14 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation>
-            <template #back>
-                <router-link :to="{name: 'AdminUsersGeneral'}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Users" />
-                </router-link>
-            </template>
-        </SideNavigation>
-    </Teleport>
+    <!--    todo fix teleport -->
+    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
+    <!--        <SideNavigation>-->
+    <!--            <template #back>-->
+    <!--                <router-link :to="{name: 'AdminUsersGeneral'}">-->
+    <!--                    <nav-item :icon="icons.chevronLeft" label="Back to Users" />-->
+    <!--                </router-link>-->
+    <!--            </template>-->
+    <!--        </SideNavigation>-->
+    <!--    </Teleport>-->
     <main>
         <div class="max-w-2xl m-auto">
             <form class="space-y-6">

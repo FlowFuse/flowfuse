@@ -1,7 +1,8 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions />
-    </Teleport>
+    <!--    todo fix teleport -->
+    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
+    <!--        <SideNavigationTeamOptions />-->
+    <!--    </Teleport>-->
     <main v-if="device" class="ff-with-status-header">
         <Teleport v-if="mounted" to="#platform-banner">
             <SubscriptionExpiredBanner :team="team" />

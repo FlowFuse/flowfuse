@@ -1,13 +1,14 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation>
-            <template #back>
-                <router-link :to="{name: 'AdminSettingsSSO'}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to SSO" />
-                </router-link>
-            </template>
-        </SideNavigation>
-    </Teleport>
+    <!--    todo fix teleport -->
+    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
+    <!--        <SideNavigation>-->
+    <!--            <template #back>-->
+    <!--                <router-link :to="{name: 'AdminSettingsSSO'}">-->
+    <!--                    <nav-item :icon="icons.chevronLeft" label="Back to SSO" />-->
+    <!--                </router-link>-->
+    <!--            </template>-->
+    <!--        </SideNavigation>-->
+    <!--    </Teleport>-->
     <ff-page>
         <div class="max-w-2xl m-auto">
             <ff-loading v-if="loading && !isCreate" message="Loading SSO Configuration..." />

@@ -1,7 +1,8 @@
 <template>
-    <Teleport v-if="canAccessTeam && mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions />
-    </Teleport>
+    <!--    todo fix teleport -->
+    <!--    <Teleport v-if="canAccessTeam && mounted" to="#platform-sidenav">-->
+    <!--        <SideNavigationTeamOptions />-->
+    <!--    </Teleport>-->
     <div>
         <template v-if="pendingTeamChange">
             <Loading />

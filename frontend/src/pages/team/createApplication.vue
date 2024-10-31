@@ -1,13 +1,14 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation>
-            <template #options>
-                <a @click="$router.back()">
-                    <nav-item :icon="icons.chevronLeft" label="Back" />
-                </a>
-            </template>
-        </SideNavigation>
-    </Teleport>
+    <!--    todo fix teleport -->
+    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
+    <!--        <SideNavigation>-->
+    <!--            <template #options>-->
+    <!--                <a @click="$router.back()">-->
+    <!--                    <nav-item :icon="icons.chevronLeft" label="Back" />-->
+    <!--                </a>-->
+    <!--            </template>-->
+    <!--        </SideNavigation>-->
+    <!--    </Teleport>-->
     <Teleport v-if="mounted" to="#platform-banner">
         <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
     </Teleport>

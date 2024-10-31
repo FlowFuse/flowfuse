@@ -1,7 +1,8 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions />
-    </Teleport>
+    <!--    todo fix teleport -->
+    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
+    <!--        <SideNavigationTeamOptions />-->
+    <!--    </Teleport>-->
 
     <main v-if="!application?.id">
         <ff-loading message="Loading Application..." />

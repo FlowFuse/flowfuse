@@ -1,16 +1,17 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation>
-            <template #options>
-                <a @click="$router.back()">
-                    <nav-item
-                        :icon="icons.chevronLeft"
-                        label="Back"
-                    />
-                </a>
-            </template>
-        </SideNavigation>
-    </Teleport>
+    <!--    todo fix teleport -->
+    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
+    <!--        <SideNavigation>-->
+    <!--            <template #options>-->
+    <!--                <a @click="$router.back()">-->
+    <!--                    <nav-item-->
+    <!--                        :icon="icons.chevronLeft"-->
+    <!--                        label="Back"-->
+    <!--                    />-->
+    <!--                </a>-->
+    <!--            </template>-->
+    <!--        </SideNavigation>-->
+    <!--    </Teleport>-->
     <ff-page>
         <ff-loading v-if="loading" message="Updating Team..." />
         <div v-else class="m-auto">

@@ -1,13 +1,14 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation v-if="team">
-            <template #back>
-                <router-link :to="{name: 'Home'}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Dashboard" />
-                </router-link>
-            </template>
-        </SideNavigation>
-    </Teleport>
+    <!--    todo fix teleport -->
+    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
+    <!--        <SideNavigation v-if="team">-->
+    <!--            <template #back>-->
+    <!--                <router-link :to="{name: 'Home'}">-->
+    <!--                    <nav-item :icon="icons.chevronLeft" label="Back to Dashboard" />-->
+    <!--                </router-link>-->
+    <!--            </template>-->
+    <!--        </SideNavigation>-->
+    <!--    </Teleport>-->
     <ff-page>
         <ff-loading v-if="redirecting" message="Redirecting to Stripe..." />
         <ff-loading v-else-if="loading" message="Creating Team..." />
