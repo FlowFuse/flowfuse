@@ -1,4 +1,8 @@
 const state = () => ({
+    leftDrawer: {
+        state: false,
+        component: null
+    },
     rightDrawer: {
         state: false,
         component: null

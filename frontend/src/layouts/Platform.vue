@@ -2,9 +2,8 @@
     <div class="ff-layout--platform">
         <PageHeader :mobileMenuOpen="mobileMenuOpen" @menu-toggle="toggleMenu" />
         <div class="ff-layout--platform--wrapper" :class="{closed: !isMenuVisible}">
-            <div id="platform-sidenav" class="ff-navigation" :class="{'open': mobileMenuOpen}" data-sentry-unmask>
-                <!-- Each view uses a <Teleport> to fill this -->
-            </div>
+            <LeftDrawer />
+
             <div class="ff-view">
                 <div id="platform-banner" />
                 <slot />
@@ -37,6 +36,7 @@ import { mapGetters, mapState } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
+import LeftDrawer from '../components/drawers/LeftDrawer.vue'
 import RightDrawer from '../components/drawers/RightDrawer.vue'
 import AlertsMixin from '../mixins/Alerts.js'
 import DialogMixin from '../mixins/Dialog.js'
@@ -44,6 +44,7 @@ import DialogMixin from '../mixins/Dialog.js'
 export default {
     name: 'ff-layout-platform',
     components: {
+        LeftDrawer,
         RightDrawer,
         PageHeader,
         InterviewPopup
