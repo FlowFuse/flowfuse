@@ -86,10 +86,18 @@ Once the Ubuntu system is ready, follow these steps to install Docker:
    Now, install Docker and its associated packages:
 
    ```bash
-   sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+   sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
    ```
 
-4. **Start the Docker Service**
+4. **Add user to Docker group**
+
+   Add your user to the `docker` group to run Docker commands without `sudo`:
+
+   ```bash
+   sudo usermod -aG docker ubuntu
+   ```
+
+5. **Start the Docker Service**
 
    Start Docker using the following command:
 
@@ -97,7 +105,7 @@ Once the Ubuntu system is ready, follow these steps to install Docker:
    sudo /etc/init.d/docker start
    ```
 
-5. **Verify Docker Installation**
+6. **Verify Docker Installation**
 
    Run a test Docker container to verify that Docker is installed and running correctly:
 
