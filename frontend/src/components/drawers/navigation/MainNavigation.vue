@@ -8,8 +8,7 @@
                     <li v-for="(entry, $entryId) in group.entries" :key="$entryId" class="ff-menu-entry">
                         <router-link
                             v-if="entry.label"
-                            :class="{'router-link-active': atNestedRoute(entry), 'disabled': entry.disabled}"
-                            :to="'/team/' + team.slug + entry.to"
+                            :to="entry.to"
                             :data-nav="entry.tag"
                             @click="$emit('option-selected')"
                         >
@@ -69,13 +68,12 @@ export default {
                 .filter(category => category.entries.length > 0) // filter categories without entries
         },
         navigation () {
-            // todo replace to: with named routes
             const main = {
                 title: '',
                 entries: [
                     {
                         label: 'Applications',
-                        to: '/applications',
+                        to: { name: 'Applications', params: { team_slug: this.team.slug } },
                         tag: 'team-applications',
                         icon: TemplateIcon,
                         disabled: this.noBilling
@@ -87,14 +85,14 @@ export default {
                 entries: [
                     {
                         label: 'Hosted Instances',
-                        to: '/instances',
+                        to: { name: 'Instances', params: { team_slug: this.team.slug } },
                         tag: 'team-instances',
                         icon: ProjectsIcon,
                         disabled: this.noBilling
                     },
                     {
                         label: 'Edge Devices',
-                        to: '/devices',
+                        to: { name: 'TeamDevices', params: { team_slug: this.team.slug } },
                         tag: 'team-devices',
                         icon: ChipIcon,
                         disabled: this.noBilling
@@ -106,7 +104,7 @@ export default {
                 entries: [
                     {
                         label: 'Broker',
-                        to: '/broker',
+                        to: { name: 'TeamBroker', params: { team_slug: this.team.slug } },
                         tag: 'team-broker',
                         icon: RssIcon,
                         disabled: this.noBilling,
@@ -120,7 +118,7 @@ export default {
                 entries: [
                     {
                         label: 'Library',
-                        to: '/library',
+                        to: { name: 'TeamLibrary', params: { team_slug: this.team.slug } },
                         tag: 'shared-library',
                         icon: BookOpenIcon,
                         disabled: this.noBilling,
@@ -128,7 +126,7 @@ export default {
                     },
                     {
                         label: 'Members',
-                        to: '/members/general',
+                        to: { name: 'TeamMembers', params: { team_slug: this.team.slug } },
                         tag: 'team-members',
                         icon: UsersIcon,
                         disabled: this.noBilling
@@ -141,7 +139,7 @@ export default {
                 entries: [
                     {
                         label: 'Audit Log',
-                        to: '/audit-log',
+                        to: { name: 'AuditLog', params: { team_slug: this.team.slug } },
                         tag: 'team-audit',
                         icon: DatabaseIcon,
                         disabled: this.noBilling,
@@ -149,7 +147,7 @@ export default {
                     },
                     {
                         label: 'Billing',
-                        to: '/billing',
+                        to: { name: 'Billing', params: { team_slug: this.team.slug } },
                         tag: 'team-billing',
                         icon: CurrencyDollarIcon,
                         hidden: (() => {
@@ -165,7 +163,7 @@ export default {
                     },
                     {
                         label: 'Team Settings',
-                        to: '/settings',
+                        to: { name: 'TeamSettings', params: { team_slug: this.team.slug } },
                         tag: 'team-settings',
                         icon: CogIcon,
                         permission: 'team:edit'
@@ -180,32 +178,6 @@ export default {
                 teamManagement,
                 teamAdmin
             ]
-        }
-    },
-    methods: {
-        // todo check if we actually need it
-        atNestedRoute (route) {
-            // the high-level route link to "/devices"
-            if (route.to === '/devices') {
-                // highlight it if we are currently viewing a single device
-                if (this.$route.path.indexOf('/device') === 0) {
-                    return true
-                }
-            }
-            // the high-level route link to "/projects"
-            if (route.to === '/applications') {
-                // highlight it if we are currently viewing a single project
-                if (this.$route.path.indexOf('/application') === 0) {
-                    return true
-                }
-            }
-            // the high-level route link to "/instances"
-            if (route.to === '/instances') {
-                // highlight it if we are currently viewing a single instance
-                if (this.$route.path.indexOf('/instance') === 0) {
-                    return true
-                }
-            }
         }
     }
 }

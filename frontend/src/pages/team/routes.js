@@ -44,16 +44,16 @@ export default [
         },
         children: [
             {
-                path: 'applications',
                 name: 'Applications',
+                path: 'applications',
                 component: TeamApplications,
                 meta: {
                     title: 'Team - Applications'
                 }
             },
             {
-                path: 'instances',
                 name: 'Instances',
+                path: 'instances',
                 component: TeamInstances,
                 meta: {
                     title: 'Team - Instances'
@@ -88,9 +88,9 @@ export default [
                 }
             },
             {
+                name: 'TeamMembers',
                 path: 'members',
                 component: TeamMembers,
-                name: 'TeamMembers',
                 meta: {
                     title: 'Team - Members'
                 },
@@ -103,6 +103,7 @@ export default [
                 ]
             },
             {
+                name: 'AuditLog',
                 path: 'audit-log',
                 component: TeamAuditLog,
                 meta: {
@@ -135,6 +136,7 @@ export default [
                 ]
             },
             {
+                name: 'Billing',
                 path: 'billing',
                 component: TeamBilling,
                 meta: {
