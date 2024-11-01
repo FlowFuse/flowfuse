@@ -19,7 +19,7 @@ _Workflow to onboard new Edge Devices through the FlowFuse Platform and Device A
 
 ### Step 1: Install Device Agent (On Device)
 
-NodeJS version 18 is is supported but version 20 or later is recommended. However, if necessary, device agent version 2.8 does support NodeJS versions 14 and 16.
+NodeJS version 18 is supported but version 20 or later is recommended. However, if necessary, device agent version 2.8 does support NodeJS versions 14 and 16.
 
 #### Linux/MacOS
 
