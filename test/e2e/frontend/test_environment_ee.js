@@ -49,6 +49,12 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
                 secure: false,
                 debug: true
             }
+        },
+        broker: {
+            url: ':test:',
+            teamBroker: {
+                enabled: true
+            }
         }
     })
 

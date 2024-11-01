@@ -37,9 +37,11 @@
             </div>
             <div class="acls">
                 <h3 class="flex justify-between">
-                    <span>ACL's</span>
-                    <span>
-                        <PlusIcon class="ff-icon hover:cursor-pointer" data-action="add-acl" @click="addAcl" />
+                    <span>Access Control Rules</span>
+                    <span data-action="add-acl">
+                        <ff-button kind="tertiary" size="small" @click="addAcl">
+                            <PlusIcon class="ff-icon" />
+                        </ff-button>
                     </span>
                 </h3>
                 <div class="headers flex gap-2.5 items-center">
@@ -50,12 +52,13 @@
                         Pattern
                     </label>
                 </div>
-                <ul>
-                    <li v-for="(acl, $key) in input.acls" :key="$key">
+                <ul data-el="acl-list">
+                    <li v-for="(acl, $key) in input.acls" :key="acl.id">
                         <AclItem
                             v-model="input.acls[$key]"
                             :order-key="$key"
-                            :validation-error="errors.acls[$key]"
+                            :acls="input.acls"
+                            :validation-error="errors.acls[acl.id]"
                             @update:model-value="onAclUpdated($event, $key)"
                             @remove-acl="onRemoveAcl"
                         />
@@ -68,9 +71,11 @@
 
 <script>
 import { PlusIcon } from '@heroicons/vue/solid'
+import { mapState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
 import FormRow from '../../../../components/FormRow.vue'
+import { generateUuid } from '../../../../composables/String.js'
 
 import AclItem from './AclItem.vue'
 
@@ -82,10 +87,6 @@ export default {
         PlusIcon
     },
     props: {
-        team: {
-            type: Object,
-            required: true
-        },
         clients: {
             required: true,
             type: Array
@@ -96,10 +97,17 @@ export default {
         return {
             showCreate () {
                 this.isEditing = false
-                this.input.acls.push({
+                const initialAcl = {
                     action: 'both',
-                    pattern: '#'
-                })
+                    pattern: '#',
+                    id: generateUuid()
+                }
+                this.input.acls.push(initialAcl)
+                this.errors.acls[initialAcl.id] = {
+                    id: initialAcl.id,
+                    action: null,
+                    pattern: null
+                }
                 this.$refs.dialog.show()
             },
             showEdit (client) {
@@ -110,13 +118,15 @@ export default {
                     password: '',
                     passwordConfirm: ''
                 }
-                this.input.acls = [...client.acls]
-                client.acls.forEach((acl, key) => {
-                    this.errors.acls[key] = {
+                this.input.acls = [...client.acls.map(acl => ({ ...acl, id: generateUuid() }))]
+                this.input.acls.forEach((acl) => {
+                    this.errors.acls[acl.id] = {
+                        id: acl.id,
                         action: null,
                         pattern: null
                     }
                 })
+                this.originalState = JSON.stringify(this.input)
                 this.$refs.dialog.show()
             }
         }
@@ -134,22 +144,19 @@ export default {
             errors: {
                 username: null,
                 password: null,
-                acls: [
-                    {
-                        action: null,
-                        pattern: null
-                    }
-                ]
-            }
+                acls: {}
+            },
+            originalState: null
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         disableConfirm () {
             if (!this.input.username) {
                 return true
             }
             if (this.isEditing) {
-                return false
+                return this.isDirty
             }
             return !this.input.password || !this.input.passwordConfirm
         },
@@ -165,6 +172,12 @@ export default {
             }
 
             return 'Confirm Client Password'
+        },
+        isDirty () {
+            if (!this.isEditing) {
+                return false
+            }
+            return this.originalState === JSON.stringify(this.input)
         }
     },
     methods: {
@@ -239,7 +252,7 @@ export default {
         },
         validatePattern (pattern) {
             const parts = pattern.split('/')
-            for (let i = 0; parts.length; i++) {
+            for (let i = 0; i < parts.length; i++) {
                 if (parts[i] === '+') {
                     continue
                 }
@@ -253,35 +266,38 @@ export default {
             return true
         },
         addAcl () {
+            const id = generateUuid()
             this.input.acls.push({
+                id,
                 action: '',
                 pattern: ''
             })
-            this.errors.acls.push({
+            this.errors.acls[id] = {
+                id,
                 action: null,
                 pattern: null
-            })
+            }
         },
-        onAclUpdated (acl, $key) {
+        onAclUpdated (acl) {
             if (!acl.action.length) {
-                this.errors.acls[$key].action = 'Please select an action.'
+                this.errors.acls[acl.id].action = 'Please select an action.'
             } else {
-                this.errors.acls[$key].action = null
+                this.errors.acls[acl.id].action = null
             }
 
             if (!acl.pattern.length) {
-                this.errors.acls[$key].pattern = 'The pattern cannot be empty.'
+                this.errors.acls[acl.id].pattern = 'The pattern cannot be empty.'
             } else {
                 if (!this.validatePattern(acl.pattern)) {
-                    this.errors.acls[$key].pattern = 'The pattern is not valid'
+                    this.errors.acls[acl.id].pattern = 'The pattern is not valid'
                 } else {
-                    this.errors.acls[$key].pattern = null
+                    this.errors.acls[acl.id].pattern = null
                 }
             }
         },
-        onRemoveAcl ($key) {
-            this.errors.acls = this.errors.acls.filter((item, key) => key !== $key || key === 0)
-            this.input.acls = this.input.acls.filter((item, key) => key !== $key || key === 0)
+        onRemoveAcl (acl) {
+            this.input.acls = this.input.acls.filter((item) => item.id !== acl.id)
+            delete this.errors.acls[acl.id]
         },
         clearData () {
             this.input = {
@@ -293,12 +309,7 @@ export default {
             this.errors = {
                 username: null,
                 password: null,
-                acls: [
-                    {
-                        action: null,
-                        pattern: null
-                    }
-                ]
+                acls: []
             }
         }
     }

@@ -1,3 +1,62 @@
+#### 2.10.0: Release
+
+ - Enable Team Broker and Version History Timeline features on pre-staging (#4679)
+ - Bump flowfuse/github-actions-workflows from 0.34.0 to 0.36.0 (#4644)
+ - Bump flowfuse/github-actions-workflows from 0.30.0 to 0.34.0 (#4622)
+ - Remove <img /> tags for now due to Eleventy problems (#4599)
+ - Add note about backing up the database (#4592)
+ - Replace 'ACL' term in the dialog (#4691) @knolleary
+ - Put Team Broker behind a flag in the flowforge.yml (#4688) @hardillb
+ - Update 'both' MQTT ACL label to 'publish & subscribe' (#4690) @knolleary
+ - Clarify "Push to stage" dialog env var statement (#4604) @Steve-Mcl
+ - Team broker client UI (#4646) @hardillb
+ - Audit log shows empty username for password resets (#4681) @hardillb
+ - Return error if broker client already exists for team (#4678) @hardillb
+ - Update version history timeline pictograms (#4677) @cstns
+ - Add repeat password field for confirmation (#4670) @Steve-Mcl
+ - Fix permissions (#4675) @hardillb
+ - Ensure teamMembership in session for broker API (#4674) @hardillb
+ - Update docs for group env vars (#4666) @Steve-Mcl
+ - Visual timeline of version history (#4647) @cstns
+ - Fix device router link for BOM (#4671) @Steve-Mcl
+ - MQTT Broker Service API (#4627) @hardillb
+ - Add Device Group env vars API support (#4659) @Steve-Mcl
+ - Bump jsdom from 22.1.0 to 25.0.1 (#4545) @app/dependabot
+ - docs: Introduce quick start page (#4639) @ppawlowski
+ - Add details of suspending team to docs (#4662) @knolleary
+ - Add links to stripe dashbaord in admin info for team (#4657) @knolleary
+ - Fix enabling sso group allocation in admin settings (#4654) @knolleary
+ - PostHog: Add "team-created" event when teams are automatically created server-side (#4648) @joepavitt
+ - docs: Migrating static assets is manual but possible (#4645) @ZJvandeWeg
+ - Snapshot import export component options (#4610) @Steve-Mcl
+ - Fix overflow on actions section (#4642) @cstns
+ - Fix admin action tabs alignment (#4629) @cstns
+ - Add ability to mark multiple notitications as read (#4601) @cstns
+ - Enable combined device/instance free allocation (#4621) @knolleary
+ - Bump cookie, express, express-session, @immobiliarelabs/fastify-sentry and light-my-request (#4626) @app/dependabot
+ - Only allow instance rename if suspended (#4596) @hardillb
+ - Only show warning if 10-file.js active (#4620) @hardillb
+ - Fix allowing mixed case instance names (#4619) @hardillb
+ - Include user's e-mail address on "Please Verify" screen (#4615) @joepavitt
+ - Update static assets docs images with clear image and correct sized i… (#4613) @sumitshinde-84
+ - change the posthog identifier for the $ff-invite-accepted event (#4612) @cstns
+ - ci: handle special characters in PR title (#4607) @ppawlowski
+ - Replace the AssetCompareDialog, VisibilitySelector and Logs dropdowns (#4580) @cstns
+ - Bump vite from 5.2.8 to 5.4.7 (#4543) @app/dependabot
+ - Bump rollup from 4.14.1 to 4.22.4 (#4551) @app/dependabot
+ - Docs: Improve the Docs Landing Page (#4597) @joepavitt
+ - Add Team upgrade docs (#4594) @hardillb
+ - remove image logo alt name to fix gmail email summary (#4595) @cstns
+ - Update install.md (#4590) @sumitshinde-84
+ - fix dependencies display (#4589) @cstns
+ - Update snapshot nomenclature (#4585) @cstns
+ - Docs: Add unique identifier for Docker cmds (#4586) @joepavitt
+ - bom incorrect package version (#4579) @cstns
+ - Enable team lookup by id in admin view (#4584) @knolleary
+ - Update remaining roles imports (#4578) @cstns
+ - Store platform settings, teamMembership and team store values in localStorage (#4507) @cstns
+ - Create a new listbox component that can replace the existing Dropdown (#4560) @cstns
+
 #### 2.9.0: Release
 
  - Enable BOM feature for Enterprise team on pre-staging (#4550)

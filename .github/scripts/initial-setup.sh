@@ -207,7 +207,7 @@ curl -ks -w "\n" -XPOST \
                        "contextLimit": null,
                        "customHostnames":false,
                        "staticAssets":false,
-                       "teamBroker":true
+                       "teamBroker":false
                   },
                   "instances": {
                       "'"$projectTypeId"'": {

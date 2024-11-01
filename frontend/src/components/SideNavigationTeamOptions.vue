@@ -108,7 +108,7 @@ export default {
                         icon: RssIcon,
                         disabled: this.noBilling,
                         featureUnavailable: !this.isMqttBrokerFeatureEnabled,
-                        hidden: this.hasALowerOrEqualTeamRoleThan(Roles.Member)
+                        hidden: this.hasALowerOrEqualTeamRoleThan(Roles.Member) && this.isMqttBrokerFeatureEnabledForPlatform
                     },
                     {
                         label: 'Library',
