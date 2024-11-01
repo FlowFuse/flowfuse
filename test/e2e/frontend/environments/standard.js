@@ -10,7 +10,6 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 module.exports = async function (settings = {}, config = {}) {
     process.env.FF_TELEMETRY_DISABLED = true
     config = {
-        ...config,
         telemetry: { enabled: false },
         logging: {
             level: 'warn'
@@ -24,11 +23,9 @@ module.exports = async function (settings = {}, config = {}) {
         },
         // configure a broker so that device app.comms is loaded and can be stubbed
         broker: {
-            url: ':test:',
-            teamBroker: {
-                enabled: true
-            }
-        }
+            url: ':test:'
+        },
+        ...config
     }
 
     // mock out stripe JS library

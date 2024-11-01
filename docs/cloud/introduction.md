@@ -188,9 +188,9 @@ platform.
 
 #### Enterprise Team Broker
 
-Enterprise level teams come with their own MQTT broker. You can provision clients from the broker tab in the left hand menu.
+Both Team and Enterprise level teams come with their own MQTT broker. You can provision clients from the broker tab in the left hand menu.
 
-Teams can register up to 20 clients as part of their plan. The ability to purchase additional packs of clients will come in a future release.
+Enterprise level Teams can register up to 20 and Teams level Teams can register up to 5 clients as part of their plan. The ability to purchase additional packs of clients will come in a near future release.
 
 The broker is available on `broker.flowfuse.cloud` and supports the following connection types:
 
@@ -198,7 +198,7 @@ The broker is available on `broker.flowfuse.cloud` and supports the following co
  - MQTT over TLS on port `8883`
  - MQTT over secure WebSockets on port `443`
 
- When creating clients you can specify a username, but it will prepended to the the Team's id e.g. `alice` will become `alice@abcd1234`.
+ When creating clients you can specify a username, but it will prepended to the the Team's id e.g. `alice` will become `alice@32E4NEO5pY`.
  Clients must also use the username as the MQTT Client ID in order to connect.
 
  ![Create Broker Client](./images/create-broker-client.png)
@@ -206,8 +206,14 @@ The broker is available on `broker.flowfuse.cloud` and supports the following co
  e.g.
 
  ```
- mosquitto_sub -u "alice@abcd1234" -i "alice@abcd1234" -P "password" -h broker.flowfuse.cloud -t "#"
+ mosquitto_sub -u "alice@32E4NEO5pY" -i "alice@32E4NEO5pY" -P "password" -h broker.flowfuse.cloud -t "#"
  ```
+
+ Or in Node-RED as follows
+
+![Node-RED MQTT Client Connection](./images/node-red-mqtt-connection.png)
+
+![Node-RED MQTT Client Security](./images/node-red-mqtt-security.png)
 
 ### IP Addresses
 
