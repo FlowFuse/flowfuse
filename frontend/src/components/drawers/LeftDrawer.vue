@@ -1,6 +1,6 @@
 <template>
     <section id="left-drawer" data-el="left-drawer" :class="{active: leftDrawer.state}">
-        <Transition type="transition" mode="in-out" name="fade" duration="3">
+        <Transition type="transition" mode="out-in" name="fade">
             <component :is="leftDrawer.component" v-if="leftDrawer.component" :key="mainNav.context" />
         </Transition>
     </section>
@@ -47,11 +47,6 @@ export default {
 
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity .3s ease-in-out;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
+    transition: opacity .1s ease-in;
 }
 </style>
