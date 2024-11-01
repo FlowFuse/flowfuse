@@ -82,8 +82,9 @@ All features from the Team Level plus
  - HA for Instances
  - SSO
  - Better Support SLA
+ - MQTT Broker
 
-Includes 10 instances in the base price
+Includes 10 instances and 20 MQTT Clients in the base price
 
 ### Changing Team Type
 
@@ -180,9 +181,39 @@ Node-RED inside the FlowFuse Cloud platform.
 
 MQTT Connections to an external broker using the standard MQTT nodes will work fine as the connection is initiated by Node-RED.
 
-FlowFuse does not provide an MQTT broker for general use by Node-RED instances. However the
-Project Nodes can be used to easily pass messages between Node-RED instances running in the
+FlowFuse provides an MQTT broker for general use by Enterprise Team's Node-RED instances. See the following section.
+
+Also the Project Nodes can be used to easily pass messages between Node-RED instances running in the
 platform.
+
+#### Enterprise Team Broker
+
+Both Team and Enterprise level teams come with their own MQTT broker. You can provision clients from the broker tab in the left hand menu.
+
+Enterprise level Teams can register up to 20 and Teams level Teams can register up to 5 clients as part of their plan. The ability to purchase additional packs of clients will come in a near future release.
+
+The broker is available on `broker.flowfuse.cloud` and supports the following connection types:
+
+ - MQTT on port `1883`
+ - MQTT over TLS on port `8883`
+ - MQTT over secure WebSockets on port `443`
+
+ When creating clients you can specify a username, but it will prepended to the the Team's id e.g. `alice` will become `alice@32E4NEO5pY`.
+ Clients must also use the username as the MQTT Client ID in order to connect.
+
+ ![Create Broker Client](./images/create-broker-client.png)
+
+ e.g.
+
+ ```
+ mosquitto_sub -u "alice@32E4NEO5pY" -i "alice@32E4NEO5pY" -P "password" -h broker.flowfuse.cloud -t "#"
+ ```
+
+ Or in Node-RED as follows
+
+![Node-RED MQTT Client Connection](./images/node-red-mqtt-connection.png)
+
+![Node-RED MQTT Client Security](./images/node-red-mqtt-security.png)
 
 ### IP Addresses
 

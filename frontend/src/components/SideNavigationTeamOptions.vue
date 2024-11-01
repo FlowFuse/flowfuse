@@ -40,10 +40,12 @@
 </template>
 
 <script>
-import { ChipIcon, CogIcon, CurrencyDollarIcon, DatabaseIcon, FolderIcon, TemplateIcon, UsersIcon } from '@heroicons/vue/solid'
+import { ChipIcon, CogIcon, CurrencyDollarIcon, DatabaseIcon, FolderIcon, RssIcon, TemplateIcon, UsersIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState } from 'vuex'
 
+import featuresMixin from '../mixins/Features.js'
 import permissionsMixin from '../mixins/Permissions.js'
+import { Roles } from '../utils/roles.js'
 
 import NavItem from './NavItem.vue'
 import ProjectsIcon from './icons/Projects.js'
@@ -53,7 +55,7 @@ export default {
     components: {
         NavItem
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, featuresMixin],
     props: {
         mobileMenuOpen: {
             type: Boolean,
@@ -75,68 +77,91 @@ export default {
         },
         navigation () {
             const result = {
-                general: [{
-                    label: 'Applications',
-                    to: '/applications',
-                    tag: 'team-applications',
-                    icon: TemplateIcon,
-                    disabled: this.noBilling
-                },
-                {},
-                {
-                    label: 'Instances',
-                    to: '/instances',
-                    tag: 'team-instances',
-                    icon: ProjectsIcon,
-                    disabled: this.noBilling
-                },
-                {
-                    label: 'Devices',
-                    to: '/devices',
-                    tag: 'team-devices',
-                    icon: ChipIcon,
-                    disabled: this.noBilling
-                },
-                {},
-                {
-                    label: 'Library',
-                    to: '/library',
-                    tag: 'shared-library',
-                    icon: FolderIcon,
-                    disabled: this.noBilling,
-                    featureUnavailable: !this.features?.['shared-library'] || this.team?.type.properties.features?.['shared-library'] === false
-                },
-                {
-                    label: 'Members',
-                    to: '/members/general',
-                    tag: 'team-members',
-                    icon: UsersIcon,
-                    disabled: this.noBilling
-                }],
-                admin: [{
-                    label: 'Audit Log',
-                    to: '/audit-log',
-                    tag: 'team-audit',
-                    icon: DatabaseIcon,
-                    disabled: this.noBilling
-                },
-                {
-                    label: 'Team Settings',
-                    to: '/settings',
-                    tag: 'team-settings',
-                    icon: CogIcon
-                }]
+                general: [
+                    {
+                        label: 'Applications',
+                        to: '/applications',
+                        tag: 'team-applications',
+                        icon: TemplateIcon,
+                        disabled: this.noBilling
+                    },
+                    {},
+                    {
+                        label: 'Instances',
+                        to: '/instances',
+                        tag: 'team-instances',
+                        icon: ProjectsIcon,
+                        disabled: this.noBilling
+                    },
+                    {
+                        label: 'Devices',
+                        to: '/devices',
+                        tag: 'team-devices',
+                        icon: ChipIcon,
+                        disabled: this.noBilling
+                    },
+                    {},
+                    {
+                        label: 'Broker',
+                        to: '/broker',
+                        tag: 'team-broker',
+                        icon: RssIcon,
+                        disabled: this.noBilling,
+                        featureUnavailable: !this.isMqttBrokerFeatureEnabled,
+                        hidden: this.hasALowerOrEqualTeamRoleThan(Roles.Member) && this.isMqttBrokerFeatureEnabledForPlatform
+                    },
+                    {
+                        label: 'Library',
+                        to: '/library',
+                        tag: 'shared-library',
+                        icon: FolderIcon,
+                        disabled: this.noBilling,
+                        featureUnavailable: !this.features?.['shared-library'] || this.team?.type.properties.features?.['shared-library'] === false
+                    },
+                    {
+                        label: 'Members',
+                        to: '/members/general',
+                        tag: 'team-members',
+                        icon: UsersIcon,
+                        disabled: this.noBilling
+                    }
+                ],
+                admin: [
+                    {
+                        label: 'Audit Log',
+                        to: '/audit-log',
+                        tag: 'team-audit',
+                        icon: DatabaseIcon,
+                        disabled: this.noBilling
+                    },
+                    {
+                        label: 'Billing',
+                        to: '/billing',
+                        tag: 'team-billing',
+                        icon: CurrencyDollarIcon,
+                        hidden: !!this.features?.billing
+                    },
+                    {
+                        label: 'Team Settings',
+                        to: '/settings',
+                        tag: 'team-settings',
+                        icon: CogIcon
+                    }
+                ]
             }
-            if (this.features?.billing) {
-                // insert billing in second slot of admin
-                result.admin.splice(1, 0, {
-                    label: 'Billing',
-                    to: '/billing',
-                    tag: 'team-billing',
-                    icon: CurrencyDollarIcon
+
+            return {
+                general: result.general.filter(entry => {
+                    if (Object.prototype.hasOwnProperty.call(entry, 'hidden')) {
+                        return entry.hidden
+                    } else return true
+                }),
+                admin: result.admin.filter(entry => {
+                    if (Object.prototype.hasOwnProperty.call(entry, 'hidden')) {
+                        return entry.hidden
+                    } else return true
                 })
             }
-            return result
         }
     },
     mounted () {
