@@ -21,6 +21,8 @@ _Workflow to onboard new Edge Devices through the FlowFuse Platform and Device A
 
 NodeJS version 18 is supported but version 20 or later is recommended. However, if necessary, device agent version 2.8 does support NodeJS versions 14 and 16.
 
+For full install instructions, follow the [install instructions here](/docs/device-agent/install.md).
+
 #### Linux/MacOS
 
 ```bash
@@ -34,8 +36,6 @@ Issue the below command in an elevated command prompt:
 ```bash
 npm install -g @flowfuse/device-agent
 ```
-
-For full install instructions, follow the [install instructions here](/docs/device-agent/install.md).
 
 ### Step 2: Register Device (On FlowFuse)
 
