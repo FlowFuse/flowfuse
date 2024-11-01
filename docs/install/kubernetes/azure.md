@@ -38,6 +38,11 @@ from the nginx ingress proxy. You can change this to say `5m` which will match t
 Node-RED default value.
 
 
+### HTTPS with Nginx Ingress
+
+Azure's LoadBalancer does not support doing TLS termination so HTTPS certificates will either need to up added to AKS as Kubernetes Secrets or make use of 
+Certificate Manager to provision certificates either from LetsEncrypt or other ACME Certificate Authorities.
+
 ## Persistent Storage
 
 If making use of the Persistent Storage feature you will need to provide a StorageClass that support MultiPod mounting.
