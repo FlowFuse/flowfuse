@@ -1,12 +1,12 @@
 <template>
-    <div class="ff-accordion" :class="{'open': isOpen}">
+    <div class="ff-accordion" :class="{'open': isOpen}" data-el="accordion">
         <button class="ff-accordion--button" :disabled="disabled" @click="toggle()">
             <slot name="label">
                 <label>{{ label }}</label>
             </slot>
             <div class="toggle">
                 <slot name="meta" />
-                <ChevronLeftIcon v-if="!disabled" class="ff-icon" />
+                <ChevronLeftIcon v-if="!disabled" class="ff-icon chevron" />
             </div>
         </button>
         <div ref="content" class="ff-accordion--content">

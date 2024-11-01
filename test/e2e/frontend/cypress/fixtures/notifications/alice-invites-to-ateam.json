@@ -1,0 +1,19 @@
+{
+  "id": "1",
+  "type": "team-invite",
+  "createdAt": null,
+  "read": false,
+  "data": {
+    "invite": {
+      "id": "abcd1"
+    },
+    "team": {
+      "id": "gY9GQjDb2k",
+      "name": "ATeam"
+    },
+    "invitor": {
+      "username": "alice"
+    },
+    "role": 30
+  }
+}

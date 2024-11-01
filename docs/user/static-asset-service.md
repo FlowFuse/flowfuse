@@ -35,9 +35,9 @@ This feature is available only on self-hosted Enterprise licensed versions of Fl
 If the prerequisites are met, you will be able to use the Static Asset Service capabilities of FlowFuse Instances from two locations:
 
 - Instance Assets tab within the **Instance Details** page.
-  ![Instance Details Page](./images/assets-tab-instance.png)
+  ![Instance Details Page](./images/assets-tab-instance.png){data-zoomable}
 - Instance Assets tab within the **Immersive Editor**.
-  ![Immersive Editor](./images/assets-tab-editor.png)
+  ![Immersive Editor](./images/assets-tab-editor.png){data-zoomable}
 
 The following steps assume that you have navigated to one of these locations and have the assets tab opened.
 
@@ -88,11 +88,11 @@ This means that users can set the visibility of their uploaded files to public a
 
 When setting a folder's visibility to public you are required to set a static file path on which the files will be served by your instance.
 
-![static-assets-visibility-selector.png](images/static-assets-visibility-selector.png)
+![static-assets-visibility-selector.png](images/static-assets-visibility-selector.png){data-zoomable}
 
-![static-assets-select-static-path.png](images/static-assets-select-static-path.png)
+![static-assets-select-static-path.png](images/static-assets-select-static-path.png){data-zoomable}
 
-![static-assets-public-visibility.png](images/static-assets-public-visibility.png)
+![static-assets-public-visibility.png](images/static-assets-public-visibility.png){data-zoomable}
 
 Considerations:
 - Visibility and static path maps can be set on folders only.

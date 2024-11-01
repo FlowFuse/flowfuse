@@ -1,9 +1,14 @@
 <template>
     <div class="instance-item" data-el="instance-item">
         <div class="title">
-            <h6>
-                <IconDeviceSolid v-if="isDevice" class="ff-icon text-teal-700" />
-                <IconNodeRedSolid v-else class="ff-icon text-red-700" />
+            <h6 v-if="isDevice">
+                <IconDeviceSolid class="ff-icon text-teal-700" />
+                <router-link :to="{name: 'DeviceOverview', params: {id: instance.id}}" class="ff-link">
+                    {{ instance.name }}
+                </router-link>
+            </h6>
+            <h6 v-else>
+                <IconNodeRedSolid class="ff-icon text-red-700" />
                 <router-link :to="{name: 'instance-overview', params: {id: instance.id}}" class="ff-link">
                     {{ instance.name }}
                 </router-link>
