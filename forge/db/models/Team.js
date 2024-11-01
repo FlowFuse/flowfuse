@@ -223,9 +223,17 @@ module.exports = {
                     if (pagination.cursor) {
                         pagination.cursor = M.Team.decodeHashid(pagination.cursor)
                     }
+                    where = buildPaginationSearchClause(pagination, where, ['Team.name'])
+                    if (pagination.query) {
+                        const queryId = M.Team.decodeHashid(pagination.query)
+                        if (queryId && queryId.length === 1) {
+                            // The query term is a valid hashid - go look it up
+                            where = { id: queryId }
+                        }
+                    }
                     const [rows, count] = await Promise.all([
                         this.findAll({
-                            where: buildPaginationSearchClause(pagination, where, ['Team.name']),
+                            where,
                             order: [['id', 'ASC']],
                             limit,
                             include: { model: M.TeamType, attributes: ['hashid', 'id', 'name'] },

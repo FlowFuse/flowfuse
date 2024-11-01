@@ -48,13 +48,18 @@ export default {
                 !this.externalDependency ||
                 (
                     !Object.prototype.hasOwnProperty.call(this.externalDependency, 'dist-tags') &&
-                    !Object.prototype.hasOwnProperty.call(this.externalDependency['dist-tags'], 'latest')
+                    !Object.prototype.hasOwnProperty.call(this.externalDependency['dist-tags'], 'latest') &&
+                    !Object.prototype.hasOwnProperty.call(this.externalDependency, 'versions') &&
+                    !Object.prototype.hasOwnProperty.call(
+                        this.externalDependency.versions,
+                        this.externalDependency['dist-tags'].latest
+                    )
                 )
             ) {
                 return 'N/A'
             }
 
-            return this.externalDependency['dist-tags'].latest
+            return this.externalDependency.versions[this.externalDependency['dist-tags'].latest].version
         },
         externalLastModified () {
             if (
@@ -67,7 +72,7 @@ export default {
                 return 'N/A'
             }
 
-            return daysSince(this.externalDependency.time.modified)
+            return daysSince(this.externalDependency.time.modified, true)
         }
     },
     mounted () {
@@ -102,6 +107,7 @@ export default {
     .details {
       display: flex;
       flex-direction: column;
+      text-align: right;
       font-size: 0.875rem;
       font-weight: 500;
     }

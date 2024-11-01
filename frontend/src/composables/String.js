@@ -31,3 +31,14 @@ export const removeSlashes = (str, leading = true, trailing = true) => {
     }
     return str
 }
+
+/**
+ *
+ * @param length
+ * @returns {string}
+ */
+export const generateUuid = (length = 6) => {
+    return Array.from(crypto.getRandomValues(new Uint8Array(6)), (byte) =>
+        byte.toString(36).padStart(2, '0')
+    ).join('').substring(0, length)
+}

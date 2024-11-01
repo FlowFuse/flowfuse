@@ -23,8 +23,9 @@ module.exports = async function (app) {
         await app.register(require('./mfa'), { prefix: '/api/v1', logLevel: app.config.logging.http })
         await app.register(require('./httpTokens'), { prefix: '/api/v1/projects/:projectId/httpTokens', logLevel: app.config.logging.http })
         await app.register(require('./customHostnames'), { prefix: '/api/v1/projects/:projectId/customHostname', logLevel: app.config.logging.http })
-
         await app.register(require('./staticAssets'), { prefix: '/api/v1/projects/:projectId/files', logLevel: app.config.logging.http })
+        await app.register(require('./projectHistory'), { prefix: '/api/v1/projects/:instanceId/history', logLevel: app.config.logging.http })
+        await app.register(require('./teamBroker'), { prefix: '/api/v1/teams/:teamId/broker', logLevel: app.config.logging.http })
 
         // Important: keep SSO last to avoid its error handling polluting other routes.
         await app.register(require('./sso'), { logLevel: app.config.logging.http })

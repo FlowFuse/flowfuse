@@ -3,6 +3,8 @@
         :notification="notification"
         :selections="selections"
         data-el="generic-notification" :to="to"
+        @selected="onSelect"
+        @deselected="onDeselect"
     >
         <template #icon>
             <component :is="notificationData.iconComponent" />

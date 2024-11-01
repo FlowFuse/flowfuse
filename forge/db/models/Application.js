@@ -214,18 +214,15 @@ module.exports = {
                             const child = children.get(instance)
                             const deps = {}
                             deps['node-red'] = {
-                                semver: instance.ProjectStack?.properties?.nodered,
-                                installed: instance.ProjectStack?.properties?.nodered
+                                wanted: instance.versions?.['node-red']?.wanted,
+                                current: instance.versions?.['node-red']?.current
                             }
-                            if (instance.ProjectStack?.replacedBy) {
-                                const replacementStack = await app.db.models.ProjectStack.byId(instance.ProjectStack.replacedBy)
-                                deps['node-red'].semver = replacementStack?.properties?.nodered
-                            }
+
                             const settings = await instance.getSetting(KEY_SETTINGS)
                             if (Array.isArray(settings?.palette?.modules)) {
                                 settings.palette.modules.forEach(m => {
                                     deps[m.name] = {
-                                        semver: m.version
+                                        wanted: m.version
                                     }
                                 })
                             }
@@ -233,9 +230,9 @@ module.exports = {
                             const projectModules = await storageController.getProjectModules(child.model) || []
                             projectModules.forEach(m => {
                                 deps[m.name] = deps[m.name] || {}
-                                deps[m.name].installed = m.version
-                                if (!deps[m.name].semver) {
-                                    deps[m.name].semver = m.version
+                                deps[m.name].current = m.version
+                                if (!deps[m.name].wanted) {
+                                    deps[m.name].wanted = m.version
                                 }
                             })
                             child.dependencies = deps
@@ -272,41 +269,41 @@ module.exports = {
                             if (activeModulesInstalled?.length) {
                                 activeModulesInstalled.forEach(m => {
                                     deps[m.name] = deps[m.name] || {}
-                                    deps[m.name].installed = m.version
+                                    deps[m.name].current = m.version
                                 })
                             }
                             if (targetModulesSemver?.length) {
                                 targetModulesSemver.forEach(m => {
                                     deps[m.name] = deps[m.name] || {}
-                                    deps[m.name].semver = m.version
+                                    deps[m.name].wanted = m.version
                                 })
                             } else if (activeModulesSemver?.length) {
                                 activeModulesSemver.forEach(m => {
                                     deps[m.name] = deps[m.name] || {}
-                                    deps[m.name].semver = m.version
+                                    deps[m.name].wanted = m.version
                                 })
                             } else if (device.ownerType === 'application' && !targetSnapshot && !activeSnapshot) {
                                 // if the device has no snapshots, use the default snapshot data
                                 Object.entries(defaultModules).forEach(([name, version]) => {
                                     deps[name] = deps[name] || {}
-                                    deps[name].semver = version
+                                    deps[name].wanted = version
                                 })
                             }
 
                             // some devices dont get informed of the @flowfuse/nr-project-nodes or '@flowfuse/nr-assistant' to install due being included
                             // via nodesdir or other means. In this case, we will use the installed version as the semver
-                            if (deps['@flowfuse/nr-project-nodes'] && deps['@flowfuse/nr-project-nodes'].installed && !deps['@flowfuse/nr-project-nodes'].semver) {
-                                deps['@flowfuse/nr-project-nodes'].semver = deps['@flowfuse/nr-project-nodes'].installed
+                            if (deps['@flowfuse/nr-project-nodes'] && deps['@flowfuse/nr-project-nodes'].current && !deps['@flowfuse/nr-project-nodes'].wanted) {
+                                deps['@flowfuse/nr-project-nodes'].wanted = deps['@flowfuse/nr-project-nodes'].current
                             }
-                            if (deps['@flowfuse/nr-assistant'] && deps['@flowfuse/nr-assistant'].installed && !deps['@flowfuse/nr-assistant'].semver) {
-                                deps['@flowfuse/nr-assistant'].semver = deps['@flowfuse/nr-assistant'].installed
+                            if (deps['@flowfuse/nr-assistant'] && deps['@flowfuse/nr-assistant'].current && !deps['@flowfuse/nr-assistant'].wanted) {
+                                deps['@flowfuse/nr-assistant'].wanted = deps['@flowfuse/nr-assistant'].current
                             }
 
                             const noderedVersionInstalled = await getDeviceNodeRedVersion(device, activeModulesInstalled) || '*'
                             const noderedVersionSemver = await getDeviceNodeRedVersion(device, targetModulesSemver) || '*'
                             deps['node-red'] = {
-                                semver: noderedVersionSemver,
-                                installed: noderedVersionInstalled
+                                wanted: noderedVersionSemver,
+                                current: noderedVersionInstalled
                             }
 
                             child.dependencies = deps

@@ -1,8 +1,8 @@
 /// <reference types="cypress" />
 
-import deviceSnapshots from '../../fixtures/snapshots/device-snapshots.json'
-import deviceFullSnapshot from '../../fixtures/snapshots/device2-full-snapshot1.json'
-import instanceSnapshots from '../../fixtures/snapshots/instance-snapshots.json'
+import deviceSnapshots from '../../fixtures/version-history/snapshots/device-snapshots.json'
+import deviceFullSnapshot from '../../fixtures/version-history/snapshots/device2-full-snapshot1.json'
+import instanceSnapshots from '../../fixtures/version-history/snapshots/instance-snapshots.json'
 const snapshots = {
     count: 2,
     snapshots: [deviceSnapshots.snapshots[0], instanceSnapshots.snapshots[0]]
@@ -126,7 +126,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
         // check the options are present
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').should('have.length', MENU_ITEM_COUNT)
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).contains('Deploy Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).contains('Restore Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_EDIT_SNAPSHOT).contains('Edit Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).contains('Compare Snapshot...')
@@ -140,7 +140,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(1).click()
         // click kebab menu in row 2 - an instance snapshot
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').should('have.length', MENU_ITEM_COUNT)
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).contains('Deploy Snapshot')
+        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).contains('Restore Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_EDIT_SNAPSHOT).contains('Edit Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).contains('Compare Snapshot...')
@@ -233,8 +233,8 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').should('be.disabled')
 
         // select the snapshot to compare with
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] .ff-dropdown[disabled=false]').click()
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] .ff-dropdown-options > .ff-dropdown-option:first').click()
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"]').click()
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] .ff-options > .ff-option:first').click()
         // click compare button
         cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').click()
         cy.wait('@fullSnapshot')
@@ -244,7 +244,7 @@ describe('FlowForge - Devices - With Billing', () => {
     })
 
     it('upload snapshot with credentials', () => {
-        cy.fixture('snapshots/snapshot-with-credentials.json', null).as('snapshot')
+        cy.fixture('version-history/snapshots/snapshot-with-credentials.json', null).as('snapshot')
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
 
         cy.contains('span', 'application-device-a').click()
@@ -294,7 +294,7 @@ describe('FlowForge - Devices - With Billing', () => {
     })
 
     it('upload snapshot without credentials', () => {
-        cy.fixture('snapshots/instance2-full-snapshot2.json', null).as('snapshot')
+        cy.fixture('version-history/snapshots/instance2-full-snapshot2.json', null).as('snapshot')
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
 
         cy.contains('span', 'application-device-a').click()
@@ -356,7 +356,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DEPLOY_SNAPSHOT).click()
 
         cy.get('[data-el="platform-dialog"]').should('be.visible')
-        cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Deploy Snapshot to device')
+        cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Restore Snapshot to device')
 
         // find .ff-btn--danger with text "Confirm" and click it
         cy.get('[data-el="platform-dialog"] .ff-btn--danger').contains('Confirm').click()

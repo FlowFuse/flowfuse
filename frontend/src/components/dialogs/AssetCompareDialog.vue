@@ -6,14 +6,14 @@
     >
         <template #default>
             <div class="flex gap-2" data-el="snapshot-compare-toolbar">
-                <ff-dropdown v-model="compareSnapshot" class="flex-grow">
-                    <ff-dropdown-option
-                        v-for="option in compareSnapshotList" :key="option.value" :value="option.value"
-                        :label="option.label" :title="option.description" class="text-sm"
-                    >
-                        {{ option.label }}
-                    </ff-dropdown-option>
-                </ff-dropdown>
+                <ff-listbox
+                    v-model="compareSnapshot"
+                    :options="compareSnapshotList"
+                    data-el="snapshots-list"
+                    label-key="label"
+                    option-title-key="description"
+                    class="flex-grow"
+                />
                 <ff-button
                     v-if="true"
                     :disabled="!compareSnapshot"

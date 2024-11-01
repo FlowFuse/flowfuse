@@ -65,6 +65,32 @@ with the following values:
 - `postgresql.auth.password`
 - `postgresql.auth.database`
 
+
+#### Database Backups
+
+If using Kubernetes CronJobs to backup the database then remember to add the `app: flowforge` label
+to the job to ensure it has access to the database. This is because the Helm Chart includes
+network rules to prevent the Node-RED instances having direct access to the FlowFuse Database.
+
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  labels:
+    app: flowforge
+spec:
+  schedule: "5 23 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: postgres
+ ...
+```
+
 ### DNS
 
 A [wildcard DNS entry](https://en.wikipedia.org/wiki/Wildcard_DNS_record) will be needed 
@@ -220,3 +246,8 @@ forge:
 All technical aspects of the upgrade process of Flowfuse application running on Kubernetes and managed by Helm chart are maintained in our repository.
 Please refer to the [Flowfuse Helm Chart documentation](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md#upgrading-chart) for more details
 about the upgrade process.
+
+
+## Uninstall
+
+Use `helm` to remove the chart.

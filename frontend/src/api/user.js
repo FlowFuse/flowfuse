@@ -1,8 +1,8 @@
-import { RoleNames, Roles } from '../../../forge/lib/roles.js'
 import product from '../services/product.js'
 
 import daysSince from '../utils/daysSince.js'
 import elapsedTime from '../utils/elapsedTime.js'
+import { RoleNames, Roles } from '../utils/roles.js'
 
 import client from './client.js'
 
@@ -94,7 +94,18 @@ const markNotificationRead = async (id) => {
         read: true
     })
 }
-
+const markNotificationsBulk = async (ids, data = { read: true }) => {
+    return client.put('/api/v1/user/notifications/', {
+        ids,
+        ...data
+    }).then(res => {
+        res.data.notifications = res.data.notifications.map(n => {
+            n.createdSince = daysSince(n.createdAt)
+            return n
+        })
+        return res.data
+    })
+}
 const getTeamInvitations = async () => {
     return client.get('/api/v1/user/invitations').then(res => {
         res.data.invitations = res.data.invitations.map(r => {
@@ -240,6 +251,7 @@ export default {
     deleteUser,
     getNotifications,
     markNotificationRead,
+    markNotificationsBulk,
     getTeamInvitations,
     acceptTeamInvitation,
     rejectTeamInvitation,

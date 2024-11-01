@@ -37,7 +37,7 @@ Instance > Settings > Environment tabs.
 
 ## Starting the snapshot
 
-Under the snapshots tab, click 'Deploy Snapshot' in the kebab menu. The migrated flows
+Under the snapshots tab, click 'Restore Snapshot' in the kebab menu. The migrated flows
 will now be started with the modules installed.
 
 ## Limitations
@@ -45,5 +45,5 @@ will now be started with the modules installed.
 ### Static Files
 
 Check your `settings.js` file to see if `httpStatic` has been set, if so then
-check for any files in this path. FlowFuse does not currently support serving
-static files so you will need to find alternative hosting for these such as AWS S3.
+check for any files in this path. The files in this path need to be manually
+migrated to [FlowFuse's Static Assets](/docs/user/static-asset-service/) service.
