@@ -63,8 +63,8 @@ export default {
             const backToDashboard = {
                 entries: [
                     {
-                        label: 'Back to Dashboard',
-                        to: { name: 'Applications', params: { team_slug: this.team.slug } },
+                        label: this.metaBackTo.label,
+                        to: this.metaBackTo.to,
                         tag: 'back',
                         icon: ChevronLeftIcon
                     }
@@ -332,6 +332,18 @@ export default {
             // find the nearest parent with the meta.menu entry
             const parentRoute = this.$route.matched.find(route => route.meta && route.meta.menu)
             return parentRoute ? parentRoute.meta.menu : 'team'
+        },
+        metaBackTo () {
+            if (this.$route?.meta?.backTo) {
+                return this.$route.meta.backTo
+            }
+            // find the nearest parent with the meta.menu entry
+            const parentRoute = this.$route.matched.find(route => route.meta && route.meta.backTo)
+
+            return parentRoute ?? {
+                label: 'Back to Dashboard',
+                to: { name: 'Applications', params: { team_slug: this.team.slug } }
+            }
         }
     },
     watch: {
