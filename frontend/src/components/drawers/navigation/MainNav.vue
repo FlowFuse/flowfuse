@@ -324,7 +324,28 @@ export default {
                     } return true
                 })
                 .filter(category => category.entries.length > 0) // filter categories without entries
+        },
+        metaMenu () {
+            if (this.$route?.meta?.menu) {
+                return this.$route.meta.menu
+            }
+            // find the nearest parent with the meta.menu entry
+            const parentRoute = this.$route.matched.find(route => route.meta && route.meta.menu)
+            return parentRoute ? parentRoute.meta.menu : 'team'
         }
+    },
+    watch: {
+        metaMenu: {
+            handler: function (menu) {
+                if (['user', 'admin', 'back', 'team'].includes(menu)) {
+                    this.setMainNavContext(menu)
+                }
+            },
+            immediate: true
+        }
+    },
+    methods: {
+        ...mapActions('ux', ['setMainNavContext'])
     }
 }
 </script>

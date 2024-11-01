@@ -17,24 +17,11 @@ export default {
     computed: {
         ...mapState('ux', ['leftDrawer', 'mainNav'])
     },
-    watch: {
-        '$route.meta.menu': {
-            handler: function (menu) {
-                switch (menu) {
-                case 'context-back':
-                    return this.setMainNavContext('back')
-                default:
-                    return this.setMainNavContext('team')
-                }
-            },
-            immediate: true
-        }
-    },
     mounted () {
         this.setLeftDrawer(markRaw(MainNav))
     },
     methods: {
-        ...mapActions('ux', ['setLeftDrawer', 'setMainNavContext'])
+        ...mapActions('ux', ['setLeftDrawer'])
     }
 }
 </script>

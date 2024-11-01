@@ -116,7 +116,7 @@ export default [
                 component: ChangeTeamType,
                 meta: {
                     title: 'Team - Change Type',
-                    menu: 'context-back'
+                    menu: 'back'
                 }
             },
             {
@@ -158,7 +158,7 @@ export default [
         component: CreateApplication,
         meta: {
             title: 'Team - Create Application',
-            menu: 'context-back'
+            menu: 'back'
         }
     },
     {
