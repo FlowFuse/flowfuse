@@ -71,7 +71,7 @@ Your device is now connected to FlowFuse and ready to be used.
 
 ## Deploy Flows to Device
 
-There are two approaches to running flows on your Devices.
+There are two approaches to deploying flows to your Devices.
 
 - **Developer Mode**: This mode allows you to edit and deploy flows directly from the FlowFuse platform.
 - **DevOps Pipelines**: FlowFuse provides [DevOps Pipelines](/docs/user/devops-pipelines.md) as a way of pushing flows from one Instance/Device to another (or several in the case of [Device Groups](/docs/user/device-groups.md)). This is the recommended approach if you're pushing from development environments (e.g. test devices) out to production devices.
