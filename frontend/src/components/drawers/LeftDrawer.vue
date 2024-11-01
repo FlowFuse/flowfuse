@@ -1,5 +1,5 @@
 <template>
-    <section id="left-drawer" data-el="left-drawer">
+    <section id="left-drawer" data-el="left-drawer" :class="{active: leftDrawer.state}">
         <MainNavigation />
         <!--        todo replace hardcoded component to allow swapping with contextual menu-->
         <!--        <component :is="leftDrawer.component" v-if="leftDrawer.component" />-->
