@@ -1,7 +1,7 @@
 <template>
     <section id="left-drawer" data-el="left-drawer" :class="{active: leftDrawer.state}">
         <Transition type="transition" mode="out-in" name="fade">
-            <component :is="leftDrawer.component" v-if="leftDrawer.component" :key="mainNav.context" />
+            <component :is="leftDrawer.component" v-if="leftDrawer.component" :key="leftDrawer.component.name" />
         </Transition>
     </section>
 </template>

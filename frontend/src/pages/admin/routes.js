@@ -60,11 +60,13 @@ export default [
         icon: AdjustmentsIcon,
         component: Admin,
         meta: {
-            title: 'Admin - Overview'
+            title: 'Admin - Overview',
+            menu: 'admin'
         },
         children: [
-            { path: 'overview', component: AdminOverview },
+            { name: 'admin-overview', path: 'overview', component: AdminOverview },
             {
+                name: 'admin-settings',
                 path: 'settings',
                 component: AdminSettings,
                 meta: {
@@ -72,13 +74,14 @@ export default [
                 },
                 redirect: '/admin/settings/general',
                 children: [
-                    { path: 'general', component: AdminSettingsGeneral },
-                    { path: 'license', component: AdminSettingsLicense },
-                    { path: 'email', component: AdminSettingsEmail },
-                    { path: 'sso', name: 'AdminSettingsSSO', component: AdminSettingsSSO }
+                    { name: 'admin-settings-general', path: 'general', component: AdminSettingsGeneral },
+                    { name: 'admin-settings-license', path: 'license', component: AdminSettingsLicense },
+                    { name: 'admin-settings-email', path: 'email', component: AdminSettingsEmail },
+                    { name: 'AdminSettingsSSO', path: 'sso', component: AdminSettingsSSO }
                 ]
             },
             {
+                name: 'admin-users',
                 path: 'users',
                 component: AdminUsers,
                 meta: {
@@ -86,19 +89,21 @@ export default [
                 },
                 redirect: '/admin/users/general',
                 children: [
-                    { path: 'general', component: AdminUsersGeneral, name: 'AdminUsersGeneral' },
-                    { path: 'invitations', component: AdminUsersInvitations }
+                    { name: 'admin-users-general', path: 'general', component: AdminUsersGeneral },
+                    { name: 'admin-users-invitations', path: 'invitations', component: AdminUsersInvitations },
+                    {
+                        name: 'admin-users-user',
+                        path: ':id',
+                        component: AdminUserDetails,
+                        meta: {
+                            title: 'Admin - User'
+                        }
+                    }
                 ]
             },
+
             {
-                name: 'Admin User Details',
-                path: 'users/:id',
-                component: AdminUserDetails,
-                meta: {
-                    title: 'Admin - User'
-                }
-            },
-            {
+                name: 'admin-teams',
                 path: 'teams',
                 component: AdminTeams,
                 meta: {
@@ -106,6 +111,7 @@ export default [
                 }
             },
             {
+                name: 'admin-team-types',
                 path: 'team-types',
                 component: AdminTeamTypes,
                 meta: {
@@ -113,6 +119,7 @@ export default [
                 }
             },
             {
+                name: 'admin-instance-types',
                 path: 'instance-types',
                 component: AdminInstanceTypes,
                 meta: {
@@ -120,6 +127,7 @@ export default [
                 }
             },
             {
+                name: 'admin-stacks',
                 path: 'stacks',
                 component: AdminStacks,
                 meta: {
@@ -127,7 +135,7 @@ export default [
                 }
             },
             {
-                name: 'Admin Templates',
+                name: 'admin-templates',
                 path: 'templates',
                 component: AdminTemplates,
                 meta: {
@@ -135,7 +143,7 @@ export default [
                 }
             },
             {
-                name: 'Admin Template',
+                name: 'admin-templates-template',
                 path: 'templates/:id',
                 redirect: to => {
                     return `/admin/templates/${to.params.id}/settings`
@@ -153,7 +161,7 @@ export default [
                 ]
             },
             {
-                name: 'AdminFlowBlueprints',
+                name: 'admin-flow-blueprints',
                 path: 'flow-blueprints',
                 component: AdminFlowBlueprints,
                 meta: {
@@ -161,6 +169,7 @@ export default [
                 }
             },
             {
+                name: 'admin-audit-logs',
                 path: 'audit-log',
                 component: PlatformAuditLog,
                 meta: {

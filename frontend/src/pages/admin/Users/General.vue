@@ -137,7 +137,7 @@ export default {
         },
         showUser (user) {
             this.$router.push({
-                name: 'Admin User Details',
+                name: 'admin-users-user',
                 params: { id: user.id }
             })
         }

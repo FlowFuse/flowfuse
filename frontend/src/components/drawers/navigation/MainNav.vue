@@ -31,13 +31,18 @@ import {
     ChevronLeftIcon,
     ChipIcon,
     CogIcon,
+    CollectionIcon,
+    ColorSwatchIcon,
     CurrencyDollarIcon,
     DatabaseIcon,
+    DesktopComputerIcon,
+    LockClosedIcon,
     RssIcon,
     TemplateIcon,
+    UserGroupIcon,
     UsersIcon
 } from '@heroicons/vue/outline'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
@@ -55,6 +60,16 @@ export default {
         ...mapState('ux', ['mainNav']),
         ...mapGetters('account', ['noBilling']),
         contextualNavigation () {
+            const backToDashboard = {
+                entries: [
+                    {
+                        label: 'Back to Dashboard',
+                        to: { name: 'Applications', params: { team_slug: this.team.slug } },
+                        tag: 'back',
+                        icon: ChevronLeftIcon
+                    }
+                ]
+            }
             return {
                 team: [
                     {
@@ -160,26 +175,130 @@ export default {
                         ]
                     }
                 ],
-                back: [
+                admin: [
+                    backToDashboard,
                     {
-                        title: '',
+                        title: 'Admin',
                         entries: [
                             {
-                                label: 'Back',
-                                to: { name: 'Applications', params: { team_slug: this.team.slug } },
-                                tag: 'back',
-                                icon: ChevronLeftIcon
+                                label: 'Overview',
+                                to: { name: 'admin-overview' },
+                                tag: 'admin-overview',
+                                icon: CollectionIcon
+                            },
+                            {
+                                label: 'Users',
+                                to: { name: 'admin-users' },
+                                tag: 'admin-users',
+                                icon: UsersIcon
+                            },
+                            {
+                                label: 'Teams',
+                                to: { name: 'admin-teams' },
+                                tag: 'admin-teams',
+                                icon: UserGroupIcon
+                            },
+                            {
+                                label: 'Audit Log',
+                                to: { name: 'admin-audit-logs' },
+                                tag: 'admin-auditlog',
+                                icon: DatabaseIcon
+                            }
+                        ]
+                    },
+                    {
+                        title: 'Setup',
+                        entries: [
+                            {
+                                label: 'Team Types',
+                                to: { name: 'admin-team-types' },
+                                tag: 'admin-teamtypes',
+                                icon: ColorSwatchIcon
+                            },
+                            {
+                                label: 'Instance Types',
+                                to: { name: 'admin-instance-types' },
+                                tag: 'admin-instancetypes',
+                                icon: ColorSwatchIcon
+                            },
+                            {
+                                label: 'Stacks',
+                                to: { name: 'admin-stacks' },
+                                tag: 'admin-stacks',
+                                icon: DesktopComputerIcon
+                            },
+                            {
+                                label: 'Templates',
+                                to: { name: 'admin-templates' },
+                                tag: 'admin-templates',
+                                icon: TemplateIcon
+                            },
+                            {
+                                label: 'Blueprints',
+                                to: { name: 'admin-flow-blueprints' },
+                                tag: 'admin-flow-blueprints',
+                                icon: TemplateIcon,
+                                featureUnavailable: !this.features.flowBlueprints
+                            }
+                        ]
+                    },
+                    {
+                        title: 'General',
+                        entries: [
+                            {
+                                label: 'Settings',
+                                to: { name: 'admin-settings' },
+                                tag: 'admin-settings',
+                                icon: CogIcon
                             }
                         ]
                     }
+                ],
+                user: [
+                    backToDashboard,
+                    {
+                        title: 'User Settings',
+                        entries: [
+                            {
+                                label: 'Settings',
+                                to: { name: 'user-settings-overview' },
+                                tag: 'account-settings',
+                                icon: CogIcon
+                            },
+                            {
+                                label: 'Teams',
+                                to: { name: 'user-settings-teams' },
+                                tag: 'account-teams',
+                                icon: UserGroupIcon
+                            },
+                            {
+                                label: 'Security',
+                                to: { name: 'user-settings-security' },
+                                tag: 'account-security',
+                                icon: LockClosedIcon
+                            }
+                        ]
+                    }
+                ],
+                back: [
+                    backToDashboard
                 ]
             }
         },
         navigation () {
+            if (!this.team) {
+                // compensating for a brief moment after login when the team is not loaded and the menu routes can't be rendered
+                // due to lacking team (this team.slug).
+                // this has to be addressed in an application service which selectively boots up parts of the application
+                // after the appropriate data store have been hydrated
+                return []
+            }
+
             let contextualMenu
             if (!Object.prototype.hasOwnProperty.call(this.contextualNavigation, this.mainNav.context)) {
                 contextualMenu = this.contextualNavigation.team
             } else contextualMenu = this.contextualNavigation[this.mainNav.context]
+
             return contextualMenu
         },
         filteredNavigation () {

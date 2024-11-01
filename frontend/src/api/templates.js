@@ -6,7 +6,7 @@ const getTemplates = async (cursor, limit) => {
     const url = paginateUrl('/api/v1/templates', cursor, limit)
     return client.get(url).then(res => {
         res.data.templates = res.data.templates.map(r => {
-            r.link = { name: 'Admin Template', params: { id: r.id } }
+            r.link = { name: 'admin-templates-template', params: { id: r.id } }
             return r
         })
         return res.data

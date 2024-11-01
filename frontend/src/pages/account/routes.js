@@ -46,16 +46,19 @@ export default [
         redirect: '/account/settings',
         name: 'User Settings',
         meta: {
-            title: 'Account - Settings'
+            title: 'Account - Settings',
+            menu: 'user'
         },
         icon: CogIcon,
         component: Account,
         children: [
             {
+                name: 'user-settings-overview',
                 path: 'settings',
                 component: AccountSettings
             },
             {
+                name: 'user-settings-teams',
                 path: 'teams',
                 component: AccountTeams,
                 meta: {
@@ -68,6 +71,7 @@ export default [
                 ]
             },
             {
+                name: 'user-settings-security',
                 path: 'security',
                 component: AccountSecurity,
                 meta: {
