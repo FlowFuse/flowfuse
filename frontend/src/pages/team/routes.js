@@ -115,7 +115,8 @@ export default [
                 path: 'settings/change-type',
                 component: ChangeTeamType,
                 meta: {
-                    title: 'Team - Change Type'
+                    title: 'Team - Change Type',
+                    menu: 'context-back'
                 }
             },
             {
@@ -156,7 +157,8 @@ export default [
         name: 'CreateTeamApplication',
         component: CreateApplication,
         meta: {
-            title: 'Team - Create Application'
+            title: 'Team - Create Application',
+            menu: 'context-back'
         }
     },
     {

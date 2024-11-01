@@ -693,6 +693,7 @@ $nav_height: 60px;
 
 #ff-app {
     #left-drawer {
+        min-width: $sidenav_width;
         position: relative;
         transition: ease-in-out left .3s;
         height: 100%;
@@ -700,8 +701,6 @@ $nav_height: 60px;
         left: 0;
 
         .ff-main-navigation {
-            min-width: $sidenav_width;
-
             .ff-menu-groups {
                 padding-top: 10px;
 

@@ -11,7 +11,10 @@ const state = () => ({
         welcome: false,
         education: false
     },
-    windowWidth: window.innerWidth
+    windowWidth: window.innerWidth,
+    mainNav: {
+        context: 'team'
+    }
 })
 
 const getters = {
@@ -42,6 +45,12 @@ const mutations = {
     toggleLeftDrawer (state) {
         state.leftDrawer.state = !state.leftDrawer.state
     },
+    setLeftDrawer (state, component) {
+        state.leftDrawer.component = component
+    },
+    setMainNavContext (state, context) {
+        state.mainNav.context = context
+    },
     activateTour (state, tour) {
         state.tours[tour] = true
     },
@@ -68,6 +77,12 @@ const actions = {
     },
     toggleLeftDrawer ({ commit }) {
         commit('toggleLeftDrawer')
+    },
+    setLeftDrawer ({ commit }, component) {
+        commit('setLeftDrawer', component)
+    },
+    setMainNavContext ({ commit }, context) {
+        commit('setMainNavContext', context)
     },
     activateTour ({ commit }, tour) {
         commit('activateTour', tour)
