@@ -29,6 +29,8 @@ sudo npm install -g @flowfuse/device-agent
 
 #### Windows
 
+Issue the below command in an elevated command prompt:
+
 ```bash
 npm install -g @flowfuse/device-agent
 ```
