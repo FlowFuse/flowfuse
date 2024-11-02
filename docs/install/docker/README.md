@@ -12,7 +12,6 @@ meta:
       - nodered
 ---
 
-
 <script>     
    class ChecklistItem extends HTMLElement {
 
