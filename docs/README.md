@@ -15,7 +15,6 @@ meta:
       - contributing
 ---
 
-
 <script>     
    class IconChevronRight extends HTMLElement {
       constructor() {
