@@ -159,7 +159,7 @@ Label project nodes:
 kubectl label node <projects-node-name> role=projects
 ```
 
-To override this behavior, you can remove the node selectors with the following which will mean that all pods can run on any nodes.
+To override this behavior, you can remove the node selectors with the following entry in the `customization.yml` file which will mean that all pods can run on any nodes.
 
 ```yaml
 forge:
