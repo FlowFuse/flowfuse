@@ -149,9 +149,13 @@ List all nodes in the cluster:
 kubectl get nodes
 ```
 
-Label selected nodes:
+Label management nodes:
 ```bash
 kubectl label node <management-node-name> role=management
+```
+
+Label project nodes:
+```bash
 kubectl label node <projects-node-name> role=projects
 ```
 
