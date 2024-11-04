@@ -216,13 +216,13 @@ If you want to use an external database server, you need to edit `customization.
 ```yaml
 forge:
   localPostgresql: false # Disable internal database
-  postgresql:
-    host: <database-host>
-    port: <database-port>
-    auth:
-      username: <database-username>
-      password: <database-password>
-      database: <database-name>
+postgresql:
+  host: <database-host>
+  port: <database-port>
+  auth:
+    username: <database-username>
+    password: <database-password>
+    database: <database-name>
 ```
 
 Apply changes with [platform startup command](#start-flowfuse-platform).
