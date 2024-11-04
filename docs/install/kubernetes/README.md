@@ -168,7 +168,7 @@ forge:
 Once you have the `customization.yml` file created, you can install FlowFuse using our Helm chart. This will automatically create all required objects and start services:
 
 ```bash
-helm upgrade --atomic --install --timeout 10m flowfuse flowforge/flowforge -f customization.yml
+helm upgrade --atomic --install --timeout 10m flowfuse flowfuse/flowforge -f customization.yml
 ```
 
 ## First Run Setup
