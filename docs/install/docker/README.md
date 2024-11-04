@@ -149,6 +149,9 @@ TLS_ENABLED=true
 
 Proceed to the [next paragraph](#start-flowfuse-platform) to start the platform with automatically generated TLS certificate.
 
+> When using automatic TLS certificate generation, the platform will take a few minutes to generate them on the first platform startup. 
+> For a short period of time browsers may report untrusted certificate warning. This is expected behavior and should resolve itself once the certificate is generated.
+
 #### Custom TLS Certificate
 
 If you have own TLS certificate, you can use it in FlowFuse platform installation as well. As mentioned before, the certificate must be a wildcard one for the domain you are using.
