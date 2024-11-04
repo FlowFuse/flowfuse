@@ -1,4 +1,4 @@
-const { compareHash } = require('../../../db/utils')
+const { compareHash } = require('../utils')
 
 module.exports = {
 
