@@ -2,8 +2,7 @@ const modelTypes = [
     'Subscription',
     'UserBillingCode',
     'Pipeline',
-    'DeviceGroup',
-    'TeamBrokerClient'
+    'DeviceGroup'
 ]
 
 async function init (app) {

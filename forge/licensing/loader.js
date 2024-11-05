@@ -6,6 +6,11 @@ const jwt = require('jsonwebtoken')
 
 const LICENSE_ISSUER = 'FlowForge Inc.'
 
+const MQTT_CLIENT_DEFAULT_ALLOWANCE = {
+    teams: 5,
+    enterprise: 20
+}
+
 class LicenseDetails {
     constructor (license, claims) {
         // this.license = license;
@@ -16,6 +21,7 @@ class LicenseDetails {
         this.validFrom = new Date(claims.nbf * 1000)
         this.expiresAt = new Date(claims.exp * 1000)
         this.dev = claims.dev
+        this.tier = claims.tier || 'enterprise'
         this.users = claims.users || 0
         if (Object.hasOwn(claims, 'instances')) {
             this.instances = claims.instances || 0
@@ -24,7 +30,7 @@ class LicenseDetails {
             this.devices = claims.devices || 0
         }
         this.teams = claims.teams || 0
-        this.tier = claims.tier || 'enterprise'
+        this.mqttClients = claims.mqttClients || MQTT_CLIENT_DEFAULT_ALLOWANCE[this.tier] || 0
         Object.freeze(this)
     }
 

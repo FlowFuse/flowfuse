@@ -4,6 +4,8 @@ forge:
   localPostgresql: true
   broker:
     enabled: true
+    teamBroker:
+      uiOnly: true
   cloudProvider: aws
   email:
     ses:

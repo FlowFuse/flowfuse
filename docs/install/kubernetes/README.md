@@ -245,3 +245,8 @@ forge:
 All technical aspects of the upgrade process of Flowfuse application running on Kubernetes and managed by Helm chart are maintained in our repository.
 Please refer to the [Flowfuse Helm Chart documentation](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md#upgrading-chart) for more details
 about the upgrade process.
+
+
+## Uninstall
+
+Use `helm` to remove the chart.

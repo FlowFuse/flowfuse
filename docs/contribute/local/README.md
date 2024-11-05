@@ -284,3 +284,8 @@ If you are running as your normal user you can drop the `sudo -u flowfuse` and j
 
 [^2]: Assumes you are running FlowFuse as a Linux service.
 [^3]: Assumes you are running FlowFuse as the `flowfuse` user as created by the installer
+
+
+## Uninstall
+
+To uninstall, stop all the running processes and then delete the `/opt/flowfuse` or `c:\flowfuse\` directory.
