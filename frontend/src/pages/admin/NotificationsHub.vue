@@ -76,7 +76,7 @@ export default {
     },
     computed: {
         roleIds () {
-            return Object.values(RoleNames).filter(r => r !== 'none')
+            return Object.values(RoleNames).filter(r => r !== 'none').reverse().map(r => r[0].toUpperCase() + r.substring(1))
         },
         canSubmit () {
             return this.form.title.length > 0 &&
