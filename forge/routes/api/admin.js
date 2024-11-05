@@ -28,9 +28,14 @@ module.exports = async function (app) {
         if (Object.hasOwn(license, 'devices')) {
             result.maxDevices = license.devices
         }
+        if (app.license.active()) {
+            const { mqttClients } = await app.license.usage('mqttClients')
+            result.maxMqttClients = mqttClients.limit
+            result.mqttClientCount = mqttClients.count
+        }
         userCount.forEach(u => {
             result.userCount += u.count
-            if (u.admin === 1) {
+            if (u.admin) {
                 result.adminCount = u.count
             }
         })

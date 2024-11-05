@@ -78,6 +78,12 @@
                         <td>{{ stats.instanceCount + stats.deviceCount }} / {{ stats.maxInstances }}</td>
                     </tr>
                 </template>
+                <template v-if="stats.maxMqttClients">
+                    <tr>
+                        <td class="w-40">Team MQTT Clients</td>
+                        <td>{{ stats.mqttClientCount }} / {{ stats.maxMqttClients }}</td>
+                    </tr>
+                </template>
             </table>
         </div>
         <div>
