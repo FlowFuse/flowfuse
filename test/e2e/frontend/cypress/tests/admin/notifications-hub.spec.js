@@ -32,7 +32,7 @@ describe('FlowForge - Notifications Hub', () => {
         cy.get('[data-action="submit"]').should('be.disabled')
         cy.get('[data-el="notification-external-url"] input').type('https://flowfuse.com')
         cy.get('[data-action="submit"]').should('be.disabled')
-        cy.get('[data-el="audience-role-owner"]').click()
+        cy.get('[data-el="audience-role-Owner"]').click()
         cy.get('[data-action="submit"]').should('not.be.disabled')
 
         cy.get('[data-el="platform-dialog"]').should('not.be.visible')
