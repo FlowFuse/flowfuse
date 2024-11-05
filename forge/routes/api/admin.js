@@ -395,26 +395,6 @@ module.exports = async function (app) {
         reply.send({ status: 'okay' })
     })
 
-    // announcements
-    app.get('/announcements', {
-        preHandler: app.needsPermission('user:announcements:manage'),
-        schema: {
-            summary: 'Get platform wide announcements',
-            tags: ['Platform', 'Notifications', 'Announcements'],
-            response: {
-                200: {
-                    type: 'object',
-                    properties: {}
-                },
-                '4xx': {
-                    $ref: 'APIError'
-                }
-            }
-        }
-    }, async (request, reply) => {
-        // tbd
-    })
-
     app.post('/announcements', {
         preHandler: app.needsPermission('user:announcements:manage'),
         schema: {
@@ -422,11 +402,16 @@ module.exports = async function (app) {
             tags: ['Platform', 'Notifications', 'Announcements'],
             body: {
                 type: 'object',
-                required: ['message', 'title', 'recipientRoles'],
+                required: ['message', 'title', 'filter'],
                 properties: {
                     message: { type: 'string' },
                     title: { type: 'string' },
-                    recipientRoles: { type: 'array', items: { type: 'number' } },
+                    filter: {
+                        type: 'object',
+                        properties: {
+                            roles: { type: 'array', items: { type: 'number' } }
+                        }
+                    },
                     mock: { type: 'boolean' },
                     to: { type: 'object' },
                     url: { type: 'string' }
@@ -448,36 +433,38 @@ module.exports = async function (app) {
         const {
             title,
             message,
-            recipientRoles,
+            filter,
             mock,
             to,
             url
         } = request.body
 
-        if (!recipientRoles.every(value => Object.values(Roles).includes(value))) {
+        const recipientRoles = filter?.roles
+        if (recipientRoles && !recipientRoles.every(value => Object.values(Roles).includes(value))) {
             return reply.code(400).send({ code: 'bad_request', error: 'Invalid Role provided.' })
         }
+        const recipients = await app.db.models.User.byTeamRole(recipientRoles, { summary: true })
+        if (mock) {
+            // If mock is sent, return an indication of how many users would receive this notification
+            // without actually sending them.
+            reply.send({
+                mock: true,
+                recipientCount: recipients.length
+            })
+            return
+        }
 
-        const recipients = await app.db.models.User.byTeamRole(recipientRoles)
         const notificationType = 'announcement'
         const titleSlug = title.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase()
         const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2)
         const reference = `${uniqueId}:${titleSlug}`
-
-        const data = { title, message, recipientRoles, ...(to && { to }), ...(url && { url }) }
-
-        if (!mock || mock === false) {
-            for (const recipient of recipients) {
-                await app.notifications.send(
-                    recipient,
-                    notificationType,
-                    data,
-                    reference,
-                    { upsert: false }
-                )
-            }
-        }
-
+        const data = { title, message, ...(to && { to }), ...(url && { url }) }
+        await app.notifications.sendBulk(
+            recipients,
+            notificationType,
+            data,
+            reference
+        )
         reply.send({
             recipientCount: recipients.length
         })

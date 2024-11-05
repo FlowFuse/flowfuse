@@ -46,6 +46,43 @@ module.exports = fp(async function (app, _opts) {
     }
 
     /**
+     * Sends a notification to muliple users. This does not deal with updating existing
+     * or superseding notifications as provided by the `send` function.
+     * @param {array} users who the notification is for
+     * @param {string} type the type of the notification
+     * @param {Object} data meta data for the notification - specific to the type
+     * @param {string} reference a key that can be used to lookup this notification, for example: `invite:HASHID`
+     */
+    async function sendBulk (userList, type, data, reference = null) {
+        const SEND_BATCH_SIZE = 200
+        const transaction = await app.db.sequelize.transaction()
+        try {
+            app.log.info(`Sending notification ${reference} to ${userList.length} users`)
+            let index = 0
+            let notifications = []
+            while (index < userList.length) {
+                notifications.push({
+                    UserId: userList[index].id,
+                    type,
+                    reference,
+                    data
+                })
+                if (notifications.length === SEND_BATCH_SIZE || index === userList.length - 1) {
+                    await app.db.models.Notification.bulkCreate(notifications)
+                    notifications = []
+                }
+                index++
+            }
+            await transaction.commit()
+            app.log.info(`Completed sending notification ${reference} to ${userList.length} users`)
+        } catch (error) {
+            await transaction.rollback()
+            app.log.error(`Error sending notification ${reference}: ${error.toString()}`)
+            throw error
+        }
+    }
+
+    /**
      * Remove a notification for a user with the given reference.
      * For example, when an invite is accepted/rejected, we can clear the associated notification
      * @param {User} user
@@ -60,6 +97,7 @@ module.exports = fp(async function (app, _opts) {
 
     app.decorate('notifications', {
         send,
+        sendBulk,
         remove
     })
 }, { name: 'app.notifications' })

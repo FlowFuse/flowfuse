@@ -108,7 +108,9 @@ export default {
             const payload = {
                 mock,
                 ...form,
-                recipientRoles: this.form.roles.map(r => Roles[r]),
+                filter: {
+                    roles: this.form.roles.map(r => Roles[r])
+                },
                 ...(this.form.externalUrl ? { url: this.form.url } : { to: JSON.parse(this.form.url) })
             }
 

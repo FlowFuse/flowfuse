@@ -281,16 +281,32 @@ module.exports = {
                         users: rows
                     }
                 },
-                byTeamRole: async (roles = []) => {
+                /**
+                 * Get users with a particular role
+                 * @param {Array} roles An array of valid user roles
+                 * @param {Object} options Options
+                 * @param {Boolean} options.summary whether to return a limited user object that only contains id: default false
+                 * @returns Array of users who have at least one of the specific roles
+                 */
+                byTeamRole: async (roles = [], options) => {
+                    options = {
+                        summary: false,
+                        ...options
+                    }
+                    let attributes
+                    if (options.summary) {
+                        attributes = ['id']
+                    }
                     const includesAdmins = roles.includes(Roles.Admin)
-
+                    const where = {
+                        [Op.or]: [
+                            includesAdmins ? { admin: 1 } : {},
+                            { '$TeamMembers.role$': { [Op.in]: roles } }
+                        ]
+                    }
                     return M.User.findAll({
-                        where: {
-                            [Op.or]: [
-                                includesAdmins ? { admin: 1 } : {},
-                                { '$TeamMembers.role$': { [Op.in]: roles } }
-                            ]
-                        },
+                        where,
+                        attributes,
                         include: {
                             model: M.TeamMember,
                             attributes: ['role']
