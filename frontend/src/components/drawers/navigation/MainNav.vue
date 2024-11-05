@@ -60,11 +60,11 @@ export default {
         ...mapState('ux', ['mainNav']),
         ...mapGetters('account', ['noBilling']),
         contextualNavigation () {
-            const backToDashboard = {
+            const backToButton = {
                 entries: [
                     {
-                        label: this.metaBackTo.label,
-                        to: this.metaBackTo.to,
+                        label: this.backTo.label,
+                        to: this.backTo.to,
                         tag: 'back',
                         icon: ChevronLeftIcon
                     }
@@ -176,7 +176,7 @@ export default {
                     }
                 ],
                 admin: [
-                    backToDashboard,
+                    backToButton,
                     {
                         title: 'Admin',
                         entries: [
@@ -255,7 +255,7 @@ export default {
                     }
                 ],
                 user: [
-                    backToDashboard,
+                    backToButton,
                     {
                         title: 'User Settings',
                         entries: [
@@ -280,9 +280,7 @@ export default {
                         ]
                     }
                 ],
-                back: [
-                    backToDashboard
-                ]
+                back: [backToButton]
             }
         },
         navigation () {
@@ -325,32 +323,58 @@ export default {
                 })
                 .filter(category => category.entries.length > 0) // filter categories without entries
         },
-        metaMenu () {
+        nearestMetaMenu () {
             if (this.$route?.meta?.menu) {
                 return this.$route.meta.menu
             }
+
             // find the nearest parent with the meta.menu entry
             const parentRoute = this.$route.matched.find(route => route.meta && route.meta.menu)
-            return parentRoute ? parentRoute.meta.menu : 'team'
+            return parentRoute ? parentRoute.meta.menu : null
         },
-        metaBackTo () {
-            if (this.$route?.meta?.backTo) {
-                if (typeof this.$route?.meta?.backTo === 'function') {
-                    return this.$route.meta.backTo(this.team)
-                }
-                return this.$route.meta.backTo
-            }
-            // find the nearest parent with the meta.menu entry
-            const parentRoute = this.$route.matched.find(route => route.meta && route.meta.backTo)
+        menu () {
+            switch (true) {
+            case this.nearestMetaMenu === null:
+                return 'team'
 
-            return parentRoute ?? {
+            case typeof this.nearestMetaMenu === 'string':
+                return this.nearestMetaMenu
+
+            case typeof this.nearestMetaMenu === 'object':
+                return this.nearestMetaMenu.type
+
+            default:
+                return 'team'
+            }
+        },
+        backTo () {
+            const defaultBackToRoute = {
                 label: 'Back to Dashboard',
                 to: { name: 'Applications', params: { team_slug: this.team.slug } }
+            }
+
+            if (this.nearestMetaMenu === null) {
+                return defaultBackToRoute
+            }
+
+            const hasBackToProp = Object.prototype.hasOwnProperty.call(this.nearestMetaMenu, 'backTo')
+            const isNearestMenuAnObject = typeof this.nearestMetaMenu === 'object'
+
+            switch (true) {
+            case isNearestMenuAnObject && hasBackToProp && typeof this.nearestMetaMenu.backTo === 'object':
+                return this.nearestMetaMenu.backTo
+
+            case isNearestMenuAnObject && hasBackToProp && typeof this.nearestMetaMenu.backTo === 'function':
+                return this.nearestMetaMenu.backTo({ team_slug: this.team.slug })
+
+            case typeof this.nearestMetaMenu === 'string':
+            default:
+                return defaultBackToRoute
             }
         }
     },
     watch: {
-        metaMenu: {
+        menu: {
             handler: function (menu) {
                 if (['user', 'admin', 'back', 'team'].includes(menu)) {
                     this.setMainNavContext(menu)

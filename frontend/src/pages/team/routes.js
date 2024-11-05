@@ -30,11 +30,13 @@ export default [
         component: CreateTeam,
         meta: {
             title: 'Create Team',
-            menu: 'back',
-            backTo: (team) => {
-                return {
-                    label: 'Back to Dashboard',
-                    to: { name: 'Team', params: { team_slug: team.slug } }
+            menu: {
+                type: 'back',
+                backTo: (params) => {
+                    return {
+                        label: 'Back to Dashboard',
+                        to: { name: 'Team', params }
+                    }
                 }
             }
         }

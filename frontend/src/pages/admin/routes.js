@@ -65,19 +65,6 @@ export default [
                         redirect: { name: 'admin-settings-sso-list' },
                         children: [
                             { name: 'admin-settings-sso-list', path: 'list', component: AdminSettingsSSO }
-                            //         {
-                            //             path: ':id',
-                            //             name: 'admin-settings-sso-edit',
-                            //             component: AdminSettingsSSOEdit,
-                            //             meta: {
-                            //                 title: 'Admin - Settings - SSO Configuration',
-                            //                 menu: 'back',
-                            //                 backTo: {
-                            //                     label: 'Back to SSO',
-                            //                     to: { name: 'admin-settings-sso' }
-                            //                 }
-                            //             }
-                            //         }
                         ]
                     }
                 ]
@@ -88,10 +75,12 @@ export default [
                 component: AdminSettingsSSOEdit,
                 meta: {
                     title: 'Admin - Settings - SSO Configuration',
-                    menu: 'back',
-                    backTo: {
-                        label: 'Back to SSO',
-                        to: { name: 'admin-settings-sso' }
+                    menu: {
+                        type: 'back',
+                        backTo: {
+                            label: 'Back to SSO',
+                            to: { name: 'admin-settings-sso' }
+                        }
                     }
                 }
             },
@@ -112,10 +101,12 @@ export default [
                         component: AdminCreateUser,
                         meta: {
                             title: 'Admin - Create User',
-                            menu: 'back',
-                            backTo: {
-                                label: 'Back to Users',
-                                to: { name: 'admin-users' }
+                            menu: {
+                                type: 'back',
+                                backTo: {
+                                    label: 'Back to Users',
+                                    to: { name: 'admin-users' }
+                                }
                             }
                         }
                     },
@@ -181,10 +172,12 @@ export default [
                         component: AdminTemplate,
                         meta: {
                             title: 'Admin - Template',
-                            menu: 'back',
-                            backTo: {
-                                label: 'Back to Templates',
-                                to: { name: 'admin-templates-list' }
+                            menu: {
+                                type: 'back',
+                                backTo: {
+                                    label: 'Back to Templates',
+                                    to: { name: 'admin-templates-list' }
+                                }
                             }
                         },
                         children: [
