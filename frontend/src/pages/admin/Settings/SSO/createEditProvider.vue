@@ -246,7 +246,7 @@ export default {
                     domainFilter: this.input.domainFilter,
                     type: this.input.type
                 }).then(response => {
-                    this.$router.push({ name: 'AdminSettingsSSOEdit', params: { id: response.id } })
+                    this.$router.push({ name: 'admin-settings-sso-edit', params: { id: response.id } })
                     this.loading = false
                     this.provider = response
                     this.updateForm()
@@ -292,7 +292,7 @@ export default {
                 delete opts.type
                 delete opts.id
                 ssoApi.updateProvider(this.provider.id, opts).then(response => {
-                    this.$router.push({ name: 'AdminSettingsSSO' })
+                    this.$router.push({ name: 'admin-settings-sso' })
                 }).catch(err => {
                     console.error(err)
                 })
@@ -320,7 +320,7 @@ export default {
                     this.updateForm()
                 } catch (err) {
                     if (err.response.status === 404) {
-                        this.$router.push({ name: 'AdminSettingsSSO' })
+                        this.$router.push({ name: 'admin-settings-sso' })
                     }
                     console.error(err)
                 } finally {

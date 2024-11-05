@@ -32,24 +32,6 @@ import Admin from './index.vue'
 
 export default [
     {
-        path: '/admin/users/create',
-        beforeEnter: ensureAdmin,
-        name: 'AdminCreateUser',
-        component: AdminCreateUser,
-        meta: {
-            title: 'Admin - Create User'
-        }
-    },
-    {
-        path: '/admin/settings/sso/:id',
-        name: 'AdminSettingsSSOEdit',
-        beforeEnter: ensureAdmin,
-        component: AdminSettingsSSOEdit,
-        meta: {
-            title: 'Admin - Settings - SSO Configuration'
-        }
-    },
-    {
         path: '/admin/',
         profileLink: true,
         profileMenuIndex: 50,
@@ -77,8 +59,41 @@ export default [
                     { name: 'admin-settings-general', path: 'general', component: AdminSettingsGeneral },
                     { name: 'admin-settings-license', path: 'license', component: AdminSettingsLicense },
                     { name: 'admin-settings-email', path: 'email', component: AdminSettingsEmail },
-                    { name: 'AdminSettingsSSO', path: 'sso', component: AdminSettingsSSO }
+                    {
+                        name: 'admin-settings-sso',
+                        path: 'sso',
+                        redirect: { name: 'admin-settings-sso-list' },
+                        children: [
+                            { name: 'admin-settings-sso-list', path: 'list', component: AdminSettingsSSO }
+                            //         {
+                            //             path: ':id',
+                            //             name: 'admin-settings-sso-edit',
+                            //             component: AdminSettingsSSOEdit,
+                            //             meta: {
+                            //                 title: 'Admin - Settings - SSO Configuration',
+                            //                 menu: 'back',
+                            //                 backTo: {
+                            //                     label: 'Back to SSO',
+                            //                     to: { name: 'admin-settings-sso' }
+                            //                 }
+                            //             }
+                            //         }
+                        ]
+                    }
                 ]
+            },
+            {
+                path: '/admin/settings/sso/:id',
+                name: 'admin-settings-sso-edit',
+                component: AdminSettingsSSOEdit,
+                meta: {
+                    title: 'Admin - Settings - SSO Configuration',
+                    menu: 'back',
+                    backTo: {
+                        label: 'Back to SSO',
+                        to: { name: 'admin-settings-sso' }
+                    }
+                }
             },
             {
                 name: 'admin-users',
@@ -92,6 +107,19 @@ export default [
                     { name: 'admin-users-general', path: 'general', component: AdminUsersGeneral },
                     { name: 'admin-users-invitations', path: 'invitations', component: AdminUsersInvitations },
                     {
+                        path: '/create',
+                        name: 'admin-users-create',
+                        component: AdminCreateUser,
+                        meta: {
+                            title: 'Admin - Create User',
+                            menu: 'back',
+                            backTo: {
+                                label: 'Back to Users',
+                                to: { name: 'admin-users' }
+                            }
+                        }
+                    },
+                    {
                         name: 'admin-users-user',
                         path: ':id',
                         component: AdminUserDetails,
@@ -101,7 +129,6 @@ export default [
                     }
                 ]
             },
-
             {
                 name: 'admin-teams',
                 path: 'teams',
@@ -137,27 +164,37 @@ export default [
             {
                 name: 'admin-templates',
                 path: 'templates',
-                component: AdminTemplates,
+                redirect: { name: 'admin-templates-list' },
                 meta: {
                     title: 'Admin - Templates'
-                }
-            },
-            {
-                name: 'admin-templates-template',
-                path: 'templates/:id',
-                redirect: to => {
-                    return `/admin/templates/${to.params.id}/settings`
-                },
-                component: AdminTemplate,
-                meta: {
-                    title: 'Admin - Template'
                 },
                 children: [
-                    { path: 'settings', component: AdminTemplateSettings },
-                    { path: 'security', component: AdminTemplateSecurity },
-                    { path: 'environment', component: AdminTemplateEnvironment },
-                    { path: 'palette', component: AdminTemplatePalette },
-                    { path: 'alerts', component: AdminTemplateAlerts }
+                    {
+                        name: 'admin-templates-list',
+                        path: 'list',
+                        component: AdminTemplates
+                    },
+                    {
+                        name: 'admin-templates-template',
+                        path: ':id',
+                        redirect: { name: 'admin-templates-template-settings' },
+                        component: AdminTemplate,
+                        meta: {
+                            title: 'Admin - Template',
+                            menu: 'back',
+                            backTo: {
+                                label: 'Back to Templates',
+                                to: { name: 'admin-templates-list' }
+                            }
+                        },
+                        children: [
+                            { name: 'admin-templates-template-settings', path: 'settings', component: AdminTemplateSettings },
+                            { name: 'admin-templates-template-security', path: 'security', component: AdminTemplateSecurity },
+                            { name: 'admin-templates-template-environment', path: 'environment', component: AdminTemplateEnvironment },
+                            { name: 'admin-templates-template-palette', path: 'palette', component: AdminTemplatePalette },
+                            { name: 'admin-templates-template-alerts', path: 'alerts', component: AdminTemplateAlerts }
+                        ]
+                    }
                 ]
             },
             {

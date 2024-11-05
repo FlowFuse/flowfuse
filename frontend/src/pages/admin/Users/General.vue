@@ -15,7 +15,7 @@
             @load-more="loadItems" @row-selected="showUser"
         >
             <template #actions>
-                <ff-button to="./create">
+                <ff-button :to="{name: 'admin-users-create'}">
                     <template #icon-left>
                         <UserAddIcon />
                     </template>
