@@ -118,8 +118,7 @@ export default [
                 path: 'settings/change-type',
                 component: ChangeTeamType,
                 meta: {
-                    title: 'Team - Change Type',
-                    menu: 'back'
+                    title: 'Team - Change Type'
                 }
             },
             {
@@ -165,7 +164,16 @@ export default [
         name: 'CreateInstance',
         component: CreateInstance,
         meta: {
-            title: 'Team - Create Instance'
+            title: 'Team - Create Instance',
+            menu: {
+                type: 'back',
+                backTo: (params) => {
+                    return {
+                        label: 'Back to Instances',
+                        to: { name: 'Instances', params }
+                    }
+                }
+            }
         }
     },
     {
