@@ -91,16 +91,16 @@ export default [
                 }
             },
             {
-                name: 'TeamMembers',
+                name: 'team-members',
                 path: 'members',
                 component: TeamMembers,
                 meta: {
                     title: 'Team - Members'
                 },
-                redirect: { name: 'TeamMembers' },
+                redirect: { name: 'team-members-members' },
                 children: [
-                    { path: 'general', name: 'TeamMembers', component: TeamMembersMembers },
-                    { path: 'invitations', component: TeamMembersInvitations }
+                    { name: 'team-members-members', path: 'general', component: TeamMembersMembers },
+                    { name: 'team-members-invitations', path: 'invitations', component: TeamMembersInvitations }
                 ]
             },
             {

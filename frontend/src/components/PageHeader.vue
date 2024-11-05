@@ -132,7 +132,7 @@ export default {
             ].filter(option => option !== undefined)
         },
         showInviteButton () {
-            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'TeamMembers'
+            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
         },
         shouldDisplayMenuToggle () {
             return this.shouldShowLeftBar(this.$route)
@@ -173,7 +173,7 @@ export default {
         },
         inviteTeamMembers () {
             this.$router.push({
-                name: 'TeamMembers',
+                name: 'team-members',
                 params: {
                     team_slug: this.team.slug
                 },

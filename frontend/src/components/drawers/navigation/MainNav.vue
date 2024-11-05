@@ -130,7 +130,7 @@ export default {
                             },
                             {
                                 label: 'Members',
-                                to: { name: 'TeamMembers', params: { team_slug: this.team.slug } },
+                                to: { name: 'team-members', params: { team_slug: this.team.slug } },
                                 tag: 'team-members',
                                 icon: UsersIcon,
                                 disabled: this.noBilling
