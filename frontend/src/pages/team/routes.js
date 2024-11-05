@@ -29,14 +29,19 @@ export default [
         beforeEnter: ensurePermission('team:create'),
         component: CreateTeam,
         meta: {
-            title: 'Create Team'
+            title: 'Create Team',
+            menu: 'back',
+            backTo: (team) => {
+                return {
+                    label: 'Back to Dashboard',
+                    to: { name: 'Team', params: { team_slug: team.slug } }
+                }
+            }
         }
     },
     {
         path: '/team/:team_slug',
-        redirect: to => {
-            return `/team/${to.params.team_slug}/applications`
-        },
+        redirect: { name: 'Applications' },
         name: 'Team',
         component: Team,
         meta: {
@@ -74,9 +79,7 @@ export default [
                 meta: {
                     title: 'Team - Library'
                 },
-                redirect: to => {
-                    return { name: 'LibraryTeamLibrary' }
-                },
+                redirect: { name: 'LibraryTeamLibrary' },
                 children: [...LibraryRoutes]
             },
             {
@@ -84,7 +87,7 @@ export default [
                 path: 'broker',
                 component: Broker,
                 meta: {
-                    title: ' Team - Broker'
+                    title: 'Team - Broker'
                 }
             },
             {
@@ -94,9 +97,7 @@ export default [
                 meta: {
                     title: 'Team - Members'
                 },
-                redirect: to => {
-                    return `/team/${to.params.team_slug}/members/general`
-                },
+                redirect: { name: 'TeamMembers' },
                 children: [
                     { path: 'general', name: 'TeamMembers', component: TeamMembersMembers },
                     { path: 'invitations', component: TeamMembersInvitations }
@@ -126,14 +127,11 @@ export default [
                 meta: {
                     title: 'Team - Settings'
                 },
-                redirect: to => {
-                    return `/team/${to.params.team_slug}/settings/general`
-                },
+                redirect: { name: 'team-settings-general' },
                 children: [
-                    { path: 'general', component: TeamSettingsGeneral },
-                    // { path: 'permissions', component: TeamSettingsPermissions},
-                    { path: 'devices', name: 'TeamSettingsDevices', component: TeamSettingsDevices },
-                    { path: 'danger', component: TeamSettingsDanger }
+                    { name: 'team-settings-general', path: 'general', component: TeamSettingsGeneral },
+                    { name: 'TeamSettingsDevices', path: 'devices', component: TeamSettingsDevices },
+                    { name: 'team-settings-danger', path: 'danger', component: TeamSettingsDanger }
                 ]
             },
             {
@@ -145,10 +143,9 @@ export default [
                 }
             },
             {
+                name: 'team-overview',
                 path: 'overview',
-                redirect: to => {
-                    return `/team/${to.params.team_slug}/applications`
-                }
+                redirect: { name: 'Applications' }
             }
         ]
     },

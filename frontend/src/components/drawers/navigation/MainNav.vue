@@ -335,6 +335,9 @@ export default {
         },
         metaBackTo () {
             if (this.$route?.meta?.backTo) {
+                if (typeof this.$route?.meta?.backTo === 'function') {
+                    return this.$route.meta.backTo(this.team)
+                }
                 return this.$route.meta.backTo
             }
             // find the nearest parent with the meta.menu entry
