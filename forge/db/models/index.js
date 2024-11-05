@@ -79,7 +79,8 @@ const modelTypes = [
     'AuditLog',
     'BrokerClient',
     'OAuthSession',
-    'Notification'
+    'Notification',
+    'TeamBrokerClient'
 ]
 
 // A local map of the known models.
