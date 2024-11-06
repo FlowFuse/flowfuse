@@ -712,13 +712,13 @@ $nav_height: 60px;
                         padding: 0 10px;
                         text-transform: uppercase;
                         color: $ff-grey-400; // todo replace with themed variables not colors
-                        font-size: 12px;
+                        font-size: 11px;
                     }
 
                     .ff-menu-entries {
 
                         .ff-menu-entry {
-                            margin-bottom: 5px;
+                            margin: 0 5px 5px 10px;
 
                             &:last-of-type {
                                 margin-bottom: 0;
