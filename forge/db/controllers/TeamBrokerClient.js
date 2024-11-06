@@ -15,7 +15,6 @@ module.exports = {
             }
 
             const properties = user.Team.TeamType.properties
-            console.log(properties)
             if (!properties?.features?.teamBroker) {
                 return false
             }
