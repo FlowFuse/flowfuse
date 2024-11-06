@@ -1,11 +1,6 @@
 import { mapState } from 'vuex'
 
-import {
-    hasALowerOrEqualTeamRoleThan,
-    hasAMinimumTeamRoleOf,
-    hasPermission,
-    isVisitingAdmin
-} from '../composables/Permissions.js'
+import usePermissions from '../composables/Permissions.js'
 
 /**
  * @typedef {0 | 5 | 10 | 30 | 50 | 99} Role
@@ -21,12 +16,14 @@ export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
 
-        isVisitingAdmin: function () {
+        isVisitingAdmin () {
+            const { isVisitingAdmin } = usePermissions()
             return isVisitingAdmin(this.teamMembership?.role)
         }
     },
     methods: {
-        hasPermission: function (scope) {
+        hasPermission (scope) {
+            const { hasPermission } = usePermissions()
             return hasPermission(scope, this.teamMembership)
         },
 
@@ -38,8 +35,9 @@ export default {
          * // Check if the user has at least the 'Member' role
          * const isMemberOrHigher = hasAMinimumTeamRoleOf(Roles.Member)
          */
-        hasAMinimumTeamRoleOf: function (role) {
-            hasAMinimumTeamRoleOf(role, this.teamMembership)
+        hasAMinimumTeamRoleOf (role) {
+            const { hasAMinimumTeamRoleOf } = usePermissions()
+            return hasAMinimumTeamRoleOf(role, this.teamMembership)
         },
 
         /**
@@ -50,7 +48,8 @@ export default {
          * // Check if the user has role lower than 'Member' role
          * const isMemberOrHigher = hasALowerTeamRoleThan(Roles.Member)
          */
-        hasALowerOrEqualTeamRoleThan: function (role) {
+        hasALowerOrEqualTeamRoleThan (role) {
+            const { hasALowerOrEqualTeamRoleThan } = usePermissions()
             return hasALowerOrEqualTeamRoleThan(role, this.teamMembership)
         }
     }

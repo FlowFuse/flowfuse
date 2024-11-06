@@ -1,3 +1,14 @@
+import {
+    BookOpenIcon, ChipIcon, CogIcon, CollectionIcon,
+    ColorSwatchIcon, CurrencyDollarIcon, DatabaseIcon,
+    DesktopComputerIcon, LockClosedIcon, RssIcon,
+    TemplateIcon, UserGroupIcon, UsersIcon
+} from '@heroicons/vue/outline'
+
+import ProjectsIcon from '../components/icons/Projects.js'
+import usePermissions from '../composables/Permissions.js'
+import { Roles } from '../utils/roles.js'
+
 const state = () => ({
     leftDrawer: {
         state: false,
@@ -13,7 +24,8 @@ const state = () => ({
     },
     windowWidth: window.innerWidth,
     mainNav: {
-        context: 'team'
+        context: 'team',
+        backToButton: null
     }
 })
 
@@ -24,6 +36,260 @@ const getters = {
     hasFloatingLeftBar: (state) => state.windowWidth < 1024,
     shouldShowEducationModal: (state) => {
         return state.tours.education
+    },
+    mainNavContexts: function (state, getters, rootState, rootGetters) {
+        const { hasALowerOrEqualTeamRoleThan } = usePermissions()
+        const team = rootState.account.team
+        const teamMembership = rootState.account.teamMembership
+        const accountFeatures = rootState.account.features
+        const noBilling = rootGetters['account/noBilling']
+        const features = rootGetters['account/featuresCheck']
+
+        return {
+            team: [
+                {
+                    title: '',
+                    entries: [
+                        {
+                            label: 'Applications',
+                            to: { name: 'Applications', params: { team_slug: team.slug } },
+                            tag: 'team-applications',
+                            icon: TemplateIcon,
+                            disabled: noBilling
+                        }
+                    ]
+                },
+                {
+                    title: 'Instances',
+                    entries: [
+                        {
+                            label: 'Hosted Instances',
+                            to: { name: 'Instances', params: { team_slug: team.slug } },
+                            tag: 'team-instances',
+                            icon: ProjectsIcon,
+                            disabled: noBilling
+                        },
+                        {
+                            label: 'Edge Devices',
+                            to: { name: 'TeamDevices', params: { team_slug: team.slug } },
+                            tag: 'team-devices',
+                            icon: ChipIcon,
+                            disabled: noBilling
+                        }
+                    ]
+                },
+                {
+                    title: 'Operations',
+                    entries: [
+                        {
+                            label: 'Broker',
+                            to: { name: 'TeamBroker', params: { team_slug: team.slug } },
+                            tag: 'team-broker',
+                            icon: RssIcon,
+                            disabled: noBilling,
+                            featureUnavailable: !features.isMqttBrokerFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership) && features.isMqttBrokerFeatureEnabledForPlatform
+                        }
+                    ]
+                },
+                {
+                    title: 'Team Management',
+                    entries: [
+                        {
+                            label: 'Library',
+                            to: { name: 'TeamLibrary', params: { team_slug: team.slug } },
+                            tag: 'shared-library',
+                            icon: BookOpenIcon,
+                            disabled: noBilling,
+                            featureUnavailable: !features.isSharedLibraryFeatureEnabledForPlatform || !features.isSharedLibraryFeatureEnabledForTeam
+                        },
+                        {
+                            label: 'Members',
+                            to: { name: 'team-members', params: { team_slug: team.slug } },
+                            tag: 'team-members',
+                            icon: UsersIcon,
+                            disabled: noBilling
+                        }
+                    ]
+                },
+                {
+                    title: 'Team Admin',
+                    permission: '',
+                    entries: [
+                        {
+                            label: 'Audit Log',
+                            to: { name: 'AuditLog', params: { team_slug: team.slug } },
+                            tag: 'team-audit',
+                            icon: DatabaseIcon,
+                            disabled: noBilling,
+                            permission: 'team:edit'
+                        },
+                        {
+                            label: 'Billing',
+                            to: { name: 'Billing', params: { team_slug: team.slug } },
+                            tag: 'team-billing',
+                            icon: CurrencyDollarIcon,
+                            hidden: noBilling || !!accountFeatures?.billing,
+                            permission: 'team:edit'
+                        },
+                        {
+                            label: 'Team Settings',
+                            to: { name: 'TeamSettings', params: { team_slug: team.slug } },
+                            tag: 'team-settings',
+                            icon: CogIcon,
+                            permission: 'team:edit'
+                        }
+                    ]
+                }
+            ],
+            admin: [
+                {
+                    entries: [
+                        state.mainNav.backToButton
+                    ]
+                },
+                {
+                    title: 'Admin',
+                    entries: [
+                        {
+                            label: 'Overview',
+                            to: { name: 'admin-overview' },
+                            tag: 'admin-overview',
+                            icon: CollectionIcon
+                        },
+                        {
+                            label: 'Users',
+                            to: { name: 'admin-users' },
+                            tag: 'admin-users',
+                            icon: UsersIcon
+                        },
+                        {
+                            label: 'Teams',
+                            to: { name: 'admin-teams' },
+                            tag: 'admin-teams',
+                            icon: UserGroupIcon
+                        },
+                        {
+                            label: 'Audit Log',
+                            to: { name: 'admin-audit-logs' },
+                            tag: 'admin-auditlog',
+                            icon: DatabaseIcon
+                        }
+                    ]
+                },
+                {
+                    title: 'Setup',
+                    entries: [
+                        {
+                            label: 'Team Types',
+                            to: { name: 'admin-team-types' },
+                            tag: 'admin-teamtypes',
+                            icon: ColorSwatchIcon
+                        },
+                        {
+                            label: 'Instance Types',
+                            to: { name: 'admin-instance-types' },
+                            tag: 'admin-instancetypes',
+                            icon: ColorSwatchIcon
+                        },
+                        {
+                            label: 'Stacks',
+                            to: { name: 'admin-stacks' },
+                            tag: 'admin-stacks',
+                            icon: DesktopComputerIcon
+                        },
+                        {
+                            label: 'Templates',
+                            to: { name: 'admin-templates' },
+                            tag: 'admin-templates',
+                            icon: TemplateIcon
+                        },
+                        {
+                            label: 'Blueprints',
+                            to: { name: 'admin-flow-blueprints' },
+                            tag: 'admin-flow-blueprints',
+                            icon: TemplateIcon,
+                            featureUnavailable: !features.isBlueprintsFeatureEnabledForPlatform
+                        }
+                    ]
+                },
+                {
+                    title: 'General',
+                    entries: [
+                        {
+                            label: 'Settings',
+                            to: { name: 'admin-settings' },
+                            tag: 'admin-settings',
+                            icon: CogIcon
+                        }
+                    ]
+                }
+            ],
+            user: [
+                {
+                    entries: [
+                        state.mainNav.backToButton
+                    ]
+                },
+                {
+                    title: 'User Settings',
+                    entries: [
+                        {
+                            label: 'Settings',
+                            to: { name: 'user-settings-overview' },
+                            tag: 'account-settings',
+                            icon: CogIcon
+                        },
+                        {
+                            label: 'Teams',
+                            to: { name: 'user-settings-teams' },
+                            tag: 'account-teams',
+                            icon: UserGroupIcon
+                        },
+                        {
+                            label: 'Security',
+                            to: { name: 'user-settings-security' },
+                            tag: 'account-security',
+                            icon: LockClosedIcon
+                        }
+                    ]
+                }
+            ],
+            back: [
+                {
+                    entries: [
+                        state.mainNav.backToButton
+                    ]
+                }
+            ]
+        }
+    },
+    mainNavContext: (state, getters, rootState) => {
+        const { hasPermission } = usePermissions()
+        const teamMembership = rootState.account.teamMembership
+
+        return getters.mainNavContexts[state.mainNav.context]
+            .map(category => {
+                // filter hidden entries
+                category.entries = category.entries.filter(entry => entry.hidden ?? true)
+
+                // filter entries without permission
+                category.entries = category.entries.filter(entry => {
+                    const hasPermissionKey = Object.prototype.hasOwnProperty.call(entry, 'permission')
+                    if (hasPermissionKey && entry.permission.length > 0) {
+                        return hasPermission(entry.permission, teamMembership)
+                    } return true
+                })
+
+                return category
+            })
+            .filter(category => { // filter categories without permission
+                const hasPermissionKey = Object.prototype.hasOwnProperty.call(category, 'permission')
+                if (hasPermissionKey && category.permission.length > 0) {
+                    return hasPermission(category.permission, teamMembership)
+                } return true
+            })
+            .filter(category => category.entries.length > 0) // filter categories without entries
     }
 }
 
@@ -50,6 +316,9 @@ const mutations = {
     },
     setMainNavContext (state, context) {
         state.mainNav.context = context
+    },
+    setMainNavBackButton (state, button) {
+        state.mainNav.backToButton = button
     },
     activateTour (state, tour) {
         state.tours[tour] = true
@@ -83,6 +352,9 @@ const actions = {
     },
     setMainNavContext ({ commit }, context) {
         commit('setMainNavContext', context)
+    },
+    setMainNavBackButton ({ commit }, button) {
+        commit('setMainNavBackButton', button)
     },
     activateTour ({ commit }, tour) {
         commit('activateTour', tour)

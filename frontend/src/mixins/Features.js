@@ -1,27 +1,26 @@
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 export default {
     computed: {
         ...mapState('account', ['features', 'team']),
+        ...mapGetters('account', ['featuresCheck']),
         isSharedLibraryFeatureEnabledForTeam () {
-            const flag = this.team.type.properties.features?.['shared-library']
-            return flag === undefined || flag
+            return this.featuresCheck.isSharedLibraryFeatureEnabledForTeam
         },
         isSharedLibraryFeatureEnabledForPlatform () {
-            return this.features['shared-library']
+            return this.featuresCheck.isSharedLibraryFeatureEnabledForPlatform
         },
         isSharedLibraryFeatureEnabled () {
-            return this.isSharedLibraryFeatureEnabledForTeam && this.isSharedLibraryFeatureEnabledForPlatform
+            return this.featuresCheck.isSharedLibraryFeatureEnabled
         },
         isBlueprintsFeatureEnabledForTeam () {
-            const flag = this.team.type.properties.features?.flowBlueprints
-            return flag === undefined || flag
+            return this.featuresCheck.isBlueprintsFeatureEnabledForTeam
         },
         isBlueprintsFeatureEnabledForPlatform () {
-            return this.features.flowBlueprints
+            return this.featuresCheck.isBlueprintsFeatureEnabledForPlatform
         },
         isBlueprintsFeatureEnabled () {
-            return this.isBlueprintsFeatureEnabledForTeam && this.isBlueprintsFeatureEnabledForPlatform
+            return this.featuresCheck.isBlueprintsFeatureEnabled
         },
         isCustomCatalogsFeatureEnabledForPlatform () {
             return !!this.features.customCatalogs
@@ -64,13 +63,13 @@ export default {
             return this.isTimelineFeatureEnabledForPlatform && this.isTimelineFeatureEnabledForTeam
         },
         isMqttBrokerFeatureEnabledForPlatform () {
-            return !!this.features.teamBroker
+            return this.featuresCheck.isMqttBrokerFeatureEnabledForPlatform
         },
         isMqttBrokerFeatureEnabledForTeam () {
-            return !!this.team?.type?.properties?.features?.teamBroker
+            return this.featuresCheck.isMqttBrokerFeatureEnabledForTeam
         },
         isMqttBrokerFeatureEnabled () {
-            return this.isMqttBrokerFeatureEnabledForPlatform && this.isMqttBrokerFeatureEnabledForTeam
+            return this.featuresCheck.isMqttBrokerFeatureEnabled
         }
     }
 }

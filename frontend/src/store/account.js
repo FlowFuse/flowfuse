@@ -116,7 +116,35 @@ const getters = {
 
     teamInvitations: state => state.invitations,
     teamInvitationsCount: state => state.invitations?.length || 0,
-    hasAvailableTeams: state => state.teams.length > 0
+    hasAvailableTeams: state => state.teams.length > 0,
+
+    featuresCheck: (state) => {
+        const preCheck = {
+            // Shared Library
+            isSharedLibraryFeatureEnabledForTeam: ((state) => {
+                const flag = state.team?.type.properties.features?.['shared-library']
+                return flag === undefined || flag
+            })(state),
+            isSharedLibraryFeatureEnabledForPlatform: state.features['shared-library'],
+
+            // Blueprints
+            isBlueprintsFeatureEnabledForTeam: ((state) => {
+                const flag = state.team?.type.properties.features?.flowBlueprints
+                return flag === undefined || flag
+            })(state),
+            isBlueprintsFeatureEnabledForPlatform: !!state.features.flowBlueprints,
+
+            // Mqtt Broker
+            isMqttBrokerFeatureEnabledForPlatform: !!state.features.teamBroker,
+            isMqttBrokerFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.teamBroker
+        }
+        return {
+            ...preCheck,
+            isSharedLibraryFeatureEnabled: preCheck.isSharedLibraryFeatureEnabledForTeam && preCheck.isSharedLibraryFeatureEnabledForPlatform,
+            isBlueprintsFeatureEnabled: preCheck.isBlueprintsFeatureEnabledForTeam && preCheck.isBlueprintsFeatureEnabledForPlatform,
+            isMqttBrokerFeatureEnabled: preCheck.isMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam
+        }
+    }
 }
 
 const mutations = {
