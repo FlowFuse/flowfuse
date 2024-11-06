@@ -10,6 +10,7 @@
                             v-if="entry.label"
                             :to="entry.to"
                             :data-nav="entry.tag"
+                            :class="{ disabled: entry.disabled }"
                             @click="$emit('option-selected')"
                         >
                             <nav-item
