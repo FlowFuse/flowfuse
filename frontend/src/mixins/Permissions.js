@@ -1,7 +1,17 @@
 import { mapState } from 'vuex'
 
-import { Permissions } from '../../../forge/lib/permissions.js'
-import { Roles } from '../utils/roles.js'
+import {
+    hasALowerOrEqualTeamRoleThan,
+    hasAMinimumTeamRoleOf,
+    hasPermission,
+    isVisitingAdmin
+} from '../composables/Permissions.js'
+
+/**
+ * @typedef {0 | 5 | 10 | 30 | 50 | 99} Role
+ * Enum for roles with specific numeric values.
+ */
+
 /**
  * @typedef {0 | 5 | 10 | 30 | 50 | 99} Role
  * Enum for roles with specific numeric values.
@@ -10,26 +20,14 @@ import { Roles } from '../utils/roles.js'
 export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
-        isVisitingAdmin () {
-            return this.teamMembership?.role === Roles.Admin
+
+        isVisitingAdmin: function () {
+            return isVisitingAdmin(this.teamMembership?.role)
         }
     },
     methods: {
-        hasPermission (scope) {
-            if (!Permissions[scope]) {
-                throw new Error(`Unrecognised scope requested: '${scope}'`)
-            }
-            const permission = Permissions[scope]
-            // if (<check settings>) {
-            if (permission.role) {
-                if (!this.teamMembership) {
-                    return false
-                }
-                if (this.teamMembership.role < permission.role) {
-                    return false
-                }
-            }
-            return true
+        hasPermission: function (scope) {
+            return hasPermission(scope, this.teamMembership)
         },
 
         /**
@@ -40,12 +38,8 @@ export default {
          * // Check if the user has at least the 'Member' role
          * const isMemberOrHigher = hasAMinimumTeamRoleOf(Roles.Member)
          */
-        hasAMinimumTeamRoleOf (role) {
-            if (this.isVisitingAdmin) {
-                return true
-            }
-
-            return this.teamMembership?.role >= role
+        hasAMinimumTeamRoleOf: function (role) {
+            hasAMinimumTeamRoleOf(role, this.teamMembership)
         },
 
         /**
@@ -56,12 +50,8 @@ export default {
          * // Check if the user has role lower than 'Member' role
          * const isMemberOrHigher = hasALowerTeamRoleThan(Roles.Member)
          */
-        hasALowerOrEqualTeamRoleThan (role) {
-            if (this.isVisitingAdmin) {
-                return true
-            }
-
-            return role <= this.teamMembership?.role
+        hasALowerOrEqualTeamRoleThan: function (role) {
+            return hasALowerOrEqualTeamRoleThan(role, this.teamMembership)
         }
     }
 }
