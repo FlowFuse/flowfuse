@@ -47,6 +47,13 @@ module.exports = async function (app) {
         const auditEvent = request.body
         const event = auditEvent.event
         const error = auditEvent.error
+
+        // Some node-red audit events are not useful to expose to the end user - filter them out here
+        // api.error:version_mismatch - normal part of collision detection when trying to deploy flows
+        if (event === 'api.error' && error === 'version_mismatch') {
+            response.status(200).send()
+        }
+
         let user = request.session?.User || null
         if (!user && auditEvent?.user && typeof auditEvent.user === 'string') {
             user = await app.db.models.User.byId(auditEvent.user) || null
