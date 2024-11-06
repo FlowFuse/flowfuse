@@ -196,7 +196,7 @@ about the upgrade process.
 
 In cloud environments, it is recommended to use a Load Balancer to terminate SSL traffic.
 
-However, if you want to use SSL termination on the Kubernetes Ingress Controller, we give such possibility by utilizing [Cert-Manager](https://cert-manager.io/docs/) tool (not part of the FlowFuse Helm chart).
+However, if you want to use SSL termination on the Kubernetes Ingress Controller, this is possible by utilizing [Cert-Manager](https://cert-manager.io/docs/) tool (not part of the FlowFuse Helm chart).
 
 Once you have Cert-Manager installed, you can enable TLS support in the `customization.yml` file by specifying the [ClusterIssuer](https://cert-manager.io/docs/configuration/#cluster-resource-namespace) name:
 
