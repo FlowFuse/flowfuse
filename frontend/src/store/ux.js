@@ -30,10 +30,10 @@ const state = () => ({
 })
 
 const getters = {
-    shouldShowLeftBar: (state, getters, rootState, rootGetters) => (route) => {
-        return rootGetters['account/hasAvailableTeams'] || route.path.includes('/account/')
+    hiddenLeftDrawer: (state, getters) => {
+        return state.leftDrawer.component?.name === 'MainNav' && getters.mainNavContext.length === 0
     },
-    hasFloatingLeftBar: (state) => state.windowWidth < 1024,
+    hasFloatingLeftDrawer: (state) => state.windowWidth < 1024,
     shouldShowEducationModal: (state) => {
         return state.tours.education
     },

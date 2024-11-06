@@ -699,6 +699,8 @@ $nav_height: 60px;
         height: 100%;
         z-index: 100;
         left: 0;
+        background: $ff-white; // todo replace with themed variables not colors
+        border-right: 1px solid $ff-grey-300; // todo same as above ^
 
         .ff-main-navigation {
             .ff-menu-groups {
@@ -766,6 +768,19 @@ $nav_height: 60px;
             }
         }
 
+        .ff-view {
+            margin-left:  -$sidenav_width;
+        }
+    }
+
+    &.hidden-left-drawer {
+        #left-drawer {
+            left: -$sidenav_width;
+
+            &.active {
+                left: -$sidenav_width;
+            }
+        }
         .ff-view {
             margin-left:  -$sidenav_width;
         }

@@ -1,8 +1,8 @@
 <template>
     <div class="ff-header" data-sentry-unmask>
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
-        <i v-if="shouldDisplayMenuToggle" class="ff-header--mobile-toggle">
-            <MenuIcon class="ff-avatar" @click="toggleLeftDrawer" />
+        <i v-if="!hiddenLeftDrawer" class="ff-header--mobile-toggle">
+            <MenuIcon class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
         </i>
         <!-- FlowFuse Logo -->
         <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()">
@@ -89,7 +89,7 @@ export default {
         ...mapState('account', ['user', 'team', 'teams']),
         ...mapState('ux', ['leftDrawer']),
         ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount']),
-        ...mapGetters('ux', ['shouldShowLeftBar']),
+        ...mapGetters('ux', ['hiddenLeftDrawer']),
         navigationOptions () {
             return [
                 {
@@ -133,9 +133,6 @@ export default {
         },
         showInviteButton () {
             return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
-        },
-        shouldDisplayMenuToggle () {
-            return this.shouldShowLeftBar(this.$route)
         }
     },
     watch: {

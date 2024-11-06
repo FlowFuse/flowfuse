@@ -27,11 +27,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-#left-drawer {
-    background: $ff-white; // todo replace with themed variables not colors
-    border-right: 1px solid $ff-grey-300; // todo same as above ^
-}
-
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity .1s ease-in;

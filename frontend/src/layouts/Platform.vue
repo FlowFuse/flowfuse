@@ -1,7 +1,7 @@
 <template>
     <div class="ff-layout--platform">
         <PageHeader />
-        <div class="ff-layout--platform--wrapper" :class="{closed: !isMenuVisible}">
+        <div class="ff-layout--platform--wrapper">
             <LeftDrawer />
 
             <div class="ff-view">
@@ -53,11 +53,7 @@ export default {
     computed: {
         ...mapState('product', ['interview']),
         ...mapState('ux', ['leftDrawer']),
-        ...mapGetters('account', ['hasAvailableTeams']),
-        ...mapGetters('ux', ['shouldShowLeftBar']),
-        isMenuVisible () {
-            return this.shouldShowLeftBar(this.$route)
-        }
+        ...mapGetters('account', ['hasAvailableTeams'])
     },
     watch: {
         $route: function () {
