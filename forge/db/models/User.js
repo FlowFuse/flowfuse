@@ -4,6 +4,7 @@
  */
 const { DataTypes, Op, fn, col, where } = require('sequelize')
 
+const { Roles } = require('../../lib/roles.js')
 const { hash, generateUserAvatar, buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
@@ -278,6 +279,47 @@ module.exports = {
                         },
                         count,
                         users: rows
+                    }
+                },
+                /**
+                 * Get users with a particular role
+                 * @param {Array} roles An array of valid user roles
+                 * @param {Object} options Options
+                 * @param {Boolean} options.summary whether to return a limited user object that only contains id: default false
+                 * @returns Array of users who have at least one of the specific roles
+                 */
+                byTeamRole: async (roles = [], options) => {
+                    options = {
+                        summary: false,
+                        count: false,
+                        ...options
+                    }
+                    let attributes
+                    if (options.summary) {
+                        attributes = ['id']
+                    }
+                    const includesAdmins = roles.includes(Roles.Admin)
+                    const where = {
+                        [Op.or]: [
+                            includesAdmins ? { admin: true } : {},
+                            { '$TeamMembers.role$': { [Op.in]: roles } }
+                        ]
+                    }
+                    const query = {
+                        where,
+                        include: {
+                            model: M.TeamMember,
+                            attributes: ['role']
+                        }
+                    }
+                    if (!options.count) {
+                        query.attributes = attributes
+                        return M.User.findAll(query)
+                    } else {
+                        // Must set distinct otherwise Model.count will include
+                        // users in multiple teams multiple times.
+                        query.distinct = true
+                        return M.User.count(query)
                     }
                 }
             },
