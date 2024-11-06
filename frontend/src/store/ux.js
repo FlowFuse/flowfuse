@@ -38,7 +38,7 @@ const getters = {
         return state.tours.education
     },
     mainNavContexts: function (state, getters, rootState, rootGetters) {
-        const { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf } = usePermissions()
+        const { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } = usePermissions()
         const team = rootState.account.team
         const teamMembership = rootState.account.teamMembership
         const accountFeatures = rootState.account.features
@@ -133,8 +133,16 @@ const getters = {
                             to: { name: 'Billing', params: { team_slug: team.slug } },
                             tag: 'team-billing',
                             icon: CurrencyDollarIcon,
-                            hidden: noBilling || !!accountFeatures?.billing,
-                            permission: 'team:edit'
+                            hidden: (() => {
+                                // hide menu entry for non-billing setups
+                                if (noBilling) {
+                                    return true
+                                }
+
+                                // team members that are part of teams that have suspended/no billing setup are forcibly redirected
+                                // to the billing page (even if they don't have permissions to normally access the billing page)
+                                return !!accountFeatures?.billing && hasPermission('team:edit', teamMembership)
+                            })()
                         },
                         {
                             label: 'Team Settings',
