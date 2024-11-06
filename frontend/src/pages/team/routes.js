@@ -114,25 +114,31 @@ export default [
                 }
             },
             {
-                name: 'TeamChangeType',
-                path: 'settings/change-type',
-                component: ChangeTeamType,
-                meta: {
-                    title: 'Team - Change Type'
-                }
-            },
-            {
-                name: 'TeamSettings',
                 path: 'settings',
-                component: TeamSettings,
-                meta: {
-                    title: 'Team - Settings'
-                },
-                redirect: { name: 'team-settings-general' },
                 children: [
-                    { name: 'team-settings-general', path: 'general', component: TeamSettingsGeneral },
-                    { name: 'TeamSettingsDevices', path: 'devices', component: TeamSettingsDevices },
-                    { name: 'team-settings-danger', path: 'danger', component: TeamSettingsDanger }
+                    {
+                        name: 'TeamSettings',
+                        path: '',
+                        component: TeamSettings,
+                        meta: {
+                            title: 'Team - Settings'
+                        },
+                        redirect: { name: 'team-settings-general' },
+                        children: [
+                            { name: 'team-settings-general', path: 'general', component: TeamSettingsGeneral },
+                            { name: 'TeamSettingsDevices', path: 'devices', component: TeamSettingsDevices },
+                            { name: 'team-settings-danger', path: 'danger', component: TeamSettingsDanger }
+
+                        ]
+                    },
+                    {
+                        name: 'TeamChangeType',
+                        path: 'change-type',
+                        component: ChangeTeamType,
+                        meta: {
+                            title: 'Team - Change Type'
+                        }
+                    }
                 ]
             },
             {

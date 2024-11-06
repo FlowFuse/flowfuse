@@ -85,47 +85,52 @@ export default [
                 }
             },
             {
-                name: 'admin-users',
                 path: 'users',
-                component: AdminUsers,
-                meta: {
-                    title: 'Admin - Users'
-                },
-                redirect: '/admin/users/general',
                 children: [
-                    { name: 'admin-users-general', path: 'general', component: AdminUsersGeneral },
-                    { name: 'admin-users-invitations', path: 'invitations', component: AdminUsersInvitations }
+                    {
+                        name: 'admin-users',
+                        path: '',
+                        component: AdminUsers,
+                        meta: {
+                            title: 'Admin - Users'
+                        },
+                        redirect: { name: 'admin-users-general' },
+                        children: [
+                            { name: 'admin-users-general', path: 'general', component: AdminUsersGeneral },
+                            { name: 'admin-users-invitations', path: 'invitations', component: AdminUsersInvitations }
+                        ]
+                    },
+                    {
+                        name: 'admin-users-create',
+                        path: 'create',
+                        component: AdminCreateUser,
+                        meta: {
+                            title: 'Admin - Create User',
+                            menu: {
+                                type: 'back',
+                                backTo: {
+                                    label: 'Back to Users',
+                                    to: { name: 'admin-users-general' }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        name: 'admin-users-user',
+                        path: ':id',
+                        component: AdminUserDetails,
+                        meta: {
+                            title: 'Admin - User',
+                            menu: {
+                                type: 'back',
+                                backTo: {
+                                    label: 'Back to Users',
+                                    to: { name: 'admin-users-general' }
+                                }
+                            }
+                        }
+                    }
                 ]
-            },
-            {
-                name: 'admin-users-create',
-                path: 'users/create',
-                component: AdminCreateUser,
-                meta: {
-                    title: 'Admin - Create User',
-                    menu: {
-                        type: 'back',
-                        backTo: {
-                            label: 'Back to Users',
-                            to: { name: 'admin-users' }
-                        }
-                    }
-                }
-            },
-            {
-                name: 'admin-users-user',
-                path: 'users/:id',
-                component: AdminUserDetails,
-                meta: {
-                    title: 'Admin - User',
-                    menu: {
-                        type: 'back',
-                        backTo: {
-                            label: 'Back to Users',
-                            to: { name: 'admin-users' }
-                        }
-                    }
-                }
             },
             {
                 name: 'admin-teams',
