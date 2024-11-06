@@ -438,6 +438,28 @@ describe('Team Broker API', function () {
                 const result = response.json()
                 result.should.have.property('result', 'deny')
             })
+            it('Test Authentication fail suspended team', async function () {
+
+                app.team.suspended = true
+                await app.team.save()
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/auth',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: {
+                        username: `bob@${app.team.hashid}`,
+                        password: 'bbPassword',
+                        clientId: `bob@${app.team.hashid}`
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('result', 'deny')
+
+                app.team.suspended = false
+                await app.team.save()
+            })
             it('Test subscribe allowed', async function () {
                 const response = await app.inject({
                     method: 'POST',
