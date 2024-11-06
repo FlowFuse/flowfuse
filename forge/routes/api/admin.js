@@ -421,7 +421,8 @@ module.exports = async function (app) {
                 200: {
                     type: 'object',
                     properties: {
-                        recipientCount: { type: 'number' }
+                        recipientCount: { type: 'number' },
+                        mock: { type: 'boolean' }
                     }
                 },
                 '4xx': {
@@ -443,17 +444,18 @@ module.exports = async function (app) {
         if (recipientRoles && !recipientRoles.every(value => Object.values(Roles).includes(value))) {
             return reply.code(400).send({ code: 'bad_request', error: 'Invalid Role provided.' })
         }
-        const recipients = await app.db.models.User.byTeamRole(recipientRoles, { summary: true })
         if (mock) {
             // If mock is sent, return an indication of how many users would receive this notification
             // without actually sending them.
+            const count = await app.db.models.User.byTeamRole(recipientRoles, { summary: true, count: true })
             reply.send({
                 mock: true,
-                recipientCount: recipients.length
+                recipientCount: count
             })
             return
         }
 
+        const recipients = await app.db.models.User.byTeamRole(recipientRoles, { summary: true })
         const notificationType = 'announcement'
         const titleSlug = title.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase()
         const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2)

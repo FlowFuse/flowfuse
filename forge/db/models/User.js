@@ -291,6 +291,7 @@ module.exports = {
                 byTeamRole: async (roles = [], options) => {
                     options = {
                         summary: false,
+                        count: false,
                         ...options
                     }
                     let attributes
@@ -300,18 +301,26 @@ module.exports = {
                     const includesAdmins = roles.includes(Roles.Admin)
                     const where = {
                         [Op.or]: [
-                            includesAdmins ? { admin: 1 } : {},
+                            includesAdmins ? { admin: true } : {},
                             { '$TeamMembers.role$': { [Op.in]: roles } }
                         ]
                     }
-                    return M.User.findAll({
+                    const query = {
                         where,
-                        attributes,
                         include: {
                             model: M.TeamMember,
                             attributes: ['role']
                         }
-                    })
+                    }
+                    if (!options.count) {
+                        query.attributes = attributes
+                        return M.User.findAll(query)
+                    } else {
+                        // Must set distinct otherwise Model.count will include
+                        // users in multiple teams multiple times.
+                        query.distinct = true
+                        return M.User.count(query)
+                    }
                 }
             },
             instance: {
