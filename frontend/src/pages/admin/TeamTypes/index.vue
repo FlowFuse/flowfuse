@@ -15,6 +15,7 @@
             <ff-tile-selection-option
                 v-for="(teamType, index) in activeTeamTypes"
                 :key="index"
+                value=""
                 :price="teamType.properties?.billingDescription?.split('/')[0] || ''"
                 :price-interval="teamType.properties?.billingDescription?.split('/')[1] || ''"
                 :label="teamType.name" :description="teamType.description"
