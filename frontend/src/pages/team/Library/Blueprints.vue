@@ -30,7 +30,7 @@
             </p>
         </template>
         <template v-if="isAdminUser" #actions>
-            <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'admin-templates-template'}" data-el="go-to-blueprints">
+            <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'admin-flow-blueprints'}" data-el="go-to-blueprints">
                 Go To Blueprints
             </ff-button>
             <ff-button v-else :to="{name: 'admin-templates-template'}" :disabled="true">
