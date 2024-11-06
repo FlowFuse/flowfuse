@@ -21,7 +21,7 @@ const getters = {
     shouldShowLeftBar: (state, getters, rootState, rootGetters) => (route) => {
         return rootGetters['account/hasAvailableTeams'] || route.path.includes('/account/')
     },
-    hasFloatingLeftBar: (state) => state.windowWidth <= 1024,
+    hasFloatingLeftBar: (state) => state.windowWidth < 1024,
     shouldShowEducationModal: (state) => {
         return state.tours.education
     }
