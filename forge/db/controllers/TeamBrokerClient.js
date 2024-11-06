@@ -10,6 +10,16 @@ module.exports = {
                 return false
             }
 
+            if (user.Team.suspended) {
+                return false
+            }
+
+            const properties = user.Team.TeamType.properties
+            console.log(properties)
+            if (!properties?.features?.teamBroker) {
+                return false
+            }
+
             if (!password || password.length > 128) {
                 return false
             }

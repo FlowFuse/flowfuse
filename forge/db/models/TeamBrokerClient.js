@@ -49,7 +49,13 @@ module.exports = {
                         teamId = M.Team.decodeHashid(teamHashId)
                     }
                     return this.findOne({
-                        where: { username, TeamId: teamId }
+                        where: { username, TeamId: teamId },
+                        include: {
+                            model: M.Team,
+                            include: {
+                                model: M.TeamType
+                            }
+                        }
                     })
                 },
                 byTeam: async (teamHashId, pagination = {}, where = {}) => {
