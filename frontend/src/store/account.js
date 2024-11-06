@@ -122,14 +122,14 @@ const getters = {
         const preCheck = {
             // Shared Library
             isSharedLibraryFeatureEnabledForTeam: ((state) => {
-                const flag = state.team?.type.properties.features?.['shared-library']
+                const flag = state.team?.type?.properties?.features?.['shared-library']
                 return flag === undefined || flag
             })(state),
             isSharedLibraryFeatureEnabledForPlatform: state.features['shared-library'],
 
             // Blueprints
             isBlueprintsFeatureEnabledForTeam: ((state) => {
-                const flag = state.team?.type.properties.features?.flowBlueprints
+                const flag = state.team?.type?.properties?.features?.flowBlueprints
                 return flag === undefined || flag
             })(state),
             isBlueprintsFeatureEnabledForPlatform: !!state.features.flowBlueprints,

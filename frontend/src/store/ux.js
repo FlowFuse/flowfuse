@@ -38,17 +38,17 @@ const getters = {
         return state.tours.education
     },
     mainNavContexts: function (state, getters, rootState, rootGetters) {
-        const { hasALowerOrEqualTeamRoleThan } = usePermissions()
+        const { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf } = usePermissions()
         const team = rootState.account.team
         const teamMembership = rootState.account.teamMembership
         const accountFeatures = rootState.account.features
         const noBilling = rootGetters['account/noBilling']
         const features = rootGetters['account/featuresCheck']
-
         return {
             team: [
                 {
                     title: '',
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                     entries: [
                         {
                             label: 'Applications',
@@ -61,6 +61,7 @@ const getters = {
                 },
                 {
                     title: 'Instances',
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                     entries: [
                         {
                             label: 'Hosted Instances',
@@ -80,6 +81,7 @@ const getters = {
                 },
                 {
                     title: 'Operations',
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                     entries: [
                         {
                             label: 'Broker',
@@ -94,6 +96,7 @@ const getters = {
                 },
                 {
                     title: 'Team Management',
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                     entries: [
                         {
                             label: 'Library',
@@ -114,6 +117,7 @@ const getters = {
                 },
                 {
                     title: 'Team Admin',
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                     permission: '',
                     entries: [
                         {
@@ -289,6 +293,7 @@ const getters = {
                     return hasPermission(category.permission, teamMembership)
                 } return true
             })
+            .filter(category => Object.prototype.hasOwnProperty.call(category, 'hidden') ? !category.hidden : true) // filter hidden categories
             .filter(category => category.entries.length > 0) // filter categories without entries
     }
 }
