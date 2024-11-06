@@ -136,7 +136,7 @@ forge:
   localPostgresql: true
 EOF
 ```
-
+A full list of all the configuration options can be found in the [Helm Chart README](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md#configuration-values).
 ### Label Nodes
 
 By default FlowFuse platform expects that Kubernetes nodes have specific labels applied. The main reason behind this approach is to separate core application components from Node-RED instances.
