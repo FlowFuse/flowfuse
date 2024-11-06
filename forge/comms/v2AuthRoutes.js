@@ -104,7 +104,7 @@ module.exports = async function (app) {
         const topic = request.body.topic
         const action = request.body.action
         if ((username.startsWith('device:') ||
-            username.startsWith('platform:') ||
+            username.startsWith('project:') ||
             username.startsWith('frontend:') ||
             username === 'forge_platform') && !username.includes('@')) {
             const acc = action === 'subscribe' ? 1 : 2
