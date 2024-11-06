@@ -139,7 +139,7 @@ EOF
 
 ### Label Nodes
 
-FlowFuse platform expects that Kubernetes nodes have specific labels applied. The main reason behind this approach is to separate core application components from Node-RED instances.
+By default FlowFuse platform expects that Kubernetes nodes have specific labels applied. The main reason behind this approach is to separate core application components from Node-RED instances.
 
 You will need to label at least one node to run the management application and one to run the Node-RED Projects:
 
