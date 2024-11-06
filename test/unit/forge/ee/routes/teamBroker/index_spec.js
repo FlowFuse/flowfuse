@@ -439,7 +439,6 @@ describe('Team Broker API', function () {
                 result.should.have.property('result', 'deny')
             })
             it('Test Authentication fail suspended team', async function () {
-
                 app.team.suspended = true
                 await app.team.save()
 
