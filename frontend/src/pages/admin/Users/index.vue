@@ -14,8 +14,8 @@
 <script>
 
 const sideNavigation = [
-    { label: 'Users', to: './general' },
-    { label: 'Invitations', to: './invitations' }
+    { label: 'Users', to: { name: 'admin-users-general' } },
+    { label: 'Invitations', to: { name: 'admin-users-invitations' } }
 ]
 
 export default {

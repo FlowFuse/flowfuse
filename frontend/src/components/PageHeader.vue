@@ -177,7 +177,7 @@ export default {
         },
         inviteTeamMembers () {
             this.$router.push({
-                name: 'TeamMembers',
+                name: 'team-members',
                 params: {
                     team_slug: this.team.slug
                 },

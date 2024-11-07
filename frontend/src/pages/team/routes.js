@@ -29,14 +29,21 @@ export default [
         beforeEnter: ensurePermission('team:create'),
         component: CreateTeam,
         meta: {
-            title: 'Create Team'
+            title: 'Create Team',
+            menu: {
+                type: 'back',
+                backTo: (params) => {
+                    return {
+                        label: 'Back to Dashboard',
+                        to: { name: 'Team', params }
+                    }
+                }
+            }
         }
     },
     {
         path: '/team/:team_slug',
-        redirect: to => {
-            return `/team/${to.params.team_slug}/applications`
-        },
+        redirect: { name: 'Applications' },
         name: 'Team',
         component: Team,
         meta: {
@@ -44,16 +51,16 @@ export default [
         },
         children: [
             {
-                path: 'applications',
                 name: 'Applications',
+                path: 'applications',
                 component: TeamApplications,
                 meta: {
                     title: 'Team - Applications'
                 }
             },
             {
-                path: 'instances',
                 name: 'Instances',
+                path: 'instances',
                 component: TeamInstances,
                 meta: {
                     title: 'Team - Instances'
@@ -74,9 +81,7 @@ export default [
                 meta: {
                     title: 'Team - Library'
                 },
-                redirect: to => {
-                    return { name: 'LibraryTeamLibrary' }
-                },
+                redirect: { name: 'LibraryTeamLibrary' },
                 children: [...LibraryRoutes]
             },
             {
@@ -84,25 +89,24 @@ export default [
                 path: 'broker',
                 component: Broker,
                 meta: {
-                    title: ' Team - Broker'
+                    title: 'Team - Broker'
                 }
             },
             {
+                name: 'team-members',
                 path: 'members',
                 component: TeamMembers,
-                name: 'TeamMembers',
                 meta: {
                     title: 'Team - Members'
                 },
-                redirect: to => {
-                    return `/team/${to.params.team_slug}/members/general`
-                },
+                redirect: { name: 'team-members-members' },
                 children: [
-                    { path: 'general', name: 'TeamMembers', component: TeamMembersMembers },
-                    { path: 'invitations', component: TeamMembersInvitations }
+                    { name: 'team-members-members', path: 'general', component: TeamMembersMembers },
+                    { name: 'team-members-invitations', path: 'invitations', component: TeamMembersInvitations }
                 ]
             },
             {
+                name: 'AuditLog',
                 path: 'audit-log',
                 component: TeamAuditLog,
                 meta: {
@@ -110,31 +114,35 @@ export default [
                 }
             },
             {
-                name: 'TeamChangeType',
-                path: 'settings/change-type',
-                component: ChangeTeamType,
-                meta: {
-                    title: 'Team - Change Type'
-                }
-            },
-            {
-                name: 'TeamSettings',
                 path: 'settings',
-                component: TeamSettings,
-                meta: {
-                    title: 'Team - Settings'
-                },
-                redirect: to => {
-                    return `/team/${to.params.team_slug}/settings/general`
-                },
                 children: [
-                    { path: 'general', component: TeamSettingsGeneral },
-                    // { path: 'permissions', component: TeamSettingsPermissions},
-                    { path: 'devices', name: 'TeamSettingsDevices', component: TeamSettingsDevices },
-                    { path: 'danger', component: TeamSettingsDanger }
+                    {
+                        name: 'TeamSettings',
+                        path: '',
+                        component: TeamSettings,
+                        meta: {
+                            title: 'Team - Settings'
+                        },
+                        redirect: { name: 'team-settings-general' },
+                        children: [
+                            { name: 'team-settings-general', path: 'general', component: TeamSettingsGeneral },
+                            { name: 'TeamSettingsDevices', path: 'devices', component: TeamSettingsDevices },
+                            { name: 'team-settings-danger', path: 'danger', component: TeamSettingsDanger }
+
+                        ]
+                    },
+                    {
+                        name: 'TeamChangeType',
+                        path: 'change-type',
+                        component: ChangeTeamType,
+                        meta: {
+                            title: 'Team - Change Type'
+                        }
+                    }
                 ]
             },
             {
+                name: 'Billing',
                 path: 'billing',
                 component: TeamBilling,
                 meta: {
@@ -142,10 +150,9 @@ export default [
                 }
             },
             {
+                name: 'team-overview',
                 path: 'overview',
-                redirect: to => {
-                    return `/team/${to.params.team_slug}/applications`
-                }
+                redirect: { name: 'Applications' }
             }
         ]
     },
@@ -154,7 +161,8 @@ export default [
         name: 'CreateTeamApplication',
         component: CreateApplication,
         meta: {
-            title: 'Team - Create Application'
+            title: 'Team - Create Application',
+            menu: 'back'
         }
     },
     {
@@ -162,7 +170,16 @@ export default [
         name: 'CreateInstance',
         component: CreateInstance,
         meta: {
-            title: 'Team - Create Instance'
+            title: 'Team - Create Instance',
+            menu: {
+                type: 'back',
+                backTo: (params) => {
+                    return {
+                        label: 'Back to Instances',
+                        to: { name: 'Instances', params }
+                    }
+                }
+            }
         }
     },
     {

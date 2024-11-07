@@ -52,22 +52,26 @@ export default [
         component: Account,
         children: [
             {
+                name: 'user-settings-overview',
                 path: 'settings',
                 component: AccountSettings
             },
             {
+                name: 'user-settings-teams',
                 path: 'teams',
                 component: AccountTeams,
+                redirect: { name: 'user-teams' },
                 meta: {
                     title: 'Account - Teams'
                 },
                 children: [
-                    { path: '', component: AccountTeamTeams },
-                    { name: 'User Invitations', path: 'invitations', component: AccountTeamInvitations }
+                    { name: 'user-teams', path: '', component: AccountTeamTeams },
+                    { name: 'user-invitations', path: 'invitations', component: AccountTeamInvitations }
 
                 ]
             },
             {
+                name: 'user-settings-security',
                 path: 'security',
                 component: AccountSecurity,
                 meta: {
