@@ -46,7 +46,8 @@ export default [
         redirect: '/account/settings',
         name: 'User Settings',
         meta: {
-            title: 'Account - Settings'
+            title: 'Account - Settings',
+            menu: 'user'
         },
         icon: CogIcon,
         component: Account,

@@ -172,17 +172,21 @@ $nav_height: 60px;
 }
 
 .ff-layout--platform--wrapper{
-    display: grid;
-    flex-grow: 1;
     padding-top: $nav_height;
     position: absolute;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    display: flex;
+    flex-direction: row;
+
     .ff-view {
         position: relative;
         overflow-y: auto;
         overflow-x: hidden;
+        width: 100%;
+        height: 100%;
+        transition: ease-in-out margin-left .3s;
     }
     main {
         background-color: $ff-grey-50;
@@ -400,7 +404,7 @@ $nav_height: 60px;
         }
     }
     .ff-mobile-navigation-right {
-        img, 
+        img,
         button {
             cursor: pointer;
         }
@@ -420,6 +424,7 @@ $nav_height: 60px;
             align-items: center;
             border: none;
             background-color: $ff-grey-800;
+            border-radius: 0;
             &:hover {
                 background-color: $ff-grey-700;
             }
@@ -455,7 +460,7 @@ $nav_height: 60px;
     .ff-user-options {
         width: auto;
         min-width: $nav_height;
-        
+
         &.ff-navigation {
             left: auto;
         }
@@ -546,59 +551,7 @@ $nav_height: 60px;
     transition: 0.3s left, 0.3s right;
     -webkit-transition: 0.3s left, 0.3s right;
     width: $sidenav_width;
-    // left side menu for team/project/device options
-    .ff-side-navigation {
-        display: flex;
-        height: 100%;
-        .ff-side-navigation-divider {
-            height: 4px;
-            border-bottom: 1px solid $ff-grey-600;
-            background-color: $ff-grey-800;
-        }
-        .ff-team-selection {
-            height: 54px;
-        }
-        .ff-team-selection, .ff-nav-item {
-            transition: $transition_time padding, $transition_time background-color;
-            -webkit-transition: $transition_time padding, $transition_time background-color;
-        }
-        // showing a nested menu
-        &.minimised {
-            .ff-team-selection {
-                padding: 16px 14px;
-                svg, .ff-team-selection-name {
-                    display: none;
-                }
-            }
-            .ff-navigation-divider {
-                label {
-                    display: none;
-                }
-            }
-            .ff-side-navigation--primary {
-                width: 54px;
-                .ff-nav-item {
-                    padding: 16px;
-                    label {
-                        opacity: 0;
-                        display: none;
-                    }
-                }
-                svg.hollow {
-                    display: none
-                }
-            }
-            // nested menu options
-            .ff-side-navigation--nested {
-                width: calc(100% - 54px);
-                flex-grow: 1;
-            }
-        }
-    }
-    .ff-side-navigation--options {
-        width: 100%;
-    }
-    // handle route-r;ink active styling for primary options
+    // handle router-link active styling for primary options
     .ff-side-navigation--primary {
         width: 100%;
         transition: $transition_time width;
@@ -708,7 +661,6 @@ $nav_height: 60px;
         border: 1px solid $ff-red-700;
     }
     .ff-side-navigation--options-back {
-        // width: 100%;
         li {
             border-top: 1px solid $ff-grey-600;
         }
@@ -720,17 +672,6 @@ $nav_height: 60px;
     /* Box */
     .ff-layout--box--wrapper {
         width: 85%;
-    }
-    /* Platform */
-    .ff-layout--platform--wrapper {
-        grid-template-columns: $sidenav_width 1fr;
-        
-        &.closed {
-            grid-template-columns: 1fr;
-            #platform-sidenav {
-                display: none;
-            }
-        }
     }
     .ff-navigation {
         left: 0;
@@ -746,6 +687,102 @@ $nav_height: 60px;
         }
         img.ff-logo {
             padding: 16px;
+        }
+    }
+}
+
+#ff-app {
+    #left-drawer {
+        min-width: $sidenav_width;
+        position: relative;
+        transition: ease-in-out left .3s;
+        height: 100%;
+        z-index: 100;
+        left: 0;
+        background: $ff-color--context-menu;
+        border-right: 1px solid $ff-color--border;
+
+        .ff-main-navigation {
+            .ff-menu-groups {
+                padding-top: 10px;
+
+                .ff-menu-group {
+                    padding: 5px;
+
+                    .ff-group-title {
+                        margin: 10px 0 15px;
+                        padding: 0 10px;
+                        text-transform: uppercase;
+                        color: $ff-color--disabled;
+                        font-size: 11px;
+                    }
+
+                    .ff-menu-entries {
+
+                        .ff-menu-entry {
+                            margin: 0 5px 5px 10px;
+
+                            &:last-of-type {
+                                margin-bottom: 0;
+                            }
+
+                            .ff-nav-item {
+                                padding: 5px 10px;
+                                border-radius: 5px;
+
+                                & > div {
+                                    gap: 5px;
+                                }
+
+                                &:hover {
+                                    background: $ff-color--highlight--light;
+                                }
+                            }
+
+                            .router-link-active {
+                                .ff-nav-item {
+                                    background: $ff-color--action;
+                                    color: white;
+                                }
+                            }
+
+                            .disabled {
+                                .ff-nav-item {
+                                    color: $ff-color--disabled;
+                                    cursor: not-allowed;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    &.floating-left-bar {
+        #left-drawer {
+            left: -$sidenav_width;
+
+            &.active {
+                left: 0;
+            }
+        }
+
+        .ff-view {
+            margin-left:  -$sidenav_width;
+        }
+    }
+
+    &.hidden-left-drawer {
+        #left-drawer {
+            left: -$sidenav_width;
+
+            &.active {
+                left: -$sidenav_width;
+            }
+        }
+        .ff-view {
+            margin-left:  -$sidenav_width;
         }
     }
 }

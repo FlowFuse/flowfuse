@@ -1,8 +1,8 @@
 <template>
     <div class="ff-header" data-sentry-unmask>
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
-        <i v-if="shouldDisplayMenuToggle" class="ff-header--mobile-toggle" :class="{'active': mobileMenuOpen}">
-            <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')" />
+        <i v-if="!hiddenLeftDrawer" class="ff-header--mobile-toggle">
+            <MenuIcon class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
         </i>
         <!-- FlowFuse Logo -->
         <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()">
@@ -84,17 +84,12 @@ import TeamSelection from './TeamSelection.vue'
 
 export default {
     name: 'NavBar',
-    props: {
-        mobileMenuOpen: {
-            type: Boolean
-        }
-    },
-    emits: ['menu-toggle'],
     mixins: [navigationMixin, permissionsMixin],
     computed: {
         ...mapState('account', ['user', 'team', 'teams']),
+        ...mapState('ux', ['leftDrawer']),
         ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount']),
-        ...mapGetters('ux', ['shouldShowLeftMenu']),
+        ...mapGetters('ux', ['hiddenLeftDrawer']),
         navigationOptions () {
             return [
                 {
@@ -137,10 +132,7 @@ export default {
             ].filter(option => option !== undefined)
         },
         showInviteButton () {
-            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'TeamMembers'
-        },
-        shouldDisplayMenuToggle () {
-            return this.shouldShowLeftMenu(this.$route)
+            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
         }
     },
     watch: {
@@ -172,6 +164,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions('ux', ['toggleLeftDrawer']),
         to (route) {
             window.open(route.url, '_blank')
         },

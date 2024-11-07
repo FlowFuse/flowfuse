@@ -1,8 +1,4 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions />
-    </Teleport>
-
     <main v-if="!application?.id">
         <ff-loading message="Loading Application..." />
     </main>
@@ -70,7 +66,6 @@ import ApplicationApi from '../../../api/application.js'
 
 import InfoCard from '../../../components/InfoCard.vue'
 import InfoCardRow from '../../../components/InfoCardRow.vue'
-import SideNavigationTeamOptions from '../../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../../components/banners/TeamTrial.vue'
 import DeviceSolidIcon from '../../../components/icons/DeviceSolid.js'
@@ -84,7 +79,6 @@ export default {
         ExclamationIcon,
         InfoCard,
         InfoCardRow,
-        SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
         TeamTrialBanner
     },
