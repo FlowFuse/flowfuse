@@ -277,6 +277,15 @@ const getters = {
         }
     },
     mainNavContext: (state, getters, rootState) => {
+        const team = rootState.account.team
+
+        if (!team) {
+            // todo compensates for a brief moment after logging in where we don't have a team loaded and can't properly
+            //  generate menu links. This should be addressed by implementing an application service that bootstrap's the
+            //  app and hydrates vuex stores before attempting to render any data
+            return []
+        }
+
         const { hasPermission } = usePermissions()
         const teamMembership = rootState.account.teamMembership
 
