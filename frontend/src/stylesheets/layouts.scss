@@ -699,8 +699,8 @@ $nav_height: 60px;
         height: 100%;
         z-index: 100;
         left: 0;
-        background: $ff-white; // todo replace with themed variables not colors
-        border-right: 1px solid $ff-grey-300; // todo same as above ^
+        background: $ff-color--context-menu;
+        border-right: 1px solid $ff-color--border;
 
         .ff-main-navigation {
             .ff-menu-groups {
@@ -713,7 +713,7 @@ $nav_height: 60px;
                         margin: 10px 0 15px;
                         padding: 0 10px;
                         text-transform: uppercase;
-                        color: $ff-grey-400; // todo replace with themed variables not colors
+                        color: $ff-color--disabled;
                         font-size: 11px;
                     }
 
@@ -735,20 +735,20 @@ $nav_height: 60px;
                                 }
 
                                 &:hover {
-                                    background: $ff-grey-100; // todo replace with themed variables not colors
+                                    background: $ff-color--highlight--light;
                                 }
                             }
 
                             .router-link-active {
                                 .ff-nav-item {
-                                    background: $ff-indigo-800; // todo replace with themed variables not colors
+                                    background: $ff-color--action;
                                     color: white;
                                 }
                             }
 
                             .disabled {
                                 .ff-nav-item {
-                                    color: $ff-grey-400; // todo replace with themed variables not colors
+                                    color: $ff-color--disabled;
                                     cursor: not-allowed;
                                 }
                             }
