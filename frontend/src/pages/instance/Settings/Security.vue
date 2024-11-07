@@ -158,7 +158,7 @@ export default {
     mounted () {
         this.checkAccess()
         this.getSettings()
-        if (this.isHTTPBearerTokensFeatureEnabledForTeam()) {
+        if (this.isHTTPBearerTokensFeatureEnabled()) {
             this.getTokens()
         }
     },

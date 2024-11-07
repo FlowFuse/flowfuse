@@ -1,6 +1,8 @@
 import { mapGetters, mapState } from 'vuex'
 
 export default {
+    // todo The account store's featuresCheck getter should be used instead of this mixin
+    //  Currently keeping it for backwards compat, as all permissions checks should use the accounts featuresCheck getter
     computed: {
         ...mapState('account', ['features', 'team']),
         ...mapGetters('account', ['featuresCheck']),
@@ -23,44 +25,49 @@ export default {
             return this.featuresCheck.isBlueprintsFeatureEnabled
         },
         isCustomCatalogsFeatureEnabledForPlatform () {
-            return !!this.features.customCatalogs
+            return this.featuresCheck.isCustomCatalogsFeatureEnabledForPlatform
         },
         isCustomCatalogsFeatureEnabledForTeam () {
-            const flag = this.team.type.properties.features?.customCatalogs
-            return flag === undefined || flag
+            return this.featuresCheck.isCustomCatalogsFeatureEnabledForTeam
         },
         isCustomCatalogsFeatureEnabled () {
-            return this.isCustomCatalogsFeatureEnabledForPlatform && this.isCustomCatalogsFeatureEnabledForTeam
+            return this.featuresCheck.isCustomCatalogsFeatureEnabled
         },
         isStaticAssetFeatureEnabledForPlatform () {
-            return !!this.features.staticAssets
+            return this.featuresCheck.isStaticAssetFeatureEnabledForPlatform
         },
         isStaticAssetsFeatureEnabledForTeam () {
-            return !!this.team?.type?.properties?.features?.staticAssets
+            return this.featuresCheck.isStaticAssetsFeatureEnabledForTeam
         },
         isStaticAssetFeatureEnabled () {
-            return this.isStaticAssetFeatureEnabledForPlatform && this.isStaticAssetsFeatureEnabledForTeam
+            return this.featuresCheck.isStaticAssetFeatureEnabled
+        },
+        isHTTPBearerTokensFeatureEnabledForPlatform () {
+            return this.featuresCheck.isHTTPBearerTokensFeatureEnabledForPlatform
         },
         isHTTPBearerTokensFeatureEnabledForTeam () {
-            return this.settings?.features.httpBearerTokens && this.team.type.properties.features.teamHttpSecurity
+            return this.featuresCheck.isHTTPBearerTokensFeatureEnabledForTeam
+        },
+        isHTTPBearerTokensFeatureEnabled () {
+            return this.featuresCheck.isHTTPBearerTokensFeatureEnabled
         },
         isBOMFeatureEnabledForPlatform () {
-            return !!this.features.bom
+            return this.featuresCheck.isBOMFeatureEnabledForPlatform
         },
         isBOMFeatureEnabledForTeam () {
-            return !!this.team?.type?.properties?.features?.bom
+            return this.featuresCheck.isBOMFeatureEnabledForTeam
         },
         isBOMFeatureEnabled () {
-            return this.isBOMFeatureEnabledForPlatform && this.isBOMFeatureEnabledForTeam
+            return this.featuresCheck.isBOMFeatureEnabled
         },
         isTimelineFeatureEnabledForPlatform () {
-            return !!this.features.projectHistory
+            return this.featuresCheck.isTimelineFeatureEnabledForPlatform
         },
         isTimelineFeatureEnabledForTeam () {
-            return !!this.team?.type?.properties?.features?.projectHistory
+            return this.featuresCheck.isTimelineFeatureEnabledForTeam
         },
         isTimelineFeatureEnabled () {
-            return this.isTimelineFeatureEnabledForPlatform && this.isTimelineFeatureEnabledForTeam
+            return this.featuresCheck.isTimelineFeatureEnabled
         },
         isMqttBrokerFeatureEnabledForPlatform () {
             return this.featuresCheck.isMqttBrokerFeatureEnabledForPlatform

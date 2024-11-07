@@ -134,6 +134,29 @@ const getters = {
             })(state),
             isBlueprintsFeatureEnabledForPlatform: !!state.features.flowBlueprints,
 
+            // Custom Catalogs
+            isCustomCatalogsFeatureEnabledForPlatform: !!state.features.customCatalogs,
+            isCustomCatalogsFeatureEnabledForTeam: ((state) => {
+                const flag = state.team.type.properties.features?.customCatalogs
+                return flag === undefined || flag
+            })(state),
+
+            // Static Assets
+            isStaticAssetFeatureEnabledForPlatform: !!state.features.staticAssets,
+            isStaticAssetsFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.staticAssets,
+
+            // HTTP BearerTokens
+            isHTTPBearerTokensFeatureEnabledForPlatform: !!state.settings?.features.httpBearerTokens,
+            isHTTPBearerTokensFeatureEnabledForTeam: !!state.team?.type.properties.features.teamHttpSecurity,
+
+            // BOM
+            isBOMFeatureEnabledForPlatform: !!state.features.bom,
+            isBOMFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.bom,
+
+            // Timeline
+            isTimelineFeatureEnabledForPlatform: !!state.features.projectHistory,
+            isTimelineFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.projectHistory,
+
             // Mqtt Broker
             isMqttBrokerFeatureEnabledForPlatform: !!state.features.teamBroker,
             isMqttBrokerFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.teamBroker
@@ -142,6 +165,11 @@ const getters = {
             ...preCheck,
             isSharedLibraryFeatureEnabled: preCheck.isSharedLibraryFeatureEnabledForTeam && preCheck.isSharedLibraryFeatureEnabledForPlatform,
             isBlueprintsFeatureEnabled: preCheck.isBlueprintsFeatureEnabledForTeam && preCheck.isBlueprintsFeatureEnabledForPlatform,
+            isCustomCatalogsFeatureEnabled: preCheck.isCustomCatalogsFeatureEnabledForPlatform && preCheck.isCustomCatalogsFeatureEnabledForTeam,
+            isStaticAssetFeatureEnabled: preCheck.isStaticAssetFeatureEnabledForPlatform && preCheck.isStaticAssetsFeatureEnabledForTeam,
+            isHTTPBearerTokensFeatureEnabled: preCheck.isHTTPBearerTokensFeatureEnabledForPlatform && preCheck.isHTTPBearerTokensFeatureEnabledForTeam,
+            isBOMFeatureEnabled: preCheck.isBOMFeatureEnabledForPlatform && preCheck.isBOMFeatureEnabledForTeam,
+            isTimelineFeatureEnabled: preCheck.isTimelineFeatureEnabledForPlatform && preCheck.isTimelineFeatureEnabledForTeam,
             isMqttBrokerFeatureEnabled: preCheck.isMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam
         }
     }
