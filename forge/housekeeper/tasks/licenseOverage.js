@@ -3,7 +3,7 @@ module.exports = {
     startup: true,
     schedule: '@weekly', // Run once a week, sunday midnight
     run: async function (app) {
-        const { users, teams, instances, devices } = await app.license.usage()
+        const { users, teams, instances, devices, mqttClients } = await app.license.usage()
         if (users?.count > users?.limit) {
             await app.auditLog.Platform.platform.license.overage('system', null, users)
         }
@@ -15,6 +15,9 @@ module.exports = {
         }
         if (devices?.count > devices?.limit) {
             await app.auditLog.Platform.platform.license.overage('system', null, devices)
+        }
+        if (mqttClients?.count > mqttClients?.limit) {
+            await app.auditLog.Platform.platform.license.overage('system', null, mqttClients)
         }
     }
 }

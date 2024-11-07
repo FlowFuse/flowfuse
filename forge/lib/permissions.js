@@ -10,6 +10,7 @@ const Permissions = {
     'user:edit': { description: 'Edit User Information', role: Roles.Admin, self: true },
     'user:delete': { description: 'Delete User', role: Roles.Admin, self: true },
     'user:team:list': { description: 'List a Users teams', role: Roles.Admin, self: true },
+    'user:announcements:manage': { description: 'Manage platform wide announcements', role: Roles.Admin },
     // Team Scoped Actions
     'team:create': { description: 'Create Team' },
     'team:list': { description: 'List Teams', role: Roles.Admin },

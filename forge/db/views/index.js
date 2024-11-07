@@ -26,7 +26,8 @@ const modelTypes = [
     'ProjectType',
     'Team',
     'TeamType',
-    'User'
+    'User',
+    'TeamBrokerClient'
 ]
 
 async function register (app, viewType, viewModule) {

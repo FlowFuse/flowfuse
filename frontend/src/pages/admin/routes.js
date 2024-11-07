@@ -5,6 +5,7 @@ import ensureAdmin from '../../utils/ensureAdmin.js'
 import PlatformAuditLog from './AuditLog.vue'
 import AdminFlowBlueprints from './FlowBlueprints/index.vue'
 import AdminInstanceTypes from './InstanceTypes/index.vue'
+import NotificationsHub from './NotificationsHub.vue'
 import AdminOverview from './Overview.vue'
 import AdminSettingsEmail from './Settings/Email.vue'
 import AdminSettingsGeneral from './Settings/General.vue'
@@ -216,6 +217,14 @@ export default [
                 component: PlatformAuditLog,
                 meta: {
                     title: 'Admin - Logs'
+                }
+            },
+            {
+                name: 'NotificationsHub',
+                path: 'notifications-hub',
+                component: NotificationsHub,
+                meta: {
+                    title: 'Admin - Notifications Hub'
                 }
             }
         ]

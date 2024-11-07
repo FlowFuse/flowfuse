@@ -1,10 +1,11 @@
 <template>
-    <Listbox v-model="value" :disabled="disabled" class="ff-listbox">
+    <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox">
         <div class="relative">
             <ListboxButton
                 class="w-full rounded-md bg-white flex justify-between ff-button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
             >
+                <input type="text" hidden="hidden" :value="selectedLabel">
                 <slot name="button">
                     <span class="block truncate">{{ selectedLabel }}</span>
                 </slot>
@@ -27,6 +28,7 @@
                             :value="option"
                             as="template"
                             class="ff-option"
+                            :data-option="labelKey === 'label' ? option.label : option[labelKey]"
                             :title="optionTitleKey ? option[optionTitleKey] : null"
                         >
                             <li>
@@ -147,8 +149,12 @@ export default {
   .ff-button {
     border: 1px solid $ff-grey-300;
     padding: 5px 5px 5px 10px;
-    &:focus-visible, &:focus {
-      outline: none;
+    &:focus-visible {
+        outline: none;
+    }
+
+    &:focus {
+        border-color: $ff-blue-500;
     }
 
     .icon {
