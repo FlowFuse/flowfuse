@@ -1,5 +1,5 @@
 import {
-    BookOpenIcon, ChipIcon, CogIcon, CollectionIcon,
+    BookOpenIcon, ChatIcon, ChipIcon, CogIcon, CollectionIcon,
     ColorSwatchIcon, CurrencyDollarIcon, DatabaseIcon,
     DesktopComputerIcon, LockClosedIcon, RssIcon,
     TemplateIcon, UserGroupIcon, UsersIcon
@@ -186,6 +186,12 @@ const getters = {
                             to: { name: 'admin-audit-logs' },
                             tag: 'admin-auditlog',
                             icon: DatabaseIcon
+                        },
+                        {
+                            label: 'Notifications Hub',
+                            to: { name: 'admin-notifications-hub' },
+                            tag: 'notifications-hub',
+                            icon: ChatIcon
                         }
                     ]
                 },

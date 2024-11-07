@@ -220,7 +220,7 @@ export default [
                 }
             },
             {
-                name: 'NotificationsHub',
+                name: 'admin-notifications-hub',
                 path: 'notifications-hub',
                 component: NotificationsHub,
                 meta: {
