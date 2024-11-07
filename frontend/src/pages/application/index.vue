@@ -1,9 +1,4 @@
 <template>
-    <!--    todo fix teleport -->
-    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
-    <!--        <SideNavigationTeamOptions />-->
-    <!--    </Teleport>-->
-
     <ff-loading v-if="loading.deleting" message="Deleting Application..." />
     <ff-loading v-else-if="loading.suspend" message="Suspending Application..." />
     <main v-else-if="!application?.id">
@@ -52,7 +47,6 @@ import { ChipIcon, ClockIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroi
 import { mapState } from 'vuex'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
-import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import PipelinesIcon from '../../components/icons/Pipelines.js'
@@ -72,7 +66,6 @@ export default {
         ConfirmApplicationDeleteDialog,
         ConfirmInstanceDeleteDialog,
         InstanceStatusPolling,
-        SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
         TeamTrialBanner
     },

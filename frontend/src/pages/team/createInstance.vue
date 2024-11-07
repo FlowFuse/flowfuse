@@ -1,14 +1,4 @@
 <template>
-    <!--    todo fix teleport -->
-    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
-    <!--        <SideNavigation>-->
-    <!--            <template #options>-->
-    <!--                <a @click="$router.back()">-->
-    <!--                    <nav-item :icon="icons.chevronLeft" label="Back" />-->
-    <!--                </a>-->
-    <!--            </template>-->
-    <!--        </SideNavigation>-->
-    <!--    </Teleport>-->
     <ff-page>
         <template #header>
             <ff-page-header :title="pageTitle">
@@ -45,8 +35,6 @@ import ApplicationApi from '../../api/application.js'
 import instanceApi from '../../api/instances.js'
 import teamApi from '../../api/team.js'
 
-import NavItem from '../../components/NavItem.vue'
-import SideNavigation from '../../components/SideNavigation.vue'
 import Alerts from '../../services/alerts.js'
 import LocalStorageService from '../../services/storage/local-storage.service.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
@@ -54,9 +42,7 @@ import InstanceForm from '../instance/components/InstanceForm.vue'
 export default {
     name: 'CreateInstance',
     components: {
-        InstanceForm,
-        NavItem,
-        SideNavigation
+        InstanceForm
     },
     beforeRouteEnter (to, from, next) {
         if (from.name === 'CreateTeamApplication') {

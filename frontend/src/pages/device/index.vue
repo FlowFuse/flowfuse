@@ -1,8 +1,4 @@
 <template>
-    <!--    todo fix teleport -->
-    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
-    <!--        <SideNavigationTeamOptions />-->
-    <!--    </Teleport>-->
     <main v-if="device" class="ff-with-status-header">
         <Teleport v-if="mounted" to="#platform-banner">
             <SubscriptionExpiredBanner :team="team" />
@@ -121,7 +117,6 @@ import { mapState } from 'vuex'
 import deviceApi from '../../api/devices.js'
 import DropdownMenu from '../../components/DropdownMenu.vue'
 import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
-import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
@@ -163,7 +158,6 @@ export default {
         DeviceLastSeenBadge,
         DropdownMenu,
         SectionNavigationHeader,
-        SideNavigationTeamOptions,
         StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner,

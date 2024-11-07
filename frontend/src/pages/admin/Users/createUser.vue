@@ -1,14 +1,4 @@
 <template>
-    <!--    todo fix teleport -->
-    <!--    <Teleport v-if="mounted" to="#platform-sidenav">-->
-    <!--        <SideNavigation>-->
-    <!--            <template #back>-->
-    <!--                <router-link :to="{name: 'AdminUsersGeneral'}">-->
-    <!--                    <nav-item :icon="icons.chevronLeft" label="Back to Users" />-->
-    <!--                </router-link>-->
-    <!--            </template>-->
-    <!--        </SideNavigation>-->
-    <!--    </Teleport>-->
     <main>
         <div class="max-w-2xl m-auto">
             <form class="space-y-6">
@@ -41,18 +31,13 @@ import usersApi from '../../../api/users.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 
-import NavItem from '../../../components/NavItem.vue'
-import SideNavigation from '../../../components/SideNavigation.vue'
-
 let zxcvbn
 
 export default {
     name: 'AdminCreateUser',
     components: {
         FormRow,
-        FormHeading,
-        SideNavigation,
-        NavItem
+        FormHeading
     },
     data () {
         return {
