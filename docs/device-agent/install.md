@@ -131,6 +131,8 @@ Version 3.x of the Device Agent requires Node.js 18 as a minimum; older versions
 
 The `latest` tagged Docker image is now based on Node.js 18.
 
+If you are not able to update to Node.js 18 or later at this time, you should stay on the Device Agent 2.x release. For the install commands below, this means using `@2.x` instead of `@latest`. In the case of Docker, make sure you use the `2.8.0` tag instead of `latest`.
+
 ### Linux/MacOS
 
 ```bash
