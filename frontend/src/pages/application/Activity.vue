@@ -12,6 +12,9 @@
                         :label="instance.name" :value="instance.id"
                     />
                 </ff-dropdown>
+                <ff-checkbox v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
+                    Include Children
+                </ff-checkbox>
             </div>
         </template>
     </AuditLogBrowser>
@@ -46,7 +49,8 @@ export default {
             logEntries: [],
             users: [],
             auditFilters: {
-                selectedEventScope: null
+                selectedEventScope: null,
+                includeChildren: true
             }
         }
     },
@@ -69,8 +73,11 @@ export default {
         }
     },
     watch: {
-        'auditFilters.selectedEventScope' () {
-            this.$refs.AuditLog?.loadEntries(this.logScope)
+        auditFilters: {
+            deep: true,
+            handler () {
+                this.$refs.AuditLog?.loadEntries(this.logScope)
+            }
         },
         team: 'loadUsers'
     },
@@ -83,9 +90,12 @@ export default {
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
             if (this.applicationId) {
+                params.set('includeChildren', !!this.auditFilters.includeChildren)
                 if (this.auditFilters.selectedEventScope === null) {
+                    params.set('scope', 'application')
                     this.logEntries = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200)).log
                 } else if (this.auditFilters.selectedEventScope) {
+                    params.set('scope', 'project')
                     const instanceId = this.auditFilters.selectedEventScope
                     this.logEntries = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200)).log
                 }
