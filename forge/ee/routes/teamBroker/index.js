@@ -309,4 +309,30 @@ module.exports = async function (app) {
             reply.status(404).send({})
         }
     })
+
+    app.get('/topicList', {
+        schema: {
+            summary: 'Gets list of topics used by a team',
+            tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'array'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        reply.send(app.teamBroker.getUsedTopics(request.team.hashid))
+    })
 }

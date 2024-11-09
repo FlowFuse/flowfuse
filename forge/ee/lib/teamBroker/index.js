@@ -30,4 +30,48 @@ module.exports.init = function (app) {
             }
         }
     }
+
+    /*
+     * This needs moving to Redis at some point for multiple forge app
+     * Instances. Redis will also survive a restart which with CI may
+     * become a problem.
+    */
+    const TOPIC_TTL = (1000 * 60 * 60)
+    const TOPIC_CLEAN_INTERVAL = (1000 * 30)
+    const topicsList = {}
+
+    const cleanInterval = setInterval(() => {
+        const keys = Object.keys(topicsList)
+        const now = Date.now()
+        for (let i = 0; i < keys.length; i++) {
+            if (topicsList[keys[i]].ttl < now) {
+                delete topicsList[keys[i]]
+            }
+        }
+    }, TOPIC_CLEAN_INTERVAL)
+
+    app.addHook('onClose', async () => {
+        if (cleanInterval) {
+            clearInterval(cleanInterval)
+        }
+    })
+
+    async function addUsedTopic (topic, team) {
+        topicsList[`ff/v1/${team}/${topic}`] = {
+            ttl: Date.now() + (TOPIC_TTL)
+        }
+    }
+
+    async function getUsedTopics (teamId) {
+        const prefixLength = `ff/v1/${teamId}/`.length
+        const topics = Object.keys(topicsList)
+            .filter(t => t.startsWith(`ff/v1/${teamId}/`))
+            .map(t => t.substring(prefixLength))
+        return topics
+    }
+
+    app.decorate('teamBroker', {
+        addUsedTopic,
+        getUsedTopics
+    })
 }
