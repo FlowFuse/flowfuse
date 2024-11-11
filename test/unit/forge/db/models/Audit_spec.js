@@ -80,6 +80,18 @@ describe('Audit model', function () {
         return application
     }
 
+    const assertEntitiesInArray = (clause, entityType, entityIds) => {
+        clause.should.only.have.keys('entityType', 'entityId')
+        clause.should.have.property('entityType', entityType)
+        clause.entityId.should.have.property(Op.in).which.is.an.Array()
+        clause.entityId[Op.in].map(String).should.deepEqual(entityIds.map(String))
+    }
+    const assertEntityEquals = (clause, entityType, entityId) => {
+        clause.should.only.have.keys('entityType', 'entityId')
+        clause.should.have.property('entityType', entityType)
+        clause.entityId.toString().should.deepEqual(entityId.toString())
+    }
+
     before(async function () {
         app = await setup()
         app.license.defaults.instances = 20; // override default
@@ -129,18 +141,14 @@ describe('Audit model', function () {
                     const team = TestObjects.team1
                     const pagination = { }
                     const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
-                    clause.should.only.have.keys('entityType', 'entityId')
-                    clause.should.have.property('entityType', 'team')
-                    clause.should.have.property('entityId', team.id)
+                    assertEntityEquals(clause, 'team', team.id)
                 })
                 it('should return clause scoped for applications only', async () => {
                     const team = TestObjects.team1
                     const expectedApps = [TestObjects.team1_app1.id, TestObjects.team1_app2.id]
                     const pagination = { scope: 'application' }
                     const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
-                    clause.should.only.have.keys('entityType', 'entityId')
-                    clause.should.have.property('entityType', 'application')
-                    clause.entityId.should.have.property(Op.in).which.is.an.Array().and.deepEqual(expectedApps)
+                    assertEntitiesInArray(clause, 'application', expectedApps)
                 })
                 it('should return clause scoped for projects only', async () => {
                     const team = TestObjects.team1
@@ -152,9 +160,7 @@ describe('Audit model', function () {
                     ]
                     const pagination = { scope: 'project' }
                     const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
-                    clause.should.only.have.keys('entityType', 'entityId')
-                    clause.should.have.property('entityType', 'project')
-                    clause.entityId.should.have.property(Op.in).which.is.an.Array().and.deepEqual(expectedProjects)
+                    assertEntitiesInArray(clause, 'project', expectedProjects)
                 })
                 it('should return clause scoped for devices only', async () => {
                     const team = TestObjects.team1
@@ -174,9 +180,7 @@ describe('Audit model', function () {
                     ]
                     const pagination = { scope: 'device' }
                     const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
-                    clause.should.only.have.keys('entityType', 'entityId')
-                    clause.should.have.property('entityType', 'device')
-                    clause.entityId.should.have.property(Op.in).which.is.an.Array().and.deepEqual(expectedDevices)
+                    assertEntitiesInArray(clause, 'device', expectedDevices)
                 })
                 it('should return clause scoped for team and all children', async () => {
                     const team = TestObjects.team1
@@ -205,21 +209,10 @@ describe('Audit model', function () {
                     const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
                     clause.should.only.have.property(Op.or)
                     clause[Op.or].should.be.an.Array().and.have.length(4) // team, application, project, device
-                    clause[Op.or][0].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][0].should.have.property('entityType', 'team')
-                    clause[Op.or][0].should.have.property('entityId', team.id)
-                    clause[Op.or][1].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][1].should.have.property('entityType', 'application')
-                    clause[Op.or][1].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][1].entityId[Op.in].should.deepEqual(allTeam1AppIds)
-                    clause[Op.or][2].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][2].should.have.property('entityType', 'project')
-                    clause[Op.or][2].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][2].entityId[Op.in].should.deepEqual(allTeam1ProjectIds)
-                    clause[Op.or][3].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][3].should.have.property('entityType', 'device')
-                    clause[Op.or][3].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][3].entityId[Op.in].should.deepEqual(allTeam1DeviceIds)
+                    assertEntityEquals(clause[Op.or][0], 'team', team.id)
+                    assertEntitiesInArray(clause[Op.or][1], 'application', allTeam1AppIds)
+                    assertEntitiesInArray(clause[Op.or][2], 'project', allTeam1ProjectIds)
+                    assertEntitiesInArray(clause[Op.or][3], 'device', allTeam1DeviceIds)
                 })
                 it('should return clause scoped for applications and all children', async () => {
                     const team = TestObjects.team1
@@ -248,18 +241,9 @@ describe('Audit model', function () {
                     const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
                     clause.should.only.have.property(Op.or)
                     clause[Op.or].should.be.an.Array().and.have.length(3) // application, project, device
-                    clause[Op.or][0].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][0].should.have.property('entityType', 'application')
-                    clause[Op.or][0].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][0].entityId[Op.in].should.deepEqual(allTeam1AppIds)
-                    clause[Op.or][1].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][1].should.have.property('entityType', 'project')
-                    clause[Op.or][1].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][1].entityId[Op.in].should.deepEqual(allTeam1ProjectIds)
-                    clause[Op.or][2].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][2].should.have.property('entityType', 'device')
-                    clause[Op.or][2].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][2].entityId[Op.in].should.deepEqual(allTeam1DeviceIds)
+                    assertEntitiesInArray(clause[Op.or][0], 'application', allTeam1AppIds)
+                    assertEntitiesInArray(clause[Op.or][1], 'project', allTeam1ProjectIds)
+                    assertEntitiesInArray(clause[Op.or][2], 'device', allTeam1DeviceIds)
                 })
                 it('should return clause scoped for projects and all children', async () => {
                     const team = TestObjects.team1
@@ -273,35 +257,20 @@ describe('Audit model', function () {
                     const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
                     clause.should.only.have.property(Op.or)
                     clause[Op.or].should.be.an.Array().and.have.length(5) // project, app1_proj1 devices, app1_proj2 devices, app2_proj1 devices, app2_proj2 devices
-                    clause[Op.or][0].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][0].should.have.property('entityType', 'project')
-                    clause[Op.or][0].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][0].entityId[Op.in].should.deepEqual(allTeam1ProjectIds)
-                    clause[Op.or][1].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][1].should.have.property('entityType', 'device')
-                    clause[Op.or][1].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][1].entityId[Op.in].should.deepEqual([
+                    assertEntitiesInArray(clause[Op.or][0], 'project', allTeam1ProjectIds)
+                    assertEntitiesInArray(clause[Op.or][1], 'device', [
                         TestObjects.team1_app1_proj1_device1.id,
                         TestObjects.team1_app1_proj1_device2.id
                     ])
-                    clause[Op.or][2].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][2].should.have.property('entityType', 'device')
-                    clause[Op.or][2].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][2].entityId[Op.in].should.deepEqual([
+                    assertEntitiesInArray(clause[Op.or][2], 'device', [
                         TestObjects.team1_app1_proj2_device1.id,
                         TestObjects.team1_app1_proj2_device2.id
                     ])
-                    clause[Op.or][3].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][3].should.have.property('entityType', 'device')
-                    clause[Op.or][3].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][3].entityId[Op.in].should.deepEqual([
+                    assertEntitiesInArray(clause[Op.or][3], 'device', [
                         TestObjects.team1_app2_proj1_device1.id,
                         TestObjects.team1_app2_proj1_device2.id
                     ])
-                    clause[Op.or][4].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][4].should.have.property('entityType', 'device')
-                    clause[Op.or][4].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][4].entityId[Op.in].should.deepEqual([
+                    assertEntitiesInArray(clause[Op.or][4], 'device', [
                         TestObjects.team1_app2_proj2_device1.id,
                         TestObjects.team1_app2_proj2_device2.id
                     ])
@@ -312,18 +281,14 @@ describe('Audit model', function () {
                     const application = TestObjects.team1_app1
                     const pagination = { }
                     const clause = await AuditLog.buildScopeClause('application', application.id, pagination)
-                    clause.should.only.have.keys('entityType', 'entityId')
-                    clause.should.have.property('entityType', 'application')
-                    clause.should.have.property('entityId', application.id)
+                    assertEntityEquals(clause, 'application', application.id)
                 })
                 it('should return clause scoped for projects only', async () => {
                     const application = TestObjects.team1_app1
                     const expectedProjects = [TestObjects.team1_app1_proj1.id, TestObjects.team1_app1_proj2.id]
                     const pagination = { scope: 'project' }
                     const clause = await AuditLog.buildScopeClause('application', application.id, pagination)
-                    clause.should.only.have.keys('entityType', 'entityId')
-                    clause.should.have.property('entityType', 'project')
-                    clause.entityId.should.have.property(Op.in).which.is.an.Array().and.deepEqual(expectedProjects)
+                    assertEntitiesInArray(clause, 'project', expectedProjects)
                 })
                 it('should return clause scoped for devices only', async () => {
                     const application = TestObjects.team1_app1
@@ -333,9 +298,7 @@ describe('Audit model', function () {
                     ]
                     const pagination = { scope: 'device' }
                     const clause = await AuditLog.buildScopeClause('application', application.id, pagination)
-                    clause.should.only.have.keys('entityType', 'entityId')
-                    clause.should.have.property('entityType', 'device')
-                    clause.entityId.should.have.property(Op.in).which.is.an.Array().and.deepEqual(expectedDevices)
+                    assertEntitiesInArray(clause, 'device', expectedDevices)
                 })
                 it('should return clause scoped for application and all children', async () => {
                     const application = TestObjects.team1_app1
@@ -356,25 +319,11 @@ describe('Audit model', function () {
                     const clause = await AuditLog.buildScopeClause('application', application.id, pagination)
                     clause.should.only.have.property(Op.or)
                     clause[Op.or].should.be.an.Array().and.have.length(5) // application, project, device
-                    clause[Op.or][0].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][0].should.have.property('entityType', 'application')
-                    clause[Op.or][0].should.have.property('entityId', application.id)
-                    clause[Op.or][1].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][1].should.have.property('entityType', 'project')
-                    clause[Op.or][1].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][1].entityId[Op.in].should.deepEqual(allApp1ProjectIds)
-                    clause[Op.or][2].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][2].should.have.property('entityType', 'device')
-                    clause[Op.or][2].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][2].entityId[Op.in].should.deepEqual(project1Devices)
-                    clause[Op.or][3].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][3].should.have.property('entityType', 'device')
-                    clause[Op.or][3].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][3].entityId[Op.in].should.deepEqual(project2Devices)
-                    clause[Op.or][4].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][4].should.have.property('entityType', 'device')
-                    clause[Op.or][4].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][4].entityId[Op.in].should.deepEqual(allApp1Devices)
+                    assertEntityEquals(clause[Op.or][0], 'application', application.id)
+                    assertEntitiesInArray(clause[Op.or][1], 'project', allApp1ProjectIds)
+                    assertEntitiesInArray(clause[Op.or][2], 'device', project1Devices)
+                    assertEntitiesInArray(clause[Op.or][3], 'device', project2Devices)
+                    assertEntitiesInArray(clause[Op.or][4], 'device', allApp1Devices)
                 })
                 it('should return clause scoped for projects and all children', async () => {
                     const application = TestObjects.team1_app1
@@ -391,18 +340,9 @@ describe('Audit model', function () {
                     const clause = await AuditLog.buildScopeClause('application', application.id, pagination)
                     clause.should.only.have.property(Op.or)
                     clause[Op.or].should.be.an.Array().and.have.length(3) // project, device
-                    clause[Op.or][0].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][0].should.have.property('entityType', 'project')
-                    clause[Op.or][0].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][0].entityId[Op.in].should.deepEqual(allApp1ProjectIds)
-                    clause[Op.or][1].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][1].should.have.property('entityType', 'device')
-                    clause[Op.or][1].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][1].entityId[Op.in].should.deepEqual(project1Devices)
-                    clause[Op.or][2].should.only.have.keys('entityType', 'entityId')
-                    clause[Op.or][2].should.have.property('entityType', 'device')
-                    clause[Op.or][2].entityId.should.have.property(Op.in).which.is.an.Array()
-                    clause[Op.or][2].entityId[Op.in].should.deepEqual(project2Devices)
+                    assertEntitiesInArray(clause[Op.or][0], 'project', allApp1ProjectIds)
+                    assertEntitiesInArray(clause[Op.or][1], 'device', project1Devices)
+                    assertEntitiesInArray(clause[Op.or][2], 'device', project2Devices)
                 })
             })
         })
