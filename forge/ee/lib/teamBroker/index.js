@@ -57,16 +57,26 @@ module.exports.init = function (app) {
     })
 
     async function addUsedTopic (topic, team) {
-        topicsList[`ff/v1/${team}/c/${topic}`] = {
-            ttl: Date.now() + (TOPIC_TTL)
+        const teamList = topicsList[team]
+        if (!teamList) {
+            topicsList[team] = {
+                [topic]: { ttl: Date.now() + (TOPIC_TTL) }
+            }
+        } else {
+            teamList[topic] = { ttl: Date.now() + (TOPIC_TTL) }
         }
+        // topicsList[`ff/v1/${team}/c/${topic}`] = {
+        //     ttl: Date.now() + (TOPIC_TTL)
+        // }
     }
 
     async function getUsedTopics (teamId) {
-        const prefixLength = `ff/v1/${teamId}/c/`.length
-        const topics = Object.keys(topicsList)
-            .filter(t => t.startsWith(`ff/v1/${teamId}/c/`))
-            .map(t => t.substring(prefixLength))
+        // const prefixLength = `ff/v1/${teamId}/c/`.length
+        // const topics = Object.keys(topicsList)
+        //     .filter(t => t.startsWith(`ff/v1/${teamId}/c/`))
+        //     .map(t => t.substring(prefixLength))
+        console.log(topicsList)
+        const topics = topicsList[teamId] ? Object.keys(topicsList[teamId]) : []
         return topics
     }
 
