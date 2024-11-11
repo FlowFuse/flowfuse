@@ -236,7 +236,7 @@ module.exports = {
                     const addTeamScope = async (teamId, includeChildren = false) => {
                         whereClauses.push({
                             entityType: 'team',
-                            entityId: teamId
+                            entityId: teamId.toString()
                         })
                         if (includeChildren) {
                             await addApplicationScope(teamId, null, false, false) // only the applications (instances and devices will be included by addInstanceScope and addDeviceScope)
@@ -250,11 +250,11 @@ module.exports = {
                             applicationIds = [applicationId]
                             whereClauses.push({
                                 entityType: 'application',
-                                entityId: applicationId
+                                entityId: applicationId.toString()
                             })
                         } else {
                             const clause = { TeamId: teamId }
-                            applicationIds = (await M.Application.findAll({ where: clause, attributes: ['id'] })).map(a => a.id)
+                            applicationIds = (await M.Application.findAll({ where: clause, attributes: ['id'] })).map(a => a.id?.toString()).filter(a => !!a)
                             if (applicationIds.length) {
                                 whereClauses.push({
                                     entityType: 'application',
@@ -287,14 +287,14 @@ module.exports = {
                             instanceIds = [instanceId]
                             whereClauses.push({
                                 entityType: 'project',
-                                entityId: instanceId
+                                entityId: instanceId.toString()
                             })
                         } else {
                             const clause = { TeamId: teamId }
                             if (applicationId) {
                                 clause.ApplicationId = applicationId
                             }
-                            instanceIds = (await M.Project.findAll({ where: clause, attributes: ['id'] })).map(p => p.id)
+                            instanceIds = (await M.Project.findAll({ where: clause, attributes: ['id'] })).map(p => p.id?.toString()).filter(p => !!p)
                             if (instanceIds.length) {
                                 whereClauses.push({
                                     entityType: 'project',
@@ -316,7 +316,7 @@ module.exports = {
                         if (applicationId) {
                             clause.ApplicationId = applicationId
                         }
-                        const ids = (await M.Device.findAll({ where: clause, attributes: ['id'] })).map(d => d.id)
+                        const ids = (await M.Device.findAll({ where: clause, attributes: ['id'] })).map(d => d.id?.toString()).filter(d => !!d)
                         if (ids.length) {
                             whereClauses.push({
                                 entityType: 'device',
