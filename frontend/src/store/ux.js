@@ -33,7 +33,6 @@ const getters = {
     hiddenLeftDrawer: (state, getters) => {
         return state.leftDrawer.component?.name === 'MainNav' && getters.mainNavContext.length === 0
     },
-    hasFloatingLeftDrawer: (state) => state.windowWidth < 1024,
     shouldShowEducationModal: (state) => {
         return state.tours.education
     },
