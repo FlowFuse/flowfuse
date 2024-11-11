@@ -345,6 +345,31 @@ describe('Audit model', function () {
                     assertEntitiesInArray(clause[Op.or][2], 'device', project2Devices)
                 })
             })
+            describe('for Project', function () {
+                it('should return clause scoped for project only', async () => {
+                    const project = TestObjects.team1_app1_proj1
+                    const pagination = { }
+                    const clause = await AuditLog.buildScopeClause('project', project.id, pagination)
+                    assertEntityEquals(clause, 'project', project.id)
+                })
+                it('should return clause scoped for devices only', async () => {
+                    const project = TestObjects.team1_app1_proj1
+                    const expectedDevices = [TestObjects.team1_app1_proj1_device1.id, TestObjects.team1_app1_proj1_device2.id]
+                    const pagination = { scope: 'device' }
+                    const clause = await AuditLog.buildScopeClause('project', project.id, pagination)
+                    assertEntitiesInArray(clause, 'device', expectedDevices)
+                })
+                it('should return clause scoped for project and all children', async () => {
+                    const project = TestObjects.team1_app1_proj1
+                    const allProject1Devices = [TestObjects.team1_app1_proj1_device1.id, TestObjects.team1_app1_proj1_device2.id]
+                    const pagination = { scope: 'project', includeChildren: true }
+                    const clause = await AuditLog.buildScopeClause('project', project.id, pagination)
+                    clause.should.only.have.property(Op.or)
+                    clause[Op.or].should.be.an.Array().and.have.length(2) // project, device
+                    assertEntityEquals(clause[Op.or][0], 'project', project.id)
+                    assertEntitiesInArray(clause[Op.or][1], 'device', allProject1Devices)
+                })
+            })
         })
     })
 })
