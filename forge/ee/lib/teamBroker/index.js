@@ -41,11 +41,14 @@ module.exports.init = function (app) {
     const topicsList = {}
 
     const cleanInterval = setInterval(() => {
-        const keys = Object.keys(topicsList)
         const now = Date.now()
+        const keys = Object.keys(topicsList)
         for (let i = 0; i < keys.length; i++) {
-            if (topicsList[keys[i]].ttl < now) {
-                delete topicsList[keys[i]]
+            const teamTopics = Object.keys(topicsList[keys[i]])
+            for (let j = 0; j< teamTopics.length; j++) {
+                if (topicsList[keys[i]][teamTopics[j]].ttl < now) {
+                    delete topicsList[keys[i]][teamTopics[j]]
+                }
             }
         }
     }, TOPIC_CLEAN_INTERVAL)
