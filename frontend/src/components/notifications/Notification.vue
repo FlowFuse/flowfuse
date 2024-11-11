@@ -72,13 +72,19 @@ export default {
         ...mapActions('ux', ['closeRightDrawer']),
         go (to) {
             this.closeRightDrawer()
-            this.notification.read = true
-            userApi.markNotificationRead(this.notification.id)
+            this.markAsRead()
+
             if (to?.url) {
                 // Handle external links
                 window.open(to.url, '_blank').focus()
             } else if (to?.name || to?.path) {
                 this.$router.push(to)
+            }
+        },
+        markAsRead () {
+            if (!this.notification.read) {
+                this.notification.read = true
+                userApi.markNotificationRead(this.notification.id)
             }
         }
     }

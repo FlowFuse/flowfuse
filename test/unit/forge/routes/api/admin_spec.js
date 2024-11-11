@@ -22,13 +22,6 @@ describe('Admin API', async function () {
         TestObjects.tokens = {}
     }
 
-    before(async function () {
-        return setupApp()
-    })
-    after(async function () {
-        await app.close()
-    })
-
     async function login (username, password) {
         const response = await app.inject({
             method: 'POST',
@@ -41,6 +34,12 @@ describe('Admin API', async function () {
     }
 
     describe('stats', async function () {
+        before(async function () {
+            return setupApp()
+        })
+        after(async function () {
+            await app.close()
+        })
         it('anonymous cannot access stats', async function () {
             const response = await app.inject({
                 method: 'GET',
@@ -164,6 +163,128 @@ describe('Admin API', async function () {
                 // Check new token no longer works
                 ;(await checkStatsAccess(newToken.token)).statusCode.should.equal(401)
             })
+        })
+    })
+
+    describe('notifications', function () {
+        after(async function () {
+            await app.close()
+        })
+        afterEach(async function () {
+            // Tidy up so we have a clean table to verify against
+            await app.db.models.Notification.destroy({ where: { } })
+        })
+        before(async function () {
+            await setupApp('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg')
+            await login('alice', 'aaPassword')
+            // Create more users of different roles
+
+            const createUser = async (name, admin = false) => await app.db.models.User.create({ username: name, name, admin, email: name + '@example.com', password: name + ';oaihegk.jeigaegioh' })
+
+            TestObjects.notificationUser1 = await createUser('nu1')
+            TestObjects.notificationUser2 = await createUser('nu2')
+            TestObjects.notificationUser3 = await createUser('nu3')
+            TestObjects.notificationUser4 = await createUser('nu4')
+            // nu5 is an admin not added to a team
+            TestObjects.notificationUser5 = await createUser('nu5', true)
+
+            TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
+
+            await TestObjects.BTeam.addUser(TestObjects.notificationUser1, { through: { role: app.factory.Roles.Roles.Owner } })
+            await TestObjects.BTeam.addUser(TestObjects.notificationUser2, { through: { role: app.factory.Roles.Roles.Member } })
+            await TestObjects.BTeam.addUser(TestObjects.notificationUser3, { through: { role: app.factory.Roles.Roles.Viewer } })
+            await TestObjects.BTeam.addUser(TestObjects.notificationUser4, { through: { role: app.factory.Roles.Roles.Dashboard } })
+        })
+
+        async function sendNotification (payload) {
+            return app.inject({
+                method: 'POST',
+                url: '/api/v1/admin/announcements',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload
+            })
+        }
+        it('send to admins only', async function () {
+            const payload = {
+                message: 'admin only message',
+                title: 'admin only title',
+                filter: { roles: [app.factory.Roles.Roles.Admin] },
+                mock: true
+            }
+            let response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            let result = response.json()
+            result.should.have.property('mock', true)
+            result.should.have.property('recipientCount', 2)
+
+            // Resend without mock
+            delete payload.mock
+            response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            result = response.json()
+            result.should.not.have.property('mock')
+            result.should.have.property('recipientCount', 2)
+
+            const count = await app.db.models.Notification.count()
+            count.should.equal(2)
+        })
+
+        it('send to member/viewer', async function () {
+            const payload = {
+                message: 'member/viewer only message',
+                title: 'member/viewer only title',
+                filter: { roles: [app.factory.Roles.Roles.Member, app.factory.Roles.Roles.Viewer] },
+                mock: true
+            }
+            let response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            let result = response.json()
+            result.should.have.property('mock', true)
+            result.should.have.property('recipientCount', 2)
+
+            // Resend without mock
+            delete payload.mock
+            response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            result = response.json()
+            result.should.not.have.property('mock')
+            result.should.have.property('recipientCount', 2)
+
+            const notifications = await app.db.models.Notification.findAll()
+            const count = notifications.length
+            count.should.equal(2)
+
+            ;(notifications[0].UserId === TestObjects.notificationUser2.id).should.be.true()
+            ;(notifications[1].UserId === TestObjects.notificationUser3.id).should.be.true()
+        })
+
+        it('does not send duplicate notifications if filter matches multiple times', async function () {
+            const payload = {
+                message: 'admin/owner only message',
+                title: 'admin/owner only title',
+                filter: { roles: [app.factory.Roles.Roles.Admin, app.factory.Roles.Roles.Owner] },
+                mock: true
+            }
+            let response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            let result = response.json()
+            result.should.have.property('mock', true)
+            result.should.have.property('recipientCount', 3)
+
+            // Resend without mock
+            delete payload.mock
+            response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            result = response.json()
+            result.should.not.have.property('mock')
+            result.should.have.property('recipientCount', 3)
+
+            const notifications = await app.db.models.Notification.findAll()
+            const count = notifications.length
+            count.should.equal(3)
+            ;(notifications[0].UserId === app.adminUser.id).should.be.true()
+            ;(notifications[1].UserId === TestObjects.notificationUser1.id).should.be.true()
+            ;(notifications[2].UserId === TestObjects.notificationUser5.id).should.be.true()
         })
     })
 })
