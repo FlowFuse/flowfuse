@@ -624,7 +624,7 @@ describe('Team Broker API', function () {
 
                 const topicsResponse = await app.inject({
                     method: 'GET',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/topicList`,
+                    url: `/api/v1/teams/${app.team.hashid}/broker/topics`,
                     cookies: { sid: TestObjects.tokens.bob }
                 })
 
