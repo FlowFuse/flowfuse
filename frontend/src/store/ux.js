@@ -279,7 +279,8 @@ const getters = {
                         state.mainNav.backToButton
                     ]
                 }
-            ]
+            ],
+            none: []
         }
     },
     mainNavContext: (state, getters, rootState) => {
