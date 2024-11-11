@@ -322,7 +322,10 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    type: 'array'
+                    type: 'array',
+                    items: {
+                        type: 'string'
+                    }
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -333,6 +336,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        reply.send(app.teamBroker.getUsedTopics(request.team.hashid))
+        const list = await app.teamBroker.getUsedTopics(request.team.hashid)
+        reply.send(list)
     })
 }
