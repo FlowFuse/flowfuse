@@ -7,7 +7,7 @@
         <div class="ff-instance-header">
             <SectionNavigationHeader :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Devices</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Edge Devices</ff-nav-breadcrumb>
                     <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
