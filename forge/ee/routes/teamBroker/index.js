@@ -310,7 +310,14 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * List all topics used by the Team
+     * @name /api/v1/teams/:teamId/broker/topicList
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
     app.get('/topicList', {
+        preHandler: app.needsPermission('broker:topics:list'),
         schema: {
             summary: 'Gets list of topics used by a team',
             tags: ['MQTT Broker'],
