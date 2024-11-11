@@ -1,8 +1,23 @@
 <template>
-    <div class="mb-3">
-        <SectionTopMenu hero="Audit Log" info="" />
-    </div>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="project" @load-entries="loadEntries" />
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :logType="project" @load-entries="loadEntries">
+        <template #title>
+            <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this instance." />
+        </template>
+        <template #extraFilters>
+            <FormHeading class="mt-4">Event Scope:</FormHeading>
+            <div data-el="filter-event-types">
+                <ff-dropdown v-model="auditFilters.selectedEventScope" class="w-full">
+                    <ff-dropdown-option
+                        v-for="scope in scopeList" :key="scope.id"
+                        :label="scope.name" :value="scope.id"
+                    />
+                </ff-dropdown>
+                <ff-checkbox v-if="auditFilters.selectedEventScope!=='device'" v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
+                    Include Children
+                </ff-checkbox>
+            </div>
+        </template>
+    </AuditLogBrowser>
 </template>
 
 <script>
@@ -10,14 +25,16 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../../api/instances.js'
 import TeamAPI from '../../api/team.js'
+import FormHeading from '../../components/FormHeading.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 
 export default {
     name: 'InstanceAuditLog',
     components: {
-        SectionTopMenu,
-        AuditLogBrowser
+        AuditLogBrowser,
+        FormHeading,
+        SectionTopMenu
     },
     inheritAttrs: false,
     props: {
@@ -29,7 +46,15 @@ export default {
     data () {
         return {
             logEntries: [],
-            users: []
+            users: [],
+            auditFilters: {
+                selectedEventScope: 'project',
+                includeChildren: true
+            },
+            scopeList: [
+                { name: 'This Instance', id: 'project' },
+                { name: 'Instance Devices', id: 'device' }
+            ]
         }
     },
     computed: {
@@ -39,8 +64,20 @@ export default {
         instance () {
             this.$refs.AuditLog?.loadEntries()
         },
-        'team.id' () {
+        team () {
             this.loadUsers()
+        },
+        auditFilters: {
+            deep: true,
+            handler () {
+                this.loadEntries()
+            }
+        }
+    },
+    mounted () {
+        if (!this.users || !this.users.length || !this.logEntries || !this.logEntries.length) {
+            this.loadUsers()
+            this.loadEntries()
         }
     },
     methods: {
@@ -49,6 +86,8 @@ export default {
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
             if (this.instance.id) {
+                params.set('scope', this.auditFilters.selectedEventScope)
+                params.set('includeChildren', !!this.auditFilters.includeChildren)
                 this.logEntries = (await InstanceApi.getInstanceAuditLog(this.instance.id, params, cursor, 200)).log
             }
         }
