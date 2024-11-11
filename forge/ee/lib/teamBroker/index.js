@@ -36,11 +36,11 @@ module.exports.init = function (app) {
      * Instances. Redis will also survive a restart which with CI may
      * become a problem.
     */
-    const TOPIC_TTL = (1000 * 60 * 60)
-    const TOPIC_CLEAN_INTERVAL = (1000 * 30)
+    const TOPIC_TTL = (1000 * 60 * 60 * 25) // 25 hours
+    // const TOPIC_CLEAN_INTERVAL = (1000 * 30)
     const topicsList = {}
 
-    const cleanInterval = setInterval(() => {
+    async function expireTopicCache () {
         const now = Date.now()
         const keys = Object.keys(topicsList)
         for (let i = 0; i < keys.length; i++) {
@@ -51,13 +51,14 @@ module.exports.init = function (app) {
                 }
             }
         }
-    }, TOPIC_CLEAN_INTERVAL)
+    }
 
-    app.addHook('onClose', async () => {
-        if (cleanInterval) {
-            clearInterval(cleanInterval)
-        }
-    })
+    // const cleanInterval = setInterval( expireTopicCache, TOPIC_CLEAN_INTERVAL)
+    // app.addHook('onClose', async () => {
+    //     if (cleanInterval) {
+    //         clearInterval(cleanInterval)
+    //     }
+    // })
 
     async function addUsedTopic (topic, team) {
         const teamList = topicsList[team]
@@ -77,6 +78,7 @@ module.exports.init = function (app) {
 
     app.decorate('teamBroker', {
         addUsedTopic,
-        getUsedTopics
+        getUsedTopics,
+        expireTopicCache
     })
 }
