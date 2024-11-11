@@ -37,8 +37,7 @@ module.exports.init = function (app) {
      * become a problem.
     */
     const TOPIC_TTL = (1000 * 60 * 60 * 25) // 25 hours
-    // const TOPIC_CLEAN_INTERVAL = (1000 * 30)
-    const topicsList = {}
+    const topicsList = app.settings.get('team:broker:topics') || {}
 
     async function expireTopicCache () {
         const now = Date.now()
@@ -53,12 +52,9 @@ module.exports.init = function (app) {
         }
     }
 
-    // const cleanInterval = setInterval( expireTopicCache, TOPIC_CLEAN_INTERVAL)
-    // app.addHook('onClose', async () => {
-    //     if (cleanInterval) {
-    //         clearInterval(cleanInterval)
-    //     }
-    // })
+    app.addHook('onClose', async () => {
+        await app.settings.set('team:broker:topics', topicsList)
+    })
 
     async function addUsedTopic (topic, team) {
         const teamList = topicsList[team]
