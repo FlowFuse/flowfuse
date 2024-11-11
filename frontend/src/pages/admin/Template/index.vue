@@ -15,7 +15,7 @@
                 <ff-button class="ml-4" :disabled="hasErrors || !unsavedChanges" @click="showSaveTemplateDialog">Save changes</ff-button>
             </template>
             <template v-else-if="isNew">
-                <ff-button :to="{ name: 'Admin Templates' }" kind="secondary">Cancel</ff-button>
+                <ff-button :to="{ name: 'admin-templates' }" kind="secondary">Cancel</ff-button>
                 <ff-button :disabled="hasErrors || !createValid" class="ml-4" @click="createTemplate">Create template</ff-button>
             </template>
         </div>
@@ -340,7 +340,7 @@ export default {
             try {
                 await templateApi.create(template)
                 this.$router.push({
-                    name: 'Admin Templates'
+                    name: 'admin-templates'
                 })
             } catch (err) {
                 if (err.response?.data) {

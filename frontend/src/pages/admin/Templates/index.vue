@@ -3,7 +3,7 @@
     <div class="space-y-6 mb-14">
         <SectionTopMenu hero="Templates">
             <template #tools>
-                <ff-button :to="{ name: 'Admin Template', params: { id: 'create' } }">
+                <ff-button :to="{ name: 'admin-templates-template', params: { id: 'create' } }">
                     <template #icon-right>
                         <PlusSmIcon />
                     </template>
@@ -103,7 +103,7 @@ export default {
         },
         editTemplate (template) {
             this.$router.push({
-                name: 'Admin Template',
+                name: 'admin-templates-template',
                 params: { id: template.id }
             })
         },
