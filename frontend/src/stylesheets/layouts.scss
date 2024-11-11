@@ -775,11 +775,11 @@ $nav_height: 60px;
 
 
 /* CSS Media Query for Mobile */
-@media screen and (max-width: 1024px) {    
+@media screen and (max-width: 1023px) {
     #ff-app {
         #left-drawer {
             left: -$sidenav_width;
-            box-shadow: 6px 0px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 6px 0 12px rgba(0, 0, 0, 0.2);
 
             &.active {
                 left: 0;
