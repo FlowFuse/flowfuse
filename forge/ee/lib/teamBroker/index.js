@@ -65,17 +65,9 @@ module.exports.init = function (app) {
         } else {
             teamList[topic] = { ttl: Date.now() + (TOPIC_TTL) }
         }
-        // topicsList[`ff/v1/${team}/c/${topic}`] = {
-        //     ttl: Date.now() + (TOPIC_TTL)
-        // }
     }
 
     async function getUsedTopics (teamId) {
-        // const prefixLength = `ff/v1/${teamId}/c/`.length
-        // const topics = Object.keys(topicsList)
-        //     .filter(t => t.startsWith(`ff/v1/${teamId}/c/`))
-        //     .map(t => t.substring(prefixLength))
-        console.log(topicsList)
         const topics = topicsList[teamId] ? Object.keys(topicsList[teamId]) : []
         return topics
     }
