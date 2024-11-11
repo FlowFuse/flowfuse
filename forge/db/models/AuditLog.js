@@ -351,7 +351,11 @@ module.exports = {
                         const projectId = entityId
                         const project = await M.Project.byId(projectId)
                         const teamId = project.TeamId
-                        await addInstanceScope(teamId, null, projectId, includeChildren)
+                        if (scope === 'device') {
+                            await addDeviceScope(teamId, null, projectId) // all devices belonging to the instance
+                        } else {
+                            await addInstanceScope(teamId, null, projectId, includeChildren)
+                        }
                     }
 
                     if (whereClauses.length === 1) {
