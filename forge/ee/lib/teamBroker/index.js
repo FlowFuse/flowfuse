@@ -45,7 +45,7 @@ module.exports.init = function (app) {
         const keys = Object.keys(topicsList)
         for (let i = 0; i < keys.length; i++) {
             const teamTopics = Object.keys(topicsList[keys[i]])
-            for (let j = 0; j< teamTopics.length; j++) {
+            for (let j = 0; j < teamTopics.length; j++) {
                 if (topicsList[keys[i]][teamTopics[j]].ttl < now) {
                     delete topicsList[keys[i]][teamTopics[j]]
                 }
