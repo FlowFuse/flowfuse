@@ -22,7 +22,6 @@ const state = () => ({
         welcome: false,
         education: false
     },
-    windowWidth: window.innerWidth,
     mainNav: {
         context: 'team',
         backToButton: null
@@ -352,9 +351,6 @@ const mutations = {
     },
     deactivateTour (state, tour) {
         state.tours[tour] = false
-    },
-    seWindowWidth (state, width) {
-        state.windowWidth = width
     }
 }
 
@@ -391,17 +387,6 @@ const actions = {
             commit('activateTour', 'education')
         }
         commit('deactivateTour', tour)
-    },
-    updateWindowWidth ({ commit }) {
-        commit('seWindowWidth', window.innerWidth)
-    },
-    setupResizeListener ({ dispatch }) {
-        window.addEventListener('resize', () => {
-            dispatch('updateWindowWidth')
-        })
-    },
-    removeResizeListener () {
-        window.removeEventListener('resize', this.updateWindowWidth)
     }
 }
 

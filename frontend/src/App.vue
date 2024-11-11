@@ -136,10 +136,6 @@ export default {
     mounted () {
         this.$store.dispatch('account/checkState')
         this.$store.dispatch('product/checkFlags')
-        this.$store.dispatch('ux/setupResizeListener')
-    },
-    unmounted () {
-        this.$store.dispatch('ux/removeResizeListener')
     },
     methods: {
         ...mapActions('ux', ['closeLeftDrawer', 'openLeftDrawer'])
