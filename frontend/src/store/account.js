@@ -322,7 +322,7 @@ const actions = {
                 commit('clearPending')
                 // This means the team doesn't exist, or the user doesn't have access
                 router.push({
-                    name: 'PageNotFound',
+                    name: 'page-not-found',
                     params: { pathMatch: router.currentRoute.value.path.substring(1).split('/') },
                     // preserve existing query and hash if any
                     query: router.currentRoute.value.query,

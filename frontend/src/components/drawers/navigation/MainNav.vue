@@ -101,7 +101,7 @@ export default {
     watch: {
         nearestContextualMenu: {
             handler: function (menu) {
-                if (['user', 'admin', 'back', 'team'].includes(menu)) {
+                if (Object.keys(this.mainNavContexts).includes(menu)) {
                     this.setMainNavContext(menu)
                 }
             },
