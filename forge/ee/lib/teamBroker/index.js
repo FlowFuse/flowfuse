@@ -53,6 +53,10 @@ module.exports.init = function (app) {
                 }
             }
         }
+        if (topicListDirty) {
+            await app.settings.set('team:broker:topics', topicsList)
+            topicListDirty = false
+        }
     }
 
     // sync to the database every 5 mins if changed
