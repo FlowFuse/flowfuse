@@ -37,7 +37,9 @@ module.exports.init = function (app) {
      * become a problem.
     */
     const TOPIC_TTL = (1000 * 60 * 60 * 25) // 25 hours
+    const TOPIC_CACHE_SYNC_INTERVAL = (5 * 60 * 1000) // 5 mins
     const topicsList = app.settings.get('team:broker:topics') || {}
+    let topicListDirty = false
 
     async function expireTopicCache () {
         const now = Date.now()
@@ -47,13 +49,25 @@ module.exports.init = function (app) {
             for (let j = 0; j < teamTopics.length; j++) {
                 if (topicsList[keys[i]][teamTopics[j]].ttl < now) {
                     delete topicsList[keys[i]][teamTopics[j]]
+                    topicListDirty = true
                 }
             }
         }
     }
 
+    // sync to the database every 5 mins if changed
+    const topicSyncInterval = setInterval(async () => {
+        if (topicListDirty) {
+            await app.settings.set('team:broker:topics', topicsList)
+            topicListDirty = false
+        }
+    }, TOPIC_CACHE_SYNC_INTERVAL)
+
     app.addHook('onClose', async () => {
         await app.settings.set('team:broker:topics', topicsList)
+        if (topicSyncInterval) {
+            clearInterval(topicSyncInterval)
+        }
     })
 
     async function addUsedTopic (topic, team) {
@@ -65,6 +79,7 @@ module.exports.init = function (app) {
         } else {
             teamList[topic] = { ttl: Date.now() + (TOPIC_TTL) }
         }
+        topicListDirty = true
     }
 
     async function getUsedTopics (teamId) {
