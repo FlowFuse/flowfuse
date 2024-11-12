@@ -48,10 +48,10 @@
 <script>
 import { PencilIcon, TrashIcon } from '@heroicons/vue/outline'
 
-import FfAccordion from '../../../../components/Accordion.vue'
-import TextCopier from '../../../../components/TextCopier.vue'
-import permissionsMixin from '../../../../mixins/Permissions.js'
-import { Roles } from '../../../../utils/roles.js'
+import FfAccordion from '../../../../../components/Accordion.vue'
+import TextCopier from '../../../../../components/TextCopier.vue'
+import permissionsMixin from '../../../../../mixins/Permissions.js'
+import { Roles } from '../../../../../utils/roles.js'
 
 import BrokerAclRule from './BrokerAclRule.vue'
 
