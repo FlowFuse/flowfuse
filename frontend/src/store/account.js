@@ -125,24 +125,24 @@ const getters = {
                 const flag = state.team?.type?.properties?.features?.['shared-library']
                 return flag === undefined || flag
             })(state),
-            isSharedLibraryFeatureEnabledForPlatform: state.features['shared-library'],
+            isSharedLibraryFeatureEnabledForPlatform: state.features?.['shared-library'],
 
             // Blueprints
             isBlueprintsFeatureEnabledForTeam: ((state) => {
                 const flag = state.team?.type?.properties?.features?.flowBlueprints
                 return flag === undefined || flag
             })(state),
-            isBlueprintsFeatureEnabledForPlatform: !!state.features.flowBlueprints,
+            isBlueprintsFeatureEnabledForPlatform: !!state.features?.flowBlueprints,
 
             // Custom Catalogs
-            isCustomCatalogsFeatureEnabledForPlatform: !!state.features.customCatalogs,
+            isCustomCatalogsFeatureEnabledForPlatform: !!state.features?.customCatalogs,
             isCustomCatalogsFeatureEnabledForTeam: ((state) => {
-                const flag = state.team.type.properties.features?.customCatalogs
+                const flag = state.team?.type.properties.features?.customCatalogs
                 return flag === undefined || flag
             })(state),
 
             // Static Assets
-            isStaticAssetFeatureEnabledForPlatform: !!state.features.staticAssets,
+            isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
             isStaticAssetsFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.staticAssets,
 
             // HTTP BearerTokens
@@ -150,15 +150,15 @@ const getters = {
             isHTTPBearerTokensFeatureEnabledForTeam: !!state.team?.type.properties.features.teamHttpSecurity,
 
             // BOM
-            isBOMFeatureEnabledForPlatform: !!state.features.bom,
+            isBOMFeatureEnabledForPlatform: !!state.features?.bom,
             isBOMFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.bom,
 
             // Timeline
-            isTimelineFeatureEnabledForPlatform: !!state.features.projectHistory,
+            isTimelineFeatureEnabledForPlatform: !!state.features?.projectHistory,
             isTimelineFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.projectHistory,
 
             // Mqtt Broker
-            isMqttBrokerFeatureEnabledForPlatform: !!state.features.teamBroker,
+            isMqttBrokerFeatureEnabledForPlatform: !!state.features?.teamBroker,
             isMqttBrokerFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.teamBroker
         }
         return {

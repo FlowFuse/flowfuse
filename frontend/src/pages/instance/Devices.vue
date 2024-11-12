@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Devices" help-header="FlowFuse - Devices" info="A list of all edge devices registered to this instance.">
+    <SectionTopMenu hero="Edge Devices" help-header="FlowFuse - Devices" info="A list of all edge devices registered to this instance.">
         <template #pictogram>
             <img src="../../images/pictograms/devices_red.png">
         </template>

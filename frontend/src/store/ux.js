@@ -22,7 +22,6 @@ const state = () => ({
         welcome: false,
         education: false
     },
-    windowWidth: window.innerWidth,
     mainNav: {
         context: 'team',
         backToButton: null
@@ -33,7 +32,6 @@ const getters = {
     hiddenLeftDrawer: (state, getters) => {
         return state.leftDrawer.component?.name === 'MainNav' && getters.mainNavContext.length === 0
     },
-    hasFloatingLeftDrawer: (state) => state.windowWidth < 1024,
     shouldShowEducationModal: (state) => {
         return state.tours.education
     },
@@ -354,9 +352,6 @@ const mutations = {
     },
     deactivateTour (state, tour) {
         state.tours[tour] = false
-    },
-    seWindowWidth (state, width) {
-        state.windowWidth = width
     }
 }
 
@@ -393,17 +388,6 @@ const actions = {
             commit('activateTour', 'education')
         }
         commit('deactivateTour', tour)
-    },
-    updateWindowWidth ({ commit }) {
-        commit('seWindowWidth', window.innerWidth)
-    },
-    setupResizeListener ({ dispatch }) {
-        window.addEventListener('resize', () => {
-            dispatch('updateWindowWidth')
-        })
-    },
-    removeResizeListener () {
-        window.removeEventListener('resize', this.updateWindowWidth)
     }
 }
 

@@ -6,7 +6,7 @@
 @import '../ui-components/stylesheets/ff-colors.scss';
 @import '../ui-components/stylesheets/ff-utility.scss';
 
-$sidenav_width: 275px;
+$sidenav_width: 250px;
 $transition_time: .15s;
 
 /*
@@ -720,7 +720,7 @@ $nav_height: 60px;
                     .ff-menu-entries {
 
                         .ff-menu-entry {
-                            margin: 0 5px 5px 10px;
+                            margin: 0 10px 5px 10px;
 
                             &:last-of-type {
                                 margin-bottom: 0;
@@ -759,20 +759,6 @@ $nav_height: 60px;
         }
     }
 
-    &.floating-left-bar {
-        #left-drawer {
-            left: -$sidenav_width;
-
-            &.active {
-                left: 0;
-            }
-        }
-
-        .ff-view {
-            margin-left:  -$sidenav_width;
-        }
-    }
-
     &.hidden-left-drawer {
         #left-drawer {
             left: -$sidenav_width;
@@ -781,6 +767,25 @@ $nav_height: 60px;
                 left: -$sidenav_width;
             }
         }
+        .ff-view {
+            margin-left:  -$sidenav_width;
+        }
+    }
+}
+
+
+/* CSS Media Query for Mobile */
+@media screen and (max-width: 1023px) {
+    #ff-app {
+        #left-drawer {
+            left: -$sidenav_width;
+            box-shadow: 6px 0 12px rgba(0, 0, 0, 0.2);
+
+            &.active {
+                left: 0;
+            }
+        }
+
         .ff-view {
             margin-left:  -$sidenav_width;
         }

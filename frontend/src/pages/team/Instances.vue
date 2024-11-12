@@ -1,7 +1,7 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header :title="dashboardRoleOnly ? 'Dashboards' : 'Instances'">
+            <ff-page-header :title="dashboardRoleOnly ? 'Dashboards' : 'Hosted Instances'">
                 <template #context>
                     <span v-if="!dashboardRoleOnly">A list of all dashboards belonging to this Team.</span>
                     <span v-else>A list of Node-RED instances with Dashboards belonging to this Team.</span>
