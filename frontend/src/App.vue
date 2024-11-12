@@ -1,5 +1,5 @@
 <template>
-    <div id="ff-app" class="min-h-screen flex flex-col" :class="{'hidden-left-drawer': hiddenLeftDrawer}">
+    <div id="ff-app" class="flex flex-col" :class="{'hidden-left-drawer': hiddenLeftDrawer}">
         <template v-if="offline">
             <main class="ff-bg-dark flex-grow flex flex-col">
                 <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">

@@ -5,7 +5,12 @@
 @import "./animations.scss";
 @import "./components/charts.scss";
 
+html, body, #app {
+    height: 100%;
+}
+
 #ff-app {
+    height: 100%;
     background-color: $ff-grey-300;
 }
 
