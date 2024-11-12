@@ -11,7 +11,7 @@
                             :to="entry.to"
                             :data-nav="entry.tag"
                             :class="{ disabled: entry.disabled }"
-                            @click="$emit('option-selected')"
+                            @click="onMenuItemClick"
                         >
                             <nav-item
                                 :label="entry.label"
@@ -115,7 +115,10 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux', ['setMainNavContext', 'setMainNavBackButton'])
+        ...mapActions('ux', ['setMainNavContext', 'setMainNavBackButton']),
+        onMenuItemClick () {
+            this.$store.dispatch('ux/closeLeftDrawer')
+        }
     }
 }
 </script>

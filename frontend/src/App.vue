@@ -123,22 +123,12 @@ export default {
             return ['platform', 'modal', 'plain'].includes(layout) ? layout : 'platform'
         }
     },
-    watch: {
-        hasFloatingLeftBar: {
-            handler: function (value) {
-                if (value) {
-                    this.closeLeftDrawer()
-                } else this.openLeftDrawer()
-            },
-            immediate: true
-        }
-    },
     mounted () {
         this.$store.dispatch('account/checkState')
         this.$store.dispatch('product/checkFlags')
     },
     methods: {
-        ...mapActions('ux', ['closeLeftDrawer', 'openLeftDrawer'])
+        ...mapActions('ux', ['closeLeftDrawer'])
     }
 }
 </script>
