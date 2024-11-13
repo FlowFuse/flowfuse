@@ -1,5 +1,5 @@
 <template>
-    <div id="ff-app" class="min-h-screen flex flex-col" :class="{'hidden-left-drawer': hiddenLeftDrawer}">
+    <div id="ff-app" class="flex flex-col" :class="{'hidden-left-drawer': hiddenLeftDrawer}">
         <template v-if="offline">
             <main class="ff-bg-dark flex-grow flex flex-col">
                 <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -123,22 +123,9 @@ export default {
             return ['platform', 'modal', 'plain'].includes(layout) ? layout : 'platform'
         }
     },
-    watch: {
-        hasFloatingLeftBar: {
-            handler: function (value) {
-                if (value) {
-                    this.closeLeftDrawer()
-                } else this.openLeftDrawer()
-            },
-            immediate: true
-        }
-    },
     mounted () {
         this.$store.dispatch('account/checkState')
         this.$store.dispatch('product/checkFlags')
-    },
-    methods: {
-        ...mapActions('ux', ['closeLeftDrawer', 'openLeftDrawer'])
     }
 }
 </script>
