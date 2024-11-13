@@ -30,4 +30,70 @@ module.exports.init = function (app) {
             }
         }
     }
+
+    /*
+     * This needs moving to Redis at some point for multiple forge app
+     * Instances. Redis will also survive a restart which with CI may
+     * become a problem.
+    */
+    const TOPIC_TTL = (1000 * 60 * 60 * 25) // 25 hours
+    const TOPIC_CACHE_SYNC_INTERVAL = (5 * 60 * 1000) // 5 mins
+    const topicsList = app.settings.get('team:broker:topics') || {}
+    let topicListDirty = false
+
+    async function expireTopicCache () {
+        const now = Date.now()
+        const keys = Object.keys(topicsList)
+        for (let i = 0; i < keys.length; i++) {
+            const teamTopics = Object.keys(topicsList[keys[i]])
+            for (let j = 0; j < teamTopics.length; j++) {
+                if (topicsList[keys[i]][teamTopics[j]].ttl < now) {
+                    delete topicsList[keys[i]][teamTopics[j]]
+                    topicListDirty = true
+                }
+            }
+        }
+        if (topicListDirty) {
+            await app.settings.set('team:broker:topics', topicsList)
+            topicListDirty = false
+        }
+    }
+
+    // sync to the database every 5 mins if changed
+    const topicSyncInterval = setInterval(async () => {
+        if (topicListDirty) {
+            await app.settings.set('team:broker:topics', topicsList)
+            topicListDirty = false
+        }
+    }, TOPIC_CACHE_SYNC_INTERVAL)
+
+    app.addHook('onClose', async () => {
+        await app.settings.set('team:broker:topics', topicsList)
+        if (topicSyncInterval) {
+            clearInterval(topicSyncInterval)
+        }
+    })
+
+    async function addUsedTopic (topic, team) {
+        const teamList = topicsList[team]
+        if (!teamList) {
+            topicsList[team] = {
+                [topic]: { ttl: Date.now() + (TOPIC_TTL) }
+            }
+        } else {
+            teamList[topic] = { ttl: Date.now() + (TOPIC_TTL) }
+        }
+        topicListDirty = true
+    }
+
+    async function getUsedTopics (teamId) {
+        const topics = topicsList[teamId] ? Object.keys(topicsList[teamId]) : []
+        return topics
+    }
+
+    app.decorate('teamBroker', {
+        addUsedTopic,
+        getUsedTopics,
+        expireTopicCache
+    })
 }
