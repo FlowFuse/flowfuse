@@ -9,7 +9,7 @@
         @row-selected="providerSelected"
     >
         <template #actions>
-            <ff-button :to="{ name: 'AdminSettingsSSOEdit', params: { id: 'create' } }">
+            <ff-button :to="{ name: 'admin-settings-sso-edit', params: { id: 'create' } }">
                 <template #icon-right>
                     <PlusSmIcon />
                 </template>
@@ -80,7 +80,7 @@ export default {
             this.loading = false
         },
         providerSelected: function (provider) {
-            this.$router.push({ name: 'AdminSettingsSSOEdit', params: { id: provider.id } })
+            this.$router.push({ name: 'admin-settings-sso-edit', params: { id: provider.id } })
         },
         deleteProvider: function (provider) {
             Dialog.show({

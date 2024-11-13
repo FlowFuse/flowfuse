@@ -37,7 +37,7 @@ describe('FlowFuse platform admin users', () => {
         cy.visit('/admin/overview')
         cy.url().should('include', '/admin/overview')
 
-        cy.get('#platform-sidenav [data-nav="admin-settings"]').click()
+        cy.get('[data-el="left-drawer"] [data-nav="admin-settings"]').click()
 
         cy.get('[data-nav="license"]').click()
 

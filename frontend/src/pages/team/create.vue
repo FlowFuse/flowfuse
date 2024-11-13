@@ -1,13 +1,4 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation v-if="team">
-            <template #back>
-                <router-link :to="{name: 'Home'}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Dashboard" />
-                </router-link>
-            </template>
-        </SideNavigation>
-    </Teleport>
     <ff-page>
         <ff-loading v-if="redirecting" message="Redirecting to Stripe..." />
         <ff-loading v-else-if="loading" message="Creating Team..." />
@@ -80,8 +71,6 @@ import teamsApi from '../../api/teams.js'
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
 
-import NavItem from '../../components/NavItem.vue'
-import SideNavigation from '../../components/SideNavigation.vue'
 import Alerts from '../../services/alerts.js'
 import slugify from '../../utils/slugify.js'
 
@@ -227,8 +216,6 @@ export default {
     components: {
         FormRow,
         FormHeading,
-        SideNavigation,
-        NavItem,
         ExternalLinkIcon
     }
 }

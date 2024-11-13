@@ -16,21 +16,15 @@ import { mapState } from 'vuex'
 
 export default {
     name: 'AdminSettings',
-    data () {
-        return {
-            sideNavigation: [
-                { label: 'General', to: './general', tag: 'general' },
-                { label: 'License', to: './license', tag: 'license' },
-                { label: 'Email', to: './email', tag: 'email' }
-            ]
-        }
-    },
     computed: {
-        ...mapState('account', ['features'])
-    },
-    mounted () {
-        if (this.features.sso) {
-            this.sideNavigation.push({ label: 'SSO', to: './sso' })
+        ...mapState('account', ['features']),
+        sideNavigation () {
+            return [
+                { label: 'General', to: { name: 'admin-settings-general' }, tag: 'general' },
+                { label: 'License', to: { name: 'admin-settings-license' }, tag: 'license' },
+                { label: 'Email', to: { name: 'admin-settings-email' }, tag: 'email' },
+                { label: 'SSO', to: { name: 'admin-settings-sso' }, hidden: !this.features.sso }
+            ]
         }
     }
 }

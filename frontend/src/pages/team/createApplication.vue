@@ -1,13 +1,4 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation>
-            <template #options>
-                <a @click="$router.back()">
-                    <nav-item :icon="icons.chevronLeft" label="Back" />
-                </a>
-            </template>
-        </SideNavigation>
-    </Teleport>
     <Teleport v-if="mounted" to="#platform-banner">
         <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
     </Teleport>
@@ -41,8 +32,6 @@ import { mapState } from 'vuex'
 import ApplicationApi from '../../api/application.js'
 import InstanceApi from '../../api/instances.js'
 
-import NavItem from '../../components/NavItem.vue'
-import SideNavigation from '../../components/SideNavigation.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import Alerts from '../../services/alerts.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
@@ -51,8 +40,6 @@ export default {
     name: 'CreateApplication',
     components: {
         InstanceForm,
-        NavItem,
-        SideNavigation,
         TeamTrialBanner
     },
     data () {

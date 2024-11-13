@@ -34,8 +34,13 @@ const routes = [
     ...HelpRoutes,
     ...EditorRoutes,
     {
+        name: 'page-not-found',
         path: '/:pathMatch(.*)*',
-        name: 'PageNotFound',
+        meta: {
+            title: 'Whoops - Not Found!',
+            menu: 'none',
+            transition: true
+        },
         component: PageNotFound
     }
 ]

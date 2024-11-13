@@ -1,7 +1,4 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions />
-    </Teleport>
     <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
     <main v-else-if="!instance?.id">
         <ff-loading message="Loading Instance..." />
@@ -68,7 +65,6 @@ import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
-import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
@@ -91,7 +87,6 @@ export default {
         DashboardLink,
         InstanceStatusPolling,
         InstanceStatusBadge,
-        SideNavigationTeamOptions,
         StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner,
