@@ -6,25 +6,20 @@ import usePermissions from '../composables/Permissions.js'
  * @typedef {0 | 5 | 10 | 30 | 50 | 99} Role
  * Enum for roles with specific numeric values.
  */
-
-/**
- * @typedef {0 | 5 | 10 | 30 | 50 | 99} Role
- * Enum for roles with specific numeric values.
- */
-
+// todo in an attempt to sunset the wide use of mixins, the permissions composable should be used instead
 export default {
     computed: {
+        // todo to be removed. A lot of components that use this mixin rely on the state imported here
         ...mapState('account', ['team', 'teamMembership']),
-
         isVisitingAdmin () {
             const { isVisitingAdmin } = usePermissions()
-            return isVisitingAdmin(this.teamMembership?.role)
+            return isVisitingAdmin()
         }
     },
     methods: {
         hasPermission (scope) {
             const { hasPermission } = usePermissions()
-            return hasPermission(scope, this.teamMembership)
+            return hasPermission(scope)
         },
 
         /**
@@ -37,7 +32,7 @@ export default {
          */
         hasAMinimumTeamRoleOf (role) {
             const { hasAMinimumTeamRoleOf } = usePermissions()
-            return hasAMinimumTeamRoleOf(role, this.teamMembership)
+            return hasAMinimumTeamRoleOf(role)
         },
 
         /**
@@ -50,7 +45,7 @@ export default {
          */
         hasALowerOrEqualTeamRoleThan (role) {
             const { hasALowerOrEqualTeamRoleThan } = usePermissions()
-            return hasALowerOrEqualTeamRoleThan(role, this.teamMembership)
+            return hasALowerOrEqualTeamRoleThan(role)
         }
     }
 }
