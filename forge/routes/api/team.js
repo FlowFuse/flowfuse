@@ -1,3 +1,5 @@
+const { Op } = require('sequelize')
+
 const { Roles } = require('../../lib/roles')
 
 const TeamDevices = require('./teamDevices.js')
@@ -250,8 +252,24 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         // Admin request for all teams
+        const where = {}
+        const filters = []
+        if (request.query.teamType) {
+            const teamTypes = request.query.teamType.split(',').map(app.db.models.TeamType.decodeHashid).flat()
+            filters.push({ TeamTypeId: { [Op.in]: teamTypes } })
+        }
+        if (request.query.state === 'suspended') {
+            filters.push({ suspended: true })
+        } else if (app.billing && request.query.billing) {
+            filters.push({ suspended: false })
+            const billingStates = request.query.billing.split(',')
+            filters.push({ '$Subscription.status$': { [Op.in]: billingStates } })
+        }
+        if (filters.length > 0) {
+            where[Op.and] = filters
+        }
         const paginationOptions = app.getPaginationOptions(request)
-        const teams = await app.db.models.Team.getAll(paginationOptions)
+        const teams = await app.db.models.Team.getAll(paginationOptions, where)
         teams.teams = teams.teams.map(t => app.db.views.Team.team(t))
         reply.send(teams)
     })
