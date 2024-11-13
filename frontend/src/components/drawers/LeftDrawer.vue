@@ -1,7 +1,7 @@
 <template>
     <section
         id="left-drawer"
-        v-click-outside="{handler: closeLeftDrawer, exclude: ['left-drawer']}"
+        v-click-outside="{handler: handleClickOutside, exclude: ['left-drawer']}"
         data-el="left-drawer"
         :class="{active: leftDrawer.state}"
     >
@@ -26,7 +26,10 @@ export default {
         this.setLeftDrawer(markRaw(MainNav))
     },
     methods: {
-        ...mapActions('ux', ['setLeftDrawer', 'closeLeftDrawer'])
+        ...mapActions('ux', ['setLeftDrawer', 'closeLeftDrawer']),
+        handleClickOutside () {
+            this.$nextTick(() => this.closeLeftDrawer)
+        }
     }
 }
 </script>
