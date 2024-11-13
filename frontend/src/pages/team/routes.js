@@ -36,16 +36,19 @@ export default [
                 },
                 children: [
                     {
-                        name: 'Applications',
                         path: 'applications',
-                        component: TeamApplications,
-                        meta: {
-                            title: 'Team - Applications'
-                        },
                         children: [
                             {
-                                path: 'create',
+                                name: 'Applications',
+                                path: '',
+                                component: TeamApplications,
+                                meta: {
+                                    title: 'Team - Applications'
+                                }
+                            },
+                            {
                                 name: 'CreateTeamApplication',
+                                path: 'create',
                                 component: CreateApplication,
                                 meta: {
                                     title: 'Team - Create Application',
