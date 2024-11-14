@@ -7,10 +7,13 @@
 
 html, body, #app {
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 #ff-app {
-    height: 100%;
+    flex: 1;
     background-color: $ff-grey-300;
 }
 
@@ -104,10 +107,10 @@ html, body, #app {
     &.ff-no-data-large {
         padding: 64px 12px;
     }
-    
+
     &--boxed {
         @extend .ff-no-data;
-        
+
        .message {
            display: block;
            text-align: center;
@@ -180,7 +183,7 @@ label {
     align-items: center;
     justify-content: center;
     padding: 8px 16px;
-    
+
     &.minimal {
         background: none;
         border: none;
