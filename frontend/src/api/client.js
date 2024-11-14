@@ -3,12 +3,25 @@ import axios from 'axios'
 import Alerts from '../services/alerts.js'
 import store from '../store/index.js'
 
-const client = axios.create({
+let config = {
     headers: {
         'Content-Type': 'application/json'
     },
-    timeout: 30000
-})
+    timeout: 30000,
+    withCredentials: true
+
+}
+if (process.env.hotReloading) {
+    const isE2E = Object.prototype.hasOwnProperty.call(window, 'Cypress')
+    const baseURL = isE2E ? window.Cypress.config('baseUrl') : 'http://localhost:3000'
+    config = {
+        ...config,
+        baseURL,
+        withCredentials: true
+    }
+}
+
+const client = axios.create(config)
 
 // Authentication
 client.interceptors.response.use(function (response) {

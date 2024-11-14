@@ -137,7 +137,9 @@ module.exports = function (env, argv) {
             new DotenvPlugin(),
             new DefinePlugin({
                 __VUE_OPTIONS_API__: true,
-                __VUE_PROD_DEVTOOLS__: argv?.mode === 'development'
+                __VUE_PROD_DEVTOOLS__: argv?.mode === 'development',
+                __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: argv?.mode === 'development',
+                'process.env.hotReloading': argv?.mode === 'development' && process.env.NODE_RUN_HOT === 'hot'
             })
         ],
         optimization: {
@@ -161,8 +163,17 @@ module.exports = function (env, argv) {
             }
         },
         devServer: {
-            port: 3000,
-            historyApiFallback: true
+            port: 8080,
+            historyApiFallback: true,
+            static: {
+                directory: getPath('frontend/dist')
+            },
+            compress: true,
+            hot: true,
+            liveReload: true,
+            devMiddleware: {
+                writeToDisk: true
+            }
         },
         resolve: {
             alias: {

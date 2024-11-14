@@ -418,6 +418,14 @@ module.exports = async (options = {}) => {
             }
         }
 
+        if (process.env.NODE_ENV === 'development') {
+            const cors = require('@fastify/cors')
+            await server.register(cors, {
+                origin: ['http://localhost:8080'],
+                credentials: true
+            })
+        }
+
         await server.register(helmet, {
             global: true,
             contentSecurityPolicy,
