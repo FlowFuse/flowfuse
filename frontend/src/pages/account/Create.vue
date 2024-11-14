@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/no-v-html -->
 
 <template>
-    <ff-layout-box class="ff-signup">
+    <ff-layout-box class="ff-signup ff--center-box">
         <template v-if="splash" #splash-content>
             <div data-el="splash" v-html="splash" />
         </template>
@@ -285,23 +285,3 @@ export default {
     }
 }
 </script>
-
-<style lang="scss">
-.ff-layout--box.ff-signup {
-    flex-direction: column;
-    min-height: fit-content;
-    overflow: auto;
-
-    .ff-layout--box--wrapper {
-        display: flex;
-        width: 100%;
-        max-height: fit-content;
-        height: fit-content;
-
-        .ff-layout--box--left,
-        .ff-layout--box--right {
-            width: 100%;
-        }
-    }
-}
-</style>

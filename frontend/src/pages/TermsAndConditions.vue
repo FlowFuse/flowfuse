@@ -1,5 +1,5 @@
 <template>
-    <ff-layout-box class="ff-terms-and-conditions">
+    <ff-layout-box class="ff-terms-and-conditions ff--center-box">
         <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6" @submit.prevent>
             <p>
                 Welcome {{ user.name }}, the <a target="_blank" :href="settings['user:tcs-url']">FlowFuse Terms &amp; Conditions</a> have been updated.
@@ -55,23 +55,3 @@ export default {
     }
 }
 </script>
-
-<style lang="scss">
-.ff-layout--box.ff-terms-and-conditions {
-    flex-direction: column;
-    min-height: fit-content;
-    overflow: auto;
-
-    .ff-layout--box--wrapper {
-        display: flex;
-        width: 100%;
-        max-height: fit-content;
-        height: fit-content;
-
-        .ff-layout--box--left,
-        .ff-layout--box--right {
-            width: 100%;
-        }
-    }
-}
-</style>
