@@ -116,7 +116,63 @@ const getters = {
 
     teamInvitations: state => state.invitations,
     teamInvitationsCount: state => state.invitations?.length || 0,
-    hasAvailableTeams: state => state.teams.length > 0
+    hasAvailableTeams: state => state.teams.length > 0,
+
+    featuresCheck: (state) => {
+        const preCheck = {
+            // Shared Library
+            isSharedLibraryFeatureEnabledForTeam: ((state) => {
+                const flag = state.team?.type?.properties?.features?.['shared-library']
+                return flag === undefined || flag
+            })(state),
+            isSharedLibraryFeatureEnabledForPlatform: state.features?.['shared-library'],
+
+            // Blueprints
+            isBlueprintsFeatureEnabledForTeam: ((state) => {
+                const flag = state.team?.type?.properties?.features?.flowBlueprints
+                return flag === undefined || flag
+            })(state),
+            isBlueprintsFeatureEnabledForPlatform: !!state.features?.flowBlueprints,
+
+            // Custom Catalogs
+            isCustomCatalogsFeatureEnabledForPlatform: !!state.features?.customCatalogs,
+            isCustomCatalogsFeatureEnabledForTeam: ((state) => {
+                const flag = state.team?.type.properties.features?.customCatalogs
+                return flag === undefined || flag
+            })(state),
+
+            // Static Assets
+            isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
+            isStaticAssetsFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.staticAssets,
+
+            // HTTP BearerTokens
+            isHTTPBearerTokensFeatureEnabledForPlatform: !!state.settings?.features.httpBearerTokens,
+            isHTTPBearerTokensFeatureEnabledForTeam: !!state.team?.type.properties.features.teamHttpSecurity,
+
+            // BOM
+            isBOMFeatureEnabledForPlatform: !!state.features?.bom,
+            isBOMFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.bom,
+
+            // Timeline
+            isTimelineFeatureEnabledForPlatform: !!state.features?.projectHistory,
+            isTimelineFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.projectHistory,
+
+            // Mqtt Broker
+            isMqttBrokerFeatureEnabledForPlatform: !!state.features?.teamBroker,
+            isMqttBrokerFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.teamBroker
+        }
+        return {
+            ...preCheck,
+            isSharedLibraryFeatureEnabled: preCheck.isSharedLibraryFeatureEnabledForTeam && preCheck.isSharedLibraryFeatureEnabledForPlatform,
+            isBlueprintsFeatureEnabled: preCheck.isBlueprintsFeatureEnabledForTeam && preCheck.isBlueprintsFeatureEnabledForPlatform,
+            isCustomCatalogsFeatureEnabled: preCheck.isCustomCatalogsFeatureEnabledForPlatform && preCheck.isCustomCatalogsFeatureEnabledForTeam,
+            isStaticAssetFeatureEnabled: preCheck.isStaticAssetFeatureEnabledForPlatform && preCheck.isStaticAssetsFeatureEnabledForTeam,
+            isHTTPBearerTokensFeatureEnabled: preCheck.isHTTPBearerTokensFeatureEnabledForPlatform && preCheck.isHTTPBearerTokensFeatureEnabledForTeam,
+            isBOMFeatureEnabled: preCheck.isBOMFeatureEnabledForPlatform && preCheck.isBOMFeatureEnabledForTeam,
+            isTimelineFeatureEnabled: preCheck.isTimelineFeatureEnabledForPlatform && preCheck.isTimelineFeatureEnabledForTeam,
+            isMqttBrokerFeatureEnabled: preCheck.isMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam
+        }
+    }
 }
 
 const mutations = {
@@ -266,7 +322,7 @@ const actions = {
                 commit('clearPending')
                 // This means the team doesn't exist, or the user doesn't have access
                 router.push({
-                    name: 'PageNotFound',
+                    name: 'page-not-found',
                     params: { pathMatch: router.currentRoute.value.path.substring(1).split('/') },
                     // preserve existing query and hash if any
                     query: router.currentRoute.value.query,
