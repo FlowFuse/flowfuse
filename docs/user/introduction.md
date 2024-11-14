@@ -82,4 +82,4 @@ FlowFuse supports reading and writing persistent files and persistent context.
  
  ## Working with MQTT
 
- - [Team Broker](/docs/users/teambroker.md) - Working with the FlowFuse bundled MQTT Broker
+ - [Team Broker](/docs/user/teambroker.md) - Working with the FlowFuse bundled MQTT Broker
