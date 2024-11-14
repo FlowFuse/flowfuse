@@ -78,6 +78,10 @@ table summaries what actions are available to the different roles.
 | • Add an item                        | ✓     | ✓      | -      | -              |
 | • Modify an item                     | ✓     | ✓      | -      | -              |
 | • Delete an item                     | ✓     | ✓      | -      | -              |
+| **Team Broker**                      |       |        |        |                |
+| • Create Client                      | ✓     | ✓      | -      | -              |
+| • Delete Client                      | ✓     | ✓      | -      | -              |
+| • List Clients                       | ✓     | ✓      | -      | -              |
 
 Notes:
  - **§1** A user in any role can remove themselves from a team
