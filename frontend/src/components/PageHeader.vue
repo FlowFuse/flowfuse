@@ -2,7 +2,10 @@
     <div class="ff-header" data-sentry-unmask>
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
         <i v-if="!hiddenLeftDrawer" class="ff-header--mobile-toggle">
-            <MenuIcon class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
+            <transition name="mobile-menu-fade" mode="out-in">
+                <MenuIcon v-if="!leftDrawer.state" class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
+                <XIcon v-else class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
+            </transition>
         </i>
         <!-- FlowFuse Logo -->
         <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()">
@@ -69,7 +72,7 @@
     </div>
 </template>
 <script>
-import { AcademicCapIcon, AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon } from '@heroicons/vue/solid'
+import { AcademicCapIcon, AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon, XIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
@@ -147,6 +150,7 @@ export default {
         NavItem,
         'ff-team-selection': TeamSelection,
         MenuIcon,
+        XIcon,
         UserAddIcon,
         NotificationsButton
     },
