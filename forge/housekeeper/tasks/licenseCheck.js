@@ -52,7 +52,7 @@ module.exports = {
                     app.db.controllers.Project.clearInflightState(project)
                     await app.auditLog.Project.project.suspended(null, null, project)
                 } catch (err) {
-                    app.log.info(`Failed to suspend ${project.id} when licensed expired`)
+                    app.log.info(`Failed to suspend ${project.id} when licensed expired. ${err.toString()}`)
                 }
             })
         }
