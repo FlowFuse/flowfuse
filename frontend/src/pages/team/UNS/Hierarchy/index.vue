@@ -28,10 +28,13 @@
                 <template v-else>
                     <section v-if="topics.length > 0">
                         <topic-segment
-                            v-for="segment in Object.keys(hierarchy)"
+                            v-for="(segment, key) in Object.keys(hierarchy)"
                             :key="segment"
                             :segment="segment"
                             :children="hierarchy[segment]"
+                            :has-siblings="Object.keys(hierarchy).length > 1"
+                            :is-last-sibling="key === Object.keys(hierarchy).length-1"
+                            :is-root="true"
                         />
                     </section>
 
