@@ -360,7 +360,7 @@ export default {
                     Alerts.emit('Connection succeeded', 'confirmation')
                 } catch (err) {
                     const message = err.response.data.error
-                    Alerts.emit(`Connection failed: ${error}`, 'warning')
+                    Alerts.emit(`Connection failed: ${message}`, 'warning')
                 }
             }
         }
