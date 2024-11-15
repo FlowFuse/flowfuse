@@ -72,6 +72,9 @@
                             Password
                             <template #description>The password to access the server</template>
                         </FormRow>
+                        <ff-button :disabled="!allowTest" kind="secondary" @click="testProvider()">
+                            Test Connection
+                        </ff-button>
                         <FormRow v-model="input.options.baseDN">
                             Base DN
                             <template #description>The name of the base object to search for users</template>
@@ -134,6 +137,7 @@ import { mapState } from 'vuex'
 import ssoApi from '../../../../api/sso.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import Alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'AdminEditSSOProvider',
@@ -208,6 +212,9 @@ export default {
             } else {
                 return `Edit SSO ${this.input.type.toUpperCase()} Configuration`
             }
+        },
+        allowTest () {
+            return this.input.options.server && this.input.options.username && this.input.options.password
         }
     },
     async beforeMount () {
@@ -337,6 +344,25 @@ export default {
                 }
             }
             this.originalValues = JSON.stringify(this.input)
+        },
+        async testProvider () {
+            const opts = {
+                ...this.input
+            }
+            if (opts.type === 'ldap') {
+                if (!opts.options.tls) {
+                    delete opts.options.tls
+                    delete opts.options.tlsVerifyServer
+                }
+
+                try {
+                    await ssoApi.testProvider(this.provider.id, opts)
+                    Alerts.emit('Connection succeeded', 'confirmation')
+                } catch (err) {
+                    const message = err.response.data.message
+                    Alerts.emit(`Connection failed, ${message}`, 'warning')
+                }
+            }
         }
 
     }
