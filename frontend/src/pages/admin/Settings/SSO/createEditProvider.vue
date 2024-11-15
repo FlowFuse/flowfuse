@@ -72,7 +72,7 @@
                             Password
                             <template #description>The password to access the server</template>
                         </FormRow>
-                        <ff-button :disabled="!allowTest" kind="secondary" @click="testProvider()">
+                        <ff-button :disabled="!allowTest" size="small" kind="secondary" @click="testProvider()">
                             Test Connection
                         </ff-button>
                         <FormRow v-model="input.options.baseDN">
