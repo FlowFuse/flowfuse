@@ -164,12 +164,20 @@ module.exports = async function (app) {
                     // controllers.Invitation.createInvitations will have already
                     // rejected external requests if team:user:invite:external set to false
                     if (invite.external) {
+                        let signupLink = `${app.config.base_url}/account/create?email=${encodeURIComponent(invite.email)}`
+                        if (app.license.active()) {
+                            // Check if this is for an SSO-enabled domain with auto-create turned on
+                            const providerConfig = await app.db.models.SAMLProvider.forEmail(invite.email)
+                            if (providerConfig?.options?.provisionNewUsers) {
+                                signupLink = `${app.config.base_url}`
+                            }
+                        }
                         await app.postoffice.send(
                             invite,
                             'UnknownUserInvitation',
                             {
                                 invite,
-                                signupLink: `${app.config.base_url}/account/create?email=${encodeURIComponent(invite.email)}`
+                                signupLink
                             }
                         )
                         await app.auditLog.Team.team.user.invited(request.session.User, null, request.team, invite, role)
