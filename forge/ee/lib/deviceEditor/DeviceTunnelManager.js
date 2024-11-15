@@ -35,6 +35,7 @@
 const fs = require('node:fs')
 
 class DeviceTunnelManager {
+
     // private members
     /** @type {Map<String, DeviceTunnel>} */ #tunnels
 
@@ -61,6 +62,9 @@ class DeviceTunnelManager {
                 this.closeTunnel(deviceId)
             }
         })
+
+        this.pathPrefix = '/opt/share/projects/flowforge/test/device-cache' // app.config.device.cache_path
+        this.pathPostfix = 'node_modules/@node-red/editor-client/public/'
     }
 
     /**
@@ -161,6 +165,8 @@ class DeviceTunnelManager {
         device.editorConnected = true
         await device.save()
 
+        tunnel.nodeRedVersion = device.nodeRedVersion
+
         // Handle messages sent from the device
         tunnel.socket.on('message', msg => {
             const response = JSON.parse(msg.toString())
@@ -239,31 +245,58 @@ class DeviceTunnelManager {
         /** @type {httpHandler} */
         tunnel._handleHTTPGet = (request, reply) => {
             const url = request.url.substring(`/api/v1/devices/${tunnel.deviceId}/editor/proxy`.length)
-            if (url === '/vendor/monaco/dist/editor.js') {
-                console.log('*********************** monoco')
-                const data = fs.readFileSync('/tmp/editor.js')
-                reply.headers({
-                    'Content-Type': 'application/json',
-                    'FF-Proxied': 'true'
-                })
-                reply.send(data)
-            } else if (url.startsWith('/vendor/vendor.js')) {
-                console.log('*********************** vendor', url)
-                const data = fs.readFileSync('/tmp/vendor.js')
-                reply.headers({
-                    'Content-Type': 'application/json',
-                    'FF-Proxied': 'true'
-                })
-                reply.send(data)
-            } else if (url.startsWith('/vendor/mermaid/mermaid.min.js')) {
-                console.log('*********************** mermaid', url)
-                const data = fs.readFileSync('/tmp/mermaid.min.js')
-                reply.headers({
-                    'Content-Type': 'application/json',
-                    'FF-Proxied': 'true'
-                })
-                reply.send(data)
-            } else { 
+            if (tunnel.nodeRedVersion && fs.existsSync(`${manager.pathPrefix}/${tunnel.nodeRedVersion}`)) {
+                if (url === '/vendor/monaco/dist/editor.js') {
+                    const data = fs.readFileSync(`${manager.pathPrefix}/${tunnel.nodeRedVersion}/${manager.pathPostfix}vendor/monaco/dist/editor.js`)
+                    reply.headers({
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Cache-Control': 'public, max-age=0',
+                        'FF-Proxied': 'true'
+                    })
+                    reply.send(data)
+                } else if (url.startsWith('/vendor/vendor.js')) {
+                    const data = fs.readFileSync(`${manager.pathPrefix}/${tunnel.nodeRedVersion}/${manager.pathPostfix}vendor/vendor.js`)
+                    reply.headers({
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Cache-Control': 'public, max-age=0',
+                        'FF-Proxied': 'true'
+                    })
+                    reply.send(data)
+                } else if (url.startsWith('/vendor/mermaid/mermaid.min.js')) {
+                    const data = fs.readFileSync(`${manager.pathPrefix}/${tunnel.nodeRedVersion}/${manager.pathPostfix}vendor/mermaid/mermaid.min.js`)
+                    reply.headers({
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Cache-Control': 'public, max-age=0',
+                        'FF-Proxied': 'true'
+                    })
+                    reply.send(data)
+                } else if (url.startsWith('/red/red.min.js')) {
+                    const data = fs.readFileSync(`${manager.pathPrefix}/${tunnel.nodeRedVersion}/${manager.pathPostfix}red/red.min.js`)
+                    reply.headers({
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Cache-Control': 'public, max-age=0',
+                        'FF-Proxied': 'true'
+                    })
+                    reply.send(data)
+                } else if (url.startsWith('/red/style.min.css')) {
+                    const data = fs.readFileSync(`${manager.pathPrefix}/${tunnel.nodeRedVersion}/${manager.pathPostfix}red/style.min.css`)
+                    reply.headers({
+                        'Content-Type': 'text/css; charset=UTF-8',
+                        'Cache-Control': 'public, max-age=0',
+                        'FF-Proxied': 'true'
+                    })
+                    reply.send(data)
+                } else { 
+                    const id = tunnel.nextRequestId++
+                    tunnel.requests[id] = reply
+                    tunnel.socket.send(JSON.stringify({
+                        id,
+                        method: request.method,
+                        headers: request.headers,
+                        url: request.url.substring(`/api/v1/devices/${tunnel.deviceId}/editor/proxy`.length)
+                    }))
+                }
+            } else {
                 const id = tunnel.nextRequestId++
                 tunnel.requests[id] = reply
                 tunnel.socket.send(JSON.stringify({

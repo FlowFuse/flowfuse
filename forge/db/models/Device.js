@@ -35,6 +35,7 @@ module.exports = {
         lastSeenAt: { type: DataTypes.DATE, allowNull: true },
         settingsHash: { type: DataTypes.STRING, allowNull: true },
         agentVersion: { type: DataTypes.STRING, allowNull: true },
+        nodeRedVersion: { type: DataTypes.STRING, allowNull: true },
         mode: { type: DataTypes.STRING, allowNull: true, defaultValue: 'autonomous' },
         editorAffinity: { type: DataTypes.STRING, defaultValue: '' },
         editorToken: { type: DataTypes.STRING, defaultValue: '' },
