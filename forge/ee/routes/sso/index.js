@@ -132,7 +132,7 @@ module.exports = fp(async function (app, opts) {
                 response.error = 'Connection Refused'
             } else if (err.code === 'ERR_INVALID_URL') {
                 response.code = 'invalid_url'
-                response.message = `${err.input} not valid LDAP URL`
+                response.error = `${err.input} not valid LDAP URL`
             } else {
                 response.code = 'unexpected_error'
                 response.error = err.toString()
