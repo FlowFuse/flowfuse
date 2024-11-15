@@ -1,6 +1,9 @@
 <template>
     <div class="unified-namespace-clients">
-        <h3>MQTT Broker</h3>
+        <div class="title mb-5 flex gap-3 items-center">
+            <RssIcon class="ff-icon-sm" />
+            <h3 class="m-0">MQTT Broker</h3>
+        </div>
 
         <EmptyState
             v-if="!isMqttBrokerFeatureEnabled"
@@ -101,7 +104,7 @@
 </template>
 
 <script>
-import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, RssIcon, SearchIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
@@ -123,6 +126,7 @@ export default {
         BrokerClient,
         SearchIcon,
         PlusSmIcon,
+        RssIcon,
         EmptyState,
         ClientDialog
     },
