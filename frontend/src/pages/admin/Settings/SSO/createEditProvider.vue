@@ -359,8 +359,8 @@ export default {
                     await ssoApi.testProvider(this.provider.id, opts)
                     Alerts.emit('Connection succeeded', 'confirmation')
                 } catch (err) {
-                    const message = err.response.data.message
-                    Alerts.emit(`Connection failed, ${message}`, 'warning')
+                    const message = err.response.data.error
+                    Alerts.emit(`Connection failed: ${error}`, 'warning')
                 }
             }
         }
