@@ -33,16 +33,22 @@ module.exports = {
                     return M.AuditLog.forEntity(where, pagination)
                 },
                 forProject: async (projectId, pagination = {}) => {
-                    const where = await M.AuditLog.buildScopeClause('project', projectId, pagination)
-                    return M.AuditLog.forEntity(where, pagination)
+                    const { filter, associations } = await M.AuditLog.getFilterAndAssociations('project', projectId, pagination)
+                    const result = await M.AuditLog.forEntity(filter, pagination)
+                    result.associations = associations
+                    return result
                 },
                 forTeam: async (teamId, pagination = {}) => {
-                    const where = await M.AuditLog.buildScopeClause('team', teamId, pagination)
-                    return M.AuditLog.forEntity(where, pagination)
+                    const { filter, associations } = await M.AuditLog.getFilterAndAssociations('team', teamId, pagination)
+                    const result = await M.AuditLog.forEntity(filter, pagination)
+                    result.associations = associations
+                    return result
                 },
                 forApplication: async (applicationId, pagination = {}) => {
-                    const where = await M.AuditLog.buildScopeClause('application', applicationId, pagination)
-                    return M.AuditLog.forEntity(where, pagination)
+                    const { filter, associations } = await M.AuditLog.getFilterAndAssociations('application', applicationId, pagination)
+                    const result = await M.AuditLog.forEntity(filter, pagination)
+                    result.associations = associations
+                    return result
                 },
                 forDevice: async (deviceId, pagination = {}) => {
                     const where = {
@@ -73,7 +79,7 @@ module.exports = {
                     )
                     const { count, rows } = await this.findAndCountAll({
                         where: whereFinal,
-                        order: [['createdAt', 'DESC']],
+                        order: [['id', 'DESC']], // id is the primary key so ordering + limit will be more efficient than ordering by createdAt (which is not indexed)
                         include: {
                             model: M.User,
                             attributes: ['id', 'hashid', 'username']
@@ -195,7 +201,15 @@ module.exports = {
                     result.timeline = rows
                     return result
                 },
-                buildScopeClause: async (entityType, entityId, pagination) => {
+                /**
+                 * Get a filter clause and associated entities for a given entity type and id
+                 * @param {'team' | 'application' | 'project' | 'device'} entityType - The entity type for which to get the audit logs
+                 * @param {String} entityId - The entity id for which to get the audit logs
+                 * @param {Object} pagination - the pagination object with the following properties:
+                 * @param {String} pagination.scope - The scope of the audit logs to get. Can be one of ['team', 'application', 'project', 'device']
+                 * @param {String} pagination.includeChildren - Whether to include children entities in the scope. Can be one of ['true', 'false', '1', '0']
+                 */
+                getFilterAndAssociations: async (entityType, entityId, pagination) => {
                     /*
                     The AuditLogs table has entityType [platform|team|application|project|device] and an associated entityId which is dependent on the entityType.
                     To get entries for the team, we need to get:
@@ -214,6 +228,10 @@ module.exports = {
                     may only want application or project scoped entries. In getting entries for an application, the user may only want project or device scoped entries.
                     The below code handles all these considerations.
                     */
+                    const applicationMap = new Map() // a map of applications involved in the scope
+                    const instanceMap = new Map() // a map of instances involved in the scope
+                    const deviceMap = new Map() // a map of devices involved in the scope
+                    const filters = []
 
                     const permittedEntityScopes = {
                         team: ['team', 'application', 'project', 'device'],
@@ -232,9 +250,8 @@ module.exports = {
                         throw new Error(`Invalid audit scope: ${scope}`)
                     }
 
-                    const whereClauses = []
                     const addTeamScope = async (teamId, includeChildren = false) => {
-                        whereClauses.push({
+                        filters.push({
                             entityType: 'team',
                             entityId: teamId.toString()
                         })
@@ -244,19 +261,25 @@ module.exports = {
                             await addDeviceScope(teamId, null)
                         }
                     }
+
                     const addApplicationScope = async (teamId, applicationId = null, includeInstances = false, includeApplicationDevices = false, includeInstanceDevices = false) => {
                         let applicationIds = []
                         if (applicationId) {
+                            const _application = (await M.Application.findOne({ where: { id: applicationId }, attributes: ['id', 'hashid', 'name', 'TeamId'] }))
+                            applicationMap.set(applicationId.toString(), _application)
                             applicationIds = [applicationId]
-                            whereClauses.push({
+                            filters.push({
                                 entityType: 'application',
                                 entityId: applicationId.toString()
                             })
                         } else {
                             const clause = { TeamId: teamId }
-                            applicationIds = (await M.Application.findAll({ where: clause, attributes: ['id'] })).map(a => a.id?.toString()).filter(a => !!a)
+                            // applicationIds = (await M.Application.findAll({ where: clause, attributes: ['id'] })).map(a => a.id?.toString()).filter(a => !!a)
+                            const _applications = (await M.Application.findAll({ where: clause, attributes: ['id', 'hashid', 'name', 'TeamId'] }))
+                            _applications.forEach(a => applicationMap.set(a.id?.toString(), a))
+                            applicationIds = _applications.map(a => a.id?.toString()).filter(a => !!a)
                             if (applicationIds.length) {
-                                whereClauses.push({
+                                filters.push({
                                     entityType: 'application',
                                     entityId: { [Op.in]: applicationIds }
                                 })
@@ -270,57 +293,78 @@ module.exports = {
                             await addDeviceScope(teamId, null) // all devices belonging to the team
                         } else {
                             if (includeInstances) {
-                                for (const appId of applicationIds) {
-                                    await addInstanceScope(teamId, appId, null, includeInstanceDevices)
-                                }
+                                await addInstanceScope(teamId, applicationIds, null, includeInstanceDevices)
                             }
                             if (includeApplicationDevices) {
-                                for (const appId of applicationIds) {
-                                    await addDeviceScope(teamId, appId, null)
-                                }
+                                await addDeviceScope(teamId, applicationIds, null)
                             }
                         }
                     }
                     const addInstanceScope = async (teamId, applicationId = null, instanceId = null, includeInstanceDevices = false) => {
                         let instanceIds = []
                         if (instanceId) {
-                            instanceIds = [instanceId]
-                            whereClauses.push({
-                                entityType: 'project',
-                                entityId: instanceId.toString()
-                            })
+                            if (Array.isArray(instanceId)) {
+                                const _instances = (await M.Project.findAll({ where: { id: { [Op.in]: instanceId } }, attributes: ['id', 'name', 'ApplicationId', 'TeamId', 'state'] }))
+                                _instances.forEach(i => instanceMap.set(i.id?.toString(), i))
+                                filters.push({
+                                    entityType: 'project',
+                                    entityId: { [Op.in]: instanceId.map(i => i.toString()) }
+                                })
+                            } else {
+                                const _instance = (await M.Project.findOne({ where: { id: instanceId }, attributes: ['id', 'hashid', 'name', 'ApplicationId', 'TeamId', 'state'] }))
+                                instanceMap.set(instanceId.toString(), _instance)
+                                filters.push({
+                                    entityType: 'project',
+                                    entityId: instanceId.toString()
+                                })
+                            }
                         } else {
                             const clause = { TeamId: teamId }
                             if (applicationId) {
-                                clause.ApplicationId = applicationId
+                                if (Array.isArray(applicationId)) {
+                                    clause.ApplicationId = { [Op.in]: applicationId.map(a => a.toString()) }
+                                } else {
+                                    clause.ApplicationId = applicationId.toString()
+                                }
                             }
-                            instanceIds = (await M.Project.findAll({ where: clause, attributes: ['id'] })).map(p => p.id?.toString()).filter(p => !!p)
+                            // instanceIds = (await M.Project.findAll({ where: clause, attributes: ['id'] })).map(p => p.id?.toString()).filter(p => !!p)
+                            const _instances = (await M.Project.findAll({ where: clause, attributes: ['id', 'name', 'ApplicationId', 'TeamId', 'state'] }))
+                            _instances.forEach(i => instanceMap.set(i.id?.toString(), i))
+                            instanceIds = _instances.map(p => p.id?.toString()).filter(p => !!p)
                             if (instanceIds.length) {
-                                whereClauses.push({
+                                filters.push({
                                     entityType: 'project',
                                     entityId: { [Op.in]: instanceIds }
                                 })
                             }
                         }
                         if (includeInstanceDevices) {
-                            for (const instanceId of instanceIds) {
-                                await addDeviceScope(teamId, null, instanceId)
-                            }
+                            await addDeviceScope(teamId, null, instanceIds)
                         }
                     }
                     const addDeviceScope = async (teamId, applicationId = null, instanceId = null) => {
                         const clause = { TeamId: teamId }
                         if (instanceId) {
-                            clause.ProjectId = instanceId
+                            if (Array.isArray(instanceId)) {
+                                clause.ProjectId = { [Op.in]: instanceId }
+                            } else {
+                                clause.ProjectId = instanceId
+                            }
                         }
                         if (applicationId) {
-                            clause.ApplicationId = applicationId
+                            if (Array.isArray(applicationId)) {
+                                clause.ApplicationId = { [Op.in]: applicationId }
+                            } else {
+                                clause.ApplicationId = applicationId
+                            }
                         }
-                        const ids = (await M.Device.findAll({ where: clause, attributes: ['id'] })).map(d => d.id?.toString()).filter(d => !!d)
-                        if (ids.length) {
-                            whereClauses.push({
+                        const _devices = (await M.Device.findAll({ where: clause, attributes: ['id', 'hashid', 'name', 'type', 'ApplicationId', 'ProjectId', 'TeamId', 'ownerType', 'mode', 'lastSeenAt', 'state'] }))
+                        _devices.forEach(d => deviceMap.set(d.id?.toString(), d))
+                        const deviceIds = _devices.map(d => d.id?.toString()).filter(d => !!d)
+                        if (_devices.length) {
+                            filters.push({
                                 entityType: 'device',
-                                entityId: { [Op.in]: ids }
+                                entityId: { [Op.in]: deviceIds }
                             })
                         }
                     }
@@ -354,10 +398,21 @@ module.exports = {
                         await addInstanceScope(teamId, null, projectId, includeChildren)
                     }
 
-                    if (whereClauses.length === 1) {
-                        return whereClauses[0]
-                    } else if (whereClauses.length > 1) {
-                        return { [Op.or]: whereClauses }
+                    const result = {
+                        filter: null,
+                        associations: {
+                            applications: Array.from(applicationMap.values()),
+                            instances: Array.from(instanceMap.values()),
+                            devices: Array.from(deviceMap.values())
+                        }
+                    }
+
+                    if (filters.length === 1) {
+                        result.filter = filters[0]
+                        return result
+                    } else if (filters.length > 1) {
+                        result.filter = { [Op.or]: filters }
+                        return result
                     }
                     return null
                 }
