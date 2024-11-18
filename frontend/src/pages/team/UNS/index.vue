@@ -22,14 +22,27 @@
 
 <script>
 
+import usePermissions from '../../../composables/Permissions.js'
+import { Roles } from '../../../utils/roles.js'
+
 export default {
     name: 'UnifiedNameSpace',
+    setup () {
+        const { hasAMinimumTeamRoleOf } = usePermissions()
+
+        return { hasAMinimumTeamRoleOf }
+    },
     computed: {
         tabs () {
             return [
                 { label: 'Hierarchy', to: { name: 'team-namespace-hierarchy' }, tag: 'team-namespace-hierarchy' },
                 { label: 'Clients', to: { name: 'team-namespace-clients' }, tag: 'team-namespace-clients' }
             ]
+        }
+    },
+    mounted () {
+        if (!this.hasAMinimumTeamRoleOf(Roles.Member)) {
+            return this.$router.push({ name: 'Home' })
         }
     }
 }
