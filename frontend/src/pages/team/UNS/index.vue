@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Unified Namespace" :tabs="tabs">
                 <template #context>
-                    A list of all MQTT Brokers available to your team and configurable within FlowFuse.
+                    A list of the recent Topicss used by your team on the FlowFuse MQTT Broker.
                 </template>
                 <template #pictogram>
                     <img alt="info" src="../../../images/pictograms/mqtt_broker_red.png">
