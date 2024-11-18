@@ -982,7 +982,18 @@ module.exports = async function (app) {
                     properties: {
                         meta: { $ref: 'PaginationMeta' },
                         count: { type: 'number' },
-                        log: { $ref: 'AuditLogEntryList' }
+                        log: { $ref: 'AuditLogEntryList' },
+                        associations: {
+                            type: 'object',
+                            properties: {
+                                applications: {
+                                    type: 'array',
+                                    items: { $ref: 'ApplicationSummary' }
+                                },
+                                instances: { $ref: 'InstanceSummaryList' },
+                                devices: { $ref: 'DeviceSummaryList' }
+                            }
+                        }
                     }
                 },
                 '4xx': {

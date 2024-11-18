@@ -1,5 +1,5 @@
 <template>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :logType="logScope" @load-entries="loadEntries">
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" :logType="logScope" @load-entries="loadEntries">
         <template #title>
             <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this application." />
         </template>
@@ -13,7 +13,12 @@
                     />
                 </ff-dropdown>
                 <ff-checkbox v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
-                    Include Children
+                    <template v-if="logScope === 'application'">
+                        Include Instances and Devices
+                    </template>
+                    <template v-else-if="logScope === 'project'">
+                        Include Devices
+                    </template>
                 </ff-checkbox>
             </div>
         </template>
@@ -47,6 +52,7 @@ export default {
     data () {
         return {
             logEntries: [],
+            associations: {}, // applications, instances, devices
             users: [],
             auditFilters: {
                 selectedEventScope: null,
@@ -93,11 +99,15 @@ export default {
                 params.set('includeChildren', !!this.auditFilters.includeChildren)
                 if (this.auditFilters.selectedEventScope === null) {
                     params.set('scope', 'application')
-                    this.logEntries = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200)).log
+                    const log = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200))
+                    this.logEntries = log.log
+                    this.associations = log.associations || {}
                 } else if (this.auditFilters.selectedEventScope) {
                     params.set('scope', 'project')
                     const instanceId = this.auditFilters.selectedEventScope
-                    this.logEntries = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200)).log
+                    const log = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200))
+                    this.logEntries = log.log
+                    this.associations = log.associations || {}
                 }
             }
         }

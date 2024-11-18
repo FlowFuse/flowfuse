@@ -7,7 +7,7 @@
                 </template>
             </ff-page-header>
         </template>
-        <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="team" @load-entries="loadEntries">
+        <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" logType="team" @load-entries="loadEntries">
             <template #title>
                 <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
             </template>
@@ -20,8 +20,16 @@
                             :label="scope.name" :value="scope.id"
                         />
                     </ff-dropdown>
-                    <ff-checkbox v-if="auditFilters.selectedEventScope!=='device'" v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
-                        Include Children
+                    <ff-checkbox v-if="(auditFilters.selectedEventScope || 'device') !== 'device'" v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
+                        <template v-if="auditFilters.selectedEventScope === 'team'">
+                            Include Applications, Instances and Devices
+                        </template>
+                        <template v-else-if="auditFilters.selectedEventScope === 'application'">
+                            Include Instances and Devices
+                        </template>
+                        <template v-else-if="auditFilters.selectedEventScope === 'project'">
+                            Include Devices
+                        </template>
                     </ff-checkbox>
                 </div>
             </template>
@@ -47,6 +55,7 @@ export default {
     data () {
         return {
             logEntries: [],
+            associations: {}, // applications, instances, devices
             users: [],
             auditFilters: {
                 selectedEventScope: 'team',
@@ -91,7 +100,9 @@ export default {
             if (teamId) {
                 params.set('scope', this.auditFilters.selectedEventScope)
                 params.set('includeChildren', !!this.auditFilters.includeChildren)
-                this.logEntries = (await TeamAPI.getTeamAuditLog(teamId, params, cursor, 200)).log
+                const response = (await TeamAPI.getTeamAuditLog(teamId, params, cursor, 200))
+                this.logEntries = response.log
+                this.associations = response.associations || {}
             }
         },
         triggerLoad () {

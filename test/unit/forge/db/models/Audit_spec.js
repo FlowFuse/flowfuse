@@ -92,6 +92,14 @@ describe('Audit model', function () {
         clause.entityId.toString().should.deepEqual(entityId.toString())
     }
 
+    const assertAssociations = (associations, expected) => {
+        for (const key in expected) {
+            associations.should.have.property(key)
+            associations[key].should.be.an.Array().and.have.length(expected[key].length)
+            associations[key].map(e => e.id?.toString()).should.deepEqual(expected[key].map(String))
+        }
+    }
+
     before(async function () {
         app = await setup()
         app.license.defaults.instances = 20; // override default
@@ -135,22 +143,32 @@ describe('Audit model', function () {
     })
 
     describe('static methods', function () {
-        describe('buildScopeClause', function () {
+        describe('getFilterAndAssociations', function () {
             describe('for Team', function () {
                 it('should return clause scoped for team only', async () => {
                     const team = TestObjects.team1
                     const pagination = { }
-                    const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
-                    assertEntityEquals(clause, 'team', team.id)
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('team', team.id, pagination)
+                    assertEntityEquals(filter, 'team', team.id)
+                    assertAssociations(associations, {
+                        applications: [],
+                        instances: [],
+                        devices: []
+                    })
                 })
-                it('should return clause scoped for applications only', async () => {
+                it('should return filter scoped for applications only', async () => {
                     const team = TestObjects.team1
                     const expectedApps = [TestObjects.team1_app1.id, TestObjects.team1_app2.id]
                     const pagination = { scope: 'application' }
-                    const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
-                    assertEntitiesInArray(clause, 'application', expectedApps)
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('team', team.id, pagination)
+                    assertEntitiesInArray(filter, 'application', expectedApps)
+                    assertAssociations(associations, {
+                        applications: expectedApps,
+                        instances: [],
+                        devices: []
+                    })
                 })
-                it('should return clause scoped for projects only', async () => {
+                it('should return filter scoped for projects only', async () => {
                     const team = TestObjects.team1
                     const expectedProjects = [
                         TestObjects.team1_app1_proj1.id,
@@ -159,10 +177,15 @@ describe('Audit model', function () {
                         TestObjects.team1_app2_proj2.id
                     ]
                     const pagination = { scope: 'project' }
-                    const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
-                    assertEntitiesInArray(clause, 'project', expectedProjects)
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('team', team.id, pagination)
+                    assertEntitiesInArray(filter, 'project', expectedProjects)
+                    assertAssociations(associations, {
+                        applications: [],
+                        instances: expectedProjects,
+                        devices: []
+                    })
                 })
-                it('should return clause scoped for devices only', async () => {
+                it('should return filter scoped for devices only', async () => {
                     const team = TestObjects.team1
                     const expectedDevices = [
                         TestObjects.team1_app1_proj1_device1.id,
@@ -179,10 +202,15 @@ describe('Audit model', function () {
                         TestObjects.team1_app2_device2.id
                     ]
                     const pagination = { scope: 'device' }
-                    const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
-                    assertEntitiesInArray(clause, 'device', expectedDevices)
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('team', team.id, pagination)
+                    assertEntitiesInArray(filter, 'device', expectedDevices)
+                    assertAssociations(associations, {
+                        applications: [],
+                        instances: [],
+                        devices: expectedDevices
+                    })
                 })
-                it('should return clause scoped for team and all children', async () => {
+                it('should return filter scoped for team and all children', async () => {
                     const team = TestObjects.team1
                     const allTeam1AppIds = [TestObjects.team1_app1.id, TestObjects.team1_app2.id]
                     const allTeam1ProjectIds = [
@@ -206,15 +234,20 @@ describe('Audit model', function () {
                         TestObjects.team1_app2_device2.id
                     ]
                     const pagination = { scope: 'team', includeChildren: true }
-                    const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
-                    clause.should.only.have.property(Op.or)
-                    clause[Op.or].should.be.an.Array().and.have.length(4) // team, application, project, device
-                    assertEntityEquals(clause[Op.or][0], 'team', team.id)
-                    assertEntitiesInArray(clause[Op.or][1], 'application', allTeam1AppIds)
-                    assertEntitiesInArray(clause[Op.or][2], 'project', allTeam1ProjectIds)
-                    assertEntitiesInArray(clause[Op.or][3], 'device', allTeam1DeviceIds)
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('team', team.id, pagination)
+                    filter.should.only.have.property(Op.or)
+                    filter[Op.or].should.be.an.Array().and.have.length(4) // team, application, project, device
+                    assertEntityEquals(filter[Op.or][0], 'team', team.id)
+                    assertEntitiesInArray(filter[Op.or][1], 'application', allTeam1AppIds)
+                    assertEntitiesInArray(filter[Op.or][2], 'project', allTeam1ProjectIds)
+                    assertEntitiesInArray(filter[Op.or][3], 'device', allTeam1DeviceIds)
+                    assertAssociations(associations, {
+                        applications: allTeam1AppIds,
+                        instances: allTeam1ProjectIds,
+                        devices: allTeam1DeviceIds
+                    })
                 })
-                it('should return clause scoped for applications and all children', async () => {
+                it('should return filter scoped for applications and all children', async () => {
                     const team = TestObjects.team1
                     const allTeam1AppIds = [TestObjects.team1_app1.id, TestObjects.team1_app2.id]
                     const allTeam1ProjectIds = [
@@ -238,14 +271,19 @@ describe('Audit model', function () {
                         TestObjects.team1_app2_device2.id
                     ]
                     const pagination = { scope: 'application', includeChildren: true }
-                    const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
-                    clause.should.only.have.property(Op.or)
-                    clause[Op.or].should.be.an.Array().and.have.length(3) // application, project, device
-                    assertEntitiesInArray(clause[Op.or][0], 'application', allTeam1AppIds)
-                    assertEntitiesInArray(clause[Op.or][1], 'project', allTeam1ProjectIds)
-                    assertEntitiesInArray(clause[Op.or][2], 'device', allTeam1DeviceIds)
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('team', team.id, pagination)
+                    filter.should.only.have.property(Op.or)
+                    filter[Op.or].should.be.an.Array().and.have.length(3) // application, project, device
+                    assertEntitiesInArray(filter[Op.or][0], 'application', allTeam1AppIds)
+                    assertEntitiesInArray(filter[Op.or][1], 'project', allTeam1ProjectIds)
+                    assertEntitiesInArray(filter[Op.or][2], 'device', allTeam1DeviceIds)
+                    assertAssociations(associations, {
+                        applications: allTeam1AppIds,
+                        instances: allTeam1ProjectIds,
+                        devices: allTeam1DeviceIds
+                    })
                 })
-                it('should return clause scoped for projects and all children', async () => {
+                it('should return filter scoped for projects and all children', async () => {
                     const team = TestObjects.team1
                     const allTeam1ProjectIds = [
                         TestObjects.team1_app1_proj1.id,
@@ -253,61 +291,74 @@ describe('Audit model', function () {
                         TestObjects.team1_app2_proj1.id,
                         TestObjects.team1_app2_proj2.id
                     ]
-                    const pagination = { scope: 'project', includeChildren: true }
-                    const clause = await AuditLog.buildScopeClause('team', team.id, pagination)
-                    clause.should.only.have.property(Op.or)
-                    clause[Op.or].should.be.an.Array().and.have.length(5) // project, app1_proj1 devices, app1_proj2 devices, app2_proj1 devices, app2_proj2 devices
-                    assertEntitiesInArray(clause[Op.or][0], 'project', allTeam1ProjectIds)
-                    assertEntitiesInArray(clause[Op.or][1], 'device', [
+                    const allTeam1ProjectDeviceIds = [
                         TestObjects.team1_app1_proj1_device1.id,
-                        TestObjects.team1_app1_proj1_device2.id
-                    ])
-                    assertEntitiesInArray(clause[Op.or][2], 'device', [
+                        TestObjects.team1_app1_proj1_device2.id,
                         TestObjects.team1_app1_proj2_device1.id,
-                        TestObjects.team1_app1_proj2_device2.id
-                    ])
-                    assertEntitiesInArray(clause[Op.or][3], 'device', [
+                        TestObjects.team1_app1_proj2_device2.id,
                         TestObjects.team1_app2_proj1_device1.id,
-                        TestObjects.team1_app2_proj1_device2.id
-                    ])
-                    assertEntitiesInArray(clause[Op.or][4], 'device', [
+                        TestObjects.team1_app2_proj1_device2.id,
                         TestObjects.team1_app2_proj2_device1.id,
                         TestObjects.team1_app2_proj2_device2.id
-                    ])
+                    ]
+                    const pagination = { scope: 'project', includeChildren: true }
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('team', team.id, pagination)
+                    filter.should.only.have.property(Op.or)
+                    filter[Op.or].should.be.an.Array().and.have.length(2) // project, app1_proj1 devices, app1_proj2 devices, app2_proj1 devices, app2_proj2 devices
+                    assertEntitiesInArray(filter[Op.or][0], 'project', allTeam1ProjectIds)
+                    assertEntitiesInArray(filter[Op.or][1], 'device', allTeam1ProjectDeviceIds)
+                    assertAssociations(associations, {
+                        applications: [],
+                        instances: allTeam1ProjectIds,
+                        devices: allTeam1ProjectDeviceIds
+                    })
                 })
             })
             describe('for Application', function () {
-                it('should return clause scoped for application only', async () => {
+                it('should return filter scoped for application only', async () => {
                     const application = TestObjects.team1_app1
                     const pagination = { }
-                    const clause = await AuditLog.buildScopeClause('application', application.id, pagination)
-                    assertEntityEquals(clause, 'application', application.id)
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('application', application.id, pagination)
+                    assertEntityEquals(filter, 'application', application.id)
+                    assertAssociations(associations, {
+                        applications: [application.id],
+                        instances: [],
+                        devices: []
+                    })
                 })
-                it('should return clause scoped for projects only', async () => {
+                it('should return filter scoped for projects only', async () => {
                     const application = TestObjects.team1_app1
                     const expectedProjects = [TestObjects.team1_app1_proj1.id, TestObjects.team1_app1_proj2.id]
                     const pagination = { scope: 'project' }
-                    const clause = await AuditLog.buildScopeClause('application', application.id, pagination)
-                    assertEntitiesInArray(clause, 'project', expectedProjects)
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('application', application.id, pagination)
+                    assertEntitiesInArray(filter, 'project', expectedProjects)
+                    assertAssociations(associations, {
+                        applications: [],
+                        instances: expectedProjects,
+                        devices: []
+                    })
                 })
-                it('should return clause scoped for devices only', async () => {
+                it('should return filter scoped for devices only', async () => {
                     const application = TestObjects.team1_app1
                     const expectedDevices = [
                         TestObjects.team1_app1_device1.id,
                         TestObjects.team1_app1_device2.id
                     ]
                     const pagination = { scope: 'device' }
-                    const clause = await AuditLog.buildScopeClause('application', application.id, pagination)
-                    assertEntitiesInArray(clause, 'device', expectedDevices)
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('application', application.id, pagination)
+                    assertEntitiesInArray(filter, 'device', expectedDevices)
+                    assertAssociations(associations, {
+                        applications: [],
+                        instances: [],
+                        devices: expectedDevices
+                    })
                 })
-                it('should return clause scoped for application and all children', async () => {
+                it('should return filter scoped for application and all children', async () => {
                     const application = TestObjects.team1_app1
                     const allApp1ProjectIds = [TestObjects.team1_app1_proj1.id, TestObjects.team1_app1_proj2.id]
-                    const project1Devices = [
+                    const projectDevices = [
                         TestObjects.team1_app1_proj1_device1.id,
-                        TestObjects.team1_app1_proj1_device2.id
-                    ]
-                    const project2Devices = [
+                        TestObjects.team1_app1_proj1_device2.id,
                         TestObjects.team1_app1_proj2_device1.id,
                         TestObjects.team1_app1_proj2_device2.id
                     ]
@@ -316,16 +367,20 @@ describe('Audit model', function () {
                         TestObjects.team1_app1_device2.id
                     ]
                     const pagination = { scope: 'application', includeChildren: true }
-                    const clause = await AuditLog.buildScopeClause('application', application.id, pagination)
-                    clause.should.only.have.property(Op.or)
-                    clause[Op.or].should.be.an.Array().and.have.length(5) // application, project, device
-                    assertEntityEquals(clause[Op.or][0], 'application', application.id)
-                    assertEntitiesInArray(clause[Op.or][1], 'project', allApp1ProjectIds)
-                    assertEntitiesInArray(clause[Op.or][2], 'device', project1Devices)
-                    assertEntitiesInArray(clause[Op.or][3], 'device', project2Devices)
-                    assertEntitiesInArray(clause[Op.or][4], 'device', allApp1Devices)
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('application', application.id, pagination)
+                    filter.should.only.have.property(Op.or)
+                    filter[Op.or].should.be.an.Array().and.have.length(4) // application, project, device
+                    assertEntityEquals(filter[Op.or][0], 'application', application.id)
+                    assertEntitiesInArray(filter[Op.or][1], 'project', allApp1ProjectIds)
+                    assertEntitiesInArray(filter[Op.or][2], 'device', projectDevices)
+                    assertEntitiesInArray(filter[Op.or][3], 'device', allApp1Devices)
+                    assertAssociations(associations, {
+                        applications: [application.id],
+                        instances: allApp1ProjectIds,
+                        devices: [...projectDevices, ...allApp1Devices]
+                    })
                 })
-                it('should return clause scoped for projects and all children', async () => {
+                it('should return filter scoped for projects and all children', async () => {
                     const application = TestObjects.team1_app1
                     const allApp1ProjectIds = [TestObjects.team1_app1_proj1.id, TestObjects.team1_app1_proj2.id]
                     const project1Devices = [
@@ -337,12 +392,16 @@ describe('Audit model', function () {
                         TestObjects.team1_app1_proj2_device2.id
                     ]
                     const pagination = { scope: 'project', includeChildren: true }
-                    const clause = await AuditLog.buildScopeClause('application', application.id, pagination)
-                    clause.should.only.have.property(Op.or)
-                    clause[Op.or].should.be.an.Array().and.have.length(3) // project, device
-                    assertEntitiesInArray(clause[Op.or][0], 'project', allApp1ProjectIds)
-                    assertEntitiesInArray(clause[Op.or][1], 'device', project1Devices)
-                    assertEntitiesInArray(clause[Op.or][2], 'device', project2Devices)
+                    const { filter, associations } = await AuditLog.getFilterAndAssociations('application', application.id, pagination)
+                    filter.should.only.have.property(Op.or)
+                    filter[Op.or].should.be.an.Array().and.have.length(2) // project, device
+                    assertEntitiesInArray(filter[Op.or][0], 'project', allApp1ProjectIds)
+                    assertEntitiesInArray(filter[Op.or][1], 'device', [...project1Devices, ...project2Devices])
+                    assertAssociations(associations, {
+                        applications: [],
+                        instances: allApp1ProjectIds,
+                        devices: [...project1Devices, ...project2Devices]
+                    })
                 })
             })
             describe('for Project', function () {

@@ -69,7 +69,7 @@ export default {
                 this.pipeline = await ApplicationApi.getPipeline(this.application.id, this.$route.params.pipelineId)
             } catch (err) {
                 this.$router.push({
-                    name: 'PageNotFound',
+                    name: 'page-not-found',
                     params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
                     // preserve existing query and hash if any
                     query: this.$router.currentRoute.value.query,

@@ -2,7 +2,7 @@
     <div class="ff-admin-audit">
         <div data-el="audit-log">
             <slot name="title" />
-            <AuditLog :entries="logEntries" />
+            <AuditLog :entries="logEntries" :associations="associations" />
         </div>
         <div>
             <SectionTopMenu hero="Filters" />
@@ -55,6 +55,10 @@ export default {
         logEntries: {
             type: Array,
             required: true
+        },
+        associations: {
+            type: Object,
+            default: () => {}
         },
         logType: {
             type: String,

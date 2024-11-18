@@ -2,7 +2,7 @@
     <NotificationMessage
         :notification="notification"
         :selections="selections"
-        data-el="invitation-message" :to="{name: 'User Invitations'}"
+        data-el="invitation-message" :to="{name: 'user-invitations'}"
         @selected="onSelect"
         @deselected="onDeselect"
     >

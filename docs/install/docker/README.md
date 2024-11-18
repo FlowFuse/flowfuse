@@ -149,6 +149,9 @@ TLS_ENABLED=true
 
 Proceed to the [next paragraph](#start-flowfuse-platform) to start the platform with automatically generated TLS certificate.
 
+> When using automatic TLS certificate generation, the platform will take a few minutes to generate them on the first platform startup. 
+> For a short period of time browsers may report untrusted certificate warning. This is expected behavior and should resolve itself once the certificate is generated.
+
 #### Custom TLS Certificate
 
 If you have own TLS certificate, you can use it in FlowFuse platform installation as well. As mentioned before, the certificate must be a wildcard one for the domain you are using.
@@ -301,11 +304,30 @@ sudo firewall-cmd --zone=public --add-service=https --permanent
 sudo firewall-cmd --reload
 ```
 
-Windows:
+Windows (command prompt):
 ```bash
 netsh advfirewall firewall add rule name="Open Port 80" dir=in action=allow protocol=TCP localport=80
 netsh advfirewall firewall add rule name="Open Port 443" dir=in action=allow protocol=TCP localport=443
 ```
+
+Windows (PowerShell):
+```powershell
+New-NetFireWallRule -DisplayName 'WSL 8080TCP' -Direction Inbound -LocalPort 8080 -Action Allow -Protocol TCP
+New-NetFireWallRule -DisplayName 'WSL 8080TCP' -Direction Outbound -LocalPort 8080 -Action Allow -Protocol TCP
+```
+
+### I installed FlowFuse on Windows with WSL2, application is running but I can't access it in the browser
+
+Next to [opening the ports in the firewall](#after-starting-the-platform-i-cant-access-it-in-the-browser---i-see-connection-refused-error), 
+you need to configure port forwarding from Windows host to WSL2 server.
+
+To forward traffic from an external IP to your container, run the following PowerShell command (administrator privileges required):
+
+```powershell
+netsh interface portproxy add v4tov4 listenport=80 listenaddress=0.0.0.0 connectport=80 connectaddress=127.0.0.1
+```
+
+This command forwards traffic from port 80 on your external IP address to port 80 on your localhost, where the Nginx Proxy container is listening for connections.
 
 ### How can I enable persistent storage for Node-RED instances?
 

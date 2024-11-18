@@ -1,8 +1,11 @@
 <template>
     <div class="ff-header" data-sentry-unmask>
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
-        <i v-if="shouldDisplayMenuToggle" class="ff-header--mobile-toggle" :class="{'active': mobileMenuOpen}">
-            <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')" />
+        <i v-if="!hiddenLeftDrawer" class="ff-header--mobile-toggle">
+            <transition name="mobile-menu-fade" mode="out-in">
+                <MenuIcon v-if="!leftDrawer.state" class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
+                <XIcon v-else class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
+            </transition>
         </i>
         <!-- FlowFuse Logo -->
         <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()">
@@ -69,7 +72,7 @@
     </div>
 </template>
 <script>
-import { AcademicCapIcon, AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon } from '@heroicons/vue/solid'
+import { AcademicCapIcon, AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon, XIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
@@ -84,17 +87,12 @@ import TeamSelection from './TeamSelection.vue'
 
 export default {
     name: 'NavBar',
-    props: {
-        mobileMenuOpen: {
-            type: Boolean
-        }
-    },
-    emits: ['menu-toggle'],
     mixins: [navigationMixin, permissionsMixin],
     computed: {
         ...mapState('account', ['user', 'team', 'teams']),
+        ...mapState('ux', ['leftDrawer']),
         ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount']),
-        ...mapGetters('ux', ['shouldShowLeftMenu']),
+        ...mapGetters('ux', ['hiddenLeftDrawer']),
         navigationOptions () {
             return [
                 {
@@ -137,10 +135,7 @@ export default {
             ].filter(option => option !== undefined)
         },
         showInviteButton () {
-            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'TeamMembers'
-        },
-        shouldDisplayMenuToggle () {
-            return this.shouldShowLeftMenu(this.$route)
+            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
         }
     },
     watch: {
@@ -155,6 +150,7 @@ export default {
         NavItem,
         'ff-team-selection': TeamSelection,
         MenuIcon,
+        XIcon,
         UserAddIcon,
         NotificationsButton
     },
@@ -172,12 +168,13 @@ export default {
         }
     },
     methods: {
+        ...mapActions('ux', ['toggleLeftDrawer']),
         to (route) {
             window.open(route.url, '_blank')
         },
         inviteTeamMembers () {
             this.$router.push({
-                name: 'TeamMembers',
+                name: 'team-members',
                 params: {
                     team_slug: this.team.slug
                 },
