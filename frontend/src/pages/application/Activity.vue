@@ -13,7 +13,12 @@
                     />
                 </ff-dropdown>
                 <ff-checkbox v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
-                    Include Children
+                    <template v-if="logScope === 'application'">
+                        Include Instances and Devices
+                    </template>
+                    <template v-else-if="logScope === 'project'">
+                        Include Devices
+                    </template>
                 </ff-checkbox>
             </div>
         </template>

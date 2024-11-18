@@ -20,8 +20,16 @@
                             :label="scope.name" :value="scope.id"
                         />
                     </ff-dropdown>
-                    <ff-checkbox v-if="auditFilters.selectedEventScope!=='device'" v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
-                        Include Children
+                    <ff-checkbox v-if="(auditFilters.selectedEventScope || 'device') !== 'device'" v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
+                        <template v-if="auditFilters.selectedEventScope === 'team'">
+                            Include Applications, Instances and Devices
+                        </template>
+                        <template v-else-if="auditFilters.selectedEventScope === 'application'">
+                            Include Instances and Devices
+                        </template>
+                        <template v-else-if="auditFilters.selectedEventScope === 'project'">
+                            Include Devices
+                        </template>
                     </ff-checkbox>
                 </div>
             </template>
