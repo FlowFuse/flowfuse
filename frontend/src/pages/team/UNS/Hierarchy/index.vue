@@ -22,11 +22,11 @@
         </EmptyState>
 
         <template v-else>
-            <div class="space-y-6 topics">
+            <div class="space-y-6">
                 <ff-loading v-if="loading" message="Loading Clients..." />
 
                 <template v-else>
-                    <section v-if="topics.length > 0">
+                    <section v-if="topics.length > 0" class="topics">
                         <topic-segment
                             v-for="(segment, key) in Object.keys(hierarchy)"
                             :key="segment"
@@ -127,6 +127,7 @@ export default {
         background: $ff-white;
         padding: 10px;
         border-radius: 5px;
+        border: 1px solid $ff-grey-100;
     }
 }
 </style>
