@@ -1,17 +1,17 @@
-describe('FlowForge - Broker', () => {
+describe('FlowForge - Unified Namespace Clients', () => {
     describe('is accessible to users with correct permissions', () => {
         beforeEach(() => {
             cy.login('alice', 'aaPassword')
             cy.home()
         })
 
-        it('users have access to the broker entry in the main menu', () => {
+        it('users have access to the UNS entry in the main menu', () => {
             cy.get('[data-nav="team-unified-namespace"]').should('exist')
             cy.get('[data-nav="team-unified-namespace"]').should('not.be.disabled')
             cy.get('[data-nav="team-unified-namespace"] [data-el="premium-feature"]').should('exist')
         })
 
-        it('should display the upgrade banner when accessing the broker with the not available logo', () => {
+        it('should display the upgrade banner when accessing the clients with the not available logo', () => {
             cy.get('[data-nav="team-unified-namespace"]').click()
             cy.get('[data-nav="team-namespace-clients"]').click()
             cy.get('[data-el="page-banner-feature-unavailable-to-team"]').should('exist')
@@ -38,7 +38,7 @@ describe('FlowForge - Broker', () => {
                     projectId = response.body.teams[0].id
                 })
         })
-        it('should have the broker menu entry without the missing feature icon', () => {
+        it('should have the UNS menu entry without the missing feature icon', () => {
             cy.get('[data-nav="team-unified-namespace"]').should('exist')
             cy.get('[data-nav="team-unified-namespace"]').should('not.be.disabled')
             cy.get('[data-nav="team-unified-namespace"] [data-el="premium-feature"]').should('not.exist')
@@ -405,7 +405,7 @@ describe('FlowForge - Broker', () => {
     })
 
     describe('is not accessible to users with insufficient permissions', () => {
-        it('should have the broker menu entry hidden and route guard for viewer roles', () => {
+        it('should have the UNS menu entry hidden and route guard for viewer roles', () => {
             cy.intercept('GET', '/api/*/teams/*/user', { role: 10 })
             cy.login('bob', 'bbPassword')
             cy.home()
@@ -415,7 +415,7 @@ describe('FlowForge - Broker', () => {
             cy.url().should('include', 'team/ateam/applications')
         })
 
-        it('should have the broker menu entry hidden and route guard for dashboard roles', () => {
+        it('should have the UNS menu entry hidden and route guard for dashboard roles', () => {
             cy.intercept('GET', '/api/*/teams/*/user', { role: 5 }).as('getTeamRole')
             cy.login('bob', 'bbPassword')
             cy.visit('/')
