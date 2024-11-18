@@ -1,5 +1,5 @@
 <template>
-    <div class="segment-wrapper" :class="{open: visibleChildren}">
+    <div class="segment-wrapper" :class="{open: visibleChildren}" data-el="segment-wrapper" :data-value="segment">
         <div class="segment flex" @click="toggleChildren">
             <div class="diagram">
                 <span v-if="!isRoot" class="connector-elbow" />
@@ -13,7 +13,7 @@
                 </p>
             </div>
         </div>
-        <div v-if="hasChildren && visibleChildren" class="children" :class="{ 'pl-10': isRoot}">
+        <div v-if="hasChildren && visibleChildren" class="children" data-el="segment-children" :class="{ 'pl-10': isRoot}">
             <topic-segment
                 v-for="(child, key) in Object.keys(children)"
                 :key="child"
