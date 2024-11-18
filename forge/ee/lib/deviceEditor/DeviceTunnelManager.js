@@ -33,9 +33,7 @@
  */
 
 const fs = require('node:fs')
-
 class DeviceTunnelManager {
-
     // private members
     /** @type {Map<String, DeviceTunnel>} */ #tunnels
 
@@ -286,7 +284,7 @@ class DeviceTunnelManager {
                         'FF-Proxied': 'true'
                     })
                     reply.send(data)
-                } else { 
+                } else {
                     const id = tunnel.nextRequestId++
                     tunnel.requests[id] = reply
                     tunnel.socket.send(JSON.stringify({
