@@ -58,7 +58,7 @@ describe('FlowForge - Unified Namespace Clients', () => {
             cy.wait('@getClients')
 
             cy.get('[data-el="subtitle"]').contains('MQTT Broker')
-            cy.contains('A list of all MQTT Brokers available to your team and configurable within FlowFuse.')
+            cy.contains('A list of the recent Topicss used by your team on the FlowFuse MQTT Broker.')
 
             cy.get('[data-el="empty-state"]').contains('Create your first Broker Client')
             cy.get('[data-action="create-client"]').should('exist')

@@ -57,7 +57,7 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
             cy.wait('@getTopics')
 
             cy.get('[data-el="subtitle"]').contains('Topic Hierarchy')
-            cy.contains('A list of all MQTT Brokers available to your team and configurable within FlowFuse.')
+            cy.contains('A list of the recent Topicss used by your team on the FlowFuse MQTT Broker.')
 
             cy.get('[data-el="empty-state"]').contains('Start Building Your Topic Hierarchy')
             cy.get('[data-el="empty-state"]').contains('It looks like no topics have been created yet.')
