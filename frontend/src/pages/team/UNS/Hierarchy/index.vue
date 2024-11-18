@@ -22,7 +22,7 @@
         </EmptyState>
 
         <template v-else>
-            <div class="space-y-6">
+            <div class="space-y-6 topics">
                 <ff-loading v-if="loading" message="Loading Clients..." />
 
                 <template v-else>
@@ -61,7 +61,7 @@ import { mapGetters, mapState } from 'vuex'
 import brokerClient from '../../../../api/broker.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 
-import TopicSegment from './TopicSegment.vue'
+import TopicSegment from './components/TopicSegment.vue'
 
 export default {
     name: 'UNSHierarchy',
@@ -122,5 +122,11 @@ export default {
 }
 </script>
 <style scoped lang="scss">
-
+.unified-namespace-hierarchy {
+    .topics {
+        background: $ff-white;
+        padding: 10px;
+        border-radius: 5px;
+    }
+}
 </style>
