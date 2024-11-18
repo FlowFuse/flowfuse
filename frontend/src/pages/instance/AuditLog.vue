@@ -1,5 +1,5 @@
 <template>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :logType="project" @load-entries="loadEntries">
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" :logType="project" @load-entries="loadEntries">
         <template #title>
             <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this instance." />
         </template>
@@ -13,7 +13,7 @@
                     />
                 </ff-dropdown>
                 <ff-checkbox v-if="auditFilters.selectedEventScope!=='device'" v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
-                    Include Children
+                    Include Devices
                 </ff-checkbox>
             </div>
         </template>
@@ -46,6 +46,7 @@ export default {
     data () {
         return {
             logEntries: [],
+            associations: {}, // devices
             users: [],
             auditFilters: {
                 selectedEventScope: 'project',
@@ -88,7 +89,17 @@ export default {
             if (this.instance.id) {
                 params.set('scope', this.auditFilters.selectedEventScope)
                 params.set('includeChildren', !!this.auditFilters.includeChildren)
-                this.logEntries = (await InstanceApi.getInstanceAuditLog(this.instance.id, params, cursor, 200)).log
+                const auditLog = (await InstanceApi.getInstanceAuditLog(this.instance.id, params, cursor, 200))
+                this.logEntries = auditLog.log
+                // dont show associations if we are looking at "this" scope (project)"
+                let showAssociations = false
+                if (this.auditFilters.selectedEventScope === 'device') {
+                    showAssociations = true
+                }
+                if (this.auditFilters.selectedEventScope === 'project' && this.auditFilters.includeChildren) {
+                    showAssociations = true
+                }
+                this.associations = showAssociations ? auditLog.associations : null
             }
         }
     }

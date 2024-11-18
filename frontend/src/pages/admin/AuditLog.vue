@@ -1,5 +1,5 @@
 <template>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="platform" @load-entries="loadEntries">
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" logType="platform" @load-entries="loadEntries">
         <template #title>
             <SectionTopMenu hero="Platform Audit Log" info="Recorded events that have taken place at the Platform level." />
         </template>
