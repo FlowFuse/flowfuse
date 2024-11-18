@@ -26,7 +26,7 @@ describe('FlowForge - Broker', () => {
             cy.home()
 
             cy.get('[data-nav="team-broker"]').should('not.exist')
-            cy.visit('team/ateam/broker')
+            cy.visit('team/ateam/unified-namespace/clients')
             cy.url().should('include', 'team/ateam/applications')
         })
 
@@ -36,7 +36,7 @@ describe('FlowForge - Broker', () => {
             cy.visit('/')
 
             cy.get('[data-nav="team-broker"]').should('not.exist')
-            cy.visit('team/ateam/broker')
+            cy.visit('team/ateam/unified-namespace/clients')
             cy.contains('There are no dashboards in this team.')
         })
     })

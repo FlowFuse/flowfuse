@@ -2,7 +2,7 @@
     <div class="unified-namespace-clients">
         <div class="title mb-5 flex gap-3 items-center">
             <RssIcon class="ff-icon-sm" />
-            <h3 class="m-0">MQTT Broker</h3>
+            <h3 class="m-0" data-el="subtitle">MQTT Broker</h3>
         </div>
 
         <EmptyState

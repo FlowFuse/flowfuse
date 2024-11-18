@@ -83,7 +83,7 @@ const getters = {
                         {
                             label: 'UNS',
                             to: { name: 'team-unified-namespace', params: { team_slug: team.slug } },
-                            tag: 'team-broker',
+                            tag: 'team-unified-namespace',
                             icon: RssIcon,
                             disabled: noBilling,
                             featureUnavailable: !features.isMqttBrokerFeatureEnabled,

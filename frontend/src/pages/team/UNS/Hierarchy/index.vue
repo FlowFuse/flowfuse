@@ -2,7 +2,7 @@
     <div class="unified-namespace-hierarchy">
         <div class="title mb-5 flex gap-3 items-center">
             <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
-            <h3 class="m-0">Topic Hierarchy</h3>
+            <h3 class="m-0" data-el="subtitle">Topic Hierarchy</h3>
         </div>
 
         <EmptyState

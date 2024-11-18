@@ -6,13 +6,14 @@ describe('FlowForge - Broker', () => {
         })
 
         it('users have access to the broker entry in the main menu', () => {
-            cy.get('[data-nav="team-broker"]').should('exist')
-            cy.get('[data-nav="team-broker"]').should('not.be.disabled')
-            cy.get('[data-nav="team-broker"] [data-el="premium-feature"]').should('exist')
+            cy.get('[data-nav="team-unified-namespace"]').should('exist')
+            cy.get('[data-nav="team-unified-namespace"]').should('not.be.disabled')
+            cy.get('[data-nav="team-unified-namespace"] [data-el="premium-feature"]').should('exist')
         })
 
         it('should display the upgrade banner when accessing the broker with the not available logo', () => {
-            cy.get('[data-nav="team-broker"]').click()
+            cy.get('[data-nav="team-unified-namespace"]').click()
+            cy.get('[data-nav="team-namespace-clients"]').click()
             cy.get('[data-el="page-banner-feature-unavailable-to-team"]').should('exist')
             cy.contains('Broker Not Available')
             cy.contains('The MQTT Broker page offers a streamlined interface for managing your broker instance and defining client connections.')
@@ -38,9 +39,9 @@ describe('FlowForge - Broker', () => {
                 })
         })
         it('should have the broker menu entry without the missing feature icon', () => {
-            cy.get('[data-nav="team-broker"]').should('exist')
-            cy.get('[data-nav="team-broker"]').should('not.be.disabled')
-            cy.get('[data-nav="team-broker"] [data-el="premium-feature"]').should('not.exist')
+            cy.get('[data-nav="team-unified-namespace"]').should('exist')
+            cy.get('[data-nav="team-unified-namespace"]').should('not.be.disabled')
+            cy.get('[data-nav="team-unified-namespace"] [data-el="premium-feature"]').should('not.exist')
         })
 
         it('should display the empty state visible when no clients created and can create a client', () => {
@@ -51,12 +52,13 @@ describe('FlowForge - Broker', () => {
             }).as('getClients')
             cy.intercept('POST', `http://localhost:3002/api/v1/teams/${projectId}/broker/client`, { statusCode: 201 }).as('submitClient')
 
-            cy.get('[data-nav="team-broker"]').click()
+            cy.get('[data-nav="team-unified-namespace"]').click()
+            cy.get('[data-nav="team-namespace-clients"]').click()
 
             cy.wait('@getClients')
 
-            cy.get('[data-el="page-name"]').contains('MQTT Broker')
-            cy.contains('Central hub for managing MQTT clients and defining ACL-based topic permissions.')
+            cy.get('[data-el="subtitle"]').contains('MQTT Broker')
+            cy.contains('A list of all MQTT Brokers available to your team and configurable within FlowFuse.')
 
             cy.get('[data-el="empty-state"]').contains('Create your first Broker Client')
             cy.get('[data-action="create-client"]').should('exist')
@@ -117,7 +119,8 @@ describe('FlowForge - Broker', () => {
                 meta: {},
                 count: 2
             }).as('getClients')
-            cy.get('[data-nav="team-broker"]').click()
+            cy.get('[data-nav="team-unified-namespace"]').click()
+            cy.get('[data-nav="team-namespace-clients"]').click()
 
             cy.get('[data-form="search"]').should('be.visible')
             cy.get('[data-action="create-client"]').should('be.visible')
@@ -203,7 +206,8 @@ describe('FlowForge - Broker', () => {
                 count: 1
             }).as('getClients')
 
-            cy.get('[data-nav="team-broker"]').click()
+            cy.get('[data-nav="team-unified-namespace"]').click()
+            cy.get('[data-nav="team-namespace-clients"]').click()
 
             cy.get('[data-el="create-client-dialog"]').should('not.be.visible')
             cy.get('[data-action="create-client"]').should('not.be.disabled')
@@ -300,7 +304,8 @@ describe('FlowForge - Broker', () => {
                 statusCode: 200
             }).as('updateClient')
 
-            cy.get('[data-nav="team-broker"]').click()
+            cy.get('[data-nav="team-unified-namespace"]').click()
+            cy.get('[data-nav="team-namespace-clients"]').click()
 
             cy.wait('@getClients')
 
@@ -381,7 +386,8 @@ describe('FlowForge - Broker', () => {
                 count: 1
             }).as('getClients')
 
-            cy.get('[data-nav="team-broker"]').click()
+            cy.get('[data-nav="team-unified-namespace"]').click()
+            cy.get('[data-nav="team-namespace-clients"]').click()
 
             cy.get('[data-el="platform-dialog"]').should('not.be.visible')
             cy.get('[data-action="delete-client"]').click()
@@ -404,8 +410,8 @@ describe('FlowForge - Broker', () => {
             cy.login('bob', 'bbPassword')
             cy.home()
 
-            cy.get('[data-nav="team-broker"]').should('not.exist')
-            cy.visit('team/ateam/broker')
+            cy.get('[data-nav="team-unified-namespace"]').should('not.exist')
+            cy.visit('team/ateam/unified-namespace/clients')
             cy.url().should('include', 'team/ateam/applications')
         })
 
@@ -414,8 +420,8 @@ describe('FlowForge - Broker', () => {
             cy.login('bob', 'bbPassword')
             cy.visit('/')
 
-            cy.get('[data-nav="team-broker"]').should('not.exist')
-            cy.visit('team/ateam/broker')
+            cy.get('[data-nav="team-unified-namespace"]').should('not.exist')
+            cy.visit('team/ateam/unified-namespace/clients')
             cy.contains('Dashboards')
             cy.contains('A list of Node-RED instances with Dashboards belonging to this Team.')
         })
