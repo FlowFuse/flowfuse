@@ -137,7 +137,7 @@ const getters = {
             // Custom Catalogs
             isCustomCatalogsFeatureEnabledForPlatform: !!state.features?.customCatalogs,
             isCustomCatalogsFeatureEnabledForTeam: ((state) => {
-                const flag = state.team?.type.properties.features?.customCatalogs
+                const flag = state.team?.type?.properties.features?.customCatalogs
                 return flag === undefined || flag
             })(state),
 
@@ -147,7 +147,7 @@ const getters = {
 
             // HTTP BearerTokens
             isHTTPBearerTokensFeatureEnabledForPlatform: !!state.settings?.features.httpBearerTokens,
-            isHTTPBearerTokensFeatureEnabledForTeam: !!state.team?.type.properties.features.teamHttpSecurity,
+            isHTTPBearerTokensFeatureEnabledForTeam: !!state.team?.type?.properties.features.teamHttpSecurity,
 
             // BOM
             isBOMFeatureEnabledForPlatform: !!state.features?.bom,
