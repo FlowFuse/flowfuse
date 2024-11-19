@@ -18,3 +18,13 @@
 .mobile-menu-fade-leave-to {
   opacity: 0;
 }
+
+
+.primary-fade-enter-active,
+.primary-fade-leave-active {
+  transition: opacity 0.1s ease-in;
+}
+.primary-fade-enter-from,
+.primary-fade-leave-to {
+  opacity: 0;
+}

@@ -81,12 +81,11 @@ import navigationMixin from '../mixins/Navigation.js'
 import permissionsMixin from '../mixins/Permissions.js'
 import product from '../services/product.js'
 
-import GlobalSearch from './GlobalSearch.vue'
-
 import NavItem from './NavItem.vue'
 import NotificationsButton from './NotificationsButton.vue'
 
 import TeamSelection from './TeamSelection.vue'
+import GlobalSearch from './global-search/GlobalSearch.vue'
 
 export default {
     name: 'NavBar',
