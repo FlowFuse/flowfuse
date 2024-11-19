@@ -21,52 +21,18 @@
                 <XIcon v-if="query.length" class="ff-icon-sm close cursor-pointer" @click="resetSearch" />
             </transition>
 
-            <transition name="fade" mode="out-in">
-                <div v-if="isFocused && hasResults" class="results-wrapper">
-                    <div v-if="resApplication.length > 0" class="section applications">
-                        <p class="title">
-                            <TemplateIcon class="icon ff-icon-sm" />
-                            <span class="text">Applications</span>
-                            <span class="counter">({{ resApplication.length }})</span>
-                        </p>
-                        <ul class="results">
-                            <li v-for="application in resApplication" :key="application.id">
-                                {{ application.name }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div v-if="resInstances.length > 0" class="section instances">
-                        <p class="title">
-                            <ProjectsIcon class="icon ff-icon-sm" />
-                            <span class="text">Instances</span>
-                            <span class="counter">({{ resInstances.length }})</span>
-                        </p>
-                        <ul class="results">
-                            <li v-for="instance in resInstances" :key="instance.id">
-                                {{ instance.name }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div v-if="resDevices.length > 0" class="section devices">
-                        <p class="title">
-                            <ChipIcon class="icon ff-icon-sm" />
-                            <span class="text">Devices</span>
-                            <span class="counter">({{ resDevices.length }})</span>
-                        </p>
-                        <ul class="results">
-                            <li v-for="device in resDevices" :key="device.id">
-                                {{ device.name }}
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </transition>
+            <div v-if="isFocused && hasResults" class="results-wrapper">
+                <result-section title="Applications" :icon="TemplateIcon" :results="resApplication" />
+                <result-section title="Instances" :icon="ProjectsIcon" :results="resInstances" />
+                <result-section title="Devices" :icon="ChipIcon" :results="resDevices" />
+            </div>
         </div>
     </div>
 </template>
 
 <script>
 import { ChipIcon, SearchIcon, TemplateIcon, XIcon } from '@heroicons/vue/outline'
+import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import globalApi from '../../api/global.js'
@@ -74,15 +40,16 @@ import SpinnerIcon from '../../components/icons/Spinner.js'
 import { debounce } from '../../utils/eventHandling.js'
 import ProjectsIcon from '../icons/Projects.js'
 
+import ResultSection from './components/ResultSection.vue'
+
 export default {
     name: 'GlobalSearch',
     components: {
+        ResultSection,
         SearchIcon,
         SpinnerIcon,
-        XIcon,
-        ProjectsIcon,
-        TemplateIcon,
-        ChipIcon
+        XIcon
+
     },
     data () {
         return {
@@ -105,7 +72,10 @@ export default {
         },
         hasResults () {
             return this.results.length > 0
-        }
+        },
+        ProjectsIcon,
+        TemplateIcon,
+        ChipIcon
     },
     watch: {
         query (newVal, oldVal) {
@@ -121,6 +91,7 @@ export default {
         }
     },
     methods: {
+        markRaw,
         resetSearch () {
             this.query = ''
         },
@@ -199,35 +170,6 @@ export default {
             min-width: 100%;
             z-index: 120;
             padding: 0 5px;
-
-            .section {
-                margin-bottom: 15px;
-
-                .title {
-                    position: relative;
-                    margin-bottom: 5px;
-                    display: flex;
-                    align-items: self-end;
-                    gap: 5px;
-
-                    .counter {
-                        opacity: .6;
-                        font-size: 90%;
-                    }
-
-                    &:after {
-                        height: 2px;
-                        background: $ff-grey-200;
-                        content: '';
-                        flex: 1;
-                        align-self: center;
-                    }
-                }
-
-                &:last-of-type {
-                    margin-bottom: 0;
-                }
-            }
         }
     }
 
