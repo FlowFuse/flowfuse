@@ -81,7 +81,7 @@ const getters = {
                     hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
                         {
-                            label: 'UNS',
+                            label: 'Broker',
                             to: { name: 'team-unified-namespace', params: { team_slug: team.slug } },
                             tag: 'team-unified-namespace',
                             icon: RssIcon,

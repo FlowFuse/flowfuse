@@ -411,7 +411,7 @@ describe('FlowForge - Unified Namespace Clients', () => {
             cy.home()
 
             cy.get('[data-nav="team-unified-namespace"]').should('not.exist')
-            cy.visit('team/ateam/unified-namespace/clients')
+            cy.visit('team/ateam/broker/clients')
             cy.url().should('include', 'team/ateam/applications')
         })
 
@@ -421,7 +421,7 @@ describe('FlowForge - Unified Namespace Clients', () => {
             cy.visit('/')
 
             cy.get('[data-nav="team-unified-namespace"]').should('not.exist')
-            cy.visit('team/ateam/unified-namespace/clients')
+            cy.visit('team/ateam/broker/clients')
             cy.contains('Dashboards')
             cy.contains('A list of Node-RED instances with Dashboards belonging to this Team.')
         })

@@ -109,11 +109,11 @@ export default [
                     },
                     {
                         name: 'team-unified-namespace',
-                        path: 'unified-namespace',
+                        path: 'broker',
                         component: UnifiedNameSpace,
                         redirect: { name: 'team-namespace-hierarchy' },
                         meta: {
-                            title: 'Team - Unified Namespace'
+                            title: 'Team - MQTT Broker'
                         },
                         children: [
                             {
@@ -121,7 +121,7 @@ export default [
                                 path: 'hierarchy',
                                 component: UNSHierarchy,
                                 meta: {
-                                    title: 'Team - Unified Namespace Hierarchy'
+                                    title: 'Team - MQTT Broker Hierarchy'
                                 }
                             },
                             {
@@ -129,7 +129,7 @@ export default [
                                 path: 'clients',
                                 component: UNSClients,
                                 meta: {
-                                    title: 'Team - Unified Namespace Clients'
+                                    title: 'Team - MQTT Broker Clients'
                                 }
                             }
                         ]
