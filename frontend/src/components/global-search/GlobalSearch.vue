@@ -22,9 +22,26 @@
             </transition>
 
             <div v-if="isFocused && hasResults" class="results-wrapper">
-                <result-section title="Applications" :icon="TemplateIcon" :results="resApplication" />
-                <result-section title="Instances" :icon="ProjectsIcon" :results="resInstances" />
-                <result-section title="Devices" :icon="ChipIcon" :results="resDevices" />
+                <result-section v-if="resApplication.length > 0" title="Applications" :icon="TemplateIcon" :results="resApplication">
+                    <template #result-icon>
+                        <TemplateIcon class="ff-icon-sm" />
+                    </template>
+                </result-section>
+
+                <result-section v-if="resInstances.length > 0" title="Instances" :icon="ProjectsIcon" :results="resInstances">
+                    <template #result-icon>
+                        <ProjectsIcon class="ff-icon-sm" />
+                    </template>
+                    <template #result-details="{item}">
+                        {{ item.url }}
+                    </template>
+                </result-section>
+
+                <result-section v-if="resDevices.length > 0" title="Devices" :icon="ChipIcon" :results="resDevices">
+                    <template #result-icon="{item}">
+                        <InstanceStatusBadge :text="item.status" />
+                    </template>
+                </result-section>
             </div>
         </div>
     </div>
@@ -37,6 +54,7 @@ import { mapState } from 'vuex'
 
 import globalApi from '../../api/global.js'
 import SpinnerIcon from '../../components/icons/Spinner.js'
+import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 import { debounce } from '../../utils/eventHandling.js'
 import ProjectsIcon from '../icons/Projects.js'
 
@@ -45,11 +63,13 @@ import ResultSection from './components/ResultSection.vue'
 export default {
     name: 'GlobalSearch',
     components: {
+        InstanceStatusBadge,
         ResultSection,
         SearchIcon,
         SpinnerIcon,
-        XIcon
-
+        XIcon,
+        TemplateIcon,
+        ProjectsIcon
     },
     data () {
         return {
@@ -125,7 +145,7 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 #global-search {
     padding: 0 5px;
     display: flex;
@@ -184,7 +204,8 @@ export default {
             border: 1px solid $ff-grey-500;
             border-radius: 5px;
 
-            .ff-icon-sm {
+            .ff-icon-sm.search,
+            .ff-icon-sm.close            {
                 color: $ff-grey-500;
             }
 
