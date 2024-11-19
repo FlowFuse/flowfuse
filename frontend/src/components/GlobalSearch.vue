@@ -90,7 +90,7 @@ export default {
 
             input {
                 color: $ff-grey-500;
-                text-indent: 20px;
+                padding: 3px 25px;
                 background: $ff-grey-700;
                 border-color: $ff-grey-500;
                 min-width: 25vw;
