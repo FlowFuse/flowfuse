@@ -132,6 +132,7 @@ module.exports = async function (app) {
                         } else {
                             if (mqttMatch(acls[acl].pattern, request.body.topic)) {
                                 if (acls[acl].action === 'both' || acls[acl].action === 'publish') {
+                                    app.teamBroker.addUsedTopic(request.body.topic, parts[1])
                                     reply.send({ result: 'allow' })
                                     return
                                 }
