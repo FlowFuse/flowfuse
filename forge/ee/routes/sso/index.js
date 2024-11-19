@@ -1,5 +1,7 @@
 const fp = require('fastify-plugin')
 
+const { Client, InvalidCredentialsError } = require('ldapts')
+
 module.exports = fp(async function (app, opts) {
     // Get all
     app.get('/ee/sso/providers', {
@@ -83,6 +85,65 @@ module.exports = fp(async function (app, opts) {
             reply.send(app.db.views.SAMLProvider.provider(updatedProvider))
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
+
+    /**
+     * Test SSO creds, LDAP only at first
+     */
+    app.post('/ee/sso/providers/test', {
+        preHandler: app.needsPermission('saml-provider:edit')
+    }, async (request, reply) => {
+        let url = request.body.options.server
+        if (!/^ldaps?:\/\//.test(url)) {
+            if (request.body.options.tls) {
+                url = 'ldaps://' + url
+            } else {
+                url = 'ldap://' + url
+            }
+        }
+
+        const clientOptions = { url }
+        if (request.body.options.tls) {
+            if (!request.body.options.tlsVerifyServer) {
+                clientOptions.tlsOptions = {
+                    rejectUnauthorized: false
+                }
+            }
+        }
+
+        if (request.body.options.password === '__PLACEHOLDER__' && request.body.id) {
+            const provider = await app.db.models.SAMLProvider.byId(request.body.id)
+            request.body.options.password = provider.getOptions().password
+        }
+
+        let adminClient
+        try {
+            adminClient = new Client(clientOptions)
+            await adminClient.bind(request.body.options.username, request.body.options.password)
+            reply.send({})
+        } catch (err) {
+            const response = {}
+            if (err instanceof InvalidCredentialsError) {
+                response.code = 'incorrect_credentials'
+                response.error = 'Incorrect Credentials'
+            } else if (err.code === 'ECONNREFUSED') {
+                response.code = 'connection_refused'
+                response.error = 'Connection Refused'
+            } else if (err.code === 'ERR_INVALID_URL') {
+                response.code = 'invalid_url'
+                response.error = `${err.input} not valid LDAP URL`
+            } else {
+                response.code = 'unexpected_error'
+                response.error = err.toString()
+            }
+            reply.code(400).send(response)
+        } finally {
+            try {
+                if (adminClient) {
+                    await adminClient.unbind()
+                }
+            } catch (err) {}
         }
     })
 

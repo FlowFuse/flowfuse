@@ -6,7 +6,7 @@ const crypto = require('crypto')
 
 const SemVer = require('semver')
 
-const { DataTypes, Op } = require('sequelize')
+const { col, fn, DataTypes, Op, where } = require('sequelize')
 
 const Controllers = require('../controllers')
 const { buildPaginationSearchClause } = require('../utils')
@@ -304,6 +304,23 @@ module.exports = {
                             { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
                         ]
                     })
+                },
+                byTeam: async (teamIdOrHash, { query = null } = {}) => {
+                    let teamId = teamIdOrHash
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
+                    const queryObject = {
+                        where: { [Op.and]: [{ TeamId: teamId }] }
+                    }
+
+                    if (query) {
+                        queryObject.where[Op.and].push(where(
+                            fn('lower', col('Device.name')),
+                            { [Op.like]: `%${query.toLowerCase()}%` }
+                        ))
+                    }
+                    return this.getAll({}, queryObject.where)
                 },
                 getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false, includeDeviceGroup = false } = {}) => {
                     // Pagination
