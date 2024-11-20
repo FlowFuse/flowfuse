@@ -121,7 +121,7 @@ export default [
                                 path: 'hierarchy',
                                 component: UNSHierarchy,
                                 meta: {
-                                    title: 'Team - MQTT Broker Hierarchy'
+                                    title: 'Team - MQTT Broker Topic Hierarchy'
                                 }
                             },
                             {
