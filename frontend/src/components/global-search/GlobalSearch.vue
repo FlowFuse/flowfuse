@@ -266,7 +266,6 @@ export default {
     .content-wrapper {
         padding: 5px 10px;
         position: relative;
-        transition: ease-in-out width .3s;
         justify-content: flex-end;
         display: flex;
         flex-direction: column;
