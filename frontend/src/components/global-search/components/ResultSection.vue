@@ -9,7 +9,7 @@
         </p>
 
         <ul class="results">
-            <li v-for="(result, index) in decoratedResults" :key="result.id" class="result-wrapper">
+            <li v-for="(result, index) in truncatedResults" :key="result.id" class="result-wrapper">
                 <router-link :to="result.route" class="result" @click="onResultClick">
                     <div class="icon">
                         <slot name="result-icon" :item="result" :index="index" />
@@ -29,6 +29,9 @@
                         <slot name="result-actions" :item="result" :index="index" />
                     </div>
                 </router-link>
+            </li>
+            <li v-if="hasMoreResults" class="result-wrapper show-more">
+                <a href="#" @click="showMore">Show more...</a>
             </li>
         </ul>
     </section>
@@ -57,12 +60,17 @@ export default {
         }
     },
     emits: ['result-selected'],
+    data () {
+        return {
+            visibleResults: 10
+        }
+    },
     computed: {
         resultCount () {
             return this.results.length
         },
-        hasResults () {
-            return this.resultCount > 0
+        hasMoreResults () {
+            return this.resultCount > this.truncatedResults.length
         },
         decoratedResults () {
             return this.results.map(res => {
@@ -86,11 +94,22 @@ export default {
 
                 return res
             })
+        },
+        truncatedResults () {
+            return this.decoratedResults.slice(0, this.visibleResults)
+        }
+    },
+    watch: {
+        results () {
+            this.visibleResults = 10
         }
     },
     methods: {
         onResultClick () {
             this.$emit('result-selected')
+        },
+        showMore () {
+            this.visibleResults += 5
         }
     }
 }
@@ -130,6 +149,8 @@ export default {
             transition: ease-in-out .3s;
             padding: 2px 10px;
             border-radius: 5px;
+            max-height: 90vh;
+            overflow: auto;
 
             .result {
                 display: flex;
@@ -152,6 +173,18 @@ export default {
 
             &:hover {
                 background: $ff-indigo-50;
+            }
+
+            &.show-more {
+                text-align: center;
+                margin: 3px 0;
+                padding: 2px 0;
+
+                a {
+                    width: 100%;
+                    display: block;
+                    opacity: .6;
+                }
             }
         }
     }
