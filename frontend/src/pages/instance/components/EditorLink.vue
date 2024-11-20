@@ -89,7 +89,15 @@ export default {
             if (this.disabled) {
                 return false
             }
-            window.open(this.url, !this.isImmersiveEditor ? '_blank' : '_self')
+            let href = this.url
+            let target = !this.isImmersiveEditor ? '_blank' : '_self'
+            // On Mac Keyboard, ⌘ + click opens in new tab (⌘ is `metaKey`)
+            // Otherwise Ctrl + click opens in new tab (Ctrl is `ctrlKey`)
+            if (evt.ctrlKey || evt.metaKey) {
+                target = '_blank'
+                href = this.editorURL
+            }
+            window.open(href, target)
             return false
         }
     }
