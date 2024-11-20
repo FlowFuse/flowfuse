@@ -11,7 +11,7 @@
 
             <input
                 type="text"
-                placeholder="Search FlowFuse (CTRL + K)"
+                placeholder="Search your team (CTRL + K)"
                 @focusin="focusSearch"
                 @click="focusSearch"
             >
@@ -21,7 +21,7 @@
                 v-model="query"
                 class="overlay-input iterable"
                 type="text"
-                placeholder="Search FlowFuse (CTRL + K)"
+                placeholder="Search your team (CTRL + K)"
             >
 
             <transition name="fade" mode="out-in">
