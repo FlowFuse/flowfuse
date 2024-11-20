@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Broker" :tabs="tabs">
                 <template #context>
-                    A list of the recent Topicss used by your team on the FlowFuse MQTT Broker.
+                    View the recently used topics and configure clients for your FlowFuse MQTT Broker.
                 </template>
                 <template #pictogram>
                     <img alt="info" src="../../../images/pictograms/mqtt_broker_red.png">
