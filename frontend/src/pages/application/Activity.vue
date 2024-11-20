@@ -1,5 +1,5 @@
 <template>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :logType="logScope" @load-entries="loadEntries">
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" :logType="logScope" @load-entries="loadEntries">
         <template #title>
             <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this application." />
         </template>
@@ -12,6 +12,14 @@
                         :label="instance.name" :value="instance.id"
                     />
                 </ff-dropdown>
+                <ff-checkbox v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
+                    <template v-if="logScope === 'application'">
+                        Include Instances and Devices
+                    </template>
+                    <template v-else-if="logScope === 'project'">
+                        Include Devices
+                    </template>
+                </ff-checkbox>
             </div>
         </template>
     </AuditLogBrowser>
@@ -44,9 +52,11 @@ export default {
     data () {
         return {
             logEntries: [],
+            associations: {}, // applications, instances, devices
             users: [],
             auditFilters: {
-                selectedEventScope: null
+                selectedEventScope: null,
+                includeChildren: true
             }
         }
     },
@@ -69,8 +79,11 @@ export default {
         }
     },
     watch: {
-        'auditFilters.selectedEventScope' () {
-            this.$refs.AuditLog?.loadEntries(this.logScope)
+        auditFilters: {
+            deep: true,
+            handler () {
+                this.$refs.AuditLog?.loadEntries(this.logScope)
+            }
         },
         team: 'loadUsers'
     },
@@ -83,11 +96,18 @@ export default {
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
             if (this.applicationId) {
+                params.set('includeChildren', !!this.auditFilters.includeChildren)
                 if (this.auditFilters.selectedEventScope === null) {
-                    this.logEntries = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200)).log
+                    params.set('scope', 'application')
+                    const log = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200))
+                    this.logEntries = log.log
+                    this.associations = this.auditFilters.includeChildren ? log.associations : null
                 } else if (this.auditFilters.selectedEventScope) {
+                    params.set('scope', 'project')
                     const instanceId = this.auditFilters.selectedEventScope
-                    this.logEntries = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200)).log
+                    const log = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200))
+                    this.logEntries = log.log
+                    this.associations = this.auditFilters.includeChildren ? log.associations : null
                 }
             }
         }
