@@ -162,6 +162,13 @@ export default {
             flex: 1;
             align-self: center;
         }
+
+        .text {
+            &:focus {
+                outline: 2px solid $ff-indigo-700;
+                outline-offset: 2px;
+            }
+        }
     }
 
     .results {
