@@ -22,13 +22,24 @@
             </transition>
 
             <div v-if="isFocused && hasResults" class="results-wrapper">
-                <result-section v-if="resApplication.length > 0" title="Applications" :icon="TemplateIcon" :results="resApplication">
+                <result-section
+                    title="Applications"
+                    :icon="TemplateIcon"
+                    :results="resApplication"
+                    result-type="application"
+                    @result-selected="handleSelectedResult"
+                >
                     <template #result-icon>
                         <TemplateIcon class="ff-icon-sm" />
                     </template>
                 </result-section>
 
-                <result-section v-if="resInstances.length > 0" title="Instances" :icon="ProjectsIcon" :results="resInstances">
+                <result-section
+                    title="Instances" :icon="ProjectsIcon"
+                    :results="resInstances"
+                    result-type="instance"
+                    @result-selected="handleSelectedResult"
+                >
                     <template #result-icon>
                         <ProjectsIcon class="ff-icon-sm" />
                     </template>
@@ -37,7 +48,12 @@
                     </template>
                 </result-section>
 
-                <result-section v-if="resDevices.length > 0" title="Devices" :icon="ChipIcon" :results="resDevices">
+                <result-section
+                    title="Devices" :icon="ChipIcon"
+                    :results="resDevices"
+                    result-type="device"
+                    @result-selected="handleSelectedResult"
+                >
                     <template #result-icon="{item}">
                         <InstanceStatusBadge :text="item.status" />
                     </template>
@@ -147,7 +163,10 @@ export default {
                 .finally(() => {
                     this.loading = false
                 })
-        }, 500)
+        }, 500),
+        handleSelectedResult () {
+            this.deFocus()
+        }
     }
 }
 </script>
