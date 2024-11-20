@@ -34,6 +34,7 @@
                 <ff-data-table
                     v-if="instances.length > 0"
                     data-el="instances-table" :columns="columns" :rows="instances" :show-search="true" search-placeholder="Search Instances..."
+                    :search="search"
                     :rows-selectable="!dashboardRoleOnly"
                     @row-selected="openInstance"
                 >
@@ -149,7 +150,8 @@ export default {
                         map: { text: 'flowLastUpdatedSince' }
                     }
                 }
-            ]
+            ],
+            search: ''
         }
     },
     watch: {
@@ -157,6 +159,10 @@ export default {
     },
     mounted () {
         this.fetchData()
+            .then(() => {
+                this.setSearchQuery()
+            })
+            .catch(e => e)
     },
     methods: {
         fetchData: async function (newVal) {
@@ -177,6 +183,11 @@ export default {
                     id: instance.id
                 }
             })
+        },
+        setSearchQuery () {
+            if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'search')) {
+                this.search = this.$route.query.search
+            }
         }
     }
 }

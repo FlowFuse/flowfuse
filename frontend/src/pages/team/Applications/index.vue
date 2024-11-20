@@ -218,6 +218,7 @@ export default {
             const tour = Tours.create('welcome', TourWelcome)
             tour.start()
         }
+        this.setSearchQuery()
     },
     methods: {
         async fetchData (withLoading = true) {
@@ -300,6 +301,11 @@ export default {
                     ...applicationProps
                 })
             })
+        },
+        setSearchQuery () {
+            if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'search')) {
+                this.filterTerm = this.$route.query.search
+            }
         }
     }
 }

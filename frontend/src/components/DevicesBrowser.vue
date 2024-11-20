@@ -19,6 +19,7 @@
                 :columns="columns"
                 :rows="devicesWithStatuses"
                 :show-search="true"
+                :search="search"
                 search-placeholder="Search Devices"
                 :show-load-more="moreThanOnePage"
                 :check-key="row => row.id"
@@ -410,7 +411,8 @@ export default {
                 direction: 'desc'
             },
             /** @type { import('../utils/timers.js').PollTimer } */
-            pollTimer: null
+            pollTimer: null,
+            search: ''
         }
     },
     computed: {
@@ -524,6 +526,7 @@ export default {
     mounted () {
         this.fullReloadOfData()
         this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME) // auto starts
+        this.setSearchQuery()
     },
     async unmounted () {
         this.pollTimer.stop()
@@ -779,6 +782,11 @@ export default {
             }
 
             return 'Unassigned'
+        },
+        setSearchQuery () {
+            if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'search')) {
+                this.search = this.$route.query.search
+            }
         }
     }
 }

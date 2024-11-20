@@ -27,6 +27,7 @@
                     title="Applications"
                     :icon="TemplateIcon"
                     :results="resApplication"
+                    :query="query"
                     result-type="application"
                     @result-selected="handleSelectedResult"
                 >
@@ -61,6 +62,7 @@
                     v-if="resInstances.length > 0"
                     title="Instances" :icon="ProjectsIcon"
                     :results="resInstances"
+                    :query="query"
                     result-type="instance"
                     @result-selected="handleSelectedResult"
                 >
@@ -76,6 +78,7 @@
                     v-if="resDevices.length > 0"
                     title="Devices" :icon="ChipIcon"
                     :results="resDevices"
+                    :query="query"
                     result-type="device"
                     @result-selected="handleSelectedResult"
                 >

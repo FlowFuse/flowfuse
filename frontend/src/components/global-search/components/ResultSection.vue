@@ -3,7 +3,9 @@
         <p class="title">
             <component :is="icon" v-if="icon" class="icon ff-icon-sm" />
 
-            <span class="text">{{ title }}</span>
+            <router-link class="text" :to="sectionRoute" @click="onResultClick">
+                {{ title }}
+            </router-link>
 
             <span class="counter">({{ resultCount }})</span>
         </p>
@@ -57,6 +59,10 @@ export default {
         resultType: {
             required: true,
             type: String
+        },
+        query: {
+            required: true,
+            type: String
         }
     },
     emits: ['result-selected'],
@@ -97,6 +103,18 @@ export default {
         },
         truncatedResults () {
             return this.decoratedResults.slice(0, this.visibleResults)
+        },
+        sectionRoute () {
+            switch (this.resultType) {
+            case 'application':
+                return { name: 'Applications', query: { search: this.query } }
+            case 'instance':
+                return { name: 'Instances', query: { search: this.query } }
+            case 'device':
+                return { name: 'TeamDevices', query: { search: this.query } }
+            default:
+                return ''
+            }
         }
     },
     watch: {
