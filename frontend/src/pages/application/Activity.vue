@@ -101,13 +101,13 @@ export default {
                     params.set('scope', 'application')
                     const log = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200))
                     this.logEntries = log.log
-                    this.associations = log.associations || {}
+                    this.associations = this.auditFilters.includeChildren ? log.associations : null
                 } else if (this.auditFilters.selectedEventScope) {
                     params.set('scope', 'project')
                     const instanceId = this.auditFilters.selectedEventScope
                     const log = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200))
                     this.logEntries = log.log
-                    this.associations = log.associations || {}
+                    this.associations = this.auditFilters.includeChildren ? log.associations : null
                 }
             }
         }
