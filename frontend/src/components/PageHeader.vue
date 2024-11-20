@@ -9,6 +9,7 @@
         </i>
         <!-- FlowFuse Logo -->
         <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()">
+        <global-search v-if="hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
             <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
@@ -79,16 +80,21 @@ import { mapActions, mapGetters, mapState } from 'vuex'
 import navigationMixin from '../mixins/Navigation.js'
 import permissionsMixin from '../mixins/Permissions.js'
 import product from '../services/product.js'
+import { Roles } from '../utils/roles.js'
 
 import NavItem from './NavItem.vue'
 import NotificationsButton from './NotificationsButton.vue'
 
 import TeamSelection from './TeamSelection.vue'
+import GlobalSearch from './global-search/GlobalSearch.vue'
 
 export default {
     name: 'NavBar',
     mixins: [navigationMixin, permissionsMixin],
     computed: {
+        Roles () {
+            return Roles
+        },
         ...mapState('account', ['user', 'team', 'teams']),
         ...mapState('ux', ['leftDrawer']),
         ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount']),
@@ -147,6 +153,7 @@ export default {
         }
     },
     components: {
+        GlobalSearch,
         NavItem,
         'ff-team-selection': TeamSelection,
         MenuIcon,
