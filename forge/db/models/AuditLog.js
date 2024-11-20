@@ -305,14 +305,16 @@ module.exports = {
                         if (instanceId) {
                             if (Array.isArray(instanceId)) {
                                 const _instances = (await M.Project.findAll({ where: { id: { [Op.in]: instanceId } }, attributes: ['id', 'name', 'ApplicationId', 'TeamId', 'state'] }))
-                                _instances.forEach(i => instanceMap.set(i.id?.toString(), i))
+                                _instances.forEach(i => instanceMap.set(i.id, i))
+                                instanceIds.push(...instanceId)
                                 filters.push({
                                     entityType: 'project',
-                                    entityId: { [Op.in]: instanceId.map(i => i.toString()) }
+                                    entityId: { [Op.in]: instanceId }
                                 })
                             } else {
                                 const _instance = (await M.Project.findOne({ where: { id: instanceId }, attributes: ['id', 'hashid', 'name', 'ApplicationId', 'TeamId', 'state'] }))
                                 instanceMap.set(instanceId.toString(), _instance)
+                                instanceIds.push(instanceId)
                                 filters.push({
                                     entityType: 'project',
                                     entityId: instanceId.toString()
@@ -395,7 +397,11 @@ module.exports = {
                         const projectId = entityId
                         const project = await M.Project.byId(projectId)
                         const teamId = project.TeamId
-                        await addInstanceScope(teamId, null, projectId, includeChildren)
+                        if (scope === 'device') {
+                            await addDeviceScope(teamId, null, projectId) // all devices belonging to the instance
+                        } else {
+                            await addInstanceScope(teamId, null, projectId, includeChildren)
+                        }
                     }
 
                     const result = {

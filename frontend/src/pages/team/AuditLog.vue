@@ -22,7 +22,7 @@
                     </ff-dropdown>
                     <ff-checkbox v-if="(auditFilters.selectedEventScope || 'device') !== 'device'" v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
                         <template v-if="auditFilters.selectedEventScope === 'team'">
-                            Include Applications, Instances and Devices
+                            Applications, Instances and Devices <!-- shortened to prevent wrapping -->
                         </template>
                         <template v-else-if="auditFilters.selectedEventScope === 'application'">
                             Include Instances and Devices
@@ -63,9 +63,9 @@ export default {
             },
             scopeList: [
                 { name: 'Team', id: 'team' },
-                { name: 'Application', id: 'application' },
-                { name: 'Instance', id: 'project' },
-                { name: 'Device', id: 'device' }
+                { name: 'Applications', id: 'application' },
+                { name: 'Instances', id: 'project' },
+                { name: 'Devices', id: 'device' }
             ]
         }
     },
@@ -100,9 +100,9 @@ export default {
             if (teamId) {
                 params.set('scope', this.auditFilters.selectedEventScope)
                 params.set('includeChildren', !!this.auditFilters.includeChildren)
-                const response = (await TeamAPI.getTeamAuditLog(teamId, params, cursor, 200))
-                this.logEntries = response.log
-                this.associations = response.associations || {}
+                const auditLog = (await TeamAPI.getTeamAuditLog(teamId, params, cursor, 200))
+                this.logEntries = auditLog.log
+                this.associations = auditLog.associations
             }
         },
         triggerLoad () {
