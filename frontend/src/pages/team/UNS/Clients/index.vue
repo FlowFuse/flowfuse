@@ -1,21 +1,9 @@
 <template>
-    <ff-page>
-        <template #header>
-            <ff-page-header title="MQTT Broker">
-                <template #context>
-                    Central hub for managing MQTT clients and defining ACL-based topic permissions.
-                </template>
-                <template #pictogram>
-                    <img alt="info" src="../../../images/pictograms/mqtt_broker_red.png">
-                </template>
-                <template #helptext>
-                    <p>The <b>MQTT Broker</b> page offers a streamlined interface for managing your broker instance and defining client connections.</p>
-                    <p>You can create and manage MQTT clients, each with customizable Access Control List (ACL) rules to ensure secure and controlled communication. The ACL rules allow for fine-grained control over each client’s access to specific topics, supporting both publishing and subscribing actions.</p>
-                    <p>This overview provides a clear and organized view of your broker’s configuration, helping you manage client connections, security settings, and message flow efficiently.</p>
-                    <p>Documentation <a href="https://flowfuse.com/docs/user/teambroker" target="_blank">here</a></p>
-                </template>
-            </ff-page-header>
-        </template>
+    <div class="unified-namespace-clients">
+        <div class="title mb-5 flex gap-3 items-center">
+            <RssIcon class="ff-icon-sm" />
+            <h3 class="m-0" data-el="subtitle">MQTT Broker</h3>
+        </div>
 
         <EmptyState
             v-if="!isMqttBrokerFeatureEnabled"
@@ -23,7 +11,7 @@
             :featureUnavailableToTeam="!isMqttBrokerFeatureEnabledForTeam"
         >
             <template #img>
-                <img src="../../../images/empty-states/mqtt-forbidden.png" alt="pipelines-logo">
+                <img src="../../../../images/empty-states/mqtt-forbidden.png" alt="pipelines-logo">
             </template>
             <template #header>
                 <span>Broker Not Available</span>
@@ -82,7 +70,7 @@
                     </section>
                     <EmptyState v-else>
                         <template #img>
-                            <img src="../../../images/empty-states/mqtt-empty.png" alt="logo">
+                            <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
                         </template>
                         <template #header>Create your first Broker Client</template>
                         <template #message>
@@ -112,32 +100,33 @@
                 @client-updated="fetchData"
             />
         </template>
-    </ff-page>
+    </div>
 </template>
 
 <script>
-import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, RssIcon, SearchIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
-import brokerApi from '../../../api/broker.js'
-import EmptyState from '../../../components/EmptyState.vue'
-import clipboardMixin from '../../../mixins/Clipboard.js'
-import featuresMixin from '../../../mixins/Features.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
-import Alerts from '../../../services/alerts.js'
-import Dialog from '../../../services/dialog.js'
-import { Roles } from '../../../utils/roles.js'
+import brokerApi from '../../../../api/broker.js'
+import EmptyState from '../../../../components/EmptyState.vue'
+import clipboardMixin from '../../../../mixins/Clipboard.js'
+import featuresMixin from '../../../../mixins/Features.js'
+import permissionsMixin from '../../../../mixins/Permissions.js'
+import Alerts from '../../../../services/alerts.js'
+import Dialog from '../../../../services/dialog.js'
+import { Roles } from '../../../../utils/roles.js'
 
 import BrokerClient from './components/BrokerClient.vue'
 
 import ClientDialog from './dialogs/ClientDialog.vue'
 
 export default {
-    name: 'TeamBroker',
+    name: 'UNSClients',
     components: {
         BrokerClient,
         SearchIcon,
         PlusSmIcon,
+        RssIcon,
         EmptyState,
         ClientDialog
     },
@@ -168,9 +157,6 @@ export default {
         team: 'fetchData'
     },
     mounted () {
-        if (!this.hasAMinimumTeamRoleOf(Roles.Member)) {
-            return this.$router.push({ name: 'Home' })
-        }
         this.fetchData()
     },
     methods: {
