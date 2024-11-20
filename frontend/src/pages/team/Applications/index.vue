@@ -303,8 +303,8 @@ export default {
             })
         },
         setSearchQuery () {
-            if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'search')) {
-                this.filterTerm = this.$route.query.search
+            if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'searchQuery')) {
+                this.filterTerm = this.$route.query.searchQuery
             }
         }
     }
