@@ -3,7 +3,7 @@
         <p class="title">
             <component :is="icon" v-if="icon" class="icon ff-icon-sm" />
 
-            <router-link class="text" :to="sectionRoute" @click="onResultClick">
+            <router-link class="text iterable" :to="sectionRoute" @click="onResultClick">
                 {{ title }}
             </router-link>
 
@@ -12,7 +12,7 @@
 
         <ul class="results">
             <li v-for="(result, index) in truncatedResults" :key="result.id" class="result-wrapper">
-                <router-link :to="result.route" class="result" @click="onResultClick">
+                <router-link :to="result.route" class="result iterable" tabindex="0" @click="onResultClick">
                     <div class="icon">
                         <slot name="result-icon" :item="result" :index="index" />
                     </div>
@@ -33,7 +33,7 @@
                 </router-link>
             </li>
             <li v-if="hasMoreResults" class="result-wrapper show-more">
-                <a href="#" @click="showMore">Show more...</a>
+                <a href="#" class="iterable" @click="showMore">Show more...</a>
             </li>
         </ul>
     </section>
@@ -83,7 +83,6 @@ export default {
         },
         decoratedResults () {
             return this.results.map(res => {
-                // append route
                 let routeName
 
                 switch (this.resultType) {
@@ -110,7 +109,7 @@ export default {
         sectionRoute () {
             switch (this.resultType) {
             case 'application':
-                return { name: 'Applications', query: { searchQuery: this.query } }
+                return { name: 'Applications', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
             case 'instance':
                 return { name: 'Instances', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
             case 'device':
@@ -190,6 +189,12 @@ export default {
                     display: flex;
                     gap: 5px;
                 }
+
+                &:focus {
+                    background: $ff-indigo-50;
+                    border: none;
+                    outline: none;
+                }
             }
 
             &:hover {
@@ -199,12 +204,18 @@ export default {
             &.show-more {
                 text-align: center;
                 margin: 3px 0;
-                padding: 2px 0;
 
                 a {
+                    padding: 5px 0;
                     width: 100%;
                     display: block;
                     opacity: .6;
+
+                    &:focus {
+                        background: $ff-indigo-50;
+                        border: none;
+                        outline: none;
+                    }
                 }
             }
         }

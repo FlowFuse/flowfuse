@@ -19,7 +19,7 @@
             <input
                 ref="input"
                 v-model="query"
-                class="overlay-input"
+                class="overlay-input iterable"
                 type="text"
                 placeholder="Search FlowFuse (CTRL + K)"
             >
@@ -167,6 +167,15 @@ export default {
         team () {
             this.resetSearch()
             this.clearResults()
+        },
+        results: {
+            handler: function () {
+                document.removeEventListener('keydown', this.bindKeyNavigation)
+                this.$nextTick(() => {
+                    document.addEventListener('keydown', this.bindKeyNavigation)
+                })
+            },
+            immediate: true
         }
     },
     mounted () {
@@ -174,6 +183,7 @@ export default {
     },
     unmounted () {
         document.removeEventListener('keydown', this.bindSearchShortcut)
+        document.removeEventListener('keydown', this.bindKeyNavigation)
     },
 
     methods: {
@@ -225,6 +235,21 @@ export default {
                 } else this.deFocusSearch()
                 this.$refs.input.focus()
                 this.$refs.input.select()
+            }
+        },
+        bindKeyNavigation (event) {
+            const anchors = document.querySelectorAll('#global-search .iterable')
+            const anchorsArray = Array.from(anchors)
+            const currentIndex = anchorsArray.findIndex(anchor => anchor === document.activeElement)
+
+            if (event.key === 'ArrowDown') {
+                event.preventDefault()
+                const nextIndex = (currentIndex + 1) % anchorsArray.length
+                anchorsArray[nextIndex].focus()
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault()
+                const prevIndex = (currentIndex - 1 + anchorsArray.length) % anchorsArray.length
+                anchorsArray[prevIndex].focus()
             }
         }
     }
