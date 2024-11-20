@@ -93,7 +93,7 @@ module.exports = {
         if (!invitedUser && invitation.external) {
             // This won't have a full user object attached as they had not registered
             // when the invitation was created.
-            if (user.email === invitation.email) {
+            if (user.email.toLowerCase() === invitation.email.toLowerCase()) {
                 invitedUser = user
             }
         }
@@ -144,7 +144,7 @@ module.exports = {
         if (!invitedUser && invitation.external) {
             // This won't have a full user object attached as they had not registered
             // when the invitation was created.
-            if (user.email === invitation.email) {
+            if (user.email.toLowerCase() === invitation.email.toLowerCase()) {
                 invitedUser = user
             }
         }

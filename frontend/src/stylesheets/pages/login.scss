@@ -1,9 +1,19 @@
-.ff-login {
+.ff-layout--box.ff-login {
+    flex-direction: column;
+    min-height: 660px;
+    overflow: auto;
+
     .ff-layout--box--wrapper {
-        width: 75%;
         max-width: 1048px;
+        min-height: 660px;
+        min-width: 400px;
+
         .ff-layout--box--right {
-            padding: 128px 48px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
         }
         .ff-layout--box--content {
             max-width: 380px;

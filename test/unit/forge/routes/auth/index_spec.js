@@ -454,14 +454,14 @@ describe('Accounts API', async function () {
                 // Create existing team
                 const existingTeam = await app.factory.createTeam({ name: 'ExistingTeam' })
                 await existingTeam.addUser(app.adminUser, { through: { role: app.factory.Roles.Roles.Owner } })
-                // Alice invite External User to ExistingTeam
+                // Alice invite External User to ExistingTeam - note mixed case of email to ensure we match case-insensitive
                 await login('alice', 'aaPassword')
                 const inviteResponse = await app.inject({
                     method: 'POST',
                     url: `/api/v1/teams/${existingTeam.hashid}/invitations`,
                     cookies: { sid: TestObjects.tokens.alice },
                     payload: {
-                        user: 'user6@example.com',
+                        user: 'user6@EXAMPLE.com',
                         role: app.factory.Roles.Roles.Owner
                     }
                 })

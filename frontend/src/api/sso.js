@@ -24,10 +24,16 @@ const updateProvider = async (id, options) => {
 const deleteProvider = async (id) => {
     return await client.delete(`/ee/sso/providers/${id}`)
 }
+const testProvider = async (id, options) => {
+    return client.post('/ee/sso/providers/test', { id, ...options }).then(res => {
+        return res.data
+    })
+}
 export default {
     createProvider,
     updateProvider,
     getProvider,
     deleteProvider,
-    getProviders
+    getProviders,
+    testProvider
 }
