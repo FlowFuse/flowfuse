@@ -47,11 +47,12 @@
 
 <script>
 import { PencilIcon, TrashIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
 
-import FfAccordion from '../../../../components/Accordion.vue'
-import TextCopier from '../../../../components/TextCopier.vue'
-import permissionsMixin from '../../../../mixins/Permissions.js'
-import { Roles } from '../../../../utils/roles.js'
+import FfAccordion from '../../../../../components/Accordion.vue'
+import TextCopier from '../../../../../components/TextCopier.vue'
+import usePermissions from '../../../../../composables/Permissions.js'
+import { Roles } from '../../../../../utils/roles.js'
 
 import BrokerAclRule from './BrokerAclRule.vue'
 
@@ -64,7 +65,6 @@ export default {
         FfAccordion,
         TrashIcon
     },
-    mixins: [permissionsMixin],
     props: {
         client: {
             required: true,
@@ -72,7 +72,15 @@ export default {
         }
     },
     emits: ['edit-client', 'delete-client'],
+    setup () {
+        const { hasAMinimumTeamRoleOf } = usePermissions()
+
+        return {
+            hasAMinimumTeamRoleOf
+        }
+    },
     computed: {
+        ...mapState('account', ['team']),
         Roles () {
             return Roles
         }
