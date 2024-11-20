@@ -317,7 +317,7 @@ export default {
             })
         },
         filterRows (rows) {
-            const search = this.filterTerm
+            const search = this.internalSearch
             if (!search) {
                 return rows
             }

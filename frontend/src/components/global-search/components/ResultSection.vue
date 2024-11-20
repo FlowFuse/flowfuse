@@ -109,9 +109,9 @@ export default {
             case 'application':
                 return { name: 'Applications', query: { search: this.query } }
             case 'instance':
-                return { name: 'Instances', query: { search: this.query } }
+                return { name: 'Instances', query: { searchQuery: this.query } }
             case 'device':
-                return { name: 'TeamDevices', query: { search: this.query } }
+                return { name: 'TeamDevices', query: { searchQuery: this.query } }
             default:
                 return ''
             }
