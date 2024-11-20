@@ -176,6 +176,12 @@ export default {
                 })
             },
             immediate: true
+        },
+        isFocused (isFocused) {
+            // refresh data when re-opening the search modal
+            if (isFocused === true && this.query.length > 0) {
+                this.getData()
+            }
         }
     },
     mounted () {
