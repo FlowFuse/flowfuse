@@ -41,6 +41,8 @@
 
 <script>
 
+import { mapState } from 'vuex'
+
 export default {
     name: 'ResultSection',
     props: {
@@ -72,6 +74,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         resultCount () {
             return this.results.length
         },
@@ -107,11 +110,11 @@ export default {
         sectionRoute () {
             switch (this.resultType) {
             case 'application':
-                return { name: 'Applications', query: { search: this.query } }
+                return { name: 'Applications', query: { search: this.query }, params: { team_slug: this.team.slug } }
             case 'instance':
-                return { name: 'Instances', query: { searchQuery: this.query } }
+                return { name: 'Instances', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
             case 'device':
-                return { name: 'TeamDevices', query: { searchQuery: this.query } }
+                return { name: 'TeamDevices', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
             default:
                 return ''
             }
