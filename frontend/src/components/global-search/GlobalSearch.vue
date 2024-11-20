@@ -1,7 +1,7 @@
 <template>
     <div id="global-search" :class="{focused: isFocused}">
         <transition name="fade" mode="out-in">
-            <div v-if="isFocused" class="overlay" @click="deFocus" />
+            <div v-if="isFocused" class="overlay" @click="deFocusSearch" />
         </transition>
         <div class="content-wrapper">
             <transition name="primary-fade" mode="out-in">
@@ -10,11 +10,18 @@
             </transition>
 
             <input
-                v-model="query"
                 type="text"
-                placeholder="Search FlowFuse"
-                @focusin="focus"
-                @click="focus"
+                placeholder="Search FlowFuse (CTRL + K)"
+                @focusin="focusSearch"
+                @click="focusSearch"
+            >
+
+            <input
+                ref="input"
+                v-model="query"
+                class="overlay-input"
+                type="text"
+                placeholder="Search FlowFuse (CTRL + K)"
             >
 
             <transition name="fade" mode="out-in">
@@ -162,6 +169,13 @@ export default {
             this.clearResults()
         }
     },
+    mounted () {
+        document.addEventListener('keydown', this.bindSearchShortcut)
+    },
+    unmounted () {
+        document.removeEventListener('keydown', this.bindSearchShortcut)
+    },
+
     methods: {
         markRaw,
         resetSearch () {
@@ -171,14 +185,18 @@ export default {
             this.results = []
         },
         onEscKeyPress () {
-            this.deFocus()
+            this.deFocusSearch()
             this.resetSearch()
         },
-        focus () {
+        focusSearch () {
             document.addEventListener('keydown', this.handleEscapeKey)
             this.isFocused = true
+            this.$nextTick(() => {
+                this.$refs.input.focus()
+                this.$refs.input.select()
+            })
         },
-        deFocus () {
+        deFocusSearch () {
             document.removeEventListener('keydown', this.handleEscapeKey)
             this.isFocused = false
         },
@@ -197,7 +215,17 @@ export default {
                 })
         }, 500),
         handleSelectedResult () {
-            this.deFocus()
+            this.deFocusSearch()
+        },
+        bindSearchShortcut (event) {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+                event.preventDefault()
+                if (!this.isFocused) {
+                    this.focusSearch()
+                } else this.deFocusSearch()
+                this.$refs.input.focus()
+                this.$refs.input.select()
+            }
         }
     }
 }
@@ -236,11 +264,15 @@ export default {
         }
 
         input {
-            color: $ff-grey-500;
+            color: transparent;
             padding: 3px 25px;
             background: $ff-grey-700;
             border-color: $ff-grey-500;
-            min-width: 25vw;
+            min-width: 15vw;
+
+            &.overlay-input {
+                display: none;
+            }
         }
 
         .results-wrapper {
@@ -268,8 +300,14 @@ export default {
             }
 
             input {
+                color: $ff-grey-500;
                 flex: 1;
                 background: white;
+                display: none;
+
+                &.overlay-input {
+                    display: block;
+                }
             }
 
             .results-wrapper {
