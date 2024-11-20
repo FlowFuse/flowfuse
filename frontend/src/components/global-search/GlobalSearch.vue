@@ -225,7 +225,7 @@ export default {
             width: 60vw;
             background: white;
             top: 10px;
-            left: 25%;
+            left: 20vw;
             z-index: 120;
             border: 1px solid $ff-grey-500;
             border-radius: 5px;
