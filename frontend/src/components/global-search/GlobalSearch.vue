@@ -106,14 +106,21 @@ export default {
 
             if ((!!oldVal && oldVal.length > 0) && !(newVal && newVal.length === 0)) {
                 // clears results when user deletes query
-                this.results = []
+                this.clearResults()
             }
+        },
+        team () {
+            this.resetSearch()
+            this.clearResults()
         }
     },
     methods: {
         markRaw,
         resetSearch () {
             this.query = ''
+        },
+        clearResults () {
+            this.results = []
         },
         onEscKeyPress () {
             this.deFocus()
