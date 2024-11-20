@@ -23,6 +23,7 @@
 
             <div v-if="isFocused && hasResults" class="results-wrapper">
                 <result-section
+                    v-if="resApplication.length > 0"
                     title="Applications"
                     :icon="TemplateIcon"
                     :results="resApplication"
@@ -32,9 +33,32 @@
                     <template #result-icon>
                         <TemplateIcon class="ff-icon-sm" />
                     </template>
+                    <template #result-actions="{item}">
+                        <span class="result-badge">
+                            <ProjectsIcon class="ff-icon-sm" />
+                            <span>{{ item.instanceCount }}</span>
+                        </span>
+                        <span class="result-badge">
+                            <ChipIcon class="ff-icon-sm" />
+                            <span>{{ item.deviceCount }}</span>
+                        </span>
+                        <span class="result-badge">
+                            <img src="../../components/icons/device-group-outline.svg" alt="device-groups-icon" class="ff-icon-sm">
+                            <span>{{ item.deviceGroupCount }}</span>
+                        </span>
+                        <span class="result-badge">
+                            <ClockIcon class="ff-icon-sm" />
+                            <span>{{ item.snapshotCount }}</span>
+                        </span>
+                        <span class="result-badge">
+                            <PipelinesIcon class="ff-icon-sm" />
+                            <span>{{ item.pipelineCount }}</span>
+                        </span>
+                    </template>
                 </result-section>
 
                 <result-section
+                    v-if="resInstances.length > 0"
                     title="Instances" :icon="ProjectsIcon"
                     :results="resInstances"
                     result-type="instance"
@@ -49,6 +73,7 @@
                 </result-section>
 
                 <result-section
+                    v-if="resDevices.length > 0"
                     title="Devices" :icon="ChipIcon"
                     :results="resDevices"
                     result-type="device"
@@ -64,7 +89,7 @@
 </template>
 
 <script>
-import { ChipIcon, SearchIcon, TemplateIcon, XIcon } from '@heroicons/vue/outline'
+import { ChipIcon, ClockIcon, QuestionMarkCircleIcon, SearchIcon, TemplateIcon, XIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -72,6 +97,7 @@ import globalApi from '../../api/global.js'
 import SpinnerIcon from '../../components/icons/Spinner.js'
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 import { debounce } from '../../utils/eventHandling.js'
+import PipelinesIcon from '../icons/Pipelines.js'
 import ProjectsIcon from '../icons/Projects.js'
 
 import ResultSection from './components/ResultSection.vue'
@@ -85,7 +111,11 @@ export default {
         SpinnerIcon,
         XIcon,
         TemplateIcon,
-        ProjectsIcon
+        ProjectsIcon,
+        ChipIcon,
+        QuestionMarkCircleIcon,
+        ClockIcon,
+        PipelinesIcon
     },
     data () {
         return {
@@ -171,7 +201,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 #global-search {
     padding: 0 5px;
     display: flex;
@@ -254,6 +284,17 @@ export default {
             top: 0;
             z-index: 110;
         }
+    }
+
+    .result-badge {
+        padding: 0 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid $ff-indigo-700;
+        color: $ff-indigo-700;
+        border-radius: 5px;
+        background: $ff-white;
     }
 }
 </style>
