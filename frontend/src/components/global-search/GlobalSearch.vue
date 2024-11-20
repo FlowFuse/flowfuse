@@ -89,7 +89,7 @@
 </template>
 
 <script>
-import { ChipIcon, ClockIcon, QuestionMarkCircleIcon, SearchIcon, TemplateIcon, XIcon } from '@heroicons/vue/outline'
+import { ChipIcon, ClockIcon, SearchIcon, TemplateIcon, XIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -113,7 +113,6 @@ export default {
         TemplateIcon,
         ProjectsIcon,
         ChipIcon,
-        QuestionMarkCircleIcon,
         ClockIcon,
         PipelinesIcon
     },
@@ -295,6 +294,32 @@ export default {
         color: $ff-indigo-700;
         border-radius: 5px;
         background: $ff-white;
+    }
+}
+</style>
+
+<style lang="scss">
+#global-search {
+    .content-wrapper {
+        .section {
+            .results {
+                .result {
+                    .actions {
+                        .instance-editor-link {
+                            & > a {
+                                padding: 0 5px;
+
+                                .ff-btn--icon,
+                                svg {
+                                    height: 16px;
+                                    width: 16px;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 </style>
