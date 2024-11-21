@@ -91,7 +91,7 @@ Before you begin, ensure you have the following:
 
 For a production-ready environment, we also recommend: 
 * **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
-* **TLS Certification:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#enable-https-optional))
+* **TLS Certification:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#enable-https-(optional)))
 
 ### DNS
 
@@ -266,7 +266,7 @@ Once ready, [start the application](#start-flowfuse-platform) .
 
 ### How can I provide my own TLS certificate?
 
-If you have your own TLS certificate, you can use it in FlowFuse platform installation as well. See [Enable HTTPS](#enable-https-optional) section for more details.
+If you have your own TLS certificate, you can use it in FlowFuse platform installation as well. See [Enable HTTPS](#enable-https-(optional)) section for more details.
 
 ### I would like to invite my team members to the platform with e-mail, how can I do that?
 
