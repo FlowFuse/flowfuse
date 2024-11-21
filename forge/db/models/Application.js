@@ -121,10 +121,12 @@ module.exports = {
                         include: includes
                     }
                     if (query) {
-                        queryObject.where = where(
-                            fn('lower', col('Application.name')),
-                            { [Op.like]: `%${query.toLowerCase()}%` }
-                        )
+                        queryObject.where = {
+                            [Op.or]: [
+                                where(fn('lower', col('Application.name')), { [Op.like]: `%${query.toLowerCase()}%` }),
+                                where(fn('lower', col('Application.description')), { [Op.like]: `%${query.toLowerCase()}%` })
+                            ]
+                        }
                     }
 
                     if (includeApplicationSummary) {

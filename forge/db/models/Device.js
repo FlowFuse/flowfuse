@@ -315,10 +315,12 @@ module.exports = {
                     }
 
                     if (query) {
-                        queryObject.where[Op.and].push(where(
-                            fn('lower', col('Device.name')),
-                            { [Op.like]: `%${query.toLowerCase()}%` }
-                        ))
+                        queryObject.where[Op.and].push({
+                            [Op.or]: [
+                                where(fn('lower', col('Device.name')), { [Op.like]: `%${query.toLowerCase()}%` }),
+                                where(fn('lower', col('Device.type')), { [Op.like]: `%${query.toLowerCase()}%` })
+                            ]
+                        })
                     }
                     return this.getAll({}, queryObject.where)
                 },
