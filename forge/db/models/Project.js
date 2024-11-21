@@ -469,7 +469,7 @@ module.exports = {
                         include
                     })
                 },
-                byTeam: async (teamIdOrHash, { query = null, includeAssociations = true, includeSettings = false } = {}) => {
+                byTeam: async (teamIdOrHash, { query = null, instanceId = null, includeAssociations = true, includeSettings = false } = {}) => {
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
@@ -512,7 +512,9 @@ module.exports = {
                         include
                     }
 
-                    if (query) {
+                    if (instanceId) {
+                        queryObject.where = { id: instanceId }
+                    } else if (query) {
                         queryObject.where = where(
                             fn('lower', col('Project.name')),
                             { [Op.like]: `%${query.toLowerCase()}%` }
