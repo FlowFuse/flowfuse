@@ -339,10 +339,10 @@ export default {
         }
 
         .results-wrapper {
-            background: white;
+            background: $ff-white;
             min-width: 100%;
             z-index: 120;
-            padding: 0 5px;
+            padding: 0 5px 15px;
 
             .result-badge {
                 padding: 0 5px;
@@ -429,10 +429,6 @@ export default {
                     .close-button {
                         display: block;
                     }
-                }
-
-                .results-wrapper {
-                    max-height: 95vh;
                 }
             }
         }
