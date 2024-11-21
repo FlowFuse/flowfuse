@@ -47,7 +47,7 @@ describe('Search API', function () {
         //  - [dev] "device-unassigned-abc"
         //  - [app] "Application AbC"
 
-        TestObjects.AppOne = await app.factory.createApplication({ name: 'Application One' }, TestObjects.BTeam)
+        TestObjects.AppOne = await app.factory.createApplication({ name: 'Application One', description: 'app-one-desc' }, TestObjects.BTeam)
 
         const ia1abc = await app.factory.createInstance({ name: 'instance-app-one-abc' }, TestObjects.AppOne, app.stack, app.template, app.projectType, { start: false })
         await app.factory.createInstance({ name: 'instance-app-one-def' }, TestObjects.AppOne, app.stack, app.template, app.projectType, { start: false })
@@ -59,7 +59,7 @@ describe('Search API', function () {
         await app.factory.createInstance({ name: 'instance-app-two-abc' }, TestObjects.AppTwo, app.stack, app.template, app.projectType, { start: false })
         await app.factory.createInstance({ name: 'instance-app-two-def' }, TestObjects.AppTwo, app.stack, app.template, app.projectType, { start: false })
         await app.factory.createDevice({ name: 'device-app-two-abc' }, TestObjects.BTeam, null, TestObjects.AppTwo)
-        await app.factory.createDevice({ name: 'device-app-two-def' }, TestObjects.BTeam, null, TestObjects.AppTwo)
+        await app.factory.createDevice({ name: 'device-app-two-def', type: 'device-type' }, TestObjects.BTeam, null, TestObjects.AppTwo)
 
         await app.factory.createDevice({ name: 'device-unassigned-abc' }, TestObjects.BTeam)
 
@@ -172,6 +172,26 @@ describe('Search API', function () {
         objects['device-unassigned-abc'].should.have.property('object', 'device')
         objects.should.have.property('Application AbC')
         objects['Application AbC'].should.have.property('object', 'application')
+    })
+
+    it('search includes application description', async function () {
+        // bob - team member
+        const response = await search({ team: TestObjects.BTeam.hashid, query: 'ne-deSC' }, TestObjects.tokens.bob)
+        response.statusCode.should.equal(200)
+        const result = response.json()
+        result.count.should.equal(1)
+        result.results.should.have.length(1)
+        result.results[0].should.have.property('object', 'application')
+    })
+
+    it('search includes device type', async function () {
+        // bob - team member
+        const response = await search({ team: TestObjects.BTeam.hashid, query: 'ice-Typ' }, TestObjects.tokens.bob)
+        response.statusCode.should.equal(200)
+        const result = response.json()
+        result.count.should.equal(1)
+        result.results.should.have.length(1)
+        result.results[0].should.have.property('object', 'device')
     })
 
     it('search with blank query returns nothing', async function () {
