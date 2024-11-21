@@ -285,7 +285,9 @@ Restart the core application to apply the changes:
 docker compose restart forge
 ```
 
-### After starting the platform, I can't access it in the browser - I see Connection Refused error
+### Connection Refused error
+
+After starting the platform, I can't access it in the browser - I see "Connection Refused error"
 
 If you are using the Digital Ocean Docker Droplet to host FlowFuse you will need to ensure that port 80 & 443 are opened in the UFW firewall before starting.
 
@@ -318,7 +320,7 @@ New-NetFireWallRule -DisplayName 'WSL 8080TCP' -Direction Outbound -LocalPort 80
 
 ### I installed FlowFuse on Windows with WSL2, application is running but I can't access it in the browser
 
-Next to [opening the ports in the firewall](#after-starting-the-platform-i-cant-access-it-in-the-browser---i-see-connection-refused-error), 
+Next to [opening the ports in the firewall](#connection-refused-error), 
 you need to configure port forwarding from Windows host to WSL2 server.
 
 To forward traffic from an external IP to your container, run the following PowerShell command (administrator privileges required):
