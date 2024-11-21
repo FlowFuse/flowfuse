@@ -215,6 +215,11 @@ describe('Search API', function () {
         app.db.models.Application.byTeam.called.should.be.true()
         app.db.models.Project.byTeam.called.should.be.false()
         app.db.models.Device.byTeam.called.should.be.false()
+
+        // ensure query was not passed to byTeam & that applicationId was passed
+        const args = app.db.models.Application.byTeam.getCall(0).args
+        args[1].should.not.have.property('query')
+        args[1].should.have.property('applicationId', TestObjects.AppOne.id) // actual id, not hashid
     })
 
     it('search by instance id returns only one instance & does not query other tables', async function () {
@@ -233,6 +238,11 @@ describe('Search API', function () {
         app.db.models.Application.byTeam.called.should.be.false()
         app.db.models.Project.byTeam.called.should.be.true()
         app.db.models.Device.byTeam.called.should.be.false()
+
+        // ensure query was not passed to byTeam & that instanceId was passed
+        const args = app.db.models.Project.byTeam.getCall(0).args
+        args[1].should.not.have.property('query')
+        args[1].should.have.property('instanceId', TestObjects.App1Instance1.id)
     })
 
     it('search by device id returns only one device & does not query other tables', async function () {
@@ -251,6 +261,11 @@ describe('Search API', function () {
         app.db.models.Application.byTeam.called.should.be.false()
         app.db.models.Project.byTeam.called.should.be.false()
         app.db.models.Device.byTeam.called.should.be.true()
+
+        // ensure query was not passed to byTeam & that deviceId was passed
+        const args = app.db.models.Device.byTeam.getCall(0).args
+        args[1].should.not.have.property('query')
+        args[1].should.have.property('deviceId', TestObjects.App1Instance1Device1.id)
     })
 
     it('search with blank query returns nothing', async function () {
