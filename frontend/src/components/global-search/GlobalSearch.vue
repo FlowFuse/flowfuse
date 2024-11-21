@@ -4,29 +4,37 @@
             <div v-if="isFocused" class="overlay" @click="deFocusSearch" />
         </transition>
         <div class="content-wrapper">
-            <transition name="primary-fade" mode="out-in">
-                <SpinnerIcon v-if="loading" class="ff-icon-sm search" />
-                <SearchIcon v-else class="ff-icon-sm search" />
-            </transition>
+            <div class="search-wrapper">
+                <ff-button class="close-button" size="small" kind="secondary">
+                    <XIcon class="ff-icon-sm" @click="deFocusSearch" />
+                </ff-button>
 
-            <input
-                type="text"
-                placeholder="Search your team (CTRL + K)"
-                @focusin="focusSearch"
-                @click="focusSearch"
-            >
+                <div class="input-wrapper">
+                    <SearchIconSolid class="ff-icon-sm mobile-search" @click="focusSearch" />
 
-            <input
-                ref="input"
-                v-model="query"
-                class="overlay-input iterable"
-                type="text"
-                placeholder="Search your team (CTRL + K)"
-            >
+                    <transition name="primary-fade" mode="out-in">
+                        <SpinnerIcon v-if="loading" class="ff-icon-sm search" />
+                        <SearchIcon v-else class="ff-icon-sm search" />
+                    </transition>
+                    <input
+                        type="text"
+                        placeholder="Search your team (CTRL + K)"
+                        @focusin="focusSearch"
+                        @click="focusSearch"
+                    >
 
-            <transition name="fade" mode="out-in">
-                <XIcon v-if="query.length" class="ff-icon-sm close cursor-pointer" @click="resetSearch" />
-            </transition>
+                    <input
+                        ref="input"
+                        v-model="query"
+                        class="overlay-input iterable"
+                        type="text"
+                        placeholder="Search your team (CTRL + K)"
+                    >
+                    <transition name="fade" mode="out-in">
+                        <XIcon v-if="query.length && isFocused" class="ff-icon-sm close cursor-pointer" @click="resetSearch" />
+                    </transition>
+                </div>
+            </div>
 
             <div v-if="isFocused && hasResults" class="results-wrapper">
                 <result-section
@@ -44,23 +52,23 @@
                     <template #result-actions="{item}">
                         <span class="result-badge">
                             <ProjectsIcon class="ff-icon-sm" />
-                            <span>{{ item.instanceCount }}</span>
+                            <span class="truncate">{{ item.instanceCount }}</span>
                         </span>
                         <span class="result-badge">
                             <ChipIcon class="ff-icon-sm" />
-                            <span>{{ item.deviceCount }}</span>
+                            <span class="truncate">{{ item.deviceCount }}</span>
                         </span>
                         <span class="result-badge">
                             <img src="../../components/icons/device-group-outline.svg" alt="device-groups-icon" class="ff-icon-sm">
-                            <span>{{ item.deviceGroupCount }}</span>
+                            <span class="truncate">{{ item.deviceGroupCount }}</span>
                         </span>
                         <span class="result-badge">
                             <ClockIcon class="ff-icon-sm" />
-                            <span>{{ item.snapshotCount }}</span>
+                            <span class="truncate">{{ item.snapshotCount }}</span>
                         </span>
                         <span class="result-badge">
                             <PipelinesIcon class="ff-icon-sm" />
-                            <span>{{ item.pipelineCount }}</span>
+                            <span class="truncate">{{ item.pipelineCount }}</span>
                         </span>
                     </template>
                 </result-section>
@@ -100,6 +108,7 @@
 
 <script>
 import { ChipIcon, ClockIcon, SearchIcon, TemplateIcon, XIcon } from '@heroicons/vue/outline'
+import { SearchIcon as SearchIconSolid } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -124,7 +133,8 @@ export default {
         ProjectsIcon,
         ChipIcon,
         ClockIcon,
-        PipelinesIcon
+        PipelinesIcon,
+        SearchIconSolid
     },
     data () {
         return {
@@ -277,39 +287,76 @@ export default {
         flex-direction: column;
         gap: 10px;
 
-        .ff-icon-sm.close,
-        .ff-icon-sm.search {
-            color: white;
-            position: absolute;
-            z-index: 1;
-            top: 10px;
+        .search-wrapper {
+            display: flex;
+            gap: 5px;
+            align-items: center;
 
-            &.search {
-                left: 15px;
-            }
-
-            &.close {
-                right: 15px;
-            }
-        }
-
-        input {
-            color: transparent;
-            padding: 3px 25px;
-            background: $ff-grey-700;
-            border-color: $ff-grey-500;
-            min-width: 15vw;
-
-            &.overlay-input {
+            .mobile-search {
                 display: none;
+                cursor: pointer;
+                color: $ff-white;
+                min-width: 20px;
+                min-height: 20px;
+            }
+
+            .close-button {
+                display: none;
+            }
+
+            .input-wrapper {
+                flex: 1;
+                position: relative;
+
+                .ff-icon-sm.close,
+                .ff-icon-sm.search {
+                    color: white;
+                    position: absolute;
+                    z-index: 1;
+                    top: 5px;
+
+                    &.search {
+                        left: 5px;
+                    }
+
+                    &.close {
+                        right: 5px;
+                    }
+                }
+
+                input {
+                    color: transparent;
+                    padding: 3px 25px;
+                    background: $ff-grey-700;
+                    border-color: $ff-grey-500;
+                    min-width: 20vw;
+
+                    &.overlay-input {
+                        display: none;
+                    }
+                }
             }
         }
 
         .results-wrapper {
-            background: white;
+            background: $ff-white;
             min-width: 100%;
             z-index: 120;
-            padding: 0 5px;
+            padding: 0 5px 15px;
+
+            .result-badge {
+                padding: 0 5px;
+                width: 50px;
+                max-height: 25px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 5px;
+                border: 1px solid $ff-indigo-700;
+                color: $ff-indigo-700;
+                border-radius: 5px;
+                background: $ff-white;
+            }
         }
     }
 
@@ -324,24 +371,34 @@ export default {
             border: 1px solid $ff-grey-500;
             border-radius: 5px;
 
-            .ff-icon-sm.search,
-            .ff-icon-sm.close            {
-                color: $ff-grey-500;
-            }
+            .search-wrapper {
+                .input-wrapper {
+                    .ff-icon-sm.search,
+                    .ff-icon-sm.close {
+                        color: $ff-grey-500;
+                    }
 
-            input {
-                color: $ff-grey-500;
-                flex: 1;
-                background: white;
-                display: none;
+                    input {
+                        color: $ff-grey-500;
+                        flex: 1;
+                        background: white;
+                        display: none;
+                        width: 100%;
 
-                &.overlay-input {
-                    display: block;
+                        &.overlay-input {
+                            display: block;
+                        }
+                    }
                 }
             }
 
             .results-wrapper {
+                overflow: auto;
+                max-height: 90vh;
 
+                .ff-icon-sm {
+                    min-width: 16px;
+                }
             }
         }
 
@@ -356,15 +413,61 @@ export default {
         }
     }
 
-    .result-badge {
-        padding: 0 5px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        border: 1px solid $ff-indigo-700;
-        color: $ff-indigo-700;
-        border-radius: 5px;
-        background: $ff-white;
+}
+
+@media screen and (max-width: 1023px) {
+    #global-search {
+        &.focused {
+            .content-wrapper {
+                width: 100%;
+                top: 0;
+                left: 0;
+                border-top-left-radius: 0;
+                border-top-right-radius: 0;
+
+                .search-wrapper {
+                    .close-button {
+                        display: block;
+                    }
+                }
+            }
+        }
+    }
+}
+@media screen and (max-width: 639px) {
+    #global-search {
+        .content-wrapper {
+            padding: 5px 0;
+
+            .search-wrapper {
+                .mobile-search {
+                    display: block;
+                }
+
+                .close,
+                .search,
+                input {
+                    display: none;
+                }
+            }
+        }
+
+        &.focused {
+            .content-wrapper {
+                padding: 10px;
+                .mobile-search {
+                    display: none;
+                }
+
+                .search-wrapper {
+                    .close,
+                    .search,
+                    input {
+                        display: block;
+                    }
+                }
+            }
+        }
     }
 }
 </style>
@@ -386,6 +489,11 @@ export default {
                                     width: 16px;
                                 }
                             }
+                        }
+                    }
+                    .icon {
+                        .forge-badge {
+                            background: $ff-white;
                         }
                     }
                 }

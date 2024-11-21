@@ -17,13 +17,13 @@
                         <slot name="result-icon" :item="result" :index="index" />
                     </div>
 
-                    <div class="title">
+                    <div class="title truncate">
                         <slot name="result-title" :item="result" :index="index">
                             {{ result.name }}
                         </slot>
                     </div>
 
-                    <div class="details">
+                    <div class="details truncate">
                         <slot name="result-details" :item="result" :index="index" />
                     </div>
 
@@ -230,6 +230,21 @@ export default {
 
     &:last-of-type {
         margin-bottom: 0;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .section {
+        .results {
+            .result-wrapper {
+                .result {
+                    .actions {
+                        display: none;
+                        background: red;
+                    }
+                }
+            }
+        }
     }
 }
 </style>
