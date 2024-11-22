@@ -76,9 +76,9 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
 
             cy.get('[data-el="segment-wrapper"]').should('have.length', 2)
 
-            cy.get('[data-el="segment-wrapper"][data-value="foo"]').contains('3 topics')
+            cy.get('[data-el="segment-wrapper"][data-value="foo"]').contains('6 topics')
             cy.get('[data-el="segment-wrapper"][data-value="foo"]').contains('foo/')
-            cy.get('[data-el="segment-wrapper"][data-value="wibble"]').contains('1 topic')
+            cy.get('[data-el="segment-wrapper"][data-value="wibble"]').contains('2 topics')
             cy.get('[data-el="segment-wrapper"][data-value="wibble"]').contains('wibble/')
 
             cy.get('[data-el="segment-wrapper"][data-value="paz"]').should('not.exist')
@@ -101,7 +101,7 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
 
                 cy.get('[data-el="segment-wrapper"][data-value="paz"]').should('not.exist')
                 cy.get('[data-el="segment-wrapper"][data-value="flam"]').contains('flam/')
-                cy.get('[data-el="segment-wrapper"][data-value="flam"]').contains('1 topic')
+                cy.get('[data-el="segment-wrapper"][data-value="flam"]').contains('2 topic')
                 cy.get('[data-el="segment-wrapper"][data-value="flam"]').click()
                 cy.get('[data-el="segment-wrapper"][data-value="paz"]').should('exist')
 
