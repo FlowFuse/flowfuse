@@ -1,8 +1,6 @@
-const { subject } = require("./TeamInvitation");
-
 module.exports = {
     subject: 'Invitation to join team {{{teamName.text}}} on FlowFuse',
-    text: 
+    text:
 `Hello!
 
 This is a reminder that you have an invite to join team {{{teamName.text}}} on the FlowFuse platform.

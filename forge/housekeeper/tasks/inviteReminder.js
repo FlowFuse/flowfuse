@@ -1,22 +1,18 @@
 const { Op } = require('sequelize')
 
-const { randomInt } = require('../utils')
-
 module.exports = {
     name: 'inviteReminder',
     startup: false,
     // This fixed time will not work well when horizontal scaling
     // will need to find a way to pick a "leader"
-    schedule: `38 3 * * *`,
+    schedule: '38 3 * * *',
     run: async function (app) {
-        try {
-        // need to iterate over invitations and send email to all over 
+        // need to iterate over invitations and send email to all over
         // 2 days old, but less than 3 days.
         const twoDays = new Date()
         twoDays.setDate(twoDays.getDate() - 2)
         const threeDays = new Date()
         threeDays.setDate(threeDays.getDate() - 3)
-        console.log(twoDays.toISOString(), threeDays.toISOString())
         const invites = await app.db.models.Invitation.findAll({
             where: {
                 createdAt: {
@@ -24,17 +20,16 @@ module.exports = {
                 }
             },
             include: [
-                { model: app.db.models.User, as: 'invitor'},
-                { model: app.db.models.User, as: 'invitee'}
+                { model: app.db.models.User, as: 'invitor' },
+                { model: app.db.models.User, as: 'invitee' }
             ]
         })
 
-        
-        for(const invite of invites) {
+        for (const invite of invites) {
             const expiryDate = invite.expiresAt.toDateString()
             if (invite.invitee) {
                 // Existing user
-                await app.postoffice.send(invite.invitee, 'TeamInviteReminder',{
+                await app.postoffice.send(invite.invitee, 'TeamInviteReminder', {
                     teamName: invite.team.name,
                     signupLink: `${app.config.base_url}/account/teams/invitations`,
                     expiryDate
@@ -48,7 +43,7 @@ module.exports = {
                     if (providerConfig?.options?.provisionNewUsers) {
                         signupLink = `${app.config.base_url}`
                     }
-                 }
+                }
 
                 await app.postoffice.send(invite, 'UnknownUserInvitationReminder', {
                     invite,
@@ -56,9 +51,6 @@ module.exports = {
                     expiryDate
                 })
             }
-        }
-        } catch (err) {
-            console.log(err)
         }
     }
 }
