@@ -57,7 +57,7 @@ export default {
             auditFilters: {
                 selectedEventScope: null,
                 includeChildren: true,
-                user: null,
+                username: null,
                 event: null
             }
         }
@@ -81,11 +81,11 @@ export default {
         }
     },
     watch: {
-        auditFilters: {
-            deep: true,
-            handler () {
-                this.$refs.AuditLog?.loadEntries(this.logScope)
-            }
+        'auditFilters.selectedEventScope': function () {
+            this.loadEntries()
+        },
+        'auditFilters.includeChildren': function () {
+            this.loadEntries()
         },
         team: 'loadUsers'
     },
@@ -101,13 +101,21 @@ export default {
                 this.auditFilters.event = params.get('event')
             }
             if (params.has('username')) {
-                this.auditFilters.user = params.get('username')
+                this.auditFilters.username = params.get('username')
             }
 
             if (this.applicationId) {
                 params.set('includeChildren', !!this.auditFilters.includeChildren)
-                if (this.auditFilters.event !== null) params.set('event', this.auditFilters.event)
-                if (this.auditFilters.user !== null) params.set('username', this.auditFilters.user)
+                if (this.auditFilters.event?.length) {
+                    params.set('event', this.auditFilters.event)
+                } else {
+                    params.delete('event')
+                }
+                if (this.auditFilters.username?.length) {
+                    params.set('username', this.auditFilters.username)
+                } else {
+                    params.delete('username')
+                }
                 if (this.auditFilters.selectedEventScope === null) {
                     params.set('scope', 'application')
                     const log = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200))

@@ -60,7 +60,7 @@ export default {
             auditFilters: {
                 selectedEventScope: 'team',
                 includeChildren: true,
-                user: null,
+                username: null,
                 event: null
             },
             scopeList: [
@@ -77,11 +77,11 @@ export default {
         }
     },
     watch: {
-        auditFilters: {
-            deep: true,
-            handler () {
-                this.loadEntries()
-            }
+        'auditFilters.selectedEventScope': function () {
+            this.loadEntries()
+        },
+        'auditFilters.includeChildren': function () {
+            this.loadEntries()
         },
         team: 'triggerLoad',
         teamMembership: 'triggerLoad'
@@ -103,14 +103,21 @@ export default {
                 this.auditFilters.event = params.get('event')
             }
             if (params.has('username')) {
-                this.auditFilters.user = params.get('username')
+                this.auditFilters.username = params.get('username')
             }
             if (teamId) {
                 params.set('scope', this.auditFilters.selectedEventScope)
                 params.set('includeChildren', !!this.auditFilters.includeChildren)
-
-                if (this.auditFilters.event !== null) params.set('event', this.auditFilters.event)
-                if (this.auditFilters.user !== null) params.set('username', this.auditFilters.user)
+                if (this.auditFilters.event?.length) {
+                    params.set('event', this.auditFilters.event)
+                } else {
+                    params.delete('event')
+                }
+                if (this.auditFilters.username?.length) {
+                    params.set('username', this.auditFilters.username)
+                } else {
+                    params.delete('username')
+                }
 
                 const auditLog = (await TeamAPI.getTeamAuditLog(teamId, params, cursor, 200))
                 this.logEntries = auditLog.log

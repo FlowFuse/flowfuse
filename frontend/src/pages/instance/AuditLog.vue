@@ -28,7 +28,6 @@ import TeamAPI from '../../api/team.js'
 import FormHeading from '../../components/FormHeading.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
-import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
 export default {
     name: 'InstanceAuditLog',
@@ -72,11 +71,11 @@ export default {
             handler: function (teamId) { if (teamId) this.loadUsers() },
             immediate: true
         },
-        auditFilters: {
-            deep: true,
-            handler () {
-                this.loadEntries()
-            }
+        'auditFilters.selectedEventScope': function () {
+            this.loadEntries()
+        },
+        'auditFilters.includeChildren': function () {
+            this.loadEntries()
         }
     },
     mounted () {
@@ -94,15 +93,22 @@ export default {
                 this.auditFilters.event = params.get('event') || null
             }
             if (params.has('username')) {
-                this.auditFilters.user = params.get('username') || null
+                this.auditFilters.username = params.get('username') || null
             }
 
             if (this.instance.id) {
                 params.set('scope', this.auditFilters.selectedEventScope)
                 params.set('includeChildren', !!this.auditFilters.includeChildren)
-
-                if (this.auditFilters.event !== null) params.set('event', this.auditFilters.event)
-                if (this.auditFilters.user !== null) params.set('username', this.auditFilters.user)
+                if (this.auditFilters.event?.length) {
+                    params.set('event', this.auditFilters.event)
+                } else {
+                    params.delete('event')
+                }
+                if (this.auditFilters.username?.length) {
+                    params.set('username', this.auditFilters.username)
+                } else {
+                    params.delete('username')
+                }
 
                 const auditLog = (await InstanceApi.getInstanceAuditLog(this.instance.id, params, cursor, 200))
                 this.logEntries = auditLog.log

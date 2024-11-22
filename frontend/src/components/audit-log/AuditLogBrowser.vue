@@ -10,7 +10,7 @@
             <FormHeading class="mt-4">Event Type:</FormHeading>
             <div data-el="filter-event-types">
                 <ff-listbox
-                    v-model="auditFilters.type"
+                    v-model="auditFilters.event"
                     :options="typeOptions"
                     placeholder="Show All"
                     class="w-full"
@@ -19,7 +19,7 @@
             <FormHeading class="mt-4">User:</FormHeading>
             <div data-el="filter-users">
                 <ff-listbox
-                    v-model="auditFilters.user"
+                    v-model="auditFilters.username"
                     :options="userOptions"
                     placeholder="Show All"
                     class="w-full"
@@ -71,9 +71,9 @@ export default {
             loading: true,
             gettingEntries: false,
             auditFilters: {
-                type: undefined,
+                event: undefined,
                 types: [],
-                user: null,
+                username: null,
                 users: [],
                 scope: undefined
             }
@@ -98,13 +98,13 @@ export default {
         }
     },
     watch: {
-        'auditFilters.user': function () {
+        'auditFilters.username': function () {
             if (this.loading || this.gettingEntries) {
                 return // skip if we're already loading entries
             }
             this.loadEntries()
         },
-        'auditFilters.type': function () {
+        'auditFilters.event': function () {
             if (this.loading || this.gettingEntries) {
                 return // skip if we're already loading entries
             }
@@ -133,18 +133,13 @@ export default {
             scope = scope || this.auditFilters.scope
             if (this.auditFilters.scope !== scope) {
                 this.auditFilters.scope = scope // store the scope for later queries
-                // clear this.auditFilters.type without triggering a watch
-                this.auditFilters.type = undefined // clear the "event type filter" as scope has changed
+                // clear this.auditFilters.event without triggering a watch
+                this.auditFilters.event = undefined // clear the "event filter" as scope has changed
                 this.loadEventTypes(scope)
             }
             const params = new URLSearchParams()
-            if (this.auditFilters.user) {
-                params.append('username', this.auditFilters.user)
-            }
-            if (this.auditFilters.type) {
-                params.append('event', this.auditFilters.type)
-            }
-
+            params.append('username', this.auditFilters.username || '')
+            params.append('event', this.auditFilters.event || '')
             this.$emit('load-entries', params)
             this.gettingEntries = false
         },
