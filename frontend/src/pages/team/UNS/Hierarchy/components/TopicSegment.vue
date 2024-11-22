@@ -12,6 +12,11 @@
                     <span v-if="hasChildren" class="font-normal opacity-50 text-xs">{{ topicsCounterLabel }}</span>
                 </p>
             </div>
+            <div v-if="childrenCount === 0" class="ml-auto">
+                <ff-button v-ff-tooltip:left="'Copy topic to Clipboard'" kind="tertiary" size="small" @click="copyTopic()">
+                    <template #icon><ClipboardCopyIcon /></template>
+                </ff-button>
+            </div>
         </div>
         <div v-if="hasChildren && visibleChildren" class="children" data-el="segment-children" :class="{ 'pl-10': isRoot}">
             <topic-segment
@@ -21,6 +26,7 @@
                 :children="children[child]"
                 :has-siblings="Object.keys(children).length > 1"
                 :is-last-sibling="key === Object.keys(children).length-1"
+                :parent-topic="topic"
                 :class="{'pl-10': !isRoot}"
             />
         </div>
@@ -28,10 +34,15 @@
 </template>
 
 <script>
+import { ClipboardCopyIcon } from '@heroicons/vue/outline'
 import { ChevronRightIcon } from '@heroicons/vue/solid'
+
+import clipboardMixin from '../../../../../mixins/Clipboard.js'
+import Alerts from '../../../../../services/alerts.js'
 export default {
     name: 'TopicSegment',
-    components: { ChevronRightIcon },
+    components: { ChevronRightIcon, ClipboardCopyIcon },
+    mixins: [clipboardMixin],
     props: {
         segment: {
             required: true,
@@ -53,6 +64,11 @@ export default {
         isLastSibling: {
             required: true,
             type: Boolean
+        },
+        parentTopic: {
+            required: false,
+            type: String,
+            default: ''
         }
     },
     data () {
@@ -76,6 +92,9 @@ export default {
         },
         shouldShowTrunk () {
             return !this.isRoot && this.hasSiblings && this.isLastSibling
+        },
+        topic () {
+            return this.isRoot ? this.segment : `${this.parentTopic}/${this.segment}`
         }
     },
     methods: {
@@ -83,6 +102,14 @@ export default {
             if (this.hasChildren) {
                 this.visibleChildren = !this.visibleChildren
             }
+        },
+        copyTopic () {
+            this.copyToClipboard(this.topic).then(() => {
+                Alerts.emit('Copied topic to Clipboard.', 'confirmation')
+            }).catch((err) => {
+                console.warn('Clipboard write permission denied: ', err)
+                Alerts.emit('Clipboard write permission denied.', 'warning')
+            })
         }
     }
 }
