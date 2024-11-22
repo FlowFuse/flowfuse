@@ -401,10 +401,6 @@ describe('Team Broker API', function () {
             const result = response.json()
             result.should.have.property('result', 'deny')
         })
-        /*
-         * Need tests for the project nodes and devices both
-         * Auth and ACL
-         */
         it('Test Authentication forge_platform pass', async function () {
             const response = await app.inject({
                 method: 'POST',

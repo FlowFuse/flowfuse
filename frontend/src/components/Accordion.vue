@@ -6,7 +6,7 @@
             </slot>
             <div class="toggle">
                 <slot name="meta" />
-                <ChevronLeftIcon v-if="!disabled" class="ff-icon" />
+                <ChevronLeftIcon v-if="!disabled" class="ff-icon chevron" />
             </div>
         </button>
         <div ref="content" class="ff-accordion--content">

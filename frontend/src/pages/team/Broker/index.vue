@@ -22,7 +22,7 @@
             :featureUnavailableToTeam="!isMqttBrokerFeatureEnabledForTeam"
         >
             <template #img>
-                <img src="../../../images/empty-states/mqtt.png" alt="pipelines-logo">
+                <img src="../../../images/empty-states/mqtt-forbidden.png" alt="pipelines-logo">
             </template>
             <template #header>
                 <span>Broker Not Available</span>
@@ -67,69 +67,11 @@
                             </div>
                             <ul data-el="clients-list" class="clients-list">
                                 <li v-for="client in filteredClients" :key="client.id" class="client" data-el="client">
-                                    <ff-accordion class="max-w-full w-full">
-                                        <template #label>
-                                            <div class="username text-left">
-                                                {{ client.username }}<span class="italic">@{{ team.id }}</span>
-                                            </div>
-                                            <div class="rules text-left">
-                                                <span>{{ client.acls.length }} Rule{{ client.acls.length > 1 ? 's' : '' }}</span>
-                                            </div>
-                                        </template>
-                                        <template #meta>
-                                            <span
-                                                class="edit hover:cursor-pointer"
-                                                data-action="edit-client"
-                                                @click.prevent.stop="editClient(client)"
-                                            >
-                                                <PencilIcon
-                                                    v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
-                                                    class="ff-icon-sm"
-                                                />
-                                            </span>
-                                            <span
-                                                class="delete hover:cursor-pointer "
-                                                data-action="delete-client"
-                                                @click.prevent.stop="deleteClient(client)"
-                                            >
-                                                <TrashIcon
-                                                    v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
-                                                    class="ff-icon-sm text-red-500"
-                                                />
-                                            </span>
-                                        </template>
-                                        <template #content>
-                                            <ul class="acl-list">
-                                                <li v-for="(acl, $key) in client.acls" :key="$key" class="acl grid grid-cols-6 gap-4" data-el="acl">
-                                                    <div class="action col-start-2 flex gap-2.5">
-                                                        <span
-                                                            :class="{
-                                                                'text-green-500': ['publish', 'both'].includes(acl.action),
-                                                                'text-red-500': ['subscribe'].includes(acl.action)
-                                                            } "
-                                                        >
-                                                            <CheckIcon v-if="['publish', 'both'].includes(acl.action)" class="ff-icon-sm" />
-                                                            <XIcon v-else class="ff-icon-sm" />
-                                                            pub
-                                                        </span>
-                                                        <span
-                                                            :class="{
-                                                                'text-green-500': ['subscribe', 'both'].includes(acl.action),
-                                                                'text-red-500': ['publish'].includes(acl.action)
-                                                            } "
-                                                        >
-                                                            <CheckIcon v-if="['subscribe', 'both'].includes(acl.action)" class="ff-icon-sm" />
-                                                            <XIcon v-else class="ff-icon-sm" />
-                                                            sub
-                                                        </span>
-                                                    </div>
-                                                    <div class="pattern">
-                                                        {{ acl.pattern }}
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </template>
-                                    </ff-accordion>
+                                    <broker-client
+                                        :client="client"
+                                        @edit-client="onEditClient"
+                                        @delete-client="onDeleteClient"
+                                    />
                                 </li>
                                 <li v-if="!filteredClients.length" class="text-center p-5">
                                     No clients found by that name.
@@ -139,7 +81,7 @@
                     </section>
                     <EmptyState v-else>
                         <template #img>
-                            <img src="../../../images/empty-states/mqtt.png" alt="logo">
+                            <img src="../../../images/empty-states/mqtt-empty.png" alt="logo">
                         </template>
                         <template #header>Create your first Broker Client</template>
                         <template #message>
@@ -165,7 +107,6 @@
             <ClientDialog
                 ref="clientDialog"
                 :clients="clients"
-                :team="team"
                 @client-created="fetchData"
                 @client-updated="fetchData"
             />
@@ -174,43 +115,37 @@
 </template>
 
 <script>
-import { CheckIcon, PencilIcon, PlusSmIcon, SearchIcon, TrashIcon, XIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import brokerApi from '../../../api/broker.js'
-import FfAccordion from '../../../components/Accordion.vue'
 import EmptyState from '../../../components/EmptyState.vue'
+import clipboardMixin from '../../../mixins/Clipboard.js'
 import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 import { Roles } from '../../../utils/roles.js'
 
+import BrokerClient from './components/BrokerClient.vue'
+
 import ClientDialog from './dialogs/ClientDialog.vue'
 
 export default {
     name: 'TeamBroker',
     components: {
-        FfAccordion,
+        BrokerClient,
         SearchIcon,
         PlusSmIcon,
-        PencilIcon,
-        TrashIcon,
-        CheckIcon,
-        XIcon,
         EmptyState,
         ClientDialog
     },
-    mixins: [permissionsMixin, featuresMixin],
+    mixins: [permissionsMixin, featuresMixin, clipboardMixin],
     data () {
         return {
             loading: false,
             clients: [],
-            filterTerm: '',
-            columns: [
-                { label: 'Username', class: ['flex-grow'], key: 'username', sortable: true },
-                { label: 'ACLS', class: ['w-44'], key: 'acls', sortable: false }
-            ]
+            filterTerm: ''
         }
     },
     computed: {
@@ -254,10 +189,10 @@ export default {
         async createClient () {
             this.$refs.clientDialog.showCreate()
         },
-        async editClient (client) {
+        async onEditClient (client) {
             this.$refs.clientDialog.showEdit(client)
         },
-        async deleteClient (client) {
+        async onDeleteClient (client) {
             await Dialog.show({
                 header: 'Delete Client',
                 text: 'Are you sure you want to delete this Client?',
@@ -302,85 +237,6 @@ export default {
                 &:last-of-type {
                     border-bottom: none;
                 }
-
-               .ff-accordion {
-                   margin-bottom: 0;
-
-                   button {
-                       border: none;
-                       background: none;
-                       display: grid;
-                       grid-template-columns: repeat(6, 1fr);
-                       gap: 15px;
-                       padding: 0;
-
-                       .username {
-                           padding: 15px 10px;
-                           grid-column: span 2;
-                       }
-
-                       .rules {
-                           padding: 15px 10px;
-
-                       }
-
-                       .toggle {
-                           grid-column: span 3;
-                           text-align: right;
-                           padding-right: 10px;
-                           display: flex;
-                           align-items: center;
-                           justify-content: flex-end;
-
-                           .edit, .delete {
-                               padding: 24px 15px;
-                               display: inline-block;
-                               position: relative;
-                               align-self: stretch;
-
-                               .ff-icon-sm {
-                                   position: absolute;
-                                   top: 50%;
-                                   left: 50%;
-                                   transform: translate(-50%, -50%);
-                                   transition: ease-in-out .3s;
-                               }
-
-                               &:hover {
-                                   .ff-icon-sm {
-                                       width: 20px;
-                                       height: 20px;
-                                   }
-                               }
-                           }
-
-                           .edit:hover {
-                               //color: green;
-                               color: $ff-grey-700;
-                           }
-                           .delete:hover {
-                               //color: yellow;
-                               color: $ff-red-700;
-                           }
-                       }
-                   }
-
-                   .ff-accordion--content {
-                       background: $ff-grey-100;
-                       .acl-list {
-                           .acl {
-                               border-bottom: 1px solid $ff-grey-200;
-                               padding: 15px 10px;
-                               gap: 10px;
-                               font-size: 80%;
-
-                               &:last-of-type {
-                                   border: none;
-                               }
-                           }
-                       }
-                   }
-               }
             }
         }
     }
