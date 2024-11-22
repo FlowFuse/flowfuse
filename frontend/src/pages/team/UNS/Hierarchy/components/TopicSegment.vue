@@ -1,5 +1,5 @@
 <template>
-    <div class="segment-wrapper" :class="{open: visibleChildren}" data-el="segment-wrapper" :data-value="segment">
+    <div class="segment-wrapper" :class="{open: isSegmentOpen}" data-el="segment-wrapper" :data-value="segment.name">
         <div class="segment flex" @click="toggleChildren">
             <div class="diagram">
                 <span v-if="!isRoot" class="connector-elbow" />
@@ -10,18 +10,20 @@
                 <p class="flex gap-2.5 items-end" :class="{'ml-2': !hasChildren}">
                     <span class="title">{{ segmentText }}</span>
                     <span v-if="hasChildren" class="font-normal opacity-50 text-xs">{{ topicsCounterLabel }}</span>
+                    <text-copier :text="segment.path" :show-text="false" class="ff-text-copier" />
                 </p>
             </div>
         </div>
-        <div v-if="hasChildren && visibleChildren" class="children" data-el="segment-children" :class="{ 'pl-10': isRoot}">
+        <div v-if="hasChildren && isSegmentOpen" class="children" data-el="segment-children" :class="{ 'pl-10': isRoot}">
             <topic-segment
-                v-for="(child, key) in Object.keys(children)"
-                :key="child"
-                :segment="child"
-                :children="children[child]"
+                v-for="(child, key) in childrenSegments"
+                :key="child.path"
+                :segment="children[child]"
+                :children="children[child].children"
                 :has-siblings="Object.keys(children).length > 1"
-                :is-last-sibling="key === Object.keys(children).length-1"
+                :is-last-sibling="key === Object.keys(children).length - 1"
                 :class="{'pl-10': !isRoot}"
+                @segment-state-changed="$emit('segment-state-changed', $event)"
             />
         </div>
     </div>
@@ -29,13 +31,15 @@
 
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/solid'
+
+import TextCopier from '../../../../../components/TextCopier.vue'
 export default {
     name: 'TopicSegment',
-    components: { ChevronRightIcon },
+    components: { TextCopier, ChevronRightIcon },
     props: {
         segment: {
             required: true,
-            type: String
+            type: Object
         },
         children: {
             required: true,
@@ -55,9 +59,10 @@ export default {
             type: Boolean
         }
     },
+    emits: ['segment-state-changed'],
     data () {
         return {
-            visibleChildren: false
+            isSegmentOpen: false
         }
     },
     computed: {
@@ -67,21 +72,38 @@ export default {
         hasChildren () {
             return this.childrenCount > 0
         },
+        childrenSegments () {
+            return Object.keys(this.children).sort()
+        },
         topicsCounterLabel () {
-            const label = 'topic' + (this.childrenCount <= 1 ? '' : 's')
-            return `(${this.childrenCount} ${label})`
+            const label = 'topic' + (this.segment.childrenCount <= 1 ? '' : 's')
+            return `(${this.segment.childrenCount} ${label})`
         },
         segmentText () {
-            return this.hasChildren ? `${this.segment}/` : this.segment
+            return this.hasChildren ? `${this.segment.name}/` : this.segment.name
         },
         shouldShowTrunk () {
             return !this.isRoot && this.hasSiblings && this.isLastSibling
         }
     },
+    watch: {
+        isSegmentOpen: {
+            handler () {
+                this.$emit('segment-state-changed', {
+                    state: this.isSegmentOpen,
+                    path: this.segment.path
+                })
+            },
+            immediate: false
+        }
+    },
+    mounted () {
+        this.isSegmentOpen = this.segment.open
+    },
     methods: {
         toggleChildren () {
             if (this.hasChildren) {
-                this.visibleChildren = !this.visibleChildren
+                this.isSegmentOpen = !this.isSegmentOpen
             }
         }
     }
@@ -120,9 +142,22 @@ export default {
 
         .content {
             padding: 5px;
+            position: relative;
 
             .chevron {
                 transition: ease .3s;
+            }
+
+            .ff-text-copier {
+                display: none;
+                height: 17px;
+            }
+
+            &:hover {
+                .ff-text-copier {
+                    display: inline-block;
+                    color: $ff-grey-400;
+                }
             }
         }
     }
