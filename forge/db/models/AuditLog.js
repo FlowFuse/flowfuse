@@ -274,7 +274,6 @@ module.exports = {
                             })
                         } else {
                             const clause = { TeamId: teamId }
-                            // applicationIds = (await M.Application.findAll({ where: clause, attributes: ['id'] })).map(a => a.id?.toString()).filter(a => !!a)
                             const _applications = (await M.Application.findAll({ where: clause, attributes: ['id', 'hashid', 'name', 'TeamId'] }))
                             _applications.forEach(a => applicationMap.set(a.id?.toString(), a))
                             applicationIds = _applications.map(a => a.id?.toString()).filter(a => !!a)
@@ -329,7 +328,6 @@ module.exports = {
                                     clause.ApplicationId = applicationId.toString()
                                 }
                             }
-                            // instanceIds = (await M.Project.findAll({ where: clause, attributes: ['id'] })).map(p => p.id?.toString()).filter(p => !!p)
                             const _instances = (await M.Project.findAll({ where: clause, attributes: ['id', 'name', 'ApplicationId', 'TeamId', 'state'] }))
                             _instances.forEach(i => instanceMap.set(i.id?.toString(), i))
                             instanceIds = _instances.map(p => p.id?.toString()).filter(p => !!p)
