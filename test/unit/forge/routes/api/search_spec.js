@@ -1,3 +1,4 @@
+const Sinon = require('sinon')
 const should = require('should') // eslint-disable-line
 const setup = require('../setup')
 
@@ -49,9 +50,9 @@ describe('Search API', function () {
 
         TestObjects.AppOne = await app.factory.createApplication({ name: 'Application One', description: 'app-one-desc' }, TestObjects.BTeam)
 
-        const ia1abc = await app.factory.createInstance({ name: 'instance-app-one-abc' }, TestObjects.AppOne, app.stack, app.template, app.projectType, { start: false })
+        TestObjects.App1Instance1 = await app.factory.createInstance({ name: 'instance-app-one-abc' }, TestObjects.AppOne, app.stack, app.template, app.projectType, { start: false })
         await app.factory.createInstance({ name: 'instance-app-one-def' }, TestObjects.AppOne, app.stack, app.template, app.projectType, { start: false })
-        await app.factory.createDevice({ name: 'device-app-one-instance-one-ghi' }, TestObjects.BTeam, ia1abc)
+        TestObjects.App1Instance1Device1 = await app.factory.createDevice({ name: 'device-app-one-instance-one-ghi' }, TestObjects.BTeam, TestObjects.App1Instance1)
         await app.factory.createDevice({ name: 'device-app-one-abc' }, TestObjects.BTeam, null, TestObjects.AppOne)
         await app.factory.createDevice({ name: 'device-app-one-def' }, TestObjects.BTeam, null, TestObjects.AppOne)
 
@@ -72,6 +73,10 @@ describe('Search API', function () {
 
     after(async function () {
         await app.close()
+    })
+
+    afterEach(function () {
+        Sinon.restore()
     })
 
     async function login (username, password) {
@@ -192,6 +197,75 @@ describe('Search API', function () {
         result.count.should.equal(1)
         result.results.should.have.length(1)
         result.results[0].should.have.property('object', 'device')
+    })
+
+    it('search by application id returns only one application & does not query other tables', async function () {
+        // bob - team member
+        Sinon.spy(app.db.models.Application, 'byTeam')
+        Sinon.spy(app.db.models.Project, 'byTeam')
+        Sinon.spy(app.db.models.Device, 'byTeam')
+
+        const response = await search({ team: TestObjects.BTeam.hashid, query: TestObjects.AppOne.hashid }, TestObjects.tokens.bob)
+        response.statusCode.should.equal(200)
+        const result = response.json()
+        result.count.should.equal(1)
+        result.results.should.have.length(1)
+        result.results[0].should.have.property('object', 'application')
+
+        app.db.models.Application.byTeam.called.should.be.true()
+        app.db.models.Project.byTeam.called.should.be.false()
+        app.db.models.Device.byTeam.called.should.be.false()
+
+        // ensure query was not passed to byTeam & that applicationId was passed
+        const args = app.db.models.Application.byTeam.getCall(0).args
+        args[1].should.not.have.property('query')
+        args[1].should.have.property('applicationId', TestObjects.AppOne.id) // actual id, not hashid
+    })
+
+    it('search by instance id returns only one instance & does not query other tables', async function () {
+        // bob - team member
+        Sinon.spy(app.db.models.Application, 'byTeam')
+        Sinon.spy(app.db.models.Project, 'byTeam')
+        Sinon.spy(app.db.models.Device, 'byTeam')
+
+        const response = await search({ team: TestObjects.BTeam.hashid, query: TestObjects.App1Instance1.id }, TestObjects.tokens.bob)
+        response.statusCode.should.equal(200)
+        const result = response.json()
+        result.count.should.equal(1)
+        result.results.should.have.length(1)
+        result.results[0].should.have.property('object', 'instance')
+
+        app.db.models.Application.byTeam.called.should.be.false()
+        app.db.models.Project.byTeam.called.should.be.true()
+        app.db.models.Device.byTeam.called.should.be.false()
+
+        // ensure query was not passed to byTeam & that instanceId was passed
+        const args = app.db.models.Project.byTeam.getCall(0).args
+        args[1].should.not.have.property('query')
+        args[1].should.have.property('instanceId', TestObjects.App1Instance1.id)
+    })
+
+    it('search by device id returns only one device & does not query other tables', async function () {
+        // bob - team member
+        Sinon.spy(app.db.models.Application, 'byTeam')
+        Sinon.spy(app.db.models.Project, 'byTeam')
+        Sinon.spy(app.db.models.Device, 'byTeam')
+
+        const response = await search({ team: TestObjects.BTeam.hashid, query: TestObjects.App1Instance1Device1.hashid }, TestObjects.tokens.bob)
+        response.statusCode.should.equal(200)
+        const result = response.json()
+        result.count.should.equal(1)
+        result.results.should.have.length(1)
+        result.results[0].should.have.property('object', 'device')
+
+        app.db.models.Application.byTeam.called.should.be.false()
+        app.db.models.Project.byTeam.called.should.be.false()
+        app.db.models.Device.byTeam.called.should.be.true()
+
+        // ensure query was not passed to byTeam & that deviceId was passed
+        const args = app.db.models.Device.byTeam.getCall(0).args
+        args[1].should.not.have.property('query')
+        args[1].should.have.property('deviceId', TestObjects.App1Instance1Device1.id)
     })
 
     it('search with blank query returns nothing', async function () {
