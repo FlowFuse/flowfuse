@@ -49,7 +49,7 @@ describe('FlowForge - Instance - Logs', () => {
         cy.get('[data-el="select-ha-replica"]').should('not.exist')
     })
 
-    it.only('display a marker to indicuate with HA replica the logs are from, if present', () => {
+    it('display a marker to indicuate with HA replica the logs are from, if present', () => {
         // Modify our Instance so that HA is enabled
         cy.intercept('GET', '/api/*/projects/*', (req) => {
             req.continue((res) => {
