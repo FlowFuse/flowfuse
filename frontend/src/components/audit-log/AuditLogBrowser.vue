@@ -39,7 +39,7 @@ import FormHeading from '../FormHeading.vue'
 import AuditLog from './AuditLog.vue'
 
 export default {
-    name: 'AuditLogPage',
+    name: 'AuditLogBrowser',
     components: {
         FfListbox,
         AuditLog,
@@ -150,14 +150,17 @@ export default {
         },
         loadEventTypes (scope) {
             scope = scope || this.auditFilters.scope
-            this.auditFilters.types = Object.entries(AuditEventsService.getGroup(scope)).sort((a, b) => {
-                if (a[0] < b[0]) {
-                    return -1
-                } else if (a[0] > b[0]) {
-                    return 1
-                }
-                return 0
-            })
+
+            if (scope) {
+                this.auditFilters.types = Object.entries(AuditEventsService.getGroup(scope)).sort((a, b) => {
+                    if (a[0] < b[0]) {
+                        return -1
+                    } else if (a[0] > b[0]) {
+                        return 1
+                    }
+                    return 0
+                })
+            }
         }
     }
 }

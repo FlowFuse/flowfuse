@@ -368,6 +368,11 @@ module.exports = {
                                 entityType: 'device',
                                 entityId: { [Op.in]: deviceIds }
                             })
+                        } else {
+                            filters.push({
+                                entityType: 'device',
+                                entityId: { [Op.in]: [] }
+                            })
                         }
                     }
 
@@ -420,7 +425,14 @@ module.exports = {
                         result.filter = { [Op.or]: filters }
                         return result
                     }
-                    return null
+                    return {
+                        filter: null,
+                        associations: {
+                            applications: [],
+                            instances: [],
+                            devices: []
+                        }
+                    }
                 }
             }
         }

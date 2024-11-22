@@ -36,7 +36,7 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 
 export default {
-    name: 'ApplicationAuditLog',
+    name: 'ApplicationActivity',
     components: {
         SectionTopMenu,
         AuditLogBrowser,
@@ -56,7 +56,9 @@ export default {
             users: [],
             auditFilters: {
                 selectedEventScope: null,
-                includeChildren: true
+                includeChildren: true,
+                user: null,
+                event: null
             }
         }
     },
@@ -95,8 +97,17 @@ export default {
             this.users = (await TeamAPI.getTeamMembers(this.team.id)).members
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
+            if (params.has('event')) {
+                this.auditFilters.event = params.get('event')
+            }
+            if (params.has('username')) {
+                this.auditFilters.user = params.get('username')
+            }
+
             if (this.applicationId) {
                 params.set('includeChildren', !!this.auditFilters.includeChildren)
+                if (this.auditFilters.event !== null) params.set('event', this.auditFilters.event)
+                if (this.auditFilters.user !== null) params.set('username', this.auditFilters.user)
                 if (this.auditFilters.selectedEventScope === null) {
                     params.set('scope', 'application')
                     const log = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200))

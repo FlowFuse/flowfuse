@@ -59,7 +59,9 @@ export default {
             users: [],
             auditFilters: {
                 selectedEventScope: 'team',
-                includeChildren: true
+                includeChildren: true,
+                user: null,
+                event: null
             },
             scopeList: [
                 { name: 'Team', id: 'team' },
@@ -97,9 +99,19 @@ export default {
             }
 
             const teamId = this.team.id
+            if (params.has('event')) {
+                this.auditFilters.event = params.get('event')
+            }
+            if (params.has('username')) {
+                this.auditFilters.user = params.get('username')
+            }
             if (teamId) {
                 params.set('scope', this.auditFilters.selectedEventScope)
                 params.set('includeChildren', !!this.auditFilters.includeChildren)
+
+                if (this.auditFilters.event !== null) params.set('event', this.auditFilters.event)
+                if (this.auditFilters.user !== null) params.set('username', this.auditFilters.user)
+
                 const auditLog = (await TeamAPI.getTeamAuditLog(teamId, params, cursor, 200))
                 this.logEntries = auditLog.log
                 this.associations = auditLog.associations

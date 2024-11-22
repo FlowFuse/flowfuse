@@ -1,5 +1,5 @@
 <template>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" :logType="project" @load-entries="loadEntries">
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" logType="project" @load-entries="loadEntries">
         <template #title>
             <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this instance." />
         </template>
@@ -28,6 +28,7 @@ import TeamAPI from '../../api/team.js'
 import FormHeading from '../../components/FormHeading.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
+import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
 export default {
     name: 'InstanceAuditLog',
@@ -50,7 +51,9 @@ export default {
             users: [],
             auditFilters: {
                 selectedEventScope: 'project',
-                includeChildren: true
+                includeChildren: true,
+                user: null,
+                event: null
             },
             scopeList: [
                 { name: 'This Instance', id: 'project' },
@@ -87,9 +90,20 @@ export default {
             this.users = (await TeamAPI.getTeamMembers(this.team.id)).members
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
+            if (params.has('event')) {
+                this.auditFilters.event = params.get('event') || null
+            }
+            if (params.has('username')) {
+                this.auditFilters.user = params.get('username') || null
+            }
+
             if (this.instance.id) {
                 params.set('scope', this.auditFilters.selectedEventScope)
                 params.set('includeChildren', !!this.auditFilters.includeChildren)
+
+                if (this.auditFilters.event !== null) params.set('event', this.auditFilters.event)
+                if (this.auditFilters.user !== null) params.set('username', this.auditFilters.user)
+
                 const auditLog = (await InstanceApi.getInstanceAuditLog(this.instance.id, params, cursor, 200))
                 this.logEntries = auditLog.log
                 // dont show associations if we are looking at "this" scope (project)"
