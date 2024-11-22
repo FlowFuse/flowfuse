@@ -27,7 +27,7 @@ describe('FlowForge - Team Audit Log', () => {
 
         it('provides a list of users to filter by', () => {
             cy.get('[data-el="filter-users"]').click()
-            cy.get('[data-el="filter-users"] .option').should('have.length', 3)
+            cy.get('[data-el="filter-users"] .ff-option').should('have.length', 3)
         })
 
         it('enables filtering by a user', () => {
@@ -35,10 +35,10 @@ describe('FlowForge - Team Audit Log', () => {
 
             // Check Alice Skywalker Events - should be 4
             cy.get('[data-el="filter-users"]').click()
-            cy.get('[data-el="filter-users"] .options').should('be.visible')
+            cy.get('[data-el="filter-users"] .ff-options').should('be.visible')
 
-            cy.get('[data-el="filter-users"] .options > .option').eq(1).contains('Alice Skywalker').should('be.visible')
-            cy.get('[data-el="filter-users"] .options > .option').eq(1).click()
+            cy.get('[data-el="filter-users"] .ff-options > .ff-option').eq(1).contains('Alice Skywalker').should('be.visible')
+            cy.get('[data-el="filter-users"] .ff-options > .ff-option').eq(1).click()
             cy.wait('@getAuditLog')
 
             // // length when running in isolation is 4, in tandem with the rest of the E2E tests - it's 6.
@@ -46,10 +46,10 @@ describe('FlowForge - Team Audit Log', () => {
 
             // Check Bob Solo Events - should be 0
             cy.get('[data-el="filter-users"]').click()
-            cy.get('[data-el="filter-users"] .options').should('be.visible')
+            cy.get('[data-el="filter-users"] .ff-options').should('be.visible')
 
-            cy.get('[data-el="filter-users"] .options > .option').eq(2).contains('Bob Solo').should('be.visible')
-            cy.get('[data-el="filter-users"] .options > .option').eq(2).click()
+            cy.get('[data-el="filter-users"] .ff-options > .ff-option').eq(2).contains('Bob Solo').should('be.visible')
+            cy.get('[data-el="filter-users"] .ff-options > .ff-option').eq(2).click()
             cy.wait('@getAuditLog')
 
             cy.get('[data-el="audit-log"]').find('.ff-audit-entry').should('have.length', 0)
