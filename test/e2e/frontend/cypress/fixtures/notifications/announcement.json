@@ -1,0 +1,11 @@
+{
+  "id": "EgJbI5fg9k",
+  "type": "announcement",
+  "createdAt": null,
+  "read": false,
+  "data": {
+    "title": "Platform Wide Notification",
+    "message": "Hello, I'm your friendly neighborhood platform wide notification.",
+    "to": "{\"name\":\"Application\",\"params\":{\"id\":\"application-id\"}}"
+  }
+}

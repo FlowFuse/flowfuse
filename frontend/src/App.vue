@@ -1,5 +1,5 @@
 <template>
-    <div id="ff-app" class="min-h-screen flex flex-col">
+    <div id="ff-app" class="flex flex-col" :class="{'hidden-left-drawer': hiddenLeftDrawer}">
         <template v-if="offline">
             <main class="ff-bg-dark flex-grow flex flex-col">
                 <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -88,6 +88,8 @@ export default {
     },
     computed: {
         ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
+        ...mapState('ux', ['leftDrawer']),
+        ...mapGetters('ux', ['hiddenLeftDrawer']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },

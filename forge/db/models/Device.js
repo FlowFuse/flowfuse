@@ -6,7 +6,7 @@ const crypto = require('crypto')
 
 const SemVer = require('semver')
 
-const { DataTypes, Op } = require('sequelize')
+const { col, fn, DataTypes, Op, where } = require('sequelize')
 
 const Controllers = require('../controllers')
 const { buildPaginationSearchClause } = require('../utils')
@@ -95,8 +95,30 @@ module.exports = {
             afterSave: async (device, options) => {
                 // since `id`, `name` and `type` are added as FF_DEVICE_xx env vars, we
                 // should update the settings checksum if they are modified
-                if (device.changed('name') || device.changed('type') || device.changed('id')) {
-                    await device.updateSettingsHash()
+                // Additionally, since changing the target snapshot or DeviceGroupId
+                // can affect the FF_ env vars, we should update the checksum
+                if (device.changed('name') || device.changed('type') || device.changed('id') || device.changed('targetSnapshotId') || device.changed('DeviceGroupId')) {
+                    const updated = await device.updateSettingsHash()
+                    if (updated) {
+                        await device.save({
+                            hooks: false,
+                            transaction: options.transaction
+                        })
+                    }
+                }
+            },
+            afterBulkUpdate: async (options) => {
+                if (options.fields.includes('targetSnapshotId') || options.fields.includes('DeviceGroupId')) {
+                    const devices = await M.Device.findAll({ where: options.where })
+                    for (const device of devices) {
+                        const updated = await device.updateSettingsHash()
+                        if (updated) {
+                            await device.save({
+                                hooks: false,
+                                transaction: options.transaction
+                            })
+                        }
+                    }
                 }
             },
             afterDestroy: async (device, opts) => {
@@ -148,9 +170,11 @@ module.exports = {
                     })
                 },
                 async updateSettingsHash (settings) {
+                    const settingsHash = this.settingsHash
                     const _settings = settings || await this.getAllSettings({ mergeDeviceGroupSettings: true })
                     delete _settings.autoSnapshot // autoSnapshot is not part of the settings hash
                     this.settingsHash = hashSettings(_settings)
+                    return this.settingsHash !== settingsHash
                 },
                 async getAllSettings (options = { mergeDeviceGroupSettings: false }) {
                     const mergeDeviceGroupSettings = options.mergeDeviceGroupSettings || false
@@ -159,6 +183,18 @@ module.exports = {
                     settings.forEach(setting => {
                         result[setting.key] = setting.value
                     })
+                    // To compute the platform specific env vars, we need the associated
+                    // owner (application or instance) and the target snapshot model (if any)
+                    const reloadWith = []
+                    if (this.isApplicationOwned && !this.Application) {
+                        reloadWith.push(M.Application)
+                    }
+                    if (this.targetSnapshotId && !this.targetSnapshot) {
+                        reloadWith.push({ model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] })
+                    }
+                    if (reloadWith.length) {
+                        await this.reload({ include: reloadWith })
+                    }
                     result.env = Controllers.Device.insertPlatformSpecificEnvVars(this, result.env) // add platform specific device env vars
                     // if the device is a group member, we need to merge the group settings
                     if (mergeDeviceGroupSettings && this.DeviceGroupId) {
@@ -268,6 +304,25 @@ module.exports = {
                             { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
                         ]
                     })
+                },
+                byTeam: async (teamIdOrHash, { query = null } = {}) => {
+                    let teamId = teamIdOrHash
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
+                    const queryObject = {
+                        where: { [Op.and]: [{ TeamId: teamId }] }
+                    }
+
+                    if (query) {
+                        queryObject.where[Op.and].push({
+                            [Op.or]: [
+                                where(fn('lower', col('Device.name')), { [Op.like]: `%${query.toLowerCase()}%` }),
+                                where(fn('lower', col('Device.type')), { [Op.like]: `%${query.toLowerCase()}%` })
+                            ]
+                        })
+                    }
+                    return this.getAll({}, queryObject.where)
                 },
                 getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false, includeDeviceGroup = false } = {}) => {
                     // Pagination

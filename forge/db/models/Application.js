@@ -2,7 +2,7 @@
  * An application definition
  * @namespace forge.db.models.Application
  */
-const { DataTypes, Op, literal } = require('sequelize')
+const { col, fn, DataTypes, Op, literal, where } = require('sequelize')
 
 const { KEY_SETTINGS, KEY_HA } = require('./ProjectSettings')
 
@@ -47,7 +47,7 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamIdOrHash, { includeInstances = false, includeApplicationDevices = false, includeInstanceStorageFlow = false, associationsLimit = null, includeApplicationSummary = false } = {}) => {
+                byTeam: async (teamIdOrHash, { query = null, includeInstances = false, includeApplicationDevices = false, includeInstanceStorageFlow = false, associationsLimit = null, includeApplicationSummary = false } = {}) => {
                     let id = teamIdOrHash
                     if (typeof teamIdOrHash === 'string') {
                         id = M.Team.decodeHashid(teamIdOrHash)
@@ -117,12 +117,20 @@ module.exports = {
                         includes.push(include)
                     }
 
-                    const query = {
+                    const queryObject = {
                         include: includes
+                    }
+                    if (query) {
+                        queryObject.where = {
+                            [Op.or]: [
+                                where(fn('lower', col('Application.name')), { [Op.like]: `%${query.toLowerCase()}%` }),
+                                where(fn('lower', col('Application.description')), { [Op.like]: `%${query.toLowerCase()}%` })
+                            ]
+                        }
                     }
 
                     if (includeApplicationSummary) {
-                        query.attributes = {
+                        queryObject.attributes = {
                             include: [
                                 [
                                     literal(`(
@@ -166,7 +174,7 @@ module.exports = {
                         // You can add a license without a restart, so we also need to check if the Model is loaded
                         // If the model is loaded, it can be assumed the table exists
                         if (app.license.active() && app.db.models.Pipeline) {
-                            query.attributes.include.push([
+                            queryObject.attributes.include.push([
                                 literal(`(
                                     SELECT count(*)
                                     FROM "Pipelines"
@@ -177,7 +185,7 @@ module.exports = {
                         }
                     }
 
-                    return this.findAll(query)
+                    return this.findAll(queryObject)
                 }
             },
             instance: {

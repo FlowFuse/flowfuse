@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize')
 
-const { hash, buildPaginationSearchClause } = require('../../../db/utils')
+const { hash, buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
     name: 'TeamBrokerClient',
@@ -20,6 +20,26 @@ module.exports = {
     associations: function (M) {
         this.belongsTo(M.Team)
     },
+    hooks: function (M, app) {
+        return {
+            beforeCreate: async (project, opts) => {
+                // if the product is licensed, we permit overage
+                const isLicensed = app.license.active()
+                if (isLicensed !== true) {
+                    const { mqttClients } = await app.license.usage('mqttClients')
+                    if (mqttClients.count >= mqttClients.limit) {
+                        throw new Error('license limit reached')
+                    }
+                }
+            },
+            afterCreate: async (project, opts) => {
+                const { mqttClients } = await app.license.usage('mqttClients')
+                if (mqttClients.count > mqttClients.limit) {
+                    await app.auditLog.Platform.platform.license.overage('system', null, mqttClients)
+                }
+            }
+        }
+    },
     finders: function (M) {
         return {
             static: {
@@ -29,7 +49,13 @@ module.exports = {
                         teamId = M.Team.decodeHashid(teamHashId)
                     }
                     return this.findOne({
-                        where: { username, TeamId: teamId }
+                        where: { username, TeamId: teamId },
+                        include: {
+                            model: M.Team,
+                            include: {
+                                model: M.TeamType
+                            }
+                        }
                     })
                 },
                 byTeam: async (teamHashId, pagination = {}, where = {}) => {

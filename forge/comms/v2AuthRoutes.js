@@ -110,6 +110,12 @@ module.exports = async function (app) {
             const acc = action === 'subscribe' ? 1 : 2
             const allowed = await app.comms.aclManager.verify(username, topic, acc)
             if (allowed) {
+                if (action === 'publish') {
+                    const m = /^ff\/v1\/([^/]+)\/c\/(.+)$/.exec(topic)
+                    if (m) {
+                        app.teamBroker.addUsedTopic(m[2], m[1])
+                    }
+                }
                 reply.send({ result: 'allow' })
             } else {
                 reply.send({ result: 'deny' })
@@ -119,20 +125,23 @@ module.exports = async function (app) {
             if (app.license.active()) {
                 const parts = request.body.username.split('@')
                 const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1])
-                const acls = JSON.parse(user.acls)
-                for (const acl in acls) {
-                    if (request.body.action === 'subscribe') {
-                        if (mqttMatch(acls[acl].pattern, request.body.topic)) {
-                            if (acls[acl].action === 'both' || acls[acl].action === 'subscribe') {
-                                reply.send({ result: 'allow' })
-                                return
+                if (user) {
+                    const acls = JSON.parse(user.acls)
+                    for (const acl in acls) {
+                        if (request.body.action === 'subscribe') {
+                            if (mqttMatch(acls[acl].pattern, request.body.topic)) {
+                                if (acls[acl].action === 'both' || acls[acl].action === 'subscribe') {
+                                    reply.send({ result: 'allow' })
+                                    return
+                                }
                             }
-                        }
-                    } else {
-                        if (mqttMatch(acls[acl].pattern, request.body.topic)) {
-                            if (acls[acl].action === 'both' || acls[acl].action === 'publish') {
-                                reply.send({ result: 'allow' })
-                                return
+                        } else {
+                            if (mqttMatch(acls[acl].pattern, request.body.topic)) {
+                                if (acls[acl].action === 'both' || acls[acl].action === 'publish') {
+                                    app.teamBroker.addUsedTopic(request.body.topic, parts[1])
+                                    reply.send({ result: 'allow' })
+                                    return
+                                }
                             }
                         }
                     }

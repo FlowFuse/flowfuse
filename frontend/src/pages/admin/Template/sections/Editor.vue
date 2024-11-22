@@ -198,7 +198,8 @@ export default {
         },
         instance: {
             type: Object,
-            required: true
+            required: false,
+            default: () => {}
         },
         team: {
             type: Object,

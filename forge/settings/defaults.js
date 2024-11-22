@@ -60,5 +60,8 @@ module.exports = {
     'branding:account:signUpLeftBanner': null,
 
     // Has a stats monitoring token been created?
-    'platform:stats:token': false
+    'platform:stats:token': false,
+
+    // Team Broker topic cache
+    'team:broker:topics': null
 }

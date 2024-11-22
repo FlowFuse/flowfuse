@@ -48,7 +48,7 @@ export default {
         },
         to () {
             return {
-                name: 'TeamMembers',
+                name: 'team-members',
                 params: { team_slug: this.notification.data.team.slug }
             }
         }

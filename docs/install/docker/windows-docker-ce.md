@@ -9,11 +9,44 @@ meta:
        - running docker on windows 11
 ---
 
-# How to Install Docker Engine (Docker CE) on Windows using WSL2
+# Using Docker on Windows
 
-We recommend running FlowFuse Docker on Linux when ever possible as containers are inherently a Linux technology. If that really is not possible in your environment and the base OS must be Windows then the next best option is to use the WSL2 (Windows Subsystem for Linux v2) feature of Windows.
+While Docker is inherently a Linux-based technology and we recommend running FlowFuse on Linux when ever possible, there are several ways to run Docker on Windows.
+Below, we outline the primary methods available, along with recommendations based on specific needs and use cases.
 
-## Prerequisites
+### Docker Desktop
+[Docker Desktop](https://docs.docker.com/desktop/install/windows-install/) is the most straightforward option for running Docker on Windows, offering a complete Docker environment with GUI support. 
+It’s well-suited for users seeking ease of setup and use.
+
+**Recommendation:**
+
+Use Docker Desktop if licensing is not a constraint for your organization, as it provides a user-friendly, fully-integrated Docker experience on Windows.
+
+### Rancher Desktop
+[Rancher Desktop](https://rancherdesktop.io/) is a free, open-source alternative to Docker Desktop, providing a similar experience but without the licensing concerns.
+Rancher Desktop includes both container management and Kubernetes support, making it a flexible choice for containerized workloads on Windows.
+
+**Recommendation:**
+
+Consider Rancher Desktop if you prefer an open-source tool with no licensing restrictions.
+
+### Windows Subsystem for Linux (WSL2)
+[WSL2](https://docs.microsoft.com/en-us/windows/wsl/install) enables users to run a Linux environment directly on Windows. 
+WSL2 supports running Docker Engine without the need for a GUI, making it ideal for headless configurations or for those looking to operate Docker from a Linux command line on Windows.
+
+**Recommendation:**
+
+WSL2 is best suited for advanced users who are comfortable with command-line tools and who want to run Docker Engine directly within a Linux environment on Windows.
+
+For the installation of Docker Engine using WSL2, refer to the next paragraph.
+
+
+
+## How to Install Docker Engine (Docker CE) on Windows using WSL2
+
+This guide explains how to install Docker Engine (Docker CE) on Windows using Windows Subsystem for Linux (WSL2).
+
+### Prerequisites
 
 Ensure your system meets the following Windows Subsystem for Linux v2 requirements:
 
@@ -21,7 +54,7 @@ Ensure your system meets the following Windows Subsystem for Linux v2 requiremen
 - Windows 10 version 2004 and higher (Build 19041 and higher)
 - Windows 11
 
-## Step 1: Install Windows Subsystem for Linux 
+### Step 1: Install Windows Subsystem for Linux 
 
 Open PowerShell as an administrator and run the following commands:
 
@@ -47,7 +80,7 @@ Open PowerShell as an administrator and run the following commands:
    wsl --status
    ```
 
-## Step 2: Install Docker on Ubuntu
+### Step 2: Install Docker on Ubuntu
 
 Once the Ubuntu system is ready, follow these steps to install Docker:
 
@@ -86,10 +119,18 @@ Once the Ubuntu system is ready, follow these steps to install Docker:
    Now, install Docker and its associated packages:
 
    ```bash
-   sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+   sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
    ```
 
-4. **Start the Docker Service**
+4. **Add user to Docker group**
+
+   Add your user to the `docker` group to run Docker commands without `sudo`:
+
+   ```bash
+   sudo usermod -aG docker ubuntu
+   ```
+
+5. **Start the Docker Service**
 
    Start Docker using the following command:
 
@@ -97,7 +138,7 @@ Once the Ubuntu system is ready, follow these steps to install Docker:
    sudo /etc/init.d/docker start
    ```
 
-5. **Verify Docker Installation**
+6. **Verify Docker Installation**
 
    Run a test Docker container to verify that Docker is installed and running correctly:
 
@@ -111,42 +152,3 @@ Once the Ubuntu system is ready, follow these steps to install Docker:
 
 
 Once Docker is installed, you can [install the FlowFuse platform using docker compose](./README.md).
-
-
-## Optional: Port Forwarding from External IP Address to Docker Container
-
-If you want to forward a port from your external IP address to a Docker container, follow these additional steps.
-
-Consider a scenario where you want to run an Nginx container:
-
-1. **Run the Nginx Container**
-
-   In the Linux shell, start the Nginx container, binding port 8080 on your localhost to port 80 in the container:
-
-   ```bash
-   sudo docker run -d -p 8080:80 --name mynginx nginx
-   ```
-
-2. **Set Up Port Forwarding**
-
-   To forward traffic from an external IP to your container, run the following PowerShell command (administrator privileges required):
-
-   ```powershell
-   netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=8080 connectaddress=127.0.0.1
-   ```
-   
-   This command forwards traffic from port 8080 on your external IP address to port 8080 on your localhost, where the Nginx container is listening for connections.
-   The value for `listenport` can be changed as needed.
-
-3. **Open the Port on Your Firewall**
-
-   Ensure that port 8080 (or any other port you specivied as a value for `listenport` in the previous step) is open on your firewall:
-
-   ```powershell
-   New-NetFireWallRule -DisplayName 'WSL 8080TCP' -Direction Inbound -LocalPort 8080 -Action Allow -Protocol TCP
-   New-NetFireWallRule -DisplayName 'WSL 8080TCP' -Direction Outbound -LocalPort 8080 -Action Allow -Protocol TCP
-   ```
-
-4. **Access the Nginx Container** 
-
-   You can now access the Nginx container by visiting `http://<server-external-ip>:8080` in your browser.
