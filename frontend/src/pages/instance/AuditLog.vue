@@ -6,15 +6,13 @@
         <template #extraFilters>
             <FormHeading class="mt-4">Event Scope:</FormHeading>
             <div data-el="filter-event-types">
-                <ff-dropdown v-model="auditFilters.selectedEventScope" class="w-full">
-                    <ff-dropdown-option
-                        v-for="scope in scopeList" :key="scope.id"
-                        :label="scope.name" :value="scope.id"
-                    />
-                </ff-dropdown>
-                <ff-checkbox v-if="auditFilters.selectedEventScope!=='device'" v-model="auditFilters.includeChildren" class="mt-2" data-action="include-children-check">
-                    Include Devices
-                </ff-checkbox>
+                <ff-listbox
+                    v-model="auditFilters.selectedEventScope"
+                    :options="scopeList"
+                    value-key="id"
+                    label-key="name"
+                    class="w-full"
+                />
             </div>
         </template>
     </AuditLogBrowser>
@@ -28,10 +26,12 @@ import TeamAPI from '../../api/team.js'
 import FormHeading from '../../components/FormHeading.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
+import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
 export default {
     name: 'InstanceAuditLog',
     components: {
+        FfListbox,
         AuditLogBrowser,
         FormHeading,
         SectionTopMenu
