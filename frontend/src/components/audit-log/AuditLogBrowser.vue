@@ -138,8 +138,12 @@ export default {
                 this.loadEventTypes(scope)
             }
             const params = new URLSearchParams()
-            params.append('username', this.auditFilters.username || '')
-            params.append('event', this.auditFilters.event || '')
+            if (this.auditFilters.username) {
+                params.append('username', this.auditFilters.username)
+            }
+            if (this.auditFilters.event) {
+                params.append('event', this.auditFilters.event)
+            }
             this.$emit('load-entries', params)
             this.gettingEntries = false
         },
