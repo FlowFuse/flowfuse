@@ -79,58 +79,55 @@ export default {
             return this.$route.params.id
         },
         logScope () {
-            return this.auditFilters.selectedEventScope === null ? 'application' : 'project' // cannot use 'instance' due to legacy naming
+            return !this.auditFilters.selectedEventScope ? 'application' : 'project' // cannot use 'instance' due to legacy naming
         }
     },
     watch: {
-        'auditFilters.selectedEventScope': function () {
-            this.loadEntries()
-        },
-        'auditFilters.includeChildren': function () {
-            this.loadEntries()
-        },
-        team: 'loadUsers'
+        'auditFilters.selectedEventScope': 'triggerLoad',
+        'auditFilters.includeChildren': 'triggerLoad',
+        team: function () {
+            this.triggerLoad({ users: true, events: true })
+        }
     },
     created () {
-        this.loadUsers()
+        this.triggerLoad({ users: true, events: true })
     },
     methods: {
         async loadUsers () {
             this.users = (await TeamAPI.getTeamMembers(this.team.id)).members
         },
+        /**
+         * Load audit log entries
+         * IMPORTANT: This method should only be called by AuditLogBrowser component when it emits 'load-entries' event
+         * To initiate loading of audit log entries, call triggerLoad method
+         * @param params - URLSearchParams to append to the request
+         * @param cursor - cursor to use for pagination
+         */
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
-            if (params.has('event')) {
-                this.auditFilters.event = params.get('event')
+            const paramScope = (params.has('scope') ? params.get('scope') : this.auditFilters.selectedEventScope) || 'application'
+            let includeChildren = this.auditFilters.includeChildren
+            if (params.has('includeChildren')) {
+                includeChildren = params.get('includeChildren') === 'true'
             }
-            if (params.has('username')) {
-                this.auditFilters.username = params.get('username')
-            }
-
+            params.set('includeChildren', includeChildren)
+            params.set('scope', paramScope)
             if (this.applicationId) {
-                params.set('includeChildren', !!this.auditFilters.includeChildren)
-                if (this.auditFilters.event?.length) {
-                    params.set('event', this.auditFilters.event)
+                let log
+                if (paramScope === 'application') {
+                    log = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200))
                 } else {
-                    params.delete('event')
-                }
-                if (this.auditFilters.username?.length) {
-                    params.set('username', this.auditFilters.username)
-                } else {
-                    params.delete('username')
-                }
-                if (this.auditFilters.selectedEventScope === null) {
-                    params.set('scope', 'application')
-                    const log = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200))
-                    this.logEntries = log.log
-                    this.associations = this.auditFilters.includeChildren ? log.associations : null
-                } else if (this.auditFilters.selectedEventScope) {
-                    params.set('scope', 'project')
                     const instanceId = this.auditFilters.selectedEventScope
-                    const log = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200))
-                    this.logEntries = log.log
-                    this.associations = this.auditFilters.includeChildren ? log.associations : null
+                    log = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200))
                 }
+                this.logEntries = log.log
+                this.associations = includeChildren ? log.associations : null
             }
+        },
+        triggerLoad ({ users = false, events = true } = {}) {
+            // if `events` is true, call AuditLogBrowser.loadEntries - this will emit 'load-entries' event which calls this.loadEntries with appropriate params
+            const scope = !this.auditFilters.selectedEventScope ? 'application' : 'project'
+            events && this.$refs.AuditLog?.loadEntries(scope, this.auditFilters.includeChildren, scope)
+            users && this.loadUsers()
         }
     }
 }

@@ -78,56 +78,48 @@ export default {
         }
     },
     watch: {
-        'auditFilters.selectedEventScope': function () {
-            this.loadEntries()
-        },
-        'auditFilters.includeChildren': function () {
-            this.loadEntries()
-        },
+        'auditFilters.selectedEventScope': 'triggerLoad',
+        'auditFilters.includeChildren': 'triggerLoad',
         team: 'triggerLoad',
         teamMembership: 'triggerLoad'
     },
     created () {
-        this.loadUsers()
+        this.triggerLoad({ users: true, events: true })
     },
     methods: {
         async loadUsers () {
             this.users = (await TeamAPI.getTeamMembers(this.team.id)).members
         },
+        /**
+         * Load audit log entries
+         * IMPORTANT: This method should only be called by AuditLogBrowser component when it emits 'load-entries' event
+         * To initiate loading of audit log entries, call triggerLoad method
+         * @param params - URLSearchParams to append to the request
+         * @param cursor - cursor to use for pagination
+         */
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
             if (!this.hasPermission('team:audit-log')) {
                 return this.$router.push({ path: `/team/${this.team.slug}/overview` })
             }
 
             const teamId = this.team.id
-            if (params.has('event')) {
-                this.auditFilters.event = params.get('event')
-            }
-            if (params.has('username')) {
-                this.auditFilters.username = params.get('username')
-            }
             if (teamId) {
-                params.set('scope', this.auditFilters.selectedEventScope)
-                params.set('includeChildren', !!this.auditFilters.includeChildren)
-                if (this.auditFilters.event?.length) {
-                    params.set('event', this.auditFilters.event)
-                } else {
-                    params.delete('event')
+                const paramScope = (params.has('scope') ? params.get('scope') : this.auditFilters.selectedEventScope) || 'team'
+                let includeChildren = this.auditFilters.includeChildren
+                if (params.has('includeChildren')) {
+                    includeChildren = params.get('includeChildren') === 'true'
                 }
-                if (this.auditFilters.username?.length) {
-                    params.set('username', this.auditFilters.username)
-                } else {
-                    params.delete('username')
-                }
-
+                params.set('includeChildren', includeChildren)
+                params.set('scope', paramScope)
                 const auditLog = (await TeamAPI.getTeamAuditLog(teamId, params, cursor, 200))
                 this.logEntries = auditLog.log
                 this.associations = auditLog.associations
             }
         },
-        triggerLoad () {
-            this.$refs.AuditLog?.loadEntries()
-            this.loadUsers()
+        triggerLoad ({ users = false, events = true } = {}) {
+            // if `events` is true, call AuditLogBrowser.loadEntries - this will emit 'load-entries' event which calls this.loadEntries with appropriate params
+            events && this.$refs.AuditLog?.loadEntries(this.auditFilters.selectedEventScope, this.auditFilters.includeChildren, this.auditFilters.selectedEventScope || 'team')
+            users && this.loadUsers()
         }
     }
 }

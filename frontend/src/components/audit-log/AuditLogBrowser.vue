@@ -117,6 +117,7 @@ export default {
     created () {
         this.loading = true
         this.auditFilters.scope = this.logType // init the scope to the logType set in the component's props
+        this.auditFilters.logType = this.logType // init the scope to the logType
         this.auditFilters.users = this.users
         this.loadEventTypes()
         this.loadEntries()
@@ -127,22 +128,29 @@ export default {
          * Load log entries. NOTE: `scope` is optional and will default to the value detected in `this.auditFilters.scope`
          * (which is essentially defaulted to prop `logType` upon creation)
          * @param {'platform'|'application'|'project'|'user'} [scope=this.auditFilters.scope] The log scope to load entries for
+         * @param {boolean} [includeChildren=false] Whether to include children in the log scope
+         * @param {string} [logType] The log type to load event type dropdown for
          */
-        loadEntries (scope) {
+        loadEntries (scope, includeChildren, logType) {
             this.gettingEntries = true
-            scope = scope || this.auditFilters.scope
-            if (this.auditFilters.scope !== scope) {
-                this.auditFilters.scope = scope // store the scope for later queries
+            logType = logType || this.auditFilters.logType
+            if (this.auditFilters.logType !== logType) {
+                this.auditFilters.logType = logType // store the scope for later queries
                 // clear this.auditFilters.event without triggering a watch
                 this.auditFilters.event = undefined // clear the "event filter" as scope has changed
-                this.loadEventTypes(scope)
+                this.loadEventTypes(logType)
             }
+            this.auditFilters.scope = scope || this.auditFilters.scope
             const params = new URLSearchParams()
             if (this.auditFilters.username) {
                 params.append('username', this.auditFilters.username)
             }
             if (this.auditFilters.event) {
                 params.append('event', this.auditFilters.event)
+            }
+            params.append('scope', scope || this.auditFilters.scope)
+            if (typeof includeChildren === 'boolean') {
+                params.append('includeChildren', includeChildren)
             }
             this.$emit('load-entries', params)
             this.gettingEntries = false
