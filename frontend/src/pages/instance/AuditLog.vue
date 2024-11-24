@@ -50,9 +50,7 @@ export default {
             users: [],
             auditFilters: {
                 selectedEventScope: 'project',
-                includeChildren: true,
-                user: null,
-                event: null
+                includeChildren: true
             },
             scopeList: [
                 { name: 'This Instance', id: 'project' },

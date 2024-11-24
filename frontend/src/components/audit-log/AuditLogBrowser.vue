@@ -71,24 +71,24 @@ export default {
             loading: true,
             gettingEntries: false,
             auditFilters: {
-                event: undefined,
+                event: '',
                 types: [],
-                username: null,
+                username: '',
                 users: [],
-                scope: undefined
+                scope: ''
             }
         }
     },
     computed: {
         typeOptions () {
             return [
-                { label: 'Show All', value: undefined },
+                { label: 'Show All', value: '' },
                 ...this.auditFilters.types.map(type => ({ label: type[0], value: type[1][0] }))
             ]
         },
         userOptions () {
             return [
-                { label: 'Show All', value: undefined },
+                { label: 'Show All', value: '' },
                 ...this.auditFilters.users.map(user => ({
                     label: `${user.name} (${user.username})`,
                     value: user.username

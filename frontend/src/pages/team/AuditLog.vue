@@ -62,9 +62,7 @@ export default {
             users: [],
             auditFilters: {
                 selectedEventScope: 'team',
-                includeChildren: true,
-                username: null,
-                event: null
+                includeChildren: true
             },
             scopeList: [
                 { name: 'Team', id: 'team' },
@@ -76,7 +74,7 @@ export default {
     },
     computed: {
         logScope () {
-            return this.auditFilters.selectedEventScope === null ? 'application' : 'project' // cannot use 'instance' due to legacy naming
+            return !this.auditFilters.selectedEventScope ? 'application' : 'project' // cannot use 'instance' due to legacy naming
         }
     },
     watch: {

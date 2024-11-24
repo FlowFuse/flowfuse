@@ -59,10 +59,8 @@ export default {
             associations: {}, // applications, instances, devices
             users: [],
             auditFilters: {
-                selectedEventScope: null,
-                includeChildren: true,
-                username: null,
-                event: null
+                selectedEventScope: '',
+                includeChildren: true
             }
         }
     },
@@ -70,7 +68,7 @@ export default {
         ...mapState('account', ['team']),
         instanceList () {
             return [
-                { name: 'This Application', id: null },
+                { name: 'This Application', id: '' },
                 ...this.instances.map(instance => ({
                     name: instance.name,
                     id: instance.id
