@@ -27,7 +27,9 @@ module.exports = {
 
         for (const invite of invites) {
             const expiryDate = invite.expiresAt.toDateString()
+            let invitee = ''
             if (invite.invitee) {
+                invitee = invite.invitee.name
                 // Existing user
                 await app.postoffice.send(invite.invitee, 'TeamInviteReminder', {
                     teamName: invite.team.name,
@@ -35,6 +37,7 @@ module.exports = {
                     expiryDate
                 })
             } else if (invite.email) {
+                invitee = invite.email
                 // External user
                 let signupLink = `${app.config.base_url}/account/create?email=${encodeURIComponent(invite.email)}`
                 if (app.license.active()) {
@@ -51,6 +54,13 @@ module.exports = {
                     expiryDate
                 })
             }
+
+            // send reminder to Invitor
+            app.postoffice.send(invite.invitor, 'TeamInviterReminder', {
+                teamName: invite.team.name,
+                invitee,
+                expiryDate
+            })
         }
     }
 }
