@@ -99,12 +99,14 @@ export default {
                 })
 
                 function calculateChildrenCount (node) {
-                    if (!node.children) return 0
+                    if (!node.children || Object.keys(node.children).length === 0) {
+                        return 1 // Terminating segment; count as 1.
+                    }
 
                     let count = 0
                     for (const childKey in node.children) {
                         const childNode = node.children[childKey]
-                        count += 1 + calculateChildrenCount(childNode) // Count this child and its descendants
+                        count += calculateChildrenCount(childNode) // Only count terminating children.
                     }
                     node.childrenCount = count
                     return count
