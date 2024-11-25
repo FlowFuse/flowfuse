@@ -186,8 +186,8 @@ export default [
                 meta: {
                     title: 'Application - Device Group - Settings'
                 },
-                redirect: to => {
-                    return `/application/${to.params.applicationId}/device-group/${to.params.deviceGroupId}/settings/general`
+                redirect: {
+                    name: 'ApplicationDeviceGroupSettingsGeneral'
                 },
                 children: [
                     {
