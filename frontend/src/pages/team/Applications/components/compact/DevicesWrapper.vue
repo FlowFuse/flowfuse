@@ -28,7 +28,7 @@
             </div>
             <HasMoreTile
                 v-if="hasMoreDevices"
-                link-to="ApplicationDevices"
+                :link-to="hasMoreLink"
                 :remaining="remainingDevices"
                 :application="application"
                 :search-query="searchQuery"
@@ -68,7 +68,10 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import IconDeviceSolid from '../../../../../components/icons/DeviceSolid.js'
+import usePermissions from '../../../../../composables/Permissions.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
 import DeviceCredentialsDialog from '../../../Devices/dialogs/DeviceCredentialsDialog.vue'
 import TeamDeviceCreateDialog from '../../../Devices/dialogs/TeamDeviceCreateDialog.vue'
@@ -93,12 +96,18 @@ export default {
         }
     },
     emits: ['delete-device'],
+    setup () {
+        const { hasAMinimumTeamRoleOfMember } = usePermissions()
+
+        return { hasAMinimumTeamRoleOfMember }
+    },
     data () {
         return {
             devices: this.application.devices
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         hasMoreDevices () {
             return this.application.deviceCount > this.visibleDevices.length
         },
@@ -124,6 +133,18 @@ export default {
         },
         isSearching () {
             return this.searchQuery.length > 0
+        },
+        hasMoreLink () {
+            const query = { }
+
+            if (this.searchQuery) {
+                query.searchQuery = this.searchQuery
+            }
+            if (this.hasAMinimumTeamRoleOfMember()) {
+                return { name: 'ApplicationDevices', params: { id: this.application.id }, query }
+            }
+
+            return { name: 'TeamDevices', params: { team_slug: this.team.slug }, query }
         }
     },
     watch: {

@@ -1,6 +1,6 @@
 <template>
     <div class="has-more item-wrapper" data-el="has-more-tile">
-        <router-link :to="{name: linkTo, params: {id: application.id}, query: {searchQuery}}">
+        <router-link :to="linkTo">
             <span>
                 {{ remaining }}
                 More...
@@ -26,18 +26,9 @@ export default {
             required: true
         },
         linkTo: {
-            type: String,
+            type: Object,
             required: true
-        },
-        searchQuery: {
-            type: String,
-            required: false,
-            default: ''
         }
     }
 }
 </script>
-
-<style scoped lang="scss">
-
-</style>

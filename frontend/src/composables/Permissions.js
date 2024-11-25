@@ -56,13 +56,13 @@ export default function usePermissions () {
     }
 
     /**
-         * Check if the user has the minimum required role.
-         * @param {Role} role - The role to check against.
-         * @returns {boolean} True if the user has the minimum required role, otherwise false.
-         * @example
-         * // Check if the user has at least the 'Member' role
-         * const isMemberOrHigher = hasAMinimumTeamRoleOf(Roles.Member)
-         */
+     * Check if the user has the minimum required role.
+     * @param {Role} role - The role to check against.
+     * @returns {boolean} True if the user has the minimum required role, otherwise false.
+     * @example
+     * // Check if the user has at least the 'Member' role
+     * const isMemberOrHigher = hasAMinimumTeamRoleOf(Roles.Member)
+     */
     const hasAMinimumTeamRoleOf = (role) => {
         if (isVisitingAdmin()) {
             return true
@@ -72,13 +72,24 @@ export default function usePermissions () {
     }
 
     /**
-         * Check if the user has a lower role than given role.
-         * @param {Role} role - The role to check against.
-         * @returns {boolean} True if the user has a lower role than the given one, otherwise false.
-         * @example
-         * // Check if the user has role lower than 'Member' role
-         * const isMemberOrHigher = hasALowerTeamRoleThan(Roles.Member)
-         */
+     * Check if the user has the minimum Member role.
+     *
+     * wrapper for the hasAMinimumTeamRoleOf method
+     *
+     * @returns {boolean}
+     */
+    const hasAMinimumTeamRoleOfMember = () => {
+        return hasAMinimumTeamRoleOf(Roles.Member)
+    }
+
+    /**
+     * Check if the user has a lower role than given role.
+     * @param {Role} role - The role to check against.
+     * @returns {boolean} True if the user has a lower role than the given one, otherwise false.
+     * @example
+     * // Check if the user has role lower than 'Member' role
+     * const isMemberOrHigher = hasALowerTeamRoleThan(Roles.Member)
+     */
     const hasALowerOrEqualTeamRoleThan = (role) => {
         if (isVisitingAdmin()) {
             return true
@@ -91,6 +102,7 @@ export default function usePermissions () {
         isVisitingAdmin,
         hasPermission,
         hasAMinimumTeamRoleOf,
+        hasAMinimumTeamRoleOfMember,
         hasALowerOrEqualTeamRoleThan
     }
 }

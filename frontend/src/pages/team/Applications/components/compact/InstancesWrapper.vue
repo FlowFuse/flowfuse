@@ -29,7 +29,7 @@
             </div>
             <HasMoreTile
                 v-if="hasMoreInstances"
-                link-to="ApplicationInstances"
+                :link-to="hasMoreLink"
                 :remaining="remainingInstances"
                 :application="application"
                 :search-query="searchQuery"
@@ -39,7 +39,11 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import IconNodeRedSolid from '../../../../../components/icons/NodeRedSolid.js'
+
+import usePermissions from '../../../../../composables/Permissions.js'
 
 import HasMoreTile from './HasMoreTile.vue'
 
@@ -61,7 +65,13 @@ export default {
         }
     },
     emits: ['delete-instance'],
+    setup () {
+        const { hasAMinimumTeamRoleOfMember } = usePermissions()
+
+        return { hasAMinimumTeamRoleOfMember }
+    },
     computed: {
+        ...mapState('account', ['team']),
         instances () {
             return this.application.instances.slice(0, 3)
         },
@@ -90,6 +100,18 @@ export default {
         },
         isSearching () {
             return this.searchQuery.length > 0
+        },
+        hasMoreLink () {
+            const query = { }
+
+            if (this.searchQuery) {
+                query.searchQuery = this.searchQuery
+            }
+            if (this.hasAMinimumTeamRoleOfMember()) {
+                return { name: 'ApplicationInstances', params: { id: this.application.id }, query }
+            }
+
+            return { name: 'Instances', params: { team_slug: this.team.slug }, query }
         }
     }
 }
