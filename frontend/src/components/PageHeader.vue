@@ -8,7 +8,9 @@
             </transition>
         </i>
         <!-- FlowFuse Logo -->
-        <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()">
+        <router-link :to="homeLink">
+            <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png">
+        </router-link>
         <global-search v-if="hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
@@ -89,7 +91,7 @@ import TeamSelection from './TeamSelection.vue'
 import GlobalSearch from './global-search/GlobalSearch.vue'
 
 export default {
-    name: 'NavBar',
+    name: 'PageHeader',
     mixins: [navigationMixin, permissionsMixin],
     computed: {
         Roles () {

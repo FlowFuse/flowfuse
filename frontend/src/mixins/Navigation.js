@@ -5,13 +5,13 @@ export default {
         ...mapState('account', ['team', 'defaultUserTeam'])
     },
     methods: {
-        home () {
+        homeLink () {
             if (this.team?.slug) {
-                this.$router.push({ name: 'Team', params: { team_slug: this.team.slug } })
+                return { name: 'Team', params: { team_slug: this.team.slug } }
             } else if (this.defaultUserTeam?.slug) {
-                this.$router.push({ name: 'Team', params: { team_slug: this.defaultUserTeam?.slug } })
+                return { name: 'Team', params: { team_slug: this.defaultUserTeam?.slug } }
             } else {
-                this.$router.push({ name: 'Home' })
+                return { name: 'Home' }
             }
         },
         signOut () {
