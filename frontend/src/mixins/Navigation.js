@@ -2,9 +2,7 @@ import { mapState } from 'vuex'
 
 export default {
     computed: {
-        ...mapState('account', ['team', 'defaultUserTeam'])
-    },
-    methods: {
+        ...mapState('account', ['team', 'defaultUserTeam']),
         homeLink () {
             if (this.team?.slug) {
                 return { name: 'Team', params: { team_slug: this.team.slug } }
@@ -13,7 +11,9 @@ export default {
             } else {
                 return { name: 'Home' }
             }
-        },
+        }
+    },
+    methods: {
         signOut () {
             this.$router.push({ name: 'Sign out' })
         }
