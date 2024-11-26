@@ -9,6 +9,6 @@ module.exports = {
     // horizontal scaled, this will avoid two instances running at the same time
     schedule: `${randomInt(0, 59)} ${randomInt(0, 23)} * * *`,
     run: async function (app) {
-        await app.db.models.Invites.destroy({ where: { expiresAt: { [Op.lt]: Date.now() } } })
+        await app.db.models.Invitation.destroy({ where: { expiresAt: { [Op.lt]: Date.now() } } })
     }
 }

@@ -346,4 +346,81 @@ describe('Team Invitations API', function () {
             response.statusCode.should.equal(404)
         })
     })
+
+    describe('Send invite reminders', async function () {
+        before(function () {
+            app.settings.set('team:user:invite:external', true)
+        })
+        after(function () {
+            app.settings.set('team:user:invite:external', false)
+        })
+        it('Reminder should be sent after 2 days', async () => {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: {
+                    user: 'evans@example.com'
+                }
+            })
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+            const invites = await app.db.models.Invitation.findAll({
+                where: {
+                    email: 'evans@example.com'
+                }
+            })
+            const origTime = invites[0].createdAt
+            origTime.setDate(origTime.getDate() - 2)
+            origTime.setHours(origTime.getHours() - 2)
+            invites[0].createdAt = origTime
+            invites[0].changed('createdAt', true)
+            await invites[0].save()
+
+            const houseKeepingJob = require('../../../../../forge/housekeeper/tasks/inviteReminder')
+            await houseKeepingJob.run(app)
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(3)
+        })
+    })
+
+    describe('Delte expired invites', async function () {
+        before(function () {
+            app.settings.set('team:user:invite:external', true)
+        })
+        after(function () {
+            app.settings.set('team:user:invite:external', false)
+        })
+        it('Delete invites after 7 days', async () => {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: {
+                    user: 'evans@example.com'
+                }
+            })
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+            const invites = await app.db.models.Invitation.findAll({
+                where: {
+                    email: 'evans@example.com'
+                }
+            })
+            const origTime = invites[0].expiresAt
+            origTime.setDate(origTime.getDate() - 8)
+            invites[0].expiresAt = origTime
+            invites[0].changed('expiresAt', true)
+            await invites[0].save()
+
+            const houseKeepingJob = require('../../../../../forge/housekeeper/tasks/expireInvites')
+            await houseKeepingJob.run(app)
+
+            const noInvites = await app.db.models.Invitation.findAll({
+                where: {
+                    email: 'evans@example.com'
+                }
+            })
+            noInvites.should.have.lengthOf(0)
+        })
+    })
 })

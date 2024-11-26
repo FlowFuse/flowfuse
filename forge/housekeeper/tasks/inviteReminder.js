@@ -21,7 +21,8 @@ module.exports = {
             },
             include: [
                 { model: app.db.models.User, as: 'invitor' },
-                { model: app.db.models.User, as: 'invitee' }
+                { model: app.db.models.User, as: 'invitee' },
+                { model: app.db.models.Team, as: 'team' }
             ]
         })
 
@@ -56,7 +57,7 @@ module.exports = {
             }
 
             // send reminder to Invitor
-            app.postoffice.send(invite.invitor, 'TeamInviterReminder', {
+            await app.postoffice.send(invite.invitor, 'TeamInviterReminder', {
                 teamName: invite.team.name,
                 invitee,
                 expiryDate
