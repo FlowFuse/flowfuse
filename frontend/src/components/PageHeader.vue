@@ -46,7 +46,7 @@
         <div class="hidden lg:flex ff-desktop-navigation-right" data-el="desktop-nav-right">
             <ff-team-selection data-action="team-selection" />
             <div class="px-4 flex flex-col justify-center" v-if="showInviteButton">
-                <ff-button kind="secondary" @click="inviteTeamMembers">
+                <ff-button kind="secondary" type="anchor" :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }">
                     <template #icon-left><UserAddIcon /></template>
                     Invite Members
                 </ff-button>
@@ -123,7 +123,7 @@ export default {
                     label: 'Documentation',
                     icon: QuestionMarkCircleIcon,
                     tag: 'documentation',
-                    onclick: this.to,
+                    onclick: (route) => window.open(route.url, '_blank'),
                     onclickparams: { url: 'https://flowfuse.com/docs/' }
                 },
                 this.isTrialAccount
@@ -178,20 +178,6 @@ export default {
     },
     methods: {
         ...mapActions('ux', ['toggleLeftDrawer']),
-        to (route) {
-            window.open(route.url, '_blank')
-        },
-        inviteTeamMembers () {
-            this.$router.push({
-                name: 'team-members',
-                params: {
-                    team_slug: this.team.slug
-                },
-                query: {
-                    action: 'invite'
-                }
-            })
-        },
         ...mapActions('ux', ['activateTour']),
         openEducationModal () {
             this.activateTour('education')
