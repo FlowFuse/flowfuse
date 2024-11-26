@@ -25,7 +25,7 @@
             :type="type"
             :class="computedClass"
             :disabled="htmlDisabled"
-            @click="go()"
+            @mouseup="go()"
     >
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>
@@ -41,6 +41,8 @@
 </template>
 
 <script>
+import { useNavigationHelper } from '../../composables/NavigationHelper.js'
+
 export default {
     name: 'ff-button',
     props: {
@@ -76,6 +78,17 @@ export default {
         disabled: {
             default: null,
             type: Boolean
+        },
+        emitInsteadOfNavigate: {
+            default: false,
+            type: Boolean
+        }
+    },
+    emits: ['click'],
+    setup () {
+        const { navigateTo } = useNavigationHelper()
+        return {
+            navigateTo
         }
     },
     computed: {
@@ -104,9 +117,13 @@ export default {
         }
     },
     methods: {
-        go: function () {
+        go: function (event) {
             if (!this.disabled && this.to) {
-                this.$router.push(this.to)
+                if (this.emitInsteadOfNavigate) {
+                    this.$emit('click')
+                } else {
+                    this.navigateTo(this.to, event)
+                }
             }
         },
         focus () {
