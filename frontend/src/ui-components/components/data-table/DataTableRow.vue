@@ -4,7 +4,13 @@
             <slot name="row-prepend" :row="data" />
         </ff-data-table-cell>
         <slot>
-            <ff-data-table-cell v-for="(col, $column) in columns" :key="col.label" :class="col.class" :style="col.style" :highlight="highlightCell === $column" @click="$emit('selected', data)">
+            <ff-data-table-cell v-for="(col, $column) in columns"
+                                :key="col.label"
+                                :class="col.class"
+                                :style="col.style"
+                                :highlight="highlightCell === $column"
+                                @mouseup.self="handleMouseUp"
+            >
                 <template v-if="col.component">
                     <component :is="col.component.is" v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}" />
                 </template>
@@ -98,6 +104,9 @@ export default {
                 }
             }
             return obj
+        },
+        handleMouseUp (event) {
+            this.$emit('selected', { ...this.data, _event: event })
         }
     }
 }
