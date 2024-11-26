@@ -347,7 +347,7 @@ describe('Team Invitations API', function () {
         })
     })
 
-    describe.only('Send invite reminders', async function () {
+    describe('Send invite reminders', async function () {
         before(function () {
             app.settings.set('team:user:invite:external', true)
         })
