@@ -347,14 +347,41 @@ describe('Team Invitations API', function () {
         })
     })
 
-    describe('Send invite reminders', async function () {
+    describe.only('Send invite reminders', async function () {
         before(function () {
             app.settings.set('team:user:invite:external', true)
         })
         after(function () {
             app.settings.set('team:user:invite:external', false)
         })
-        it('Reminder should be sent after 2 days', async () => {
+        it('Reminder should be sent after 2 days (internal)', async () => {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: {
+                    user: 'chris'
+                }
+            })
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+            const invites = await app.db.models.Invitation.findAll({
+                where: {
+                    inviteeId: TestObjects.chris.id
+                }
+            })
+            const origTime = invites[0].createdAt
+            origTime.setDate(origTime.getDate() - 2)
+            origTime.setHours(origTime.getHours() - 2)
+            invites[0].createdAt = origTime
+            invites[0].changed('createdAt', true)
+            await invites[0].save()
+
+            const houseKeepingJob = require('../../../../../forge/housekeeper/tasks/inviteReminder')
+            await houseKeepingJob.run(app)
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(3)
+        })
+        it('Reminder should be sent after 2 days (external)', async () => {
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
@@ -383,7 +410,7 @@ describe('Team Invitations API', function () {
         })
     })
 
-    describe('Delte expired invites', async function () {
+    describe('Delete expired invites', async function () {
         before(function () {
             app.settings.set('team:user:invite:external', true)
         })

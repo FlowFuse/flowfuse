@@ -4,7 +4,7 @@ module.exports = {
 `
 Hello,
 
-You invited {{{invitee.text}}} to join FlowFuse Team {{{teamName.next}}}, but they have not yet accepted.
+You invited {{{invitee.text}}} to join FlowFuse Team {{{teamName.text}}}, but they have not yet accepted.
 
 This invitation will expire on {{{expiryDate}}}.
 `,
