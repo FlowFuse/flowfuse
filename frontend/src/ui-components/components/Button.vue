@@ -4,7 +4,7 @@
                  class="ff-btn transition-fade--color"
                  :target="target"
                  :class="computedClass"
-                 :to="to"
+                 :to="to ?? '#'"
                  :aria-disabled="htmlDisabled"
                  :disabled="htmlDisabled"
     >
