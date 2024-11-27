@@ -61,7 +61,7 @@ import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmIns
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog.vue'
 
 export default {
-    name: 'ProjectPage',
+    name: 'ApplicationPage',
     components: {
         ConfirmApplicationDeleteDialog,
         ConfirmInstanceDeleteDialog,
