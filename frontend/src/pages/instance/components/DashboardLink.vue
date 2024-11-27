@@ -7,6 +7,8 @@
         :target="target"
         :disabled="buttonDisabled"
         class="whitespace-nowrap"
+        @click.stop.prevent
+        @mouseup.stop.prevent
     >
         <template v-if="showText" #icon-left>
             <ChartPieIcon />
