@@ -95,7 +95,7 @@ Before you begin, ensure you have the following:
 
 For a production-ready environment, we also recommend: 
 * **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
-* **TLS Certificate:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#i-would-like-to-secure-the-platform-with-https%2C-how-can-i-do-that)) 
+* **TLS Certificate:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#i-would-like-to-secure-the-platform-with-https%2C-how-can-i-do-that%3F)) 
 
 ### DNS
 
