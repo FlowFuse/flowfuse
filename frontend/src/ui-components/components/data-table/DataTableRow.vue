@@ -9,7 +9,7 @@
                                 :class="col.class"
                                 :style="col.style"
                                 :highlight="highlightCell === $column"
-                                @mouseup.self="handleMouseUp"
+                                @mouseup="handleMouseUp"
             >
                 <template v-if="col.component">
                     <component :is="col.component.is" v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}" />

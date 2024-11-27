@@ -9,16 +9,14 @@ describe('Team - Instances', () => {
             .parent()
             .parent()
             .within(() => {
-                // checking for ara-disabled because somehow should.be.enabled always returns true no matter the btn state
-                cy.get('[data-action="open-editor"]').should('not.have.attr', 'aria-disabled')
+                cy.get('[data-action="open-editor"]').should('not.be.disabled')
             })
         cy.contains('instance-1-2')
             .parent()
             .parent()
             .parent()
             .within(() => {
-                // checking for ara-disabled because somehow should.be.enabled always returns true no matter the btn state
-                cy.get('[data-action="open-editor"]').should('have.attr', 'aria-disabled', 'true')
+                cy.get('[data-action="open-editor"]').should('be.disabled')
             })
     })
 
