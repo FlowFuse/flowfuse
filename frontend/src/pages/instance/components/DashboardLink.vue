@@ -1,7 +1,6 @@
 <template>
     <ff-button
         v-if="!hidden"
-        type="anchor"
         kind="secondary"
         data-action="open-dashboard"
         :to="dashboardURL"
