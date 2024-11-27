@@ -68,7 +68,8 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
                 'foo/bar/baz',
                 'foo/thud',
                 'foo/flam/paz/daz',
-                'wibble/wabble/bork'
+                'wibble/wabble/bork',
+                'wibble/wabble/bork/spork'
             ]).as('getTopics')
             cy.get('[data-nav="team-unified-namespace"]').click()
 
@@ -77,9 +78,11 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
             cy.get('[data-el="segment-wrapper"]').should('have.length', 2)
 
             cy.get('[data-el="segment-wrapper"][data-value="foo"]').contains('3 topics')
-            cy.get('[data-el="segment-wrapper"][data-value="foo"]').contains('foo/')
-            cy.get('[data-el="segment-wrapper"][data-value="wibble"]').contains('1 topic')
-            cy.get('[data-el="segment-wrapper"][data-value="wibble"]').contains('wibble/')
+            cy.get('[data-el="segment-wrapper"][data-value="foo"]').contains('foo')
+
+            // check that terminating topic segments are correctly included in the parent count
+            cy.get('[data-el="segment-wrapper"][data-value="wibble"]').contains('2 topics')
+            cy.get('[data-el="segment-wrapper"][data-value="wibble"]').contains('wibble')
 
             cy.get('[data-el="segment-wrapper"][data-value="paz"]').should('not.exist')
             cy.get('[data-el="segment-wrapper"][data-value="bar"]').should('not.exist')
@@ -89,18 +92,16 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
             cy.get('[data-el="segment-wrapper"][data-value="foo"]').click()
             cy.get('[data-el="segment-wrapper"][data-value="foo"]').within(() => {
                 cy.get('[data-el="segment-wrapper"][data-value="baz"]').should('not.exist')
-                cy.get('[data-el="segment-wrapper"][data-value="bar"]').contains('bar/')
+                cy.get('[data-el="segment-wrapper"][data-value="bar"]').contains('bar')
                 cy.get('[data-el="segment-wrapper"][data-value="bar"]').contains('1 topic')
                 cy.get('[data-el="segment-wrapper"][data-value="bar"]').click()
                 cy.get('[data-el="segment-wrapper"][data-value="baz"]').should('exist')
                 cy.get('[data-el="segment-wrapper"][data-value="baz"]').should('contain', 'baz')
-                cy.get('[data-el="segment-wrapper"][data-value="baz"]').should('not.contain', 'baz/')
 
                 cy.get('[data-el="segment-wrapper"][data-value="thud"]').should('not.contain', '1 topic')
-                cy.get('[data-el="segment-wrapper"][data-value="thud"]').should('not.contain', 'thud/')
 
                 cy.get('[data-el="segment-wrapper"][data-value="paz"]').should('not.exist')
-                cy.get('[data-el="segment-wrapper"][data-value="flam"]').contains('flam/')
+                cy.get('[data-el="segment-wrapper"][data-value="flam"]').contains('flam')
                 cy.get('[data-el="segment-wrapper"][data-value="flam"]').contains('1 topic')
                 cy.get('[data-el="segment-wrapper"][data-value="flam"]').click()
                 cy.get('[data-el="segment-wrapper"][data-value="paz"]').should('exist')
@@ -113,6 +114,11 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
 
             cy.get('[data-el="segment-wrapper"][data-value="foo"] > .segment .content').click()
             cy.get('[data-el="segment-wrapper"]').should('have.length', 2)
+
+            // check that terminating topic segments are marked with an svg icon
+            cy.get('[data-el="segment-wrapper"][data-value="wibble"]').click()
+            cy.get('[data-el="segment-wrapper"][data-value="wabble"]').click()
+            cy.get('[data-el="segment-wrapper"][data-value="bork"]').find('svg').should('exist')
         })
     })
 

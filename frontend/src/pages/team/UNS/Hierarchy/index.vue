@@ -79,35 +79,43 @@ export default {
         hierarchy: {
             get () {
                 const hierarchy = {}
+                const topics = this.topics
 
-                this.topics.forEach(topic => {
-                    const parts = topic.split('/')
-                    let current = hierarchy
+                topics.sort()
+                    .forEach(topic => {
+                        const parts = topic.split('/')
+                        let current = hierarchy
 
-                    parts.forEach((part, index) => {
-                        if (!current[part]) {
-                            current[part] = {
-                                name: part,
-                                path: parts.slice(0, index + 1).join('/'),
-                                open: false,
-                                childrenCount: 0,
-                                children: {}
+                        parts.forEach((part, index) => {
+                            if (!current[part]) {
+                                const isEmpty = part.length === 0
+                                current[part] = {
+                                    name: part,
+                                    isEmpty,
+                                    path: parts.slice(0, index + 1).join('/'),
+                                    open: false,
+                                    childrenCount: 0,
+                                    children: {},
+                                    isEndOfTopic: index === parts.length - 1
+                                }
                             }
-                        }
-                        current = current[part].children
+                            current = current[part].children
+                        })
                     })
-                })
 
                 function calculateChildrenCount (node) {
-                    if (!node.children || Object.keys(node.children).length === 0) {
-                        return 1 // Terminating segment; count as 1.
-                    }
-
                     let count = 0
                     for (const childKey in node.children) {
                         const childNode = node.children[childKey]
-                        count += calculateChildrenCount(childNode) // Only count terminating children.
+                        count += calculateChildrenCount(childNode)
                     }
+
+                    for (const childKey in node.children) {
+                        if (node.children[childKey].isEndOfTopic) {
+                            count++
+                        }
+                    }
+
                     node.childrenCount = count
                     return count
                 }
