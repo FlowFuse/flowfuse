@@ -33,7 +33,7 @@ jobs:
       - name: Check out website repository
         uses: actions/checkout@v4
         with:
-          repository: 'FlowFuse/flowfuse'
+          repository: 'FlowFuse/website'
           path: 'website'
       - name: Generate a token
         id: generate_token
