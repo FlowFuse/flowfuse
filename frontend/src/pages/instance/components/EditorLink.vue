@@ -3,13 +3,12 @@
         <slot name="default">
             <ff-button
                 v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
-                :to="editorURL"
                 kind="secondary"
                 data-action="open-editor"
                 :disabled="buttonDisabled"
                 class="whitespace-nowrap"
                 :emit-instead-of-navigate="true"
-                @click.stop.prevent="openEditor"
+                @select="openEditor"
             >
                 <template v-if="showText" #icon-left>
                     <ProjectIcon />

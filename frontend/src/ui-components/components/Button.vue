@@ -25,7 +25,7 @@
             :type="type"
             :class="computedClass"
             :disabled="htmlDisabled"
-            @mouseup="go()"
+            @mouseup="go"
     >
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>
@@ -117,13 +117,14 @@ export default {
         }
     },
     methods: {
-        go: function (event) {
-            if (!this.disabled && this.to) {
-                if (this.emitInsteadOfNavigate) {
-                    this.$emit('click')
-                } else {
-                    this.navigateTo(this.to, event)
-                }
+        go (event) {
+            switch (true) {
+            case this.disabled:
+                return
+            case !!this.to:
+                return this.navigateTo(this.to, event)
+            default:
+                return this.$emit('click', event)
             }
         },
         focus () {
