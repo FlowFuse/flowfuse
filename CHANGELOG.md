@@ -1,3 +1,67 @@
+#### 2.11.0: Release
+
+ - Bump flowfuse/github-actions-workflows from 0.36.0 to 0.37.0 (#4733)
+ - ci: Automate docs publishing (#4725)
+ - Add TeamBroker enabled to pre-staging (#4717)
+ - docs: Refactor instructions for installing FlowFuse on self-hosted environment using docker (#4665)
+ - Address mobile and alignment issues for global search (#4807) @cstns
+ - Include Application.description and Device.type in search scope (#4808) @knolleary
+ - Update terms in the tour to align with new terminology (#4803) @knolleary
+ - Global search UI (#4798) @cstns
+ - Bump cross-spawn (#4805) @app/dependabot
+ - Add ACLS for project nodes to access team broker topic space (#4789) @knolleary
+ - Respect CTRL/CMD+Click for opening instance editor in new tab (#4800) @Steve-Mcl
+ - Broker Topic Hierarchy UI (#4790) @cstns
+ - Add "Event Scope" and "Include Children" to Instance Audit Logs (#4753) @Steve-Mcl
+ - Show child items in team and application audit log (#4749) @Steve-Mcl
+ - Track topics used by a Team on Team Broker (#4748) @hardillb
+ - Add links to MQTT docs (#4775) @hardillb
+ - Add connection test button to LDAP SSO page (#4787) @hardillb
+ - Add search api for apps/devices/instances (#4764) @knolleary
+ - Add more logging when License expires (#4773) @hardillb
+ - Modify invite link for SSO enabled external users (#4786) @knolleary
+ - Make email matching case insensitive for external invites (#4783) @knolleary
+ - Fix immersive editor not displaying due to parent container height (#4780) @cstns
+ - Fix multiple non-authenticated page layouts (#4777) @cstns
+ - Adds autocomplete attribute to login username field (#4774) @knolleary
+ - Deny ACL check for deleted MQTT Clients (#4766) @hardillb
+ - Sidebar redesign follow up (#4763) @cstns
+ - Fix applications page nested routes (#4765) @cstns
+ - Update 404 page (#4757) @cstns
+ - Fix failing feature checks when the features state hasn't been hydrated (#4761) @cstns
+ - Sidebar Re-design: Left Drawer (#4745) @cstns
+ - docs: Add note about self-signed certificate warning (#4730) @ppawlowski
+ - docs: Self-hosted kubernetes installation page refactor (#4704) @ppawlowski
+ - docs: docker on windows adjustments (#4724) @ppawlowski
+ - Sidebar Re-design: Routing (#4744) @cstns
+ - Sidebar Re-design: prerequisites (#4743) @cstns
+ - Update Device Agent docs for 3.x release (#4747) @knolleary
+ - Ensure Downgraded Teams can't authenticate MQTT Clients (#4739) @hardillb
+ - Ensure correct env vars are applied to device (#4686) @Steve-Mcl
+ - Do not add api-error:version_mismatch to audit log (#4740) @knolleary
+ - Add the ability to emit platform wide notifications (#4637) @cstns
+ - Add mqttClients to license claims (#4732) @knolleary
+ - Bump sass-loader from 14.1.1 to 16.0.2 (#4548) @app/dependabot
+ - Docs: Improve Device Agent Intro Documentation (#4718) @joepavitt
+ - Add the missing tests for new broker Auth/ACL (#4721) @hardillb
+ - docs: Remove duplication in the introduction paragraph (#4710) @ppawlowski
+ - Bump yaml from 2.3.4 to 2.6.0 (#4705) @app/dependabot
+ - Bump nodemon from 3.1.0 to 3.1.7 (#4706) @app/dependabot
+ - Update MQTT Cloud docs (#4722) @hardillb
+ - Check for project: not platform: in username (#4720) @hardillb
+ - ci: Disable team broker for starter team type on pre-staging (#4719) @ppawlowski
+ - Follow up mqtt broker ux (#4711) @cstns
+ - Re-order Join Reason options in Sign Up page (#4714) @joepavitt
+ - Add uninstall instructions (#4715) @hardillb
+ - Update snapshot hero info dialog images to be same for all (#4697) @Steve-Mcl
+ - Add Team Broker Clients count to telemetry (#4703) @hardillb
+ - Add Copy button to broker client username (#4701) @hardillb
+ - Bump css-loader from 6.10.0 to 7.1.2 (#4272) @app/dependabot
+ - Bump pg from 8.11.5 to 8.13.0 (#4669) @app/dependabot
+ - Update snapshots docs (#4700) @Steve-Mcl
+ - Add initial details on MQTT Broker service (#4676) @hardillb
+ - Prevent broker client limits being shown in wrong TeamType (#4694) @hardillb
+
 #### 2.10.0: Release
 
  - Enable Team Broker and Version History Timeline features on pre-staging (#4679)

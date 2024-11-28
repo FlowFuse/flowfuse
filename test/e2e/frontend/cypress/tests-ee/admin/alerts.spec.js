@@ -31,6 +31,6 @@ describe('FlowFuse - EE Templates', () => {
 
         // Change and discard changes
         cy.get('[data-el="notify-list"] div label:nth-child(2)').click()
-        cy.get('button.ff-btn--secondary:first').click() // eslint-disable-line cypress/require-data-selectors
+        cy.get('[data-el="discard-changes"]').click() // eslint-disable-line cypress/require-data-selectors
     })
 })

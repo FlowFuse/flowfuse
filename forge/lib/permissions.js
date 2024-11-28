@@ -10,6 +10,7 @@ const Permissions = {
     'user:edit': { description: 'Edit User Information', role: Roles.Admin, self: true },
     'user:delete': { description: 'Delete User', role: Roles.Admin, self: true },
     'user:team:list': { description: 'List a Users teams', role: Roles.Admin, self: true },
+    'user:announcements:manage': { description: 'Manage platform wide announcements', role: Roles.Admin },
     // Team Scoped Actions
     'team:create': { description: 'Create Team' },
     'team:list': { description: 'List Teams', role: Roles.Admin },
@@ -30,6 +31,9 @@ const Permissions = {
     'team:user:invite': { description: 'Invite Members', role: Roles.Owner },
     'team:user:remove': { description: 'Remove Member', role: Roles.Owner, self: true },
     'team:user:change-role': { description: 'Modify Member role', role: Roles.Owner },
+
+    'team:search': { description: 'Search a Teams resources', role: Roles.Viewer },
+
     // Applications
     'application:audit-log': { description: 'Access Application Audit Log', role: Roles.Owner },
     // Projects
@@ -178,7 +182,8 @@ const Permissions = {
     'broker:clients:list': { description: 'List Team Broker clients', role: Roles.Member },
     'broker:clients:create': { description: 'Create Team Broker clients', role: Roles.Owner },
     'broker:clients:edit': { description: 'Edit Team Broker clients', role: Roles.Owner },
-    'broker:clients:delete': { description: 'Delete Team Broker clients', role: Roles.Owner }
+    'broker:clients:delete': { description: 'Delete Team Broker clients', role: Roles.Owner },
+    'broker:topics:list': { description: 'List active Team Broker topics', role: Roles.Member }
 }
 
 module.exports = {

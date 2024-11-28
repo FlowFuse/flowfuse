@@ -44,12 +44,48 @@ describe('Device model', function () {
         })
     })
     describe('Settings hash', function () {
+        // helper functions
+        const nameGenerator = (name) => `${name} ${Math.random().toString(36).substring(7)}`
+
+        const newApplication = async (teamId) => {
+            const name = nameGenerator('Test Application')
+            const application = await app.db.models.Application.create({ name, TeamId: teamId })
+            return application
+        }
+        const newDevice = async (teamId, { targetSnapshotId, activeSnapshotId, applicationId, projectId, deviceGroupId } = {}) => {
+            const name = nameGenerator('Test Device')
+            const device = await app.db.models.Device.create({
+                name,
+                TeamId: teamId,
+                type: 'PI',
+                credentialSecret: 'abc',
+                state: 'active',
+                targetSnapshotId: targetSnapshotId || null,
+                activeSnapshotId: activeSnapshotId || null,
+                ApplicationId: applicationId || null,
+                ProjectId: projectId || null,
+                DeviceGroupId: deviceGroupId || null
+            })
+            return device
+        }
+        const newDeviceGroup = async (applicationId, targetSnapshotId) => {
+            const name = nameGenerator('Test Device Group')
+            const deviceGroup = await app.db.models.DeviceGroup.create({ name, ApplicationId: applicationId, targetSnapshotId })
+            return deviceGroup
+        }
+
         before(async function () {
             app = await setup()
         })
         after(async function () {
             await app.close()
         })
+        beforeEach(async () => {
+            // increase license limits
+            app.license.defaults.devices = 20
+            app.license.defaults.instances = 20
+        })
+
         it('is updated when the device name is changed', async function () {
             const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '' })
             await device.save()
@@ -80,6 +116,84 @@ describe('Device model', function () {
             const settings = await device.getAllSettings()
             should(settings).be.an.Object().and.have.a.property('env').of.Array()
             settings.env.length.should.equal(initialEnvCount + 1) // count should be +1
+        })
+        it('is updated when the snapshot changes', async function () {
+            // since snapshot affects FF_ ENV VARs, the settings hash should change due to a different snapshot id/name
+            const device = await newDevice(app.TestObjects.team1.id)
+            const initialSettingsHash = device.settingsHash
+            const snapshotName = 'Test Snapshot @ ' + new Date().toISOString()
+            const snapshot = await app.db.models.ProjectSnapshot.create({ name: snapshotName, settings: { env: [{ name: 'SNAPSHOT_ENV_VAR', value: 'value' }] } })
+
+            // make a change - set snapshot
+            device.targetSnapshotId = snapshot.id
+            await device.save()
+            await device.reload()
+            device.settingsHash.should.not.equal(initialSettingsHash)
+        })
+        it('is updated when a device is added to a device group which has ENV vars', async function () {
+            // Adding a device to a group which has ENV VARs that affect the device should change the settings hash
+            const application = await newApplication(app.TestObjects.team1.id)
+            const device = await newDevice(app.TestObjects.team1.id, { applicationId: application.id })
+            const deviceGroup = await newDeviceGroup(application.id)
+            deviceGroup.settings = { env: [{ name: 'GROUP_ENV_VAR', value: 'value' }] }
+            await deviceGroup.save()
+            const initialSettingsHash = device.settingsHash
+
+            // make a change - set device group
+            device.DeviceGroupId = deviceGroup.id
+            await device.save()
+            await device.reload()
+            device.settingsHash.should.not.equal(initialSettingsHash)
+        })
+        it('is not updated when a device is added to a device group which does not have ENV vars', async function () {
+            // since device group _can_ affect FF_ ENV VARs, the settings hash will change when a group has ENV VARs that affect the device
+            // however, if the group has no ENV VARs, the settings hash should not change
+            const application = await newApplication(app.TestObjects.team1.id)
+            const device = await newDevice(app.TestObjects.team1.id, { applicationId: application.id })
+            const deviceGroup = await newDeviceGroup(application.id)
+            const initialSettingsHash = device.settingsHash
+
+            // make a change - set device group
+            device.DeviceGroupId = deviceGroup.id
+            await device.save()
+            await device.reload()
+            device.settingsHash.should.equal(initialSettingsHash)
+        })
+        it('is updated when the devices group gets a new ENV value applied', async function () {
+            // since device group _can_ affect FF_ ENV VARs, the settings hash will change when a group has ENV VARs that affect the device
+            const application = await newApplication(app.TestObjects.team1.id)
+            const device = await newDevice(app.TestObjects.team1.id, { applicationId: application.id })
+            const deviceGroup = await newDeviceGroup(application.id)
+            deviceGroup.settings = { env: [{ name: 'GROUP_ENV_VAR', value: 'value' }] }
+            await deviceGroup.save()
+            device.DeviceGroupId = deviceGroup.id
+            await device.save()
+            await device.reload()
+            const initialSettingsHash = device.settingsHash
+
+            // make a change - set device group env
+            deviceGroup.settings = { env: [{ name: 'GROUP_ENV_VAR', value: 'new-value' }] }
+            await deviceGroup.save()
+
+            await device.reload()
+            device.settingsHash.should.not.equal(initialSettingsHash)
+        })
+        it('is not updated when the devices group gets a new ENV value that does not affect the device', async function () {
+            // since device group _can_ affect FF_ ENV VARs, the settings hash will change when a group has ENV VARs that affect the device
+            const application = await newApplication(app.TestObjects.team1.id)
+            const device = await newDevice(app.TestObjects.team1.id, { applicationId: application.id })
+            device.updateSettings({ env: [{ name: 'DEVICE_ENV_VAR', value: 'device value' }] })
+            const deviceGroup = await newDeviceGroup(application.id)
+            device.DeviceGroupId = deviceGroup.id
+            await device.save()
+            const initialSettingsHash = device.settingsHash
+
+            // make a change - set device group env
+            deviceGroup.settings = { env: [{ name: 'DEVICE_ENV_VAR', value: 'group value' }] } // this env is superseded by the device env
+            await deviceGroup.save()
+
+            await device.reload()
+            device.settingsHash.should.equal(initialSettingsHash)
         })
         it('is not updated when the device option autoSnapshot is changed', async function () {
             const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '' })

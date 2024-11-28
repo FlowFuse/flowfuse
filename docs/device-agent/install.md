@@ -13,9 +13,9 @@ meta:
 
 ## Prerequisites
 
-NodeJS of version 20 or later is recommended, through the device agent supports NodeJS v14 or later.
+The Device Agent requires Node.js 18 or later.
 
-The Device Agent can be installed on most Linux distributions, Windows, and MacOS.
+It can be installed on most Linux distributions, Windows, and MacOS, or via the provided Docker image.
 
 The Device Agent connects back to the FlowFuse platform on port 443. You will need to ensure your network permits traffic on that port. For FlowFuse Cloud, the device agent will connect to:
 
@@ -124,6 +124,14 @@ and DockerHub.
 For backwards compatibility we will continue to publish to both the old and
 new locations for a period of time, but we strongly encourage users to update to the
 new package to ensure you continue to receive the latest updates.
+
+### Upgrading to Device Agent 3.x
+
+Version 3.x of the Device Agent requires Node.js 18 as a minimum; older versions of Node.js are no longer supported.
+
+The `latest` tagged Docker image is now based on Node.js 18.
+
+If you are not able to update to Node.js 18 or later at this time, you should stay on the Device Agent 2.x release. For the install commands below, this means using `@2.x` instead of `@latest`. In the case of Docker, make sure you use the `2.8.0` tag instead of `latest`.
 
 ### Linux/MacOS
 

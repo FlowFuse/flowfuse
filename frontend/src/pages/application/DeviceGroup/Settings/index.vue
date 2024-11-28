@@ -1,4 +1,7 @@
 <template>
+    <div class="mb-3">
+        <SectionTopMenu hero="Device Group Settings" info="" />
+    </div>
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
@@ -12,13 +15,14 @@ import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import SectionSideMenu from '../../../../components/SectionSideMenu.vue'
+import SectionTopMenu from '../../../../components/SectionTopMenu.vue'
 
 import permissionsMixin from '../../../../mixins/Permissions.js'
 
 export default {
     name: 'DeviceGroupSettings',
     components: {
-        SectionSideMenu
+        SectionSideMenu, SectionTopMenu
     },
     mixins: [permissionsMixin],
     props: {
@@ -55,8 +59,8 @@ export default {
                 return false
             }
             this.sideNavigation = [
-                { name: 'General', path: './general' },
-                { name: 'Environment', path: './environment' }
+                { name: 'General', path: { name: 'ApplicationDeviceGroupSettingsGeneral' } },
+                { name: 'Environment', path: { name: 'ApplicationDeviceGroupSettingsEnvironment' } }
             ]
             return true
         },

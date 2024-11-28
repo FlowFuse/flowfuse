@@ -1,16 +1,4 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation>
-            <template #options>
-                <a @click="$router.back()">
-                    <nav-item
-                        :icon="icons.chevronLeft"
-                        label="Back"
-                    />
-                </a>
-            </template>
-        </SideNavigation>
-    </Teleport>
     <ff-page>
         <ff-loading v-if="loading" message="Updating Team..." />
         <div v-else class="m-auto">
@@ -103,16 +91,12 @@ import teamApi from '../../api/team.js'
 import teamTypesApi from '../../api/teamTypes.js'
 import FormHeading from '../../components/FormHeading.vue'
 
-import NavItem from '../../components/NavItem.vue'
-import SideNavigation from '../../components/SideNavigation.vue'
 import Alerts from '../../services/alerts.js'
 
 export default {
     name: 'ChangeTeamType',
     components: {
-        FormHeading,
-        SideNavigation,
-        NavItem
+        FormHeading
     },
     data () {
         return {

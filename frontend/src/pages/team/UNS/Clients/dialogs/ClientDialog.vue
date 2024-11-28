@@ -73,9 +73,9 @@
 import { PlusIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import brokerApi from '../../../../api/broker.js'
-import FormRow from '../../../../components/FormRow.vue'
-import { generateUuid } from '../../../../composables/String.js'
+import brokerApi from '../../../../../api/broker.js'
+import FormRow from '../../../../../components/FormRow.vue'
+import { generateUuid } from '../../../../../composables/String.js'
 
 import AclItem from './AclItem.vue'
 

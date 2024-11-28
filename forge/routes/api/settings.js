@@ -75,7 +75,7 @@ module.exports = async function (app) {
                     'branding:account:signUpLeftBanner'
                 ].forEach(prop => {
                     const value = app.settings.get(prop)
-                    if (value) {
+                    if (value !== null) {
                         response[prop] = value
                     }
                 })
@@ -109,7 +109,7 @@ module.exports = async function (app) {
                 'branding:account:signUpLeftBanner'
             ].forEach(prop => {
                 const value = app.settings.get(prop)
-                if (value) {
+                if (value != null) {
                     publicSettings[prop] = value
                 }
             })
@@ -121,7 +121,6 @@ module.exports = async function (app) {
                 }
                 publicSettings.adwords = adwords
             }
-
             reply.send(publicSettings)
         }
     })
@@ -129,7 +128,7 @@ module.exports = async function (app) {
     app.put('/', {
         preHandler: app.needsPermission('settings:edit'),
         schema: {
-            summary: 'Get platform settings',
+            summary: 'Update platform settings',
             tags: ['Platform'],
             body: { type: 'object' },
             response: {

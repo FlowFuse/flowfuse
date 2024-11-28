@@ -1,76 +1,82 @@
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 export default {
+    // todo The account store's featuresCheck getter should be used instead of this mixin
+    //  Currently keeping it for backwards compat, as all permissions checks should use the accounts featuresCheck getter
     computed: {
         ...mapState('account', ['features', 'team']),
+        ...mapGetters('account', ['featuresCheck']),
         isSharedLibraryFeatureEnabledForTeam () {
-            const flag = this.team.type.properties.features?.['shared-library']
-            return flag === undefined || flag
+            return this.featuresCheck.isSharedLibraryFeatureEnabledForTeam
         },
         isSharedLibraryFeatureEnabledForPlatform () {
-            return this.features['shared-library']
+            return this.featuresCheck.isSharedLibraryFeatureEnabledForPlatform
         },
         isSharedLibraryFeatureEnabled () {
-            return this.isSharedLibraryFeatureEnabledForTeam && this.isSharedLibraryFeatureEnabledForPlatform
+            return this.featuresCheck.isSharedLibraryFeatureEnabled
         },
         isBlueprintsFeatureEnabledForTeam () {
-            const flag = this.team.type.properties.features?.flowBlueprints
-            return flag === undefined || flag
+            return this.featuresCheck.isBlueprintsFeatureEnabledForTeam
         },
         isBlueprintsFeatureEnabledForPlatform () {
-            return this.features.flowBlueprints
+            return this.featuresCheck.isBlueprintsFeatureEnabledForPlatform
         },
         isBlueprintsFeatureEnabled () {
-            return this.isBlueprintsFeatureEnabledForTeam && this.isBlueprintsFeatureEnabledForPlatform
+            return this.featuresCheck.isBlueprintsFeatureEnabled
         },
         isCustomCatalogsFeatureEnabledForPlatform () {
-            return !!this.features.customCatalogs
+            return this.featuresCheck.isCustomCatalogsFeatureEnabledForPlatform
         },
         isCustomCatalogsFeatureEnabledForTeam () {
-            const flag = this.team.type.properties.features?.customCatalogs
-            return flag === undefined || flag
+            return this.featuresCheck.isCustomCatalogsFeatureEnabledForTeam
         },
         isCustomCatalogsFeatureEnabled () {
-            return this.isCustomCatalogsFeatureEnabledForPlatform && this.isCustomCatalogsFeatureEnabledForTeam
+            return this.featuresCheck.isCustomCatalogsFeatureEnabled
         },
         isStaticAssetFeatureEnabledForPlatform () {
-            return !!this.features.staticAssets
+            return this.featuresCheck.isStaticAssetFeatureEnabledForPlatform
         },
         isStaticAssetsFeatureEnabledForTeam () {
-            return !!this.team?.type?.properties?.features?.staticAssets
+            return this.featuresCheck.isStaticAssetsFeatureEnabledForTeam
         },
         isStaticAssetFeatureEnabled () {
-            return this.isStaticAssetFeatureEnabledForPlatform && this.isStaticAssetsFeatureEnabledForTeam
+            return this.featuresCheck.isStaticAssetFeatureEnabled
+        },
+        isHTTPBearerTokensFeatureEnabledForPlatform () {
+            return this.featuresCheck.isHTTPBearerTokensFeatureEnabledForPlatform
         },
         isHTTPBearerTokensFeatureEnabledForTeam () {
-            return this.settings?.features.httpBearerTokens && this.team.type.properties.features.teamHttpSecurity
+            return this.featuresCheck.isHTTPBearerTokensFeatureEnabledForTeam
+        },
+        isHTTPBearerTokensFeatureEnabled () {
+            return this.featuresCheck.isHTTPBearerTokensFeatureEnabled
         },
         isBOMFeatureEnabledForPlatform () {
-            return !!this.features.bom
+            return this.featuresCheck.isBOMFeatureEnabledForPlatform
         },
         isBOMFeatureEnabledForTeam () {
-            return !!this.team?.type?.properties?.features?.bom
+            return this.featuresCheck.isBOMFeatureEnabledForTeam
         },
         isBOMFeatureEnabled () {
-            return this.isBOMFeatureEnabledForPlatform && this.isBOMFeatureEnabledForTeam
+            return this.featuresCheck.isBOMFeatureEnabled
         },
         isTimelineFeatureEnabledForPlatform () {
-            return !!this.features.projectHistory
+            return this.featuresCheck.isTimelineFeatureEnabledForPlatform
         },
         isTimelineFeatureEnabledForTeam () {
-            return !!this.team?.type?.properties?.features?.projectHistory
+            return this.featuresCheck.isTimelineFeatureEnabledForTeam
         },
         isTimelineFeatureEnabled () {
-            return this.isTimelineFeatureEnabledForPlatform && this.isTimelineFeatureEnabledForTeam
+            return this.featuresCheck.isTimelineFeatureEnabled
         },
         isMqttBrokerFeatureEnabledForPlatform () {
-            return !!this.features.teamBroker
+            return this.featuresCheck.isMqttBrokerFeatureEnabledForPlatform
         },
         isMqttBrokerFeatureEnabledForTeam () {
-            return !!this.team?.type?.properties?.features?.teamBroker
+            return this.featuresCheck.isMqttBrokerFeatureEnabledForTeam
         },
         isMqttBrokerFeatureEnabled () {
-            return this.isMqttBrokerFeatureEnabledForPlatform && this.isMqttBrokerFeatureEnabledForTeam
+            return this.featuresCheck.isMqttBrokerFeatureEnabled
         }
     }
 }

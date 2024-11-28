@@ -36,7 +36,7 @@ async function setup (config = {}) {
     const team1 = await factory.createTeam({ name: 'ATeam' })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
 
-    if (config.billing) {
+    if (config.license && config.billing) {
         await factory.createSubscription(team1)
     }
 

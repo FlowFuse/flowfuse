@@ -7,6 +7,7 @@
                 <ff-text-input
                     ref="login-username"
                     v-model="input.username"
+                    autocomplete="username"
                     label="username"
                     :error="errors.username"
                     data-el="login-username"

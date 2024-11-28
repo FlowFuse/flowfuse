@@ -30,10 +30,16 @@ const updateClient = (teamId, username, { acls, password }) => {
     }).then(res => res.data)
 }
 
+const getTopics = (teamId) => {
+    return client.get(`/api/v1/teams/${teamId}/broker/topics`)
+        .then(res => res.data)
+}
+
 export default {
     getClients,
     getClient,
     createClient,
     updateClient,
-    deleteClient
+    deleteClient,
+    getTopics
 }

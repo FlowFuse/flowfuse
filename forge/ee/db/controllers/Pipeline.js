@@ -194,7 +194,7 @@ module.exports = {
             await transaction.commit()
             return stage
         } catch (err) {
-            transaction.rollback()
+            await transaction.rollback()
             throw err
         }
     },
@@ -464,10 +464,10 @@ module.exports = {
                 // update all devices targetSnapshotId
                 await app.db.models.Device.update({ targetSnapshotId: sourceSnapshot.id }, { where: { DeviceGroupId: targetDeviceGroup.id }, transaction })
                 // commit the transaction
-                transaction.commit()
+                await transaction.commit()
             } catch (error) {
                 // rollback the transaction
-                transaction.rollback()
+                await transaction.rollback()
                 throw error
             }
 
