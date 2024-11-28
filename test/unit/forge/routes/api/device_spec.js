@@ -1284,7 +1284,7 @@ describe('Device API', async function () {
                 settings.should.have.property('mode', 'developer')
                 settings.should.have.property('editor')
             })
-            it('team member can not set device to developer mode', async function () {
+            it('team member can set device to developer mode', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({
                     method: 'PUT',
@@ -1294,7 +1294,7 @@ describe('Device API', async function () {
                     },
                     cookies: { sid: TestObjects.tokens.chris }
                 })
-                response.statusCode.should.equal(403)
+                response.statusCode.should.equal(200)
             })
         })
     })
