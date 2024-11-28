@@ -145,8 +145,8 @@ const iconMap = {
         'users.auto-created-team'
     ],
     mail: [
-        'user.invite.accepted',
-        'user.invite.deleted',
+        'user.invitation.accepted',
+        'user.invitation.deleted',
         'team.user.invited',
         'team.user.uninvited',
         'team.user.invite.accepted',

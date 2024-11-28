@@ -583,5 +583,55 @@ describe('Team Broker API', function () {
                 result.should.have.property('result', 'deny')
             })
         })
+        describe('Test Topic listing by Team', function () {
+            before(async function () {
+                await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/client`,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    body: {
+                        username: 'alice',
+                        password: 'aaPassword',
+                        acls: [
+                            {
+                                pattern: 'foo/#',
+                                action: 'both'
+                            }
+                        ]
+                    }
+                })
+            })
+            after(async function () {
+                await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/client/alice`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+            })
+            it('Add topics to list', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/acls',
+                    body: {
+                        username: `alice@${app.team.hashid}`,
+                        topic: 'foo/bar',
+                        action: 'publish'
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('result', 'allow')
+
+                const topicsResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/topics`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                topicsResponse.statusCode.should.equal(200)
+                const topics = topicsResponse.json()
+                topics.should.containEql('foo/bar')
+            })
+        })
     })
 })

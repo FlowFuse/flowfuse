@@ -38,7 +38,6 @@ const getters = {
     mainNavContexts: function (state, getters, rootState, rootGetters) {
         const { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } = usePermissions()
         const team = rootState.account.team
-        const teamMembership = rootState.account.teamMembership
         const accountFeatures = rootState.account.features
         const noBilling = rootGetters['account/noBilling']
         const features = rootGetters['account/featuresCheck']
@@ -46,7 +45,7 @@ const getters = {
             team: [
                 {
                     title: '',
-                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
                         {
                             label: 'Applications',
@@ -59,7 +58,7 @@ const getters = {
                 },
                 {
                     title: 'Instances',
-                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
                         {
                             label: 'Hosted Instances',
@@ -79,22 +78,22 @@ const getters = {
                 },
                 {
                     title: 'Operations',
-                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
                         {
                             label: 'Broker',
-                            to: { name: 'TeamBroker', params: { team_slug: team.slug } },
-                            tag: 'team-broker',
+                            to: { name: 'team-unified-namespace', params: { team_slug: team.slug } },
+                            tag: 'team-unified-namespace',
                             icon: RssIcon,
                             disabled: noBilling,
                             featureUnavailable: !features.isMqttBrokerFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership) && features.isMqttBrokerFeatureEnabledForPlatform
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
                         }
                     ]
                 },
                 {
                     title: 'Team Management',
-                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
                         {
                             label: 'Library',
@@ -115,7 +114,7 @@ const getters = {
                 },
                 {
                     title: 'Team Admin',
-                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     permission: '',
                     entries: [
                         {
@@ -139,7 +138,7 @@ const getters = {
 
                                 // team members that are part of teams that have suspended/no billing setup are forcibly redirected
                                 // to the billing page (even if they don't have permissions to normally access the billing page)
-                                return !!accountFeatures?.billing && hasPermission('team:edit', teamMembership)
+                                return !!accountFeatures?.billing && hasPermission('team:edit')
                             })()
                         },
                         {
@@ -292,7 +291,6 @@ const getters = {
         }
 
         const { hasPermission } = usePermissions()
-        const teamMembership = rootState.account.teamMembership
 
         return getters.mainNavContexts[state.mainNav.context]
             .map(category => {
@@ -303,7 +301,7 @@ const getters = {
                 category.entries = category.entries.filter(entry => {
                     const hasPermissionKey = Object.prototype.hasOwnProperty.call(entry, 'permission')
                     if (hasPermissionKey && entry.permission.length > 0) {
-                        return hasPermission(entry.permission, teamMembership)
+                        return hasPermission(entry.permission)
                     } return true
                 })
 
@@ -312,7 +310,7 @@ const getters = {
             .filter(category => { // filter categories without permission
                 const hasPermissionKey = Object.prototype.hasOwnProperty.call(category, 'permission')
                 if (hasPermissionKey && category.permission.length > 0) {
-                    return hasPermission(category.permission, teamMembership)
+                    return hasPermission(category.permission)
                 } return true
             })
             .filter(category => Object.prototype.hasOwnProperty.call(category, 'hidden') ? !category.hidden : true) // filter hidden categories

@@ -244,7 +244,8 @@ module.exports = async function (app) {
         const teamType = await request.device.Team.getTeamType()
         response.features = {
             'shared-library': !!(app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true)),
-            projectComms: !!(app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true))
+            projectComms: !!(app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)),
+            teamBroker: !!(app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true))
         }
         response.assistant = {
             enabled: app.config.assistant?.enabled || false,

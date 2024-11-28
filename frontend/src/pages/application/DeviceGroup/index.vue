@@ -110,7 +110,7 @@ export default {
                 {
                     label: 'Settings',
                     to: {
-                        name: 'ApplicationDeviceGroupSettingsGeneral',
+                        name: 'ApplicationDeviceGroupSettings',
                         params: {
                             applicationId: this.application?.id,
                             deviceGroupId: this.deviceGroup?.id
