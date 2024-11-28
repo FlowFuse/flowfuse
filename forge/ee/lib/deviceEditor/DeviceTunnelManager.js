@@ -59,6 +59,9 @@ class DeviceTunnelManager {
                 this.closeTunnel(deviceId)
             }
         })
+        if (app.config.device?.memberEnableDeviceDeveloperMode === true) {
+            app.config.features.register('memberEnableDeviceDeveloperMode', true)
+        }
     }
 
     /**

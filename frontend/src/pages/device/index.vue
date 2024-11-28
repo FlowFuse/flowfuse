@@ -188,6 +188,9 @@ export default {
         isOwner: function () {
             return this.teamMembership.role === Roles.Owner
         },
+        isMember: function () {
+            return this.teamMembership.role === Roles.Member
+        },
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor
         },
@@ -198,10 +201,14 @@ export default {
             return this.device?.status === 'running'
         },
         disableModeToggle: function () {
+            let user = this.isOwner
+            if (this.features.memberEnableDeviceDeveloperMode) {
+                user = this.isOwner || this.isMember
+            }
             return !this.isDevModeAvailable ||
                 !this.device ||
                 !this.agentSupportsDeviceAccess ||
-                !this.isOwner
+                !user
         },
         disableModeToggleReason: function () {
             if (!this.device) {
