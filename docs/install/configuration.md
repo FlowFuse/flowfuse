@@ -287,3 +287,10 @@ Option        | Description
 `content_security_policy.directives` | Overrides the default set of directives, supplied as a JSON object defined by HelmetJS [here](https://helmetjs.github.io/#content-security-policy)
 `content_security_policy.report_only` | Enables reporting only mode. Default: `false`
 `content_security_policy.report_uri` |  Provides at URI for reporting to be sent to if enabled
+
+
+## Device Agent 
+
+Option        | Description
+--------------|------------
+`device.memberEnableDeviceDeveloperMode` | Allows Team members to toggle Device Developer Mode. Default: `false`

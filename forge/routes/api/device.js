@@ -768,7 +768,13 @@ module.exports = async function (app) {
      * @memberof module:forge/routes/api/device
      */
     app.put('/:deviceId/mode', {
-        preHandler: app.needsPermission('device:edit'),
+        preHandler: async () => {
+            if (app.config.device?.memberEnableDeviceDeveloperMode === true) {
+                return app.needsPermission('device:editor')
+            } else {
+                return app.needsPermission('device:edit')
+            }
+        },
         schema: {
             summary: 'Set device mode',
             tags: ['Devices'],
