@@ -762,20 +762,13 @@ module.exports = async function (app) {
         reply.send(await app.db.controllers.BrokerClient.createClientForFrontend(request.device))
     })
 
-    function permissionCheck() {
-        if (app.config.device?.memberEnableDeviceDeveloperMode === true ) {
-            return app.needsPermission('device:editor')
-        } else {
-            return app.needsPermission('device:edit')
-        }
-    }
     /**
      * Set device operating mode
      * @name /api/v1/devices/:deviceId/mode
      * @memberof module:forge/routes/api/device
      */
     app.put('/:deviceId/mode', {
-        preHandler: permissionCheck(),
+        preHandler: app.needsPermission('device:editor'),
         schema: {
             summary: 'Set device mode',
             tags: ['Devices'],
