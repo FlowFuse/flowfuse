@@ -166,7 +166,7 @@ describe('Admin API', async function () {
         })
     })
 
-    describe('notifications', function () {
+    describe.only('notifications', function () {
         after(async function () {
             await app.close()
         })
@@ -190,10 +190,25 @@ describe('Admin API', async function () {
 
             TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
 
+            TestObjects.secondTeamType = await app.db.models.TeamType.create({
+                name: 'second team type',
+                active: false,
+                order: 1,
+                description: '',
+                properties: {}
+            })
+            TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam', TeamTypeId: TestObjects.secondTeamType.id, suspended: false })
+            // DTeam is suspended - does not qualify for notifications
+            TestObjects.DTeam = await app.db.models.Team.create({ name: 'DTeAbCam', TeamTypeId: TestObjects.secondTeamType.id, suspended: true })
+
             await TestObjects.BTeam.addUser(TestObjects.notificationUser1, { through: { role: app.factory.Roles.Roles.Owner } })
             await TestObjects.BTeam.addUser(TestObjects.notificationUser2, { through: { role: app.factory.Roles.Roles.Member } })
             await TestObjects.BTeam.addUser(TestObjects.notificationUser3, { through: { role: app.factory.Roles.Roles.Viewer } })
-            await TestObjects.BTeam.addUser(TestObjects.notificationUser4, { through: { role: app.factory.Roles.Roles.Dashboard } })
+            await TestObjects.CTeam.addUser(TestObjects.notificationUser3, { through: { role: app.factory.Roles.Roles.Viewer } })
+            await TestObjects.CTeam.addUser(TestObjects.notificationUser4, { through: { role: app.factory.Roles.Roles.Dashboard } })
+
+            await TestObjects.DTeam.addUser(TestObjects.notificationUser1, { through: { role: app.factory.Roles.Roles.Viewer } })
+            await TestObjects.DTeam.addUser(TestObjects.notificationUser2, { through: { role: app.factory.Roles.Roles.Dashboard } })
         })
 
         async function sendNotification (payload) {
@@ -229,7 +244,7 @@ describe('Admin API', async function () {
             count.should.equal(2)
         })
 
-        it('send to member/viewer', async function () {
+        it('send to member/viewer - any team type', async function () {
             const payload = {
                 message: 'member/viewer only message',
                 title: 'member/viewer only title',
@@ -256,6 +271,36 @@ describe('Admin API', async function () {
 
             ;(notifications[0].UserId === TestObjects.notificationUser2.id).should.be.true()
             ;(notifications[1].UserId === TestObjects.notificationUser3.id).should.be.true()
+        })
+        it('send to member/viewer - single team', async function () {
+            const payload = {
+                message: 'member/viewer only message',
+                title: 'member/viewer only title',
+                filter: {
+                    roles: [app.factory.Roles.Roles.Member, app.factory.Roles.Roles.Viewer],
+                    teamTypes: [TestObjects.secondTeamType.hashid]
+                },
+                mock: true
+            }
+            let response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            let result = response.json()
+            result.should.have.property('mock', true)
+            result.should.have.property('recipientCount', 1)
+
+            // Resend without mock
+            delete payload.mock
+            response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            result = response.json()
+            result.should.not.have.property('mock')
+            result.should.have.property('recipientCount', 1)
+
+            const notifications = await app.db.models.Notification.findAll()
+            const count = notifications.length
+            count.should.equal(1)
+
+            ;(notifications[0].UserId === TestObjects.notificationUser3.id).should.be.true()
         })
 
         it('does not send duplicate notifications if filter matches multiple times', async function () {
