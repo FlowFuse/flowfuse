@@ -166,7 +166,7 @@ describe('Admin API', async function () {
         })
     })
 
-    describe.only('notifications', function () {
+    describe('notifications', function () {
         after(async function () {
             await app.close()
         })
