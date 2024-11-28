@@ -61,7 +61,7 @@ class DeviceTunnelManager {
             }
         })
 
-        this.pathPrefix = '/opt/share/projects/flowforge/test/device-cache' // app.config.device.cache_path
+        this.pathPrefix = app.config.device.cache_path
         this.pathPostfix = 'node_modules/@node-red/editor-client/public/'
     }
 
