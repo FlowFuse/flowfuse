@@ -1,6 +1,5 @@
 const {
-    DataTypes,
-    Op
+    DataTypes
 } = require('sequelize')
 
 module.exports = {
@@ -93,8 +92,8 @@ module.exports = {
                         include: [{
                             association: 'Application',
                             where: {
-                                'TeamId': teamId
-                            },
+                                TeamId: teamId
+                            }
                         }]
                     })
                 }
