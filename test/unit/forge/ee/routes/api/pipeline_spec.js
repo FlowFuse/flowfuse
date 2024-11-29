@@ -2867,6 +2867,56 @@ describe('Pipelines API', function () {
             response.statusCode.should.equal(200)
         })
     })
+    describe('List Team Pipelines', function () {
+        it('should list all the pipelines in a team and include stages, instances, devices, device groups and applications', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.team.hashid}/pipelines`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            const body = await response.json()
+
+
+            body.should.have.property('count', 3)
+            body.pipelines.should.have.length(3)
+
+            body.pipelines[0].should.have.property('name', 'new-pipeline')
+            body.pipelines[0].should.have.property('stages')
+            body.pipelines[0].should.have.property('application')
+            body.pipelines[0].application.should.have.property('name', TestObjects.application.name)
+
+            body.pipelines[0].stages.should.have.length(1)
+            body.pipelines[0].stages[0].should.have.property('name', 'stage-one')
+
+            body.pipelines[0].stages[0].instances.should.have.length(1)
+            body.pipelines[0].stages[0].instances[0].should.have.property('name', 'project1')
+
+            body.pipelines[1].should.have.property('name', 'new-pipeline-devices')
+            body.pipelines[1].should.have.property('application')
+
+            body.pipelines[1].stages.should.have.length(1)
+            body.pipelines[1].stages[0].should.have.property('name', 'stage-one-devices')
+
+            body.pipelines[1].stages[0].devices.should.have.length(1)
+            body.pipelines[1].stages[0].devices[0].should.have.property('name', 'device-a')
+
+            body.pipelines[2].should.have.property('name', 'new-pipeline-device-groups')
+            body.pipelines[2].should.have.property('application')
+
+            body.pipelines[2].stages.should.have.length(2)
+            body.pipelines[2].stages[0].should.have.property('name', 'stage-one-instance') // first stage is an instance
+            body.pipelines[2].stages[1].should.have.property('name', 'stage-two-device-group') // second stage is a device group
+
+            body.pipelines[2].stages[0].instances.should.have.length(1)
+            body.pipelines[2].stages[0].instances[0].should.have.property('name', 'project1')
+
+            body.pipelines[2].stages[1].deviceGroups.should.have.length(1)
+            body.pipelines[2].stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
+
+            response.statusCode.should.equal(200)
+        })
+    })
 
     describe('Locked template fields', function () {
         async function isDeployComplete (instance) {
