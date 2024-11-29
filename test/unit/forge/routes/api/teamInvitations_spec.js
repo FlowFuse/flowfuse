@@ -380,6 +380,10 @@ describe('Team Invitations API', function () {
             const houseKeepingJob = require('../../../../../forge/housekeeper/tasks/inviteReminder')
             await houseKeepingJob.run(app)
             app.config.email.transport.getMessageQueue().should.have.lengthOf(3)
+            app.config.email.transport.getMessageQueue()[1].to.should.equal(TestObjects.chris.email)
+            app.config.email.transport.getMessageQueue()[1].subject.should.equal('Invitation to join team BTeam on FlowFuse')
+            app.config.email.transport.getMessageQueue()[2].to.should.equal(TestObjects.bob.email)
+            app.config.email.transport.getMessageQueue()[2].subject.should.equal('Invitation for Chris Kenobi to BTeam not accepted yet')
         })
         it('Reminder should be sent after 2 days (external)', async () => {
             const response = await app.inject({
@@ -407,6 +411,10 @@ describe('Team Invitations API', function () {
             const houseKeepingJob = require('../../../../../forge/housekeeper/tasks/inviteReminder')
             await houseKeepingJob.run(app)
             app.config.email.transport.getMessageQueue().should.have.lengthOf(3)
+            app.config.email.transport.getMessageQueue()[1].to.should.equal('evans@example.com')
+            app.config.email.transport.getMessageQueue()[1].subject.should.equal('Invitation to collaborate on FlowFuse')
+            app.config.email.transport.getMessageQueue()[2].to.should.equal(TestObjects.bob.email)
+            app.config.email.transport.getMessageQueue()[2].subject.should.equal('Invitation for evans@example com to BTeam not accepted yet')
         })
     })
 
