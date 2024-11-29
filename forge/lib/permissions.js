@@ -164,6 +164,7 @@ const Permissions = {
     'pipeline:edit': { description: 'Edit a pipeline', role: Roles.Owner },
     'pipeline:delete': { description: 'Delete a pipeline', role: Roles.Owner },
     'application:pipeline:list': { description: 'List pipelines within an application', role: Roles.Member },
+    'team:pipeline:list': { description: 'List pipelines within a team', role: Roles.Member },
 
     // SAML
     'saml-provider:create': { description: 'Create a SAML Provider', role: Roles.Admin },

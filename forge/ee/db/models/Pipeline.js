@@ -1,5 +1,6 @@
 const {
-    DataTypes
+    DataTypes,
+    Op
 } = require('sequelize')
 
 module.exports = {
@@ -82,6 +83,19 @@ module.exports = {
                         where: {
                             ApplicationId: applicationId
                         }
+                    })
+                },
+                byTeamId: async function (teamId) {
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
+                    return self.findAll({
+                        include: [{
+                            association: 'Application',
+                            where: {
+                                'TeamId': teamId
+                            },
+                        }]
                     })
                 }
             }
