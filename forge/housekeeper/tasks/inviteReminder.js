@@ -1,11 +1,12 @@
 const { Op } = require('sequelize')
 
+const { randomInt } = require('../utils')
+
 module.exports = {
     name: 'inviteReminder',
     startup: false,
-    // This fixed time will not work well when horizontal scaling
-    // will need to find a way to pick a "leader"
-    schedule: '38 3 * * *',
+    // runs every 15mins with a random offset from the start of the hour
+    schedule: `${randomInt(0, 15)}/15 * * * *`,
     run: async function (app) {
         // need to iterate over invitations and send email to all over
         // 2 days old, but less than 3 days.
@@ -17,6 +18,9 @@ module.exports = {
             where: {
                 createdAt: {
                     [Op.between]: [threeDays, twoDays]
+                },
+                reminderSentAt: {
+                    [Op.is]: null
                 }
             },
             include: [
@@ -55,6 +59,8 @@ module.exports = {
                     expiryDate
                 })
             }
+            invite.reminderSentAt = Date.now()
+            await invite.save()
 
             // send reminder to Invitor
             await app.postoffice.send(invite.invitor, 'TeamInviterReminder', {
