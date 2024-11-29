@@ -734,7 +734,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         // Protect Instance
         cy.visit(`/application/${application.id}`)
         cy.get('[data-el="cloud-instances"] table tbody tr:nth-of-type(2)').click()
-        cy.get('[data-nav="instance-settings"').click()
+        cy.get('[data-nav="instance-settings"]').click()
         cy.get('[data-el="section-side-menu"] li:nth-of-type(4)').click()
         cy.get('[data-nav="enable-protect"]').click()
 

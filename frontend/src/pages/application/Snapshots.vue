@@ -87,6 +87,7 @@ export default {
         EmptyState
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         application: {
             type: Object,

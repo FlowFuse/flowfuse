@@ -87,6 +87,7 @@ export default [
             {
                 path: 'logs',
                 component: ApplicationLogs,
+                name: 'application-logs',
                 meta: {
                     title: 'Application - Logs',
                     shouldPoll: true
@@ -94,6 +95,7 @@ export default [
             },
             {
                 path: 'activity',
+                name: 'application-activity',
                 component: ApplicationActivity,
                 meta: {
                     title: 'Application - Activity'
@@ -141,7 +143,7 @@ export default [
             },
             {
                 path: 'dependencies',
-                name: 'Dependencies',
+                name: 'application-dependencies',
                 component: Dependencies,
                 meta: {
                     title: 'Dependencies'
