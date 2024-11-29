@@ -2877,7 +2877,6 @@ describe('Pipelines API', function () {
 
             const body = await response.json()
 
-
             body.should.have.property('count', 3)
             body.pipelines.should.have.length(3)
 
