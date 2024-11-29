@@ -82,16 +82,16 @@ describe('FlowForge - Instance - Logs', () => {
         // open dropdown
         cy.get('[data-el="select-ha-replica"]').click()
         // check we have 3 options
-        cy.get('[data-el="select-ha-replica"] .ff-dropdown-option').should('have.length', 3)
+        cy.get('[data-el="select-ha-replica"] .ff-option').should('have.length', 3)
         // select the first HA Replica
-        cy.get('[data-el="select-ha-replica"] .ff-dropdown-option').eq(1).click()
+        cy.get('[data-el="select-ha-replica"] .ff-option').eq(1).click()
 
         // logs should now be filtered to the 3 we've defined for first replica
         cy.get('[data-el="instance-log-row"]').should('have.length', 2)
 
         // open dropdown and select "All"
         cy.get('[data-el="select-ha-replica"]').click()
-        cy.get('[data-el="select-ha-replica"] .ff-dropdown-option').eq(0).click()
+        cy.get('[data-el="select-ha-replica"] .ff-option').eq(0).click()
 
         // logs should be restored
         cy.get('[data-el="instance-log-row"]').should('have.length', 3)

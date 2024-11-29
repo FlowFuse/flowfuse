@@ -274,16 +274,13 @@ module.exports = {
                             })
                         } else {
                             const clause = { TeamId: teamId }
-                            // applicationIds = (await M.Application.findAll({ where: clause, attributes: ['id'] })).map(a => a.id?.toString()).filter(a => !!a)
                             const _applications = (await M.Application.findAll({ where: clause, attributes: ['id', 'hashid', 'name', 'TeamId'] }))
                             _applications.forEach(a => applicationMap.set(a.id?.toString(), a))
                             applicationIds = _applications.map(a => a.id?.toString()).filter(a => !!a)
-                            if (applicationIds.length) {
-                                filters.push({
-                                    entityType: 'application',
-                                    entityId: { [Op.in]: applicationIds }
-                                })
-                            }
+                            filters.push({
+                                entityType: 'application',
+                                entityId: { [Op.in]: applicationIds }
+                            })
                         }
                         if (applicationId === null && includeInstances && includeApplicationDevices && includeInstanceDevices) {
                             // Since applicationId is null, we are doing this for the team.
@@ -329,16 +326,13 @@ module.exports = {
                                     clause.ApplicationId = applicationId.toString()
                                 }
                             }
-                            // instanceIds = (await M.Project.findAll({ where: clause, attributes: ['id'] })).map(p => p.id?.toString()).filter(p => !!p)
                             const _instances = (await M.Project.findAll({ where: clause, attributes: ['id', 'name', 'ApplicationId', 'TeamId', 'state'] }))
                             _instances.forEach(i => instanceMap.set(i.id?.toString(), i))
                             instanceIds = _instances.map(p => p.id?.toString()).filter(p => !!p)
-                            if (instanceIds.length) {
-                                filters.push({
-                                    entityType: 'project',
-                                    entityId: { [Op.in]: instanceIds }
-                                })
-                            }
+                            filters.push({
+                                entityType: 'project',
+                                entityId: { [Op.in]: instanceIds }
+                            })
                         }
                         if (includeInstanceDevices) {
                             await addDeviceScope(teamId, null, instanceIds)
@@ -363,12 +357,10 @@ module.exports = {
                         const _devices = (await M.Device.findAll({ where: clause, attributes: ['id', 'hashid', 'name', 'type', 'ApplicationId', 'ProjectId', 'TeamId', 'ownerType', 'mode', 'lastSeenAt', 'state'] }))
                         _devices.forEach(d => deviceMap.set(d.id?.toString(), d))
                         const deviceIds = _devices.map(d => d.id?.toString()).filter(d => !!d)
-                        if (_devices.length) {
-                            filters.push({
-                                entityType: 'device',
-                                entityId: { [Op.in]: deviceIds }
-                            })
-                        }
+                        filters.push({
+                            entityType: 'device',
+                            entityId: { [Op.in]: deviceIds }
+                        })
                     }
 
                     if (entityType === 'team') {
@@ -420,7 +412,14 @@ module.exports = {
                         result.filter = { [Op.or]: filters }
                         return result
                     }
-                    return null
+                    return {
+                        filter: {},
+                        associations: {
+                            applications: [],
+                            instances: [],
+                            devices: []
+                        }
+                    }
                 }
             }
         }

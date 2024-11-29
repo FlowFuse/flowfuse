@@ -47,7 +47,7 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamIdOrHash, { query = null, includeInstances = false, includeApplicationDevices = false, includeInstanceStorageFlow = false, associationsLimit = null, includeApplicationSummary = false } = {}) => {
+                byTeam: async (teamIdOrHash, { query = null, applicationId = null, includeInstances = false, includeApplicationDevices = false, includeInstanceStorageFlow = false, associationsLimit = null, includeApplicationSummary = false } = {}) => {
                     let id = teamIdOrHash
                     if (typeof teamIdOrHash === 'string') {
                         id = M.Team.decodeHashid(teamIdOrHash)
@@ -120,11 +120,24 @@ module.exports = {
                     const queryObject = {
                         include: includes
                     }
-                    if (query) {
-                        queryObject.where = where(
-                            fn('lower', col('Application.name')),
-                            { [Op.like]: `%${query.toLowerCase()}%` }
-                        )
+                    const queryWheres = []
+                    if (applicationId) {
+                        if (typeof applicationId === 'string') {
+                            applicationId = M.Application.decodeHashid(applicationId)
+                        }
+                        queryWheres.push({ id: applicationId })
+                    } else if (query) {
+                        queryWheres.push({
+                            [Op.or]: [
+                                where(fn('lower', col('Application.name')), { [Op.like]: `%${query.toLowerCase()}%` }),
+                                where(fn('lower', col('Application.description')), { [Op.like]: `%${query.toLowerCase()}%` })
+                            ]
+                        })
+                    }
+                    if (queryWheres.length === 1) {
+                        queryObject.where = queryWheres[0]
+                    } else if (queryWheres.length > 1) {
+                        queryObject.where = { [Op.and]: queryWheres }
                     }
 
                     if (includeApplicationSummary) {

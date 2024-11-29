@@ -30,8 +30,8 @@
 <script>
 import { MinusIcon } from '@heroicons/vue/solid'
 
-import FormRow from '../../../../components/FormRow.vue'
-import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
+import FormRow from '../../../../../components/FormRow.vue'
+import FfListbox from '../../../../../ui-components/components/form/ListBox.vue'
 
 export default {
     name: 'AclItem',

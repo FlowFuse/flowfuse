@@ -185,8 +185,8 @@ export default {
         isVisitingAdmin: function () {
             return this.teamMembership.role === Roles.Admin
         },
-        isOwner: function () {
-            return this.teamMembership.role === Roles.Owner
+        isMember: function () {
+            return this.teamMembership.role === Roles.Member || this.teamMembership.role === Roles.Owner
         },
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor
@@ -201,7 +201,7 @@ export default {
             return !this.isDevModeAvailable ||
                 !this.device ||
                 !this.agentSupportsDeviceAccess ||
-                !this.isOwner
+                !this.isMember
         },
         disableModeToggleReason: function () {
             if (!this.device) {
@@ -210,8 +210,8 @@ export default {
             if (!this.agentSupportsDeviceAccess) {
                 return 'Device Agent V0.8 or greater is required'
             }
-            if (!this.isOwner) {
-                return 'Only an owner can change the Device Mode'
+            if (!this.isMember) {
+                return 'Only an Owner or Member can change the Device Mode'
             }
             return undefined
         },

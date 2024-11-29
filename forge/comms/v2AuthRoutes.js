@@ -110,6 +110,12 @@ module.exports = async function (app) {
             const acc = action === 'subscribe' ? 1 : 2
             const allowed = await app.comms.aclManager.verify(username, topic, acc)
             if (allowed) {
+                if (action === 'publish') {
+                    const m = /^ff\/v1\/([^/]+)\/c\/(.+)$/.exec(topic)
+                    if (m) {
+                        app.teamBroker.addUsedTopic(m[2], m[1])
+                    }
+                }
                 reply.send({ result: 'allow' })
             } else {
                 reply.send({ result: 'deny' })

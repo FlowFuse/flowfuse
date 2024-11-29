@@ -231,36 +231,63 @@ module.exports = {
                             where = { id: queryId }
                         }
                     }
+                    const order = [['id', 'ASC']]
+                    if (pagination.sort === 'createdAt-desc') {
+                        order[0][1] = 'DESC'
+                        // Also need to 'fix' the cursor pagination
+                        if (pagination.cursor) {
+                            where[Op.and].forEach(rule => {
+                                if (rule.id) {
+                                    rule.id = { [Op.lt]: pagination.cursor }
+                                }
+                            })
+                        }
+                    }
+                    const include = [{ model: M.TeamType, attributes: ['hashid', 'id', 'name'] }]
+                    if (app.billing) {
+                        // Include subscription info
+                        include.push({ model: app.db.models.Subscription })
+                    }
+
                     const [rows, count] = await Promise.all([
                         this.findAll({
                             where,
-                            order: [['id', 'ASC']],
+                            order,
                             limit,
-                            include: { model: M.TeamType, attributes: ['hashid', 'id', 'name'] },
+                            include,
                             attributes: {
                                 include: [
                                     [
                                         literal(`(
-                                            SELECT COUNT(*)
-                                            FROM "Projects" AS "project"
-                                            WHERE
-                                            "project"."TeamId" = "Team"."id"
-                                        )`),
+                                        SELECT COUNT(*)
+                                        FROM "Projects" AS "project"
+                                        WHERE
+                                        "project"."TeamId" = "Team"."id"
+                                    )`),
                                         'projectCount'
                                     ],
                                     [
                                         literal(`(
-                                            SELECT COUNT(*)
-                                            FROM "TeamMembers" AS "members"
-                                            WHERE
-                                            "members"."TeamId" = "Team"."id"
-                                        )`),
+                                        SELECT COUNT(*)
+                                        FROM "TeamMembers" AS "members"
+                                        WHERE
+                                        "members"."TeamId" = "Team"."id"
+                                    )`),
                                         'memberCount'
+                                    ],
+                                    [
+                                        literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "Devices" AS "devices"
+                                        WHERE
+                                        "devices"."TeamId" = "Team"."id"
+                                    )`),
+                                        'deviceCount'
                                     ]
                                 ]
                             }
                         }),
-                        this.count({ where })
+                        this.count({ where, include })
                     ])
                     return {
                         meta: {

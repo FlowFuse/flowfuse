@@ -305,7 +305,7 @@ module.exports = {
                         ]
                     })
                 },
-                byTeam: async (teamIdOrHash, { query = null } = {}) => {
+                byTeam: async (teamIdOrHash, { query = null, deviceId = null } = {}) => {
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
@@ -313,12 +313,15 @@ module.exports = {
                     const queryObject = {
                         where: { [Op.and]: [{ TeamId: teamId }] }
                     }
-
-                    if (query) {
-                        queryObject.where[Op.and].push(where(
-                            fn('lower', col('Device.name')),
-                            { [Op.like]: `%${query.toLowerCase()}%` }
-                        ))
+                    if (deviceId) {
+                        queryObject.where[Op.and].push({ id: deviceId })
+                    } else if (query) {
+                        queryObject.where[Op.and].push({
+                            [Op.or]: [
+                                where(fn('lower', col('Device.name')), { [Op.like]: `%${query.toLowerCase()}%` }),
+                                where(fn('lower', col('Device.type')), { [Op.like]: `%${query.toLowerCase()}%` })
+                            ]
+                        })
                     }
                     return this.getAll({}, queryObject.where)
                 },
