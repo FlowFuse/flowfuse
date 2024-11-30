@@ -1,0 +1,23 @@
+name: Debug
+on:
+  workflow_run:
+    workflows: 
+      - 'Tests'
+    types: 
+      - completed
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: print context
+        env:
+          GITHUB_CONTEXT:  ${{ toJson(github) }} 
+          VARS_CONTEXT:  ${{ toJson(vars) }} 
+        run: |
+          echo "GITHUB_CONTEXT is $GITHUB_CONTEXT"
+          echo "VARS_CONTEXT is $VARS_CONTEXT"
