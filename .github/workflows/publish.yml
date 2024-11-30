@@ -12,8 +12,8 @@ on:
   workflow_run:
     workflows: 
       - 'Tests'
-    branches: 
-      - main
+    # branches: 
+    #   - main
     types: 
       - completed
 
@@ -22,10 +22,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: print context
+        env:
+          GITHUB_CONTEXT:  ${{ toJson(github) }} 
+          VARS_CONTEXT:  ${{ toJson(vars) }} 
+        run: |
+          echo "GITHUB_CONTEXT is $GITHUB_CONTEXT"
+          echo "VARS_CONTEXT is $VARS_CONTEXT"
+
   publish:
-    if: |
-      ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
-      ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
+    if: false
+    # if: |
+    #   ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
+    #   ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
     uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.37.0'
     with:
       package_name: flowfuse
