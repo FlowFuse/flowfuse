@@ -111,7 +111,13 @@ export default {
             this.loading = true
             return brokerClient.getTopics(this.team.id)
                 .then(res => {
-                    this.topics = res
+                    this.topics = [
+                        '/development/uk/winchester/body/line1',
+                        '/development/uk/winchester/body/line1/press/temperature',
+                        '/development/uk/winchester/body/line1/temperature',
+                        '/development/uk/winchester/body/line1/pressA/temperature'
+                    ]
+                    // this.topics = res
                 })
                 .catch(err => err)
                 .finally(() => {
