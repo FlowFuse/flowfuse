@@ -96,8 +96,8 @@ const getters = {
                             tag: 'team-pipelines',
                             icon: PipelinesIcon,
                             disabled: noBilling,
-                            featureUnavailable: !features.isMqttBrokerFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
+                            featureUnavailable: !features.devOpsPipelinesFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.devOpsPipelinesFeatureEnabled
                         }
                     ]
                 },
