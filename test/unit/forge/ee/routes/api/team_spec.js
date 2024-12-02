@@ -130,8 +130,8 @@ describe('Team API - with billing enabled', function () {
     })
 
     describe('Team BOM', async function () {
-        beforeEach(async function (){
-            //enable BOM
+        beforeEach(async function () {
+            // enable BOM
             const defaultTeamTypeProperties = app.defaultTeamType.properties
             defaultTeamTypeProperties.features.bom = true
             app.defaultTeamType.properties = defaultTeamTypeProperties
