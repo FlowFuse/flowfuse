@@ -1,15 +1,15 @@
 <template>
-    <div class="pipeline">
+    <div class="ff-pipeline">
         <router-link
             :to="{name: 'ApplicationPipelines', params: {id: pipeline.application.id}}"
-            class="header flex gap-5 self-end items-center truncate"
+            class="ff-pipeline-header flex gap-5 self-end items-center truncate"
         >
             <span class="name">
                 {{ pipeline.name }}
             </span>
             <router-link
                 :to="{name: 'Application', params: {id: pipeline.application.id}}"
-                class="application-name truncate"
+                class="ff-pipeline-application-name truncate"
                 @click.stop
             >
                 {{ pipeline.application.name }}
@@ -18,14 +18,14 @@
                 <ChevronRightIcon class="ff-icon " />
             </span>
         </router-link>
-        <div class="content">
-            <ul v-if=" pipeline.stages.length > 0" class="stages-list">
+        <div class="ff-pipeline-content">
+            <ul v-if=" pipeline.stages.length > 0" class="ff-pipeline-stages-list">
                 <li v-for="stage in pipeline.stages" :key="stage.id">
                     <TeamPipelineStage :stage="stage" :application="pipeline.application" />
                     <ChevronRightIcon class="ff-icon" />
                 </li>
             </ul>
-            <p v-else class="empty-stages-message">There don't seem to be any stages yet!</p>
+            <p v-else class="ff-empty-stages-message">There don't seem to be any stages yet!</p>
         </div>
     </div>
 </template>
@@ -51,12 +51,12 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.pipeline {
+.ff-pipeline {
     border: 1px solid $ff-grey-300;
     border-radius: 5px;
     overflow: hidden;
 
-    & > .header {
+    & > .ff-pipeline-header {
         background: $ff-grey-100;
         padding: 15px;
         border-bottom: 1px solid $ff-grey-300;
@@ -70,7 +70,7 @@ export default {
             }
         }
 
-        &:has(.application-name:hover) {
+        &:has(.ff-pipeline-application-name:hover) {
             color: $ff-grey-800;
         }
 
@@ -90,11 +90,11 @@ export default {
         }
     }
 
-    & > .content {
+    & > .ff-pipeline-content {
         padding: 15px;
         overflow: auto;
 
-        .stages-list {
+        .ff-pipeline-stages-list {
             display: flex;
             flex-direction: row;
             gap: 15px;
@@ -110,10 +110,10 @@ export default {
             }
         }
 
-        .empty-stages-message {
+        .ff-empty-stages-message {
             text-align: center;
             color: $ff-grey-500;
-    }
+        }
     }
 }
 </style>

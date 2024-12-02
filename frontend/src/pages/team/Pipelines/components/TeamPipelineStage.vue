@@ -1,9 +1,9 @@
 <template>
-    <div class="stage">
-        <span class="title truncate">
+    <div class="ff-pipeline-stage">
+        <span class="truncate">
             {{ stage.name }}
         </span>
-        <router-link :to="targetLink" class="pipeline-target">
+        <router-link :to="targetLink" class="ff-pipeline-target">
             <IconNodeRedSolid v-if="isInstanceStage" class="ff-icon-sm text-red-700" />
             <DeviceSolid v-if="isDeviceStage" class="ff-icon-sm text-teal-700" />
             <DeviceGroupSolidIcon v-if="isDeviceGroupsStage" class="ff-icon-sm text-teal-800" />
@@ -85,7 +85,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.stage {
+.ff-pipeline-stage {
     border: 1px solid $ff-grey-300;
     border-radius: 6px;
     overflow: hidden;
@@ -96,7 +96,7 @@ export default {
     gap: 12px;
     min-width: 225px;
 
-    .pipeline-target {
+    .ff-pipeline-target {
         display: flex;
         flex-direction: row;
         gap: 6px;
