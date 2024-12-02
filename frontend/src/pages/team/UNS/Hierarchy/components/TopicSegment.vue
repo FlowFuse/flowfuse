@@ -1,5 +1,5 @@
 <template>
-    <div class="segment-wrapper" :class="{open: isSegmentOpen, empty: segment.isEmpty}" data-el="segment-wrapper" :data-value="segment.name">
+    <div class="segment-wrapper" :class="{open: isSegmentOpen, empty: isEmpty}" data-el="segment-wrapper" :data-value="segment.name">
         <div class="segment flex" @click="toggleChildren">
             <div class="diagram">
                 <span v-if="!isRoot" class="connector-elbow" />
@@ -9,8 +9,6 @@
                 <ChevronRightIcon v-if="hasChildren" class="chevron ff-icon-sm" />
                 <p class="flex gap-2.5 items-end" :class="{'ml-2': !hasChildren}">
                     <span class="title">
-                        <span v-if="segment.isEmpty && !isRoot && !hasChildren" class="separator">/</span>
-
                         {{ segmentText }}
                         <span
                             v-if="segment.isEndOfTopic && segment.childrenCount"
@@ -91,8 +89,15 @@ export default {
             const label = 'topic' + (this.segment.childrenCount <= 1 ? '' : 's')
             return `(${this.segment.childrenCount} ${label})`
         },
+        isEmpty () {
+            return this.segment.name.length === 0
+        },
         segmentText () {
-            return this.segment.isEmpty ? '(empty)' : this.segment.name
+            if (this.segment.hasEmptyRoot) {
+                return `/${this.segment.name}`
+            }
+
+            return !this.isEmpty ? this.segment.name : '(empty)'
         },
         shouldShowTrunk () {
             return !this.isRoot && this.hasSiblings && this.isLastSibling

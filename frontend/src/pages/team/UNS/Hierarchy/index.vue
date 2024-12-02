@@ -81,41 +81,66 @@ export default {
                 const hierarchy = {}
                 const topics = this.topics
 
-                topics.sort()
-                    .forEach(topic => {
-                        const parts = topic.split('/')
-                        let current = hierarchy
+                topics.sort().forEach(topic => {
+                    const parts = topic.split('/')
+                    let current
 
-                        parts.forEach((part, index) => {
-                            if (!current[part]) {
-                                const isEmpty = part.length === 0
-                                current[part] = {
-                                    name: part,
-                                    isEmpty,
-                                    path: parts.slice(0, index + 1).join('/'),
-                                    open: false,
-                                    childrenCount: 0,
-                                    children: {},
-                                    isEndOfTopic: index === parts.length - 1
-                                }
+                    let rootName
+                    if (topic.startsWith('/')) {
+                        // Handle paths with a leading '/'
+                        rootName = parts[1] || ''
+                        if (!hierarchy[rootName]) {
+                            hierarchy[rootName] = {
+                                name: rootName,
+                                path: `/${rootName}`,
+                                open: false,
+                                hasEmptyRoot: true,
+                                childrenCount: 0,
+                                children: {}
                             }
-                            current = current[part].children
-                        })
+                        }
+                        current = hierarchy[rootName].children
+                        parts.splice(0, 2) // Remove the empty string and root part
+                    } else {
+                        // Handle paths without a leading '/'
+                        rootName = parts[0]
+                        if (!hierarchy[rootName]) {
+                            hierarchy[rootName] = {
+                                name: rootName,
+                                path: rootName,
+                                open: false,
+                                hasEmptyRoot: false,
+                                childrenCount: 0,
+                                children: {}
+                            }
+                        }
+                        current = hierarchy[rootName].children
+                        parts.splice(0, 1) // Remove the root part
+                    }
+
+                    parts.forEach((part, index) => {
+                        if (!current[part]) {
+                            current[part] = {
+                                name: part,
+                                path: `${hierarchy[rootName].path}/${parts.slice(0, index + 1).join('/')}`,
+                                open: false,
+                                hasEmptyRoot: false,
+                                childrenCount: 0,
+                                children: {}
+                            }
+                        }
+                        current = current[part].children
                     })
+                })
 
                 function calculateChildrenCount (node) {
+                    if (!node.children) return 0
+
                     let count = 0
                     for (const childKey in node.children) {
                         const childNode = node.children[childKey]
-                        count += calculateChildrenCount(childNode)
+                        count += 1 + calculateChildrenCount(childNode)
                     }
-
-                    for (const childKey in node.children) {
-                        if (node.children[childKey].isEndOfTopic) {
-                            count++
-                        }
-                    }
-
                     node.childrenCount = count
                     return count
                 }
