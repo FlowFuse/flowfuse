@@ -54,6 +54,9 @@
                                 <TeamPipeline :pipeline="pipeline" />
                             </li>
                         </ul>
+                        <p v-if="filteredPipelines.length === 0" class="no-results">
+                            No Data Found. Try Another Search.
+                        </p>
                     </section>
 
                     <EmptyState v-else>
