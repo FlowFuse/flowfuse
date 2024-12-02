@@ -5,6 +5,7 @@ import {
     TemplateIcon, UserGroupIcon, UsersIcon
 } from '@heroicons/vue/outline'
 
+import PipelinesIcon from '../components/icons/Pipelines.js'
 import ProjectsIcon from '../components/icons/Projects.js'
 import usePermissions from '../composables/Permissions.js'
 import { Roles } from '../utils/roles.js'
@@ -88,6 +89,15 @@ const getters = {
                             disabled: noBilling,
                             featureUnavailable: !features.isMqttBrokerFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
+                        },
+                        {
+                            label: 'Pipelines',
+                            to: { name: 'team-pipelines', params: { team_slug: team.slug } },
+                            tag: 'team-pipelines',
+                            icon: PipelinesIcon,
+                            disabled: noBilling,
+                            featureUnavailable: !features.devOpsPipelinesFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.devOpsPipelinesFeatureEnabled
                         }
                     ]
                 },
