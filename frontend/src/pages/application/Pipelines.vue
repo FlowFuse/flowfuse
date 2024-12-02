@@ -102,6 +102,7 @@ import PipelineAPI from '../../api/pipeline.js'
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import PipelineRow from '../../components/pipelines/PipelineRow.vue'
+import usePermissions from '../../composables/Permissions.js'
 
 import Alerts from '../../services/alerts.js'
 
@@ -127,6 +128,10 @@ export default {
             required: true
         }
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             loading: false,
@@ -142,9 +147,22 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'teamMembership']),
         featureEnabled () {
             return this.features['devops-pipelines']
+        }
+    },
+    watch: {
+        teamMembership () {
+            if (!this.hasPermission('application:pipeline:list')) {
+                return this.$router.push({ name: 'Application', params: this.$route.params })
+            }
+
+            // Forces to load pipelines when teamMembership changes. When loading the page via url, teamMembership might not be
+            // loaded by the time the mounted loadPipelines is called and the hasPermission method will return false.
+            // todo This should be addressed by implementing an application service that bootstrap's the
+            //  app and hydrates vuex stores before attempting to render any data
+            this.loadPipelines()
         }
     },
     mounted () {
@@ -245,22 +263,24 @@ export default {
             }
         },
         async loadPipelines () {
-            this.loading = true
+            if (this.hasPermission('application:pipeline:list')) {
+                this.loading = true
 
-            // getPipelines doesn't include full instance status information, kick this off async
-            // Not needed for devices as device status is returned as part of pipelines API
-            this.loadInstanceStatus()
+                // getPipelines doesn't include full instance status information, kick this off async
+                // Not needed for devices as device status is returned as part of pipelines API
+                this.loadInstanceStatus()
 
-            ApplicationAPI.getPipelines(this.application.id)
-                .then((pipelines) => {
-                    this.pipelines = pipelines
-                    this.loadDeviceGroupStatus(this.pipelines)
-                    this.loading = false
-                })
-                .catch((err) => {
-                    console.error(err)
-                    this.loading = false
-                })
+                ApplicationAPI.getPipelines(this.application.id)
+                    .then((pipelines) => {
+                        this.pipelines = pipelines
+                        this.loadDeviceGroupStatus(this.pipelines)
+                        this.loading = false
+                    })
+                    .catch((err) => {
+                        console.error(err)
+                        this.loading = false
+                    })
+            }
         },
         async loadInstanceStatus () {
             ApplicationAPI.getApplicationInstancesStatuses(this.application.id)

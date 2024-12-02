@@ -734,7 +734,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         // Protect Instance
         cy.visit(`/application/${application.id}`)
         cy.get('[data-el="cloud-instances"] table tbody tr:nth-of-type(2)').click()
-        cy.get('[data-nav="instance-settings"').click()
+        cy.get('[data-nav="instance-settings"]').click()
         cy.get('[data-el="section-side-menu"] li:nth-of-type(4)').click()
         cy.get('[data-nav="enable-protect"]').click()
 
@@ -837,5 +837,25 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-nav="instance-settings"').click()
         cy.get('[data-el="section-side-menu"] li:nth-of-type(4)').click()
         cy.get('[data-nav="disable-protect"]').click()
+    })
+
+    it('should hide the pipelines tab from users with viewer roles', () => {
+        cy.intercept('GET', '/api/v1/teams/*/user', { role: 10 }).as('getTeamRole')
+
+        cy.visit(`/application/${application.id}`)
+
+        cy.get('[data-nav="application-pipelines"]').should('not.exist')
+    })
+
+    it('should redirect users to the instances overview when accessing the applications pipelines page', () => {
+        cy.intercept('GET', '/api/v1/teams/*/user', { role: 10 }).as('getTeamRole')
+
+        cy.visit(`/application/${application.id}/devices`)
+
+        cy.url().should('include', '/devices')
+
+        cy.visit(`/application/${application.id}/pipelines`)
+
+        cy.url().should('include', '/instances')
     })
 })
