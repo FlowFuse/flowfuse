@@ -63,7 +63,11 @@ export default {
         transition: ease-in-out .3s;
 
         &:hover {
-            color: $ff-indigo-700;
+            color: $ff-white;
+            background: $ff-indigo-700;
+            .application-name {
+                color: $ff-grey-300;
+            }
         }
 
         &:has(.application-name:hover) {

@@ -3,14 +3,12 @@
         <span class="title truncate">
             {{ stage.name }}
         </span>
-        <div class="content">
+        <router-link :to="targetLink" class="pipeline-target">
             <IconNodeRedSolid v-if="isInstanceStage" class="ff-icon-sm text-red-700" />
             <DeviceSolid v-if="isDeviceStage" class="ff-icon-sm text-teal-700" />
             <DeviceGroupSolidIcon v-if="isDeviceGroupsStage" class="ff-icon-sm text-teal-800" />
-            <router-link :to="targetLink" class="title truncate">
-                <span>{{ targetName }}</span>
-            </router-link>
-        </div>
+            <span>{{ targetName }}</span>
+        </router-link>
     </div>
 </template>
 
@@ -88,28 +86,30 @@ export default {
 
 <style scoped lang="scss">
 .stage {
-    border: 1px solid $ff-grey-400;
-    border-radius: 5px;
+    border: 1px solid $ff-grey-300;
+    border-radius: 6px;
     overflow: hidden;
     background: $ff-white;
-    padding: 10px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 12px;
+    min-width: 225px;
 
-    .content {
+    .pipeline-target {
         display: flex;
         flex-direction: row;
-        gap: 5px;
+        gap: 6px;
         font-size: 11px;
         align-items: center;
+        border: 1px solid $ff-grey-300;
+        padding: 6px;
+        border-radius: 6px;
+        transition: ease-in-out .3s;
 
-        .title {
-            transition: ease-in-out .3s;
-
-            &:hover {
-                color: $ff-indigo-700;
-            }
+        &:hover {
+            color: $ff-indigo-700;
+            border-color: $ff-indigo-700;
         }
     }
 }
