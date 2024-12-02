@@ -23,7 +23,7 @@
                 <img src="../../../images/empty-states/application-pipelines.png" alt="logo">
             </template>
             <template #header>
-                <span>DevOs Pipelines Not Available</span>
+                <span>DevOps Pipelines Not Available</span>
             </template>
             <template #message>
                 <p>DevOps Pipelines are used to link multiple Node-RED instances together in a deployment pipeline.</p>
@@ -62,7 +62,7 @@
                         <template #img>
                             <img src="../../../images/empty-states/application-pipelines.png" alt="logo">
                         </template>
-                        <template #header>Start building your DevOs pipelines</template>
+                        <template #header>Start building your DevOps pipelines</template>
                         <template #message>
                             <p>DevOps Pipelines are used to link multiple Node-RED instances together in a deployment pipeline.</p>
                             <p>This is normally used to define "Development" instances, where you can test your new flows without fear or breaking "Production" environments, and then, when you're ready, deploy your changes with a single click</p>
