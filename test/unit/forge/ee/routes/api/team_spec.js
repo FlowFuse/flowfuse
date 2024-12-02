@@ -128,4 +128,36 @@ describe('Team API - with billing enabled', function () {
             device.editor.should.have.property('connected', true)
         })
     })
+
+    describe('Team BOM', async function () {
+        beforeEach(async function (){
+            //enable BOM
+            const defaultTeamTypeProperties = app.defaultTeamType.properties
+            defaultTeamTypeProperties.features.bom = true
+            app.defaultTeamType.properties = defaultTeamTypeProperties
+            await app.defaultTeamType.save()
+        })
+
+        it('Owner can get BOM', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/bom`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.lengthOf(1)
+            result[0].name.should.equal('application-1')
+        })
+        it('Member can not get BOM', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/bom`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+
+            response.statusCode.should.equal(401)
+        })
+    })
 })
