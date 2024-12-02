@@ -19,12 +19,13 @@
             </span>
         </router-link>
         <div class="content">
-            <ul class="stages-list">
+            <ul v-if=" pipeline.stages.length > 0" class="stages-list">
                 <li v-for="stage in pipeline.stages" :key="stage.id">
                     <TeamPipelineStage :stage="stage" :application="pipeline.application" />
                     <ChevronRightIcon class="ff-icon" />
                 </li>
             </ul>
+            <p v-else class="empty-stages-message">There don't seem to be any stages yet!</p>
         </div>
     </div>
 </template>
@@ -104,6 +105,11 @@ export default {
                 }
             }
         }
+
+        .empty-stages-message {
+            text-align: center;
+            color: $ff-grey-500;
+    }
     }
 }
 </style>

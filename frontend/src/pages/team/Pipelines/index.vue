@@ -50,7 +50,7 @@
 
                     <section v-if="pipelines.length > 0" class="pipelines">
                         <ul class="pipelines-list">
-                            <li v-for="pipeline in pipelines" :key="pipeline.id">
+                            <li v-for="pipeline in filteredPipelines" :key="pipeline.id">
                                 <TeamPipeline :pipeline="pipeline" />
                             </li>
                         </ul>
@@ -97,7 +97,20 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team'])
+        ...mapGetters('account', ['featuresCheck', 'team']),
+        filteredPipelines () {
+            if (this.filterTerm) {
+                return this.pipelines
+                    .filter(pipeline => {
+                        return [
+                            pipeline.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            pipeline.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            pipeline.application.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            pipeline.application.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                        ].includes(true)
+                    })
+            } return this.pipelines
+        }
     },
     mounted () {
         if (this.featuresCheck.devOpsPipelinesFeatureEnabled) {
