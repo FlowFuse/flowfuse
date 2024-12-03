@@ -2886,6 +2886,7 @@ describe('Pipelines API', function () {
                 cookies: { sid: TestObjects.tokens.chris }
             })
 
+            response.statusCode.should.equal(200)
             const body = await response.json()
 
             body.should.have.property('count', 3)
@@ -2923,8 +2924,6 @@ describe('Pipelines API', function () {
 
             body.pipelines[2].stages[1].deviceGroups.should.have.length(1)
             body.pipelines[2].stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
-
-            response.statusCode.should.equal(200)
         })
     })
 
