@@ -25,7 +25,7 @@
                     <ChevronRightIcon class="ff-icon" />
                 </li>
             </ul>
-            <p v-else class="ff-empty-stages-message">There don't seem to be any stages yet!</p>
+            <p v-else class="ff-empty-stages-message">No stages in sight just yet!</p>
         </div>
     </div>
 </template>
@@ -65,16 +65,21 @@ export default {
         &:hover {
             color: $ff-white;
             background: $ff-indigo-700;
-            .application-name {
-                color: $ff-grey-300;
+            .ff-pipeline-application-name {
+                transition: ease-in-out .3s;
+                color:  $ff-grey-400;
             }
         }
 
         &:has(.ff-pipeline-application-name:hover) {
-            color: $ff-grey-800;
+            color: $ff-grey-500;
+
+            .ff-pipeline-application-name:hover {
+                color: $ff-white;
+            }
         }
 
-        .application-name {
+        .ff-application-name {
             transition: ease-in-out .3s;
             color: $ff-grey-400;
 
