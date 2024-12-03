@@ -93,10 +93,6 @@ export default {
             return this.segment.name.length === 0
         },
         segmentText () {
-            if (this.segment.hasEmptyRoot) {
-                return `/${this.segment.name}`
-            }
-
             return !this.isEmpty ? this.segment.name : '(empty)'
         },
         shouldShowTrunk () {
