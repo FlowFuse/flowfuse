@@ -176,7 +176,8 @@ export default {
                             header: 'Platform Wide Announcement',
                             kind: 'danger',
                             text: `You are about to send an announcement to ${mockRes.recipientCount} ${pluralize('user', mockRes.recipientCount)}.`,
-                            confirmLabel: 'Continue'
+                            confirmLabel: 'Continue',
+                            canBeCanceled: false
                         }, async () => this.sendAnnouncementNotification({ mock: false }))
                     }
                 })
