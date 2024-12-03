@@ -70,10 +70,7 @@ export default {
     data () {
         return {
             loading: false,
-            topics: [
-                'hello/world',
-                '/hello/cosmos/how'
-            ]
+            topics: []
         }
     },
     computed: {
@@ -170,7 +167,7 @@ export default {
         }
     },
     async mounted () {
-        // await this.getTopics()
+        await this.getTopics()
     },
     methods: {
         async getTopics () {
