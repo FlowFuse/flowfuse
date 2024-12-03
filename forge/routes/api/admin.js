@@ -468,7 +468,7 @@ module.exports = async function (app) {
             return
         }
 
-        const recipients = await app.db.models.User.byTeamRole(recipientRoles, { teamTypes, summary: true })
+        const recipients = await app.db.models.User.byTeamRole(recipientRoles, { teamTypes, billing, summary: true })
         const notificationType = 'announcement'
         const titleSlug = title.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase()
         const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2)
