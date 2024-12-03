@@ -63,7 +63,7 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
             cy.get('[data-el="empty-state"]').contains('It looks like no topics have been created yet.')
         })
 
-        it.skip('should correctly display a list of topics ', () => {
+        it('should correctly display a list of topics ', () => {
             cy.intercept('GET', '/api/*/teams/*/broker/topics', [
                 'foo/bar/baz',
                 'foo/thud',
