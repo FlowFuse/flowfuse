@@ -2,7 +2,7 @@
     <div class="mb-3">
         <SectionTopMenu hero="Device Group Settings" info="" />
     </div>
-    <div class="flex flex-col sm:flex-row">
+    <div class="flex flex-col sm:flex-row ml-6">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
             <router-view :deviceGroup="deviceGroup" :application="application" @device-group-updated="onDeviceGroupUpdated" />
