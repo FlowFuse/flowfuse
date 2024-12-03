@@ -78,6 +78,11 @@ export default {
             return !this.isRoot && this.hasSiblings && this.isLastSibling
         }
     },
+    mounted () {
+        if (this.hasChildren) {
+            this.visibleChildren = true
+        }
+    },
     methods: {
         toggleChildren () {
             if (this.hasChildren) {
@@ -93,7 +98,12 @@ export default {
     .segment {
         position: relative;
         margin: 5px 0 0;
-        transition: ease .3s;
+        transition: ease .15s;
+        &:hover {
+            color: $ff-indigo-700;
+
+            cursor: pointer;
+        }
 
         .diagram {
             .connector-elbow {
@@ -122,7 +132,7 @@ export default {
             padding: 5px;
 
             .chevron {
-                transition: ease .3s;
+                transition: ease .15s;
             }
         }
     }
