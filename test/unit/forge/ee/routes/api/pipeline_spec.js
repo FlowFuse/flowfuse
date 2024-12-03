@@ -112,20 +112,31 @@ describe('Pipelines API', function () {
         const userBob = await TestObjects.factory.createUser({
             admin: false,
             username: 'bob',
-            name: 'Bob Kenobi',
+            name: 'Bob Solo',
             email: 'bob@example.com',
             password: 'bbPassword'
+        })
+
+        const userChris = await TestObjects.factory.createUser({
+            admin: false,
+            username: 'chris',
+            name: 'Chris Kenobi',
+            email: 'chris@example.com',
+            password: 'ccPassword'
         })
 
         const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
         await team1.addUser(userPez, { through: { role: Roles.Owner } })
         await TestObjects.team.addUser(userBob, { through: { role: Roles.Member } })
+        await TestObjects.team.addUser(userChris, { through: { role: Roles.Member } })
 
         await login('pez', 'ppPassword')
 
         await login('bob', 'bbPassword')
 
         await login('alice', 'aaPassword')
+
+        await login('chris', 'ccPassword')
     })
 
     after(async function () {
@@ -2872,7 +2883,7 @@ describe('Pipelines API', function () {
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${TestObjects.team.hashid}/pipelines`,
-                cookies: { sid: TestObjects.tokens.alice }
+                cookies: { sid: TestObjects.tokens.chris }
             })
 
             const body = await response.json()
