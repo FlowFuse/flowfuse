@@ -1,4 +1,8 @@
+const teamShared = require('../../../routes/api/shared/team.js')
+
 module.exports = async function (app) {
+    app.addHook('preHandler', teamShared.defaultPreHandler.bind(null, app))
+
     /**
      * List all pipelines within an Team
      * /api/v1/teams/:teamId/pipelines
