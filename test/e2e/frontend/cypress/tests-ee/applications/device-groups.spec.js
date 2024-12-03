@@ -56,6 +56,26 @@ describe('FlowForge - Application - Device Groups', () => {
         it.skip('can create device-group', () => {
             // TODO
         })
+
+        it('should hide the device groups tab from users with viewer roles', () => {
+            cy.intercept('GET', '/api/v1/teams/*/user', { role: 10 }).as('getTeamRole')
+
+            cy.visit(`/application/${application.id}`)
+
+            cy.get('[data-nav="application-devices-groups-overview"]').should('not.exist')
+        })
+
+        it('should redirect users to the instances overview when accessing the device groups page', () => {
+            cy.intercept('GET', '/api/v1/teams/*/user', { role: 10 }).as('getTeamRole')
+
+            cy.visit(`/application/${application.id}/devices`)
+
+            cy.url().should('include', '/devices')
+
+            cy.visit(`/application/${application.id}/device-groups`)
+
+            cy.url().should('include', '/instances')
+        })
     })
 
     describe('Device Group', () => {

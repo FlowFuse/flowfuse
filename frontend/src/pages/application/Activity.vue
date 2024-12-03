@@ -36,6 +36,7 @@ import TeamAPI from '../../api/team.js'
 import FormHeading from '../../components/FormHeading.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
+import usePermissions from '../../composables/Permissions.js'
 import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
 export default {
@@ -53,6 +54,10 @@ export default {
             required: true
         }
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             logEntries: [],
@@ -65,7 +70,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState('account', ['team', 'teamMembership']),
         instanceList () {
             return [
                 { name: 'This Application', id: '' },
@@ -87,6 +92,11 @@ export default {
         'auditFilters.includeChildren': 'triggerLoad',
         team: function () {
             this.triggerLoad({ users: true, events: true })
+        },
+        teamMembership () {
+            if (!this.hasPermission('application:audit-log')) {
+                return this.$router.push({ name: 'Application', params: this.$route.params })
+            }
         }
     },
     created () {
@@ -104,30 +114,34 @@ export default {
          * @param cursor - cursor to use for pagination
          */
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
-            const paramScope = (params.has('scope') ? params.get('scope') : this.auditFilters.selectedEventScope) || 'application'
-            let includeChildren = this.auditFilters.includeChildren
-            if (params.has('includeChildren')) {
-                includeChildren = params.get('includeChildren') === 'true'
-            }
-            params.set('includeChildren', includeChildren)
-            params.set('scope', paramScope)
-            if (this.applicationId) {
-                let log
-                if (paramScope === 'application') {
-                    log = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200))
-                } else {
-                    const instanceId = this.auditFilters.selectedEventScope
-                    log = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200))
+            if (this.hasPermission('application:audit-log')) {
+                const paramScope = (params.has('scope') ? params.get('scope') : this.auditFilters.selectedEventScope) || 'application'
+                let includeChildren = this.auditFilters.includeChildren
+                if (params.has('includeChildren')) {
+                    includeChildren = params.get('includeChildren') === 'true'
                 }
-                this.logEntries = log.log
-                this.associations = includeChildren ? log.associations : null
+                params.set('includeChildren', includeChildren)
+                params.set('scope', paramScope)
+                if (this.applicationId) {
+                    let log
+                    if (paramScope === 'application') {
+                        log = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200))
+                    } else {
+                        const instanceId = this.auditFilters.selectedEventScope
+                        log = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200))
+                    }
+                    this.logEntries = log.log
+                    this.associations = includeChildren ? log.associations : null
+                }
             }
         },
         triggerLoad ({ users = false, events = true } = {}) {
-            // if `events` is true, call AuditLogBrowser.loadEntries - this will emit 'load-entries' event which calls this.loadEntries with appropriate params
-            const scope = !this.auditFilters.selectedEventScope ? 'application' : 'project'
-            events && this.$refs.AuditLog?.loadEntries(scope, this.auditFilters.includeChildren, scope)
-            users && this.loadUsers()
+            if (this.hasPermission('application:audit-log')) {
+                // if `events` is true, call AuditLogBrowser.loadEntries - this will emit 'load-entries' event which calls this.loadEntries with appropriate params
+                const scope = !this.auditFilters.selectedEventScope ? 'application' : 'project'
+                events && this.$refs.AuditLog?.loadEntries(scope, this.auditFilters.includeChildren, scope)
+                users && this.loadUsers()
+            }
         }
     }
 }

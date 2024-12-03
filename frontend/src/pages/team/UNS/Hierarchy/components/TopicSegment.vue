@@ -132,7 +132,12 @@ export default {
     .segment {
         position: relative;
         margin: 5px 0 0;
-        transition: ease .3s;
+        transition: ease .15s;
+        &:hover {
+            color: $ff-indigo-700;
+
+            cursor: pointer;
+        }
 
         .diagram {
             .connector-elbow {
@@ -162,7 +167,7 @@ export default {
             position: relative;
 
             .chevron {
-                transition: ease .3s;
+                transition: ease .15s;
             }
 
             .title {

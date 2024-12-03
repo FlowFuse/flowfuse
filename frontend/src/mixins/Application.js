@@ -5,8 +5,6 @@ export default {
     data () {
         return {
             application: {},
-            applicationDevices: [],
-            deviceGroups: [],
             applicationInstances: new Map(),
             loading: {
                 deleting: false,
@@ -23,12 +21,6 @@ export default {
                 return []
             }
             return Array.from(this.applicationInstances.values()).filter(el => el)
-        },
-        devicesArray () {
-            return this.applicationDevices
-        },
-        deviceGroupsArray () {
-            return this.deviceGroups || []
         }
     },
     watch: {
@@ -51,16 +43,7 @@ export default {
                     await this.$store.dispatch('account/setTeam', this.application.team.slug)
                 }
                 const instancesPromise = ApplicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
-                const devicesPromise = ApplicationApi.getApplicationDevices(applicationId)
-                const deviceData = await devicesPromise
-                this.applicationDevices = deviceData?.devices
                 const applicationInstances = await instancesPromise
-                if (this.features?.deviceGroups && this.team.type.properties.features?.deviceGroups) {
-                    const deviceGroupsData = await ApplicationApi.getDeviceGroups(applicationId)
-                    this.deviceGroups = deviceGroupsData?.groups || []
-                } else {
-                    this.deviceGroups = []
-                }
 
                 this.applicationInstances = new Map()
                 applicationInstances.forEach(instance => {

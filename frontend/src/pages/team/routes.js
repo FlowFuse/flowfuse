@@ -10,6 +10,7 @@ import LibraryRoutes from './Library/routes.js'
 import TeamMembersMembers from './Members/General.vue'
 import TeamMembersInvitations from './Members/Invitations.vue'
 import TeamMembers from './Members/index.vue'
+import TeamPipelines from './Pipelines/index.vue'
 import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
@@ -195,6 +196,11 @@ export default [
                         name: 'team-overview',
                         path: 'overview',
                         redirect: { name: 'Applications' }
+                    },
+                    {
+                        name: 'team-pipelines',
+                        path: 'pipelines',
+                        component: TeamPipelines
                     }
                 ]
             },
