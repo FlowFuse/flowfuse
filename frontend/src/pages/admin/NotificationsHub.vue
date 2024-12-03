@@ -177,7 +177,7 @@ export default {
                             kind: 'danger',
                             text: `You are about to send an announcement to ${mockRes.recipientCount} ${pluralize('user', mockRes.recipientCount)}.`,
                             confirmLabel: 'Continue',
-                            canBeCanceled: false
+                            canBeCanceled: true
                         }, async () => this.sendAnnouncementNotification({ mock: false }))
                     }
                 })
