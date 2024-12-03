@@ -3,6 +3,9 @@ const sinon = require('sinon')
 const should = require('should')  // eslint-disable-line
 const setup = require('../../setup')
 
+const FF_UTIL = require('flowforge-test-utils')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
+
 describe('Team API - with billing enabled', function () {
     const sandbox = sinon.createSandbox()
 
@@ -29,7 +32,28 @@ describe('Team API - with billing enabled', function () {
         sandbox.stub(app.billing, 'addProject')
         sandbox.stub(app.billing, 'removeProject')
 
+        const userBob = await app.factory.createUser({
+            admin: false,
+            username: 'bob',
+            name: 'Bob Solo',
+            email: 'bob@example.com',
+            password: 'bbPassword'
+        })
+
+        const userChris = await app.factory.createUser({
+            admin: false,
+            username: 'chris',
+            name: 'Chris Kenobi',
+            email: 'chris@example.com',
+            password: 'ccPassword'
+        })
+
+        await app.team.addUser(userBob, { through: { role: Roles.Owner } })
+        await app.team.addUser(userChris, { through: { role: Roles.Member } })
+
         await login('alice', 'aaPassword')
+        await login('bob', 'bbPassword')
+        await login('chris', 'ccPassword')
     })
 
     afterEach(async function () {
@@ -142,7 +166,7 @@ describe('Team API - with billing enabled', function () {
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${app.team.hashid}/bom`,
-                cookies: { sid: TestObjects.tokens.alice }
+                cookies: { sid: TestObjects.tokens.bob }
             })
 
             response.statusCode.should.equal(200)
@@ -154,10 +178,10 @@ describe('Team API - with billing enabled', function () {
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${app.team.hashid}/bom`,
-                cookies: { sid: TestObjects.tokens.bob }
+                cookies: { sid: TestObjects.tokens.chris }
             })
 
-            response.statusCode.should.equal(401)
+            response.statusCode.should.equal(403)
         })
     })
 })
