@@ -1,13 +1,4 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation>
-            <template #back>
-                <router-link :to="{name: 'AdminSettingsSSO'}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to SSO" />
-                </router-link>
-            </template>
-        </SideNavigation>
-    </Teleport>
     <ff-page>
         <div class="max-w-2xl m-auto">
             <ff-loading v-if="loading && !isCreate" message="Loading SSO Configuration..." />
@@ -81,6 +72,9 @@
                             Password
                             <template #description>The password to access the server</template>
                         </FormRow>
+                        <ff-button :disabled="!allowTest" size="small" kind="secondary" @click="testProvider()">
+                            Test Connection
+                        </ff-button>
                         <FormRow v-model="input.options.baseDN">
                             Base DN
                             <template #description>The name of the base object to search for users</template>
@@ -143,17 +137,13 @@ import { mapState } from 'vuex'
 import ssoApi from '../../../../api/sso.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
-
-import NavItem from '../../../../components/NavItem.vue'
-import SideNavigation from '../../../../components/SideNavigation.vue'
+import Alerts from '../../../../services/alerts.js'
 
 export default {
     name: 'AdminEditSSOProvider',
     components: {
         FormRow,
-        FormHeading,
-        SideNavigation,
-        NavItem
+        FormHeading
     },
     data () {
         return {
@@ -191,7 +181,7 @@ export default {
         },
         isGroupOptionsValid () {
             return !this.input.options.groupMapping || (
-                (this.input.options.type === 'saml' ? this.isGroupAssertionNameValid : this.isGroupsDNValid) &&
+                (this.input.type === 'saml' ? this.isGroupAssertionNameValid : this.isGroupsDNValid) &&
                   this.isGroupAdminNameValid
             )
         },
@@ -222,6 +212,9 @@ export default {
             } else {
                 return `Edit SSO ${this.input.type.toUpperCase()} Configuration`
             }
+        },
+        allowTest () {
+            return this.input.options.server && this.input.options.username && this.input.options.password
         }
     },
     async beforeMount () {
@@ -245,7 +238,7 @@ export default {
                     domainFilter: this.input.domainFilter,
                     type: this.input.type
                 }).then(response => {
-                    this.$router.push({ name: 'AdminSettingsSSOEdit', params: { id: response.id } })
+                    this.$router.push({ name: 'admin-settings-sso-edit', params: { id: response.id } })
                     this.loading = false
                     this.provider = response
                     this.updateForm()
@@ -291,7 +284,7 @@ export default {
                 delete opts.type
                 delete opts.id
                 ssoApi.updateProvider(this.provider.id, opts).then(response => {
-                    this.$router.push({ name: 'AdminSettingsSSO' })
+                    this.$router.push({ name: 'admin-settings-sso' })
                 }).catch(err => {
                     console.error(err)
                 })
@@ -319,7 +312,7 @@ export default {
                     this.updateForm()
                 } catch (err) {
                     if (err.response.status === 404) {
-                        this.$router.push({ name: 'AdminSettingsSSO' })
+                        this.$router.push({ name: 'admin-settings-sso' })
                     }
                     console.error(err)
                 } finally {
@@ -351,6 +344,25 @@ export default {
                 }
             }
             this.originalValues = JSON.stringify(this.input)
+        },
+        async testProvider () {
+            const opts = {
+                ...this.input
+            }
+            if (opts.type === 'ldap') {
+                if (!opts.options.tls) {
+                    delete opts.options.tls
+                    delete opts.options.tlsVerifyServer
+                }
+
+                try {
+                    await ssoApi.testProvider(this.provider.id, opts)
+                    Alerts.emit('Connection succeeded', 'confirmation')
+                } catch (err) {
+                    const message = err.response.data.error
+                    Alerts.emit(`Connection failed: ${message}`, 'warning')
+                }
+            }
         }
 
     }

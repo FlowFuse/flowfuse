@@ -1,5 +1,5 @@
 <template>
-    <ff-layout-box>
+    <ff-layout-box class="ff-terms-and-conditions ff--center-box">
         <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6" @submit.prevent>
             <p>
                 Welcome {{ user.name }}, the <a target="_blank" :href="settings['user:tcs-url']">FlowFuse Terms &amp; Conditions</a> have been updated.

@@ -1,3 +1,126 @@
+#### 2.11.0: Release
+
+ - Bump flowfuse/github-actions-workflows from 0.36.0 to 0.37.0 (#4733)
+ - ci: Automate docs publishing (#4725)
+ - Add TeamBroker enabled to pre-staging (#4717)
+ - docs: Refactor instructions for installing FlowFuse on self-hosted environment using docker (#4665)
+ - Address mobile and alignment issues for global search (#4807) @cstns
+ - Include Application.description and Device.type in search scope (#4808) @knolleary
+ - Update terms in the tour to align with new terminology (#4803) @knolleary
+ - Global search UI (#4798) @cstns
+ - Bump cross-spawn (#4805) @app/dependabot
+ - Add ACLS for project nodes to access team broker topic space (#4789) @knolleary
+ - Respect CTRL/CMD+Click for opening instance editor in new tab (#4800) @Steve-Mcl
+ - Broker Topic Hierarchy UI (#4790) @cstns
+ - Add "Event Scope" and "Include Children" to Instance Audit Logs (#4753) @Steve-Mcl
+ - Show child items in team and application audit log (#4749) @Steve-Mcl
+ - Track topics used by a Team on Team Broker (#4748) @hardillb
+ - Add links to MQTT docs (#4775) @hardillb
+ - Add connection test button to LDAP SSO page (#4787) @hardillb
+ - Add search api for apps/devices/instances (#4764) @knolleary
+ - Add more logging when License expires (#4773) @hardillb
+ - Modify invite link for SSO enabled external users (#4786) @knolleary
+ - Make email matching case insensitive for external invites (#4783) @knolleary
+ - Fix immersive editor not displaying due to parent container height (#4780) @cstns
+ - Fix multiple non-authenticated page layouts (#4777) @cstns
+ - Adds autocomplete attribute to login username field (#4774) @knolleary
+ - Deny ACL check for deleted MQTT Clients (#4766) @hardillb
+ - Sidebar redesign follow up (#4763) @cstns
+ - Fix applications page nested routes (#4765) @cstns
+ - Update 404 page (#4757) @cstns
+ - Fix failing feature checks when the features state hasn't been hydrated (#4761) @cstns
+ - Sidebar Re-design: Left Drawer (#4745) @cstns
+ - docs: Add note about self-signed certificate warning (#4730) @ppawlowski
+ - docs: Self-hosted kubernetes installation page refactor (#4704) @ppawlowski
+ - docs: docker on windows adjustments (#4724) @ppawlowski
+ - Sidebar Re-design: Routing (#4744) @cstns
+ - Sidebar Re-design: prerequisites (#4743) @cstns
+ - Update Device Agent docs for 3.x release (#4747) @knolleary
+ - Ensure Downgraded Teams can't authenticate MQTT Clients (#4739) @hardillb
+ - Ensure correct env vars are applied to device (#4686) @Steve-Mcl
+ - Do not add api-error:version_mismatch to audit log (#4740) @knolleary
+ - Add the ability to emit platform wide notifications (#4637) @cstns
+ - Add mqttClients to license claims (#4732) @knolleary
+ - Bump sass-loader from 14.1.1 to 16.0.2 (#4548) @app/dependabot
+ - Docs: Improve Device Agent Intro Documentation (#4718) @joepavitt
+ - Add the missing tests for new broker Auth/ACL (#4721) @hardillb
+ - docs: Remove duplication in the introduction paragraph (#4710) @ppawlowski
+ - Bump yaml from 2.3.4 to 2.6.0 (#4705) @app/dependabot
+ - Bump nodemon from 3.1.0 to 3.1.7 (#4706) @app/dependabot
+ - Update MQTT Cloud docs (#4722) @hardillb
+ - Check for project: not platform: in username (#4720) @hardillb
+ - ci: Disable team broker for starter team type on pre-staging (#4719) @ppawlowski
+ - Follow up mqtt broker ux (#4711) @cstns
+ - Re-order Join Reason options in Sign Up page (#4714) @joepavitt
+ - Add uninstall instructions (#4715) @hardillb
+ - Update snapshot hero info dialog images to be same for all (#4697) @Steve-Mcl
+ - Add Team Broker Clients count to telemetry (#4703) @hardillb
+ - Add Copy button to broker client username (#4701) @hardillb
+ - Bump css-loader from 6.10.0 to 7.1.2 (#4272) @app/dependabot
+ - Bump pg from 8.11.5 to 8.13.0 (#4669) @app/dependabot
+ - Update snapshots docs (#4700) @Steve-Mcl
+ - Add initial details on MQTT Broker service (#4676) @hardillb
+ - Prevent broker client limits being shown in wrong TeamType (#4694) @hardillb
+
+#### 2.10.0: Release
+
+ - Enable Team Broker and Version History Timeline features on pre-staging (#4679)
+ - Bump flowfuse/github-actions-workflows from 0.34.0 to 0.36.0 (#4644)
+ - Bump flowfuse/github-actions-workflows from 0.30.0 to 0.34.0 (#4622)
+ - Remove <img /> tags for now due to Eleventy problems (#4599)
+ - Add note about backing up the database (#4592)
+ - Replace 'ACL' term in the dialog (#4691) @knolleary
+ - Put Team Broker behind a flag in the flowforge.yml (#4688) @hardillb
+ - Update 'both' MQTT ACL label to 'publish & subscribe' (#4690) @knolleary
+ - Clarify "Push to stage" dialog env var statement (#4604) @Steve-Mcl
+ - Team broker client UI (#4646) @hardillb
+ - Audit log shows empty username for password resets (#4681) @hardillb
+ - Return error if broker client already exists for team (#4678) @hardillb
+ - Update version history timeline pictograms (#4677) @cstns
+ - Add repeat password field for confirmation (#4670) @Steve-Mcl
+ - Fix permissions (#4675) @hardillb
+ - Ensure teamMembership in session for broker API (#4674) @hardillb
+ - Update docs for group env vars (#4666) @Steve-Mcl
+ - Visual timeline of version history (#4647) @cstns
+ - Fix device router link for BOM (#4671) @Steve-Mcl
+ - MQTT Broker Service API (#4627) @hardillb
+ - Add Device Group env vars API support (#4659) @Steve-Mcl
+ - Bump jsdom from 22.1.0 to 25.0.1 (#4545) @app/dependabot
+ - docs: Introduce quick start page (#4639) @ppawlowski
+ - Add details of suspending team to docs (#4662) @knolleary
+ - Add links to stripe dashbaord in admin info for team (#4657) @knolleary
+ - Fix enabling sso group allocation in admin settings (#4654) @knolleary
+ - PostHog: Add "team-created" event when teams are automatically created server-side (#4648) @joepavitt
+ - docs: Migrating static assets is manual but possible (#4645) @ZJvandeWeg
+ - Snapshot import export component options (#4610) @Steve-Mcl
+ - Fix overflow on actions section (#4642) @cstns
+ - Fix admin action tabs alignment (#4629) @cstns
+ - Add ability to mark multiple notitications as read (#4601) @cstns
+ - Enable combined device/instance free allocation (#4621) @knolleary
+ - Bump cookie, express, express-session, @immobiliarelabs/fastify-sentry and light-my-request (#4626) @app/dependabot
+ - Only allow instance rename if suspended (#4596) @hardillb
+ - Only show warning if 10-file.js active (#4620) @hardillb
+ - Fix allowing mixed case instance names (#4619) @hardillb
+ - Include user's e-mail address on "Please Verify" screen (#4615) @joepavitt
+ - Update static assets docs images with clear image and correct sized i… (#4613) @sumitshinde-84
+ - change the posthog identifier for the $ff-invite-accepted event (#4612) @cstns
+ - ci: handle special characters in PR title (#4607) @ppawlowski
+ - Replace the AssetCompareDialog, VisibilitySelector and Logs dropdowns (#4580) @cstns
+ - Bump vite from 5.2.8 to 5.4.7 (#4543) @app/dependabot
+ - Bump rollup from 4.14.1 to 4.22.4 (#4551) @app/dependabot
+ - Docs: Improve the Docs Landing Page (#4597) @joepavitt
+ - Add Team upgrade docs (#4594) @hardillb
+ - remove image logo alt name to fix gmail email summary (#4595) @cstns
+ - Update install.md (#4590) @sumitshinde-84
+ - fix dependencies display (#4589) @cstns
+ - Update snapshot nomenclature (#4585) @cstns
+ - Docs: Add unique identifier for Docker cmds (#4586) @joepavitt
+ - bom incorrect package version (#4579) @cstns
+ - Enable team lookup by id in admin view (#4584) @knolleary
+ - Update remaining roles imports (#4578) @cstns
+ - Store platform settings, teamMembership and team store values in localStorage (#4507) @cstns
+ - Create a new listbox component that can replace the existing Dropdown (#4560) @cstns
+
 #### 2.9.0: Release
 
  - Enable BOM feature for Enterprise team on pre-staging (#4550)

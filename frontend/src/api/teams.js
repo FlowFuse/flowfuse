@@ -2,8 +2,8 @@ import paginateUrl from '../utils/paginateUrl.js'
 
 import client from './client.js'
 
-const getTeams = async (cursor, limit, query) => {
-    const url = paginateUrl('/api/v1/teams', cursor, limit, query)
+const getTeams = async (cursor, limit, query, filter) => {
+    const url = paginateUrl('/api/v1/teams', cursor, limit, query, filter)
     return client.get(url).then(res => {
         res.data.teams = res.data.teams.map(r => {
             r.link = { name: 'Team', params: { team_slug: r.slug } }

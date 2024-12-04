@@ -3,6 +3,8 @@
         :notification="notification"
         :selections="selections"
         data-el="generic-notification" :to="to"
+        @selected="onSelect"
+        @deselected="onDeselect"
     >
         <template #icon>
             <component :is="notificationData.iconComponent" />
@@ -58,16 +60,29 @@ export default {
     },
     computed: {
         to () {
-            if (typeof this.notification.data?.to === 'object') { return this.notification.data.to }
-            if (typeof this.notification.data?.to === 'string') { return { path: this.notification.data.to } }
-            if (typeof this.notification.data?.url === 'string') { return { url: this.notification.data.url } }
-            if (this.notification.data?.instance?.id) {
+            switch (true) {
+            case this.notification.data?.to && typeof this.notification.data?.to === 'object':
+                return this.notification.data.to
+
+            case this.notification.data?.to && typeof this.notification.data?.to === 'string':
+                try {
+                    return JSON.parse(this.notification.data?.to)
+                } catch (e) {
+                    return { path: this.notification.data.to }
+                }
+
+            case typeof this.notification.data?.instance?.id === 'string':
                 return {
                     name: 'instance-overview',
                     params: { id: this.notification.data.instance.id }
                 }
+
+            case typeof this.notification.data?.url === 'string':
+                return { url: this.notification.data.url }
+
+            default:
+                return null // no link
             }
-            return null // no link
         },
         notificationData () {
             const event = this.knownEvents[this.notification.type] || {}

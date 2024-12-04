@@ -2,7 +2,9 @@
     <NotificationMessage
         :notification="notification"
         :selections="selections"
-        data-el="invitation-message" :to="{name: 'User Invitations'}"
+        data-el="invitation-message" :to="{name: 'user-invitations'}"
+        @selected="onSelect"
+        @deselected="onDeselect"
     >
         <template #icon>
             <UserAddIcon />
@@ -11,7 +13,7 @@
             Team Invitation
         </template>
         <template #message>
-            You have been invited by <i>"{{ invitorName }}"</i> to join <i>"{{ teamName }}"</i>.
+            <p>You have been invited by <i>"{{ invitorName }}"</i> to join <i>"{{ teamName }}"</i>.</p>
         </template>
     </NotificationMessage>
 </template>

@@ -1,35 +1,25 @@
 import { mapState } from 'vuex'
 
-import { Permissions } from '../../../forge/lib/permissions.js'
-import { Roles } from '../utils/roles.js'
+import usePermissions from '../composables/Permissions.js'
+
 /**
  * @typedef {0 | 5 | 10 | 30 | 50 | 99} Role
  * Enum for roles with specific numeric values.
  */
-
+// todo in an attempt to sunset the wide use of mixins, the permissions composable should be used instead
 export default {
     computed: {
+        // todo to be removed. A lot of components that use this mixin rely on the state imported here
         ...mapState('account', ['team', 'teamMembership']),
         isVisitingAdmin () {
-            return this.teamMembership?.role === Roles.Admin
+            const { isVisitingAdmin } = usePermissions()
+            return isVisitingAdmin()
         }
     },
     methods: {
         hasPermission (scope) {
-            if (!Permissions[scope]) {
-                throw new Error(`Unrecognised scope requested: '${scope}'`)
-            }
-            const permission = Permissions[scope]
-            // if (<check settings>) {
-            if (permission.role) {
-                if (!this.teamMembership) {
-                    return false
-                }
-                if (this.teamMembership.role < permission.role) {
-                    return false
-                }
-            }
-            return true
+            const { hasPermission } = usePermissions()
+            return hasPermission(scope)
         },
 
         /**
@@ -41,11 +31,21 @@ export default {
          * const isMemberOrHigher = hasAMinimumTeamRoleOf(Roles.Member)
          */
         hasAMinimumTeamRoleOf (role) {
-            if (this.isVisitingAdmin) {
-                return true
-            }
+            const { hasAMinimumTeamRoleOf } = usePermissions()
+            return hasAMinimumTeamRoleOf(role)
+        },
 
-            return this.teamMembership?.role >= role
+        /**
+         * Check if the user has a lower role than given role.
+         * @param {Role} role - The role to check against.
+         * @returns {boolean} True if the user has a lower role than the given one, otherwise false.
+         * @example
+         * // Check if the user has role lower than 'Member' role
+         * const isMemberOrHigher = hasALowerTeamRoleThan(Roles.Member)
+         */
+        hasALowerOrEqualTeamRoleThan (role) {
+            const { hasALowerOrEqualTeamRoleThan } = usePermissions()
+            return hasALowerOrEqualTeamRoleThan(role)
         }
     }
 }

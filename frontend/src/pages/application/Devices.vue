@@ -1,6 +1,6 @@
 <template>
     <div>
-        <SectionTopMenu hero="Node-RED Devices" help-header="Node-RED Edge Devices - Registered to FlowFuse" info="Devices belonging to this application.">
+        <SectionTopMenu hero="Edge Devices" help-header="Node-RED Edge Devices - Registered to FlowFuse" info="Edge Devices belonging to this application.">
             <template #pictogram>
                 <img src="../../images/pictograms/devices_red.png">
             </template>

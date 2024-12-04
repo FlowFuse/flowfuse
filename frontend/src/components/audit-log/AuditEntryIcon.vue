@@ -145,8 +145,8 @@ const iconMap = {
         'users.auto-created-team'
     ],
     mail: [
-        'user.invite.accepted',
-        'user.invite.deleted',
+        'user.invitation.accepted',
+        'user.invitation.deleted',
         'team.user.invited',
         'team.user.uninvited',
         'team.user.invite.accepted',
@@ -208,7 +208,8 @@ const iconMap = {
         'application.deviceGroup.created',
         'application.deviceGroup.updated',
         'application.deviceGroup.deleted',
-        'application.deviceGroup.members.changed'
+        'application.deviceGroup.members.changed',
+        'application.deviceGroup.settings.updated'
     ],
     beaker: [
         'team.device.developer-mode.enabled',

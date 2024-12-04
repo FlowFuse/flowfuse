@@ -1,5 +1,7 @@
 const { Op } = require('sequelize')
 
+const { Roles } = require('../../lib/roles.js')
+
 module.exports = async function (app) {
     async function getStats () {
         const userCount = await app.db.models.User.count({ attributes: ['admin'], group: 'admin' })
@@ -28,9 +30,14 @@ module.exports = async function (app) {
         if (Object.hasOwn(license, 'devices')) {
             result.maxDevices = license.devices
         }
+        if (app.license.active()) {
+            const { mqttClients } = await app.license.usage('mqttClients')
+            result.maxMqttClients = mqttClients.limit
+            result.mqttClientCount = mqttClients.count
+        }
         userCount.forEach(u => {
             result.userCount += u.count
-            if (u.admin === 1) {
+            if (u.admin) {
                 result.adminCount = u.count
             }
         })
@@ -391,5 +398,90 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         await app.db.controllers.AccessToken.removePlatformStatisticsToken()
         reply.send({ status: 'okay' })
+    })
+
+    app.post('/announcements', {
+        preHandler: app.needsPermission('user:announcements:manage'),
+        schema: {
+            summary: 'Send platform wide announcements',
+            tags: ['Platform', 'Notifications', 'Announcements'],
+            body: {
+                type: 'object',
+                required: ['message', 'title', 'filter'],
+                properties: {
+                    message: { type: 'string' },
+                    title: { type: 'string' },
+                    filter: {
+                        type: 'object',
+                        properties: {
+                            roles: { type: 'array', items: { type: 'number' } }
+                        }
+                    },
+                    mock: { type: 'boolean' },
+                    to: { type: 'object' },
+                    url: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        recipientCount: { type: 'number' },
+                        mock: { type: 'boolean' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const {
+            title,
+            message,
+            filter,
+            mock,
+            to,
+            url
+        } = request.body
+
+        const recipientRoles = filter?.roles
+        if (recipientRoles && !recipientRoles.every(value => Object.values(Roles).includes(value))) {
+            return reply.code(400).send({ code: 'bad_request', error: 'Invalid Role provided.' })
+        }
+        let teamTypes
+        if (filter?.teamTypes && filter.teamTypes.length > 0) {
+            teamTypes = filter.teamTypes.map(app.db.models.TeamType.decodeHashid).flat()
+        }
+        let billing
+        if (filter?.billing && filter.billing.length > 0) {
+            billing = filter.billing
+        }
+        if (mock) {
+            // If mock is sent, return an indication of how many users would receive this notification
+            // without actually sending them.
+            const count = await app.db.models.User.byTeamRole(recipientRoles, { teamTypes, billing, summary: true, count: true })
+            reply.send({
+                mock: true,
+                recipientCount: count
+            })
+            return
+        }
+
+        const recipients = await app.db.models.User.byTeamRole(recipientRoles, { teamTypes, billing, summary: true })
+        const notificationType = 'announcement'
+        const titleSlug = title.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase()
+        const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2)
+        const reference = `${uniqueId}:${titleSlug}`
+        const data = { title, message, ...(to && { to }), ...(url && { url }) }
+        await app.notifications.sendBulk(
+            recipients,
+            notificationType,
+            data,
+            reference
+        )
+        reply.send({
+            recipientCount: recipients.length
+        })
     })
 }

@@ -153,12 +153,19 @@ export default {
                     this.hasErrors = errors
                 }
             }
+        },
+        'editable.settings.httpNodeAuth_type': {
+            handler (v) {
+                if (v === 'flowforge-user') {
+                    this.getTokens()
+                }
+            }
         }
     },
     mounted () {
         this.checkAccess()
         this.getSettings()
-        if (this.isHTTPBearerTokensFeatureEnabledForTeam()) {
+        if (this.isHTTPBearerTokensFeatureEnabled()) {
             this.getTokens()
         }
     },

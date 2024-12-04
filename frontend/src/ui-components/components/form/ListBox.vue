@@ -1,10 +1,11 @@
 <template>
-    <Listbox v-model="value" :disabled="disabled" class="ff-listbox">
+    <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox" :by="compareOptions">
         <div class="relative">
             <ListboxButton
                 class="w-full rounded-md bg-white flex justify-between ff-button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
             >
+                <input type="text" hidden="hidden" :value="selectedLabel">
                 <slot name="button">
                     <span class="block truncate">{{ selectedLabel }}</span>
                 </slot>
@@ -23,15 +24,16 @@
                         <ListboxOption
                             v-for="option in options"
                             v-slot="{ active, selected }"
-                            :key="labelKey === 'label' ? option.label : option[labelKey]"
+                            :key="option[labelKey]"
                             :value="option"
                             as="template"
                             class="ff-option"
+                            :data-option="option[labelKey]"
                             :title="optionTitleKey ? option[optionTitleKey] : null"
                         >
                             <li>
                                 <div class="ff-option-content" :class="{selected, active}">
-                                    {{ labelKey === 'label' ? option.label : option[labelKey] }}
+                                    {{ option[labelKey] }}
                                 </div>
                             </li>
                         </ListboxOption>
@@ -128,6 +130,11 @@ export default {
         selectedLabel () {
             return this.selectedOption ? this.selectedOption[this.labelKey] : this.placeholder
         }
+    },
+    methods: {
+        compareOptions (modelValue, optionValue) {
+            return modelValue === optionValue[this.valueKey]
+        }
     }
 
 }
@@ -147,8 +154,12 @@ export default {
   .ff-button {
     border: 1px solid $ff-grey-300;
     padding: 5px 5px 5px 10px;
-    &:focus-visible, &:focus {
-      outline: none;
+    &:focus-visible {
+        outline: none;
+    }
+
+    &:focus {
+        border-color: $ff-blue-500;
     }
 
     .icon {
@@ -184,14 +195,24 @@ export default {
 
       .ff-option-content {
         padding: $ff-unit-sm $ff-unit-md;
+        border: 1px solid transparent;
 
-        &.selected, &.active {
+        &.selected {
           background-color: $ff-grey-200;
+        }
+        &.active {
+          border: 1px solid $ff-indigo-300;
+        }
+        &.selected.active {
+          border-color: transparent;
         }
       }
 
       &:hover {
         background-color: $ff-grey-200;
+          .ff-option-content.active {
+              border-color: transparent
+          }
       }
     }
   }

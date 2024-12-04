@@ -1,7 +1,5 @@
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
+const { KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
 const { Roles } = require('../../lib/roles')
-
-const { isFQDN } = require('../../lib/validate')
 
 const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
@@ -383,25 +381,6 @@ module.exports = async function (app) {
             changesToPersist.name = { from: projectName, to: reqName }
         }
 
-        // Hostname
-        const newHostname = request.body.hostname?.toLowerCase().replace(/\.$/, '') // trim trailing .
-        const oldHostname = await request.project.getSetting(KEY_HOSTNAME)
-        if (newHostname && newHostname !== oldHostname) {
-            if (!isFQDN(newHostname)) {
-                reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is not an FQDN' })
-                return
-            }
-
-            const hostnameInUse = await app.db.models.ProjectSettings.isHostnameUsed(newHostname)
-            const hostnameMatchesDomain = (app.config.domain && newHostname.endsWith(app.config.domain.toLowerCase()))
-            if (hostnameInUse || hostnameMatchesDomain) {
-                reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is already in use' })
-                return
-            }
-
-            changesToPersist.hostname = { from: oldHostname, to: newHostname }
-        }
-
         // Settings
         if (request.body.settings) {
             let bodySettings
@@ -492,7 +471,7 @@ module.exports = async function (app) {
         /// Persist the changes
         const updates = new app.auditLog.formatters.UpdatesCollection()
         const transaction = await app.db.sequelize.transaction() // start a transaction
-        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType) && !changesToPersist.projectType?.firstUpdate
+        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType || changesToPersist.name) && !changesToPersist.projectType?.firstUpdate
         let repliedEarly = false
         try {
             let resumeProject, targetState
@@ -516,12 +495,6 @@ module.exports = async function (app) {
                 await request.project.save({ transaction })
 
                 updates.push('name', changesToPersist.name.from, changesToPersist.name.to)
-            }
-
-            if (changesToPersist.hostname) {
-                await request.project.updateSetting(KEY_HOSTNAME, changesToPersist.hostname.to, { transaction })
-
-                updates.push('hostname', changesToPersist.hostname.from, changesToPersist.hostname.to)
             }
 
             if (changesToPersist.settings) {
@@ -867,7 +840,8 @@ module.exports = async function (app) {
 
         settings.features = {
             'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true),
-            projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)
+            projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true),
+            teamBroker: app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true)
         }
         reply.send(settings)
     })
@@ -1009,7 +983,18 @@ module.exports = async function (app) {
                     properties: {
                         meta: { $ref: 'PaginationMeta' },
                         count: { type: 'number' },
-                        log: { $ref: 'AuditLogEntryList' }
+                        log: { $ref: 'AuditLogEntryList' },
+                        associations: {
+                            type: 'object',
+                            properties: {
+                                applications: {
+                                    type: 'array',
+                                    items: { $ref: 'ApplicationSummary' }
+                                },
+                                instances: { $ref: 'InstanceSummaryList' },
+                                devices: { $ref: 'DeviceSummaryList' }
+                            }
+                        }
                     }
                 },
                 '4xx': {

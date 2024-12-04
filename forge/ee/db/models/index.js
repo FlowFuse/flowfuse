@@ -47,7 +47,7 @@ async function init (app) {
         }
         if (m.hooks) {
             if (typeof m.hooks === 'function') {
-                opts.hooks = m.hooks.call(null, app.db.models)
+                opts.hooks = m.hooks.call(null, app.db.models, app)
             } else {
                 opts.hooks = m.hooks
             }

@@ -4,6 +4,7 @@
  */
 const { DataTypes, Op, fn, col, where } = require('sequelize')
 
+const { Roles } = require('../../lib/roles.js')
 const { hash, generateUserAvatar, buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
@@ -168,7 +169,7 @@ module.exports = {
         this.hasMany(M.Invitation, { foreignKey: 'inviteeId' })
         this.belongsTo(M.Team, { as: 'defaultTeam' })
     },
-    finders: function (M) {
+    finders: function (M, app) {
         return {
             static: {
                 admins: async () => {
@@ -278,6 +279,70 @@ module.exports = {
                         },
                         count,
                         users: rows
+                    }
+                },
+                /**
+                 * Get users with a particular role
+                 * @param {Array} roles An array of valid user roles
+                 * @param {Object} options Options
+                 * @param {Boolean} options.count only return a count of results
+                 * @param {Boolean} options.summary whether to return a limited user object that only contains id: default false
+                 * @param {Array} options.teamTypes limit to teams of certain types
+                 * @param {Array} options.billing array of billing states to include
+                 * @returns Array of users who have at least one of the specific roles, or a count
+                 */
+                byTeamRole: async (roles = [], options) => {
+                    options = {
+                        summary: false,
+                        count: false,
+                        ...options
+                    }
+                    let attributes
+                    if (options.summary) {
+                        attributes = ['id']
+                    }
+                    const includesAdmins = roles.includes(Roles.Admin)
+                    const where = {
+                        [Op.or]: [
+                            includesAdmins ? { admin: true } : {},
+                            { '$TeamMembers.role$': { [Op.in]: roles } }
+                        ]
+                    }
+                    const query = {
+                        where,
+                        include: {
+                            model: M.TeamMember,
+                            attributes: ['role'],
+                            include: {
+                                model: M.Team,
+                                attributes: ['suspended', 'TeamTypeId'],
+                                where: {
+                                    // Never include suspended teams
+                                    suspended: false
+                                }
+                            }
+                        }
+                    }
+                    if (options.teamTypes) {
+                        query.include.include.where.TeamTypeId = { [Op.in]: options.teamTypes }
+                        if (options.billing) {
+                            query.include.include.include = {
+                                model: app.db.models.Subscription,
+                                attributes: ['status'],
+                                where: {
+                                    status: { [Op.in]: options.billing.map(opt => opt.toLowerCase()) }
+                                }
+                            }
+                        }
+                    }
+                    if (!options.count) {
+                        query.attributes = attributes
+                        return M.User.findAll(query)
+                    } else {
+                        // Must set distinct otherwise Model.count will include
+                        // users in multiple teams multiple times.
+                        query.distinct = true
+                        return M.User.count(query)
                     }
                 }
             },

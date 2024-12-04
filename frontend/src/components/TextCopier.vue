@@ -1,6 +1,6 @@
 <template>
     <span class="ff-text-copier">
-        <span @click="copyPath">
+        <span v-if="showText" @click="copyPath">
             <slot name="default">
                 <span class="text">{{ text }}</span>
             </slot>
@@ -13,6 +13,8 @@
 <script>
 import { DuplicateIcon } from '@heroicons/vue/outline'
 
+import Alert from '../services/alerts.js'
+
 export default {
     name: 'TextCopier',
     components: { DuplicateIcon },
@@ -20,18 +22,37 @@ export default {
         text: {
             required: true,
             type: String
+        },
+        confirmationType: {
+            type: String,
+            required: false,
+            default: 'prompt',
+            validator: (value) => {
+                return ['prompt', 'alert'].includes(value)
+            }
+        },
+        showText: {
+            required: false,
+            type: Boolean,
+            default: true
         }
     },
+    emits: ['copied'],
     methods: {
         copyPath () {
             navigator.clipboard.writeText(this.text)
 
-            // show "Copied" notification
-            this.$refs.copied.style.display = 'inline'
-            // hide after 500ms
-            setTimeout(() => {
-                this.$refs.copied.style.display = 'none'
-            }, 500)
+            if (this.confirmationType === 'alert') {
+                Alert.emit('Copied to Clipboard', 'confirmation')
+            } else {
+                // show "Copied" notification
+                this.$refs.copied.style.display = 'inline'
+                // hide after 500ms
+                setTimeout(() => {
+                    this.$refs.copied.style.display = 'none'
+                }, 500)
+                this.$emit('copied')
+            }
         }
     }
 }

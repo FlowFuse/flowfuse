@@ -1,7 +1,7 @@
 <template>
-    <div v-click-outside="{handler: closeRightDrawer, exclude: ['right-drawer']}" class="right-drawer" :class="{open: rightDrawer.state}" data-el="right-drawer">
+    <section id="right-drawer" v-click-outside="{handler: closeRightDrawer, exclude: ['right-drawer']}" :class="{open: rightDrawer.state}" data-el="right-drawer">
         <component :is="rightDrawer.component" v-if="rightDrawer.component" />
-    </div>
+    </section>
 </template>
 
 <script>
@@ -19,14 +19,14 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.right-drawer {
+#right-drawer {
   position: absolute;
   border-left: 1px solid $ff-grey-300;
   background: white;
   height: calc(100% - 60px);
   top: 60px;
   right: -1000px;
-  z-index: 500;
+  z-index: 110;
   width: 100%;
   max-width: 0;
   min-width: 0;

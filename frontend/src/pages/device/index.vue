@@ -1,7 +1,4 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions />
-    </Teleport>
     <main v-if="device" class="ff-with-status-header">
         <Teleport v-if="mounted" to="#platform-banner">
             <SubscriptionExpiredBanner :team="team" />
@@ -10,7 +7,7 @@
         <div class="ff-instance-header">
             <SectionNavigationHeader :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Devices</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Edge Devices</ff-nav-breadcrumb>
                     <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
@@ -120,7 +117,6 @@ import { mapState } from 'vuex'
 import deviceApi from '../../api/devices.js'
 import DropdownMenu from '../../components/DropdownMenu.vue'
 import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
-import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
@@ -162,7 +158,6 @@ export default {
         DeviceLastSeenBadge,
         DropdownMenu,
         SectionNavigationHeader,
-        SideNavigationTeamOptions,
         StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner,
@@ -190,8 +185,8 @@ export default {
         isVisitingAdmin: function () {
             return this.teamMembership.role === Roles.Admin
         },
-        isOwner: function () {
-            return this.teamMembership.role === Roles.Owner
+        isMember: function () {
+            return this.teamMembership.role === Roles.Member || this.teamMembership.role === Roles.Owner
         },
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor
@@ -206,7 +201,7 @@ export default {
             return !this.isDevModeAvailable ||
                 !this.device ||
                 !this.agentSupportsDeviceAccess ||
-                !this.isOwner
+                !this.isMember
         },
         disableModeToggleReason: function () {
             if (!this.device) {
@@ -215,8 +210,8 @@ export default {
             if (!this.agentSupportsDeviceAccess) {
                 return 'Device Agent V0.8 or greater is required'
             }
-            if (!this.isOwner) {
-                return 'Only an owner can change the Device Mode'
+            if (!this.isMember) {
+                return 'Only an Owner or Member can change the Device Mode'
             }
             return undefined
         },

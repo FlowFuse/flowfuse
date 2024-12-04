@@ -727,6 +727,83 @@ describe('Device API', async function () {
                 result.should.have.property('modules').and.be.an.Object()
                 result.modules.should.have.property('node-red', 'latest')
             })
+            it('device updated to use target snapshot of an instance returns correct env vars', async function () {
+                // It is possible to "view all application snapshots" and pick one to assign to a device
+                // This test ensures that the device receives the correct environment variables
+                const agentVersion = '1.11.2' // min agent version required for NR 3.1 (as this agent handles ESM issue)
+                const device = await createDevice({ name: 'instance-snapshot-set-to-device', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+
+                // assign the new device to application
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+
+                // upload a basic instance snapshot against instance
+                const instanceSnapshot = {
+                    name: `instance ${TestObjects.Project1.id} snapshot uploaded @ ${Date.now()}`,
+                    description: '',
+                    credentialSecret: '',
+                    flows: {
+                        flows: [],
+                        credentials: null
+                    },
+                    InstanceId: TestObjects.Project1.id,
+                    UserId: TestObjects.bob.id,
+                    settings: {
+                        settings: {},
+                        env: {
+                            FF_INSTANCE_ID: TestObjects.Project1.id,
+                            FF_INSTANCE_NAME: TestObjects.Project1.name,
+                            FF_PROJECT_ID: TestObjects.Project1.id,
+                            FF_PROJECT_NAME: TestObjects.Project1.name,
+                            RANDOM_ENV_VAR: 'random value'
+                        },
+                        modules: {
+                            'node-red': '3.1.3'
+                        }
+                    }
+                }
+
+                // now assign this snapshot to the device
+                const uploadedSnapshot = await app.db.controllers.Snapshot.uploadSnapshot(TestObjects.Project1, instanceSnapshot, '', TestObjects.bob, { components: { credentials: false } })
+                const snapshot = await app.db.models.ProjectSnapshot.byId(uploadedSnapshot.id)
+
+                // set this snapshot as the target snapshot for the device
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        targetSnapshot: snapshot.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/live/snapshot`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('env').and.be.an.Object()
+                result.env.should.not.have.property('FF_INSTANCE_ID')
+                result.env.should.not.have.property('FF_INSTANCE_NAME')
+                result.env.should.not.have.property('FF_PROJECT_ID')
+                result.env.should.not.have.property('FF_PROJECT_NAME')
+
+                result.env.should.have.property('FF_APPLICATION_ID', TestObjects.Application1.hashid)
+                result.env.should.have.property('FF_APPLICATION_NAME', TestObjects.Application1.name)
+                result.env.should.have.property('FF_DEVICE_ID', device.id)
+                result.env.should.have.property('FF_DEVICE_NAME', device.name)
+                result.env.should.have.property('FF_SNAPSHOT_ID', snapshot.hashid)
+                result.env.should.have.property('FF_SNAPSHOT_NAME', snapshot.name)
+                result.env.should.have.property('RANDOM_ENV_VAR', 'random value')
+            })
             it('`@flowfuse/nr-project-nodes` dependency is included in the starter snapshot', async function () {
                 const agentVersion = '1.11.0' // min agent version required for application assignment
                 const device = await createDevice({ name: 'Ad1a-dep-test', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
@@ -1207,7 +1284,7 @@ describe('Device API', async function () {
                 settings.should.have.property('mode', 'developer')
                 settings.should.have.property('editor')
             })
-            it('team member can not set device to developer mode', async function () {
+            it('team member can set device to developer mode', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({
                     method: 'PUT',
@@ -1217,7 +1294,7 @@ describe('Device API', async function () {
                     },
                     cookies: { sid: TestObjects.tokens.chris }
                 })
-                response.statusCode.should.equal(403)
+                response.statusCode.should.equal(200)
             })
         })
     })

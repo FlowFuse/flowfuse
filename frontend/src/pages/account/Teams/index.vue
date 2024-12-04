@@ -41,9 +41,9 @@ export default {
     },
     async mounted () {
         this.sideNavigation = [
-            { name: 'Teams', path: '/account/teams' }
+            { name: 'Teams', path: { name: 'user-teams' } }
         ]
-        this.sideNavigation.push({ name: 'Invitations', path: '/account/teams/invitations' })
+        this.sideNavigation.push({ name: 'Invitations', path: { name: 'user-invitations' } })
         this.updateInvitations()
     },
     methods: {

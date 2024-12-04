@@ -41,6 +41,7 @@ table summaries what actions are available to the different roles.
 | • Create Application                 | ✓     | -      | -      | -              |
 | • Delete Application                 | ✓     | -      | -      | -              |
 | • Modify Application Settings        | ✓     | -      | -      | -              |
+| • View Application Logs              | ✓     | ✓      | ✓      | -              |
 | **Instances**                        |       |        |        |                |
 | • Create Instance                    | ✓     | -      | -      | -              |
 | • Delete Instance                    | ✓     | -      | -      | -              |
@@ -49,13 +50,15 @@ table summaries what actions are available to the different roles.
 | • Start, Stop, Suspend Instance      | ✓     | -      | -      | -              |
 | • Modify Instance Settings           | ✓     | -      | -      | -              |
 | • Modify Environment Variables       | ✓     | ✓      | -      | -              |
+| • Manage Assets                      | ✓     | ✓      | -      | -              |
 | • Access Dashboard or HTTP endpoint  | ✓     | ✓      | ✓      | ✓              |
+| • View Node-RED Logs                 | ✓     | ✓      | ✓      | -              |
 | **Flows**                            |       |        |        |                |
 | • Access Flow Editor                 | ✓     | ✓      | ✓      | -              |
 | • Modify Flows                       | ✓     | ✓      | -      | -              |
 | **Snapshots**                        |       |        |        |                |
 | • Create Snapshot                    | ✓     | ✓      | -      | -              |
-| • Restore Snapshot                    | ✓     | ✓      | -      | -              |
+| • Restore Snapshot                   | ✓     | ✓      | -      | -              |
 | • Set as Device Target               | ✓     | ✓      | -      | -              |
 | • View Snapshots                     | ✓     | ✓      | ✓      | -              |
 | • Download Snapshot                  | ✓     | ✓      | -      | -              |
@@ -78,6 +81,10 @@ table summaries what actions are available to the different roles.
 | • Add an item                        | ✓     | ✓      | -      | -              |
 | • Modify an item                     | ✓     | ✓      | -      | -              |
 | • Delete an item                     | ✓     | ✓      | -      | -              |
+| **Team Broker**                      |       |        |        |                |
+| • Create Client                      | ✓     | ✓      | -      | -              |
+| • Delete Client                      | ✓     | ✓      | -      | -              |
+| • List Clients                       | ✓     | ✓      | -      | -              |
 
 Notes:
  - **§1** A user in any role can remove themselves from a team

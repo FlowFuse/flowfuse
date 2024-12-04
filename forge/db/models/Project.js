@@ -13,7 +13,7 @@
 
 const crypto = require('crypto')
 
-const { DataTypes, Op } = require('sequelize')
+const { col, fn, DataTypes, Op, where } = require('sequelize')
 
 const Controllers = require('../controllers')
 
@@ -148,6 +148,13 @@ module.exports = {
                 const { instances } = await app.license.usage('instances')
                 if (instances.count > instances.limit) {
                     await app.auditLog.Platform.platform.license.overage('system', null, instances)
+                }
+            },
+            beforeUpdate: async (project, opts) => {
+                if (project.changed('name')) {
+                    if (project.state !== 'suspended') {
+                        throw new Error('Name can only be changed when suspended')
+                    }
                 }
             },
             afterDestroy: async (project, opts) => {
@@ -462,15 +469,20 @@ module.exports = {
                         include
                     })
                 },
-                byTeam: async (teamHashId, { includeSettings = false } = {}) => {
-                    const teamId = M.Team.decodeHashid(teamHashId)
+                byTeam: async (teamIdOrHash, { query = null, instanceId = null, includeAssociations = true, includeSettings = false } = {}) => {
+                    let teamId = teamIdOrHash
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
                     const include = [
                         {
                             model: M.Team,
                             where: { id: teamId },
                             attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
-                        },
-                        {
+                        }
+                    ]
+                    if (includeAssociations) {
+                        include.push({
                             model: M.Application,
                             attributes: ['hashid', 'id', 'name', 'links']
                         },
@@ -485,7 +497,8 @@ module.exports = {
                             model: M.ProjectTemplate,
                             attributes: ['hashid', 'id', 'name', 'links']
                         }
-                    ]
+                        )
+                    }
 
                     if (includeSettings) {
                         include.push({
@@ -495,7 +508,19 @@ module.exports = {
                         })
                     }
 
-                    return this.findAll({ include })
+                    const queryObject = {
+                        include
+                    }
+
+                    if (instanceId) {
+                        queryObject.where = { id: instanceId }
+                    } else if (query) {
+                        queryObject.where = where(
+                            fn('lower', col('Project.name')),
+                            { [Op.like]: `%${query.toLowerCase()}%` }
+                        )
+                    }
+                    return this.findAll(queryObject)
                 },
                 getProjectTeamId: async (id) => {
                     const project = await this.findOne({

@@ -187,6 +187,18 @@ module.exports = async function (app) {
                     await applyOverrides(device, settings)
                 }
 
+                // ensure the snapshot has the correct FF_ environment variables
+                try {
+                    // since transmit env in key/value pairs for a snapshot, we need to convert them to the same
+                    // format as we store them in the database, then we can update the FF_ env vars before
+                    // re-converting to key/value pairs ready for the snapshot
+                    const envArray = Object.entries(settings.env || {}).map(([name, value]) => ({ name, value }))
+                    const updatedEnv = app.db.controllers.Device.insertPlatformSpecificEnvVars(device, envArray)
+                    settings.env = Object.fromEntries(updatedEnv.map(({ name, value }) => [name, value]))
+                } catch (err) {
+                    app.log.error('Failed to update environment variables in snapshot', err)
+                }
+
                 const result = {
                     id: device.targetSnapshot.hashid,
                     name: snapshot.name,
@@ -217,7 +229,9 @@ module.exports = async function (app) {
             hash: request.device.settingsHash,
             env: {}
         }
-        const settings = await request.device.getAllSettings()
+        const settings = await request.device.getAllSettings({
+            mergeDeviceGroupSettings: true
+        })
         Object.keys(settings).forEach(key => {
             if (key === 'env') {
                 settings.env.forEach(envVar => {
@@ -230,7 +244,8 @@ module.exports = async function (app) {
         const teamType = await request.device.Team.getTeamType()
         response.features = {
             'shared-library': !!(app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true)),
-            projectComms: !!(app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true))
+            projectComms: !!(app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)),
+            teamBroker: !!(app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true))
         }
         response.assistant = {
             enabled: app.config.assistant?.enabled || false,

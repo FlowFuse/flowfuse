@@ -1,7 +1,4 @@
 <template>
-    <Teleport v-if="canAccessTeam && mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions />
-    </Teleport>
     <div>
         <template v-if="pendingTeamChange">
             <Loading />
@@ -26,7 +23,6 @@ import { useRoute } from 'vue-router'
 import { mapGetters, mapState } from 'vuex'
 
 import Loading from '../../components/Loading.vue'
-import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
@@ -39,7 +35,6 @@ export default {
     components: {
         TeamInstances,
         Loading,
-        SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
         TeamSuspendedBanner,
         TeamTrialBanner

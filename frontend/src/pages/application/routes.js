@@ -6,9 +6,11 @@
  */
 import ApplicationActivity from './Activity.vue'
 import Dependencies from './Dependencies/Dependencies.vue'
+import ApplicationDeviceGroupSettingsEnvironment from './DeviceGroup/Settings/Environment.vue'
+import ApplicationDeviceGroupSettingsGeneral from './DeviceGroup/Settings/General.vue'
+import ApplicationDeviceGroupSettings from './DeviceGroup/Settings/index.vue'
 import ApplicationDeviceGroupDevices from './DeviceGroup/devices.vue'
 import ApplicationDeviceGroupIndex from './DeviceGroup/index.vue'
-import ApplicationDeviceGroupSettings from './DeviceGroup/settings.vue'
 import ApplicationDeviceGroups from './DeviceGroups.vue'
 import ApplicationDevices from './Devices.vue'
 import ApplicationLogs from './Logs.vue'
@@ -85,6 +87,7 @@ export default [
             {
                 path: 'logs',
                 component: ApplicationLogs,
+                name: 'application-logs',
                 meta: {
                     title: 'Application - Logs',
                     shouldPoll: true
@@ -92,6 +95,7 @@ export default [
             },
             {
                 path: 'activity',
+                name: 'application-activity',
                 component: ApplicationActivity,
                 meta: {
                     title: 'Application - Activity'
@@ -139,7 +143,7 @@ export default [
             },
             {
                 path: 'dependencies',
-                name: 'Dependencies',
+                name: 'application-dependencies',
                 component: Dependencies,
                 meta: {
                     title: 'Dependencies'
@@ -183,7 +187,29 @@ export default [
                 component: ApplicationDeviceGroupSettings,
                 meta: {
                     title: 'Application - Device Group - Settings'
-                }
+                },
+                redirect: {
+                    name: 'ApplicationDeviceGroupSettingsGeneral'
+                },
+                children: [
+                    {
+                        path: 'general',
+                        name: 'ApplicationDeviceGroupSettingsGeneral',
+                        component: ApplicationDeviceGroupSettingsGeneral,
+                        meta: {
+                            title: 'Application - Device Group - Settings - General'
+                        }
+                    },
+                    {
+                        path: 'environment',
+                        name: 'ApplicationDeviceGroupSettingsEnvironment',
+                        component: ApplicationDeviceGroupSettingsEnvironment,
+                        meta: {
+                            title: 'Application - Device Group - Settings - Environment'
+                        }
+                    }
+
+                ]
             }
         ]
     }

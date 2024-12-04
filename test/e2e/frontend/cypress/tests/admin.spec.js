@@ -37,9 +37,9 @@ describe('FlowFuse platform admin users', () => {
         cy.visit('/admin/overview')
         cy.url().should('include', '/admin/overview')
 
-        cy.get('#platform-sidenav [data-nav="admin-settings"]').click()
+        cy.get('[data-el="left-drawer"] [data-nav="admin-settings"]').click()
 
-        cy.get('[data-nav="section-license"]').click()
+        cy.get('[data-nav="license"]').click()
 
         cy.get('[data-form="update-licence"]').click()
 
@@ -52,7 +52,7 @@ describe('FlowFuse platform admin users', () => {
         cy.get('[data-form="submit"]').click()
 
         // Back to license screen
-        cy.get('[data-el="license-details"]').should('exist')
+        cy.get('[data-nav="license"]').should('exist')
     })
 
     it("can view applications and instances from teams they're not a member of", () => {

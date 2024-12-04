@@ -192,7 +192,7 @@
     </template>
     <template v-else-if="entry.event === 'account.forgot-password'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.user">'{{ entry.body.user?.name }}' has forgotten their password.</span>
+        <span v-if="!error && entry.body?.user">'{{ entry.body.user?.name || entry.body.user?.email }}' has forgotten their password.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
     <template v-else-if="entry.event === 'account.reset-password'">
@@ -223,13 +223,13 @@
         <span v-if="!error && entry.body?.user">User '{{ entry.body.user?.name }}' has updated their password</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'user.invite.accepted' || entry.event === 'user.invite.accept' || entry.event === 'user.invitations.accept-invite'">
+    <template v-else-if="entry.event === 'user.invitation.accepted' || entry.event === 'user.invite.accept' || entry.event === 'user.invitations.accept-invite'">
         <!-- TODO: Add team/invite data to this event -->
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.trigger.user">User '{{ entry.trigger.user?.name }}' has accepted the invite.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'user.invite.deleted' || entry.event === 'user.invite.delete' || entry.event === 'user.invitations.delete-invite'">
+    <template v-else-if="entry.event === 'user.invitation.deleted' || entry.event === 'user.invite.delete' || entry.event === 'user.invitations.delete-invite'">
         <!-- TODO: Add team/invite data to this event -->
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.trigger.user">User '{{ entry.trigger.user?.name }}' has deleted the invite.</span>
@@ -441,7 +441,12 @@
     </template>
     <template v-else-if="entry.event === 'application.deviceGroup.members.changed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' members in Application '{{ entry.body.application?.name }} updated: {{ entry.body?.info?.info ?? 'No changes' }}.</span>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' members in Application '{{ entry.body.application?.name }}' updated: {{ entry.body?.info?.info ?? 'No changes' }}.</span>
+        <span v-else-if="!error">Device Group data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'application.deviceGroup.settings.updated'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.deviceGroup">Device Group '{{ entry.body.deviceGroup?.name }}' settings in Application '{{ entry.body.application?.name }}' updated.</span>
         <span v-else-if="!error">Device Group data not found in audit entry.</span>
     </template>
 
