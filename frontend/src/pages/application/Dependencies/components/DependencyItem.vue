@@ -89,6 +89,8 @@ export default {
 <style lang="scss">
 .dependency-item {
   border: 1px solid $ff-grey-300;
+  margin-bottom: 12px;
+
   .dependency-header {
     background: $ff-grey-100;
     display: flex;

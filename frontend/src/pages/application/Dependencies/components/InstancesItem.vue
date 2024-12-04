@@ -15,7 +15,7 @@
             </h6>
         </div>
         <div class="actions">
-            <status-badge v-if="!isDevice" :status="instance.meta?.state" />
+            <status-badge v-if="instance.state" :status="instance.state" />
         </div>
     </div>
 </template>
