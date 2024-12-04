@@ -97,7 +97,7 @@ const getters = {
                             icon: TableIcon,
                             disabled: noBilling,
                             featureUnavailable: !features.isBOMFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner) && features.isBOMFeatureEnabled
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner) && features.isBOMFeatureEnabledForPlatform
                         },
                         {
                             label: 'Broker',
