@@ -9,7 +9,7 @@
             </template>
         </SectionTopMenu>
 
-        <div class="space-y-6 mb-12">
+        <div class="space-y-6">
             <div class="banner-wrapper mt-5">
                 <FeatureUnavailable v-if="!isBOMFeatureEnabledForPlatform" />
                 <FeatureUnavailableToTeam v-else-if="!isBOMFeatureEnabledForTeam" />
@@ -64,6 +64,7 @@ import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+import BomMixin from '../../../mixins/BOM.js'
 
 import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
@@ -80,15 +81,11 @@ export default {
         SearchIcon,
         DependencyItem
     },
-    mixins: [featuresMixin, permissionsMixin],
+    mixins: [featuresMixin, permissionsMixin, BomMixin],
     inheritAttrs: false,
     props: {
         application: {
             type: Object,
-            required: true
-        },
-        instances: {
-            type: Array,
             required: true
         }
     },
@@ -100,58 +97,6 @@ export default {
         }
     },
     computed: {
-        extendedInstances () {
-            if (!this.payload?.children) {
-                return []
-            }
-
-            return this.payload.children.map(instance => {
-                const fullInstanceData = this.instances.find(ins => ins.id === instance.id)
-                if (fullInstanceData && Object.prototype.hasOwnProperty.call(fullInstanceData, 'meta')) {
-                    instance.meta = fullInstanceData.meta
-                }
-                return instance
-            })
-        },
-        dependencies () {
-            return this.extendedInstances
-                .reduce((acc, currentInstance) => {
-                    currentInstance.dependencies.forEach(dep => {
-                        const searchTerm = this.searchTerm.trim()
-                        const installedDependencyVersion = dep.version?.current ?? dep.version?.wanted ?? 'N/A'
-                        const dependencyNameMatchesSearch = dep.name.toLowerCase().includes(searchTerm.toLowerCase())
-                        const dependencyVersionMatchesSearch = installedDependencyVersion.toLowerCase().includes(searchTerm.toLowerCase())
-                        const matchesInstanceName = currentInstance.name.toLowerCase().includes(searchTerm.toLowerCase())
-                        const includeDependency = () => {
-                            if (!Object.prototype.hasOwnProperty.call(acc, dep.name)) {
-                                acc[dep.name] = {}
-                            }
-                            if (!Object.prototype.hasOwnProperty.call(acc[dep.name], installedDependencyVersion)) {
-                                acc[dep.name][installedDependencyVersion] = []
-                            }
-                            acc[dep.name][installedDependencyVersion].push(currentInstance)
-                        }
-
-                        switch (true) {
-                        case !searchTerm.length:
-                            includeDependency()
-                            break
-                        case matchesInstanceName:
-                            includeDependency()
-                            break
-                        case dependencyVersionMatchesSearch || dependencyNameMatchesSearch:
-                            includeDependency()
-                            break
-                        default:
-                            break
-                        }
-                    })
-                    return acc
-                }, {})
-        },
-        hasInstances () {
-            return !(!this.payload || this.payload.children.length === 0)
-        },
         hasTeamPermission () {
             return this.hasPermission('application:bom')
         }
@@ -184,10 +129,5 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.dependencies-wrapper {
-  .dependencies {
-    display: grid;
-    gap: 12px;
-  }
-}
+
 </style>
