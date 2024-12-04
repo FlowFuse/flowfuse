@@ -5,8 +5,8 @@ const { randomInt } = require('../utils')
 module.exports = {
     name: 'inviteReminder',
     startup: false,
-    // runs every 15mins with a random offset from the start of the hour
-    schedule: `${randomInt(0, 15)}/15 * * * *`,
+    // runs daily at a randomly picked time
+    schedule: `${randomInt(0, 59)} 6 * * *`,
     run: async function (app) {
         // need to iterate over invitations and send email to all over
         // 2 days old, but less than 3 days.
