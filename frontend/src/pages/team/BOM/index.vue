@@ -94,9 +94,10 @@ export default {
         payload () {
             const payload = { children: [] }
             this.intermediaryPayload.forEach(app => {
+                const { id, name } = app
                 payload.children.push(...app.children.map(child => ({
                     ...child,
-                    app
+                    app: { id, name }
                 })))
             })
 
