@@ -431,6 +431,7 @@ jobs:
         default-mapping: C067BD0377F
 
     - name: Post to a Slack channel
+      if: false
       id: slack
       uses: slackapi/slack-github-action@v1.27.0
       with:
