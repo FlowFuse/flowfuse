@@ -21,9 +21,9 @@
 </template>
 
 <script>
-import StatusBadge from '../../../../components/StatusBadge.vue'
-import IconDeviceSolid from '../../../../components/icons/DeviceSolid.js'
-import IconNodeRedSolid from '../../../../components/icons/NodeRedSolid.js'
+import StatusBadge from '../StatusBadge.vue'
+import IconDeviceSolid from '../icons/DeviceSolid.js'
+import IconNodeRedSolid from '../icons/NodeRedSolid.js'
 
 export default {
     name: 'InstancesItem',

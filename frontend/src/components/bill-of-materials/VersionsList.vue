@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import FfAccordion from '../../../../components/Accordion.vue'
+import FfAccordion from '../Accordion.vue'
 
 import InstancesItem from './InstancesItem.vue'
 

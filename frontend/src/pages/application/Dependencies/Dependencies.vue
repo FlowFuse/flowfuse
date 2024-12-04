@@ -64,12 +64,11 @@ import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+import DependencyItem from '../../../components/bill-of-materials/DependencyItem.vue'
 import BomMixin from '../../../mixins/BOM.js'
 
 import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
-
-import DependencyItem from './components/DependencyItem.vue'
 
 export default {
     name: 'ApplicationDependencies',

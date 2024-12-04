@@ -19,8 +19,8 @@
 
 <script>
 
-import ExternalClient from '../../../../api/external.js'
-import daysSince from '../../../../utils/daysSince.js'
+import ExternalClient from '../../api/external.js'
+import daysSince from '../../utils/daysSince.js'
 
 import VersionsList from './VersionsList.vue'
 
