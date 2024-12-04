@@ -184,11 +184,9 @@ jobs:
   create-custom-stack:
     name: Create stack with custom Node-RED image
     needs: 
-      - validate-user
       - upload-node-red
       - deploy
     if: |
-      needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed'
     runs-on: ubuntu-latest
