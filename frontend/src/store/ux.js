@@ -88,7 +88,7 @@ const getters = {
                             icon: PipelinesIcon,
                             disabled: noBilling,
                             featureUnavailable: !features.devOpsPipelinesFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.devOpsPipelinesFeatureEnabled
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member)
                         },
                         {
                             label: 'Bill Of Materials',
@@ -97,7 +97,7 @@ const getters = {
                             icon: TableIcon,
                             disabled: noBilling,
                             featureUnavailable: !features.isBOMFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner) && features.isBOMFeatureEnabledForPlatform
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner)
                         },
                         {
                             label: 'Broker',
