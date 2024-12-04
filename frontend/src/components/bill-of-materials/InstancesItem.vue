@@ -1,6 +1,6 @@
 <template>
     <div class="instance-item" data-el="instance-item">
-        <div class="title">
+        <div class="title truncate">
             <h6 v-if="isDevice">
                 <IconDeviceSolid class="ff-icon text-teal-700" />
                 <router-link :to="{name: 'DeviceOverview', params: {id: instance.id}}" class="ff-link">
