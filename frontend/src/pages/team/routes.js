@@ -201,12 +201,18 @@ export default [
                     {
                         name: 'team-pipelines',
                         path: 'pipelines',
-                        component: TeamPipelines
+                        component: TeamPipelines,
+                        meta: {
+                            title: 'Team - DevOps Pipelines'
+                        }
                     },
                     {
                         name: 'team-bom',
                         path: 'bill-of-materials',
-                        component: TeamBillOfMaterials
+                        component: TeamBillOfMaterials,
+                        meta: {
+                            title: 'Team - Bill of Materials'
+                        }
                     }
                 ]
             },
