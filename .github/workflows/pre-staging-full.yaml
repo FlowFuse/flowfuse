@@ -68,7 +68,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed' &&
-      inputs.driver-k8s-branch != 'main'
+      inputs.driver_k8s_branch != 'main'
     uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.34.0'
     with:
       package_name: driver-k8s
@@ -423,7 +423,7 @@ jobs:
       github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     env:
-      PR_NUMBER: ${{ github.event.number }}
+      PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
 
     steps:
     - name: Map users  
