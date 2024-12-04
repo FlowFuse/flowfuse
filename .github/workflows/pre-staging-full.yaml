@@ -280,8 +280,9 @@ jobs:
   deploy:
     name: Deploy application
     if: |
-      (always() && needs.publish_k8s_driver.result != 'failure') &&
-      (always() && needs.upload-node-red.result != 'failure') &&
+      always() && 
+      needs.build.result != 'skipped' &&
+      (needs.publish_k8s_driver.result != 'failure' || needs.upload-node-red.result != 'failure' ) &&
       (( github.event_name == 'pull_request' && github.event.action != 'closed' ) ||
       ( github.event_name == 'workflow_dispatch' && github.event.action != 'closed' ))
     runs-on: ubuntu-latest
