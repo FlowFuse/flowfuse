@@ -183,7 +183,7 @@ describe('FlowForge - Application - Dependencies', () => {
 
             // can search by instance type
             cy.get('[data-form="search"] input').type('instance')
-            cy.get('[data-el="dependency-item"]').should('have.length', 4)
+            cy.get('[data-el="dependency-item"]').should('have.length', 5)
 
             cy.contains('x Devices').should('not.exist')
 
