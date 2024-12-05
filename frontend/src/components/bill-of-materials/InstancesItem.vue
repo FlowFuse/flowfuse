@@ -1,5 +1,5 @@
 <template>
-    <div class="instance-item" data-el="instance-item">
+    <div class="instance-item" data-el="instance-item" :data-item="instance.name">
         <div class="title truncate">
             <h6 v-if="isDevice">
                 <IconDeviceSolid class="ff-icon text-teal-700" />

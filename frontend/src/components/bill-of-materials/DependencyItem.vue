@@ -1,5 +1,5 @@
 <template>
-    <section class="dependency-item" data-el="dependency-item">
+    <section class="dependency-item" data-el="dependency-item" :data-item="title">
         <div class="dependency-header">
             <div class="title truncate">
                 <h3 class="truncate">{{ title }}</h3>

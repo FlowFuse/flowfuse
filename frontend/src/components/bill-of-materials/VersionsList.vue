@@ -1,5 +1,5 @@
 <template>
-    <ff-accordion class="versions-list" data-el="versions-list">
+    <ff-accordion class="versions-list" data-el="versions-list" :data-item="version">
         <template #label>
             <div class="version">
                 <span class="truncate">{{ version }}</span>
