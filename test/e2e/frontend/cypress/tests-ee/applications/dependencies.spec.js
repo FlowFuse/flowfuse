@@ -1,4 +1,4 @@
-import dependencies from '../../fixtures/applications/dependencies.json'
+import dependencies from '../../fixtures/bill-of-materials/application-dependencies.json'
 const interceptBom = (dependencies = []) => {
     cy.intercept('GET', '/api/*/applications/*/bom', {
         id: 'app-id',
@@ -6,6 +6,7 @@ const interceptBom = (dependencies = []) => {
         children: [...dependencies]
     }).as('getBom')
 }
+
 describe('FlowForge - Application - Dependencies', () => {
     let application
     function navigateToApplication (teamName, projectName, instances = [], statuses = []) {
@@ -88,6 +89,15 @@ describe('FlowForge - Application - Dependencies', () => {
                     return response
                 })
             }).as('getTeam')
+            cy.intercept('GET', 'https://registry.npmjs.com/**', {
+                'dist-tags': {
+                    latest: 'x.x.x'
+                },
+                time: {
+                    modified: new Date()
+                }
+            }
+            ).as('getExternalDependency')
 
             cy.intercept('GET', '/api/*/applications/*').as('getApplication')
 
@@ -98,7 +108,7 @@ describe('FlowForge - Application - Dependencies', () => {
             cy.wait('@getTeam')
         })
 
-        it('have access to the dependencies tab and get an empty page when the application doesn\'t have instances or devices assigned', () => {
+        it('should have access to the dependencies tab and get an empty page when the application doesn\'t have instances or devices assigned', () => {
             interceptBom()
             cy.get('[data-nav="application-dependencies"]').click()
 
@@ -106,17 +116,8 @@ describe('FlowForge - Application - Dependencies', () => {
             cy.get('[data-el="empty-state"]').contains('Your application doesn\'t contain any Instances or Devices')
         })
 
-        it('have access to the dependencies tab and can search by name', () => {
-            cy.intercept('GET', 'https://registry.npmjs.com/**', {
-                'dist-tags': {
-                    latest: 'x.x.x'
-                },
-                time: {
-                    modified: new Date()
-                }
-            }
-            ).as('getExternalDependency')
-            interceptBom(dependencies.dependencies)
+        it('should have access to the dependencies tab and can search by name', () => {
+            interceptBom(dependencies)
 
             cy.get('[data-nav="application-dependencies"]').click()
             cy.wait('@getExternalDependency')
@@ -172,17 +173,8 @@ describe('FlowForge - Application - Dependencies', () => {
                 })
         })
 
-        it('have access to the dependencies tab and can search by instance type', () => {
-            cy.intercept('GET', 'https://registry.npmjs.com/**', {
-                'dist-tags': {
-                    latest: 'x.x.x'
-                },
-                time: {
-                    modified: new Date()
-                }
-            }
-            ).as('getExternalDependency')
-            interceptBom(dependencies.dependencies)
+        it('should have access to the dependencies tab and can search by instance type', () => {
+            interceptBom(dependencies)
 
             cy.get('[data-nav="application-dependencies"]').click()
             cy.wait('@getExternalDependency')
@@ -203,17 +195,8 @@ describe('FlowForge - Application - Dependencies', () => {
             cy.contains('x Instances').should('not.exist')
         })
 
-        it('have access to the dependencies tab and can search by package name', () => {
-            cy.intercept('GET', 'https://registry.npmjs.com/**', {
-                'dist-tags': {
-                    latest: 'x.x.x'
-                },
-                time: {
-                    modified: new Date()
-                }
-            }
-            ).as('getExternalDependency')
-            interceptBom(dependencies.dependencies)
+        it('should have access to the dependencies tab and can search by package name', () => {
+            interceptBom(dependencies)
 
             cy.get('[data-nav="application-dependencies"]').click()
             cy.wait('@getExternalDependency')
@@ -229,17 +212,8 @@ describe('FlowForge - Application - Dependencies', () => {
             cy.get('[data-el="dependency-item"]').should('have.length', 2)
         })
 
-        it('have access to the dependencies tab and can search by package version', () => {
-            cy.intercept('GET', 'https://registry.npmjs.com/**', {
-                'dist-tags': {
-                    latest: 'x.x.x'
-                },
-                time: {
-                    modified: new Date()
-                }
-            }
-            ).as('getExternalDependency')
-            interceptBom(dependencies.dependencies)
+        it('should have access to the dependencies tab and can search by package version', () => {
+            interceptBom(dependencies)
 
             cy.get('[data-nav="application-dependencies"]').click()
             cy.wait('@getExternalDependency')
@@ -253,6 +227,43 @@ describe('FlowForge - Application - Dependencies', () => {
             cy.get('[data-form="search"] input').clear()
             cy.get('[data-form="search"] input').type('1.1.1')
             cy.get('[data-el="dependency-item"]').should('have.length', 2)
+        })
+
+        it.only('should correctly display the status pill for devices and instances', () => {
+            interceptBom(dependencies)
+
+            cy.get('[data-nav="application-dependencies"]').click()
+            cy.wait('@getExternalDependency')
+
+            // check that we have an instance running status
+            cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] [data-el="versions-list"][data-item="1.1.1"]').click()
+            cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] [data-item="1.1.1"] [data-el="status-badge-running"]').should('exist')
+            cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] [data-item="1.1.1"] [data-el="status-badge-running"]').contains('running')
+
+            // check that we have an instance suspended status
+            cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] [data-el="versions-list"][data-item="5.5.5"]').click()
+            cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] [data-item="5.5.5"] [data-el="status-badge-suspended"]').should('exist')
+            cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] [data-item="5.5.5"] [data-el="status-badge-suspended"]').contains('suspended')
+
+            // check that we don't have an instance status pill of we don't receive it in the payload
+            cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-el="versions-list"][data-item="1.1.1"]').click()
+            cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-item="instance-4"] [data-el="status-badge-suspended"]').should('not.exist')
+            cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-item="instance-4"] [data-el="status-badge-running"]').should('not.exist')
+
+            // check that we have a device running status
+            cy.get('[data-el="dependency-item"][data-item="@package/var-2"] [data-el="versions-list"][data-item="7.7.7"]').click()
+            cy.get('[data-el="dependency-item"][data-item="@package/var-2"] [data-item="device-1"] [data-el="status-badge-running"]').should('exist')
+            cy.get('[data-el="dependency-item"][data-item="@package/var-2"] [data-item="device-1"] [data-el="status-badge-running"]').contains('running')
+
+            // check that we have a device suspended status
+            cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-el="versions-list"][data-item="1.1.1"]').click()
+            cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-item="device-4"] [data-el="status-badge-suspended"]').should('exist')
+            cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-item="device-4"] [data-el="status-badge-suspended"]').contains('suspended')
+
+            // check that we don't have a device status pill of we don't receive it in the payload
+            cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-el="versions-list"][data-item="1.1.1"]').click()
+            cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-item="device-3"] [data-el="status-badge-suspended"]').should('not.exist')
+            cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-item="device-3"] [data-el="status-badge-suspended"]').should('not.exist')
         })
     })
 })
