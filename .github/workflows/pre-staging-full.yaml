@@ -28,13 +28,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  debug:
-    name: Debug context
-    runs-on: ubuntu-latest
-    steps:
-      - name: Debug GH context
-        run: |
-          echo "GH context: ${{ toJson(github) }}"
   # This job validates if the user, who triggered the workflow, is a member of the organization
   # Note: Any workflow re-runs will use the privileges of github.actor, even if the actor initiating the re-run (github.triggering_actor) has different privileges.
   validate-user:
