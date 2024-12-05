@@ -28,13 +28,14 @@
                 <template v-else>
                     <section v-if="topics.length > 0" class="topics">
                         <topic-segment
-                            v-for="(segment, key) in Object.keys(hierarchy)"
+                            v-for="(segment, key) in hierarchySegments"
                             :key="segment"
-                            :segment="segment"
-                            :children="hierarchy[segment]"
+                            :segment="hierarchy[segment]"
+                            :children="hierarchy[segment].children"
                             :has-siblings="Object.keys(hierarchy).length > 1"
                             :is-last-sibling="key === Object.keys(hierarchy).length-1"
                             :is-root="true"
+                            @segment-state-changed="toggleSegmentVisibility"
                         />
                     </section>
 
@@ -75,32 +76,94 @@ export default {
     computed: {
         ...mapState('account', ['team']),
         ...mapGetters('account', ['featuresCheck']),
-        hierarchy () {
-            const map = new Map()
+        hierarchy: {
+            get () {
+                const hierarchy = {}
+                const topics = this.topics
 
-            if (!this.topics || !Array.isArray(this.topics)) return {}
+                // Sort topics alphabetically to ensure consistency in hierarchy generation
+                topics.sort().forEach(topic => {
+                    const parts = topic.split('/')
 
-            this.topics.forEach(topic => {
-                const parts = topic.split('/')
-                let current = map
+                    // combine empty root topics into /{child-topic}
+                    const rootName = topic.startsWith('/')
+                        ? '/' + (parts[1] || '')
+                        : parts[0]
 
-                parts.forEach(part => {
-                    if (!current.has(part)) {
-                        current.set(part, new Map())
+                    if (!hierarchy[rootName]) {
+                        hierarchy[rootName] = {
+                            name: rootName,
+                            path: topic.startsWith('/') // adjusting path for empty root topics
+                                ? `/${rootName}` // Path for topics with leading '/'
+                                : rootName, // Path for topics without leading '/'
+                            open: false,
+                            childrenCount: 0,
+                            children: {}
+                        }
                     }
-                    current = current.get(part)
+
+                    let current = hierarchy[rootName].children // Start at the root's children
+
+                    // Traverse through the parts to build the nested structure
+                    parts.slice(topic.startsWith('/') ? 2 : 1) // Skip empty root and any leading part
+                        .forEach((part, index) => {
+                            if (!current[part]) {
+                                const path = `${hierarchy[rootName].path}/${parts.slice(
+                                    topic.startsWith('/') ? 2 : 1,
+                                    index + 1
+                                ).join('/')}`
+
+                                current[part] = {
+                                    name: part,
+                                    path,
+                                    open: false,
+                                    childrenCount: 0,
+                                    children: {}
+                                }
+                            }
+                            current = current[part].children // Move to the next level
+                        })
                 })
-            })
 
-            function mapToObject (map) {
-                const obj = {}
-                for (const [key, value] of map.entries()) {
-                    obj[key] = value instanceof Map ? mapToObject(value) : value
+                function calculateChildrenCount (node) {
+                    if (!node.children) return 0
+
+                    let count = 0
+                    for (const childKey in node.children) {
+                        const childNode = node.children[childKey]
+                        count += 1 + calculateChildrenCount(childNode) // Add 1 (for the child itself) and its children's count
+                    }
+                    node.childrenCount = count
+                    return count
                 }
-                return obj
-            }
 
-            return mapToObject(map)
+                for (const key in hierarchy) {
+                    calculateChildrenCount(hierarchy[key])
+                }
+
+                return hierarchy
+            },
+            set (segment) {
+                const keys = segment.path.split('/')
+                let current = this.hierarchy
+
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i]
+
+                    if (!current[key]) return
+
+                    if (i === keys.length - 1) {
+                        // if it's the last segment path, we set the state
+                        current[key].open = segment.state
+                    } else {
+                        // Moves deeper into the hierarchy
+                        current = current[key].children
+                    }
+                }
+            }
+        },
+        hierarchySegments () {
+            return Object.keys(this.hierarchy).sort()
         }
     },
     async mounted () {
@@ -117,6 +180,10 @@ export default {
                 .finally(() => {
                     this.loading = false
                 })
+        },
+        toggleSegmentVisibility (segment) {
+            // trigger's the hierarchy setter
+            this.hierarchy = segment
         }
     }
 }

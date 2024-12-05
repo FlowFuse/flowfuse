@@ -22,10 +22,60 @@ jobs:
         run: npm ci
       - name: Test Documentation Links
         run: npm run test:docs
+  test-with-website:
+    runs-on: ubuntu-latest
+    name: Test Documentation with website
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: 'flowfuse'
+      - name: Check out website repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'FlowFuse/website'
+          path: 'website'
+      - name: Generate a token
+        id: generate_token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.GH_BOT_APP_ID }}
+          private_key: ${{ secrets.GH_BOT_APP_KEY }}
+      - name: Check out FlowFuse/blueprint-library repository (to access the blueprints)
+        uses: actions/checkout@v4
+        with:
+          repository: 'FlowFuse/blueprint-library'
+          ref: main
+          path: 'blueprint-library'
+          token: ${{ steps.generate_token.outputs.token }}
+      - name: Cache image pipeline output
+        uses: actions/cache@v4
+        with:
+          key: img-pipeline-cache
+          path: website/_site/img         
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'npm'
+          cache-dependency-path: './website/package-lock.json'
+      - run: npm run docs
+        working-directory: 'website'
+      - run: npm run blueprints
+        working-directory: 'website'
+      - name: Install Dependencies
+        run: npm install
+        working-directory: 'website'
+      - name: Build the forge
+        run: npm run build:skip-images
+        working-directory: 'website'
+      - uses: untitaker/hyperlink@0.1.43
+        with:
+          args: website/_site/ --check-anchors --sources website/src
   publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: test
+    needs: 
+      - test
+      - test-with-website
     name: Publish Documentation
     steps:
       - name: Generate token
