@@ -235,6 +235,8 @@ jobs:
           push: false
           outputs: type=docker,dest=/tmp/k8s-forge.tar
           build-args: ${{ env.BUILD_ARGS }}
+        env:
+          DOCKER_BUILD_SUMMARY: false
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
