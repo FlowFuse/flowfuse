@@ -384,10 +384,7 @@ jobs:
 
   create-custom-stack:
     name: Create stack with custom Node-RED image
-    needs: 
-      - upload-node-red
-      - deploy
-    # if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: [upload-node-red, deploy]
     runs-on: ubuntu-latest
     environment: staging
     env:
