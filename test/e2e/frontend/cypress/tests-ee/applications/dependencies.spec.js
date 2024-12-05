@@ -229,7 +229,7 @@ describe('FlowForge - Application - Dependencies', () => {
             cy.get('[data-el="dependency-item"]').should('have.length', 2)
         })
 
-        it.only('should correctly display the status pill for devices and instances', () => {
+        it('should correctly display the status pill for devices and instances', () => {
             interceptBom(dependencies)
 
             cy.get('[data-nav="application-dependencies"]').click()
