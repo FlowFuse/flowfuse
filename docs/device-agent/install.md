@@ -110,6 +110,42 @@ the same machine.
 flowfuse-device-agent --port=1881
 ```
 
+### Start Device Agent on system boot
+
+To start the device agent on system boot, you can use the provided systemd service file.
+
+1. Download the file:
+
+```bash
+curl -L https://raw.githubusercontent.com/FlowFuse/device-agent/refs/heads/main/service/flowfuse-device.service -o flowfuse-device.service
+```
+
+2. Adjust `User`, `Group` and `WorkingDirectory` if needed
+3. Change the `ExecStart` command to start the Agent on [different port](#listen-port), if needed
+4. Move the service file to `/etc/systemd/system/` directory
+   
+```bash
+sudo mv flowfuse-device.service /etc/systemd/system/
+```
+
+5. Reload the systemd daemon
+
+```bash
+sudo systemctl daemon-reload
+```
+
+6. Enable the service to start on boot
+
+```bash
+sudo systemctl enable flowfuse-device
+```
+
+7. Start the service
+
+```bash
+sudo systemctl start flowfuse-device
+```
+
 ## Upgrading the agent
 
 To use the latest features on FlowFuse as well as on the edge device, it is advised to upgrade
