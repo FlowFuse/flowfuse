@@ -23,6 +23,7 @@
                         data-action="create-application"
                         kind="primary"
                         :to="{name: 'CreateTeamApplication'}"
+                        type="anchor"
                     >
                         <template #icon-left>
                             <PlusSmIcon />
@@ -77,6 +78,7 @@
                         v-if="hasPermission('project:create')"
                         data-action="create-application"
                         kind="primary"
+                        type="anchor"
                         :to="{name: 'CreateTeamApplication'}"
                     >
                         <template #icon-left>
