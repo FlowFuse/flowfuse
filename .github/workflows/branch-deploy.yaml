@@ -386,9 +386,6 @@ jobs:
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
       FLOWFUSE_DOMAIN: 'flowfuse.dev'
     steps:
-      - name: Debug
-        run: |
-          echo "Event name: ${{ github.event_name }}"
       - name: Create/update stack
         run: |
           customStackId=$(curl -ks -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/ | jq -r '.stacks[] | select(.name == "NR-40-Custom") | .id')
