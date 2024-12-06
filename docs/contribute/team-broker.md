@@ -18,7 +18,7 @@ The FlowFuse Team Broker makes use of a EMQX instance.
 
 ## Configuration files
 
-The following 3 files should be placed in a directory.
+Create a directory where the configuration for your broker will live. Create the following three files, with their respective content, in that directory:
 
 
 cluster.hocon
