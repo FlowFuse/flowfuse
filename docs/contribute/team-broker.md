@@ -10,7 +10,7 @@ meta:
 
 # Team Broker configuration
 
-The FlowFuse Team Broker makes use of a EMQX instance.
+The FlowFuse Team Broker makes use of an EMQX instance.
 
 ## Requirement
 
