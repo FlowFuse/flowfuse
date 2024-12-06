@@ -20,7 +20,7 @@
                 </template>
                 <template #context>
                     Application:
-                    <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
+                    <router-link :to="{name: 'Application', params: {id: instance.application.id, team_slug: team.slug}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
                 </template>
                 <template #tools>
                     <div class="space-x-2 flex align-center">
