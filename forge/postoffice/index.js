@@ -156,6 +156,9 @@ module.exports = fp(async function (app, _opts) {
         if (templateContext.teamName) {
             templateContext.teamName = sanitizeText(templateContext.teamName)
         }
+        if (templateContext.invitee) {
+            templateContext.invitee = sanitizeText(templateContext.invitee)
+        }
         const mail = {
             to: user.email,
             subject: template.subject(templateContext, { allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault: true }),

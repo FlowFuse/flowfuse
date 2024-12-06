@@ -24,7 +24,8 @@ module.exports = {
         sentAt: { type: DataTypes.DATE, allowNull: true },
         role: {
             type: DataTypes.INTEGER
-        }
+        },
+        reminderSentAt: { type: DataTypes.DATE, allowNull: true }
         // invitorId
         // inviteeId
     },
