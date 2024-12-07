@@ -60,8 +60,8 @@ describe('FlowForge - Applications', () => {
                 // now navigate to the Applications view and check the description is present alongside the application name
                 cy.visit(`/team/${team.slug}/applications`)
                 // div.ff-application-list--app should have the app name and description
-                cy.get('div.ff-application-list--app').contains(APPLICATION_NAME)
-                cy.get('div.ff-application-list--app').contains(APPLICATION_DESCRIPTION)
+                cy.get('[data-action="view-application"]').contains(APPLICATION_NAME)
+                cy.get('[data-action="view-application"]').contains(APPLICATION_DESCRIPTION)
             })
         })
 
@@ -239,8 +239,8 @@ describe('FlowForge - Applications', () => {
                 // now navigate to the Applications view and check the UPDATED description is present alongside the application name
                 cy.visit(`/team/${team.slug}/applications`)
                 // div.ff-application-list--app should have the app name and description
-                cy.get('div.ff-application-list--app').contains(UPDATED_APPLICATION_NAME)
-                cy.get('div.ff-application-list--app').contains(UPDATED_APPLICATION_DESCRIPTION)
+                cy.get('[data-action="view-application"]').contains(UPDATED_APPLICATION_NAME)
+                cy.get('[data-action="view-application"]').contains(UPDATED_APPLICATION_DESCRIPTION)
             })
     })
 

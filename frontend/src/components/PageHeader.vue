@@ -8,7 +8,9 @@
             </transition>
         </i>
         <!-- FlowFuse Logo -->
-        <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()">
+        <router-link :to="homeLink">
+            <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png">
+        </router-link>
         <global-search v-if="hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
@@ -44,7 +46,7 @@
         <div class="hidden lg:flex ff-desktop-navigation-right" data-el="desktop-nav-right">
             <ff-team-selection data-action="team-selection" />
             <div class="px-4 flex flex-col justify-center" v-if="showInviteButton">
-                <ff-button kind="secondary" @click="inviteTeamMembers">
+                <ff-button kind="secondary" type="anchor" :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }">
                     <template #icon-left><UserAddIcon /></template>
                     Invite Members
                 </ff-button>
@@ -89,7 +91,7 @@ import TeamSelection from './TeamSelection.vue'
 import GlobalSearch from './global-search/GlobalSearch.vue'
 
 export default {
-    name: 'NavBar',
+    name: 'PageHeader',
     mixins: [navigationMixin, permissionsMixin],
     computed: {
         Roles () {
@@ -121,7 +123,7 @@ export default {
                     label: 'Documentation',
                     icon: QuestionMarkCircleIcon,
                     tag: 'documentation',
-                    onclick: this.to,
+                    onclick: (route) => window.open(route.url, '_blank'),
                     onclickparams: { url: 'https://flowfuse.com/docs/' }
                 },
                 this.isTrialAccount
@@ -176,20 +178,6 @@ export default {
     },
     methods: {
         ...mapActions('ux', ['toggleLeftDrawer']),
-        to (route) {
-            window.open(route.url, '_blank')
-        },
-        inviteTeamMembers () {
-            this.$router.push({
-                name: 'team-members',
-                params: {
-                    team_slug: this.team.slug
-                },
-                query: {
-                    action: 'invite'
-                }
-            })
-        },
         ...mapActions('ux', ['activateTour']),
         openEducationModal () {
             this.activateTour('education')

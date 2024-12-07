@@ -1,13 +1,14 @@
 <template>
     <ff-button
         v-if="!hidden"
-        type="anchor"
         kind="secondary"
         data-action="open-dashboard"
         :to="dashboardURL"
         :target="target"
         :disabled="buttonDisabled"
         class="whitespace-nowrap"
+        @click.stop.prevent
+        @mouseup.stop.prevent
     >
         <template v-if="showText" #icon-left>
             <ChartPieIcon />
