@@ -1,12 +1,12 @@
 <template>
-    <section class="dependency-item" data-el="dependency-item">
+    <section class="dependency-item" data-el="dependency-item" :data-item="title">
         <div class="dependency-header">
-            <div class="title">
-                <h3>{{ title }}</h3>
+            <div class="title truncate">
+                <h3 class="truncate">{{ title }}</h3>
             </div>
-            <div class="details">
-                <span>Latest: {{ externalLatest }}</span>
-                <span>Released: {{ externalLastModified }}</span>
+            <div class="details truncate">
+                <span class="truncate">Latest: {{ externalLatest }}</span>
+                <span class="truncate">Released: {{ externalLastModified }}</span>
             </div>
         </div>
         <versions-list
@@ -19,8 +19,8 @@
 
 <script>
 
-import ExternalClient from '../../../../api/external.js'
-import daysSince from '../../../../utils/daysSince.js'
+import ExternalClient from '../../api/external.js'
+import daysSince from '../../utils/daysSince.js'
 
 import VersionsList from './VersionsList.vue'
 
@@ -89,6 +89,8 @@ export default {
 <style lang="scss">
 .dependency-item {
   border: 1px solid $ff-grey-300;
+  margin-bottom: 12px;
+
   .dependency-header {
     background: $ff-grey-100;
     display: flex;
