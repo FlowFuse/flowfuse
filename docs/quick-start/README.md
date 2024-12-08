@@ -45,7 +45,7 @@ This step is crucial for the proper functioning of the application. FlowFuse wil
 ## Step 2: Download Compose file
 
 ```bash
-curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose-quick-start.yml
+curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose-quick-start.yml
 ```
 
 ## Step 3: Start the Application
