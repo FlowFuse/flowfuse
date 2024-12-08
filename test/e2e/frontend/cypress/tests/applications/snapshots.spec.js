@@ -24,10 +24,11 @@ const MENU_ITEM_COUNT = idx
 
 describe('FlowForge - Application - Snapshots', () => {
     let application
+    let team
     function navigateToApplication (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
-                const team = response.body.teams.find(
+                team = response.body.teams.find(
                     (team) => team.name === teamName
                 )
                 return cy.request('GET', `/api/v1/teams/${team.id}/applications`)
@@ -36,7 +37,7 @@ describe('FlowForge - Application - Snapshots', () => {
                 application = response.body.applications.find(
                     (app) => app.name === projectName
                 )
-                cy.visit(`/application/${application.id}/instances`)
+                cy.visit(`/team/${team.slug}/applications/${application.id}/instances`)
                 cy.wait('@getApplication')
             })
     }
@@ -50,10 +51,10 @@ describe('FlowForge - Application - Snapshots', () => {
     })
 
     it('can navigate to the /snapshots page', () => {
-        cy.visit(`/application/${application.id}`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}`)
         cy.get('[data-nav="application-snapshots"]').should('exist').click()
 
-        cy.url().should('include', `/application/${application.id}/snapshots`)
+        cy.url().should('include', `/applications/${application.id}/snapshots`)
     })
 
     it('empty state informs users they need to add snapshots', () => {

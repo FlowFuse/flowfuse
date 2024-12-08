@@ -153,16 +153,13 @@ export default {
         }
     },
     watch: {
-        teamMembership () {
-            if (!this.hasPermission('application:pipeline:list')) {
-                return this.$router.push({ name: 'Application', params: this.$route.params })
-            }
-
-            // Forces to load pipelines when teamMembership changes. When loading the page via url, teamMembership might not be
-            // loaded by the time the mounted loadPipelines is called and the hasPermission method will return false.
-            // todo This should be addressed by implementing an application service that bootstrap's the
-            //  app and hydrates vuex stores before attempting to render any data
-            this.loadPipelines()
+        teamMembership: {
+            handler: function () {
+                if (!this.hasPermission('application:pipeline:list')) {
+                    return this.$router.push({ name: 'Application', params: this.$route.params })
+                }
+            },
+            immediate: true
         }
     },
     mounted () {
