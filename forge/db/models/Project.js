@@ -206,6 +206,16 @@ module.exports = {
                         ProjectId: project.id
                     }
                 })
+                await M.Notification.destroy({
+                    where: {
+                        type: {
+                            [Op.in] :['instance-crashed', 'instance-safe-mode']
+                        },
+                        reference: {
+                            [Op.in]: [`instance-crashed:${project.id}`, `instance-safe-mode:${project.id}`]
+                        }
+                    }
+                })
             }
         }
     },
