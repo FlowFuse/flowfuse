@@ -112,7 +112,7 @@ Notes on how to setup DNS can be found [here](../dns-setup.md).
 Download the latest version of the FlowFuse Docker Compose file and example `.env` file used for installation configuration:
 
 ```bash
-curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose.yml
+curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose.yml
 curl -o .env https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/.env.example
 ```
 
@@ -236,7 +236,7 @@ Once you have finished setting up the admin user there are some Docker specific 
    ```
 3. Download the latest Docker Compose files:
     ```bash
-    curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose.yml
+    curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose.yml
     ```
 4. Make sure the `.env` file is present and contains your installaction-specific configuration. Download an example `.env` file if needed:
     ```bash
