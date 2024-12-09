@@ -19,8 +19,6 @@
                 <ExclamationCircleIcon class="ff-icon mr-2" />
                 <span class="relative top-0.5">Note: Updating environment variables can cause devices in the group to be restarted.</span>
             </span>
-
-            <ChevronRightIcon class="ff-icon align-self-right" />
         </div>
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
             <ff-button :disabled="!unsavedChanges || hasError" @click="saveSettings()">Save Settings</ff-button>

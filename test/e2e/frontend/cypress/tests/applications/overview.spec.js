@@ -1,8 +1,9 @@
 describe('FlowForge - Applications', () => {
+    let team
     function navigateToApplication (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
-                const team = response.body.teams.find(
+                team = response.body.teams.find(
                     (team) => team.name === teamName
                 )
                 return cy.request('GET', `/api/v1/teams/${team.id}/applications`)
@@ -11,7 +12,7 @@ describe('FlowForge - Applications', () => {
                 const application = response.body.applications.find(
                     (application) => application.name === projectName
                 )
-                cy.visit(`/application/${application.id}/instances`)
+                cy.visit(`/team/${team.slug}/applications/${application.id}/instances`)
                 cy.wait('@getApplication')
             })
     }

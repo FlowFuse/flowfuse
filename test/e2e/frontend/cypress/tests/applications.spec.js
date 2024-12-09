@@ -97,7 +97,7 @@ describe('FlowForge - Applications', () => {
 
                 cy.contains(APPLICATION_NAME)
 
-                cy.url().should('include', '/application/')
+                cy.url().should('include', '/applications/')
             })
         })
 
@@ -262,7 +262,7 @@ describe('FlowForge - Applications', () => {
                 cy.intercept('GET', '/api/*/applications/*').as('getApplication')
 
                 const application = response.body
-                cy.visit(`/application/${application.id}/settings`)
+                cy.visit(`/team/${team.slug}/applications/${application.id}/settings`)
                 cy.wait('@getApplication')
 
                 cy.get('[data-el="delete-application-dialog"]').should('not.be.visible')
@@ -289,24 +289,34 @@ describe('FlowForge - Applications', () => {
     })
 
     it('check if application has instances, then delete application button should be disabled, and if application has no instances, the button should be enabled', () => {
-        // Check if the application has instances
-        cy.visit('/team/ateam/applications')
+        let team
+        let applications
+        cy.request('GET', 'api/v1/teams')
+            .then((res) => res.body.teams)
+            .then((res) => {
+                team = res.find(team => team.slug === 'ateam')
+            })
+            .then(() => cy.request('GET', `/api/v1/teams/${team.id}/applications`))
+            .then((res) => res.body.applications)
+            .then((res) => {
+                applications = res
+            })
+            .then(() => {
+                // find an application with instances
+                const application = applications.find(app => app.instances.length > 1)
+                cy.visit(`/team/${team.slug}/applications/${application.id}/settings`)
 
-        cy.get('[data-action="view-application"]').first().click()
-        cy.url().then(url => {
-            const applicationId = url.split('/')
-            cy.visit(`/application/${applicationId[4]}/settings`)
-            cy.get('[data-action="delete-application"]').should('be.disabled')
-        })
+                // check that the delete application button is disabled
+                cy.get('[data-action="delete-application"]').should('be.disabled')
+            })
+            .then(() => {
+                // find an application with instances
+                const application = applications.find(app => app.instances.length === 0)
+                cy.visit(`/team/${team.slug}/applications/${application.id}/settings`)
 
-        // Check if the application has no instances
-        cy.visit('/team/ateam/applications')
-        cy.get('[data-action="view-application"]').eq(1).click()
-        cy.url().then(url => {
-            const applicationId = url.split('/')
-            cy.visit(`/application/${applicationId[4]}/settings`)
-            cy.get('[data-action="delete-application"]').should('not.be.disabled')
-        })
+                // check that the delete application button is not disabled
+                cy.get('[data-action="delete-application"]').should('not.be.disabled')
+            })
     })
 })
 

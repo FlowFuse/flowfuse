@@ -120,9 +120,10 @@ describe('FlowForge - Team - Devices - Create', () => {
 
 describe('FlowForge - Application - Devices - Create', () => {
     function navigateToApplicationDevices (teamName, appName) {
+        let team
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
-                const team = response.body.teams.find(
+                team = response.body.teams.find(
                     (team) => team.name === teamName
                 )
                 return cy.request('GET', `/api/v1/teams/${team.id}/applications`)
@@ -131,7 +132,7 @@ describe('FlowForge - Application - Devices - Create', () => {
                 const application = response.body.applications.find(
                     (application) => application.name === appName
                 )
-                cy.visit(`/application/${application.id}/devices`)
+                cy.visit(`/team/${team.slug}/applications/${application.id}/devices`)
                 cy.wait(['@getApplicationDevices'])
             })
     }
@@ -165,20 +166,16 @@ describe('FlowForge - Application - Devices - Create', () => {
         cy.get('[data-el="platform-dialog"]').should('not.be.visible')
 
         // check the device is in the list
-        cy.wait('@getApplicationDevices').then(() => {
-            // check the table has a row with the device name and that is is unassigned
-            cy.get('[data-el="devices-browser"] tbody tr td').contains(deviceName)
-        })
+        // check the table has a row with the device name and that is is unassigned
+        cy.get('[data-el="devices-browser"] tbody tr td').contains(deviceName)
     })
 
     it('application assigned Device has palette settings', () => {
         navigateToApplicationDevices('BTeam', 'application-2')
-        cy.wait('@getApplicationDevices').then(() => {
-            cy.get('[data-el="devices-browser"] tbody tr:last-child td a').click()
-            cy.get('[data-nav="device-settings"]').click()
-            cy.get('[data-el="section-side-menu"] li [data-nav="palette"]').should('exist')
-            cy.get('[data-nav="palette"]').click()
-        })
+        cy.get('[data-el="devices-browser"] tbody tr:last-child td a').click()
+        cy.get('[data-nav="device-settings"]').click()
+        cy.get('[data-el="section-side-menu"] li [data-nav="palette"]').should('exist')
+        cy.get('[data-nav="palette"]').click()
     })
 })
 

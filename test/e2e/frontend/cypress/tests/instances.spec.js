@@ -122,7 +122,7 @@ describe('FlowForge - Instances', () => {
 
                 cy.wait('@deleteInstance')
 
-                cy.url().should('include', `/application/${application.id}/instances`)
+                cy.url().should('include', `/applications/${application.id}/instances`)
             })
     })
 

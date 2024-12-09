@@ -158,10 +158,13 @@ export default {
         featureEnabled: function (v) {
             this.loadDeviceGroups()
         },
-        teamMembership () {
-            if (!this.hasPermission('application:device-group:list')) {
-                return this.$router.push({ name: 'Application', params: this.$route.params })
-            }
+        teamMembership: {
+            handler: function () {
+                if (!this.hasPermission('application:device-group:list')) {
+                    return this.$router.push({ name: 'Application', params: this.$route.params })
+                }
+            },
+            immediate: true
         }
     },
     mounted () {
