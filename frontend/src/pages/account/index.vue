@@ -7,7 +7,7 @@
                 <div class="text-l text-gray-400">{{ user.username }}</div>
             </div>
         </div>
-        <div class="text-sm sm:px-6 mt-4 sm:mt-8">
+        <div class="text-sm mt-4 sm:mt-8">
             <router-view />
         </div>
     </ff-page>
