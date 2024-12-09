@@ -156,8 +156,16 @@ export default [
             sourceInstanceId: route.query.sourceInstanceId
         }),
         meta: {
-            // todo add a back button
-            title: 'Application - Instances - Create'
+            title: 'Application - Instances - Create',
+            menu: {
+                type: 'back',
+                backTo: ({ query, params }) => {
+                    return {
+                        label: 'Back',
+                        to: { name: 'ApplicationInstances', params, query }
+                    }
+                }
+            }
         }
     },
     {
@@ -174,7 +182,6 @@ export default [
                 name: 'ApplicationDeviceGroupDevices',
                 component: ApplicationDeviceGroupDevices,
                 meta: {
-                    // todo add a back button to the application device-groups
                     title: 'Application - Device Group - Members'
                 }
             },
@@ -183,7 +190,6 @@ export default [
                 name: 'ApplicationDeviceGroupSettings',
                 component: ApplicationDeviceGroupSettings,
                 meta: {
-                    // todo add back button
                     title: 'Application - Device Group - Settings'
                 },
                 redirect: {
