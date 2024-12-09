@@ -1,5 +1,5 @@
 <template>
-    <ff-accordion class="versions-list" data-el="versions-list" :data-item="version">
+    <ff-accordion class="versions-list" data-el="versions-list" :data-item="version" @state-changed="resetCounter">
         <template #label>
             <div class="version">
                 <span class="truncate">{{ version }}</span>
@@ -14,8 +14,13 @@
         </template>
         <template #content>
             <ul class="instances-list">
-                <li v-for="instance in instances" :key="instance.id">
+                <li v-for="instance in truncatedInstances" :key="instance.id">
                     <instances-item :instance="instance" />
+                </li>
+                <li v-if="hasMore" class="ff-show-more" @click="showMore">
+                    <ChevronDoubleDownIcon class="ff-icon-sm" />
+                    <p>Show More</p>
+                    <ChevronDoubleDownIcon class="ff-icon-sm" />
                 </li>
             </ul>
         </template>
@@ -23,19 +28,28 @@
 </template>
 
 <script>
+import { ChevronDoubleDownIcon } from '@heroicons/vue/outline'
+
 import FfAccordion from '../Accordion.vue'
 
 import InstancesItem from './InstancesItem.vue'
 
+const DISPLAY_LIMIT = 15
+
 export default {
     name: 'VersionsList',
-    components: { FfAccordion, InstancesItem },
+    components: { FfAccordion, InstancesItem, ChevronDoubleDownIcon },
     props: {
         version: {
             required: true, type: String
         },
         instances: {
             required: true, type: Array
+        }
+    },
+    data () {
+        return {
+            displayLimit: DISPLAY_LIMIT
         }
     },
     computed: {
@@ -50,6 +64,20 @@ export default {
         },
         hasDevices () {
             return this.devicesCount > 0
+        },
+        truncatedInstances () {
+            return this.instances.slice(0, this.displayLimit)
+        },
+        hasMore () {
+            return this.truncatedInstances.length < (this.instancesCount + this.devicesCount)
+        }
+    },
+    methods: {
+        showMore () {
+            this.displayLimit += DISPLAY_LIMIT
+        },
+        resetCounter () {
+            this.displayLimit = DISPLAY_LIMIT
         }
     }
 }
@@ -94,6 +122,23 @@ export default {
 
     &:last-child button {
         border-bottom: none;
+    }
+
+    .instances-list {
+        .ff-show-more {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            color: $ff-grey-500;
+            line-height: 30px;
+            cursor: pointer;
+            transition: ease-in-out .3s;
+
+            &:hover {
+                    color: $ff-color--action
+            }
+        }
     }
 }
 </style>
