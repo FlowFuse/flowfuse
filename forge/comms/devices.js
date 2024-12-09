@@ -64,6 +64,12 @@ class DeviceCommsHandler {
         client.on('logs/heartbeat', (beat) => {
             this.deviceLogHeartbeats[beat.id] = beat.timestamp
         })
+        client.on('logs/disconnect', (beat) => {
+            const parts = beat.id.split(':')
+            this.sendCommand(parts[0], parts[1], 'stopLog', '')
+            this.app.log.info(`Disable device logging ${parts[1]} in team ${parts[0]}`)
+            delete this.deviceLogHeartbeats[beat.id]
+        })
 
         this.deviceLogHeartbeatInterval = setInterval(() => {
             const now = Date.now()
