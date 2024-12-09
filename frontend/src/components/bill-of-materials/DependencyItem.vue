@@ -3,6 +3,7 @@
         <div class="dependency-header">
             <div class="title truncate">
                 <h3 class="truncate">{{ title }}</h3>
+                <p class="truncate">({{ versionsCount }} {{ pluralize('Version', versionsCount) }})</p>
             </div>
             <div class="details truncate">
                 <span class="truncate">Latest: {{ externalLatest }}</span>
@@ -20,6 +21,7 @@
 <script>
 
 import ExternalClient from '../../api/external.js'
+import { pluralize } from '../../composables/String.js'
 import daysSince from '../../utils/daysSince.js'
 
 import VersionsList from './VersionsList.vue'
@@ -73,12 +75,16 @@ export default {
             }
 
             return daysSince(this.externalDependency.time.modified, true)
+        },
+        versionsCount () {
+            return Object.keys(this.versions).length
         }
     },
     mounted () {
         this.getExternalDependency()
     },
     methods: {
+        pluralize,
         async getExternalDependency () {
             this.externalDependency = await ExternalClient.getNpmDependency(this.title)
         }
@@ -100,9 +106,19 @@ export default {
 
     .title {
       flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 15px;
 
-      h3 {
+      h3, p {
         margin: 0;
+        line-height: 1;
+      }
+
+      p {
+          color: $ff-grey-500;
+          font-weight: 400;
+          font-size: 80%;
       }
     }
 
