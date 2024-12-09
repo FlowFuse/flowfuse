@@ -44,6 +44,11 @@ export default {
         versions: {
             required: true,
             type: Object
+        },
+        startClosed: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     data () {
@@ -87,6 +92,9 @@ export default {
         versionsCount () {
             return Object.keys(this.versions).length
         }
+    },
+    created () {
+        this.isOpen = !this.startClosed
     },
     mounted () {
         this.getExternalDependency()

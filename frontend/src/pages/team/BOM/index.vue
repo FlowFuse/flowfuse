@@ -53,6 +53,7 @@
                             :key="dependencyTitle"
                             :title="dependencyTitle"
                             :versions="versions"
+                            :start-closed="true"
                         />
                     </div>
                     <div v-else class="empty text-center opacity-60">
