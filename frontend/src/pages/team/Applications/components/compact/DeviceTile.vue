@@ -5,7 +5,9 @@
         </div>
         <div class="details">
             <div class="detail-wrapper">
-                <span class="cursor-pointer name" @click="openDevice(device)">{{ device.name }}</span>
+                <router-link :to="{ name: 'Device', params: { id: device.id } }" class="name" :title="device.name">
+                    {{ device.name }}
+                </router-link>
             </div>
             <div class="detail-wrapper">
                 <span class="detail">
@@ -69,17 +71,7 @@ export default {
             type: Object
         }
     },
-    emits: ['device-action'],
-    methods: {
-        openDevice (device) {
-            this.$router.push({
-                name: 'Device',
-                params: {
-                    id: device.id
-                }
-            })
-        }
-    }
+    emits: ['device-action']
 }
 </script>
 

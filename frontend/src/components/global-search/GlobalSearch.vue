@@ -341,7 +341,7 @@ export default {
             background: $ff-white;
             min-width: 100%;
             z-index: 120;
-            padding: 0 5px 15px;
+            padding: 5px 5px 15px 5px;
 
             .result-badge {
                 padding: 0 5px;

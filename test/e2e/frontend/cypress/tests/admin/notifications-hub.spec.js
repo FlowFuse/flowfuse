@@ -33,6 +33,8 @@ describe('FlowForge - Notifications Hub', () => {
         cy.get('[data-el="notification-external-url"] input').type('https://flowfuse.com')
         cy.get('[data-action="submit"]').should('be.disabled')
         cy.get('[data-el="audience-role-Owner"]').click()
+        cy.get('[data-action="submit"]').should('be.disabled')
+        cy.get('[data-el^="audience-teamType-"]').click()
         cy.get('[data-action="submit"]').should('not.be.disabled')
 
         cy.get('[data-el="platform-dialog"]').should('not.be.visible')
@@ -42,7 +44,7 @@ describe('FlowForge - Notifications Hub', () => {
         cy.get('[data-el="platform-dialog"]').should('be.visible')
 
         cy.get('[data-el="platform-dialog"] .ff-dialog-header').contains('Platform Wide Announcement')
-        cy.get('[data-el="platform-dialog"] .ff-dialog-content').contains('You are about to send an announcement to 2 recipients.')
+        cy.get('[data-el="platform-dialog"] .ff-dialog-content').contains('You are about to send an announcement to 2 users.')
 
         cy.get('[data-action="dialog-cancel"]').click()
         cy.get('[data-el="platform-dialog"]').should('not.be.visible')
