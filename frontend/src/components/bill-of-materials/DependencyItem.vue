@@ -1,6 +1,7 @@
 <template>
     <section class="dependency-item" data-el="dependency-item" :data-item="title">
-        <div class="dependency-header">
+        <div class="dependency-header" :class="{open: isOpen}" @click="toggleOpenState">
+            <ChevronRightIcon class="ff-icon-sm ff-toggle" />
             <div class="title truncate">
                 <h3 class="truncate">{{ title }}</h3>
                 <p class="truncate">({{ versionsCount }} {{ pluralize('Version', versionsCount) }})</p>
@@ -10,15 +11,18 @@
                 <span class="truncate">Released: {{ externalLastModified }}</span>
             </div>
         </div>
-        <versions-list
-            v-for="(entry, key) in Object.entries(versions)" :key="key"
-            :instances="entry[1]"
-            :version="entry[0]"
-        />
+        <template v-if="isOpen">
+            <versions-list
+                v-for="(entry, key) in Object.entries(versions)" :key="key"
+                :instances="entry[1]"
+                :version="entry[0]"
+            />
+        </template>
     </section>
 </template>
 
 <script>
+import { ChevronRightIcon } from '@heroicons/vue/outline'
 
 import ExternalClient from '../../api/external.js'
 import { pluralize } from '../../composables/String.js'
@@ -28,7 +32,10 @@ import VersionsList from './VersionsList.vue'
 
 export default {
     name: 'DependencyItem',
-    components: { VersionsList },
+    components: {
+        VersionsList,
+        ChevronRightIcon
+    },
     props: {
         title: {
             required: true,
@@ -41,7 +48,8 @@ export default {
     },
     data () {
         return {
-            externalDependency: null
+            externalDependency: null,
+            isOpen: true
         }
     },
     computed: {
@@ -66,10 +74,10 @@ export default {
         externalLastModified () {
             if (
                 !this.externalDependency ||
-            (
-                !Object.prototype.hasOwnProperty.call(this.externalDependency, 'time') &&
-                !Object.prototype.hasOwnProperty.call(this.externalDependency.time, 'modified')
-            )
+                (
+                    !Object.prototype.hasOwnProperty.call(this.externalDependency, 'time') &&
+                    !Object.prototype.hasOwnProperty.call(this.externalDependency.time, 'modified')
+                )
             ) {
                 return 'N/A'
             }
@@ -87,6 +95,9 @@ export default {
         pluralize,
         async getExternalDependency () {
             this.externalDependency = await ExternalClient.getNpmDependency(this.title)
+        },
+        toggleOpenState () {
+            this.isOpen = !this.isOpen
         }
     }
 }
@@ -94,49 +105,62 @@ export default {
 
 <style lang="scss">
 .dependency-item {
-  border: 1px solid $ff-grey-300;
-  margin-bottom: 12px;
+    border: 1px solid $ff-grey-300;
+    margin-bottom: 12px;
 
-  .dependency-header {
-    background: $ff-grey-100;
-    display: flex;
-    border-bottom: 1px solid $ff-grey-300;
-    padding: 6px 9px;
-    align-items: center;
-
-    .title {
-      flex: 1;
+    .dependency-header {
+        cursor: pointer;
+        background: $ff-grey-100;
         display: flex;
+        padding: 6px 9px;
         align-items: center;
         gap: 15px;
 
-      h3, p {
-        margin: 0;
-        line-height: 1;
-      }
+        .title {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
 
-      p {
-          color: $ff-grey-500;
-          font-weight: 400;
-          font-size: 80%;
-      }
+            h3, p {
+                margin: 0;
+                line-height: 1;
+            }
+
+            p {
+                color: $ff-grey-500;
+                font-weight: 400;
+                font-size: 80%;
+            }
+        }
+
+        .details {
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .ff-toggle {
+            transition: ease-in-out .3s;
+        }
+
+        &.open {
+            border-bottom: 1px solid $ff-grey-300;
+
+            .ff-toggle {
+                transform: rotate(90deg);
+            }
+        }
     }
 
-    .details {
-      display: flex;
-      flex-direction: column;
-      text-align: right;
-      font-size: 0.875rem;
-      font-weight: 500;
+    &:last-of-type {
+        .ff-accordion {
+            button {
+                border-bottom: none;
+            }
+        }
     }
-  }
-
-  &:last-of-type {
-    .ff-accordion {
-      button {
-        border-bottom: none;
-      }
-    }
-  }
 }
 </style>
