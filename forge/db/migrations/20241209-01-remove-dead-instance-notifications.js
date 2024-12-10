@@ -25,7 +25,7 @@ module.exports = {
                 deleteNotification(notification.id)
             } else {
                 if (!foundProjects.includes(projectId)) {
-                    const projectQuery = `SELECT count(*) from "Projects" WHERE "id" = '${projectId}';`
+                    const projectQuery = `SELECT count(*) from "Projects" WHERE "id" = '${projectId}' LIMIT 1;`
                     const [projectExits] = await context.sequelize.query(projectQuery)
                     if (projectExits[0] === 0) {
                         // delete notification
