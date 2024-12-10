@@ -42,14 +42,21 @@ describe('Team - Bill Of Materials', () => {
                 })
             }))
             cy.intercept('GET', 'https://registry.npmjs.com/**', {
-                'dist-tags': {
-                    latest: 'x.x.x'
-                },
-                time: {
-                    modified: new Date()
+                statusCode: 200,
+                body: {
+                    'dist-tags': {
+                        latest: 'x.x.x'
+                    },
+                    time: {
+                        modified: new Date()
+                    },
+                    versions: {
+                        'x.x.x': {
+                            version: 'N/A'
+                        }
+                    }
                 }
-            }
-            ).as('getExternalDependency')
+            }).as('getExternalDependency')
         })
 
         it('should display the bom menu entry, not redirect for team owners', () => {
@@ -131,6 +138,8 @@ describe('Team - Bill Of Materials', () => {
             cy.get('[data-form="search"] input').clear()
             cy.get('[data-form="search"] input').type('instance-1')
             cy.get('[data-el="dependency-item"]').should('have.length', 3)
+
+            cy.get('[data-el="dependency-item"]').contains('@package/dep-1').click()
             cy.get('[data-el="dependency-item"]').contains('@package/dep-1')
                 .parent()
                 .parent()
@@ -145,8 +154,9 @@ describe('Team - Bill Of Materials', () => {
                             cy.contains('My First App')
                         })
                 })
-            cy.get('[data-el="dependency-item"]').contains('@package/var-2')
-                .parent()
+
+            cy.get('[data-el="dependency-item"]').contains('@package/var-2').click()
+            cy.get('[data-el="dependency-item"]').contains('@package/var-2').parent()
                 .parent()
                 .parent()
                 .within(() => {
@@ -159,6 +169,8 @@ describe('Team - Bill Of Materials', () => {
                             cy.contains('My First App')
                         })
                 })
+
+            cy.get('[data-el="dependency-item"]').contains('@external/sem-3').click()
             cy.get('[data-el="dependency-item"]').contains('@external/sem-3')
                 .parent()
                 .parent()
@@ -249,7 +261,10 @@ describe('Team - Bill Of Materials', () => {
             cy.get('[data-nav="team-bom"]').click()
             cy.wait('@getExternalDependency')
 
+            // cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] .dependency-header').click()
+
             // check that we have an instance running status
+            cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] .dependency-header').click()
             cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] [data-el="versions-list"][data-item="1.1.1"]').click()
             cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] [data-item="1.1.1"] [data-el="status-badge-running"]').should('exist')
             cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] [data-item="1.1.1"] [data-el="status-badge-running"]').contains('running')
@@ -260,11 +275,13 @@ describe('Team - Bill Of Materials', () => {
             cy.get('[data-el="dependency-item"][data-item="@package/dep-1"] [data-item="5.5.5"] [data-el="status-badge-suspended"]').contains('suspended')
 
             // check that we don't have an instance status pill of we don't receive it in the payload
+            cy.get('[data-el="dependency-item"][data-item="@some-package/var"] .dependency-header').click()
             cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-el="versions-list"][data-item="1.1.1"]').click()
             cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-item="instance-4"] [data-el="status-badge-suspended"]').should('not.exist')
             cy.get('[data-el="dependency-item"][data-item="@some-package/var"] [data-item="instance-4"] [data-el="status-badge-running"]').should('not.exist')
 
             // check that we have a device running status
+            cy.get('[data-el="dependency-item"][data-item="@package/var-2"] .dependency-header').click()
             cy.get('[data-el="dependency-item"][data-item="@package/var-2"] [data-el="versions-list"][data-item="7.7.7"]').click()
             cy.get('[data-el="dependency-item"][data-item="@package/var-2"] [data-item="device-1"] [data-el="status-badge-running"]').should('exist')
             cy.get('[data-el="dependency-item"][data-item="@package/var-2"] [data-item="device-1"] [data-el="status-badge-running"]').contains('running')

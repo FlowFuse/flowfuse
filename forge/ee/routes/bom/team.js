@@ -43,6 +43,7 @@ module.exports = async function (app) {
             }
             results.push(result)
         }
-        reply.send(results)
+        const duplicateValues = (arr, n) => arr.flatMap(item => Array(n).fill(item))
+        reply.send(duplicateValues(results, 500))
     })
 }
