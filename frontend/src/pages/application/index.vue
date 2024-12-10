@@ -111,7 +111,7 @@ export default {
                     icon: CogIcon,
                     hidden: !this.hasPermission('application:bom')
                 },
-                { label: 'Settings', to: `/application/${this.application.id}/settings`, tag: 'application-settings', icon: CogIcon }
+                { label: 'Settings', to: { name: 'application-settings' }, tag: 'application-settings', icon: CogIcon }
             ]
 
             return routes

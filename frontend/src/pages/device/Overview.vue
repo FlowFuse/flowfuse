@@ -32,7 +32,7 @@
             <template #content>
                 <InfoCardRow property="Application:">
                     <template #value>
-                        <router-link v-if="device?.application" :to="{name: 'Application', params: { id: device.application.id }}">
+                        <router-link v-if="device?.application" :to="{name: 'Application', params: { id: device.application.id, team_slug: team.slug }}">
                             {{ device.application?.name }}
                         </router-link>
                         <span v-else>None</span>
@@ -130,7 +130,7 @@ export default {
         StatusBadge
     },
     computed: {
-        ...mapState('account', ['settings', 'features']),
+        ...mapState('account', ['settings', 'features', 'team']),
         targetSnapshotDeployed: function () {
             return this.device.activeSnapshot?.id === this.device.targetSnapshot?.id
         },
