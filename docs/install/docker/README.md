@@ -184,6 +184,16 @@ MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD
 "
 ```
 
+If you are using a private Certificate Authority then you will also need to tell the Node-RED instances to trust this CA.
+You can do this by includeing the `DOCKER_DRIVER_PRIVATE_CA_PATH` value in `.env` file. e.g. if the `ca.pem` file is located at `/usr/local/ssl/ca.pem`
+on the host machine
+
+```
+DOCKER_DRIVER_PRIVATE_CA_PATH="/usr/local/ssl/ca.pem"
+```
+
+
+
 ## Start FlowFuse platform
 
 **Note: Make sure all configuration are done above before proceeding.**
