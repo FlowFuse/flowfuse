@@ -45,6 +45,7 @@ module.exports = function (app) {
         if (statusOnly) {
             return {
                 id: result.hashid,
+                type: result.type,
                 lastSeenAt: result.lastSeenAt,
                 lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
                 status: result.state || 'offline',
