@@ -316,6 +316,7 @@ module.exports.init = async function (app) {
                     const start = providerOpts.groupPrefixLength || 0
                     const end = providerOpts.groupSuffixLength || 0
                     shortGA = ga.slice(start, (end * -1))
+                    app.log.debug(`Converting Group name ${ga} to ${shortGA}`)
                 }
                 // Parse the group name - format: 'ff-SLUG-ROLE'
                 // Generate a slug->role object (desiredTeamMemberships)
