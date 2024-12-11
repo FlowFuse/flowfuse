@@ -5,7 +5,7 @@ const setup = require('../../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
-describe('SSO Providers', function () {
+describe.only('SSO Providers', function () {
     let app
 
     before(async function () {
@@ -364,6 +364,30 @@ d
                 groupAllTeams: true
             })
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Owner)
+        })
+        it('strip prefix and suffix from SAML groups', async function () {
+            // This should remove ownership from Alice in Team A
+
+            // Starting state:
+            // Alice owner ATeam
+
+            // Expected result:
+            // Alice owner ATeam - unchanged
+            await app.sso.updateTeamMembership({
+                'ff-roles': [
+                    'test_ff-ateam-magician_err',
+                    'test_ff-ateam-member_test',
+                    'test_ff-bteam-owner_test',
+                    'ff-ateam-admin_test'
+                ]
+            }, app.user, {
+                groupAssertionName: 'ff-roles',
+                groupAllTeams: true,
+                groupPrefixLength: 5,
+                groupSuffixLength: 5
+            })
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id)).should.have.property('role', Roles.Owner)
         })
     })
 })
