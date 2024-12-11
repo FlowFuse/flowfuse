@@ -128,6 +128,12 @@ the groups in the SAML Provider - rather than using the team's id. However, a te
 by a team owner. Doing so will break the link between the group and the team membership - so should only
 be done with care.
 
+If group naming policy doesn't allow this exact format, a prefix and suffix can be applied and the length 
+of these additions can be added to the SSO configuration so they can be removed. e.g. with a prefix and 
+suffix length of 5 the following group name will work:
+
+- `test_ff-development-owner_test`
+
 ## Managing Admin users
 
 The SSO Configuration can be configured to managed the admin users of the platform by enabling the
