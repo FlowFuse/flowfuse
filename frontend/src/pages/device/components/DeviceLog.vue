@@ -49,7 +49,9 @@ export default {
         this.connectMQTT()
     },
     unmounted () {
-    // need to unsubscribe here
+        // need to unsubscribe here
+        const topic = `ff/v1/${this.device.team.id}/d/${this.device.id}/logs`
+        this.client.publish(`${topic}/heartbeat`, 'leaving')
         this.disconnectMQTT()
         clearInterval(this.keepAliveInterval)
     },
