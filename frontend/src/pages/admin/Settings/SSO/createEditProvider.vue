@@ -208,13 +208,13 @@ export default {
             return !this.isGroupsDNValid ? 'Group DN is required' : ''
         },
         groupPrefixLengthError () {
-            return this.input.options.groupPrefixLength < 0 ? 'Must be a greater or equal to 0' : '';
+            return this.input.options.groupPrefixLength < 0 ? 'Must be a greater or equal to 0' : ''
         },
         isGroupPrefixValid () {
             return this.input.options.groupPrefixLength >= 0
         },
         groupSuffixLengthError () {
-            return this.input.options.groupSuffixLength < 0 ? 'Must be a greater or equal to 0' : '';
+            return this.input.options.groupSuffixLength < 0 ? 'Must be a greater or equal to 0' : ''
         },
         isGroupSuffixValid () {
             return this.input.options.groupSuffixLength >= 0
