@@ -70,7 +70,6 @@ const TokenFieldFormatter = {
     components: { KeyIcon }
 }
 
-// todo check how to pass the team prop
 const InstanceFieldFormatter = {
     template: `
         <template v-if="instance">
@@ -122,6 +121,7 @@ export default {
         team: 'fetchData'
     },
     async mounted () {
+        console.log('jajajajajajajaa')
         await this.fetchData()
         this.loading = false
         this.checkInterval = setTimeout(this.pollForData, 10000)
