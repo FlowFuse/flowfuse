@@ -1,8 +1,9 @@
 describe('FlowForge - Instance editor', () => {
+    let team
     function navigateToInstance (teamName, instanceName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
-                const team = response.body.teams.find(
+                team = response.body.teams.find(
                     (team) => team.name === teamName
                 )
                 return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
@@ -11,7 +12,7 @@ describe('FlowForge - Instance editor', () => {
                 const instance = response.body.projects.find(
                     (project) => project.name === instanceName
                 )
-                cy.visit(`/instance/${instance.id}/`)
+                cy.visit(`/team/${team.slug}/instances/${instance.id}/`)
             })
     }
 
@@ -76,7 +77,7 @@ describe('FlowForge - Instance editor', () => {
 
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
-                const team = response.body.teams.find(
+                team = response.body.teams.find(
                     (team) => team.name === 'ATeam'
                 )
                 return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
@@ -85,7 +86,7 @@ describe('FlowForge - Instance editor', () => {
                 const instance = response.body.projects.find(
                     (project) => project.name === 'instance-1-1'
                 )
-                cy.visit(`/instance/${instance.id}/editor`)
+                cy.visit(`/team/${team.slug}/instances/${instance.id}/editor`)
             })
 
         cy.get('[data-el="editor-iframe"]')
@@ -103,7 +104,7 @@ describe('FlowForge - Instance editor', () => {
 
         cy.get('[data-nav="instance-version-history"]').as('snapshots-tab').should('exist')
         cy.get('@snapshots-tab').click()
-        cy.url().should('match', /^.*\/instance\/.*\/version-history\/snapshots/) // defaults to snapshots if no feature/team enabled
+        cy.url().should('match', /^.*\/instances\/.*\/version-history\/snapshots/) // defaults to snapshots if no feature/team enabled
 
         cy.get('[data-nav="instance-activity"]').as('activity-tab').should('exist')
         cy.get('@activity-tab').click()
@@ -150,7 +151,7 @@ describe('FlowForge - Instance editor', () => {
 
             cy.request('GET', '/api/v1/user/teams')
                 .then((response) => {
-                    const team = response.body.teams.find(
+                    team = response.body.teams.find(
                         (team) => team.name === 'ATeam'
                     )
                     return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
@@ -159,7 +160,7 @@ describe('FlowForge - Instance editor', () => {
                     const instance = response.body.projects.find(
                         (project) => project.name === 'instance-1-1'
                     )
-                    cy.visit(`/instance/${instance.id}/editor`)
+                    cy.visit(`/team/${team.slug}/instances/${instance.id}/editor`)
                 })
 
             cy.get('[data-el="tabs-drawer"]').within(() => {
@@ -181,7 +182,7 @@ describe('FlowForge - Instance editor', () => {
 
             cy.request('GET', '/api/v1/user/teams')
                 .then((response) => {
-                    const team = response.body.teams.find(
+                    team = response.body.teams.find(
                         (team) => team.name === 'ATeam'
                     )
                     return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
@@ -190,7 +191,7 @@ describe('FlowForge - Instance editor', () => {
                     const instance = response.body.projects.find(
                         (project) => project.name === 'instance-1-1'
                     )
-                    cy.visit(`/instance/${instance.id}/editor`)
+                    cy.visit(`/team/${team.slug}/instances/${instance.id}/editor`)
                 })
 
             cy.get('[data-el="tabs-drawer"]').within(() => {
@@ -221,7 +222,7 @@ describe('FlowForge - Instance editor', () => {
 
             cy.request('GET', '/api/v1/user/teams')
                 .then((response) => {
-                    const team = response.body.teams.find(
+                    team = response.body.teams.find(
                         (team) => team.name === 'ATeam'
                     )
                     return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
@@ -230,7 +231,7 @@ describe('FlowForge - Instance editor', () => {
                     const instance = response.body.projects.find(
                         (project) => project.name === 'instance-1-1'
                     )
-                    cy.visit(`/instance/${instance.id}/editor`)
+                    cy.visit(`/team/${team.slug}/instances/${instance.id}/editor`)
                 })
 
             cy.get('[data-el="tabs-drawer"]').within(() => {
