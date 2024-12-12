@@ -109,14 +109,7 @@ export default {
             return [
                 { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-overview' },
                 { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-remote' },
-                {
-                    label: 'Version History',
-                    to: {
-                        name: this.isTimelineFeatureEnabled ? 'instance-version-history' : 'instance-snapshots',
-                        params: { id: this.instance.id, team_slug: this.team.slug }
-                    },
-                    tag: 'instance-version-history'
-                },
+                { label: 'Version History', to: { name: 'instance-version-history', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-version-history' },
                 { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-assets', hidden: !this.hasAMinimumTeamRoleOf(Roles.Member) },
                 { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-activity' },
                 { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-logs' },
