@@ -158,7 +158,8 @@ export default {
                         const filteredDevices = app.devices.filter(device => {
                             return [
                                 device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
-                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.type.toLowerCase().includes(this.filterTerm.toLowerCase())
                             ].includes(true)
                         })
 
@@ -179,7 +180,8 @@ export default {
                         const filteredDevices = app.devices.filter(device => {
                             return [
                                 device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
-                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.type.toLowerCase().includes(this.filterTerm.toLowerCase())
                             ].includes(true)
                         })
 
