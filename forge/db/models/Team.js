@@ -73,7 +73,7 @@ module.exports = {
                 await M.AccessToken.destroy({
                     where: {
                         ownerType: 'team',
-                        ownerId: team.id
+                        ownerId: team.id.toString()
                     }
                 })
             }
