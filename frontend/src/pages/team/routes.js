@@ -1,6 +1,9 @@
 import ensurePermission from '../../utils/ensurePermission.js'
 import ApplicationRoutes from '../application/routes.js'
 
+import InstanceEditorRoutes from '../instance/Editor/routes.js'
+import InstanceRoutes from '../instance/routes.js'
+
 import TeamApplications from './Applications/index.vue'
 import TeamAuditLog from './AuditLog.vue'
 import TeamBilling from './Billing.vue'
@@ -89,7 +92,9 @@ export default [
                                         }
                                     }
                                 }
-                            }
+                            },
+                            ...InstanceRoutes,
+                            ...InstanceEditorRoutes
                         ]
                     },
                     {

@@ -59,9 +59,7 @@ const children = [
         meta: {
             title: 'Instance - Settings'
         },
-        redirect: to => {
-            return { name: 'instance-settings-general', params: { id: to.params.id } }
-        },
+        redirect: { name: 'instance-settings-general' },
         children: [...InstanceSettingsRoutes]
     },
     {
@@ -82,16 +80,12 @@ export { children }
 
 export default [
     {
-        path: '/project/:id/:remaining*',
-        redirect: to => {
-            return { name: 'Instance', params: to.params }
-        }
+        path: 'project/:id/:remaining*',
+        redirect: { name: 'Instance' }
     },
     {
-        path: '/instance/:id/:remaining*',
-        redirect: to => {
-            return { name: 'instance-overview', params: { id: to.params.id } }
-        },
+        path: ':id/:remaining*',
+        redirect: { name: 'instance-overview' },
         name: 'Instance',
         component: Instance,
         meta: {
