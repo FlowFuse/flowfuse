@@ -20,11 +20,11 @@
                 <template #context>
                     <div v-if="device?.ownerType === 'application' && device.application" data-el="device-assigned-application">
                         Application:
-                        <router-link :to="{name: 'Application', params: {id: device.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application.name }}</router-link>
+                        <router-link :to="{name: 'Application', params: {id: device.application.id, team_slug: team.slug}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application.name }}</router-link>
                     </div>
                     <div v-else-if="device?.ownerType === 'instance' && device.instance" data-el="device-assigned-instance">
                         Instance:
-                        <router-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</router-link>
+                        <router-link :to="{name: 'Instance', params: {id: device.instance.id, team_slug: team.slug}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</router-link>
                     </div>
                     <div v-else data-el="device-assigned-none">
                         <span class="italic">No Application or Instance Assigned</span> - <a class="ff-link" data-action="assign-device" @click="openAssignmentDialog">Assign</a>
