@@ -159,7 +159,10 @@ const getters = {
 
             // Mqtt Broker
             isMqttBrokerFeatureEnabledForPlatform: !!state.features?.teamBroker,
-            isMqttBrokerFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.teamBroker
+            isMqttBrokerFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.teamBroker,
+
+            // DevOps Pipelines
+            devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines']
         }
         return {
             ...preCheck,
@@ -170,7 +173,8 @@ const getters = {
             isHTTPBearerTokensFeatureEnabled: preCheck.isHTTPBearerTokensFeatureEnabledForPlatform && preCheck.isHTTPBearerTokensFeatureEnabledForTeam,
             isBOMFeatureEnabled: preCheck.isBOMFeatureEnabledForPlatform && preCheck.isBOMFeatureEnabledForTeam,
             isTimelineFeatureEnabled: preCheck.isTimelineFeatureEnabledForPlatform && preCheck.isTimelineFeatureEnabledForTeam,
-            isMqttBrokerFeatureEnabled: preCheck.isMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam
+            isMqttBrokerFeatureEnabled: preCheck.isMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
+            devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform
         }
     }
 }

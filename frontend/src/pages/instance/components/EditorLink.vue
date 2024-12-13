@@ -1,15 +1,14 @@
 <template>
-    <div :data-type="`${isImmersiveEditor ? 'immersive' : 'standard'}-editor`" @click.stop="openEditor()">
+    <div :data-type="`${isImmersiveEditor ? 'immersive' : 'standard'}-editor`" @mouseup.stop.prevent="openEditor">
         <slot name="default">
             <ff-button
                 v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
-                type="anchor"
-                :to="editorURL"
                 kind="secondary"
                 data-action="open-editor"
                 :disabled="buttonDisabled"
                 class="whitespace-nowrap"
-                @click.stop="openEditor"
+                :emit-instead-of-navigate="true"
+                @select="openEditor"
             >
                 <template v-if="showText" #icon-left>
                     <ProjectIcon />
@@ -32,6 +31,7 @@ import SemVer from 'semver'
 import { mapState } from 'vuex'
 
 import ProjectIcon from '../../../components/icons/Projects.js'
+import { useNavigationHelper } from '../../../composables/NavigationHelper.js'
 
 export default {
     name: 'InstanceEditorLink',
@@ -57,6 +57,13 @@ export default {
         showText: {
             default: true,
             type: Boolean
+        }
+    },
+    setup () {
+        const { openInANewTab } = useNavigationHelper()
+
+        return {
+            openInANewTab
         }
     },
     computed: {
@@ -85,20 +92,21 @@ export default {
     },
     methods: {
         openEditor (evt) {
-            evt.preventDefault()
             if (this.disabled) {
                 return false
             }
-            let href = this.url
-            let target = !this.isImmersiveEditor ? '_blank' : '_self'
-            // On Mac Keyboard, ⌘ + click opens in new tab (⌘ is `metaKey`)
-            // Otherwise Ctrl + click opens in new tab (Ctrl is `ctrlKey`)
-            if (evt.ctrlKey || evt.metaKey) {
-                target = '_blank'
-                href = this.editorURL
+
+            switch (true) {
+            case !this.isImmersiveEditor:
+                return this.openInANewTab(this.editorURL)
+            case evt.ctrlKey || evt.metaKey || evt.button === 1:
+                // On Mac Keyboard, ⌘ + click opens in new tab (⌘ is `metaKey`)
+                // Otherwise Ctrl + click opens in new tab (Ctrl is `ctrlKey`)
+                // Middle mouse button click opens in a new tab (button === 1)
+                return this.openInANewTab(this.url)
+            default:
+                return this.$router.push(this.url)
             }
-            window.open(href, target)
-            return false
         }
     }
 }

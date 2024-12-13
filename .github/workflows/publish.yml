@@ -22,11 +22,62 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  publish:
+  check-tests-status:
+    name: Check tests statuses
     if: |
       ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
       ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.37.0'
+    runs-on: ubuntu-latest
+    outputs:
+      tests_status: ${{ steps.check-tests-jobs-status.outputs.jobs_status }}
+    steps:
+      - name: Check statuses
+        id: check-tests-jobs-status
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            if (context.eventName === 'workflow_dispatch') {
+              console.log('✅ Workflow manually dispatched. Skipping tests jobs check. ✅');
+              core.setOutput('jobs_status', 'success');
+              return;
+            }
+
+            const { data } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id
+            });
+
+            const jobsToCheck = [
+              'Backend tests',
+              'Postgres tests',
+              'UI tests'
+            ];
+
+            const relevantJobs = data.jobs.filter(job => jobsToCheck.includes(job.name));
+            const failedJobs = relevantJobs.filter(job => job.conclusion === 'failure');
+            const allSkippedJobs = relevantJobs.every(job => job.conclusion === 'skipped');
+            
+            if (failedJobs.length > 0) {
+              console.log('🚨 The following tests failed:');
+              failedJobs.forEach(job => {
+                console.log(`❌ ${job.name}`);
+              });
+              core.setOutput('jobs_status', 'failure');
+            } else if (allSkippedJobs) {
+              console.log('⏩ All tests were skipped ⏩');
+              core.setOutput('jobs_status', 'skipped');
+            } else {
+              console.log('✅ Required tests passed successfully ✅');
+              core.setOutput('jobs_status', 'success');
+            }
+
+  publish:
+    if: |
+      needs.check-tests-status.outputs.tests_status == 'success' && github.ref == 'refs/heads/main'
+    needs: check-tests-status
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
     with:
       package_name: flowfuse
       build_package: true

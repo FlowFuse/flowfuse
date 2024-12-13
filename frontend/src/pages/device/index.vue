@@ -49,7 +49,7 @@
                 </template>
             </SectionNavigationHeader>
         </div>
-        <div class="sm:px-6 mt-4 sm:mt-8">
+        <div class="mt-4 sm:mt-8">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
@@ -185,8 +185,8 @@ export default {
         isVisitingAdmin: function () {
             return this.teamMembership.role === Roles.Admin
         },
-        isOwner: function () {
-            return this.teamMembership.role === Roles.Owner
+        isMember: function () {
+            return this.teamMembership.role === Roles.Member || this.teamMembership.role === Roles.Owner
         },
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor
@@ -201,7 +201,7 @@ export default {
             return !this.isDevModeAvailable ||
                 !this.device ||
                 !this.agentSupportsDeviceAccess ||
-                !this.isOwner
+                !this.isMember
         },
         disableModeToggleReason: function () {
             if (!this.device) {
@@ -210,8 +210,8 @@ export default {
             if (!this.agentSupportsDeviceAccess) {
                 return 'Device Agent V0.8 or greater is required'
             }
-            if (!this.isOwner) {
-                return 'Only an owner can change the Device Mode'
+            if (!this.isMember) {
+                return 'Only an Owner or Member can change the Device Mode'
             }
             return undefined
         },

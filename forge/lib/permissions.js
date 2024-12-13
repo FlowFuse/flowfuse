@@ -129,7 +129,10 @@ const Permissions = {
     'project:history': { description: 'View project history', role: Roles.Member },
 
     // Application
-    'application:bom': { description: 'Get the Bill of Materials', role: Roles.Owner },
+    'application:bom': { description: 'Get the Application Bill of Materials', role: Roles.Owner },
+
+    // Team
+    'team:bom': { description: 'Get the Team Bill of Materials', role: Roles.Owner },
 
     // Device Groups
     'application:device-group:create': { description: 'Create a device group', role: Roles.Owner },
@@ -164,6 +167,7 @@ const Permissions = {
     'pipeline:edit': { description: 'Edit a pipeline', role: Roles.Owner },
     'pipeline:delete': { description: 'Delete a pipeline', role: Roles.Owner },
     'application:pipeline:list': { description: 'List pipelines within an application', role: Roles.Member },
+    'team:pipeline:list': { description: 'List pipelines within a team', role: Roles.Member },
 
     // SAML
     'saml-provider:create': { description: 'Create a SAML Provider', role: Roles.Admin },

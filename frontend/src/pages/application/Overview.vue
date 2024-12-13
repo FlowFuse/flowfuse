@@ -14,6 +14,7 @@
                     v-if="hasPermission('project:create')"
                     data-action="create-instance"
                     :to="{ name: 'ApplicationCreateInstance' }"
+                    type="anchor"
                 >
                     <template #icon-left><PlusSmIcon /></template>
                     Add Instance
@@ -79,6 +80,7 @@
                     <ff-button
                         v-if="hasPermission('project:create')"
                         :to="{ name: 'ApplicationCreateInstance' }"
+                        type="anchor"
                     >
                         <template #icon-left><PlusSmIcon /></template>
                         Add Instance
@@ -104,6 +106,7 @@ import { mapState } from 'vuex'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 
 import permissionsMixin from '../../mixins/Permissions.js'
 import { Roles } from '../../utils/roles.js'
@@ -134,6 +137,13 @@ export default {
         }
     },
     emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start'],
+    setup () {
+        const { navigateTo } = useNavigationHelper()
+
+        return {
+            navigateTo
+        }
+    },
     data () {
         return {
             searchTerm: ''
@@ -180,13 +190,13 @@ export default {
         }
     },
     methods: {
-        selectedCloudRow (cloudInstance) {
-            this.$router.push({
+        selectedCloudRow (cloudInstance, event) {
+            this.navigateTo({
                 name: 'Instance',
                 params: {
                     id: cloudInstance.id
                 }
-            })
+            }, event)
         },
         updateSearch (searchTerm) {
             this.searchTerm = searchTerm

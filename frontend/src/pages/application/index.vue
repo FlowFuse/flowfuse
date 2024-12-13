@@ -25,8 +25,6 @@
             <router-view
                 :application="application"
                 :instances="instancesArray"
-                :devices="devicesArray"
-                :deviceGroups="deviceGroupsArray"
                 :is-visiting-admin="isVisitingAdmin"
                 @application-updated="updateApplication"
                 @application-delete="showConfirmDeleteApplicationDialog"
@@ -61,7 +59,7 @@ import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmIns
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog.vue'
 
 export default {
-    name: 'ProjectPage',
+    name: 'ApplicationPage',
     components: {
         ConfirmApplicationDeleteDialog,
         ConfirmInstanceDeleteDialog,
@@ -79,28 +77,36 @@ export default {
         ...mapState('account', ['features']),
         navigation () {
             const routes = [
-                { label: 'Instances', to: `/application/${this.application.id}/instances`, tag: 'application-overview', icon: ProjectsIcon },
-                { label: 'Devices', to: `/application/${this.application.id}/devices`, tag: 'application-devices-overview', icon: ChipIcon },
+                { label: 'Instances', to: { name: 'ApplicationInstances' }, tag: 'application-overview', icon: ProjectsIcon },
+                { label: 'Devices', to: { name: 'ApplicationDevices' }, tag: 'application-devices-overview', icon: ChipIcon },
                 {
                     label: 'Devices Groups',
-                    to: `/application/${this.application.id}/device-groups`,
+                    to: { name: 'ApplicationDeviceGroups' },
                     tag: 'application-devices-groups-overview',
                     icon: ChipIcon,
+                    hidden: !this.hasPermission('application:device-group:list'),
                     featureUnavailable: !this.features?.deviceGroups
                 },
-                { label: 'Snapshots', to: `/application/${this.application.id}/snapshots`, tag: 'application-snapshots', icon: ClockIcon },
+                { label: 'Snapshots', to: { name: 'ApplicationSnapshots' }, tag: 'application-snapshots', icon: ClockIcon },
                 {
                     label: 'DevOps Pipelines',
-                    to: `/application/${this.application.id}/pipelines`,
+                    to: { name: 'ApplicationPipelines' },
                     tag: 'application-pipelines',
                     icon: PipelinesIcon,
+                    hidden: !this.hasPermission('application:pipeline:list'),
                     featureUnavailable: !this.features?.['devops-pipelines']
                 },
-                { label: 'Logs', to: `/application/${this.application.id}/logs`, tag: 'application-logs', icon: TerminalIcon },
-                { label: 'Audit Log', to: `/application/${this.application.id}/activity`, tag: 'application-activity', icon: ViewListIcon },
+                { label: 'Logs', to: { name: 'application-logs' }, tag: 'application-logs', icon: TerminalIcon },
+                {
+                    label: 'Audit Log',
+                    to: { name: 'application-activity' },
+                    tag: 'application-activity',
+                    icon: ViewListIcon,
+                    hidden: !this.hasPermission('application:audit-log')
+                },
                 {
                     label: 'Dependencies',
-                    to: `/application/${this.application.id}/dependencies`,
+                    to: { name: 'application-dependencies' },
                     tag: 'application-dependencies',
                     icon: CogIcon,
                     hidden: !this.hasPermission('application:bom')

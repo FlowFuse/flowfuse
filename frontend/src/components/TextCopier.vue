@@ -1,6 +1,6 @@
 <template>
     <span class="ff-text-copier">
-        <span @click="copyPath">
+        <span v-if="showText" @click="copyPath">
             <slot name="default">
                 <span class="text">{{ text }}</span>
             </slot>
@@ -30,6 +30,11 @@ export default {
             validator: (value) => {
                 return ['prompt', 'alert'].includes(value)
             }
+        },
+        showText: {
+            required: false,
+            type: Boolean,
+            default: true
         }
     },
     emits: ['copied'],

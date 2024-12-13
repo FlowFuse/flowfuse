@@ -274,13 +274,12 @@ export default {
 
 <style scoped lang="scss">
 #global-search {
-    padding: 0 5px;
+    padding: 0 12px;
     display: flex;
     flex: 1;
     justify-content: flex-end;
 
     .content-wrapper {
-        padding: 5px 10px;
         position: relative;
         justify-content: flex-end;
         display: flex;
@@ -313,20 +312,20 @@ export default {
                     color: white;
                     position: absolute;
                     z-index: 1;
-                    top: 5px;
+                    top: 8px;
 
                     &.search {
-                        left: 5px;
+                        left: 7px;
                     }
 
                     &.close {
-                        right: 5px;
+                        right: 7px;
                     }
                 }
 
                 input {
                     color: transparent;
-                    padding: 3px 25px;
+                    padding: 6px 27px;
                     background: $ff-grey-700;
                     border-color: $ff-grey-500;
                     min-width: 20vw;
@@ -342,7 +341,7 @@ export default {
             background: $ff-white;
             min-width: 100%;
             z-index: 120;
-            padding: 0 5px 15px;
+            padding: 5px 5px 15px 5px;
 
             .result-badge {
                 padding: 0 5px;
