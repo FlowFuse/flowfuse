@@ -47,18 +47,8 @@
                     >
                         <template #icon><SearchIcon /></template>
                     </ff-text-input>
-                    <div v-if="Object.keys(dependencies).length > 0" class="dependencies" data-el="dependencies">
-                        <dependency-item
-                            v-for="(versions, dependencyTitle) in dependencies"
-                            :key="dependencyTitle"
-                            :title="dependencyTitle"
-                            :versions="versions"
-                            :start-closed="true"
-                        />
-                    </div>
-                    <div v-else class="empty text-center opacity-60">
-                        <p>Oops! We couldn't find any matching results.</p>
-                    </div>
+
+                    <BomDependencies :payload="payload" :search-term="searchTerm" :start-closed="true" />
                 </div>
 
                 <EmptyState v-else>
@@ -89,20 +79,18 @@ import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
-import DependencyItem from '../../../components/bill-of-materials/DependencyItem.vue'
+import BomDependencies from '../../../components/bill-of-materials/BomDependencies.vue'
 import usePermissions from '../../../composables/Permissions.js'
-import BomMixin from '../../../mixins/BOM.js'
 
 export default {
     name: 'TeamBOM',
     components: {
-        DependencyItem,
+        BomDependencies,
         FeatureUnavailableToTeam,
         FeatureUnavailable,
         SearchIcon,
         EmptyState
     },
-    mixins: [BomMixin],
     setup () {
         const { hasPermission } = usePermissions()
         return {
@@ -129,6 +117,9 @@ export default {
             })
 
             return payload
+        },
+        hasInstances () {
+            return !(!this.payload || this.payload.children.length === 0)
         }
     },
     mounted () {

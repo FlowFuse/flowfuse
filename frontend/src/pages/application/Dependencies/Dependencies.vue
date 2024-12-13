@@ -26,17 +26,8 @@
                 >
                     <template #icon><SearchIcon /></template>
                 </ff-text-input>
-                <div v-if="Object.keys(dependencies).length > 0" class="dependencies" data-el="dependencies">
-                    <dependency-item
-                        v-for="(versions, dependencyTitle) in dependencies"
-                        :key="dependencyTitle"
-                        :title="dependencyTitle"
-                        :versions="versions"
-                    />
-                </div>
-                <div v-else class="empty text-center opacity-60">
-                    <p>Oops! We couldn't find any matching results.</p>
-                </div>
+
+                <BomDependencies :payload="payload" :search-term="searchTerm" />
             </div>
             <EmptyState v-else>
                 <template #img>
@@ -64,8 +55,7 @@ import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
-import DependencyItem from '../../../components/bill-of-materials/DependencyItem.vue'
-import BomMixin from '../../../mixins/BOM.js'
+import BomDependencies from '../../../components/bill-of-materials/BomDependencies.vue'
 
 import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
@@ -73,14 +63,14 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 export default {
     name: 'ApplicationDependencies',
     components: {
+        BomDependencies,
         FeatureUnavailable,
         FeatureUnavailableToTeam,
         EmptyState,
         SectionTopMenu,
-        SearchIcon,
-        DependencyItem
+        SearchIcon
     },
-    mixins: [featuresMixin, permissionsMixin, BomMixin],
+    mixins: [featuresMixin, permissionsMixin],
     inheritAttrs: false,
     props: {
         application: {
@@ -98,6 +88,9 @@ export default {
     computed: {
         hasTeamPermission () {
             return this.hasPermission('application:bom')
+        },
+        hasInstances () {
+            return !(!this.payload || this.payload.children.length === 0)
         }
     },
     mounted () {
