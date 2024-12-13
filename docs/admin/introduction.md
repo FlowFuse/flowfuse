@@ -129,7 +129,7 @@ Whenever a new Instance Type is created, it will need to be manually enabled for
 the individual [Team Types](#managing-team-types) before they will be available
 for teams to use.
 
-Instance Types also control which will be the default Stack if there are multiple
+Instance Types also control the default Stack (and in turn, the default Node-RED versions) that Instances will run with if there are multiple available.
 Stacks associated with an Instance Type.
 
 ### Managing Stacks
