@@ -13,7 +13,7 @@
         </div>
         <template v-if="isOpen">
             <versions-list
-                v-for="(entry, key) in Object.entries(versions)" :key="key"
+                v-for="(entry, key) in sortedVersions" :key="key"
                 :instances="entry[1]"
                 :version="entry[0]"
             />
@@ -58,6 +58,11 @@ export default {
         }
     },
     computed: {
+        sortedVersions () {
+            return Object.entries(this.versions).sort((a, b) => {
+                return b[0].localeCompare(a[0])
+            })
+        },
         externalLatest () {
             if (
                 !this.externalDependency ||
