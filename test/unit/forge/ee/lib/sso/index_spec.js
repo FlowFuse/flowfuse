@@ -376,15 +376,15 @@ d
             await app.sso.updateTeamMembership({
                 'ff-roles': [
                     'test_ff-ateam-magician_err',
-                    'test_ff-ateam-member_test',
-                    'test_ff-bteam-owner_test',
-                    'ff-ateam-admin_test'
+                    'test_ff-ateam-member_test2',
+                    'test_ff-bteam-owner_test2',
+                    'ff-ateam-admin_test2'
                 ]
             }, app.user, {
                 groupAssertionName: 'ff-roles',
                 groupAllTeams: true,
                 groupPrefixLength: 5,
-                groupSuffixLength: 5
+                groupSuffixLength: 6
             })
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id)).should.have.property('role', Roles.Owner)

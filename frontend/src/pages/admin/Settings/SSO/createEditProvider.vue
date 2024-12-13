@@ -107,7 +107,7 @@
                             <template #description>The length of any prefix added to the FlowFuse Group Name format</template>
                         </FormRow>
                         <FormRow v-model="input.options.groupSuffixLength" :error="groupSuffixLengthError" type="number">
-                            Group Name Postfix Length
+                            Group Name Suffix Length
                             <template #description>The length of any suffix added to the FlowFuse Group Name format</template>
                         </FormRow>
                         <FormRow v-model="input.options.groupAllTeams" :options="[{ value:true, label: 'Apply to all teams' }, { value:false, label: 'Apply to selected teams' }]">
