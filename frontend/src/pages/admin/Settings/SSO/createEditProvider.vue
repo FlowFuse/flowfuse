@@ -103,7 +103,7 @@
                             </FormRow>
                         </div>
                         <FormRow v-model="input.options.groupPrefixLength" :error="groupPrefixLengthError" type="number">
-                            Group Name Postfix Length
+                            Group Name Prefix Length
                             <template #description>The length of any prefix added to the FlowFuse Group Name format</template>
                         </FormRow>
                         <FormRow v-model="input.options.groupSuffixLength" :error="groupSuffixLengthError" type="number">
