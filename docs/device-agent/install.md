@@ -71,6 +71,14 @@ services:
       - /path/to/device.yml:/opt/flowfuse-device/device.yml
 ```
 
+#### Time Zone
+
+In order to ensure that the device agent runs with the correct timezone environment variable is set with the `-e` option
+
+```bash
+docker run -e TZ=Europe/London --mount type=bind,src=/path/to/device.yml,target=/opt/flowfuse-device/device.yml -p 1880:1880 flowfuse/device-agent:latest
+```
+
 ## Configuration
 
 The agent configuration is provided by a `device.yml` file within its working
