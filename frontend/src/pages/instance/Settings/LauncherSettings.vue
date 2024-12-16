@@ -8,7 +8,7 @@
                 Flows that perform CPU intensive work may need to increase this from the default of 7500ms.
             </template>
         </FormRow>
-        <FormRow v-model="input.disableAutoSafeMode" type="checkbox">
+        <FormRow v-if="launcherSupportsAutoSafeMode" v-model="input.disableAutoSafeMode" type="checkbox">
             Disable Auto Safe Mode
             <template #description>
                 Prevent Node-RED from automatically entering safe mode when a crash loop is detected.
@@ -24,6 +24,7 @@
 
 <script>
 
+import SemVer from 'semver'
 import { useRouter } from 'vue-router'
 
 import { mapState } from 'vuex'
@@ -69,6 +70,15 @@ export default {
         unsavedChanges: function () {
             return this.original.healthCheckInterval !== this.input.healthCheckInterval ||
                 this.original.disableAutoSafeMode !== this.input.disableAutoSafeMode
+        },
+        launcherSupportsAutoSafeMode: function () {
+            const launcherVersion = this.project?.meta?.versions?.launcher
+            if (!launcherVersion) {
+                // We won't have this for a suspended project - so err on the side
+                // of permissive
+                return true
+            }
+            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.12.0')
         }
     },
     watch: {
@@ -116,8 +126,10 @@ export default {
         },
         async saveSettings () {
             const launcherSettings = {
-                healthCheckInterval: this.input.healthCheckInterval,
-                disableAutoSafeMode: this.input.disableAutoSafeMode ?? false
+                healthCheckInterval: this.input.healthCheckInterval
+            }
+            if (this.launcherSupportsAutoSafeMode) {
+                launcherSettings.disableAutoSafeMode = this.input.disableAutoSafeMode
             }
             if (!this.validateFormInputs()) {
                 alerts.emit('Please correct the errors before saving.', 'error')
