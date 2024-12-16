@@ -17,16 +17,18 @@ $transition_time: .15s;
 $nav_height: 60px;
 
 .ff-layout--box {
-    background-color: $ff-grey-800;
+    font-family: 'Heebo';
+    background-color: $ff-white;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100%;
     min-height: inherit;
-    background-image: url("./images/ff-flow-bg-white.svg");
-    background-size: contain;
+    background-image: url("./images/ff-bg-flow.jpg");
+    background-size: cover;
     background-repeat: no-repeat;
-    background-position-y: 90%;
+    background-position-y: 0%;
+    color: $ff-grey-700;
     .ff-error-inline {
         font-size: 0.875rem;;
         display: block;
@@ -57,7 +59,14 @@ $nav_height: 60px;
     width: calc(100% - 48px);
     height: 60%;
     display: grid;
-    background-color: rgba($ff-grey-600, 0.2);
+}
+.ff-layout--box--left {
+    .ff-logo {
+        max-width: 150px;
+        margin-bottom: 16px;
+    }
+}
+.ff-layout--box--right {
     .ff-logo {
         max-width: 200px;
         margin: auto;
@@ -67,15 +76,12 @@ $nav_height: 60px;
 
 .ff-layout--box--left,
 .ff-layout--box--right {
-    border-top: 2px solid $ff-red-400;
     height: 100%;
     justify-content: center;
     align-items: center;
 }
 
 .ff-layout--box--left {
-    color: white;
-    background-color: rgba($ff-grey-900, 0.5);
     h1 {
         max-width: 420px;
     }
@@ -83,9 +89,8 @@ $nav_height: 60px;
         font-size: 1.25rem;
     }
     p {
-        font-weight: 200;
+        font-weight: 300;
         line-height: 1.5rem;
-        color: $ff-grey-300;
     }
 }
 
@@ -94,11 +99,10 @@ $nav_height: 60px;
 }
 
 .ff-layout--box--right .ff-layout--box--content {
-    background-color: $ff-grey-700;
     min-height: 400px;
     padding: 64px 24px;
     @apply rounded-xl;
-    color: white;
+    color: $ff-grey-700;
     h2 {
         margin-top: -12px;
         margin-bottom: 24px;
@@ -109,39 +113,30 @@ $nav_height: 60px;
     }
     label {
         display: block;
-        color: white;
-        text-transform: uppercase;
-        font-weight: 600;
+        color: $ff-grey-700;
         margin-bottom: 4px;
-        font-size: 0.75rem;
     }
     .ff-radio-btn label {
-        color: $ff-grey-100;
         font-weight: normal;
     }
     p {
         margin-bottom: 1rem;
     }
     a {
-        color: $ff-teal-400;
+        color: $ff-blue-600;
     }
     .ff-input:not(.ff-input--error) {
-        border-color: transparent;
+        border-color: $ff-grey-300;
     }
     .ff-input {
-        background-color: $ff-grey-600;
         border-width: 2px;
-        input {
-            color: $ff-grey-50;
-        }
         &:focus-within {
-            border-color: $ff-teal-400;
+            border-color: $ff-indigo-600;
         }
     }
     .ff-radio-btn {
         .checkbox {
           border: 1px solid $ff-grey-400;
-          background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23374151' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='4'/%3e%3c/svg%3e")
         }
     }
 
@@ -158,10 +153,10 @@ $nav_height: 60px;
         margin-bottom: 6px;
     }
     .ff-btn.ff-btn--primary {
-        background-color: $ff-teal-600;
+        background-color: $ff-indigo-600;
         color: white;
         &:hover {
-            background-color: $ff-teal-700;
+            background-color: $ff-indigo-700;
         }
         &:disabled {
             background-color: $ff-grey-300;
@@ -169,7 +164,7 @@ $nav_height: 60px;
         }
     }
     .ff-btn.ff-btn--tertiary {
-        color: $ff-teal-500;
+        color: $ff-indigo-500;
         font-weight: normal;
         &:hover {
             background-color: transparent;
