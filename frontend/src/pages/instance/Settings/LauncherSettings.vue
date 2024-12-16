@@ -15,6 +15,11 @@
                 WARNING: Disabling Auto Safe Mode is not recommended. A problem that causes Node-RED to crash multiple successive times may result in a contineous bootloop that will need to be manually resolved.
             </template>
         </FormRow>
+        <div v-else class="flex flex-col sm:flex-row">
+            <div class="text-gray-800 block text-sm font-medium">
+                Some settings are not available until you upgrade your stack. <ff-button size="small" to="general">Upgrade</ff-button>
+            </div>
+        </div>
 
         <div class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges || !validateFormInputs()" data-action="save-settings" @click="saveSettings()">Save settings</ff-button>
