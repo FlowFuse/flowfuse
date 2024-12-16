@@ -54,10 +54,12 @@ export default {
         return {
             mounted: false,
             original: {
-                healthCheckInterval: null
+                healthCheckInterval: null,
+                disableAutoSafeMode: null
             },
             input: {
-                healthCheckInterval: null
+                healthCheckInterval: null,
+                disableAutoSafeMode: null
             },
             errors: {
                 healthCheckInterval: ''
