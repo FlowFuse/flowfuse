@@ -126,17 +126,23 @@ export default {
             return !this.errors.healthCheckInterval
         },
         getSettings: function () {
-            this.original.healthCheckInterval = this.project?.launcherSettings?.healthCheckInterval
-            this.input.healthCheckInterval = this.project?.launcherSettings.healthCheckInterval
+            this.original.healthCheckInterval = this.project?.launcherSettings?.healthCheckInterval ?? 7500
+            this.input.healthCheckInterval = this.project?.launcherSettings?.healthCheckInterval ?? 7500
             this.original.disableAutoSafeMode = this.project?.launcherSettings?.disableAutoSafeMode ?? false
-            this.input.disableAutoSafeMode = this.project?.launcherSettings.disableAutoSafeMode ?? false
+            this.input.disableAutoSafeMode = this.project?.launcherSettings?.disableAutoSafeMode ?? false
         },
         async saveSettings () {
-            const launcherSettings = {
-                healthCheckInterval: +this.input.healthCheckInterval
+            const launcherSettings = {}
+            // only send update if the value has changed
+            if (+this.original.healthCheckInterval !== +this.input.healthCheckInterval) {
+                launcherSettings.healthCheckInterval = +this.input.healthCheckInterval
             }
+            // only send the update if the launcher supports the feature
             if (this.launcherSupportsAutoSafeMode) {
-                launcherSettings.disableAutoSafeMode = this.input.disableAutoSafeMode
+                // only send update if the value has changed
+                if (this.original.disableAutoSafeMode !== this.input.disableAutoSafeMode) {
+                    launcherSettings.disableAutoSafeMode = this.input.disableAutoSafeMode
+                }
             }
             if (!this.validateFormInputs()) {
                 alerts.emit('Please correct the errors before saving.', 'error')
