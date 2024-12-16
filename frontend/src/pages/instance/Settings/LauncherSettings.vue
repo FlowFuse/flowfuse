@@ -8,6 +8,13 @@
                 Flows that perform CPU intensive work may need to increase this from the default of 7500ms.
             </template>
         </FormRow>
+        <FormRow v-model="input.disableAutoSafeMode" type="checkbox">
+            Disable Auto Safe Mode
+            <template #description>
+                Prevent Node-RED from automatically entering safe mode when a crash loop is detected.
+                WARNING: Disabling Auto Safe Mode is not recommended. A problem that causes Node-RED to crash multiple successive times may result in a contineous bootloop that will need to be manually resolved.
+            </template>
+        </FormRow>
 
         <div class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges || !validateFormInputs()" data-action="save-settings" @click="saveSettings()">Save settings</ff-button>
@@ -60,12 +67,18 @@ export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         unsavedChanges: function () {
-            return this.original.healthCheckInterval !== this.input.healthCheckInterval
+            return this.original.healthCheckInterval !== this.input.healthCheckInterval ||
+                this.original.disableAutoSafeMode !== this.input.disableAutoSafeMode
         }
     },
     watch: {
         project: 'getSettings',
         'input.healthCheckInterval': function (value) {
+            if (this.mounted) {
+                this.validateFormInputs()
+            }
+        },
+        'input.disableAutoSafeMode': function (value) {
             if (this.mounted) {
                 this.validateFormInputs()
             }
@@ -98,10 +111,13 @@ export default {
         getSettings: function () {
             this.original.healthCheckInterval = this.project?.launcherSettings?.healthCheckInterval
             this.input.healthCheckInterval = this.project?.launcherSettings.healthCheckInterval
+            this.original.disableAutoSafeMode = this.project?.launcherSettings?.disableAutoSafeMode ?? false
+            this.input.disableAutoSafeMode = this.project?.launcherSettings.disableAutoSafeMode ?? false
         },
         async saveSettings () {
             const launcherSettings = {
-                healthCheckInterval: this.input.healthCheckInterval
+                healthCheckInterval: this.input.healthCheckInterval,
+                disableAutoSafeMode: this.input.disableAutoSafeMode ?? false
             }
             if (!this.validateFormInputs()) {
                 alerts.emit('Please correct the errors before saving.', 'error')
