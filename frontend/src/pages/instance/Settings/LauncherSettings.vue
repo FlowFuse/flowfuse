@@ -70,7 +70,7 @@ export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         unsavedChanges: function () {
-            return this.original.healthCheckInterval !== this.input.healthCheckInterval ||
+            return +this.original.healthCheckInterval !== +this.input.healthCheckInterval ||
                 this.original.disableAutoSafeMode !== this.input.disableAutoSafeMode
         },
         launcherSupportsAutoSafeMode: function () {
@@ -111,7 +111,7 @@ export default {
             if (!this.unsavedChanges) {
                 this.errors.healthCheckInterval = ''
             } else {
-                const hci = parseInt(this.input.healthCheckInterval)
+                const hci = +this.input.healthCheckInterval
                 if (isNaN(hci) || hci < 5000) {
                     this.errors.healthCheckInterval = 'Health check interval must be 5000 or greater'
                 } else {
@@ -128,7 +128,7 @@ export default {
         },
         async saveSettings () {
             const launcherSettings = {
-                healthCheckInterval: this.input.healthCheckInterval
+                healthCheckInterval: +this.input.healthCheckInterval
             }
             if (this.launcherSupportsAutoSafeMode) {
                 launcherSettings.disableAutoSafeMode = this.input.disableAutoSafeMode
