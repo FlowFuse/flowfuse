@@ -88,12 +88,10 @@ module.exports = fp(async function (app, opts) {
     }
 
     // Fully built path
-    let logoPath = path.join(__dirname, '../../frontend/dist/ff-logo--wordmark--dark.png
-')
+    let logoPath = path.join(__dirname, '../../frontend/dist/ff-logo--wordmark--dark.png')
     if (!existsSync(logoPath)) {
         // Local dev mode, not yet built
-        logoPath = path.join(__dirname, '../../frontend/src/images/ff-logo--wordmark--dark.png
-')
+        logoPath = path.join(__dirname, '../../frontend/src/images/ff-logo--wordmark--dark.png')
     }
     if (existsSync(logoPath)) {
         // Only set a logo if we found it
