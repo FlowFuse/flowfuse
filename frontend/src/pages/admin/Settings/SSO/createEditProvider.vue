@@ -102,6 +102,14 @@
                                 <template #description>The name of the base object to search for groups</template>
                             </FormRow>
                         </div>
+                        <FormRow v-model="input.options.groupPrefixLength" :error="groupPrefixLengthError" type="number">
+                            Group Name Prefix Length
+                            <template #description>The length of any prefix added to the FlowFuse Group Name format</template>
+                        </FormRow>
+                        <FormRow v-model="input.options.groupSuffixLength" :error="groupSuffixLengthError" type="number">
+                            Group Name Suffix Length
+                            <template #description>The length of any suffix added to the FlowFuse Group Name format</template>
+                        </FormRow>
                         <FormRow v-model="input.options.groupAllTeams" :options="[{ value:true, label: 'Apply to all teams' }, { value:false, label: 'Apply to selected teams' }]">
                             Team Scope
                             <template #description>Should this apply to all teams on the platform, or just a restricted list of teams</template>
@@ -164,7 +172,9 @@ export default {
                     groupAssertionName: '',
                     groupsDN: '',
                     groupMapping: false,
-                    groupAdminName: ''
+                    groupAdminName: '',
+                    groupPrefixLength: 0,
+                    groupSuffixLength: 0
                 }
             },
             errors: {},
@@ -182,7 +192,7 @@ export default {
         isGroupOptionsValid () {
             return !this.input.options.groupMapping || (
                 (this.input.type === 'saml' ? this.isGroupAssertionNameValid : this.isGroupsDNValid) &&
-                  this.isGroupAdminNameValid
+                  this.isGroupAdminNameValid && this.isGroupPrefixValid && this.isGroupSuffixValid
             )
         },
         isGroupAssertionNameValid () {
@@ -196,6 +206,18 @@ export default {
         },
         groupsDNError () {
             return !this.isGroupsDNValid ? 'Group DN is required' : ''
+        },
+        groupPrefixLengthError () {
+            return this.input.options.groupPrefixLength < 0 ? 'Must be a greater or equal to 0' : ''
+        },
+        isGroupPrefixValid () {
+            return this.input.options.groupPrefixLength >= 0
+        },
+        groupSuffixLengthError () {
+            return this.input.options.groupSuffixLength < 0 ? 'Must be a greater or equal to 0' : ''
+        },
+        isGroupSuffixValid () {
+            return this.input.options.groupSuffixLength >= 0
         },
         isGroupAdminNameValid () {
             return !this.input.options.groupAdmin || (this.input.options.groupAdminName && this.input.options.groupAdminName.length > 0)
@@ -303,7 +325,9 @@ export default {
                     groupOtherTeams: false,
                     groupAdmin: false,
                     groupAdminName: 'ff-admins',
-                    groupAssertionName: 'ff-roles'
+                    groupAssertionName: 'ff-roles',
+                    groupPrefixLength: 0,
+                    groupSuffixLength: 0
                 }
             } else {
                 this.loading = true
@@ -342,6 +366,12 @@ export default {
                     // Default to enabled
                     this.input.options.tlsVerifyServer = true
                 }
+            }
+            if (this.provider.options.groupPrefixLength === undefined) {
+                this.input.options.groupPrefixLength = 0
+            }
+            if (this.provider.options.groupSuffixLength === undefined) {
+                this.input.options.groupSuffixLength = 0
             }
             this.originalValues = JSON.stringify(this.input)
         },

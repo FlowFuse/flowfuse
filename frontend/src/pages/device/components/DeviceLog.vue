@@ -50,8 +50,8 @@ export default {
     },
     unmounted () {
         // need to unsubscribe here
-        const topic = `ff/v1/${this.device.team.id}/d/${this.device.id}/logs`
-        this.client.publish(`${topic}/heartbeat`, 'leaving')
+        // const topic = `ff/v1/${this.device.team.id}/d/${this.device.id}/logs`
+        // this.client.publish(`${topic}/heartbeat`, 'leaving')
         setTimeout(() => this.disconnectMQTT())
         clearInterval(this.keepAliveInterval)
     },
@@ -71,7 +71,7 @@ export default {
                 this.client.publish(`${topic}/heartbeat`, 'alive')
                 this.keepAliveInterval = setInterval(() => {
                     this.client.publish(`${topic}/heartbeat`, 'alive')
-                }, 20000)
+                }, 10000)
             })
 
             this.client.on('offline', () => {

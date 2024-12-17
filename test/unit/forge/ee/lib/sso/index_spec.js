@@ -365,5 +365,29 @@ d
             })
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Owner)
         })
+        it('strip prefix and suffix from SAML groups', async function () {
+            // This should remove ownership from Alice in Team A
+
+            // Starting state:
+            // Alice owner ATeam
+
+            // Expected result:
+            // Alice owner ATeam - unchanged
+            await app.sso.updateTeamMembership({
+                'ff-roles': [
+                    'test_ff-ateam-magician_err',
+                    'test_ff-ateam-member_test2',
+                    'test_ff-bteam-owner_test2',
+                    'ff-ateam-admin_test2'
+                ]
+            }, app.user, {
+                groupAssertionName: 'ff-roles',
+                groupAllTeams: true,
+                groupPrefixLength: 5,
+                groupSuffixLength: 6
+            })
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id)).should.have.property('role', Roles.Owner)
+        })
     })
 })

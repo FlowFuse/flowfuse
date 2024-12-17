@@ -128,6 +128,9 @@ the groups in the SAML Provider - rather than using the team's id. However, a te
 by a team owner. Doing so will break the link between the group and the team membership - so should only
 be done with care.
 
+An optional prefix and suffix can be include in the group name to support SAML providers that have existing naming policies. The SSO configuration can be configured with the lengths of these values so they will be stripped off before the group name is validated.
+
+For example, if an organisation requires all groups to begin with `acme-org-`, a prefix length of `9` can be set and the group `acme-org-ff-development-owner` will be handled as `ff-development-owner`.
 ## Managing Admin users
 
 The SSO Configuration can be configured to managed the admin users of the platform by enabling the

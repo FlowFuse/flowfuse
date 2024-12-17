@@ -27,8 +27,6 @@
         }
     }
     &--content {
-        display: none;
-        // max-height: 0;
         transition: max-height 0.6s ease-out;
         .ff-audit-entry {
             padding: 12px;
@@ -37,9 +35,6 @@
         }
     }
     &.open {
-        .ff-accordion--content {
-            display: block;
-        }
         .ff-accordion--button .ff-icon.chevron {
             transform: rotate(-90deg);
         }
