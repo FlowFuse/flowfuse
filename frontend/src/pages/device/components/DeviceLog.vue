@@ -71,7 +71,7 @@ export default {
                 this.client.publish(`${topic}/heartbeat`, 'alive')
                 this.keepAliveInterval = setInterval(() => {
                     this.client.publish(`${topic}/heartbeat`, 'alive')
-                }, 20000)
+                }, 10000)
             })
 
             this.client.on('offline', () => {
