@@ -3,9 +3,9 @@ import { useRouter } from 'vue-router'
 export function useNavigationHelper () {
     const _router = useRouter()
 
-    const openInANewTab = (href) => {
+    const openInANewTab = (href, target = '_blank') => {
         return new Promise(resolve => {
-            window.open(href, '_blank')
+            window.open(href, target)
             resolve()
         })
     }

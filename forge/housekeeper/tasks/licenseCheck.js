@@ -36,7 +36,8 @@ module.exports = {
                     'id',
                     'state',
                     'ProjectStackId',
-                    'TeamId'
+                    'TeamId',
+                    'safeName'
                 ],
                 where: {
                     state: {

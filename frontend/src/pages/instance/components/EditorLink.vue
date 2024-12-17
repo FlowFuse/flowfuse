@@ -8,7 +8,6 @@
                 :disabled="buttonDisabled"
                 class="whitespace-nowrap"
                 :emit-instead-of-navigate="true"
-                @select="openEditor"
             >
                 <template v-if="showText" #icon-left>
                     <ProjectIcon />
@@ -96,16 +95,11 @@ export default {
                 return false
             }
 
-            switch (true) {
-            case !this.isImmersiveEditor:
-                return this.openInANewTab(this.editorURL)
-            case evt.ctrlKey || evt.metaKey || evt.button === 1:
-                // On Mac Keyboard, ⌘ + click opens in new tab (⌘ is `metaKey`)
-                // Otherwise Ctrl + click opens in new tab (Ctrl is `ctrlKey`)
-                // Middle mouse button click opens in a new tab (button === 1)
-                return this.openInANewTab(this.url)
-            default:
-                return this.$router.push(this.url)
+            const target = `_${this.instance.id}`
+            if (!this.isImmersiveEditor) {
+                return this.openInANewTab(this.editorURL, target)
+            } else {
+                return this.openInANewTab(this.url, target)
             }
         }
     }

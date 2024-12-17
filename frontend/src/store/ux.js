@@ -2,7 +2,7 @@ import {
     BookOpenIcon, ChatIcon, ChipIcon, CogIcon, CollectionIcon,
     ColorSwatchIcon, CurrencyDollarIcon, DatabaseIcon,
     DesktopComputerIcon, LockClosedIcon, RssIcon,
-    TemplateIcon, UserGroupIcon, UsersIcon
+    TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
 } from '@heroicons/vue/outline'
 
 import PipelinesIcon from '../components/icons/Pipelines.js'
@@ -82,6 +82,24 @@ const getters = {
                     hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
                         {
+                            label: 'Pipelines',
+                            to: { name: 'team-pipelines', params: { team_slug: team.slug } },
+                            tag: 'team-pipelines',
+                            icon: PipelinesIcon,
+                            disabled: noBilling,
+                            featureUnavailable: !features.devOpsPipelinesFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member)
+                        },
+                        {
+                            label: 'Bill Of Materials',
+                            to: { name: 'team-bom', params: { team_slug: team.slug } },
+                            tag: 'team-bom',
+                            icon: TableIcon,
+                            disabled: noBilling,
+                            featureUnavailable: !features.isBOMFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner)
+                        },
+                        {
                             label: 'Broker',
                             to: { name: 'team-unified-namespace', params: { team_slug: team.slug } },
                             tag: 'team-unified-namespace',
@@ -89,15 +107,6 @@ const getters = {
                             disabled: noBilling,
                             featureUnavailable: !features.isMqttBrokerFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
-                        },
-                        {
-                            label: 'Pipelines',
-                            to: { name: 'team-pipelines', params: { team_slug: team.slug } },
-                            tag: 'team-pipelines',
-                            icon: PipelinesIcon,
-                            disabled: noBilling,
-                            featureUnavailable: !features.devOpsPipelinesFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.devOpsPipelinesFeatureEnabled
                         }
                     ]
                 },
