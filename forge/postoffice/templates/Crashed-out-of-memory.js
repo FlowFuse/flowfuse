@@ -44,9 +44,9 @@ You can access the instance and its logs here:
 <p>
 This can occur for a number of reasons including:
 <ul>
-<li>incorrect instance size for your workload - try selecting a larger instance type</li>
-<li>an issue in your flows holding onto memory - check your flows usage of context</li>
-<li>an issue in a third-party library or node - check the issue tracker of your contrib nodes</li>
+<li>incorrect instance size for your workload/li>
+<li>an issue in your flows holding onto memory/li>
+<li>an issue in a third-party library or node/li>
 </ul>
 
 Possible solutions:
