@@ -1,9 +1,10 @@
 describe('FlowForge - Application - DevOps Pipelines', () => {
     let application
+    let team
     function navigateToApplication (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
-                const team = response.body.teams.find(
+                team = response.body.teams.find(
                     (team) => team.name === teamName
                 )
                 return cy.request('GET', `/api/v1/teams/${team.id}/applications`)
@@ -12,7 +13,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
                 application = response.body.applications.find(
                     (app) => app.name === projectName
                 )
-                cy.visit(`/application/${application.id}/instances`)
+                cy.visit(`/team/${team.slug}/applications/${application.id}/instances`)
                 cy.wait('@getApplication')
             })
     }
@@ -27,8 +28,8 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
     })
 
     it('is prompted that DevOps Pipelines are an enterprise feature', () => {
-        cy.visit(`/application/${application.id}/pipelines`)
-        cy.url().should('include', `/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
+        cy.url().should('include', `/applications/${application.id}/pipelines`)
         cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')
 
         cy.get('[data-action="pipeline-add"]').should('be.disabled')

@@ -1,4 +1,5 @@
 import ensurePermission from '../../utils/ensurePermission.js'
+import ApplicationRoutes from '../application/routes.js'
 
 import TeamApplications from './Applications/index.vue'
 import TeamAuditLog from './AuditLog.vue'
@@ -58,7 +59,8 @@ export default [
                                     title: 'Team - Create Application',
                                     menu: 'back'
                                 }
-                            }
+                            },
+                            ...ApplicationRoutes
                         ]
                     },
                     {

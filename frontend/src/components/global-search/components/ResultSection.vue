@@ -84,9 +84,11 @@ export default {
         decoratedResults () {
             return this.results.map(res => {
                 let routeName
+                const params = { id: res.id }
 
                 switch (this.resultType) {
                 case 'application':
+                    params.team_slug = this.team.slug
                     routeName = 'Application'
                     break
                 case 'instance':
@@ -98,7 +100,7 @@ export default {
                 default:
                     routeName = ''
                 }
-                res.route = { name: routeName, params: { id: res.id } }
+                res.route = { name: routeName, params }
 
                 return res
             })

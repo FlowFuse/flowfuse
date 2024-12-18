@@ -25,6 +25,7 @@ export default {
         SectionSideMenu, SectionTopMenu
     },
     mixins: [permissionsMixin],
+    inheritAttrs: false,
     props: {
         application: {
             type: Object,

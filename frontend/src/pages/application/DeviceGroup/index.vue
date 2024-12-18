@@ -72,6 +72,7 @@ import DeviceSolidIcon from '../../../components/icons/DeviceSolid.js'
 
 import permissionsMixin from '../../../mixins/Permissions.js'
 
+// todo page breadcrumbs should be pointing to app > device groups, currently app is missing and layout seems to be out of place
 export default {
     name: 'DeviceGroup',
     components: {
