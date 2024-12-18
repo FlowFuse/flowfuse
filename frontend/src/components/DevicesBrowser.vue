@@ -153,12 +153,12 @@
                                 You can deploy <router-link class="ff-link" :to="{name: 'instance-snapshots', params: {id: instance.id}}">Snapshots</router-link> of this Instance to your connected Devices.
                             </p>
                             <p>
-                                A full list of your Team's Devices are available <router-link
+                                A full list of your Team's Devices are available <ff-team-link
                                     class="ff-link"
                                     :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
                                 >
                                     here
-                                </router-link>.
+                                </ff-team-link>.
                             </p>
                         </template>
                         <template #actions>
@@ -192,12 +192,12 @@
                                 You can deploy <router-link class="ff-link" :to="{name: 'ApplicationSnapshots'}">Snapshots</router-link> of this Application to your connected Devices.
                             </p>
                             <p>
-                                A full list of your Team's Devices are available <router-link
+                                A full list of your Team's Devices are available <ff-team-link
                                     class="ff-link"
                                     :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
                                 >
                                     here
-                                </router-link>.
+                                </ff-team-link>.
                             </p>
                         </template>
                         <template #actions>
@@ -245,7 +245,7 @@
             </p>
             <p class="my-4">
                 If you want your device to be automatically registered to an instance, in order to remotely deploy flows, you can use provisioning tokens
-                in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link>
+                in your <ff-team-link :to="{'name': 'TeamSettingsDevices'}">Team Settings</ff-team-link>
             </p>
             <p class="my-4">
                 Further info on Devices can be found
