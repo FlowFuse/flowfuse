@@ -20,14 +20,16 @@ let teamMembership = { role: 0 }
  * Enum for roles with specific numeric values.
  */
 export default function usePermissions (store = null) {
+    let state
+
     if (store !== null) {
-        store = store.state
+        state = store.state
     } else {
-        store = (useStore())?.state
+        state = (useStore())?.state
     }
 
-    if (store && store?.account?.teamMembership) {
-        teamMembership = store?.account?.teamMembership
+    if (state && state?.account?.teamMembership) {
+        teamMembership = state?.account?.teamMembership
     }
 
     /**
