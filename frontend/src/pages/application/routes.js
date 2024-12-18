@@ -27,10 +27,8 @@ import ApplicationIndex from './index.vue'
 
 export default [
     {
-        path: '/application/:id',
-        redirect: to => {
-            return `/application/${to.params.id}/instances`
-        },
+        path: ':id',
+        redirect: { name: 'ApplicationInstances' },
         name: 'Application',
         component: ApplicationIndex,
         meta: {
@@ -78,6 +76,7 @@ export default [
                 }
             },
             {
+                name: 'application-settings',
                 path: 'settings',
                 component: ApplicationSettings,
                 meta: {
@@ -119,9 +118,7 @@ export default [
                 meta: {
                     title: 'Pipeline'
                 },
-                redirect: to => {
-                    return `/application/${to.params.applicationId}/pipelines/${to.params.pipelineId}/stages/create`
-                },
+                redirect: { name: 'CreatePipelineStage' },
                 children: [
                     {
                         path: 'stages/create',
@@ -152,32 +149,32 @@ export default [
         ]
     },
     {
-        path: '/application/:id/instances/create',
+        path: ':id/instances/create',
         name: 'ApplicationCreateInstance',
         component: ApplicationCreateInstance,
         props: route => ({
             sourceInstanceId: route.query.sourceInstanceId
         }),
         meta: {
+            // todo add a back button
             title: 'Application - Instances - Create'
         }
     },
     {
-        path: '/application/:applicationId/device-group/:deviceGroupId',
+        path: ':applicationId/device-group/:deviceGroupId',
         name: 'ApplicationDeviceGroupIndex',
         component: ApplicationDeviceGroupIndex,
         meta: {
             title: 'Application - Device Group'
         },
-        redirect: to => {
-            return `/application/${to.params.applicationId}/device-group/${to.params.deviceGroupId}/devices`
-        },
+        redirect: { name: 'ApplicationDeviceGroupDevices' },
         children: [
             {
                 path: 'devices',
                 name: 'ApplicationDeviceGroupDevices',
                 component: ApplicationDeviceGroupDevices,
                 meta: {
+                    // todo add a back button to the application device-groups
                     title: 'Application - Device Group - Members'
                 }
             },
@@ -186,6 +183,7 @@ export default [
                 name: 'ApplicationDeviceGroupSettings',
                 component: ApplicationDeviceGroupSettings,
                 meta: {
+                    // todo add back button
                     title: 'Application - Device Group - Settings'
                 },
                 redirect: {
@@ -208,7 +206,6 @@ export default [
                             title: 'Application - Device Group - Settings - Environment'
                         }
                     }
-
                 ]
             }
         ]
