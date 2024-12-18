@@ -1,6 +1,4 @@
 <template>
-    <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
-    <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
     <form class="space-y-6" @submit.prevent="onSubmit">
         <SectionTopMenu v-if="hasHeader" :hero="heroTitle" />
         <!-- Form title -->
@@ -65,6 +63,9 @@
                 This will create an instance of Node-RED that will be managed in your new Application.
             </template>
         </FormRow>
+
+        <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached && input.createInstance" fullMessage="You have reached the runtime limit for this team." />
+        <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached && input.createInstance" fullMessage="You have reached the instance limit for this team." />
 
         <div v-if="!creatingApplication || input.createInstance" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
             <!-- Instance Name -->
@@ -452,6 +453,10 @@ export default {
             return (teamTypeRuntimeLimit > 0 && currentRuntimeCount >= teamTypeRuntimeLimit)
         },
         teamInstanceLimitReached () {
+            console.log('this.projectTypes.length')
+            console.log(this.projectTypes)
+            console.log('this.activeProjectTypeCount')
+            console.log(this.activeProjectTypeCount)
             return this.projectTypes.length > 0 && this.activeProjectTypeCount === 0
         },
         atLeastOneFlowBlueprint () {
@@ -512,6 +517,8 @@ export default {
 
         const projectTypes = (await projectTypesPromise).types
         this.templates = (await templateListPromise).templates.filter(template => template.active)
+
+        console.log(projectTypes)
 
         this.activeProjectTypeCount = projectTypes.length
 
