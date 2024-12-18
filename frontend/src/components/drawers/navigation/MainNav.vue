@@ -48,8 +48,14 @@ export default {
                 return this.$route.meta.menu
             }
 
+            // this.$route.matched includes all nested parent routes in the order they match, starting from the root parent
+            // down to the most specific child route. Reversing the order so we find the nearest top-level parent with a
+            // meta.menu attribute not the other way around
+            const matched = [...this.$route.matched]
+            matched.reverse()
+
             // find the nearest parent with the meta.menu entry
-            const parentRoute = this.$route.matched.find(route => route.meta && route.meta.menu)
+            const parentRoute = matched.find(route => route.meta && route.meta.menu)
             return parentRoute ? parentRoute.meta.menu : null
         },
         nearestContextualMenu () {

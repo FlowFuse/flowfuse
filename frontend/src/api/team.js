@@ -423,6 +423,16 @@ const bulkDeviceMove = async (teamId, devices, moveTo, id = undefined) => {
 }
 
 /**
+ * Get a list of Dependencies / Bill of Materials
+ * @param teamId
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+const getDependencies = (teamId) => {
+    return client.get(`/api/v1/teams/${teamId}/bom`)
+        .then(res => res.data)
+}
+
+/**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
 */
@@ -453,5 +463,6 @@ export default {
     updateTeamDeviceProvisioningToken,
     deleteTeamDeviceProvisioningToken,
     bulkDeviceDelete,
-    bulkDeviceMove
+    bulkDeviceMove,
+    getDependencies
 }

@@ -112,7 +112,7 @@ Notes on how to setup DNS can be found [here](../dns-setup.md).
 Download the latest version of the FlowFuse Docker Compose file and example `.env` file used for installation configuration:
 
 ```bash
-curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose.yml
+curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose.yml
 curl -o .env https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/.env.example
 ```
 
@@ -184,6 +184,16 @@ MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD
 "
 ```
 
+If you are using a private Certificate Authority then you will also need to tell the Node-RED instances to trust this CA.
+You can do this by includeing the `DOCKER_DRIVER_PRIVATE_CA_PATH` value in `.env` file. e.g. if the `ca.pem` file is located at `/usr/local/ssl/ca.pem`
+on the host machine
+
+```
+DOCKER_DRIVER_PRIVATE_CA_PATH="/usr/local/ssl/ca.pem"
+```
+
+
+
 ## Start FlowFuse platform
 
 **Note: Make sure all configuration are done above before proceeding.**
@@ -236,7 +246,7 @@ Once you have finished setting up the admin user there are some Docker specific 
    ```
 3. Download the latest Docker Compose files:
     ```bash
-    curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose.yml
+    curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose.yml
     ```
 4. Make sure the `.env` file is present and contains your installaction-specific configuration. Download an example `.env` file if needed:
     ```bash

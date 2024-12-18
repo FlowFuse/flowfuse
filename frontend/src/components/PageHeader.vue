@@ -9,7 +9,7 @@
         </i>
         <!-- FlowFuse Logo -->
         <router-link :to="homeLink">
-            <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png">
+            <img class="ff-logo" src="/ff-logo--wordmark--dark.png">
         </router-link>
         <global-search v-if="hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
