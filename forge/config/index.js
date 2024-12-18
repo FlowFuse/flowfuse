@@ -110,6 +110,12 @@ module.exports = {
             }
         }
 
+        if (!config.device) {
+            config.device = {
+                cache_path: path.join(config.home, '/var/device/cache')
+            }
+        }
+
         // need to check that maxIdleDuration is less than maxDuration
         if (config.sessions) {
             if (config.sessions.maxIdleDuration && config.sessions.maxDuration) {
