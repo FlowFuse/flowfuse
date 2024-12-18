@@ -7,13 +7,6 @@
     <main v-else class="ff-with-status-header">
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
-        <Teleport v-if="mounted" to="#platform-banner">
-            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">
-                You are viewing this application as an Administrator
-            </div>
-            <SubscriptionExpiredBanner v-if="team" :team="team" />
-            <TeamTrialBanner v-if="team && team.billing?.trial" :team="team" />
-        </Teleport>
         <div class="ff-instance-header">
             <ff-page-header :title="application.name" :tabs="navigation">
                 <template #breadcrumbs>
@@ -45,8 +38,6 @@ import { ChipIcon, ClockIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroi
 import { mapState } from 'vuex'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
-import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
-import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import PipelinesIcon from '../../components/icons/Pipelines.js'
 import ProjectsIcon from '../../components/icons/Projects.js'
 
@@ -63,9 +54,7 @@ export default {
     components: {
         ConfirmApplicationDeleteDialog,
         ConfirmInstanceDeleteDialog,
-        InstanceStatusPolling,
-        SubscriptionExpiredBanner,
-        TeamTrialBanner
+        InstanceStatusPolling
     },
     mixins: [permissionsMixin, applicationMixin, instanceActionsMixin],
     data: function () {
