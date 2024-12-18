@@ -6,6 +6,7 @@ import InstanceRoutes from '../instance/routes.js'
 
 import TeamApplications from './Applications/index.vue'
 import TeamAuditLog from './AuditLog.vue'
+import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamInstances from './Instances.vue'
@@ -207,7 +208,18 @@ export default [
                     {
                         name: 'team-pipelines',
                         path: 'pipelines',
-                        component: TeamPipelines
+                        component: TeamPipelines,
+                        meta: {
+                            title: 'Team - DevOps Pipelines'
+                        }
+                    },
+                    {
+                        name: 'team-bom',
+                        path: 'bill-of-materials',
+                        component: TeamBillOfMaterials,
+                        meta: {
+                            title: 'Team - Bill of Materials'
+                        }
                     }
                 ]
             },

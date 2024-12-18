@@ -57,10 +57,13 @@ describe('FlowForge - Instance editor', () => {
             .children()
             .should('exist')
 
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen')
+        })
+
         cy.get('[data-action="open-editor"]').click()
 
-        cy.get('[data-el="editor-iframe"]').should('exist')
-        cy.get('[data-el="tabs-drawer"]').should('exist')
+        cy.get('@windowOpen').should('be.calledWithMatch', /\/instance\/.*\/editor/)
     })
 
     it('has working drawer navigation tabs', () => {

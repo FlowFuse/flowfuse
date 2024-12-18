@@ -127,6 +127,7 @@ likely want to begin.
 1. [Mocking email](#mocking-email)
 1. [Testing](#testing)
 1. [VSCode Tips](#vscode-tips)
+1. [Team Broker](./team-broker.md)
 
 
 ### Create a Stack

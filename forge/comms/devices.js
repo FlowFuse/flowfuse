@@ -64,18 +64,24 @@ class DeviceCommsHandler {
         client.on('logs/heartbeat', (beat) => {
             this.deviceLogHeartbeats[beat.id] = beat.timestamp
         })
+        client.on('logs/disconnect', (beat) => {
+            const parts = beat.id.split(':')
+            this.sendCommand(parts[0], parts[1], 'stopLog', '')
+            this.app.log.info(`Disable device logging ${parts[1]} in team ${parts[0]}`)
+            delete this.deviceLogHeartbeats[beat.id]
+        })
 
         this.deviceLogHeartbeatInterval = setInterval(() => {
             const now = Date.now()
             for (const [key, value] of Object.entries(this.deviceLogHeartbeats)) {
-                if (now - value > 25000) {
+                if (now - value > 12500) {
                     const parts = key.split(':')
                     this.sendCommand(parts[0], parts[1], 'stopLog', '')
                     this.app.log.info(`Disable device logging ${parts[1]} in team ${parts[0]}`)
                     delete this.deviceLogHeartbeats[key]
                 }
             }
-        }, 30000)
+        }, 15000)
     }
 
     async handleStatus (status) {

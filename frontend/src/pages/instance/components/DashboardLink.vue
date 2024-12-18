@@ -3,12 +3,9 @@
         v-if="!hidden"
         kind="secondary"
         data-action="open-dashboard"
-        :to="dashboardURL"
-        :target="target"
         :disabled="buttonDisabled"
         class="whitespace-nowrap"
-        @click.stop.prevent
-        @mouseup.stop.prevent
+        @click="openDashboard"
     >
         <template v-if="showText" #icon-left>
             <ChartPieIcon />
@@ -23,10 +20,13 @@
 </template>
 
 <script>
-
 import { ChartPieIcon } from '@heroicons/vue/outline'
 
+import { useNavigationHelper } from '../../../composables/NavigationHelper.js'
+
 import { removeSlashes } from '../../../composables/String.js'
+
+const { openInANewTab } = useNavigationHelper()
 
 export default {
     name: 'DashboardLink',
@@ -66,6 +66,14 @@ export default {
         },
         target () {
             return '_db2_' + (this.instance?.id || '')
+        }
+    },
+    methods: {
+        openDashboard () {
+            if (this.buttonDisabled) {
+                return
+            }
+            openInANewTab(this.dashboardURL, this.target)
         }
     }
 }

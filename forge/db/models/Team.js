@@ -69,6 +69,13 @@ module.exports = {
                         TeamId: team.id
                     }
                 })
+                // Remove Team's device provisioning tokens
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'team',
+                        ownerId: team.id.toString()
+                    }
+                })
             }
         }
     },
