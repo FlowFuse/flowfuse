@@ -43,11 +43,6 @@
             </ff-page-header>
         </template>
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" :instance="instance" @confirm="onInstanceDelete" />
-        <Teleport v-if="mounted" to="#platform-banner">
-            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
-            <SubscriptionExpiredBanner :team="team" />
-            <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
-        </Teleport>
         <div>
             <router-view
                 :instance="instance"
