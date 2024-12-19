@@ -19,11 +19,17 @@ let teamMembership = { role: 0 }
  * @typedef {0 | 5 | 10 | 30 | 50 | 99} Role
  * Enum for roles with specific numeric values.
  */
-export default function usePermissions () {
-    const store = useStore()
+export default function usePermissions (rootState = null) {
+    let state
 
-    if (store && store?.state?.account?.teamMembership) {
-        teamMembership = store?.state?.account?.teamMembership
+    if (rootState !== null) {
+        state = rootState.state
+    } else {
+        state = (useStore())?.state
+    }
+
+    if (state && state?.account?.teamMembership) {
+        teamMembership = state?.account?.teamMembership
     }
 
     /**
