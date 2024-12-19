@@ -57,11 +57,6 @@ export default {
         InstanceStatusPolling
     },
     mixins: [permissionsMixin, applicationMixin, instanceActionsMixin],
-    data: function () {
-        return {
-            mounted: false
-        }
-    },
     computed: {
         ...mapState('account', ['features']),
         navigation () {
@@ -106,20 +101,11 @@ export default {
             return routes
         }
     },
-    async created () {
-        await this.updateApplication()
-
-        this.$watch(
-            () => this.$route.params.id,
-            async () => {
-                await this.updateApplication()
-            }
-        )
-    },
-    mounted () {
-        this.mounted = true
-    },
-    methods: {
+    watch: {
+        'team.name': {
+            handler: 'updateApplication',
+            immediate: true
+        }
     }
 }
 </script>
