@@ -126,10 +126,17 @@ const deployPipelineStage = async (pipelineId, sourceStageId, sourceSnapshotId) 
     })
 }
 
+const getTeamPipelines = async (teamId, options = {}) => {
+    return client.get(`/api/v1/teams/${teamId}/pipelines`, options).then(res => {
+        return res.data
+    })
+}
+
 export default {
     getPipelineStage,
     addPipelineStage,
     updatePipelineStage,
     deletePipelineStage,
-    deployPipelineStage
+    deployPipelineStage,
+    getTeamPipelines
 }

@@ -1,6 +1,6 @@
 {
     "name": "@flowfuse/flowfuse",
-    "version": "2.10.0",
+    "version": "2.12.0",
     "description": "An open source low-code development platform",
     "homepage": "https://flowfuse.com",
     "bugs": {
@@ -67,7 +67,7 @@
         "@fastify/swagger": "^8.10.1",
         "@fastify/swagger-ui": "^3.0.0",
         "@fastify/websocket": "^8.1.0",
-        "@flowfuse/driver-localfs": "^2.10.0",
+        "@flowfuse/driver-localfs": "^2.12.0",
         "@flowfuse/flow-renderer": "^0.4.1",
         "@headlessui/vue": "1.7.19",
         "@heroicons/vue": "1.0.6",
@@ -152,7 +152,7 @@
         "postcss-loader": "^8.1.1",
         "postcss-preset-env": "^9.1.3",
         "promptly": "^3.2.0",
-        "sass-loader": "^14.1.1",
+        "sass-loader": "^16.0.2",
         "should": "^13.2.3",
         "should-sinon": "^0.0.6",
         "sinon": "^19.0.2",

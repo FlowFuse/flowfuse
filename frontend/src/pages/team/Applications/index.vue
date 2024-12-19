@@ -23,6 +23,7 @@
                         data-action="create-application"
                         kind="primary"
                         :to="{name: 'CreateTeamApplication'}"
+                        type="anchor"
                     >
                         <template #icon-left>
                             <PlusSmIcon />
@@ -77,6 +78,7 @@
                         v-if="hasPermission('project:create')"
                         data-action="create-application"
                         kind="primary"
+                        type="anchor"
                         :to="{name: 'CreateTeamApplication'}"
                     >
                         <template #icon-left>
@@ -156,7 +158,8 @@ export default {
                         const filteredDevices = app.devices.filter(device => {
                             return [
                                 device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
-                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.type.toLowerCase().includes(this.filterTerm.toLowerCase())
                             ].includes(true)
                         })
 
@@ -177,7 +180,8 @@ export default {
                         const filteredDevices = app.devices.filter(device => {
                             return [
                                 device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
-                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.type.toLowerCase().includes(this.filterTerm.toLowerCase())
                             ].includes(true)
                         })
 
@@ -218,6 +222,7 @@ export default {
             const tour = Tours.create('welcome', TourWelcome)
             tour.start()
         }
+        this.setSearchQuery()
     },
     methods: {
         async fetchData (withLoading = true) {
@@ -300,6 +305,11 @@ export default {
                     ...applicationProps
                 })
             })
+        },
+        setSearchQuery () {
+            if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'searchQuery')) {
+                this.filterTerm = this.$route.query.searchQuery
+            }
         }
     }
 }

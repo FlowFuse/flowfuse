@@ -32,6 +32,18 @@
  * @typedef {(connection: WebSocket, request: FastifyRequest) => void} wsHandler
  */
 
+const fs = require('node:fs')
+const path = require('node:path')
+const localCacheFiles = [
+    { path: '/vendor/monaco/dist/editor.js', type: 'application/json; charset=UTF-8' }, // ~4.1MB
+    { path: '/vendor/monaco/dist/ts.worker.js', type: 'application/json; charset=UTF-8' }, // ~4.7MB
+    { path: '/vendor/monaco/dist/css.worker.js', type: 'application/json; charset=UTF-8' }, // ~1.1MB
+    { path: '/vendor/vendor.js', type: 'application/json; charset=UTF-8' }, // ~1.1MB
+    { path: '/vendor/mermaid/mermaid.min.js', type: 'application/json; charset=UTF-8' }, // ~2.5MB
+    { path: '/red/red.min.js', type: 'application/json; charset=UTF-8' },
+    { path: '/red/style.min.css', type: 'text/css; charset=UTF-8' }
+]
+
 class DeviceTunnelManager {
     // private members
     /** @type {Map<String, DeviceTunnel>} */ #tunnels
@@ -59,6 +71,9 @@ class DeviceTunnelManager {
                 this.closeTunnel(deviceId)
             }
         })
+
+        this.pathPrefix = app.config.device?.cache_path
+        this.pathPostfix = 'node_modules/@node-red/editor-client/public/'
     }
 
     /**
@@ -159,6 +174,8 @@ class DeviceTunnelManager {
         device.editorConnected = true
         await device.save()
 
+        tunnel.nodeRedVersion = device.nodeRedVersion
+
         // Handle messages sent from the device
         tunnel.socket.on('message', msg => {
             const response = JSON.parse(msg.toString())
@@ -236,6 +253,36 @@ class DeviceTunnelManager {
 
         /** @type {httpHandler} */
         tunnel._handleHTTPGet = (request, reply) => {
+            const url = request.url.substring(`/api/v1/devices/${tunnel.deviceId}/editor/proxy`.length)
+            try {
+                // check this is a cached item before hitting the file system.
+                // if the file is foound for this version of node-red, serve it from
+                // the file system, otherwise, fall through to the device tunnel logic
+                const cacheEntry = localCacheFiles.find(f => url.startsWith(f.path))
+                if (tunnel.nodeRedVersion && cacheEntry) {
+                    const cachParentDir = path.join(manager.pathPrefix, tunnel.nodeRedVersion)
+                    const cacheDirExists = fs.existsSync(cachParentDir)
+                    if (cacheDirExists) {
+                        const filePath = path.join(cachParentDir, manager.pathPostfix, cacheEntry.path)
+                        const fileExists = fs.existsSync(filePath)
+                        if (fileExists) {
+                            console.info(`Serving cached file: ${filePath}`) // usefull for debugging
+                            const data = fs.readFileSync(filePath)
+                            reply.headers({
+                                'Content-Type': cacheEntry.type,
+                                'Cache-Control': 'public, max-age=0',
+                                'FF-Proxied': 'true'
+                            })
+                            reply.send(data)
+                            return
+                        }
+                    }
+                }
+            } catch (_error) {
+                console.error('Error serving cached file', _error)
+                // Ignore errors, drop through to regular logic
+            }
+            // non cached requests are forwarded to the device
             const id = tunnel.nextRequestId++
             tunnel.requests[id] = reply
             tunnel.socket.send(JSON.stringify({

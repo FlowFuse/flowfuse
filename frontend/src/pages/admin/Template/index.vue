@@ -11,11 +11,11 @@
         </div>
         <div class="text-right space-x-4 flex h-8">
             <template v-if="!isNew">
-                <ff-button v-if="unsavedChanges" kind="secondary" class="ml-4" @click="cancelEdit">Discard changes</ff-button>
+                <ff-button v-if="unsavedChanges" kind="secondary" class="ml-4" data-el="discard-changes" @click="cancelEdit">Discard changes</ff-button>
                 <ff-button class="ml-4" :disabled="hasErrors || !unsavedChanges" @click="showSaveTemplateDialog">Save changes</ff-button>
             </template>
             <template v-else-if="isNew">
-                <ff-button :to="{ name: 'Admin Templates' }" kind="secondary">Cancel</ff-button>
+                <ff-button :to="{ name: 'admin-templates' }" kind="secondary">Cancel</ff-button>
                 <ff-button :disabled="hasErrors || !createValid" class="ml-4" @click="createTemplate">Create template</ff-button>
             </template>
         </div>
@@ -232,7 +232,7 @@ export default {
             } catch (err) {
                 console.error(err)
                 this.$router.push({
-                    name: 'PageNotFound',
+                    name: 'page-not-found',
                     params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
                     // preserve existing query and hash if any
                     query: this.$router.currentRoute.value.query,
@@ -340,7 +340,7 @@ export default {
             try {
                 await templateApi.create(template)
                 this.$router.push({
-                    name: 'Admin Templates'
+                    name: 'admin-templates'
                 })
             } catch (err) {
                 if (err.response?.data) {

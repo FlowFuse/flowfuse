@@ -1,9 +1,10 @@
 describe('FlowForge - Application - DevOps Pipelines', () => {
     let application
+    let team
     function loadApplication (teamName, applicationName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
-                const team = response.body.teams.find(
+                team = response.body.teams.find(
                     (team) => team.name === teamName
                 )
                 return cy.request('GET', `/api/v1/teams/${team.id}/applications`)
@@ -24,17 +25,17 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
     })
 
     it('can navigate to the /pipelines page with EE license', () => {
-        cy.visit(`/application/${application.id}`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}`)
         cy.get('[data-nav="application-pipelines"]').should('exist').click()
 
-        cy.url().should('include', `/application/${application.id}/pipelines`)
+        cy.url().should('include', `/applications/${application.id}/pipelines`)
     })
 
     it('can create pipelines containing stages', () => {
         cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
@@ -111,7 +112,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
         cy.intercept('POST', '/api/v1/pipelines/*/stages').as('createPipelineStage')
 
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
@@ -177,7 +178,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
         /// Create stages ready to push between
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
@@ -266,7 +267,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
         /// Create stages ready to push between
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
@@ -375,7 +376,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
         /// Create stages ready to push between
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
@@ -482,7 +483,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         }).as('getDevice')
 
         /// Create stages ready to push between
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
@@ -569,7 +570,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
         /// Create stages ready to push between
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
@@ -597,7 +598,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
         /// Create stages ready to push between
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
@@ -657,7 +658,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
         /// Create stages ready to push between
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         const PIPELINE_NAME = `My New Pipeline - ${Math.random().toString(36).substring(2, 7)}`
@@ -732,9 +733,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
         // Protect Instance
-        cy.visit(`/application/${application.id}`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}`)
         cy.get('[data-el="cloud-instances"] table tbody tr:nth-of-type(2)').click()
-        cy.get('[data-nav="instance-settings"').click()
+        cy.get('[data-nav="instance-settings"]').click()
         cy.get('[data-el="section-side-menu"] li:nth-of-type(4)').click()
         cy.get('[data-nav="enable-protect"]').click()
 
@@ -742,7 +743,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-nav="disable-protect"]')
 
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         // Create pipeline
@@ -796,7 +797,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.logout()
         cy.login('eddy', 'eePassword')
 
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
@@ -807,7 +808,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.logout()
         cy.login('bob', 'bbPassword')
 
-        cy.visit(`/application/${application.id}/pipelines`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
         cy.wait('@getPipelines')
 
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
@@ -832,10 +833,30 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
             })
 
         // Remove Protected status
-        cy.visit(`/application/${application.id}`)
+        cy.visit(`/team/${team.slug}/applications/${application.id}`)
         cy.get('[data-el="cloud-instances"] table tbody tr:nth-of-type(2)').click()
-        cy.get('[data-nav="instance-settings"').click()
+        cy.get('[data-nav="instance-settings"]').click()
         cy.get('[data-el="section-side-menu"] li:nth-of-type(4)').click()
         cy.get('[data-nav="disable-protect"]').click()
+    })
+
+    it('should hide the pipelines tab from users with viewer roles', () => {
+        cy.intercept('GET', '/api/v1/teams/*/user', { role: 10 }).as('getTeamRole')
+
+        cy.visit(`/team/${team.slug}/applications/${application.id}`)
+
+        cy.get('[data-nav="application-pipelines"]').should('not.exist')
+    })
+
+    it('should redirect viewer users to the instances overview when accessing the applications pipelines page', () => {
+        cy.intercept('GET', '/api/v1/teams/*/user', { role: 10 }).as('getTeamRole')
+
+        cy.visit(`/team/${team.slug}/applications/${application.id}/devices`)
+
+        cy.url().should('include', '/devices')
+
+        cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
+
+        cy.url().should('include', '/instances')
     })
 })

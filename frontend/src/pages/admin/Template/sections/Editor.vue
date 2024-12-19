@@ -66,6 +66,27 @@
             </div>
             <LockSetting class="flex justify-end flex-col" tooltip="This setting is fixed and cannot be changed." />
         </div>
+        <div v-if="dashboardIFrameAvailable">
+            <div class="flex flex-col sm:flex-row">
+                <div class="w-full max-w-md sm:mr-8">
+                    <FormRow v-model="editable.settings.dashboardIFrame" :error="editable.errors.dashboardIFrame" :disabled="!editTemplate && !editable.policy.dashboardIFrame" type="checkbox">
+                        Allow Dashboard to be embedded in an iFrame
+                        <template #description>
+                            Sets the <span>Content-Security-Policy: frame-ancestor '*'</span> HTTP Header for the Dashboard
+                        </template>
+                        <template #append><ChangeIndicator :value="editable.changed.settings.dashboardIFrame" /></template>
+                    </FormRow>
+                </div>
+                <LockSetting v-model="editable.policy.dashboardIFrame" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.dashboardIFrame" />
+            </div>
+        </div>
+        <div v-else class="flex flex-col sm:flex-row">
+            <div class="space-y-4 w-full max-w-md sm:mr-8">
+                <p>Upgrade your stack to be able to enable</p>
+                <p>embedding Dashboards in iFrames</p>
+                <ff-button size="small" to="general">Upgrade</ff-button>
+            </div>
+        </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.codeEditor" :disabled="!editTemplate && !editable.policy.codeEditor" type="select" :options="[{label:'monaco', value:'monaco'},{label:'ace', value:'ace'}]">
@@ -198,7 +219,8 @@ export default {
         },
         instance: {
             type: Object,
-            required: true
+            required: false,
+            default: () => {}
         },
         team: {
             type: Object,
@@ -247,6 +269,15 @@ export default {
         },
         debugLimitDisabled () {
             return !this.editTemplate && !this.editable.policy.debugMaxLength
+        },
+        dashboardIFrameAvailable () {
+            const launcherVersion = this.instance?.meta?.versions?.launcher
+            if (!launcherVersion) {
+                // We won't have this for a suspended project - so err on the side
+                // of permissive
+                return true
+            }
+            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.12.0')
         }
     }
 }

@@ -91,7 +91,7 @@ Before you begin, ensure you have the following:
 
 For a production-ready environment, we also recommend: 
 * **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
-* **TLS Certification:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#enable-https-optional))
+* **TLS Certification:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#enable-https-(optional)))
 
 ### DNS
 
@@ -112,7 +112,7 @@ Notes on how to setup DNS can be found [here](../dns-setup.md).
 Download the latest version of the FlowFuse Docker Compose file and example `.env` file used for installation configuration:
 
 ```bash
-curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose.yml
+curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose.yml
 curl -o .env https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/.env.example
 ```
 
@@ -149,6 +149,9 @@ TLS_ENABLED=true
 
 Proceed to the [next paragraph](#start-flowfuse-platform) to start the platform with automatically generated TLS certificate.
 
+> When using automatic TLS certificate generation, the platform will take a few minutes to generate them on the first platform startup. 
+> For a short period of time browsers may report untrusted certificate warning. This is expected behavior and should resolve itself once the certificate is generated.
+
 #### Custom TLS Certificate
 
 If you have own TLS certificate, you can use it in FlowFuse platform installation as well. As mentioned before, the certificate must be a wildcard one for the domain you are using.
@@ -180,6 +183,16 @@ MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD
 -----END PRIVATE KEY-----
 "
 ```
+
+If you are using a private Certificate Authority then you will also need to tell the Node-RED instances to trust this CA.
+You can do this by includeing the `DOCKER_DRIVER_PRIVATE_CA_PATH` value in `.env` file. e.g. if the `ca.pem` file is located at `/usr/local/ssl/ca.pem`
+on the host machine
+
+```
+DOCKER_DRIVER_PRIVATE_CA_PATH="/usr/local/ssl/ca.pem"
+```
+
+
 
 ## Start FlowFuse platform
 
@@ -233,7 +246,7 @@ Once you have finished setting up the admin user there are some Docker specific 
    ```
 3. Download the latest Docker Compose files:
     ```bash
-    curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose.yml
+    curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose.yml
     ```
 4. Make sure the `.env` file is present and contains your installaction-specific configuration. Download an example `.env` file if needed:
     ```bash
@@ -263,7 +276,7 @@ Once ready, [start the application](#start-flowfuse-platform) .
 
 ### How can I provide my own TLS certificate?
 
-If you have your own TLS certificate, you can use it in FlowFuse platform installation as well. See [Enable HTTPS](#enable-https-optional) section for more details.
+If you have your own TLS certificate, you can use it in FlowFuse platform installation as well. See [Enable HTTPS](#enable-https-(optional)) section for more details.
 
 ### I would like to invite my team members to the platform with e-mail, how can I do that?
 
@@ -282,7 +295,9 @@ Restart the core application to apply the changes:
 docker compose restart forge
 ```
 
-### After starting the platform, I can't access it in the browser - I see Connection Refused error
+### Connection Refused error
+
+After starting the platform, I can't access it in the browser - I see "Connection Refused error"
 
 If you are using the Digital Ocean Docker Droplet to host FlowFuse you will need to ensure that port 80 & 443 are opened in the UFW firewall before starting.
 
@@ -301,11 +316,30 @@ sudo firewall-cmd --zone=public --add-service=https --permanent
 sudo firewall-cmd --reload
 ```
 
-Windows:
+Windows (command prompt):
 ```bash
 netsh advfirewall firewall add rule name="Open Port 80" dir=in action=allow protocol=TCP localport=80
 netsh advfirewall firewall add rule name="Open Port 443" dir=in action=allow protocol=TCP localport=443
 ```
+
+Windows (PowerShell):
+```powershell
+New-NetFireWallRule -DisplayName 'WSL 8080TCP' -Direction Inbound -LocalPort 8080 -Action Allow -Protocol TCP
+New-NetFireWallRule -DisplayName 'WSL 8080TCP' -Direction Outbound -LocalPort 8080 -Action Allow -Protocol TCP
+```
+
+### I installed FlowFuse on Windows with WSL2, application is running but I can't access it in the browser
+
+Next to [opening the ports in the firewall](#connection-refused-error), 
+you need to configure port forwarding from Windows host to WSL2 server.
+
+To forward traffic from an external IP to your container, run the following PowerShell command (administrator privileges required):
+
+```powershell
+netsh interface portproxy add v4tov4 listenport=80 listenaddress=0.0.0.0 connectport=80 connectaddress=127.0.0.1
+```
+
+This command forwards traffic from port 80 on your external IP address to port 80 on your localhost, where the Nginx Proxy container is listening for connections.
 
 ### How can I enable persistent storage for Node-RED instances?
 

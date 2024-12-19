@@ -9,7 +9,7 @@
             </template>
         </SectionTopMenu>
 
-        <div class="space-y-6 mb-12">
+        <div class="space-y-6">
             <div class="banner-wrapper mt-5">
                 <FeatureUnavailable v-if="!isBOMFeatureEnabledForPlatform" />
                 <FeatureUnavailableToTeam v-else-if="!isBOMFeatureEnabledForTeam" />
@@ -26,17 +26,8 @@
                 >
                     <template #icon><SearchIcon /></template>
                 </ff-text-input>
-                <div v-if="Object.keys(dependencies).length > 0" class="dependencies" data-el="dependencies">
-                    <dependency-item
-                        v-for="(versions, dependencyTitle) in dependencies"
-                        :key="dependencyTitle"
-                        :title="dependencyTitle"
-                        :versions="versions"
-                    />
-                </div>
-                <div v-else class="empty text-center opacity-60">
-                    <p>Oops! We couldn't find any matching results.</p>
-                </div>
+
+                <BomDependencies :payload="payload" :search-term="searchTerm" />
             </div>
             <EmptyState v-else>
                 <template #img>
@@ -64,31 +55,26 @@ import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+import BomDependencies from '../../../components/bill-of-materials/BomDependencies.vue'
 
 import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 
-import DependencyItem from './components/DependencyItem.vue'
-
 export default {
     name: 'ApplicationDependencies',
     components: {
+        BomDependencies,
         FeatureUnavailable,
         FeatureUnavailableToTeam,
         EmptyState,
         SectionTopMenu,
-        SearchIcon,
-        DependencyItem
+        SearchIcon
     },
     mixins: [featuresMixin, permissionsMixin],
     inheritAttrs: false,
     props: {
         application: {
             type: Object,
-            required: true
-        },
-        instances: {
-            type: Array,
             required: true
         }
     },
@@ -100,60 +86,11 @@ export default {
         }
     },
     computed: {
-        extendedInstances () {
-            if (!this.payload?.children) {
-                return []
-            }
-
-            return this.payload.children.map(instance => {
-                const fullInstanceData = this.instances.find(ins => ins.id === instance.id)
-                if (fullInstanceData && Object.prototype.hasOwnProperty.call(fullInstanceData, 'meta')) {
-                    instance.meta = fullInstanceData.meta
-                }
-                return instance
-            })
-        },
-        dependencies () {
-            return this.extendedInstances
-                .reduce((acc, currentInstance) => {
-                    currentInstance.dependencies.forEach(dep => {
-                        const searchTerm = this.searchTerm.trim()
-                        const installedDependencyVersion = dep.version?.current ?? dep.version?.wanted ?? 'N/A'
-                        const dependencyNameMatchesSearch = dep.name.toLowerCase().includes(searchTerm.toLowerCase())
-                        const dependencyVersionMatchesSearch = installedDependencyVersion.toLowerCase().includes(searchTerm.toLowerCase())
-                        const matchesInstanceName = currentInstance.name.toLowerCase().includes(searchTerm.toLowerCase())
-                        const includeDependency = () => {
-                            if (!Object.prototype.hasOwnProperty.call(acc, dep.name)) {
-                                acc[dep.name] = {}
-                            }
-                            if (!Object.prototype.hasOwnProperty.call(acc[dep.name], installedDependencyVersion)) {
-                                acc[dep.name][installedDependencyVersion] = []
-                            }
-                            acc[dep.name][installedDependencyVersion].push(currentInstance)
-                        }
-
-                        switch (true) {
-                        case !searchTerm.length:
-                            includeDependency()
-                            break
-                        case matchesInstanceName:
-                            includeDependency()
-                            break
-                        case dependencyVersionMatchesSearch || dependencyNameMatchesSearch:
-                            includeDependency()
-                            break
-                        default:
-                            break
-                        }
-                    })
-                    return acc
-                }, {})
+        hasTeamPermission () {
+            return this.hasPermission('application:bom')
         },
         hasInstances () {
             return !(!this.payload || this.payload.children.length === 0)
-        },
-        hasTeamPermission () {
-            return this.hasPermission('application:bom')
         }
     },
     mounted () {
@@ -184,10 +121,5 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.dependencies-wrapper {
-  .dependencies {
-    display: grid;
-    gap: 12px;
-  }
-}
+
 </style>

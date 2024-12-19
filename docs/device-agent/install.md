@@ -13,9 +13,9 @@ meta:
 
 ## Prerequisites
 
-NodeJS of version 20 or later is recommended, through the device agent supports NodeJS v14 or later.
+The Device Agent requires Node.js 18 or later.
 
-The Device Agent can be installed on most Linux distributions, Windows, and MacOS.
+It can be installed on most Linux distributions, Windows, and MacOS, or via the provided Docker image.
 
 The Device Agent connects back to the FlowFuse platform on port 443. You will need to ensure your network permits traffic on that port. For FlowFuse Cloud, the device agent will connect to:
 
@@ -71,6 +71,14 @@ services:
       - /path/to/device.yml:/opt/flowfuse-device/device.yml
 ```
 
+#### Time Zone
+
+In order to ensure that the device agent runs with the correct timezone environment variable is set with the `-e` option
+
+```bash
+docker run -e TZ=Europe/London --mount type=bind,src=/path/to/device.yml,target=/opt/flowfuse-device/device.yml -p 1880:1880 flowfuse/device-agent:latest
+```
+
 ## Configuration
 
 The agent configuration is provided by a `device.yml` file within its working
@@ -110,6 +118,42 @@ the same machine.
 flowfuse-device-agent --port=1881
 ```
 
+### Start Device Agent on system boot
+
+To start the device agent on system boot, you can use the provided systemd service file.
+
+1. Download the file:
+
+```bash
+curl -L https://raw.githubusercontent.com/FlowFuse/device-agent/refs/heads/main/service/flowfuse-device.service -o flowfuse-device.service
+```
+
+2. Adjust `User`, `Group` and `WorkingDirectory` if needed
+3. Change the `ExecStart` command to start the Agent on [different port](#listen-port), if needed
+4. Move the service file to `/etc/systemd/system/` directory
+   
+```bash
+sudo mv flowfuse-device.service /etc/systemd/system/
+```
+
+5. Reload the systemd daemon
+
+```bash
+sudo systemctl daemon-reload
+```
+
+6. Enable the service to start on boot
+
+```bash
+sudo systemctl enable flowfuse-device
+```
+
+7. Start the service
+
+```bash
+sudo systemctl start flowfuse-device
+```
+
 ## Upgrading the agent
 
 To use the latest features on FlowFuse as well as on the edge device, it is advised to upgrade
@@ -124,6 +168,14 @@ and DockerHub.
 For backwards compatibility we will continue to publish to both the old and
 new locations for a period of time, but we strongly encourage users to update to the
 new package to ensure you continue to receive the latest updates.
+
+### Upgrading to Device Agent 3.x
+
+Version 3.x of the Device Agent requires Node.js 18 as a minimum; older versions of Node.js are no longer supported.
+
+The `latest` tagged Docker image is now based on Node.js 18.
+
+If you are not able to update to Node.js 18 or later at this time, you should stay on the Device Agent 2.x release. For the install commands below, this means using `@2.x` instead of `@latest`. In the case of Docker, make sure you use the `2.8.0` tag instead of `latest`.
 
 ### Linux/MacOS
 

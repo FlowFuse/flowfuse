@@ -36,7 +36,8 @@ module.exports = {
                     'id',
                     'state',
                     'ProjectStackId',
-                    'TeamId'
+                    'TeamId',
+                    'safeName'
                 ],
                 where: {
                     state: {
@@ -47,9 +48,12 @@ module.exports = {
             // Shut down all running projects
             projectList.forEach(async (project) => {
                 try {
+                    app.db.controllers.Project.setInflightState(project, 'suspending')
                     await app.containers.stop(project)
+                    app.db.controllers.Project.clearInflightState(project)
+                    await app.auditLog.Project.project.suspended(null, null, project)
                 } catch (err) {
-                    // do we need to log a failure?
+                    app.log.info(`Failed to suspend ${project.id} when licensed expired. ${err.toString()}`)
                 }
             })
         }

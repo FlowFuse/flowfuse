@@ -1,7 +1,7 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Devices">
+            <ff-page-header title="Edge Devices">
                 <template #context>
                     A list of all edge devices registered in your team. Assign them to applications or instances in order to deploy Node-RED remotely.
                 </template>

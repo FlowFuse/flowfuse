@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize')
+const { DataTypes, fn, col, Op, where } = require('sequelize')
 
 const { generateToken } = require('../utils')
 
@@ -24,7 +24,8 @@ module.exports = {
         sentAt: { type: DataTypes.DATE, allowNull: true },
         role: {
             type: DataTypes.INTEGER
-        }
+        },
+        reminderSentAt: { type: DataTypes.DATE, allowNull: true }
         // invitorId
         // inviteeId
     },
@@ -120,8 +121,13 @@ module.exports = {
                 forExternalEmail: async (email) => {
                     return this.findAll({
                         where: {
-                            external: true,
-                            email
+                            [Op.and]: [
+                                { external: true },
+                                where(
+                                    fn('lower', col('Invitation.email')),
+                                    email.toLowerCase()
+                                )
+                            ]
                         },
                         include: [
                             { model: M.Team, as: 'team' },

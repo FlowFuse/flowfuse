@@ -33,7 +33,7 @@ async function completeUserSignup (app, user) {
             // return
         }
         // only create a personal team if no other teams exist
-        if (!((await app.db.models.Team.forUser(user)).length)) {
+        if ((await app.db.models.Team.countForUser(user)) === 0) {
             let teamTypeId = app.settings.get('user:team:auto-create:teamType')
 
             if (!teamTypeId) {

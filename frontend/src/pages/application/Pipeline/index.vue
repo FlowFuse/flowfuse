@@ -27,55 +27,52 @@ export default {
         instances: {
             type: Object,
             required: true
-        },
-        devices: {
-            type: Array,
-            required: true
-        },
-        deviceGroups: {
-            type: Array,
-            required: true
         }
     },
     data: function () {
         return {
-            pipeline: null
+            pipeline: null,
+            devices: [],
+            deviceGroups: []
         }
     },
     watch: {
-        'application.id': 'loadPipeline'
+        'application.id': 'fetchData',
+        '$route.params.pipelineId': 'fetchData'
     },
-    created () {
-        this.loadPipeline()
-
-        this.$watch(
-            () => this.$route.params.pipelineId,
-            () => {
-                if (!this.$route.params.pipelineId) {
-                    return
-                }
-
-                this.loadPipeline()
-            }
-        )
+    async created () {
+        await this.fetchData()
     },
     methods: {
         async loadPipeline () {
             if (!this.application.id) {
-                return
+                return Promise.resolve()
             }
 
-            try {
-                this.pipeline = await ApplicationApi.getPipeline(this.application.id, this.$route.params.pipelineId)
-            } catch (err) {
-                this.$router.push({
-                    name: 'PageNotFound',
-                    params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
-                    // preserve existing query and hash if any
-                    query: this.$router.currentRoute.value.query,
-                    hash: this.$router.currentRoute.value.hash
+            return ApplicationApi.getPipeline(this.application.id, this.$route.params.pipelineId)
+                .then(res => {
+                    this.pipeline = res
                 })
-            }
+        },
+        async fetchData () {
+            return this.loadPipeline()
+                .then(() => ApplicationApi.getApplicationDevices(this.application.id))
+                .then(res => {
+                    this.devices = res.devices
+                })
+                .then(() => ApplicationApi.getDeviceGroups(this.application.id))
+                .then((res) => {
+                    this.deviceGroups = res.groups
+                })
+                .catch(() => {
+                    this.$router.push({
+                        name: 'page-not-found',
+                        params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
+                        // preserve existing query and hash if any
+                        query: this.$router.currentRoute.value.query,
+                        hash: this.$router.currentRoute.value.hash
+                    })
+                })
         }
     }
 }

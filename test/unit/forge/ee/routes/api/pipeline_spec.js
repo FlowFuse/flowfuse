@@ -112,20 +112,31 @@ describe('Pipelines API', function () {
         const userBob = await TestObjects.factory.createUser({
             admin: false,
             username: 'bob',
-            name: 'Bob Kenobi',
+            name: 'Bob Solo',
             email: 'bob@example.com',
             password: 'bbPassword'
+        })
+
+        const userChris = await TestObjects.factory.createUser({
+            admin: false,
+            username: 'chris',
+            name: 'Chris Kenobi',
+            email: 'chris@example.com',
+            password: 'ccPassword'
         })
 
         const team1 = await TestObjects.factory.createTeam({ name: 'PTeam' })
         await team1.addUser(userPez, { through: { role: Roles.Owner } })
         await TestObjects.team.addUser(userBob, { through: { role: Roles.Member } })
+        await TestObjects.team.addUser(userChris, { through: { role: Roles.Member } })
 
         await login('pez', 'ppPassword')
 
         await login('bob', 'bbPassword')
 
         await login('alice', 'aaPassword')
+
+        await login('chris', 'ccPassword')
     })
 
     after(async function () {
@@ -1792,10 +1803,14 @@ describe('Pipelines API', function () {
                 })
 
                 describe('For instance=>device', function () {
+                    beforeEach(async function () {
+                        TestObjects.tokens.deviceTwo = (await TestObjects.deviceTwo.refreshAuthTokens()).token
+                    })
                     it('Creates a snapshot of the source instance and sets it at the target snapshot on the target device', async function () {
                         // No snapshot yet
                         const latestSnapshot = await TestObjects.instanceOne.getProjectSnapshots()
                         latestSnapshot.should.have.length(0)
+                        const settingsHash = TestObjects.deviceTwo.settingsHash
 
                         // 1 -> 2
                         TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceTwo.id, source: TestObjects.stageOne.hashid, action: 'prompt' }, TestObjects.pipeline)
@@ -1815,6 +1830,33 @@ describe('Pipelines API', function () {
                         // Wait for the deploy to complete & check the target snapshot has been set
                         const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
                         createdSnapshot.hashid.should.equal(targetSnapshotHashid)
+
+                        // verify the devices settings hash was updated
+                        await TestObjects.deviceTwo.reload()
+                        await TestObjects.deviceTwo.settingsHash.should.not.equal(settingsHash)
+
+                        // ensure env is updated to reflect the new snapshot
+                        const response2 = await app.inject({
+                            method: 'GET',
+                            url: `/api/v1/devices/${TestObjects.deviceTwo.hashid}/live/settings`,
+                            headers: {
+                                authorization: `Bearer ${TestObjects.tokens.deviceTwo}`,
+                                'content-type': 'application/json'
+                            }
+                        })
+                        response2.statusCode.should.equal(200)
+                        const body2 = await response2.json()
+                        body2.should.have.property('env').and.be.an.Object()
+
+                        body2.env.should.not.have.property('FF_INSTANCE_ID')
+                        body2.env.should.not.have.property('FF_INSTANCE_NAME')
+                        body2.env.should.have.property('FF_APPLICATION_NAME', TestObjects.application.name)
+                        body2.env.should.have.property('FF_APPLICATION_ID', TestObjects.application.hashid)
+                        body2.env.should.have.property('FF_APPLICATION_NAME', TestObjects.application.name)
+                        body2.env.should.have.property('FF_DEVICE_ID', TestObjects.deviceTwo.hashid)
+                        body2.env.should.have.property('FF_DEVICE_NAME', TestObjects.deviceTwo.name)
+                        body2.env.should.have.property('FF_SNAPSHOT_ID', createdSnapshot.hashid)
+                        body2.env.should.have.property('FF_SNAPSHOT_NAME', createdSnapshot.name)
                     })
                 })
             })
@@ -2196,6 +2238,7 @@ describe('Pipelines API', function () {
                 it('Should copy the existing selected instance snapshot to the target instance', async function () {
                     // 1 -> 2
                     TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceTwo.id, source: TestObjects.stageOne.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
+                    const settingsHash = TestObjects.deviceTwo.settingsHash
 
                     const existingSnapshot = await createSnapshot(app, TestObjects.instanceOne, TestObjects.user, {
                         name: 'Existing Snapshot Created In Test',
@@ -2226,6 +2269,33 @@ describe('Pipelines API', function () {
                     // Wait for the deploy to complete & check the target snapshot has been set
                     const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
                     existingSnapshot.hashid.should.equal(targetSnapshotHashid)
+
+                    // verify the devices settings hash was updated
+                    await TestObjects.deviceTwo.reload()
+                    await TestObjects.deviceTwo.settingsHash.should.not.equal(settingsHash)
+
+                    // ensure env is updated to reflect the new snapshot
+                    const response2 = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/devices/${TestObjects.deviceTwo.hashid}/live/settings`,
+                        headers: {
+                            authorization: `Bearer ${TestObjects.tokens.deviceTwo}`,
+                            'content-type': 'application/json'
+                        }
+                    })
+                    response2.statusCode.should.equal(200)
+                    const body2 = await response2.json()
+                    body2.should.have.property('env').and.be.an.Object()
+
+                    body2.env.should.not.have.property('FF_INSTANCE_ID')
+                    body2.env.should.not.have.property('FF_INSTANCE_NAME')
+                    body2.env.should.have.property('FF_APPLICATION_NAME', TestObjects.application.name)
+                    body2.env.should.have.property('FF_APPLICATION_ID', TestObjects.application.hashid)
+                    body2.env.should.have.property('FF_APPLICATION_NAME', TestObjects.application.name)
+                    body2.env.should.have.property('FF_DEVICE_ID', TestObjects.deviceTwo.hashid)
+                    body2.env.should.have.property('FF_DEVICE_NAME', TestObjects.deviceTwo.name)
+                    body2.env.should.have.property('FF_SNAPSHOT_ID', existingSnapshot.hashid)
+                    body2.env.should.have.property('FF_SNAPSHOT_NAME', existingSnapshot.name)
                 })
             })
         })
@@ -2476,6 +2546,10 @@ describe('Pipelines API', function () {
                     const body = await response.json()
                     body.should.have.property('status', 'importing')
 
+                    // Wait for the deploy to complete & check the target snapshot has been set on the device group member `deviceTwo`
+                    const targetSnapshotHashid = await waitForDeviceDeployGetTargetSnapshot(TestObjects.deviceTwo)
+                    snapshot.hashid.should.equal(targetSnapshotHashid)
+
                     // call the GET pipelines and check the status of the device group is deploying
                     const responseGetPipelines = await app.inject({
                         method: 'GET',
@@ -2496,6 +2570,7 @@ describe('Pipelines API', function () {
                     const deviceGroup = deviceGroupData.groups[0]
                     device.should.have.property('targetSnapshotId', snapshot.id)
                     deviceGroup.should.have.property('targetSnapshotId', snapshot.id)
+                    console.warn('DEBUG: TEST END')
                 })
             })
 
@@ -2801,6 +2876,54 @@ describe('Pipelines API', function () {
             body.pipelines[2].stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
 
             response.statusCode.should.equal(200)
+        })
+    })
+    describe('List Team Pipelines', function () {
+        it('should list all the pipelines in a team and include stages, instances, devices, device groups and applications', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.team.hashid}/pipelines`,
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+
+            response.statusCode.should.equal(200)
+            const body = await response.json()
+
+            body.should.have.property('count', 3)
+            body.pipelines.should.have.length(3)
+
+            body.pipelines[0].should.have.property('name', 'new-pipeline')
+            body.pipelines[0].should.have.property('stages')
+            body.pipelines[0].should.have.property('application')
+            body.pipelines[0].application.should.have.property('name', TestObjects.application.name)
+
+            body.pipelines[0].stages.should.have.length(1)
+            body.pipelines[0].stages[0].should.have.property('name', 'stage-one')
+
+            body.pipelines[0].stages[0].instances.should.have.length(1)
+            body.pipelines[0].stages[0].instances[0].should.have.property('name', 'project1')
+
+            body.pipelines[1].should.have.property('name', 'new-pipeline-devices')
+            body.pipelines[1].should.have.property('application')
+
+            body.pipelines[1].stages.should.have.length(1)
+            body.pipelines[1].stages[0].should.have.property('name', 'stage-one-devices')
+
+            body.pipelines[1].stages[0].devices.should.have.length(1)
+            body.pipelines[1].stages[0].devices[0].should.have.property('name', 'device-a')
+
+            body.pipelines[2].should.have.property('name', 'new-pipeline-device-groups')
+            body.pipelines[2].should.have.property('application')
+
+            body.pipelines[2].stages.should.have.length(2)
+            body.pipelines[2].stages[0].should.have.property('name', 'stage-one-instance') // first stage is an instance
+            body.pipelines[2].stages[1].should.have.property('name', 'stage-two-device-group') // second stage is a device group
+
+            body.pipelines[2].stages[0].instances.should.have.length(1)
+            body.pipelines[2].stages[0].instances[0].should.have.property('name', 'project1')
+
+            body.pipelines[2].stages[1].deviceGroups.should.have.length(1)
+            body.pipelines[2].stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
         })
     })
 

@@ -10,14 +10,14 @@
         </div>
         <div class="details">
             <div class="detail-wrapper">
-                <span
+                <router-link
+                    :to="{ name: 'Instance', params: { id: localInstance.id } }"
                     :title="localInstance.name"
-                    class="cursor-pointer name"
+                    class="name"
                     :class="{'no-highlight': isHoveringInstanceUrl}"
-                    @click="openInstance"
                 >
                     {{ localInstance.name }}
-                </span>
+                </router-link>
             </div>
             <div class="detail-wrapper detail">
                 <a
@@ -154,14 +154,6 @@ export default {
             mutator.clearState()
 
             this.localInstance = { ...this.localInstance, ...instanceData }
-        },
-        openInstance () {
-            this.$router.push({
-                name: 'Instance',
-                params: {
-                    id: this.localInstance.id
-                }
-            })
         }
     }
 }

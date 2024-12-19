@@ -665,7 +665,7 @@ li.ff-list-item {
     }
     &.active {
       border: 2px solid var(--ff-tile-selection-color);
-      svg {
+      .ff-tile-selection-option--header svg {
         fill: var(--ff-tile-selection-color);
       }
     }

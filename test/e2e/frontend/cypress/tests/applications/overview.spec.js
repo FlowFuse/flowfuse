@@ -1,8 +1,9 @@
 describe('FlowForge - Applications', () => {
+    let team
     function navigateToApplication (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
-                const team = response.body.teams.find(
+                team = response.body.teams.find(
                     (team) => team.name === teamName
                 )
                 return cy.request('GET', `/api/v1/teams/${team.id}/applications`)
@@ -11,7 +12,7 @@ describe('FlowForge - Applications', () => {
                 const application = response.body.applications.find(
                     (application) => application.name === projectName
                 )
-                cy.visit(`/application/${application.id}/instances`)
+                cy.visit(`/team/${team.slug}/applications/${application.id}/instances`)
                 cy.wait('@getApplication')
             })
     }
@@ -616,7 +617,8 @@ describe('FlowForge - Applications', () => {
                                             lastSeenMs: null,
                                             status: 'offline',
                                             mode: 'autonomous',
-                                            isDeploying: false
+                                            isDeploying: false,
+                                            type: ''
                                         },
                                         {
                                             id: '2',
@@ -625,7 +627,8 @@ describe('FlowForge - Applications', () => {
                                             lastSeenMs: null,
                                             status: 'offline',
                                             mode: 'autonomous',
-                                            isDeploying: false
+                                            isDeploying: false,
+                                            type: ''
                                         },
                                         {
                                             id: '3',
@@ -634,7 +637,8 @@ describe('FlowForge - Applications', () => {
                                             lastSeenMs: null,
                                             status: 'offline',
                                             mode: 'autonomous',
-                                            isDeploying: false
+                                            isDeploying: false,
+                                            type: ''
                                         },
                                         {
                                             id: '4',
@@ -643,7 +647,8 @@ describe('FlowForge - Applications', () => {
                                             lastSeenMs: null,
                                             status: 'offline',
                                             mode: 'autonomous',
-                                            isDeploying: false
+                                            isDeploying: false,
+                                            type: ''
                                         }
                                     ]
                                 }
@@ -664,7 +669,8 @@ describe('FlowForge - Applications', () => {
                                             lastSeenMs: null,
                                             status: 'offline',
                                             mode: 'autonomous',
-                                            isDeploying: false
+                                            isDeploying: false,
+                                            type: ''
                                         }
                                     ]
                                 }
@@ -733,7 +739,8 @@ describe('FlowForge - Applications', () => {
                                             lastSeenMs: null,
                                             status: 'offline',
                                             mode: 'autonomous',
-                                            isDeploying: false
+                                            isDeploying: false,
+                                            type: ''
                                         },
                                         {
                                             id: '123',
@@ -742,7 +749,8 @@ describe('FlowForge - Applications', () => {
                                             lastSeenMs: null,
                                             status: 'offline',
                                             mode: 'autonomous',
-                                            isDeploying: false
+                                            isDeploying: false,
+                                            type: ''
                                         }
                                     ]
                                 }
@@ -788,7 +796,8 @@ describe('FlowForge - Applications', () => {
                                             lastSeenMs: null,
                                             status: 'offline',
                                             mode: 'autonomous',
-                                            isDeploying: false
+                                            isDeploying: false,
+                                            type: ''
                                         },
                                         {
                                             id: '13234',
@@ -797,7 +806,8 @@ describe('FlowForge - Applications', () => {
                                             lastSeenMs: null,
                                             status: 'offline',
                                             mode: 'autonomous',
-                                            isDeploying: false
+                                            isDeploying: false,
+                                            type: ''
                                         }
                                     ]
                                 }
@@ -844,7 +854,8 @@ describe('FlowForge - Applications', () => {
                                             lastSeenMs: null,
                                             status: 'offline',
                                             mode: 'autonomous',
-                                            isDeploying: false
+                                            isDeploying: false,
+                                            type: ''
                                         },
                                         {
                                             id: '13234',
@@ -853,7 +864,8 @@ describe('FlowForge - Applications', () => {
                                             lastSeenMs: null,
                                             status: 'offline',
                                             mode: 'autonomous',
-                                            isDeploying: false
+                                            isDeploying: false,
+                                            type: 'edge-entity'
                                         }
                                     ]
                                 }
@@ -928,6 +940,21 @@ describe('FlowForge - Applications', () => {
                         cy.get('[data-el="application-instance-item"]').should('have.length', 1)
                         cy.get('[data-el="application-instance-item"]').contains('interesting instance name')
                     })
+
+                cy.get('[data-form="search"] input').clear()
+                cy.get('[data-form="search"]').type('edge-entity')
+
+                // app present due to name match but with filtered instances and devices
+                cy.get('[data-el="application-item"]').contains('interesting app name')
+                    .parent()
+                    .parent()
+                    .parent()
+                    .within(() => {
+                        // one device present that matches query
+                        cy.get('[data-el="device-tile"]').should('exist')
+                        cy.get('[data-el="device-tile"]').should('have.length', 1)
+                        cy.get('[data-el="device-tile"]').contains('another device name')
+                    })
             })
 
             it('carries the search queries onwards to the application devices page when clicking show more', () => {
@@ -939,7 +966,8 @@ describe('FlowForge - Applications', () => {
                         lastSeenMs: null,
                         status: 'offline',
                         mode: 'autonomous',
-                        isDeploying: false
+                        isDeploying: false,
+                        type: ''
                     },
                     {
                         id: '2',
@@ -948,7 +976,8 @@ describe('FlowForge - Applications', () => {
                         lastSeenMs: null,
                         status: 'offline',
                         mode: 'autonomous',
-                        isDeploying: false
+                        isDeploying: false,
+                        type: ''
                     },
                     {
                         id: '3',
@@ -957,7 +986,8 @@ describe('FlowForge - Applications', () => {
                         lastSeenMs: null,
                         status: 'offline',
                         mode: 'autonomous',
-                        isDeploying: false
+                        isDeploying: false,
+                        type: ''
                     },
                     {
                         id: '4',
@@ -966,7 +996,8 @@ describe('FlowForge - Applications', () => {
                         lastSeenMs: null,
                         status: 'offline',
                         mode: 'autonomous',
-                        isDeploying: false
+                        isDeploying: false,
+                        type: ''
                     },
                     {
                         id: '5',
@@ -975,7 +1006,8 @@ describe('FlowForge - Applications', () => {
                         lastSeenMs: null,
                         status: 'offline',
                         mode: 'autonomous',
-                        isDeploying: false
+                        isDeploying: false,
+                        type: ''
                     }
                 ]
                 const instances = []

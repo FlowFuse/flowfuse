@@ -1,9 +1,10 @@
 import ensurePermission from '../../utils/ensurePermission.js'
+import ApplicationRoutes from '../application/routes.js'
 
 import TeamApplications from './Applications/index.vue'
 import TeamAuditLog from './AuditLog.vue'
+import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing.vue'
-import Broker from './Broker/index.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamInstances from './Instances.vue'
 import Library from './Library/index.vue'
@@ -11,10 +12,14 @@ import LibraryRoutes from './Library/routes.js'
 import TeamMembersMembers from './Members/General.vue'
 import TeamMembersInvitations from './Members/Invitations.vue'
 import TeamMembers from './Members/index.vue'
+import TeamPipelines from './Pipelines/index.vue'
 import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
 import TeamSettings from './Settings/index.vue'
+import UNSClients from './UNS/Clients/index.vue'
+import UNSHierarchy from './UNS/Hierarchy/index.vue'
+import UnifiedNameSpace from './UNS/index.vue'
 import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
@@ -24,146 +29,214 @@ import Team from './index.vue'
 
 export default [
     {
-        path: '/team/create',
-        name: 'CreateTeam',
-        beforeEnter: ensurePermission('team:create'),
-        component: CreateTeam,
-        meta: {
-            title: 'Create Team'
-        }
-    },
-    {
-        path: '/team/:team_slug',
-        redirect: to => {
-            return `/team/${to.params.team_slug}/applications`
-        },
-        name: 'Team',
-        component: Team,
-        meta: {
-            title: 'Team - Overview'
-        },
+        path: '/team',
         children: [
             {
-                path: 'applications',
-                name: 'Applications',
-                component: TeamApplications,
+                path: ':team_slug',
+                redirect: { name: 'Applications' },
+                name: 'Team',
+                component: Team,
                 meta: {
-                    title: 'Team - Applications'
-                }
-            },
-            {
-                path: 'instances',
-                name: 'Instances',
-                component: TeamInstances,
-                meta: {
-                    title: 'Team - Instances'
-                }
-            },
-            {
-                name: 'TeamDevices',
-                path: 'devices',
-                component: TeamDevices,
-                meta: {
-                    title: 'Team - Devices'
-                }
-            },
-            {
-                name: 'TeamLibrary',
-                path: 'library',
-                component: Library,
-                meta: {
-                    title: 'Team - Library'
-                },
-                redirect: to => {
-                    return { name: 'LibraryTeamLibrary' }
-                },
-                children: [...LibraryRoutes]
-            },
-            {
-                name: 'TeamBroker',
-                path: 'broker',
-                component: Broker,
-                meta: {
-                    title: ' Team - Broker'
-                }
-            },
-            {
-                path: 'members',
-                component: TeamMembers,
-                name: 'TeamMembers',
-                meta: {
-                    title: 'Team - Members'
-                },
-                redirect: to => {
-                    return `/team/${to.params.team_slug}/members/general`
+                    title: 'Team - Overview'
                 },
                 children: [
-                    { path: 'general', name: 'TeamMembers', component: TeamMembersMembers },
-                    { path: 'invitations', component: TeamMembersInvitations }
+                    {
+                        path: 'applications',
+                        children: [
+                            {
+                                name: 'Applications',
+                                path: '',
+                                component: TeamApplications,
+                                meta: {
+                                    title: 'Team - Applications'
+                                }
+                            },
+                            {
+                                name: 'CreateTeamApplication',
+                                path: 'create',
+                                component: CreateApplication,
+                                meta: {
+                                    title: 'Team - Create Application',
+                                    menu: 'back'
+                                }
+                            },
+                            ...ApplicationRoutes
+                        ]
+                    },
+                    {
+                        path: 'instances',
+                        children: [
+                            {
+                                name: 'Instances',
+                                path: '',
+                                component: TeamInstances,
+                                meta: {
+                                    title: 'Team - Instances'
+                                }
+                            },
+                            {
+                                name: 'CreateInstance',
+                                path: 'create',
+                                component: CreateInstance,
+                                meta: {
+                                    title: 'Team - Create Instance',
+                                    menu: {
+                                        type: 'back',
+                                        backTo: (params) => {
+                                            return {
+                                                label: 'Back to Instances',
+                                                to: { name: 'Instances', params }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        name: 'TeamDevices',
+                        path: 'devices',
+                        component: TeamDevices,
+                        meta: {
+                            title: 'Team - Devices'
+                        }
+                    },
+                    {
+                        name: 'TeamLibrary',
+                        path: 'library',
+                        component: Library,
+                        meta: {
+                            title: 'Team - Library'
+                        },
+                        redirect: { name: 'LibraryTeamLibrary' },
+                        children: [...LibraryRoutes]
+                    },
+                    {
+                        name: 'team-unified-namespace',
+                        path: 'broker',
+                        component: UnifiedNameSpace,
+                        redirect: { name: 'team-namespace-hierarchy' },
+                        meta: {
+                            title: 'Team - MQTT Broker'
+                        },
+                        children: [
+                            {
+                                name: 'team-namespace-hierarchy',
+                                path: 'hierarchy',
+                                component: UNSHierarchy,
+                                meta: {
+                                    title: 'Team - MQTT Broker Topic Hierarchy'
+                                }
+                            },
+                            {
+                                name: 'team-namespace-clients',
+                                path: 'clients',
+                                component: UNSClients,
+                                meta: {
+                                    title: 'Team - MQTT Broker Clients'
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        name: 'team-members',
+                        path: 'members',
+                        component: TeamMembers,
+                        meta: {
+                            title: 'Team - Members'
+                        },
+                        redirect: { name: 'team-members-members' },
+                        children: [
+                            { name: 'team-members-members', path: 'general', component: TeamMembersMembers },
+                            { name: 'team-members-invitations', path: 'invitations', component: TeamMembersInvitations }
+                        ]
+                    },
+                    {
+                        name: 'AuditLog',
+                        path: 'audit-log',
+                        component: TeamAuditLog,
+                        meta: {
+                            title: 'Team - Audit Log'
+                        }
+                    },
+                    {
+                        path: 'settings',
+                        children: [
+                            {
+                                name: 'TeamSettings',
+                                path: '',
+                                component: TeamSettings,
+                                meta: {
+                                    title: 'Team - Settings'
+                                },
+                                redirect: { name: 'team-settings-general' },
+                                children: [
+                                    { name: 'team-settings-general', path: 'general', component: TeamSettingsGeneral },
+                                    { name: 'TeamSettingsDevices', path: 'devices', component: TeamSettingsDevices },
+                                    { name: 'team-settings-danger', path: 'danger', component: TeamSettingsDanger }
+
+                                ]
+                            },
+                            {
+                                name: 'TeamChangeType',
+                                path: 'change-type',
+                                component: ChangeTeamType,
+                                meta: {
+                                    title: 'Team - Change Type'
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        name: 'Billing',
+                        path: 'billing',
+                        component: TeamBilling,
+                        meta: {
+                            title: 'Team - Billing'
+                        }
+                    },
+                    {
+                        name: 'team-overview',
+                        path: 'overview',
+                        redirect: { name: 'Applications' }
+                    },
+                    {
+                        name: 'team-pipelines',
+                        path: 'pipelines',
+                        component: TeamPipelines,
+                        meta: {
+                            title: 'Team - DevOps Pipelines'
+                        }
+                    },
+                    {
+                        name: 'team-bom',
+                        path: 'bill-of-materials',
+                        component: TeamBillOfMaterials,
+                        meta: {
+                            title: 'Team - Bill of Materials'
+                        }
+                    }
                 ]
             },
             {
-                path: 'audit-log',
-                component: TeamAuditLog,
+                name: 'CreateTeam',
+                path: 'create',
+                beforeEnter: ensurePermission('team:create'),
+                component: CreateTeam,
                 meta: {
-                    title: 'Team - Audit Log'
-                }
-            },
-            {
-                name: 'TeamChangeType',
-                path: 'settings/change-type',
-                component: ChangeTeamType,
-                meta: {
-                    title: 'Team - Change Type'
-                }
-            },
-            {
-                name: 'TeamSettings',
-                path: 'settings',
-                component: TeamSettings,
-                meta: {
-                    title: 'Team - Settings'
-                },
-                redirect: to => {
-                    return `/team/${to.params.team_slug}/settings/general`
-                },
-                children: [
-                    { path: 'general', component: TeamSettingsGeneral },
-                    // { path: 'permissions', component: TeamSettingsPermissions},
-                    { path: 'devices', name: 'TeamSettingsDevices', component: TeamSettingsDevices },
-                    { path: 'danger', component: TeamSettingsDanger }
-                ]
-            },
-            {
-                path: 'billing',
-                component: TeamBilling,
-                meta: {
-                    title: 'Team - Billing'
-                }
-            },
-            {
-                path: 'overview',
-                redirect: to => {
-                    return `/team/${to.params.team_slug}/applications`
+                    title: 'Create Team',
+                    menu: {
+                        type: 'back',
+                        backTo: (params) => {
+                            return {
+                                label: 'Back to Dashboard',
+                                to: { name: 'Team', params }
+                            }
+                        }
+                    }
                 }
             }
         ]
-    },
-    {
-        path: '/team/:team_slug/applications/create',
-        name: 'CreateTeamApplication',
-        component: CreateApplication,
-        meta: {
-            title: 'Team - Create Application'
-        }
-    },
-    {
-        path: '/team/:team_slug/instances/create',
-        name: 'CreateInstance',
-        component: CreateInstance,
-        meta: {
-            title: 'Team - Create Instance'
-        }
     },
     {
         path: '/deploy/blueprint',

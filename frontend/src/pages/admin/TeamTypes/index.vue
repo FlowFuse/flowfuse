@@ -15,6 +15,7 @@
             <ff-tile-selection-option
                 v-for="(teamType, index) in activeTeamTypes"
                 :key="index"
+                value=""
                 :price="teamType.properties?.billingDescription?.split('/')[0] || ''"
                 :price-interval="teamType.properties?.billingDescription?.split('/')[1] || ''"
                 :label="teamType.name" :description="teamType.description"
@@ -78,7 +79,7 @@ export default {
     },
     computed: {
         activeTeamTypes () {
-            const types = this.teamTypes.filter(pt => pt.active)
+            const types = this.teamTypes.filter(pt => pt.active).sort((a, b) => a.order - b.order)
             return types
         },
         inactiveTeamTypes () {

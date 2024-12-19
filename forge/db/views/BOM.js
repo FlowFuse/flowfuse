@@ -33,7 +33,8 @@ module.exports = {
                     nullable: true
                 },
                 ownerId: { type: 'string', nullable: true },
-                dependencies: { type: 'array', items: { $ref: 'dependency' } }
+                dependencies: { type: 'array', items: { $ref: 'dependency' } },
+                state: { type: 'string', nullable: true }
             }
         })
     },
@@ -54,17 +55,17 @@ module.exports = {
         if (type !== null) {
             const dependenciesArray = Object.entries(dependencies || {}).map(([name, version]) => app.db.views.BOM.dependency(name, version?.wanted, version?.current))
             if (type === 'device') {
-                const { hashid, name, ownerType } = model
+                const { hashid, name, ownerType, state } = model
                 let ownerId = null
                 if (ownerType === 'instance') {
                     ownerId = model.ProjectId
                 } else if (ownerType === 'application') {
                     ownerId = model.Application ? model.Application.id : app.db.models.Application.encodeHashid(model.ApplicationId)
                 }
-                return { id: hashid, name, type, ownerType, ownerId, dependencies: dependenciesArray }
+                return { id: hashid, name, type, ownerType, ownerId, dependencies: dependenciesArray, state }
             } else if (type === 'instance') {
-                const { id, name } = model
-                return { id, name, type, dependencies: dependenciesArray }
+                const { id, name, state } = model
+                return { id, name, type, dependencies: dependenciesArray, state }
             }
         }
         return null

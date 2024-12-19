@@ -7,7 +7,6 @@ import PageNotFound from './pages/PageNotFound.vue'
 
 import AccountRoutes from './pages/account/routes.js'
 import AdminRoutes from './pages/admin/routes.js'
-import ProjectRoutes from './pages/application/routes.js'
 import DeviceRoutes from './pages/device/routes.js'
 import HelpRoutes from './pages/help/routes.js'
 import EditorRoutes from './pages/instance/Editor/routes.js'
@@ -28,14 +27,18 @@ const routes = [
     ...AccountRoutes,
     ...DeviceRoutes,
     ...InstanceRoutes,
-    ...ProjectRoutes,
     ...TeamRoutes,
     ...AdminRoutes,
     ...HelpRoutes,
     ...EditorRoutes,
     {
+        name: 'page-not-found',
         path: '/:pathMatch(.*)*',
-        name: 'PageNotFound',
+        meta: {
+            title: 'Whoops - Not Found!',
+            menu: 'none',
+            transition: true
+        },
         component: PageNotFound
     }
 ]

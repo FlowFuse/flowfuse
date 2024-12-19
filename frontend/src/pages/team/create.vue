@@ -1,22 +1,21 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigation v-if="team">
-            <template #back>
-                <router-link :to="{name: 'Home'}">
-                    <nav-item :icon="icons.chevronLeft" label="Back to Dashboard" />
-                </router-link>
-            </template>
-        </SideNavigation>
-    </Teleport>
     <ff-page>
+        <template #header>
+            <ff-page-header title="Create New Team">
+                <template #context>
+                    Teams provide a way to organize who collaborates on your applications.
+                </template>
+            </ff-page-header>
+        </template>
         <ff-loading v-if="redirecting" message="Redirecting to Stripe..." />
         <ff-loading v-else-if="loading" message="Creating Team..." />
-        <div v-else class="m-auto">
-            <form class="space-y-6">
-                <FormHeading>Create a new team</FormHeading>
-                <div class="mb-8 text-sm text-gray-500">Teams are how you organize who collaborates on your applications.</div>
+        <div v-else class="m-auto max-w-5xl" :class="presetTeamType ? 'flex flex-col gap-4 sm:flex-row sm:gap-0' : 'space-y-6 max-w-4xl m-auto'">
+            <div v-if="presetTeamType" class="w-full max-w-lg">
+                <team-type-tile class="m-auto" :team-type="presetTeamType" :enableCTA="false" />
+            </div>
+            <form>
                 <!-- TeamType Type -->
-                <div class="grid">
+                <div v-if="!presetTeamType" class="grid mb-3">
                     <ff-tile-selection v-model="input.teamTypeId">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"
@@ -27,15 +26,15 @@
                         />
                     </ff-tile-selection>
                 </div>
-                <template v-if="!isContactRequired">
-                    <FormRow id="team" v-model="input.name" :error="errors.name">
+                <div v-if="!isContactRequired" class="space-y-3">
+                    <FormRow id="team" v-model="input.name" :error="errors.name" containerClass="max-w-md">
                         Team Name
                         <template #description>
                             eg. 'Development'
                         </template>
                     </FormRow>
 
-                    <FormRow id="team" v-model="input.slug" :error="input.slugError" :placeholder="input.defaultSlug">
+                    <FormRow id="team" v-model="input.slug" :error="input.slugError" :placeholder="input.defaultSlug" containerClass="max-w-md">
                         URL Slug
                         <template #description>
                             Use the default slug based on the team name or set your own.<br>
@@ -45,7 +44,8 @@
 
                     <template v-if="billingEnabled">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
-                            <p>To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
+                            <p v-if="!presetTeamType || !presetTeamType.isFree">To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
+                            <p v-else>Please note that, whilst we do require credit card details, this Team is free of charge, and no charges will be made.</p>
                         </div>
                         <ff-button :disabled="!formValid" @click="createTeam()">
                             <template #icon-right><ExternalLinkIcon /></template>
@@ -55,7 +55,7 @@
                     <ff-button v-else :disabled="!formValid" @click="createTeam()">
                         Create team
                     </ff-button>
-                </template>
+                </div>
                 <template v-else>
                     <div class="mb-8 text-sm text-gray-500 space-y-2">
                         <p>To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
@@ -77,11 +77,9 @@ import billingApi from '../../api/billing.js'
 import teamApi from '../../api/team.js'
 import teamTypesApi from '../../api/teamTypes.js'
 import teamsApi from '../../api/teams.js'
-import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
 
-import NavItem from '../../components/NavItem.vue'
-import SideNavigation from '../../components/SideNavigation.vue'
+import TeamTypeTile from '../../components/TeamTypeTile.vue'
 import Alerts from '../../services/alerts.js'
 import slugify from '../../utils/slugify.js'
 
@@ -107,7 +105,8 @@ export default {
             needsBilling: false,
             newTeam: null,
             errors: {},
-            pendingSlugCheck: null
+            pendingSlugCheck: null,
+            presetTeamType: false
         }
     },
     watch: {
@@ -138,7 +137,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'features']),
+        ...mapState('account', ['user', 'team', 'teams', 'features']),
         formValid () {
             return this.input.teamTypeId && this.input.name && this.input.slug && !this.pendingSlugCheck && !this.input.slugError && !this.errors.name
         },
@@ -157,11 +156,22 @@ export default {
     async created () {
         const teamTypesPromise = await teamTypesApi.getTeamTypes()
 
-        this.teamTypes = (await teamTypesPromise).types
+        this.teamTypes = (await teamTypesPromise).types.sort((a, b) => a.order - b.order)
         this.input.teamTypeId = this.teamTypes[0].id
+
+        if (this.$route.query.teamType) {
+            this.input.teamTypeId = this.$route.query.teamType
+            for (const teamType of this.teamTypes) {
+                if (teamType.id === this.input.teamTypeId) {
+                    this.presetTeamType = teamType
+                    break
+                }
+            }
+        }
     },
     mounted () {
         this.mounted = true
+        // was a team type pre-determined
     },
     methods: {
         createTeam () {
@@ -171,6 +181,17 @@ export default {
                 name: this.input.name,
                 slug: this.input.slug || this.input.defaultSlug,
                 type: this.input.teamTypeId
+            }
+            // Check if we should set the trial flag
+            if (
+                // TeamType has trial mode enabled
+                this.input.teamType.properties?.trial?.active &&
+                // User has no other teams
+                this.teams.length === 0 &&
+                // User is less than a week old
+                (Date.now() - (new Date(this.user.createdAt)).getTime()) < 1000 * 60 * 60 * 24 * 7
+            ) {
+                opts.trial = true
             }
 
             teamApi.create(opts).then(async result => {
@@ -226,10 +247,8 @@ export default {
     },
     components: {
         FormRow,
-        FormHeading,
-        SideNavigation,
-        NavItem,
-        ExternalLinkIcon
+        ExternalLinkIcon,
+        'team-type-tile': TeamTypeTile
     }
 }
 </script>
