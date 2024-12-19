@@ -66,6 +66,11 @@ export default {
             return this.isAdminUser || this.teamMembership?.role >= Roles.Viewer
         }
     },
+    watch: {
+        '$route.params.team_slug' (slug) {
+            this.$store.dispatch('account/setTeam', slug)
+        }
+    },
     mounted () {
         this.mounted = true
     },

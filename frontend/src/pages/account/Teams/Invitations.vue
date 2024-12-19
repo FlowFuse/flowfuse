@@ -53,14 +53,12 @@ export default {
             await this.$store.dispatch('account/refreshTeams')
             Alerts.emit(`Invite to "${invite.team.name}" has been accepted.`, 'confirmation')
             // navigate to team dashboad once invite accepted
-            this.$store.dispatch('account/setTeam', invite.team.slug)
-                .then(() => this.$router.push({
-                    name: 'Team',
-                    params: {
-                        team_slug: invite.team.slug
-                    }
-                }))
-                .catch(e => console.warn(e))
+            this.$router.push({
+                name: 'Team',
+                params: {
+                    team_slug: invite.team.slug
+                }
+            })
         },
         async rejectInvite (invite) {
             await userApi.rejectTeamInvitation(invite.id, invite.team.id)

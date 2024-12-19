@@ -221,14 +221,12 @@ export default {
             this.loading = false
         },
         viewTeam (row) {
-            this.$store.dispatch('account/setTeam', row.slug)
-                .then(() => this.$router.push({
-                    name: 'Team',
-                    params: {
-                        team_slug: row.slug
-                    }
-                }))
-                .catch(e => console.warn(e))
+            this.$router.push({
+                name: 'Team',
+                params: {
+                    team_slug: row.slug
+                }
+            })
         }
     }
 }
