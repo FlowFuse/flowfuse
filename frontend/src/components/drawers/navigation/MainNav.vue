@@ -76,7 +76,7 @@ export default {
         backToButton () {
             const defaultBackToRoute = {
                 label: 'Back to Dashboard',
-                to: { name: 'Applications', params: { team_slug: this.team.slug } },
+                to: { name: 'Applications', params: { team_slug: this.team?.slug } },
                 tag: 'back',
                 icon: ChevronLeftIcon
             }
@@ -93,7 +93,7 @@ export default {
                 return { ...defaultBackToRoute, ...this.nearestMetaMenu.backTo }
 
             case isNearestMenuAnObject && hasBackToProp && typeof this.nearestMetaMenu.backTo === 'function':
-                return { ...defaultBackToRoute, ...this.nearestMetaMenu.backTo({ team_slug: this.team.slug }) }
+                return { ...defaultBackToRoute, ...this.nearestMetaMenu.backTo({ team_slug: this.team?.slug }) }
 
             case typeof this.nearestMetaMenu === 'string':
             default:
@@ -112,21 +112,20 @@ export default {
             immediate: true
         },
         backToButton: {
-            handler: function (menu) {
-                if (this.team) {
-                    this.setMainNavBackButton(menu)
-                }
-            },
+            handler: 'setBackButton',
             immediate: true
         },
-        team () {
-            this.setMainNavBackButton(this.backToButton)
-        }
+        team: 'setBackButton'
     },
     methods: {
         ...mapActions('ux', ['setMainNavContext', 'setMainNavBackButton']),
         onMenuItemClick () {
             this.$store.dispatch('ux/closeLeftDrawer')
+        },
+        setBackButton () {
+            if (this.team) {
+                this.setMainNavBackButton(this.backToButton)
+            }
         }
     }
 }
