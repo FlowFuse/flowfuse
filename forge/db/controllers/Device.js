@@ -43,6 +43,9 @@ module.exports = {
             if (state.agentVersion) {
                 device.set('agentVersion', state.agentVersion)
             }
+            if (state.nodeRedVersion) {
+                device.set('nodeRedVersion', state.nodeRedVersion)
+            }
             device.set('editorAffinity', state.affinity || null)
             if (!state.snapshot || state.snapshot === '0') {
                 if (device.activeSnapshotId !== null) {
