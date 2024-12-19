@@ -1,6 +1,4 @@
 <template>
-    <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
-    <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
     <form class="space-y-6" @submit.prevent="onSubmit">
         <SectionTopMenu v-if="hasHeader" :hero="heroTitle" />
         <!-- Form title -->
@@ -67,6 +65,8 @@
         </FormRow>
 
         <div v-if="!creatingApplication || input.createInstance" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
+            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
+            <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
             <!-- Instance Name -->
             <div>
                 <FormRow
@@ -452,6 +452,10 @@ export default {
             return (teamTypeRuntimeLimit > 0 && currentRuntimeCount >= teamTypeRuntimeLimit)
         },
         teamInstanceLimitReached () {
+            // this.projectTypes.length > 0 : There are Instance Types defined
+            // this.activeProjectTypeCount : How instance types are available for the user to select
+            //                               taking into account their limits
+            // Hence, if activeProjectTypeCount === 0, then they are at their limit of usage
             return this.projectTypes.length > 0 && this.activeProjectTypeCount === 0
         },
         atLeastOneFlowBlueprint () {
@@ -647,6 +651,9 @@ export default {
                 ...this.input,
                 ...this.preDefinedInputs
             }
+        }
+        if (this.teamInstanceLimitReached || this.teamRuntimeLimitReached) {
+            this.input.createInstance = false
         }
     },
     async beforeMount () {
