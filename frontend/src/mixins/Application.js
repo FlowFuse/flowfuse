@@ -39,8 +39,7 @@ export default {
                 this.application = await ApplicationApi.getApplication(applicationId)
                 // Check to see if we have the right team loaded
                 if (this.team?.slug !== this.application.team.slug) {
-                    // Load the team for this application
-                    await this.$store.dispatch('account/setTeam', this.application.team.slug)
+                    return
                 }
                 const instancesPromise = ApplicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
                 const applicationInstances = await instancesPromise
