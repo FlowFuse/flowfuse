@@ -137,7 +137,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'features']),
+        ...mapState('account', ['user', 'team', 'teams', 'features']),
         formValid () {
             return this.input.teamTypeId && this.input.name && this.input.slug && !this.pendingSlugCheck && !this.input.slugError && !this.errors.name
         },
@@ -181,6 +181,17 @@ export default {
                 name: this.input.name,
                 slug: this.input.slug || this.input.defaultSlug,
                 type: this.input.teamTypeId
+            }
+            // Check if we should set the trial flag
+            if (
+                // TeamType has trial mode enabled
+                this.input.teamType.properties?.trial?.active &&
+                // User has no other teams
+                this.teams.length === 0 &&
+                // User is less than a week old
+                (Date.now() - (new Date(this.user.createdAt)).getTime()) < 1000 * 60 * 60 * 24 * 7
+            ) {
+                opts.trial = true
             }
 
             teamApi.create(opts).then(async result => {

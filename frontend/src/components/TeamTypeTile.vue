@@ -48,7 +48,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user']),
+        ...mapState('account', ['user', 'teams']),
         pricing: function () {
             const billing = this.teamType.properties?.billing.description?.split('/')
             const price = {}
@@ -61,14 +61,20 @@ export default {
     },
     methods: {
         isTrial (teamType) {
-            return teamType.properties?.trial?.active
+            // A team trial can be offered if:
+            // 1. User has no other teams
+            return this.teams.length === 0 &&
+            // 2. User is less than a week old
+                (Date.now() - (new Date(this.user.createdAt)).getTime()) < 1000 * 60 * 60 * 24 * 7 &&
+            // 3. TeamType meta data says so
+                teamType.properties?.trial?.active
         },
         isManualBilling (teamType) {
             return teamType.properties?.billing?.requireContact
         },
         contactFF (teamType) {
             BillingAPI.sendTeamTypeContact(this.user, teamType, 'Create Team').then(() => {
-                Alerts.emit('A message has been sent to you our team. We will contact you soon regarding your request. In the mean time, feel free to choose another plan to get started.', 'confirmation', 20000)
+                Alerts.emit('A message has been sent to our team. We will contact you soon regarding your request. In the mean time, feel free to choose another plan to get started.', 'confirmation', 20000)
             }).catch(err => {
                 Alerts.emit('Something went wrong with the request. Please try again or contact support for help.', 'warning', 15000)
                 console.error('Failed to submit hubspot form: ', err)
