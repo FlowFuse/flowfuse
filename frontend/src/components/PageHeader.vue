@@ -11,7 +11,7 @@
         <router-link :to="homeLink">
             <img class="ff-logo" src="/ff-logo--wordmark--dark.png">
         </router-link>
-        <global-search v-if="hasAMinimumTeamRoleOf(Roles.Viewer)" />
+        <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
             <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />

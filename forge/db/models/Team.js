@@ -182,6 +182,13 @@ module.exports = {
                         }]
                     })
                 },
+                countForUser: async function (User) {
+                    return M.TeamMember.count({
+                        where: {
+                            UserId: User.id
+                        }
+                    })
+                },
                 forUser: async function (User) {
                     return M.TeamMember.findAll({
                         where: {

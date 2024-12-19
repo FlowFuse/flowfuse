@@ -1,3 +1,69 @@
+#### 2.12.0: Release
+
+ - Add note about Private CA chain (#4901)
+ - Bump actions/github-script from 6 to 7 (#4897)
+ - Bump flowfuse/github-actions-workflows from 0.37.0 to 0.38.0 (#4896)
+ - Make it clearer which IP address to use (#4887)
+ - Bump codecov/codecov-action from 4 to 5 (#4795)
+ - Support disabling instance launcher "auto safe mode" (#4922) @Steve-Mcl
+ - Allow NR Dashboard to be loaded in iFrames (#4900) @hardillb
+ - Add system-ui as a backup font for heebo (to match internal font) (#4946) @cstns
+ - Remove platform banners from the applications page (#4939) @cstns
+ - Better device proxy cache (#4792) @hardillb
+ - Fix application child routes not making the applications nav menu active (#4885) @cstns
+ - Decrease device auto timeout to 15 seconds from 30 (#4932) @hardillb
+ - Add logo version for dark backgrounds (#4930) @Yndira-E
+ - Open Dashboard and Editor links in new tab by default (#4923) @joepavitt
+ - Update the sign up page and box layout to new branding (#4924) @joepavitt
+ - Bump nanoid from 3.3.7 to 3.3.8 (#4918) @app/dependabot
+ - Add note to Instance Types setting default Stack (#4917) @hardillb
+ - Team Bill Of Materials UI (#4872) @cstns
+ - Remove notifications for deleted instances (#4899) @hardillb
+ - Revert Device log changes (#4916) @hardillb
+ - Allow for prefix/suffix to SSO GroupNames (#4902) @hardillb
+ - Add device agent docker timezone docs (#4907) @hardillb
+ - Ensure Device Provisioning tokens removed with Team (#4906) @hardillb
+ - Return device type in application/devices (#4904) @hardillb
+ - Fix device log race condition between publish and disconnect (#4903) @cstns
+ - Ensure device logs always shown (#4893) @hardillb
+ - Add some Team Broker developement docs (#4799) @hardillb
+ - Ensure Instance suspended on expired license (#4888) @hardillb
+ - Bump cypress from 13.13.1 to 13.16.1 (#4895) @app/dependabot
+ - ci: Fix prestaging slack notification conditional (#4892) @ppawlowski
+ - ci: "upstream" packages validation workflow (#4455) @ppawlowski
+ - docs: Change links to Docker Compose files (#4890) @ppawlowski
+ - Fix main nav matching context order (#4869) @cstns
+ - Use default behavior for platform wide anchors (part I) (#4834) @cstns
+ - Bump path-to-regexp and express (#4879) @app/dependabot
+ - Fix padding on Device Group Settings view (#4865) @knolleary
+ - docs: Add description how to start Device Agent on system boot (#4878) @ppawlowski
+ - Send invite Reminders (#4824) @hardillb
+ - Fixe the outline of the first search result title (#4877) @cstns
+ - Add more filters for admin notification targeting (#4843) @knolleary
+ - Topic hierarchy follow up (#4818) @cstns
+ - Update role-based permissions table (#4863) @sumitshinde-84
+ - Add Team BOM api endpoint (#4849) @hardillb
+ - Ensure existing http auth tokens shown (#4861) @hardillb
+ - fix hovering over pipeline and application name and update empty state message (#4859) @cstns
+ - Expand the UNS Hierarchy by default & improve hover behaviour (#4854) @joepavitt
+ - Fix access permission for team pipeline api (#4856) @hardillb
+ - Improve help text and empty state language for Teams > Pipelines (#4855) @joepavitt
+ - Navigation - Add Team Pipelines View (#4852) @cstns
+ - Prevent viewer role users from getting 404 when accesing applications (#4846) @cstns
+ - Team Pipelines API (#4847) @hardillb
+ - ci: Publish to npm only on successful tests (#4848) @ppawlowski
+ - Team member device mode toggle (#4844) @hardillb
+ - Improve padding/sizing of the global search box (#4825) @joepavitt
+ - Bump @sentry/browser and @sentry/vue (#4731) @app/dependabot
+ - Allow branding settings to be cleared in the UI (#4841) @knolleary
+ - ci: Test docs along with website (#4840) @ppawlowski
+ - Improved Admin Team view (#4770) @knolleary
+ - 4563 replace instance and audit logs dropdowns (#4567) @cstns
+ - Support Search by id in Global Search (#4814) @Steve-Mcl
+ - fix device groups layout (#4817) @Steve-Mcl
+ - docs: fix failing anchors on kubernetes and docker docs (#4812) @ppawlowski
+ - Fix broken anchor links in docs (#4811) @Steve-Mcl
+
 #### 2.11.0: Release
 
  - Bump flowfuse/github-actions-workflows from 0.36.0 to 0.37.0 (#4733)
