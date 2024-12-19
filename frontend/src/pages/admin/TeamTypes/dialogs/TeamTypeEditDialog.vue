@@ -14,7 +14,7 @@
                     Order
                     <template #description>Set the sort order when listing the types</template>
                 </FormRow>
-                <FormRow v-model="input.description" :error="errors.description" data-form="description">
+                <FormRow v-model="input.description" :error="errors.description" data-form="description" containerClass="w-full">
                     Description
                     <template #description>Use markdown for formatting</template>
                     <template #input><textarea v-model="input.description" class="w-full" rows="6" /></template>
