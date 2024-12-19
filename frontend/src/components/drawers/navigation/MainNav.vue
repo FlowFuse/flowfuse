@@ -107,17 +107,20 @@ export default {
     watch: {
         nearestContextualMenu: {
             handler: function (menu) {
-                if (Object.keys(this.mainNavContexts).includes(menu)) {
-                    this.setMainNavContext(menu)
-                }
+                this.setMainNavContext(menu)
             },
             immediate: true
         },
         backToButton: {
             handler: function (menu) {
-                this.setMainNavBackButton(menu)
+                if (this.team) {
+                    this.setMainNavBackButton(menu)
+                }
             },
             immediate: true
+        },
+        team () {
+            this.setMainNavBackButton(this.backToButton)
         }
     },
     methods: {
