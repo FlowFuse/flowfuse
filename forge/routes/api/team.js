@@ -1,3 +1,5 @@
+const crypto = require('crypto')
+
 const { Op } = require('sequelize')
 
 const { Roles } = require('../../lib/roles')
@@ -395,7 +397,8 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     type: { type: 'string' },
-                    slug: { type: 'string' }
+                    slug: { type: 'string' },
+                    trial: { type: 'boolean' }
                 }
             },
             response: {
@@ -429,6 +432,34 @@ module.exports = async function (app) {
             return
         }
 
+        let trialMode = false
+        if (app.license.active() && app.billing && request.body.trial) {
+            // Check this user is allowed to create a trial team of this type.
+            // Rules:
+            // 1. teamType must have trial mode enabled
+            const teamTrialActive = await teamType.getProperty('trial.active', false)
+            if (!teamTrialActive) {
+                reply.code(400).send({ code: 'invalid_request', error: 'trial mode not available' })
+                return
+            }
+            // 2. user must have no existing teams
+            const existingTeamCount = await app.db.models.Team.countForUser(request.session.User)
+            if (existingTeamCount > 0) {
+                reply.code(400).send({ code: 'invalid_request', error: 'trial mode not available' })
+                return
+            }
+            // 3. user must be < 1 week old
+            const delta = Date.now() - request.session.User.createdAt.getTime()
+            if (delta > 1000 * 60 * 60 * 24 * 7) {
+                reply.code(400).send({ code: 'invalid_request', error: 'trial mode not available' })
+                return
+            }
+            trialMode = true
+        } else if (request.body.trial) {
+            reply.code(400).send({ code: 'invalid_request', error: 'trial mode not available' })
+            return
+        }
+
         let team
 
         try {
@@ -444,9 +475,43 @@ module.exports = async function (app) {
             const teamView = app.db.views.Team.team(team)
 
             if (app.license.active() && app.billing) {
-                const session = await app.billing.createSubscriptionSession(team, request.session.User)
-                app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
-                teamView.billingURL = session.url
+                if (trialMode) {
+                    await app.billing.setupTrialTeamSubscription(team, request.session.User)
+                    // In trial mode, we may also auto-create their first application and instance
+                    if (app.settings.get('user:team:auto-create:instanceType')) {
+                        const instanceTypeId = app.settings.get('user:team:auto-create:instanceType')
+                        const instanceType = await app.db.models.ProjectType.byId(instanceTypeId)
+                        const instanceStack = await instanceType?.getDefaultStack() || (await instanceType.getProjectStacks())?.[0]
+                        const instanceTemplate = await app.db.models.ProjectTemplate.findOne({ where: { active: true } })
+                        if (!instanceType) {
+                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Instance type with id ${instanceTypeId} from 'user:team:auto-create:instanceType' not found`)
+                        } else if (!instanceStack) {
+                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Unable to find a stack for use with instance type ${instanceTypeId}`)
+                        } else if (!instanceTemplate) {
+                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Unable to find the default instance template`)
+                        } else {
+                            const applicationName = `${request.session.User.name}'s Application`
+                            const application = await app.db.models.Application.create({
+                                name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
+                                TeamId: team.id
+                            })
+                            await app.auditLog.Team.application.created(request.session.User, null, team, application)
+                            await app.auditLog.Application.application.created(request.session.User, null, application)
+
+                            const safeTeamName = team.name.toLowerCase().replace(/[\W_]/g, '-')
+                            const safeUserName = request.session.User.username.toLowerCase().replace(/[\W_]/g, '-')
+
+                            const instanceProperties = {
+                                name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
+                            }
+                            await app.db.controllers.Project.create(team, application, request.session.User, instanceType, instanceStack, instanceTemplate, instanceProperties)
+                        }
+                    }
+                } else {
+                    const session = await app.billing.createSubscriptionSession(team, request.session.User)
+                    app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
+                    teamView.billingURL = session.url
+                }
             }
 
             reply.send(teamView)

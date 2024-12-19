@@ -1,4 +1,4 @@
-const { KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
+const { KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_DISABLE_AUTO_SAFE_MODE, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
 const { Roles } = require('../../lib/roles')
 
 const ProjectActions = require('./projectActions')
@@ -456,15 +456,24 @@ module.exports = async function (app) {
         }
 
         // Launcher settings
-        if (request.body?.launcherSettings?.healthCheckInterval) {
-            const oldInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
-            const newInterval = parseInt(request.body.launcherSettings.healthCheckInterval, 10)
-            if (isNaN(newInterval) || newInterval < 5000) {
-                reply.code(400).send({ code: 'invalid_heathCheckInterval', error: 'Invalid heath check interval' })
-                return
+        if (request.body?.launcherSettings) {
+            if (request.body.launcherSettings.healthCheckInterval) {
+                const oldInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
+                const newInterval = parseInt(request.body.launcherSettings.healthCheckInterval, 10)
+                if (isNaN(newInterval) || newInterval < 5000) {
+                    reply.code(400).send({ code: 'invalid_heathCheckInterval', error: 'Invalid heath check interval' })
+                    return
+                }
+                if (oldInterval !== newInterval) {
+                    changesToPersist.healthCheckInterval = { from: oldInterval, to: newInterval }
+                }
             }
-            if (oldInterval !== newInterval) {
-                changesToPersist.healthCheckInterval = { from: oldInterval, to: newInterval }
+            if (typeof request.body.launcherSettings.disableAutoSafeMode === 'boolean') {
+                const oldInterval = await request.project.getSetting(KEY_DISABLE_AUTO_SAFE_MODE)
+                const newInterval = request.body.launcherSettings.disableAutoSafeMode
+                if (oldInterval !== newInterval) {
+                    changesToPersist.disableAutoSafeMode = { from: oldInterval, to: newInterval }
+                }
             }
         }
 
@@ -528,6 +537,10 @@ module.exports = async function (app) {
             if (changesToPersist.healthCheckInterval) {
                 await request.project.updateSetting(KEY_HEALTH_CHECK_INTERVAL, changesToPersist.healthCheckInterval.to, { transaction })
                 updates.pushDifferences({ healthCheckInterval: changesToPersist.healthCheckInterval.from }, { healthCheckInterval: changesToPersist.healthCheckInterval.to })
+            }
+            if (changesToPersist.disableAutoSafeMode) {
+                await request.project.updateSetting(KEY_DISABLE_AUTO_SAFE_MODE, changesToPersist.disableAutoSafeMode.to, { transaction })
+                updates.pushDifferences({ disableAutoSafeMode: changesToPersist.disableAutoSafeMode.from }, { disableAutoSafeMode: changesToPersist.disableAutoSafeMode.to })
             }
 
             await transaction.commit() // all good, commit the transaction
@@ -802,6 +815,7 @@ module.exports = async function (app) {
         settings.state = request.project.state
         settings.stack = request.project.ProjectStack?.properties || {}
         settings.healthCheckInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
+        settings.disableAutoSafeMode = await request.project.getSetting(KEY_DISABLE_AUTO_SAFE_MODE)
         settings.settings = await app.db.controllers.Project.getRuntimeSettings(request.project)
         if (settings.settings.env) {
             settings.env = Object.assign({}, settings.settings.env, settings.env)
