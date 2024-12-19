@@ -64,10 +64,9 @@
             </template>
         </FormRow>
 
-        <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached && input.createInstance" fullMessage="You have reached the runtime limit for this team." />
-        <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached && input.createInstance" fullMessage="You have reached the instance limit for this team." />
-
         <div v-if="!creatingApplication || input.createInstance" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
+            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
+            <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
             <!-- Instance Name -->
             <div>
                 <FormRow
@@ -453,10 +452,10 @@ export default {
             return (teamTypeRuntimeLimit > 0 && currentRuntimeCount >= teamTypeRuntimeLimit)
         },
         teamInstanceLimitReached () {
-            console.log('this.projectTypes.length')
-            console.log(this.projectTypes)
-            console.log('this.activeProjectTypeCount')
-            console.log(this.activeProjectTypeCount)
+            // this.projectTypes.length > 0 : There are Instance Types defined
+            // this.activeProjectTypeCount : How instance types are available for the user to select
+            //                               taking into account their limits
+            // Hence, if activeProjectTypeCount === 0, then they are at their limit of usage
             return this.projectTypes.length > 0 && this.activeProjectTypeCount === 0
         },
         atLeastOneFlowBlueprint () {
@@ -517,8 +516,6 @@ export default {
 
         const projectTypes = (await projectTypesPromise).types
         this.templates = (await templateListPromise).templates.filter(template => template.active)
-
-        console.log(projectTypes)
 
         this.activeProjectTypeCount = projectTypes.length
 
@@ -654,6 +651,9 @@ export default {
                 ...this.input,
                 ...this.preDefinedInputs
             }
+        }
+        if (this.teamInstanceLimitReached || this.teamRuntimeLimitReached) {
+            this.input.createInstance = false
         }
     },
     async beforeMount () {
