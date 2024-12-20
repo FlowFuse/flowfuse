@@ -37,7 +37,7 @@ const getters = {
         return state.tours.education
     },
     mainNavContexts: function (state, getters, rootState, rootGetters) {
-        const { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } = usePermissions()
+        const { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } = usePermissions(rootState)
         const team = rootState.account.team
         const accountFeatures = rootState.account.features
         const noBilling = rootGetters['account/noBilling']
@@ -308,8 +308,7 @@ const getters = {
             //  app and hydrates vuex stores before attempting to render any data
             return []
         }
-
-        const { hasPermission } = usePermissions()
+        const { hasPermission } = usePermissions(rootState)
 
         return getters.mainNavContexts[state.mainNav.context]
             .map(category => {
