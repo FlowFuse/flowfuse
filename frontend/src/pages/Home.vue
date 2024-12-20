@@ -1,13 +1,20 @@
 <template>
-    <main>
+    <main class="min-h-full">
         <template v-if="pending">
             <div class="flex-grow flex flex-col items-center justify-center mx-auto text-gray-600 opacity-50">
                 <FlowFuseLogo class="max-w-xs mx-auto w-full" />
             </div>
         </template>
-        <template v-else-if="teams.length === 0">
-            <NoTeamsUser />
-        </template>
+        <ff-page v-else-if="teams.length === 0">
+            <template #header>
+                <ff-page-header title="Choose Team Type">
+                    <template #context>
+                        Choose which team type you'd like to get started with.
+                    </template>
+                </ff-page-header>
+            </template>
+            <TeamTypeSelection />
+        </ff-page>
     </main>
 </template>
 
@@ -17,13 +24,13 @@ import { mapGetters, mapState } from 'vuex'
 
 import FlowFuseLogo from '../components/Logo.vue'
 
-import NoTeamsUser from './account/NoTeamsUser.vue'
+import TeamTypeSelection from '../components/TeamTypeSelection.vue'
 
 export default {
     name: 'HomePage',
     components: {
         FlowFuseLogo,
-        NoTeamsUser
+        TeamTypeSelection
     },
     data () {
         return {

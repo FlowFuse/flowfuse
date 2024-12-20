@@ -92,7 +92,7 @@ export default {
         onInstanceDelete () {
             this.$router.push({
                 name: 'ApplicationInstances',
-                params: { id: this.instance.application.id }
+                params: { id: this.instance.application.id, team_slug: this.team.slug }
             })
         }
     },

@@ -10,7 +10,7 @@ const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { KEY_HEALTH_CHECK_INTERVAL } = FF_UTIL.require('forge/db/models/ProjectSettings')
+const { KEY_HEALTH_CHECK_INTERVAL, KEY_DISABLE_AUTO_SAFE_MODE } = FF_UTIL.require('forge/db/models/ProjectSettings')
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 
 describe('Project API', function () {
@@ -1691,7 +1691,7 @@ describe('Project API', function () {
                 { name: 'two', value: '2' }
             ]) // should be unchanged
         })
-        it('Change launcher health check interval - owner', async function () {
+        it('Change launcher settings - owner', async function () {
             // Setup some flows/credentials
             await addFlowsToProject(app,
                 TestObjects.project1.id,
@@ -1708,15 +1708,18 @@ describe('Project API', function () {
                 url: `/api/v1/projects/${TestObjects.project1.id}`,
                 payload: {
                     launcherSettings: {
-                        healthCheckInterval: 9876
+                        healthCheckInterval: 9876,
+                        disableAutoSafeMode: true
                     }
                 },
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
 
-            const newValue = await TestObjects.project1.getSetting(KEY_HEALTH_CHECK_INTERVAL)
-            should(newValue).equal(9876)
+            const healthValue = await TestObjects.project1.getSetting(KEY_HEALTH_CHECK_INTERVAL)
+            should(healthValue).equal(9876)
+            const safeModeValue = await TestObjects.project1.getSetting(KEY_DISABLE_AUTO_SAFE_MODE)
+            should(safeModeValue).equal(true)
         })
         it('Change launcher health check interval bad value - owner', async function () {
             // Setup some flows/credentials

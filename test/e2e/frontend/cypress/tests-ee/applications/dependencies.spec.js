@@ -9,10 +9,11 @@ const interceptBom = (dependencies = []) => {
 
 describe('FlowForge - Application - Dependencies', () => {
     let application
+    let team
     function navigateToApplication (teamName, projectName, instances = [], statuses = []) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
-                const team = response.body.teams.find(
+                team = response.body.teams.find(
                     (team) => team.name === teamName
                 )
 
@@ -35,7 +36,7 @@ describe('FlowForge - Application - Dependencies', () => {
                 application = response.body.applications.find(
                     (app) => app.name === projectName
                 )
-                cy.visit(`/application/${application.id}/instances`)
+                cy.visit(`/team/${team.slug}/applications/${application.id}/instances`)
 
                 if (instances.length) {
                     cy.wait('@getStatuses')
@@ -58,7 +59,7 @@ describe('FlowForge - Application - Dependencies', () => {
         })
 
         it('owners should have access to the dependencies tab but won\'t have access to the feature if the team feature is not enabled', () => {
-            cy.visit(`/application/${application.id}`)
+            cy.visit(`/team/${team.slug}/applications/${application.id}`)
             cy.get('[data-nav="application-dependencies"]').click()
 
             cy.get('[data-el="page-banner-feature-unavailable-to-team"]').contains('This feature is not available for your current Team. Please upgrade your Team in order to use it.')
@@ -68,11 +69,11 @@ describe('FlowForge - Application - Dependencies', () => {
         it('members should not have access to the dependencies tab and page', () => {
             cy.intercept('GET', '/api/*/teams/*/user', { role: 40 }).as('getTeamRole')
 
-            cy.visit(`/application/${application.id}`)
+            cy.visit(`/team/${team.slug}/applications/${application.id}`)
 
             cy.get('[data-nav="application-dependencies"]').should('not.exist')
 
-            cy.visit(`/application/${application.id}/dependencies`)
+            cy.visit(`/team/${team.slug}/applications/${application.id}/dependencies`)
 
             cy.url().should('not.include', '/dependencies')
             cy.url().should('include', '/instances')
