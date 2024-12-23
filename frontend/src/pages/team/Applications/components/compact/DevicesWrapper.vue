@@ -6,7 +6,7 @@
         </label>
         <span v-if="!isSearching" class="message">
             This Application currently has no
-            <router-link :to="`/application/${application.id}/devices`" class="ff-link">attached devices</router-link>
+            <router-link :to="{name: 'ApplicationDevices', params: {team_slug: team.slug, id: application.id}}" class="ff-link">attached devices</router-link>
             .
         </span>
         <span v-else class="message">
@@ -68,6 +68,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import IconDeviceSolid from '../../../../../components/icons/DeviceSolid.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
 import DeviceCredentialsDialog from '../../../Devices/dialogs/DeviceCredentialsDialog.vue'
@@ -99,6 +101,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         hasMoreDevices () {
             return this.application.deviceCount > this.visibleDevices.length
         },

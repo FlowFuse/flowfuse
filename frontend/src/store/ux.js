@@ -66,6 +66,7 @@ const getters = {
                             to: { name: 'Instances', params: { team_slug: team.slug } },
                             tag: 'team-instances',
                             icon: ProjectsIcon,
+                            featureUnavailable: !features.isHostedInstancesEnabledForTeam,
                             disabled: noBilling
                         },
                         {
