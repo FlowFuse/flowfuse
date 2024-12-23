@@ -5,7 +5,7 @@
         </label>
         <span v-if="!isSearching" class="message">
             This Application currently has no
-            <router-link :to="`/application/${application.id}/instances`" class="ff-link">
+            <router-link :to="{name: 'ApplicationInstances', params: {team_slug: team.slug, id: application.id}}" class="ff-link">
                 attached Node-RED Instances
             </router-link>
             .
@@ -39,6 +39,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import IconNodeRedSolid from '../../../../../components/icons/NodeRedSolid.js'
 
 import HasMoreTile from './HasMoreTile.vue'
@@ -62,6 +64,7 @@ export default {
     },
     emits: ['delete-instance'],
     computed: {
+        ...mapState('account', ['team']),
         instances () {
             return this.application.instances.slice(0, 3)
         },

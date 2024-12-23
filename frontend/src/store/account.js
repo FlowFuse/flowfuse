@@ -120,6 +120,19 @@ const getters = {
 
     featuresCheck: (state) => {
         const preCheck = {
+            // Instances
+            isHostedInstancesEnabledForTeam: ((state) => {
+                let available = false
+                // loop over the different instance types
+                for (const instanceType of Object.keys(state.team.type.properties?.instances) || []) {
+                    if (state.team.type.properties?.instances[instanceType].active) {
+                        available = true
+                        break
+                    }
+                }
+                return available
+            })(state),
+
             // Shared Library
             isSharedLibraryFeatureEnabledForTeam: ((state) => {
                 const flag = state.team?.type?.properties?.features?.['shared-library']
