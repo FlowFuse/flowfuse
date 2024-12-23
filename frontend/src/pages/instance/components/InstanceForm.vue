@@ -655,7 +655,7 @@ export default {
                 ...this.preDefinedInputs
             }
         }
-        if (this.teamInstanceLimitReached || this.teamRuntimeLimitReached) {
+        if (this.teamInstanceLimitReached || this.teamRuntimeLimitReached || !this.instancesAvailable) {
             this.input.createInstance = false
         }
     },
