@@ -254,7 +254,7 @@ export default {
                 teamType.name = `${teamType.name} (current)`
             }
             return teamType
-        })
+        }).sort((a, b) => a.order - b.order)
         this.input.teamTypeId = this.team.type.id
 
         const instanceTypes = (await instanceTypesApi.getInstanceTypes()).types
