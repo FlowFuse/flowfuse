@@ -1,7 +1,7 @@
 <template>
     <div v-if="isOpen" class="ff-dialog-box education-modal">
         <div class="ff-dialog-header text-center" data-sentry-unmask>
-            Welcome to your free trial of FlowFuse!
+            Welcome to FlowFuse!
         </div>
         <div class="ff-dialog-content">
             <template v-if="!isClosing">
