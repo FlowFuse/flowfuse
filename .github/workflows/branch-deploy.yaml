@@ -102,7 +102,7 @@ jobs:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
   publish_nr_launcher:
-    name: Build and publish Node-RED launcher package
+    name: Build and publish nr-launcher package
     needs: 
       - validate-user
       - publish_nr_project_nodes
