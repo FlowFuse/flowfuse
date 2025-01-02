@@ -155,7 +155,8 @@ jobs:
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
-      github.event.action != 'closed'
+      github.event.action != 'closed' &&
+      (always() && needs.build-node-red.result != 'failure')
     runs-on: ubuntu-latest
     environment: staging
     env:
