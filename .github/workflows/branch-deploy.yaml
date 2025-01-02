@@ -140,8 +140,6 @@ jobs:
       image_name: 'node-red'
       dockerfile_path: Dockerfile
       image_tag_prefix: '4.0.x-'
-      package_dependencies: |
-        @flowforge/nr-project-nodes=nightly
       build_context: './ci/node-red'
       build_arguments: |
         BUILD_TAG=${{ needs.publish_nr_launcher.outputs.release_name }}
