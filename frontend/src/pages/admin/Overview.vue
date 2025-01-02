@@ -120,7 +120,7 @@ export default {
         try {
             this.stats = await adminApi.getStats()
             this.license = await adminApi.getLicenseDetails()
-            if ((Date.parse(this.license.expiresAt) - Date.now()) < 0) {
+            if (this.license?.expiresAt && (Date.parse(this.license.expiresAt) - Date.now()) < 0) {
                 this.expired = true
             }
         } catch (err) {
