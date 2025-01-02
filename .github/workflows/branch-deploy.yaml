@@ -109,7 +109,7 @@ jobs:
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
-      ((always() && inputs.nr_launcher_branch != 'main') || needs.publish_nr_project_nodes.result != 'failure')
+      ((always() && inputs.nr_launcher_branch != 'main') || needs.publish_nr_project_nodes.result == 'success')
     uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
     with:
       package_name: flowfuse-nr-launcher
@@ -133,7 +133,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed' &&
-      (always() && needs.publish_nr_launcher.result != 'failure')
+      (always() && needs.publish_nr_launcher.result == 'success')
     uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.38.0
     with:
       image_name: 'node-red'
@@ -156,7 +156,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       github.event.action != 'closed' &&
-      (always() && needs.build-node-red.result != 'failure')
+      (always() && needs.build-node-red.result == 'success')
     runs-on: ubuntu-latest
     environment: staging
     env:
