@@ -117,9 +117,9 @@ jobs:
       publish_package: true
       repository_name: 'FlowFuse/nr-launcher'
       branch_name: ${{ inputs.nr_launcher_branch }}
-      release_name: "pre-staging-${{ inputs.nr_launcher_branch }}"
+      release_name: "pre-staging-${{ inputs.nr_launcher_branch == 'main' && github.sha || inputs.nr_launcher_branch }}"
       package_dependencies: |
-        @flowfuse/nr-project-nodes=${{ inputs.nr_project_nodes_branch != 'main' && format('pre-staging-{0}', inputs.nr_project_nodes_branch ) || 'nightly' }}
+        @flowfuse/nr-project-nodes=${{ inputs.nr_project_nodes_branch != 'main' && needs.publish_nr_project_nodes.outputs.release_name || 'nightly' }}
         @flowfuse/nr-file-nodes=nightly
         @flowfuse/nr-assistant=nightly
     secrets:
