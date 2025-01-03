@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - maintenance
-      - tests
   pull_request:
 
 jobs:
@@ -72,8 +71,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Fail tests
-      run: exit 1
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
@@ -155,8 +152,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Fail tests
-        run: exit 1
       - name: Install Dependencies
         run: npm ci
       - name: Run Linting Tests
@@ -292,14 +287,3 @@ jobs:
               }
             ]
           }
-
-    # - name: Send notification
-    #   if: false
-    #   uses: ravsamhq/notify-slack-action@v2
-    #   with:
-    #     status: 'failure'
-    #     notification_title: 'FlowFuse Tests Pipeline'
-    #     footer: "<{run_url}|View Run>"
-    #     mention_users: ${{ steps.map-actor-to-slack.outputs.actor-mapping }}
-    # env:
-    #   SLACK_WEBHOOK_URL: ${{ secrets.GH_WORKFLOWS_WEBHOOK }}

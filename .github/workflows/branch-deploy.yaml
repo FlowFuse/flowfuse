@@ -17,7 +17,7 @@ on:
   pull_request:
     types: 
       - opened
-      # - synchronize
+      - synchronize
       - reopened
       - closed
     paths-ignore:
