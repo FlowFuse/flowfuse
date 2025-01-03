@@ -222,12 +222,12 @@ jobs:
         payload: |
           {
             "channel": "C03AP45RSFP",
-            "blocks": [
+            "blocks": "blocks": [
               {
                 "type": "header",
                 "text": {
                   "type": "plain_text",
-                  "text": ":x: Tests failed against main branch",
+                  "text": ":no_entry: Tests failed against main branch",
                   "emoji": true
                 }
               },
@@ -235,13 +235,25 @@ jobs:
                 "type": "divider"
               },
               {
-                  "type": "context",
-                  "elements": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "Tests workflow against main branch failed. In result, deployment to FFC environments will not succeed until the issue is resolved."
-                    }
-                  ]
+                "type": "rich_text",
+                "elements": [
+                  {
+                    "type": "rich_text_section",
+                    "elements": [
+                      {
+                        "type": "emoji",
+                        "name": "warning"
+                      },
+                      {
+                        "type": "text",
+                        "text": " Deployment to FFC environments will not happen until the issue is resolved.",
+                        "style": {
+                          "bold": true
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
               {
                 "type": "divider"
@@ -251,23 +263,15 @@ jobs:
                 "fields": [
                   {
                     "type": "mrkdwn",
-                    "text": "*Workflow initated by:*\n<@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
+                    "text": "*Author:* <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "Last commit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
+                    "text": "*Last commit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
-                  },
-                  {
-                    "type": "button",
-                    "text": {
-                      "type": "plain_text",
-                      "text": "View workflow run"
-                    },
-                    "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    "text": "*Workflow run:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
                   }
                 ]
               }
