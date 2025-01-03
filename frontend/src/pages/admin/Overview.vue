@@ -120,9 +120,7 @@ export default {
         try {
             this.stats = await adminApi.getStats()
             this.license = await adminApi.getLicenseDetails()
-            if (this.license?.expiresAt && (Date.parse(this.license.expiresAt) - Date.now()) < 0) {
-                this.expired = true
-            }
+            this.expired = this.license?.expiresAt && (Date.parse(this.license.expiresAt) - Date.now()) < 0
         } catch (err) {
             if (err.response?.status === 403 || !err.response) {
                 this.$router.push('/')
