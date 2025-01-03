@@ -43,7 +43,7 @@
         <template v-else-if="hasApplication">
             <div>
                 <label class="font-medium mr-2">Application:</label>
-                <router-link :to="{name: 'Application', params: {id: device.application.id}}" class="ff-link">{{ device.application.name }}</router-link>
+                <router-link :to="{name: 'ApplicationDevices', params: {team_slug: team.slug, id: device.application.id}}" class="ff-link">{{ device.application.name }}</router-link>
             </div>
             <h3>Features:</h3>
             <ul class="list-disc ml-6 space-y-2 max-w-xl">

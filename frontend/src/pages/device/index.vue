@@ -20,7 +20,7 @@
                 <template #context>
                     <div v-if="device?.ownerType === 'application' && device.application" data-el="device-assigned-application">
                         Application:
-                        <router-link :to="{name: 'Application', params: {id: device.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application.name }}</router-link>
+                        <router-link :to="{name: 'Application', params: {team_slug: team.slug, id: device.application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application?.name }}</router-link>
                     </div>
                     <div v-else-if="device?.ownerType === 'instance' && device.instance" data-el="device-assigned-instance">
                         Instance:
