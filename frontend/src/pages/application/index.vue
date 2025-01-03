@@ -61,10 +61,10 @@ export default {
         ...mapState('account', ['features']),
         navigation () {
             const routes = [
-                { label: 'Instances', to: { name: 'ApplicationInstances' }, tag: 'application-overview', icon: ProjectsIcon },
-                { label: 'Devices', to: { name: 'ApplicationDevices' }, tag: 'application-devices-overview', icon: ChipIcon },
+                { label: 'Hosted Instances', to: { name: 'ApplicationInstances' }, tag: 'application-overview', icon: ProjectsIcon },
+                { label: 'Remote Instances', to: { name: 'ApplicationDevices' }, tag: 'application-devices-overview', icon: ChipIcon },
                 {
-                    label: 'Devices Groups',
+                    label: 'Device Groups',
                     to: { name: 'ApplicationDeviceGroups' },
                     tag: 'application-devices-groups-overview',
                     icon: ChipIcon,
@@ -73,7 +73,7 @@ export default {
                 },
                 { label: 'Snapshots', to: { name: 'ApplicationSnapshots' }, tag: 'application-snapshots', icon: ClockIcon },
                 {
-                    label: 'DevOps Pipelines',
+                    label: 'Pipelines',
                     to: { name: 'ApplicationPipelines' },
                     tag: 'application-pipelines',
                     icon: PipelinesIcon,

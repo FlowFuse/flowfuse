@@ -7,7 +7,7 @@
         <div class="ff-instance-header">
             <SectionNavigationHeader :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Edge Devices</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Remote Instances</ff-nav-breadcrumb>
                     <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
@@ -252,7 +252,7 @@ export default {
             // device logs - if project comms is enabled,
             if (this.features.projectComms) {
                 navigation.push({
-                    label: 'Device Logs',
+                    label: 'Node-RED Logs',
                     to: `/device/${this.$route.params.id}/logs`,
                     tag: 'device-logs',
                     icon: TerminalIcon
