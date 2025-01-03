@@ -215,7 +215,6 @@ jobs:
 
     - name: Generate payload variables
       run: |
-        echo "refname=${{ github.ref_name }}"
         if [[ "${{ github.ref_name }}" == 'main' ]] ; then
           echo "SUMMARY_ICON=no_entry" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until the issue is resolved." >> $GITHUB_ENV
@@ -238,7 +237,7 @@ jobs:
                 "type": "header",
                 "text": {
                   "type": "plain_text",
-                  "text": ":x: Tests failed against main branch :x:",
+                  "text": ":x: Tests failed against ${{ github.ref_name }} branch",
                   "emoji": true
                 }
               },
