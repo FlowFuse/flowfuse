@@ -222,7 +222,7 @@ jobs:
         payload: |
           {
             "channel": "C03AP45RSFP",
-            "blocks": "blocks": [
+            "blocks": [
               {
                 "type": "header",
                 "text": {
