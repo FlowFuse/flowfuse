@@ -38,8 +38,8 @@
                     -->
                     <div class="space-x-2 flex align-center" style="height: 34px;">
                         <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
-                        <button v-if="!isVisitingAdmin" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
-                            Device Editor
+                        <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
+                            Open Editor
                             <span class="ff-btn--icon ff-btn--icon-right">
                                 <ExternalLinkIcon />
                             </span>
