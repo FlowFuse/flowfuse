@@ -6,8 +6,7 @@
         </label>
         <span v-if="!isSearching" class="message">
             This Application currently has no
-            <router-link :to="{name: 'ApplicationDevices', params: {team_slug: team.slug, id: application.id}}" class="ff-link">attached Remote Instances</router-link>
-            .
+            <router-link :to="{name: 'ApplicationDevices', params: {team_slug: team.slug, id: application.id}}" class="ff-link">attached Remote Instances</router-link>.
         </span>
         <span v-else class="message">
             No device matches your criteria.

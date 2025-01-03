@@ -5,10 +5,7 @@
         </label>
         <span v-if="!isSearching" class="message">
             This Application currently has no
-            <router-link :to="{name: 'ApplicationInstances', params: {team_slug: team.slug, id: application.id}}" class="ff-link">
-                attached Hosted Instances
-            </router-link>
-            .
+            <router-link :to="{name: 'ApplicationInstances', params: {team_slug: team.slug, id: application.id}}" class="ff-link">attached Hosted Instances</router-link>.
         </span>
         <span v-else class="message">
             No instance matches your criteria.
