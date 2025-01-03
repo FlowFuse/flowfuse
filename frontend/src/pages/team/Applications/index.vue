@@ -12,10 +12,9 @@
                     <img src="../../../images/pictograms/application_red.png">
                 </template>
                 <template #helptext>
-                    <p>This is a list of all Applications hosted on the same domain as FlowFuse.</p>
-                    <p>Each Application can host multiple Node-RED instances.</p>
-                    <p>Click an application header to go to the overview of that application.</p>
-                    <p>Click an instance within an application to go to the Instances overview.</p>
+                    <p>Each Application can host multiple Node-RED instances, both Hosted and Remote.</p>
+                    <p>Click an Application header to go to the overview of that Application.</p>
+                    <p>Click an Instance within an Application to go to the Instance's overview.</p>
                 </template>
                 <template #tools>
                     <ff-button

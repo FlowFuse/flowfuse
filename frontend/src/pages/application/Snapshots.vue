@@ -34,11 +34,10 @@
                 <template #header>What are Snapshots?</template>
                 <template #message>
                     <p>
-                        Snapshots are point-in-time backups of your Node-RED Instances & Devices.
+                        Snapshots are point-in-time backups of your Node-RED Instances, capturing the flows, credentials and runtime settings.
                     </p>
                     <p>
-                        They capture the flows, credentials and runtime settings, and can
-                        be pushed & deployed from one Instance/Device to any other, or
+                        Snapshots can deployed from one Instance to another through Pipelines, or
                         used to rollback an Instance to a point in history.
                     </p>
                 </template>

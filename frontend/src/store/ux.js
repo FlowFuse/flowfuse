@@ -70,7 +70,7 @@ const getters = {
                             disabled: noBilling
                         },
                         {
-                            label: 'Edge Devices',
+                            label: 'Remote Instances',
                             to: { name: 'TeamDevices', params: { team_slug: team.slug } },
                             tag: 'team-devices',
                             icon: ChipIcon,

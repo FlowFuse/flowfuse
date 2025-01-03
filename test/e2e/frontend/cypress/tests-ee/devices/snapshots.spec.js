@@ -49,7 +49,7 @@ describe('FlowForge - Devices - With Billing', () => {
     it('empty state informs users they need to bind the Device to an Application for unassigned devices on the "Snapshot" tab', () => {
         cy.contains('span', 'team2-unassigned-device').click()
         cy.get('[data-nav="device-snapshots"]').click()
-        cy.contains('A device must first be assigned to an Application')
+        cy.contains('A Remote Instance must first be assigned to an Application')
     })
 
     it('shows a "Snapshots" tab for devices bound to an Instance', () => {
@@ -62,7 +62,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.contains('span', 'application-device-a').click()
         cy.get('[data-nav="device-snapshots"]').click()
         cy.wait('@getDeviceSnapshots')
-        cy.contains('A device must be in developer mode and online to create a snapshot.')
+        cy.contains('A Remote Instance must be in Developer Mode and online to create a Snapshot.')
     })
 
     it('doesn\'t show any "Enterprise Feature Only" guidance if billing is enabled', () => {
