@@ -14,6 +14,7 @@ on:
       - 'Tests'
     branches: 
       - main
+      - tests
     types: 
       - completed
 
@@ -25,7 +26,7 @@ jobs:
   check-tests-status:
     name: Check tests statuses
     if: |
-      ( github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' ) ||
+      github.ref == 'refs/heads/tests'  ||
       ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
     runs-on: ubuntu-latest
     outputs:
