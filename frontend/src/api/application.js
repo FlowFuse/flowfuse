@@ -285,14 +285,8 @@ const getDeviceGroup = async (applicationId, groupId) => {
  */
 const getDeviceGroups = async (applicationId, cursor, limit, query, extraParams = {}) => {
     const url = paginateUrl(`/api/v1/applications/${applicationId}/device-groups`, cursor, limit, query, extraParams)
-    try {
-        const res = await client.get(url)
-        return res.data
-    } catch (e) {
-        return {
-            groups: []
-        }
-    }
+    const res = await client.get(url)
+    return res.data
 }
 
 /**

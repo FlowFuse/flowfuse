@@ -15,6 +15,7 @@
 
 <script>
 import ApplicationApi from '../../../api/application.js'
+import Alerts from '../../../services/alerts.js'
 
 export default {
     name: 'PipelineIndex',
@@ -65,11 +66,17 @@ export default {
                 this.devices = (await ApplicationApi.getApplicationDevices(this.application.id)).devices
             } catch (err) {
                 this.devices = []
+                Alerts.emit('Failed to load Remote Instances', 'warning')
             }
             try {
                 this.deviceGroups = (await ApplicationApi.getDeviceGroups(this.application.id)).groups
             } catch (err) {
-                this.deviceGroups = []
+                if (err.request.status === 404) {
+                    // if feature is unavailable for this Team Type, this returns a 404, but we need to handle cleanly
+                    this.deviceGroups = []
+                } else {
+                    Alerts.emit('Failed to load Device Groups', 'warning')
+                }
             }
         },
         notFound () {
