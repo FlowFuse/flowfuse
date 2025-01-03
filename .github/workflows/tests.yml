@@ -274,13 +274,13 @@ jobs:
             ]
           }
 
-    - name: Send notification
-      if: false
-      uses: ravsamhq/notify-slack-action@v2
-      with:
-        status: 'failure'
-        notification_title: 'FlowFuse Tests Pipeline'
-        footer: "<{run_url}|View Run>"
-        mention_users: ${{ steps.map-actor-to-slack.outputs.actor-mapping }}
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.GH_WORKFLOWS_WEBHOOK }}
+    # - name: Send notification
+    #   if: false
+    #   uses: ravsamhq/notify-slack-action@v2
+    #   with:
+    #     status: 'failure'
+    #     notification_title: 'FlowFuse Tests Pipeline'
+    #     footer: "<{run_url}|View Run>"
+    #     mention_users: ${{ steps.map-actor-to-slack.outputs.actor-mapping }}
+    # env:
+    #   SLACK_WEBHOOK_URL: ${{ secrets.GH_WORKFLOWS_WEBHOOK }}
