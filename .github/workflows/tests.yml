@@ -238,7 +238,7 @@ jobs:
                 "type": "header",
                 "text": {
                   "type": "plain_text",
-                  "text": ":x: Tests failed against main branch",
+                  "text": ":x: Tests failed against main branch :x:",
                   "emoji": true
                 }
               },
