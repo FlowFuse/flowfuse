@@ -209,12 +209,81 @@ jobs:
         actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
         default-mapping: C067BD0377F
 
+    - name: Generate payload variables
+      run: |
+        if [[ "${{ github.ref_name }}" == 'main' || "${{ github.ref_name }}" == 'maintenance' ]] ; then
+          echo "HEADER_MESSAGE=Tests failed against ${{ github.ref_name }} branch" >> $GITHUB_ENV
+          echo "SUMMARY_ICON=no_entry" >> $GITHUB_ENV
+          echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until this issue is resolved." >> $GITHUB_ENV
+          echo "LAST_COMMIT_SHA=${{ github.sha}}" >> $GITHUB_ENV
+        else
+          echo "HEADER_MESSAGE=Tests failed against ${{ github.event.number }} pull request" >> $GITHUB_ENV
+          echo "SUMMARY_ICON=warning" >> $GITHUB_ENV
+          echo "SUMMARY_MESSAGE= Please resolve the problem before merging your changes into the main branch." >> $GITHUB_ENV
+          echo "LAST_COMMIT_SHA=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+        fi
+
+
     - name: Send notification
-      uses: ravsamhq/notify-slack-action@v2
+      uses: slackapi/slack-github-action@v2.0.0
       with:
-        status: 'failure'
-        notification_title: 'FlowFuse Tests Pipeline'
-        footer: "<{run_url}|View Run>"
-        mention_users: ${{ steps.map-actor-to-slack.outputs.actor-mapping }}
-    env:
-      SLACK_WEBHOOK_URL: ${{ secrets.GH_WORKFLOWS_WEBHOOK }}
+        method: chat.postMessage
+        token: ${{ secrets.SLACK_GHBOT_TOKEN }}
+        payload: |
+          {
+            "channel": "C067BD0377F",
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": ":x: ${{ env.HEADER_MESSAGE }}",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "type": "rich_text",
+                "elements": [
+                  {
+                    "type": "rich_text_section",
+                    "elements": [
+                      {
+                        "type": "emoji",
+                        "name": "${{ env.SUMMARY_ICON }}"
+                      },
+                      {
+                        "type": "text",
+                        "text": " ${{ env.SUMMARY_MESSAGE }}",
+                        "style": {
+                          "bold": true
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Author:* <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Last commit:* <${{ github.server_url }}/${{ github.repository }}/commit/${{ env.LAST_COMMIT_SHA }}|${{ env.LAST_COMMIT_SHA }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
+                  }
+                ]
+              }
+            ]
+          }
