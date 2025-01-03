@@ -12,7 +12,7 @@
             </template>
         </FormHeading>
         <FormRow v-model="input.deviceId" type="uneditable" id="deviceId" inputClass="font-mono">
-            Device ID
+            Remote Instance ID
         </FormRow>
 
         <FormRow v-model="input.deviceName" :type="editing.deviceName ? 'text' : 'uneditable'" ref="deviceName">

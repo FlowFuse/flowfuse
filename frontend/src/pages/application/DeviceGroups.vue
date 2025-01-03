@@ -2,14 +2,14 @@
     <SectionTopMenu
         hero="Application Device Groups"
         help-header="FlowFuse - Application Device Groups"
-        info="Manage your Application's Device Groups."
+        info="Device Groups provide a way of managing multiple Remote instances together, for example deploying to multiple Remote Instances via a Pipeline."
     >
         <template #pictogram>
             <img src="../../images/pictograms/device_group_red.png">
         </template>
         <template #helptext>
-            <p>Application Device Groups permit the grouping of Application assigned Devices.</p>
-            <p>The device groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
+            <p>Application Device Groups permit the grouping of Application assigned Remote Instances.</p>
+            <p>The Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
         </template>
     </SectionTopMenu>
     <ff-loading
@@ -32,8 +32,8 @@
             <img src="../../images/empty-states/application-device-groups.png">
         </template>
         <template #message>
-            <p>Application Device Groups permit the grouping of Application assigned Devices.</p>
-            <p>The device groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
+            <p>Application Device Groups permit the grouping of Remote Instances, managed by this Application.</p>
+            <p>The device groups can then be set as the target in a Pipeline to update multiple Remote Instances in a single operation</p>
         </template>
         <template #actions>
             <ff-button data-action="create-device-group" :disabled="!featureEnabled" @click="showCreateDeviceGroupDialog">
