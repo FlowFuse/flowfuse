@@ -1,6 +1,5 @@
 import { LottieAnimation } from 'lottie-web-vue'
 import { AxiosError } from 'axios'
-
 import { createApp } from 'vue'
 
 import './ui-components/index.scss'
