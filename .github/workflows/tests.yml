@@ -216,9 +216,11 @@ jobs:
     - name: Generate payload variables
       run: |
         if [[ "${{ github.ref_name }}" == 'main' ]] ; then
+          echo "HEADER_MESSAGE=Tests failed against ${{ github.ref_name }} branch" >> $GITHUB_ENV
           echo "SUMMARY_ICON=no_entry" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until the issue is resolved." >> $GITHUB_ENV
         else
+          echo "HEADER_BRANCH=Tests failed against ${{ github.event.number }} pull request" >> $GITHUB_ENV
           echo "SUMMARY_ICON=warning" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Please resolve the problem before merging your changes into the main branch." >> $GITHUB_ENV
         fi
@@ -237,7 +239,7 @@ jobs:
                 "type": "header",
                 "text": {
                   "type": "plain_text",
-                  "text": ":x: Tests failed against ${{ github.ref_name }} branch",
+                  "text": ":x: ${{ env.HEADER_BRANCH }}",
                   "emoji": true
                 }
               },
