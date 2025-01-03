@@ -134,7 +134,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Connect Edge Instance
+                                Add Remote Instance
                             </ff-button>
                         </template>
                     </EmptyState>
