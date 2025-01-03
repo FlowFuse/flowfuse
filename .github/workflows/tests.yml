@@ -213,6 +213,8 @@ jobs:
       # if: ${{ github.ref_name == 'main' }}
       uses: slackapi/slack-github-action@v2.0.0
       with:
+        method: chat.postMessage
+        token: ${{ secrets.SLACK_GHBOT_TOKEN }}
         payload: |
           {
             "channel": "C03AP45RSFP",
@@ -267,9 +269,6 @@ jobs:
               }
             ]
           }
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
-        GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
 
     - name: Send notification
       if: false
