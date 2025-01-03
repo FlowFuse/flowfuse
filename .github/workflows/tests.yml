@@ -216,10 +216,10 @@ jobs:
 
     - name: Generate payload variables
       run: |
-        if [[ "${{ github.ref_name }}" == 'main' || "${{ github.ref_name }}" == 'tests' || "${{ github.ref_name }}" == 'maintenance' ]] ; then
+        if [[ "${{ github.ref_name }}" == 'main' || "${{ github.ref_name }}" == 'maintenance' ]] ; then
           echo "HEADER_MESSAGE=Tests failed against ${{ github.ref_name }} branch" >> $GITHUB_ENV
           echo "SUMMARY_ICON=no_entry" >> $GITHUB_ENV
-          echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until the issue is resolved." >> $GITHUB_ENV
+          echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until this issue is resolved." >> $GITHUB_ENV
           echo "LAST_COMMIT_SHA=${{ github.sha}}" >> $GITHUB_ENV
         else
           echo "HEADER_MESSAGE=Tests failed against ${{ github.event.number }} pull request" >> $GITHUB_ENV
