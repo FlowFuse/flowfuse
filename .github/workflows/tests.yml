@@ -210,6 +210,69 @@ jobs:
         default-mapping: C067BD0377F
 
     - name: Send notification
+      # if: ${{ github.ref_name == 'main' }}
+      uses: slackapi/slack-github-action@v2.0.0
+      with:
+        payload: |
+          {
+            "channel": "C03AP45RSFP",
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": ":x: Tests failed against main branch",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "divider"
+              },
+              {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Tests workflow against main branch failed. In result, deployment to FFC environments will not succeed until the issue is resolved."
+                    }
+                  ]
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Workflow initated by:*\n<@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "Last commit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+                  },
+                  {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "View workflow run"
+                    },
+                    "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
+        GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
+
+    - name: Send notification
+      if: false
       uses: ravsamhq/notify-slack-action@v2
       with:
         status: 'failure'
