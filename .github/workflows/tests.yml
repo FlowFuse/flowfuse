@@ -220,10 +220,12 @@ jobs:
           echo "HEADER_MESSAGE=Tests failed against ${{ github.ref_name }} branch" >> $GITHUB_ENV
           echo "SUMMARY_ICON=no_entry" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until the issue is resolved." >> $GITHUB_ENV
+          echo "LAST_COMMIT_SHA=${{ github.sha}}" >> $GITHUB_ENV
         else
           echo "HEADER_BRANCH=Tests failed against ${{ github.event.number }} pull request" >> $GITHUB_ENV
           echo "SUMMARY_ICON=warning" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Please resolve the problem before merging your changes into the main branch." >> $GITHUB_ENV
+          echo "LAST_COMMIT_SHA=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
         fi
 
 
@@ -280,7 +282,7 @@ jobs:
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "*Last commit:* <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
+                    "text": "*Last commit:* <${{ github.server_url }}/${{ github.repository }}/commit/${{ env.LAST_COMMIT_SHA }}|${{ env.LAST_COMMIT_SHA }}>"
                   },
                   {
                     "type": "mrkdwn",
