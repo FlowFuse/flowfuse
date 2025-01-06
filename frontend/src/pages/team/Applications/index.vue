@@ -222,6 +222,11 @@ export default {
             count += app.instances.length
             return count
         }, 0)
+        // Do we have an Instance already? Tells us which tour to run
+        const deviceCount = this.applicationsList.reduce((count, app) => {
+            count += app.devices.length
+            return count
+        }, 0)
 
         // First time here?
         if (this.tours.welcome) {
@@ -233,8 +238,10 @@ export default {
                 })
             } else {
                 // Free Tier Tour (No Instances)
-                tour = Tours.create('welcome-free', TourWelcomeFree, this.$store, () => {
-                    this.$store.dispatch('ux/activateTour', 'first-device')
+                tour = Tours.create('welcome', TourWelcomeFree, this.$store, () => {
+                    if (deviceCount === 0) {
+                        this.$store.dispatch('ux/activateTour', 'first-device')
+                    }
                 })
             }
             tour.start()
