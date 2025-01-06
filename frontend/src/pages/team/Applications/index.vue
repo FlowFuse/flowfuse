@@ -110,6 +110,7 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Tours from '../../../tours/Tours.js'
 
+import TourWelcomeFree from '../../../tours/tour-welcome-free.json'
 import TourWelcome from '../../../tours/tour-welcome.json'
 
 import ApplicationListItem from './components/Application.vue'
@@ -205,8 +206,8 @@ export default {
     watch: {
         team: 'fetchData'
     },
-    mounted () {
-        this.fetchData()
+    async mounted () {
+        await this.fetchData()
         if ('billing_session' in this.$route.query) {
             this.$nextTick(() => {
                 // Clear the query param so a reload of the page does retrigger
@@ -216,9 +217,26 @@ export default {
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
         }
-        // first time arriving here
+        // Do we have an Instance already? Tells us which tour to run
+        const instanceCount = this.applicationsList.reduce((count, app) => {
+            count += app.instances.length
+            return count
+        }, 0)
+
+        // First time here?
         if (this.tours.welcome) {
-            const tour = Tours.create('welcome', TourWelcome)
+            let tour = null
+            if (instanceCount > 0) {
+                // Running with an Instance pre-configured
+                tour = Tours.create('welcome', TourWelcome, this.$store, () => {
+                    this.$store.dispatch('ux/activateTour', 'education')
+                })
+            } else {
+                // Free Tier Tour (No Instances)
+                tour = Tours.create('welcome-free', TourWelcomeFree, this.$store, () => {
+                    this.$store.dispatch('ux/activateTour', 'first-device')
+                })
+            }
             tour.start()
         }
         this.setSearchQuery()
