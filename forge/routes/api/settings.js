@@ -56,6 +56,7 @@ module.exports = async function (app) {
                 response['user:team:auto-create'] = app.settings.get('user:team:auto-create')
                 response['user:team:auto-create:teamType'] = app.settings.get('user:team:auto-create:teamType')
                 response['user:team:auto-create:instanceType'] = app.settings.get('user:team:auto-create:instanceType')
+                response['user:team:auto-create:application'] = app.settings.get('user:team:auto-create:application')
                 response.email = app.postoffice.exportSettings(true)
                 response['version:forge'] = app.settings.get('version:forge')
                 response['version:node'] = app.settings.get('version:node')
