@@ -42,14 +42,17 @@
                         </template>
                     </FormRow>
 
-                    <template v-if="billingEnabled && !isSelectionTrial">
+                    <template v-if="billingEnabled">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
                             <p v-if="!presetTeamType || (!isSelectionTrial && !presetTeamType.isFree)">To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
-                            <p v-else>Please note that, whilst we do require credit card details, this Team is free of charge, and no charges will be made.</p>
+                            <p v-else-if="!isSelectionTrial">Please note that, whilst we do require credit card details, this Team is free of charge, and no charges will be made.</p>
                         </div>
-                        <ff-button :disabled="!formValid" @click="createTeam()">
+                        <ff-button v-if="!isSelectionTrial" :disabled="!formValid" @click="createTeam()">
                             <template #icon-right><ExternalLinkIcon /></template>
                             Create team and setup payment details
+                        </ff-button>
+                        <ff-button v-else :disabled="!formValid" @click="createTeam()">
+                            Start Free Trial
                         </ff-button>
                     </template>
                     <ff-button v-else :disabled="!formValid" @click="createTeam()">
