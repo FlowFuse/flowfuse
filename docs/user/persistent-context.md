@@ -10,7 +10,7 @@ In Node-RED with FlowFuse, you now have two context store options:
    
 2. **Persistent Context**: This allows context values to persist even when Node-RED restarts, updates.
 
-The amount of persistent storage available to you depends on the FlowFuse plan you're subscribed to. FlowFuse offers different storage sizes for each plan, allowing you to select the appropriate level of storage for your needs. For detailed information on storage options, please refer to the [pricing page](/pricing/).
+The amount of persistent storage available to you depends on the FlowFuse plan you're subscribed to. FlowFuse offers different storage sizes for each plan, allowing you to select the appropriate level of storage for your needs. For detailed information on storage options, please refer to the [pricing page](https://flowfuse.com/pricing/).
 
 ### How to Use FlowFuse Persistent Context
 
@@ -50,4 +50,4 @@ var value = context.get('myKey', 'persistent');
 
 If you don't specify the store, it defaults to memory. 
 
-For more detailed information, refer to the article [Understanding Node, Flow, Global, and Environment Variables in Node-RED](/blog/2024/05/understanding-node-flow-global-environment-variables-in-node-red/).
+For more detailed information, refer to the article [Understanding Node, Flow, Global, and Environment Variables in Node-RED](https://flowfuse.com/blog/2024/05/understanding-node-flow-global-environment-variables-in-node-red/).
