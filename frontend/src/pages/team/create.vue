@@ -42,9 +42,9 @@
                         </template>
                     </FormRow>
 
-                    <template v-if="billingEnabled">
+                    <template v-if="billingEnabled && !isSelectionTrial">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
-                            <p v-if="!presetTeamType || !presetTeamType.isFree">To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
+                            <p v-if="!presetTeamType || (!isSelectionTrial && !presetTeamType.isFree)">To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
                             <p v-else>Please note that, whilst we do require credit card details, this Team is free of charge, and no charges will be made.</p>
                         </div>
                         <ff-button :disabled="!formValid" @click="createTeam()">
@@ -53,7 +53,8 @@
                         </ff-button>
                     </template>
                     <ff-button v-else :disabled="!formValid" @click="createTeam()">
-                        Create team
+                        <template v-if="billingEnabled && isSelectionTrial">Start trial</template>
+                        <template v-else>Create team</template>
                     </ff-button>
                 </div>
                 <template v-else>
@@ -151,6 +152,15 @@ export default {
             return this.billingEnabled &&
                    !this.user.admin &&
                    this.input.teamType && this.input.teamType.properties?.billing?.requireContact
+        },
+        isSelectionTrial () {
+            // A team trial can be offered if:
+            // 1. User has no other teams
+            return this.teams.length === 0 &&
+            // 2. User is less than a week old
+                (Date.now() - (new Date(this.user.createdAt)).getTime()) < 1000 * 60 * 60 * 24 * 7 &&
+            // 3. TeamType meta data says so
+                this.input.teamType?.properties?.trial?.active
         }
     },
     async created () {
