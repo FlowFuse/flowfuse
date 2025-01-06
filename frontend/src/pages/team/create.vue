@@ -53,7 +53,7 @@
                         </ff-button>
                     </template>
                     <ff-button v-else :disabled="!formValid" @click="createTeam()">
-                        <template v-if="billingEnabled && isSelectionTrial">Start trial</template>
+                        <template v-if="billingEnabled && isSelectionTrial">Start Free Trial</template>
                         <template v-else>Create team</template>
                     </ff-button>
                 </div>
