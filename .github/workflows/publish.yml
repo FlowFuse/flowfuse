@@ -58,18 +58,34 @@ jobs:
             const relevantJobs = data.jobs.filter(job => jobsToCheck.includes(job.name));
             const failedJobs = relevantJobs.filter(job => job.conclusion === 'failure');
             const allSkippedJobs = relevantJobs.every(job => job.conclusion === 'skipped');
+            console.log('Relevant jobs found:', JSON.stringify(relevantJobs, null, 2));
             
             if (failedJobs.length > 0) {
               console.log('🚨 The following tests failed:');
+              await core.summary
+                .addHeading('Failed Tests 🚨');
+              let failedList = '';
               failedJobs.forEach(job => {
                 console.log(`❌ ${job.name}`);
+                failedList += `- ❌ ${job.name}\n`;
               });
+              await core.summary
+                .addRaw(failedList)
+                .write();
               core.setOutput('jobs_status', 'failure');
             } else if (allSkippedJobs) {
               console.log('⏩ All tests were skipped ⏩');
+              await core.summary
+                .addHeading('Test Status ⏩')
+                .addRaw('All tests were skipped')
+                .write();
               core.setOutput('jobs_status', 'skipped');
             } else {
               console.log('✅ Required tests passed successfully ✅');
+              await core.summary
+                .addHeading('Test Status ✅')
+                .addRaw('All required tests passed successfully')
+                .write();
               core.setOutput('jobs_status', 'success');
             }
 
