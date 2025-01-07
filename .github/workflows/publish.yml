@@ -63,6 +63,9 @@ jobs:
             const relevantJobs = data.jobs.filter(job => jobsToCheck.includes(job.name));
             const failedJobs = relevantJobs.filter(job => job.conclusion === 'failure');
             const allSkippedJobs = relevantJobs.every(job => job.conclusion === 'skipped');
+
+            //debug
+            console.log('Relevant jobs found:', JSON.stringify(relevantJobs, null, 2));
             
             if (failedJobs.length > 0) {
               console.log('🚨 The following tests failed:');
