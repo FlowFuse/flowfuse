@@ -24,9 +24,9 @@ concurrency:
 jobs:
   check-tests-status:
     name: Check tests statuses
-    # if: |
-    #   github.ref == 'refs/heads/main' ||
-    #   ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
+    if: |
+      github.ref == 'refs/heads/main' ||
+      ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
     runs-on: ubuntu-latest
     outputs:
       tests_status: ${{ steps.check-tests-jobs-status.outputs.jobs_status }}
@@ -37,21 +37,16 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            // if (context.eventName === 'workflow_dispatch') {
-            //  console.log('✅ Workflow manually dispatched. Skipping tests jobs check. ✅');
-            //  core.setOutput('jobs_status', 'success');
-            //  return;
-            // }
-
-            const runId = context.payload.workflow_run ? 
-              context.payload.workflow_run.id : 
-              context.runId;
+            if (context.eventName === 'workflow_dispatch') {
+              console.log('✅ Workflow manually dispatched. Skipping tests jobs check. ✅');
+              core.setOutput('jobs_status', 'success');
+              return;
+            }
 
             const { data } = await github.rest.actions.listJobsForWorkflowRun({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              // run_id: context.payload.workflow_run.id
-              run_id: runId
+              run_id: context.payload.workflow_run.id
             });
 
             const jobsToCheck = [
@@ -63,8 +58,6 @@ jobs:
             const relevantJobs = data.jobs.filter(job => jobsToCheck.includes(job.name));
             const failedJobs = relevantJobs.filter(job => job.conclusion === 'failure');
             const allSkippedJobs = relevantJobs.every(job => job.conclusion === 'skipped');
-
-            //debug
             console.log('Relevant jobs found:', JSON.stringify(relevantJobs, null, 2));
             
             if (failedJobs.length > 0) {
@@ -96,39 +89,39 @@ jobs:
               core.setOutput('jobs_status', 'success');
             }
 
-  # publish:
-  #   if: |
-  #     needs.check-tests-status.outputs.tests_status == 'success' && github.ref == 'refs/heads/main'
-  #   needs: check-tests-status
-  #   uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
-  #   with:
-  #     package_name: flowfuse
-  #     build_package: true
-  #     publish_package: true
-  #     package_dependencies: |
-  #       @flowfuse/driver-localfs=nightly
-  #   secrets:
-  #     npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
-  #     sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  #     sentry_organisation: ${{ secrets.SENTRY_ORGANISATION }}
-  #     sentry_project: ${{ secrets.SENTRY_PROJECT }}
+  publish:
+    if: |
+      needs.check-tests-status.outputs.tests_status == 'success' && github.ref == 'refs/heads/main'
+    needs: check-tests-status
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    with:
+      package_name: flowfuse
+      build_package: true
+      publish_package: true
+      package_dependencies: |
+        @flowfuse/driver-localfs=nightly
+    secrets:
+      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+      sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      sentry_organisation: ${{ secrets.SENTRY_ORGANISATION }}
+      sentry_project: ${{ secrets.SENTRY_PROJECT }}
 
-  # dispatch_container_build:
-  #   needs: publish
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Generate a token
-  #       id: generate_token
-  #       uses: tibdex/github-app-token@v2
-  #       with:
-  #         app_id: ${{ secrets.GH_BOT_APP_ID }}
-  #         private_key: ${{ secrets.GH_BOT_APP_KEY }}
+  dispatch_container_build:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.GH_BOT_APP_ID }}
+          private_key: ${{ secrets.GH_BOT_APP_KEY }}
 
-  #     - name: Trigger flowforge container build
-  #       uses: benc-uk/workflow-dispatch@v1
-  #       with:
-  #         workflow: flowforge-container.yml
-  #         repo: flowfuse/helm
-  #         ref: main
-  #         token: ${{ steps.generate_token.outputs.token }}
-  #         inputs: '{"flowforge_ref": "${{ github.ref }}", "flowforge_release_name": "${{ env.release_name }}"}'
+      - name: Trigger flowforge container build
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: flowforge-container.yml
+          repo: flowfuse/helm
+          ref: main
+          token: ${{ steps.generate_token.outputs.token }}
+          inputs: '{"flowforge_ref": "${{ github.ref }}", "flowforge_release_name": "${{ env.release_name }}"}'
