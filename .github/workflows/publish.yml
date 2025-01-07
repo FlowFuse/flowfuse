@@ -24,9 +24,9 @@ concurrency:
 jobs:
   check-tests-status:
     name: Check tests statuses
-    if: |
-      github.ref == 'refs/heads/main' ||
-      ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
+    # if: |
+    #   github.ref == 'refs/heads/main' ||
+    #   ( github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' )
     runs-on: ubuntu-latest
     outputs:
       tests_status: ${{ steps.check-tests-jobs-status.outputs.jobs_status }}
@@ -63,62 +63,66 @@ jobs:
 
             if (failedJobs.length > 0) {
               console.log('🚨 The following tests failed:');
-              await summary.addHeading('Failed Tests 🚨');
+              await core.summary
+                .addHeading('Failed Tests 🚨');
               let failedList = '';
               failedJobs.forEach(job => {
                 console.log(`❌ ${job.name}`);
                 failedList += `- ❌ ${job.name}\n`;
               });
-              await summary.addRaw(failedList);
-              await summary.write();
+              await core.summary
+                .addRaw(failedList)
+                .write();
               core.setOutput('jobs_status', 'failure');
             } else if (allSkippedJobs) {
               console.log('⏩ All tests were skipped ⏩');
-              await summary.addHeading('Test Status ⏩');
-              await summary.addRaw('All tests were skipped');
-              await summary.write();
+              await core.summary
+                .addHeading('Test Status ⏩')
+                .addRaw('All tests were skipped')
+                .write();
               core.setOutput('jobs_status', 'skipped');
             } else {
               console.log('✅ Required tests passed successfully ✅');
-              await summary.addHeading('Test Status ✅');
-              await summary.addRaw('All required tests passed successfully');
-              await summary.write();
+              await core.summary
+                .addHeading('Test Status ✅')
+                .addRaw('All required tests passed successfully')
+                .write();
               core.setOutput('jobs_status', 'success');
             }
 
-  publish:
-    if: |
-      needs.check-tests-status.outputs.tests_status == 'success' && github.ref == 'refs/heads/main'
-    needs: check-tests-status
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
-    with:
-      package_name: flowfuse
-      build_package: true
-      publish_package: true
-      package_dependencies: |
-        @flowfuse/driver-localfs=nightly
-    secrets:
-      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
-      sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      sentry_organisation: ${{ secrets.SENTRY_ORGANISATION }}
-      sentry_project: ${{ secrets.SENTRY_PROJECT }}
+  # publish:
+  #   if: |
+  #     needs.check-tests-status.outputs.tests_status == 'success' && github.ref == 'refs/heads/main'
+  #   needs: check-tests-status
+  #   uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+  #   with:
+  #     package_name: flowfuse
+  #     build_package: true
+  #     publish_package: true
+  #     package_dependencies: |
+  #       @flowfuse/driver-localfs=nightly
+  #   secrets:
+  #     npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+  #     sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  #     sentry_organisation: ${{ secrets.SENTRY_ORGANISATION }}
+  #     sentry_project: ${{ secrets.SENTRY_PROJECT }}
 
-  dispatch_container_build:
-    needs: publish
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate a token
-        id: generate_token
-        uses: tibdex/github-app-token@v2
-        with:
-          app_id: ${{ secrets.GH_BOT_APP_ID }}
-          private_key: ${{ secrets.GH_BOT_APP_KEY }}
+  # dispatch_container_build:
+  #   needs: publish
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Generate a token
+  #       id: generate_token
+  #       uses: tibdex/github-app-token@v2
+  #       with:
+  #         app_id: ${{ secrets.GH_BOT_APP_ID }}
+  #         private_key: ${{ secrets.GH_BOT_APP_KEY }}
 
-      - name: Trigger flowforge container build
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: flowforge-container.yml
-          repo: flowfuse/helm
-          ref: main
-          token: ${{ steps.generate_token.outputs.token }}
-          inputs: '{"flowforge_ref": "${{ github.ref }}", "flowforge_release_name": "${{ env.release_name }}"}'
+  #     - name: Trigger flowforge container build
+  #       uses: benc-uk/workflow-dispatch@v1
+  #       with:
+  #         workflow: flowforge-container.yml
+  #         repo: flowfuse/helm
+  #         ref: main
+  #         token: ${{ steps.generate_token.outputs.token }}
+  #         inputs: '{"flowforge_ref": "${{ github.ref }}", "flowforge_release_name": "${{ env.release_name }}"}'
