@@ -59,30 +59,17 @@ jobs:
             const failedJobs = relevantJobs.filter(job => job.conclusion === 'failure');
             const allSkippedJobs = relevantJobs.every(job => job.conclusion === 'skipped');
             
-            const { summary } = require('@actions/core');
-
             if (failedJobs.length > 0) {
               console.log('🚨 The following tests failed:');
-              await summary.addHeading('Failed Tests 🚨');
-              let failedList = '';
               failedJobs.forEach(job => {
                 console.log(`❌ ${job.name}`);
-                failedList += `- ❌ ${job.name}\n`;
               });
-              await summary.addRaw(failedList);
-              await summary.write();
               core.setOutput('jobs_status', 'failure');
             } else if (allSkippedJobs) {
               console.log('⏩ All tests were skipped ⏩');
-              await summary.addHeading('Test Status ⏩');
-              await summary.addRaw('All tests were skipped');
-              await summary.write();
               core.setOutput('jobs_status', 'skipped');
             } else {
               console.log('✅ Required tests passed successfully ✅');
-              await summary.addHeading('Test Status ✅');
-              await summary.addRaw('All required tests passed successfully');
-              await summary.write();
               core.setOutput('jobs_status', 'success');
             }
 
