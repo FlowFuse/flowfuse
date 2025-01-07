@@ -1,7 +1,7 @@
 <template>
-    <section v-if="hasNoInstances" class="ff-no-data--boxed">
+    <section v-if="hasNoInstances" class="ff-no-data--boxed" data-el="application-instances-none">
         <label class="delimiter">
-            <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Instances
+            <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Hosted Instances
         </label>
         <span v-if="!isSearching" class="message">
             This Application currently has no
@@ -11,11 +11,11 @@
             No instance matches your criteria.
         </span>
     </section>
-    <section v-else class="ff-applications-list-instances--compact">
+    <section v-else class="ff-applications-list-instances--compact" data-el="application-instances">
         <label class="delimiter">
-            <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Instances
+            <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Hosted Instances
         </label>
-        <div class="items-wrapper" :class="{one: singleInstance, two: twoInstances, three: threeInstances}" data-el="application-instances">
+        <div class="items-wrapper" :class="{one: singleInstance, two: twoInstances, three: threeInstances}">
             <div
                 v-for="instance in instances"
                 :key="instance.id"
