@@ -37,11 +37,11 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            # if (context.eventName === 'workflow_dispatch') {
-            #   console.log('✅ Workflow manually dispatched. Skipping tests jobs check. ✅');
-            #   core.setOutput('jobs_status', 'success');
-            #   return;
-            # }
+            // if (context.eventName === 'workflow_dispatch') {
+            //  console.log('✅ Workflow manually dispatched. Skipping tests jobs check. ✅');
+            //  core.setOutput('jobs_status', 'success');
+            //  return;
+            // }
 
             const { data } = await github.rest.actions.listJobsForWorkflowRun({
               owner: context.repo.owner,
