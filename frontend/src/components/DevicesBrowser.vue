@@ -173,7 +173,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Device
+                                Add Remote Instance
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -212,7 +212,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Device
+                                Add Remote Instance
                             </ff-button>
                         </template>
                     </EmptyState>

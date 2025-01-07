@@ -21,7 +21,8 @@ const state = () => ({
     },
     tours: {
         welcome: false,
-        education: false
+        education: false,
+        'first-device': false
     },
     mainNav: {
         context: 'team',
@@ -402,9 +403,6 @@ const actions = {
         commit('activateTour', tour)
     },
     deactivateTour ({ commit, state }, tour) {
-        if (tour === 'welcome') {
-            commit('activateTour', 'education')
-        }
         commit('deactivateTour', tour)
     }
 }
