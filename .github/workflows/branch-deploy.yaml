@@ -142,7 +142,7 @@ jobs:
       release_name: "pre-staging-${{ inputs.nr_launcher_branch == 'main' && github.sha || inputs.nr_launcher_branch }}"
       package_dependencies: |
         @flowfuse/nr-project-nodes=${{ inputs.nr_project_nodes_branch != 'main' && needs.publish_nr_project_nodes.outputs.release_name || 'nightly' }}
-        @flowfuse/nr-file-nodes=nightly
+        @flowfuse/nr-file-nodes=${{ inputs.nr_file_nodes_branch != 'main' && needs.publish_nr_file_nodes.outputs.release_name || 'nightly' }}
         @flowfuse/nr-assistant=nightly
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
