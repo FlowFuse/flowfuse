@@ -77,10 +77,6 @@ module.exports = async function (app) {
                 injection += `<script>window.sentryConfig = { dsn: "${telemetry.frontend.sentry.dsn}", production_mode: ${telemetry.frontend.sentry.production_mode ?? true}, version: "flowfuse@${config.version}", environment: "${process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown')}" }</script>`
             }
 
-            if (config.base_url) {
-                injection += `<link rel="canonical" href="${config.base_url}" />`
-            }
-
             // inject into index.html
             cachedIndex = data.replace(/<script>\/\*inject-ff-scripts\*\/<\/script>/g, injection)
         }
