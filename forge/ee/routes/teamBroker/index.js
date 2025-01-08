@@ -346,4 +346,41 @@ module.exports = async function (app) {
         const list = await app.teamBroker.getUsedTopics(request.team.hashid)
         reply.send(list)
     })
+
+    /**
+     * Get Credentials for 3rd Party Broker
+     * @name /api/v1/teams/:teamId/broker/creds
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
+    app.get('/:broker/creds', {
+        // preHandler: app.needsPermission('broker:topics:list'),
+        schema: {
+            summary: 'Gets credentials for a 3rd party MQTT broker',
+            tags: ['MQTT Broker'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+
+                    },
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        reply.send({
+            protocol: 'mqtt:',
+            host: 'localhost',
+            port: 1889,
+            username: 'foo',
+            password: 'bar'
+        })
+    })
 }
