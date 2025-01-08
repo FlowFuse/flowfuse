@@ -11,6 +11,7 @@ module.exports = {
         host: { type: DataTypes.STRING, allowNull: false },
         port: { type: DataTypes.INTEGER, allowNull: false, default: 1883 },
         protocol: { type: DataTypes.STRING, allowNull: false, default: 'mqtt:'},
+        protocolVersion: { type: DataTypes.INTEGER, allowNull: false, default: 4},
         ssl: { type: DataTypes.BOOLEAN, allowNull: false, default: false },
         verifySSL: { type: DataTypes.BOOLEAN, allowNull: false, default: false },
         clientId: { type: DataTypes.STRING, allowNull: false },

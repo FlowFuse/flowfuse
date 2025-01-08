@@ -349,7 +349,7 @@ module.exports = async function (app) {
 
     /**
      * Get Credentials for 3rd Party Broker
-     * @name /api/v1/teams/:teamId/broker/creds
+     * @name /api/v1/teams/:teamId/broker/:brokerId/creds
      * @static
      * @memberof forge.routes.api.team.broker
      */
@@ -358,6 +358,13 @@ module.exports = async function (app) {
         schema: {
             summary: 'Gets credentials for a 3rd party MQTT broker',
             tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    brokerId: { type: 'string' }
+                }
+            },
             response: {
                 200: {
                     type: 'object',
@@ -382,5 +389,51 @@ module.exports = async function (app) {
             username: 'foo',
             password: 'bar'
         })
+    })
+
+    /**
+     * Store Topics from a 3rd Party Broker
+     * @name /api/v1/teams/:teamId/broker/:brokerId/topics
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
+    app.post('/:brokerId/topics', {
+        // preHandler: app.needsPermission('broker:topics:list'),
+        schema: {
+            summary: 'Store Topics from a 3rd party MQTT broker',
+            tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    brokerId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    
+                },
+                additionalProperties: true
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+
+                    },
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        console.log(request.body)
+        reply.send({})
     })
 }
