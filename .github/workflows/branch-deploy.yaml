@@ -462,9 +462,10 @@ jobs:
     needs: 
       - deploy
       - create-custom-stack
-    if: |
-      always() &&
-      (needs.deploy.result != 'skipped' || needs.create-custom-stack.result != 'skipped')
+    if: false
+    # if: |
+    #   always() &&
+    #   (needs.deploy.result != 'skipped' || needs.create-custom-stack.result != 'skipped')
     runs-on: ubuntu-latest
     env:
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
