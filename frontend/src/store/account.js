@@ -76,9 +76,9 @@ const getters = {
     noBilling (state, getters) {
         return !state.user.admin &&
         state.features.billing &&
-        (!state.team.billing?.unmanaged) &&
-        (!getters.isTrialAccount || state.team.billing?.trialEnded) &&
-        !state.team.billing?.active
+        (!state.team?.billing?.unmanaged) &&
+        (!getters.isTrialAccount || state.team?.billing?.trialEnded) &&
+        !state.team?.billing?.active
     },
     isTrialAccount (state) {
         return state.team?.billing?.trial
