@@ -84,18 +84,18 @@ export default {
                 // Sort topics alphabetically to ensure consistency in hierarchy generation
                 topics.sort().forEach(topic => {
                     const parts = topic.split('/')
-
+                    if (topic.startsWith('/')) {
+                        // Handle empty root topic
+                        parts.shift()
+                        parts[0] = '/' + parts[0]
+                    }
                     // combine empty root topics into /{child-topic}
-                    const rootName = topic.startsWith('/')
-                        ? '/' + (parts[1] || '')
-                        : parts[0]
+                    const rootName = parts.shift()
 
                     if (!hierarchy[rootName]) {
                         hierarchy[rootName] = {
                             name: rootName,
-                            path: topic.startsWith('/') // adjusting path for empty root topics
-                                ? `/${rootName}` // Path for topics with leading '/'
-                                : rootName, // Path for topics without leading '/'
+                            path: rootName,
                             open: false,
                             childrenCount: 0,
                             children: {}
@@ -105,24 +105,19 @@ export default {
                     let current = hierarchy[rootName].children // Start at the root's children
 
                     // Traverse through the parts to build the nested structure
-                    parts.slice(topic.startsWith('/') ? 2 : 1) // Skip empty root and any leading part
-                        .forEach((part, index) => {
-                            if (!current[part]) {
-                                const path = `${hierarchy[rootName].path}/${parts.slice(
-                                    topic.startsWith('/') ? 2 : 1,
-                                    index + 1
-                                ).join('/')}`
-
-                                current[part] = {
-                                    name: part,
-                                    path,
-                                    open: false,
-                                    childrenCount: 0,
-                                    children: {}
-                                }
+                    parts.forEach((part, index) => {
+                        if (!current[part]) {
+                            const path = hierarchy[rootName].path + (index > 0 ? `/${parts.slice(0, index).join('/')}` : '')
+                            current[part] = {
+                                name: part,
+                                path,
+                                open: false,
+                                childrenCount: 0,
+                                children: {}
                             }
-                            current = current[part].children // Move to the next level
-                        })
+                        }
+                        current = current[part].children // Move to the next level
+                    })
                 })
 
                 function calculateChildrenCount (node) {
