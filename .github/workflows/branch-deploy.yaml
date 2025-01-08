@@ -75,7 +75,6 @@ jobs:
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
-      github.event.action != 'closed' &&
       inputs.driver_k8s_branch != 'main'
     uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
     with:
@@ -93,7 +92,6 @@ jobs:
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
-      github.event.action != 'closed' &&
       inputs.nr_project_nodes_branch != 'main'
     uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
     with:
@@ -111,7 +109,6 @@ jobs:
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
-      github.event.action != 'closed' &&
       inputs.nr_file_nodes_branch != 'main'
     uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
     with:
@@ -155,7 +152,6 @@ jobs:
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
-      github.event.action != 'closed' &&
       (always() && needs.publish_nr_launcher.result == 'success')
     uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.38.0
     with:
@@ -178,7 +174,6 @@ jobs:
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
-      github.event.action != 'closed' &&
       (always() && needs.build-node-red.result == 'success')
     runs-on: ubuntu-latest
     environment: staging
