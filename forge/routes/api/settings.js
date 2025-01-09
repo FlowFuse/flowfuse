@@ -49,7 +49,7 @@ module.exports = async function (app) {
             }
             if (app.config.features.enabled('teamBroker')) {
                 // use IP address if on localfs and no domain configured
-                let defaultHost = app.config.domain ? `broker.${app.config.domain}` : app.config.host
+                const defaultHost = app.config.domain ? `broker.${app.config.domain}` : app.config.host
                 response['team:broker:host'] = app.config.broker?.teamBroker?.host || defaultHost
             }
 
