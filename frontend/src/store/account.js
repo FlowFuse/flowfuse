@@ -122,7 +122,12 @@ const getters = {
         const preCheck = {
             // Instances
             isHostedInstancesEnabledForTeam: ((state) => {
+                if (!state.team) {
+                    return false
+                }
+
                 let available = false
+
                 // loop over the different instance types
                 for (const instanceType of Object.keys(state.team.type.properties?.instances) || []) {
                     if (state.team.type.properties?.instances[instanceType].active) {
