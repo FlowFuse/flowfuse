@@ -7,7 +7,7 @@ Your FlowFuse Instance "{{{ name }}}"{{#if teamName.text}} in Team "{{{ teamName
 
 {{#if log.text}}
 ------------------------------------------------------
-Logs...
+Logs:
 
 {{#log.text}}
 Timestamp: {{{timestamp}}}
