@@ -19,7 +19,7 @@ Possible solutions:
 
 {{#if log.text}}
 ------------------------------------------------------
-Logs...
+Logs:
 
 {{#log.text}}
 Timestamp: {{{timestamp}}}
