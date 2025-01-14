@@ -12,10 +12,9 @@
                     <img src="../../../images/pictograms/application_red.png">
                 </template>
                 <template #helptext>
-                    <p>This is a list of all Applications hosted on the same domain as FlowFuse.</p>
-                    <p>Each Application can host multiple Node-RED instances.</p>
-                    <p>Click an application header to go to the overview of that application.</p>
-                    <p>Click an instance within an application to go to the Instances overview.</p>
+                    <p>Each Application can host multiple Node-RED instances, both Hosted and Remote.</p>
+                    <p>Click an Application header to go to the overview of that Application.</p>
+                    <p>Click an Instance within an Application to go to the Instance's overview.</p>
                 </template>
                 <template #tools>
                     <ff-button
@@ -111,6 +110,7 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Tours from '../../../tours/Tours.js'
 
+import TourWelcomeFree from '../../../tours/tour-welcome-free.json'
 import TourWelcome from '../../../tours/tour-welcome.json'
 
 import ApplicationListItem from './components/Application.vue'
@@ -206,8 +206,8 @@ export default {
     watch: {
         team: 'fetchData'
     },
-    mounted () {
-        this.fetchData()
+    async mounted () {
+        await this.fetchData()
         if ('billing_session' in this.$route.query) {
             this.$nextTick(() => {
                 // Clear the query param so a reload of the page does retrigger
@@ -217,9 +217,33 @@ export default {
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
         }
-        // first time arriving here
+        // Do we have an Instance already? Tells us which tour to run
+        const instanceCount = this.applicationsList.reduce((count, app) => {
+            count += app.instances.length
+            return count
+        }, 0)
+        // Do we have an Instance already? Tells us which tour to run
+        const deviceCount = this.applicationsList.reduce((count, app) => {
+            count += app.devices.length
+            return count
+        }, 0)
+
+        // First time here?
         if (this.tours.welcome) {
-            const tour = Tours.create('welcome', TourWelcome)
+            let tour = null
+            if (instanceCount > 0) {
+                // Running with an Instance pre-configured
+                tour = Tours.create('welcome', TourWelcome, this.$store, () => {
+                    this.$store.dispatch('ux/activateTour', 'education')
+                })
+            } else {
+                // Free Tier Tour (No Instances)
+                tour = Tours.create('welcome', TourWelcomeFree, this.$store, () => {
+                    if (deviceCount === 0) {
+                        this.$store.dispatch('ux/activateTour', 'first-device')
+                    }
+                })
+            }
             tour.start()
         }
         this.setSearchQuery()

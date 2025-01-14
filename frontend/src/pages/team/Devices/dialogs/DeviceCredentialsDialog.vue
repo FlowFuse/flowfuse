@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Device Configuration" data-el="team-device-config-dialog">
+    <ff-dialog ref="dialog" header="Device Agent Configuration" data-el="team-device-config-dialog">
         <template #default>
             <form class="text-gray-800">
                 <template v-if="!hasCredentials">
@@ -14,7 +14,10 @@
                 <template v-if="hasCredentials">
                     <template v-if="otc">
                         <p>
-                            With the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a> installed on your device, run the following command to setup its connection to the platform:
+                            Install the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a> onto the hardware where you want to run your Node-RED Instance.
+                        </p>
+                        <p class="mt-2">
+                            Then, with the Device Agent installed, run the following command to connect it to FlowFuse:
                         </p>
                         <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ otcCommand }}</pre>
                         <div class="flex flex-row justify-end space-x-2 -mt-1">

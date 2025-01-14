@@ -11,14 +11,21 @@
                 @click="selectTab($index)"
             >
                 {{ tab.label }}
+                <span v-if="tab.featureUnavailable" v-ff-tooltip="'Not available in this Team Tier'" data-el="premium-feature">
+                    <SparklesIcon class="ff-icon transition-fade--color hollow" style="stroke-width: 1;" />
+                </span>
             </router-link>
         </ul>
     </div>
 </template>
 
 <script>
+import { SparklesIcon } from '@heroicons/vue/outline'
 export default {
     name: 'ff-tabs',
+    components: {
+        SparklesIcon
+    },
     props: {
         orientation: {
             default: 'horizontal',
