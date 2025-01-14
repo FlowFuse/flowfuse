@@ -177,10 +177,10 @@ describe('Instance Alerts emails', function () {
             response.statusCode.should.equal(200)
 
             inbox.messages.should.have.length(1)
-            inbox.messages[0].html.should.match(/<p>\n.*Logs\.\.\./)
+            inbox.messages[0].html.should.match(/<p>\n.*Logs:/)
             inbox.messages[0].html.should.match(/<td>info message 1<\/td>/)
             inbox.messages[0].html.should.match(/<td>uncaught exception<\/td>/)
-            inbox.messages[0].text.should.match(/\n.*Logs\.\.\./)
+            inbox.messages[0].text.should.match(/\n.*Logs:/)
             inbox.messages[0].text.should.match(/\nTimestamp: 2022-03-22 22:22:22/)
             inbox.messages[0].text.should.match(/\nSeverity: info/)
             inbox.messages[0].text.should.match(/\nMessage: info message 1/)
