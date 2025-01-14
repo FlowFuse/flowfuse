@@ -10,13 +10,20 @@ module.exports = function (app) {
             targetSnapshot: {
                 nullable: true,
                 allOf: [{ $ref: 'SnapshotSummary' }]
+            },
+            application: {
+                nullable: true,
+                allOf: [{ $ref: 'ApplicationSummary' }]
             }
         }
     })
-    function deviceGroupSummary (group) {
+    function deviceGroupSummary (group, options = {}) {
+        const { includeApplication = false } = options
+
         if (group.toJSON) {
             group = group.toJSON()
         }
+
         const result = {
             id: group.hashid,
             name: group.name,
@@ -24,6 +31,11 @@ module.exports = function (app) {
             deviceCount: group.deviceCount || 0,
             targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(group.targetSnapshot)
         }
+
+        if (includeApplication && group.Application) {
+            result.application = app.db.views.Application.applicationSummary(group.Application)
+        }
+
         return result
     }
 
