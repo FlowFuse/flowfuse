@@ -19,7 +19,6 @@
 </template>
 
 <script>
-import { useRoute } from 'vue-router'
 import { mapGetters, mapState } from 'vuex'
 
 import Loading from '../../components/Loading.vue'
@@ -40,7 +39,6 @@ export default {
         TeamTrialBanner
     },
     async beforeRouteUpdate (to, from, next) {
-        await this.$store.dispatch('account/setTeam', to.params.team_slug)
         // even if billing is not yet enabled, users should be able to see these screens,
         // in order to delete the project, or setup billing
         await this.checkRoute(to)
@@ -68,25 +66,35 @@ export default {
             return this.isAdminUser || this.teamMembership?.role >= Roles.Viewer
         }
     },
+    watch: {
+        '$route.params.team_slug' (slug) {
+            this.$store.dispatch('account/setTeam', slug)
+        },
+        team () {
+            this.checkRoute(this.$route)
+        }
+    },
     mounted () {
         this.mounted = true
     },
     async beforeMount () {
-        await this.$store.dispatch('account/setTeam', useRoute().params.team_slug)
         this.checkRoute(this.$route)
     },
     methods: {
         checkRoute: async function (route) {
-            const allowedRoutes = [
-                '/team/' + this.team.slug + '/billing',
-                '/team/' + this.team.slug + '/settings',
-                '/team/' + this.team.slug + '/settings/general',
-                '/team/' + this.team.slug + '/settings/danger',
-                '/team/' + this.team.slug + '/settings/change-type'
-            ]
-            if (allowedRoutes.indexOf(route.path) === -1) {
-                // if we're on a path that requires billing
-                await this.checkBilling()
+            const allowedRoutes = []
+
+            if (this.team) {
+                allowedRoutes.push('/team/' + this.team.slug + '/billing')
+                allowedRoutes.push('/team/' + this.team.slug + '/settings')
+                allowedRoutes.push('/team/' + this.team.slug + '/settings/general')
+                allowedRoutes.push('/team/' + this.team.slug + '/settings/danger')
+                allowedRoutes.push('/team/' + this.team.slug + '/settings/change-type')
+
+                if (allowedRoutes.indexOf(route.path) === -1) {
+                    // if we're on a path that requires billing
+                    await this.checkBilling()
+                }
             }
         },
         checkBilling: async function () {

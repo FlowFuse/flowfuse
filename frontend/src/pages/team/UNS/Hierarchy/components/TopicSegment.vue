@@ -19,7 +19,7 @@
                         </span>
                     </span>
                     <span v-if="hasChildren" class="font-normal opacity-50 text-xs">{{ topicsCounterLabel }}</span>
-                    <text-copier :text="segment.path" :show-text="false" class="ff-text-copier" />
+                    <text-copier :text="isRoot ? segment.name : (`${segment.path}/${segment.name}`)" :show-text="false" class="ff-text-copier" />
                 </p>
             </div>
         </div>

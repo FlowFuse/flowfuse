@@ -57,19 +57,14 @@ export default {
         InstanceStatusPolling
     },
     mixins: [permissionsMixin, applicationMixin, instanceActionsMixin],
-    data: function () {
-        return {
-            mounted: false
-        }
-    },
     computed: {
         ...mapState('account', ['features']),
         navigation () {
             const routes = [
-                { label: 'Instances', to: { name: 'ApplicationInstances' }, tag: 'application-overview', icon: ProjectsIcon },
-                { label: 'Devices', to: { name: 'ApplicationDevices' }, tag: 'application-devices-overview', icon: ChipIcon },
+                { label: 'Hosted Instances', to: { name: 'ApplicationInstances' }, tag: 'application-overview', icon: ProjectsIcon },
+                { label: 'Remote Instances', to: { name: 'ApplicationDevices' }, tag: 'application-devices-overview', icon: ChipIcon },
                 {
-                    label: 'Devices Groups',
+                    label: 'Device Groups',
                     to: { name: 'ApplicationDeviceGroups' },
                     tag: 'application-devices-groups-overview',
                     icon: ChipIcon,
@@ -78,7 +73,7 @@ export default {
                 },
                 { label: 'Snapshots', to: { name: 'ApplicationSnapshots' }, tag: 'application-snapshots', icon: ClockIcon },
                 {
-                    label: 'DevOps Pipelines',
+                    label: 'Pipelines',
                     to: { name: 'ApplicationPipelines' },
                     tag: 'application-pipelines',
                     icon: PipelinesIcon,
@@ -106,20 +101,11 @@ export default {
             return routes
         }
     },
-    async created () {
-        await this.updateApplication()
-
-        this.$watch(
-            () => this.$route.params.id,
-            async () => {
-                await this.updateApplication()
-            }
-        )
-    },
-    mounted () {
-        this.mounted = true
-    },
-    methods: {
+    watch: {
+        'team.name': {
+            handler: 'updateApplication',
+            immediate: true
+        }
     }
 }
 </script>

@@ -80,8 +80,8 @@ describe('FlowForge - Applications', () => {
 
             cy.contains('My app')
             cy.contains('My empty app description')
-            cy.contains('This Application currently has no attached Node-RED Instances .')
-            cy.contains('This Application currently has no attached devices .')
+            cy.contains('This Application currently has no attached Hosted Instances.')
+            cy.contains('This Application currently has no attached Remote Instances.')
         })
 
         it('can list application instances', () => {
@@ -1245,7 +1245,7 @@ describe('FlowForge - Applications', () => {
                 {
                     index: 0,
                     label: 'Edit Details',
-                    dialogTitle: 'Update Device',
+                    dialogTitle: 'Update Remote Instance',
                     dialogDataEl: 'team-device-create-dialog'
                 },
                 {
@@ -1257,7 +1257,7 @@ describe('FlowForge - Applications', () => {
                 {
                     index: 2,
                     label: 'Regenerate Configuration',
-                    dialogTitle: 'Device Configuration',
+                    dialogTitle: 'Device Agent Configuration',
                     dialogDataEl: 'team-device-config-dialog',
                     dialogCancelButtonSelector: '.ff-dialog-actions > button.ff-btn--secondary'
                 },
