@@ -31,7 +31,7 @@ You can access the instance and its logs here:
 
 {{#if log.html}}
 <p>
-Logs...
+Logs:
 <table style="width: 100%; font-size: small; font-family: monospace; white-space: pre;">
     <tr>
         <th style="text-align: left; min-width: 135px;">Timestamp</th>
