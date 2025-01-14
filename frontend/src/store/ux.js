@@ -21,7 +21,8 @@ const state = () => ({
     },
     tours: {
         welcome: false,
-        education: false
+        education: false,
+        'first-device': false
     },
     mainNav: {
         context: 'team',
@@ -66,10 +67,11 @@ const getters = {
                             to: { name: 'Instances', params: { team_slug: team.slug } },
                             tag: 'team-instances',
                             icon: ProjectsIcon,
+                            featureUnavailable: !features.isHostedInstancesEnabledForTeam,
                             disabled: noBilling
                         },
                         {
-                            label: 'Edge Devices',
+                            label: 'Remote Instances',
                             to: { name: 'TeamDevices', params: { team_slug: team.slug } },
                             tag: 'team-devices',
                             icon: ChipIcon,
@@ -401,9 +403,6 @@ const actions = {
         commit('activateTour', tour)
     },
     deactivateTour ({ commit, state }, tour) {
-        if (tour === 'welcome') {
-            commit('activateTour', 'education')
-        }
         commit('deactivateTour', tour)
     }
 }

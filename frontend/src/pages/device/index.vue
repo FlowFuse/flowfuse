@@ -7,7 +7,7 @@
         <div class="ff-instance-header">
             <SectionNavigationHeader :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Edge Devices</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Remote Instances</ff-nav-breadcrumb>
                     <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
@@ -20,7 +20,7 @@
                 <template #context>
                     <div v-if="device?.ownerType === 'application' && device.application" data-el="device-assigned-application">
                         Application:
-                        <ff-team-link :to="{name: 'Application', params: {id: device.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application.name }}</ff-team-link>
+                        <ff-team-link :to="{name: 'Application', params: {id: device.application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application?.name }}</ff-team-link>
                     </div>
                     <div v-else-if="device?.ownerType === 'instance' && device.instance" data-el="device-assigned-instance">
                         Instance:
@@ -38,8 +38,8 @@
                     -->
                     <div class="space-x-2 flex align-center" style="height: 34px;">
                         <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
-                        <button v-if="!isVisitingAdmin" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
-                            Device Editor
+                        <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
+                            Open Editor
                             <span class="ff-btn--icon ff-btn--icon-right">
                                 <ExternalLinkIcon />
                             </span>
@@ -252,7 +252,7 @@ export default {
             // device logs - if project comms is enabled,
             if (this.features.projectComms) {
                 navigation.push({
-                    label: 'Device Logs',
+                    label: 'Node-RED Logs',
                     to: `/device/${this.$route.params.id}/logs`,
                     tag: 'device-logs',
                     icon: TerminalIcon

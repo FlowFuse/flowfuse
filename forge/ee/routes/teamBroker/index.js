@@ -1,3 +1,5 @@
+const schemaApi = require('./schema')
+
 module.exports = async function (app) {
     app.addHook('preHandler', app.verifySession)
 
@@ -34,6 +36,8 @@ module.exports = async function (app) {
             request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
         }
     })
+
+    await schemaApi(app)
 
     /**
      * Get the Teams MQTT Clients
