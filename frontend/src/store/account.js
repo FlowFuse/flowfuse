@@ -205,6 +205,9 @@ const mutations = {
     clearPending (state) {
         state.pending = false
     },
+    setPending (state, pending) {
+        state.pending = pending
+    },
     setLoginInflight (state) {
         state.loginInflight = true
     },
@@ -397,6 +400,7 @@ const actions = {
             } else if (credentials.token) {
                 await userApi.verifyMFAToken(credentials.token)
             }
+            state.commit('setPending', true)
             state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
         } catch (err) {
             if (err.response?.status >= 401) {
