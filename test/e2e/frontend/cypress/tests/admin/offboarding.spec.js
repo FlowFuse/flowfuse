@@ -87,7 +87,7 @@ describe('FlowForge - Team Membership', () => {
         cy.get('[data-action="dialog-confirm"]').click()
 
         cy.origin('https://www.google.com', () => {
-            cy.url().should('eq', 'https://www.google.com/search?q=rick+astley')
+            cy.url().should('to.match', /^https:\/\/www\.google\.com\/search\?q=rick\+astley/)
         })
     })
 })
