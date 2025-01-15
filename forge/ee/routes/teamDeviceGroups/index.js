@@ -13,8 +13,6 @@
 module.exports = async function (app) {
     // pre-handler for all routes in this file
     app.addHook('preHandler', async (request, reply) => {
-        // todo validation preHandler
-
         // Get the team
         const teamId = request.params.teamId
         if (!teamId) {
@@ -28,7 +26,7 @@ module.exports = async function (app) {
             }
 
             if (request.session.User) {
-                request.teamMembership = await request.session.User.getTeamMembership(request.params.teamId)
+                request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
                 if (!request.teamMembership && !request.session.User.admin) {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 }
