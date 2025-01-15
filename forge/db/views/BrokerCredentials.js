@@ -1,5 +1,3 @@
-const { verify } = require("jsonwebtoken")
-
 module.exports = {
     credentials: function (app, credentials) {
         const filtered = []

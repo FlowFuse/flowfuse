@@ -354,7 +354,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.broker
      */
     app.get('/credentials', {
-        // preHandler: app.needsPermission('broker:topics:list'),
+        preHandler: app.needsPermission('broker:credentials:list'),
         schema: {
             summary: 'Get credentials for 3rd party MQTT brokers',
             tags: ['MQTT Broker'],
@@ -390,7 +390,7 @@ module.exports = async function (app) {
      * Add new Credentials for a 3rd Party Broker
      */
     app.post('/credentials', {
-        // preHandler: app.needsPermission('broker:topics:list'),
+        preHandler: app.needsPermission('broker:credentials:create'),
         schema: {
             summary: 'Create credentials for a 3rd party MQTT broker',
             tags: ['MQTT Broker'],
@@ -448,6 +448,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.broker
      */
     app.get('/:brokerId/credentials', {
+        // TODO Needs custom preHandler to work with token for mqtt agent only
         // preHandler: app.needsPermission('broker:topics:list'),
         schema: {
             summary: 'Gets credentials for a 3rd party MQTT broker',
@@ -495,33 +496,33 @@ module.exports = async function (app) {
      * Edit 3rd Party Broker credentials
      */
     app.put('/:brokerId/credentials', {
-    // preHandler: app.needsPermission('broker:topics:list'),
-    schema: {
-        summary: 'Delete credentials for a 3rd party MQTT broker',
-        tags: ['MQTT Broker'],
-        params: {
-            type: 'object',
-            properties: {
-                teamId: { type: 'string' },
-                brokerId: { type: 'string' }
-            }
-        },
-        response: {
-            200: {
+        preHandler: app.needsPermission('broker:credentials:edit'),
+        schema: {
+            summary: 'Delete credentials for a 3rd party MQTT broker',
+            tags: ['MQTT Broker'],
+            params: {
                 type: 'object',
                 properties: {
+                    teamId: { type: 'string' },
+                    brokerId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
 
+                    },
+                    additionalProperties: true
                 },
-                additionalProperties: true
-            },
-            '4xx': {
-                $ref: 'APIError'
-            },
-            500: {
-                $ref: 'APIError'
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
             }
         }
-    }
     }, async (request, reply) => {
 
     })
@@ -530,7 +531,7 @@ module.exports = async function (app) {
      * Remove 3rd Party Broker credentials
      */
     app.delete('/:brokerId/credentials', {
-        // preHandler: app.needsPermission('broker:topics:list'),
+        preHandler: app.needsPermission('broker:topics:delete'),
         schema: {
             summary: 'Delete credentials for a 3rd party MQTT broker',
             tags: ['MQTT Broker'],
@@ -564,7 +565,7 @@ module.exports = async function (app) {
                 await creds.destroy()
                 reply.send({})
             } catch (err) {
-                reply.status(500).send({error:'', message:''})
+                reply.status(500).send({ error: '', message: '' })
             }
         } else {
             reply.status(404).send({})
@@ -578,7 +579,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.broker
      */
     app.post('/:brokerId/topics', {
-        // preHandler: app.needsPermission('broker:topics:list'),
+        preHandler: app.needsPermission('broker:topics:list'),
         schema: {
             summary: 'Store Topics from a 3rd party MQTT broker',
             tags: ['MQTT Broker'],
@@ -592,7 +593,7 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    
+
                 },
                 additionalProperties: true
             },
