@@ -10,7 +10,7 @@
                 </template>
                 <template #helptext>
                     <p>Groups permit the grouping of Application assigned remote Instances.</p>
-                    <p>Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
+                    <p>Groups can then be set as the target in a DevOps Pipeline to update multiple instances in a single operation</p>
                 </template>
             </ff-page-header>
         </template>
