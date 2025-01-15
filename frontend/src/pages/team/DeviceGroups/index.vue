@@ -1,16 +1,16 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Remote Instances Groups">
+            <ff-page-header title="Groups">
                 <template #context>
-                    Remote Instance Groups provide a way of managing multiple Remote instances together, for example deploying to multiple Remote Instances via a Pipeline.
+                    Groups provide a way of managing multiple Remote instances together, for example deploying to multiple Remote Instances via a Pipeline.
                 </template>
                 <template #pictogram>
                     <img alt="info" src="../../../images/pictograms/device_group_red.png">
                 </template>
                 <template #helptext>
-                    <p>Remote Instance Groups permit the grouping of Application assigned Remote Instances.</p>
-                    <p>The Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
+                    <p>Groups permit the grouping of Application assigned Remote Instances.</p>
+                    <p>Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
                 </template>
             </ff-page-header>
         </template>
@@ -22,11 +22,11 @@
                 <img src="../../../images/empty-states/application-device-groups.png" alt="logo">
             </template>
             <template #header>
-                <span>Remote Instance Groups Not Available</span>
+                <span>Groups Not Available</span>
             </template>
             <template #message>
-                <p>Remote Instance Groups permit the grouping of Application assigned Remote Instances.</p>
-                <p>The Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
+                <p>Groups permit the grouping of Application assigned Remote Instances.</p>
+                <p>Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
             </template>
         </EmptyState>
 
@@ -59,10 +59,10 @@
                         <template #img>
                             <img src="../../../images/empty-states/application-device-groups.png" alt="logo">
                         </template>
-                        <template #header>Start building your Remote Instance Groups</template>
+                        <template #header>Start building your Groups</template>
                         <template #message>
-                            <p>Remote Instance Groups permit the grouping of Application assigned Remote Instances.</p>
-                            <p>The Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
+                            <p>Groups permit the grouping of Application assigned Remote Instances.</p>
+                            <p>Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
                         </template>
                         <template #actions>
                             <ff-button class="center" @click="showCreateDeviceGroupDialog">Create Group</ff-button>
@@ -72,7 +72,7 @@
             </div>
         </template>
     </ff-page>
-    <ff-dialog ref="create-dialog" class="ff-dialog-box--info" header="Create Application Device Group">
+    <ff-dialog ref="create-dialog" class="ff-dialog-box--info" header="Create Group">
         <template #default>
             <slot name="helptext">
                 <p>Enter the name and description of the Device Group to create.</p>
