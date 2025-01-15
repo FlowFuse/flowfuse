@@ -3,13 +3,13 @@
         <template #header>
             <ff-page-header title="Groups">
                 <template #context>
-                    Groups provide a way of managing multiple Remote instances together, for example deploying to multiple Remote Instances via a Pipeline.
+                    Groups provide a way of managing multiple remote instances together, for example deploying to multiple remote Instances via a Pipeline.
                 </template>
                 <template #pictogram>
                     <img alt="info" src="../../../images/pictograms/device_group_red.png">
                 </template>
                 <template #helptext>
-                    <p>Groups permit the grouping of Application assigned Remote Instances.</p>
+                    <p>Groups permit the grouping of Application assigned remote Instances.</p>
                     <p>Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
                 </template>
             </ff-page-header>
@@ -25,14 +25,14 @@
                 <span>Groups Not Available</span>
             </template>
             <template #message>
-                <p>Groups permit the grouping of Application assigned Remote Instances.</p>
+                <p>Groups permit the grouping of Application assigned remote Instances.</p>
                 <p>Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
             </template>
         </EmptyState>
 
         <template v-else>
             <div id="team-device-groups" class="space-y-6">
-                <ff-loading v-if="loading" message="Loading Remote Instance Groups..." />
+                <ff-loading v-if="loading" message="Loading Groups..." />
 
                 <template v-else>
                     <section v-if="deviceGroups.length > 0" class="pipelines">
@@ -61,7 +61,7 @@
                         </template>
                         <template #header>Start building your Groups</template>
                         <template #message>
-                            <p>Groups permit the grouping of Application assigned Remote Instances.</p>
+                            <p>Groups permit the grouping of Application assigned remote Instances.</p>
                             <p>Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
                         </template>
                         <template #actions>
