@@ -79,24 +79,24 @@
             <slot name="helptext">
                 <p>Enter the name and description of the Device Group to create.</p>
             </slot>
-            <div class="flex gap-4 mt-4">
+            <div class="flex gap-4">
                 <div class="flex-grow">
-                    <div class="form-row">
+                    <div class="form-row max-w-sm mb-2">
                         <label>
-                            <span class="block mb-2">
+                            <span class="block mb-1">
                                 Application
                             </span>
                             <ff-listbox
                                 v-model="input.application"
-                                :options="applications"
+                                :options="applicationOptions"
                                 data-el="snapshots-list"
                                 label-key="label"
                                 option-title-key="description"
-                                class="flex-grow"
+                                class="flex-grow w-full"
                             />
                         </label>
                     </div>
-                    <FormRow v-model="input.name" :error="!input.name ? 'required' : ''" data-form="name">Name</FormRow>
+                    <FormRow v-model="input.name" class="mb-2" :error="!input.name ? 'required' : ''" data-form="name">Name</FormRow>
                     <FormRow v-model="input.description" data-form="name">Description</FormRow>
                 </div>
             </div>
@@ -112,8 +112,14 @@
 import { SearchIcon } from '@heroicons/vue/outline'
 import { mapGetters } from 'vuex'
 
+import ApplicationAPI from '../../../api/application.js'
+
+import teamApi from '../../../api/team.js'
+
 import EmptyState from '../../../components/EmptyState.vue'
 import FormRow from '../../../components/FormRow.vue'
+import usePermissions from '../../../composables/Permissions.js'
+import Alerts from '../../../services/alerts.js'
 import FfButton from '../../../ui-components/components/Button.vue'
 import FfListbox from '../../../ui-components/components/form/ListBox.vue'
 
@@ -126,6 +132,10 @@ export default {
         EmptyState,
         SearchIcon
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             loading: false,
@@ -136,23 +146,62 @@ export default {
                 description: '',
                 application: ''
             },
-            applications: [
-                {
-                    label: 'qwe',
-                    value: '123'
-                }
-            ]
+            applications: []
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapGetters('account', ['featuresCheck', 'team']),
         filteredDeviceGroups () {
             return this.deviceGroups
+        },
+        applicationOptions () {
+            return this.applications.map(app => ({ label: app.name, value: app.id }))
+        }
+    },
+    mounted () {
+        if (this.hasPermission('team:device-group:list')) {
+            this.loadTeamDeviceGroups()
         }
     },
     methods: {
         async showCreateDeviceGroupDialog () {
-            this.$refs['create-dialog'].show()
+            this.getApplications()
+                .then(() => this.$refs['create-dialog'].show())
+                .catch(e => e)
+        },
+        getApplications () {
+            return teamApi.getTeamApplications(this.team.id, { includeApplicationSummary: false })
+                .then((res) => {
+                    this.applications = res.applications
+                })
+                .catch(e => e)
+        },
+        async loadTeamDeviceGroups () {
+            return teamApi.getTeamDeviceGroups(this.team.id)
+                .then(res => {
+                    this.deviceGroups = res.groups
+                })
+                .catch(e => e)
+        },
+        async createDeviceGroup () {
+            if (!this.input.name) {
+                Alerts.emit('Device Group name is required', 'warning')
+                return
+            }
+            if (!this.input.application) {
+                Alerts.emit('An application is required', 'warning')
+                return
+            }
+
+            ApplicationAPI.createDeviceGroup(this.input.application, this.input.name, this.input.description)
+                .then((result) => {
+                    this.$refs['create-dialog'].close()
+                    this.loadTeamDeviceGroups()
+                })
+                .catch((err) => {
+                    console.error(err)
+                    Alerts.emit('Failed to create Device Group. Check the console for more details', 'error', 7500)
+                })
         }
     }
 }
