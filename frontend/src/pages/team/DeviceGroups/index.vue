@@ -35,35 +35,24 @@
                 <ff-loading v-if="loading" message="Loading Remote Instance Groups..." />
 
                 <template v-else>
-                    <ff-text-input
-                        v-model="filterTerm"
-                        class="ff-data-table--search"
-                        data-form="search"
-                        placeholder="Search Groups..."
-                    >
-                        <template #icon>
-                            <SearchIcon />
-                        </template>
-                    </ff-text-input>
-
                     <section v-if="deviceGroups.length > 0" class="pipelines">
-                        <ul class="pipelines-list">
-                            <li v-for="group in filteredDeviceGroups" :key="group.id">
-                                <section-block
-                                    :application="group.application"
-                                    :link-to="{name: 'ApplicationDeviceGroupIndex', params: {applicationId: group.application.id, deviceGroupId: group.id}}"
-                                    class="mb-5"
-                                >
-                                    <template #title>{{ group.name }}</template>
-                                    <template #default>
-                                        asd
-                                    </template>
-                                </section-block>
-                            </li>
-                        </ul>
-                        <p v-if="filteredDeviceGroups.length === 0" class="no-results">
-                            No Data Found. Try Another Search.
-                        </p>
+                        <ff-data-table
+                            v-model:search="tableSearch"
+                            :columns="tableColumns"
+                            :rows="deviceGroups"
+                            :show-search="true"
+                            search-placeholder="Filter..."
+                            data-el="device-groups-table"
+                            :rows-selectable="true"
+                            @row-selected="goToGroup"
+                        >
+                            <template #actions>
+                                <ff-button data-action="create-device-group" @click="showCreateDeviceGroupDialog">
+                                    <template #icon-left><PlusSmIcon /></template>
+                                    Add Device Group
+                                </ff-button>
+                            </template>
+                        </ff-data-table>
                     </section>
 
                     <EmptyState v-else>
@@ -118,7 +107,8 @@
 </template>
 
 <script>
-import { SearchIcon } from '@heroicons/vue/outline'
+import { PlusSmIcon } from '@heroicons/vue/outline'
+import { markRaw } from 'vue'
 import { mapGetters } from 'vuex'
 
 import ApplicationAPI from '../../../api/application.js'
@@ -127,21 +117,20 @@ import teamApi from '../../../api/team.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import FormRow from '../../../components/FormRow.vue'
-import SectionBlock from '../../../components/sections/section-block.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import FfButton from '../../../ui-components/components/Button.vue'
 import FfListbox from '../../../ui-components/components/form/ListBox.vue'
+import TargetSnapshotCell from '../../application/components/cells/TargetSnapshot.vue'
 
 export default {
     name: 'DeviceGroups',
     components: {
-        SectionBlock,
+        PlusSmIcon,
         FfListbox,
         FormRow,
         FfButton,
-        EmptyState,
-        SearchIcon
+        EmptyState
     },
     setup () {
         const { hasPermission } = usePermissions()
@@ -150,21 +139,51 @@ export default {
     data () {
         return {
             loading: false,
-            filterTerm: '',
+            tableSearch: '',
             deviceGroups: [],
+            applications: [],
             input: {
                 name: '',
                 description: '',
                 application: ''
             },
-            applications: []
+            tableColumns: [
+                {
+                    label: 'Name',
+                    key: 'name',
+                    sortable: true,
+                    class: 'w-1/4 whitespace-nowrap'
+                },
+                {
+                    label: 'Application',
+                    key: 'application.name',
+                    sortable: true,
+                    class: 'w-1/4 whitespace-nowrap'
+                },
+                {
+                    label: 'Description',
+                    key: 'description',
+                    sortable: true,
+                    class: 'w-1/3'
+                },
+                {
+                    label: 'Target Snapshot',
+                    key: 'description',
+                    sortable: true,
+                    class: 'w-full',
+                    component: { is: markRaw(TargetSnapshotCell) }
+                },
+                {
+                    label: 'Device count',
+                    key: 'deviceCount',
+                    sortable: true,
+                    class: 'w-1/4 whitespace-nowrap'
+                }
+            ]
         }
     },
     computed: {
         ...mapGetters('account', ['featuresCheck', 'team']),
-        filteredDeviceGroups () {
-            return this.deviceGroups
-        },
         applicationOptions () {
             return this.applications.map(app => ({ label: app.name, value: app.id }))
         }
@@ -213,11 +232,16 @@ export default {
                     console.error(err)
                     Alerts.emit('Failed to create Device Group. Check the console for more details', 'error', 7500)
                 })
+        },
+        goToGroup (row) {
+            return this.$router.push({
+                name: 'ApplicationDeviceGroupIndex',
+                params: {
+                    deviceGroupId: row.id,
+                    applicationId: row.application.id
+                }
+            })
         }
     }
 }
 </script>
-
-<style scoped lang="scss">
-
-</style>
