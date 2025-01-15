@@ -27,7 +27,7 @@ module.exports = async function (app) {
      * feConfig - the 'frontend' portion of our flowforge.yml
      */
     async function injectAnalytics (config) {
-        if (!cachedIndex) {
+        if (process.env.NODE_ENV === 'development' || !cachedIndex) {
             const telemetry = config.telemetry
             const support = config.support
             const filepath = path.join(frontendAssetsDir, 'index.html')
