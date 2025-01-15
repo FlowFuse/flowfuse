@@ -82,6 +82,10 @@ describe('Team Device Groups API', function () {
         TestObjects.instance = await app.factory.createInstance({ name: 'B-team-instance' }, TestObjects.application, app.stack, app.template, app.projectType, { start: false })
     })
 
+    after(async function () {
+        await app.close()
+    })
+
     describe('the preHandler', () => {
         it('should return a 404 not found response when no team is provided', async () => {
             const sid = await login('bob', 'bbPassword')
