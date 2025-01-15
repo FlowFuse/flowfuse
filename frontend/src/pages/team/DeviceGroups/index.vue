@@ -49,7 +49,16 @@
                     <section v-if="deviceGroups.length > 0" class="pipelines">
                         <ul class="pipelines-list">
                             <li v-for="group in filteredDeviceGroups" :key="group.id">
-                                device-group
+                                <section-block
+                                    :application="group.application"
+                                    :link-to="{name: 'ApplicationDeviceGroupIndex', params: {applicationId: group.application.id, deviceGroupId: group.id}}"
+                                    class="mb-5"
+                                >
+                                    <template #title>{{ group.name }}</template>
+                                    <template #default>
+                                        asd
+                                    </template>
+                                </section-block>
                             </li>
                         </ul>
                         <p v-if="filteredDeviceGroups.length === 0" class="no-results">
@@ -118,6 +127,7 @@ import teamApi from '../../../api/team.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import FormRow from '../../../components/FormRow.vue'
+import SectionBlock from '../../../components/sections/section-block.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import FfButton from '../../../ui-components/components/Button.vue'
@@ -126,6 +136,7 @@ import FfListbox from '../../../ui-components/components/form/ListBox.vue'
 export default {
     name: 'DeviceGroups',
     components: {
+        SectionBlock,
         FfListbox,
         FormRow,
         FfButton,
