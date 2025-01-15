@@ -5,6 +5,7 @@ import {
     TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
 } from '@heroicons/vue/outline'
 
+import DeviceGroupOutlineIcon from '../components/icons/DeviceGroupOutline.js'
 import PipelinesIcon from '../components/icons/Pipelines.js'
 import ProjectsIcon from '../components/icons/Projects.js'
 import usePermissions from '../composables/Permissions.js'
@@ -83,6 +84,15 @@ const getters = {
                     title: 'Operations',
                     hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
+                        {
+                            label: 'Groups',
+                            to: { name: 'device-groups', params: { team_slug: team.slug } },
+                            tag: 'device-groups',
+                            icon: DeviceGroupOutlineIcon,
+                            disabled: noBilling,
+                            featureUnavailable: !features.isDeviceGroupsFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member)
+                        },
                         {
                             label: 'Pipelines',
                             to: { name: 'team-pipelines', params: { team_slug: team.slug } },
