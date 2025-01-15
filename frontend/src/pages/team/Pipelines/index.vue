@@ -50,21 +50,7 @@
                     <section v-if="pipelines.length > 0" class="pipelines">
                         <ul class="pipelines-list">
                             <li v-for="pipeline in filteredPipelines" :key="pipeline.id">
-                                <section-block
-                                    :application="pipeline.application"
-                                    :link-to="{name: 'ApplicationPipelines', params: {id: pipeline.application.id}}"
-                                >
-                                    <template #title>{{ pipeline.name }}</template>
-                                    <template #default>
-                                        <ul v-if=" pipeline.stages.length > 0" class="ff-pipeline-stages-list">
-                                            <li v-for="stage in pipeline.stages" :key="stage.id">
-                                                <TeamPipelineStage :stage="stage" :application="pipeline.application" />
-                                                <ChevronRightIcon class="ff-icon" />
-                                            </li>
-                                        </ul>
-                                        <p v-else class="ff-empty-stages-message">No stages in sight just yet!</p>
-                                    </template>
-                                </section-block>
+                                <TeamPipeline :pipeline="pipeline" />
                             </li>
                         </ul>
                         <p v-if="filteredPipelines.length === 0" class="no-results">
@@ -90,23 +76,20 @@
 </template>
 
 <script>
-import { ChevronRightIcon, SearchIcon } from '@heroicons/vue/outline'
+import { SearchIcon } from '@heroicons/vue/outline'
 import { mapGetters } from 'vuex'
 
 import pipelineAPI from '../../../api/pipeline.js'
 import EmptyState from '../../../components/EmptyState.vue'
-import SectionBlock from '../../../components/sections/section-block.vue'
 
-import TeamPipelineStage from './components/TeamPipelineStage.vue'
+import TeamPipeline from './components/TeamPipeline.vue'
 
 export default {
     name: 'TeamPipelines',
     components: {
-        ChevronRightIcon,
-        TeamPipelineStage,
-        SectionBlock,
         SearchIcon,
-        EmptyState
+        EmptyState,
+        TeamPipeline
     },
     data () {
         return {
@@ -152,43 +135,14 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 #team-pipelines {
+
     .pipelines {
         .pipelines-list {
             display: flex;
             flex-direction: column;
             gap: 15px;
-
-            .ff-section-block-content {
-                padding: 15px;
-                overflow: auto;
-
-                .ff-pipeline-stages-list {
-                    display: flex;
-                    flex-direction: row;
-                    gap: 15px;
-
-                    li {
-                        display: flex;
-                        gap: 15px;
-                        align-items: center;
-
-                        &:last-child {
-                            padding-right: 15px;
-
-                            & > .ff-icon {
-                                display: none;
-                            }
-                        }
-                    }
-                }
-
-                .ff-empty-stages-message {
-                    text-align: center;
-                    color: $ff-grey-500;
-                }
-            }
         }
     }
 }
