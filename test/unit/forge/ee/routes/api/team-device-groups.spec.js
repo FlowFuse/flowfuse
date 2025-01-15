@@ -1,5 +1,4 @@
-require('should') // eslint-disable-line
-require('sinon')
+const should = require('should') // eslint-disable-line
 
 const setup = require('../../setup.js')
 
