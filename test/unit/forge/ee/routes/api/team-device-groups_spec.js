@@ -116,7 +116,7 @@ describe('Team Device Groups API', function () {
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.ATeam.slug}/device-groups`,
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/device-groups`,
                 cookies: { sid }
             })
 
@@ -127,7 +127,7 @@ describe('Team Device Groups API', function () {
             const sid = await login('bob', 'bbPassword')
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.BTeam.slug}/device-groups`,
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/device-groups`,
                 cookies: { sid }
             })
             response.statusCode.should.equal(200)
@@ -138,7 +138,7 @@ describe('Team Device Groups API', function () {
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.BTeam.slug}/device-groups`,
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/device-groups`,
                 cookies: { sid }
             })
 
@@ -162,7 +162,7 @@ describe('Team Device Groups API', function () {
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.BTeam.slug}/device-groups`,
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/device-groups`,
                 cookies: { sid }
             })
 
@@ -199,7 +199,7 @@ describe('Team Device Groups API', function () {
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.ATeam.slug}/device-groups`,
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/device-groups`,
                 cookies: { sid }
             })
 
@@ -236,7 +236,7 @@ describe('Team Device Groups API', function () {
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.CTeam.slug}/device-groups`,
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/device-groups`,
                 cookies: { sid }
             })
 
@@ -254,7 +254,7 @@ describe('Team Device Groups API', function () {
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.CTeam.slug}/device-groups`,
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/device-groups`,
                 cookies: { sid }
             })
 
@@ -266,7 +266,7 @@ describe('Team Device Groups API', function () {
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.CTeam.slug}/device-groups`,
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/device-groups`,
                 cookies: { sid }
             })
 
@@ -278,7 +278,7 @@ describe('Team Device Groups API', function () {
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.CTeam.slug}/device-groups`,
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/device-groups`,
                 cookies: { sid }
             })
 
@@ -290,7 +290,7 @@ describe('Team Device Groups API', function () {
 
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.CTeam.slug}/device-groups`,
+                url: `/api/v1/teams/${TestObjects.CTeam.hashid}/device-groups`,
                 cookies: { sid }
             })
 

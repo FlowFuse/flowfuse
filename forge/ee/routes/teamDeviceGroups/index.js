@@ -20,7 +20,7 @@ module.exports = async function (app) {
         }
 
         try {
-            request.team = await app.db.models.Team.bySlug(request.params.teamId)
+            request.team = await app.db.models.Team.byId(request.params.teamId)
             if (!request.team) {
                 return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
