@@ -448,8 +448,11 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.broker
      */
     app.get('/:brokerId/credentials', {
-        // TODO Needs custom preHandler to work with token for mqtt agent only
-        // preHandler: app.needsPermission('broker:topics:list'),
+        preHandler: [
+            async (request, reply) => {
+                // TODO Needs custom preHandler to work with token for mqtt agent only
+            }
+        ],
         schema: {
             summary: 'Gets credentials for a 3rd party MQTT broker',
             tags: ['MQTT Broker'],
@@ -531,7 +534,7 @@ module.exports = async function (app) {
      * Remove 3rd Party Broker credentials
      */
     app.delete('/:brokerId/credentials', {
-        preHandler: app.needsPermission('broker:topics:delete'),
+        preHandler: app.needsPermission('broker:credentials:delete'),
         schema: {
             summary: 'Delete credentials for a 3rd party MQTT broker',
             tags: ['MQTT Broker'],
