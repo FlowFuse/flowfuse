@@ -219,10 +219,10 @@ export default [
                     },
                     {
                         name: 'device-groups',
-                        path: 'device-groups',
+                        path: 'groups',
                         component: DeviceGroups,
                         meta: {
-                            title: 'Team - Remote Instances Groups'
+                            title: 'Team - Groups'
                         }
                     }
                 ]
