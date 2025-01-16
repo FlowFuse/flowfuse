@@ -1,3 +1,47 @@
+#### 2.13.0: Release
+
+ - ci: Fix `Tests` pipeline summary generation  (#4988)
+ - Add a team level device groups UI (#5018) @cstns
+ - Disable caching of index.html when in dev mode (#5017) @knolleary
+ - Update Team Device Groups routes to use hashid not slug (#5016) @knolleary
+ - Add a team level device groups API (#5009) @cstns
+ - Set pending state when loggin in to prevent no team limbo (#5012) @cstns
+ - ci: Enable concurrency in `Tests` workflow (#5006) @ppawlowski
+ - Add Open Schema button to Topic Hierarchy view (#5008) @knolleary
+ - Use named routes for the application summary labels (#5010) @cstns
+ - Enrich crash email with detail and hints where crash reason can be inferred (#4936) @Steve-Mcl
+ - Fix silently failing featuresCheck due to missing team (#5005) @cstns
+ - Serve seo tags for the login and signup pages prerendered (#5000) @cstns
+ - Add initial schema generation for team-broker topics (#4997) @knolleary
+ - Add Team Broker hostname to UI settings (#4998) @hardillb
+ - ci: Add `nr-file-nodes` package build step to the pre-staging deployment (#4995) @ppawlowski
+ - Remove the injected canonical link (#4994) @cstns
+ - Fix console errors when logging in due to the team not being loaded (#4993) @cstns
+ - Change team before switching route when accessing team link from the admin page (#4992) @cstns
+ - Update text on create button for trial teams (#4986) @knolleary
+ - Fix topic copy button (#4991) @knolleary
+ - Updated Onboarding Tours (#4979) @joepavitt
+ - Revert "Create check-tests-status job summary" (#4989) @ppawlowski
+ - ci: Create `check-tests-status` job summary (#4987) @ppawlowski
+ - Add option to auto-create team application (#4985) @knolleary
+ - Update persistent-context.md (#4984) @sumitshinde-84
+ - ci: Improve notification on tests failures (#4971) @ppawlowski
+ - "Devices" & "Edge Instances" > Remote Instances (#4976) @joepavitt
+ - Ensure Pipelines don't fall over if Device Groups are unavailable (#4975) @joepavitt
+ - Show "Expired" for expired licenses (#4967) @hardillb
+ - Add tooltips to "Open Editor" button for Devices (#4973) @joepavitt
+ - Fix broken Device Application Link (#4972) @joepavitt
+ - Improve feedback when unable to connect to Device Logs (#4974) @joepavitt
+ - ci: Add `nr-project-nodes` package build step to the pre-staging deployment pipeline (#4968) @ppawlowski
+ - Only hash httpNodeAuth Password if not already hashed (#4966) @hardillb
+ - Remove the term "Free Trial" from the welcome dialog (#4962) @joepavitt
+ - Make sure the Team Types are ordered correctly when changing team type (#4961) @joepavitt
+ - Improve feedback when Hosted Instances are not available to a team (#4956) @joepavitt
+ - Fixes setMainNavBackButton race condition before a team is present after logging in (#4949) @cstns
+ - Fix race condition when changing teams while on the application page (#4951) @cstns
+ - Allow trial team to be manually created (#4941) @knolleary
+ - Bump semver from 7.6.0 to 7.6.3 (#4925) @app/dependabot
+
 #### 2.12.0: Release
 
  - Add note about Private CA chain (#4901)

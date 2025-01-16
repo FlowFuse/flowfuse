@@ -432,6 +432,11 @@ const getDependencies = (teamId) => {
         .then(res => res.data)
 }
 
+const getTeamDeviceGroups = (teamId) => {
+    return client.get(`/api/v1/teams/${teamId}/device-groups`)
+        .then(res => res.data)
+}
+
 /**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
@@ -464,5 +469,6 @@ export default {
     deleteTeamDeviceProvisioningToken,
     bulkDeviceDelete,
     bulkDeviceMove,
-    getDependencies
+    getDependencies,
+    getTeamDeviceGroups
 }

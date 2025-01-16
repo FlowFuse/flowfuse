@@ -5,6 +5,7 @@ import TeamApplications from './Applications/index.vue'
 import TeamAuditLog from './AuditLog.vue'
 import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing.vue'
+import DeviceGroups from './DeviceGroups/index.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamInstances from './Instances.vue'
 import Library from './Library/index.vue'
@@ -214,6 +215,14 @@ export default [
                         component: TeamBillOfMaterials,
                         meta: {
                             title: 'Team - Bill of Materials'
+                        }
+                    },
+                    {
+                        name: 'device-groups',
+                        path: 'groups',
+                        component: DeviceGroups,
+                        meta: {
+                            title: 'Team - Groups'
                         }
                     }
                 ]
