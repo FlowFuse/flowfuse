@@ -76,9 +76,9 @@ const getters = {
     noBilling (state, getters) {
         return !state.user.admin &&
         state.features.billing &&
-        (!state.team.billing?.unmanaged) &&
-        (!getters.isTrialAccount || state.team.billing?.trialEnded) &&
-        !state.team.billing?.active
+        (!state.team?.billing?.unmanaged) &&
+        (!getters.isTrialAccount || state.team?.billing?.trialEnded) &&
+        !state.team?.billing?.active
     },
     isTrialAccount (state) {
         return state.team?.billing?.trial
@@ -120,6 +120,24 @@ const getters = {
 
     featuresCheck: (state) => {
         const preCheck = {
+            // Instances
+            isHostedInstancesEnabledForTeam: ((state) => {
+                if (!state.team) {
+                    return false
+                }
+
+                let available = false
+
+                // loop over the different instance types
+                for (const instanceType of Object.keys(state.team.type.properties?.instances) || []) {
+                    if (state.team.type.properties?.instances[instanceType].active) {
+                        available = true
+                        break
+                    }
+                }
+                return available
+            })(state),
+
             // Shared Library
             isSharedLibraryFeatureEnabledForTeam: ((state) => {
                 const flag = state.team?.type?.properties?.features?.['shared-library']
@@ -174,7 +192,8 @@ const getters = {
             isBOMFeatureEnabled: preCheck.isBOMFeatureEnabledForPlatform && preCheck.isBOMFeatureEnabledForTeam,
             isTimelineFeatureEnabled: preCheck.isTimelineFeatureEnabledForPlatform && preCheck.isTimelineFeatureEnabledForTeam,
             isMqttBrokerFeatureEnabled: preCheck.isMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
-            devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform
+            devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
+            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups
         }
     }
 }
@@ -186,6 +205,9 @@ const mutations = {
     },
     clearPending (state) {
         state.pending = false
+    },
+    setPending (state, pending) {
+        state.pending = pending
     },
     setLoginInflight (state) {
         state.loginInflight = true
@@ -379,6 +401,7 @@ const actions = {
             } else if (credentials.token) {
                 await userApi.verifyMFAToken(credentials.token)
             }
+            state.commit('setPending', true)
             state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
         } catch (err) {
             if (err.response?.status >= 401) {

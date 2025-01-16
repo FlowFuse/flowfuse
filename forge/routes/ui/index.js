@@ -27,7 +27,7 @@ module.exports = async function (app) {
      * feConfig - the 'frontend' portion of our flowforge.yml
      */
     async function injectAnalytics (config) {
-        if (!cachedIndex) {
+        if (process.env.NODE_ENV === 'development' || !cachedIndex) {
             const telemetry = config.telemetry
             const support = config.support
             const filepath = path.join(frontendAssetsDir, 'index.html')
@@ -36,12 +36,6 @@ module.exports = async function (app) {
             let injection = ''
 
             // check which tools we are using
-            if (telemetry.frontend.plausible?.domain) {
-                const domain = telemetry.frontend.plausible.domain
-                const extension = telemetry.frontend.plausible.extension
-                injection += `<script defer data-domain="${domain}" src="https://plausible.io/js/plausible${extension ? '.' + extension : ''}.js"></script>`
-            }
-
             if (telemetry.frontend.posthog?.apikey) {
                 // add to frontend
                 const apihost = telemetry.frontend.posthog.apiurl || 'https://app.posthog.com'
@@ -77,14 +71,56 @@ module.exports = async function (app) {
                 injection += `<script>window.sentryConfig = { dsn: "${telemetry.frontend.sentry.dsn}", production_mode: ${telemetry.frontend.sentry.production_mode ?? true}, version: "flowfuse@${config.version}", environment: "${process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown')}" }</script>`
             }
 
-            if (config.base_url) {
-                injection += `<link rel="canonical" href="${config.base_url}" />`
-            }
-
             // inject into index.html
             cachedIndex = data.replace(/<script>\/\*inject-ff-scripts\*\/<\/script>/g, injection)
         }
         return cachedIndex
+    }
+
+    async function getIndexFile (request, reply, app) {
+        if (app.config.telemetry?.frontend) {
+            let injectedContent = await injectAnalytics(app.config)
+            injectedContent = updateSEOTags(request, injectedContent)
+
+            return reply.type('text/html').send(injectedContent)
+        } else {
+            const filepath = path.join(frontendAssetsDir, 'index.html')
+            let data = await fsp.readFile(filepath, 'utf8')
+            data = updateSEOTags(request, data)
+
+            return reply.type('text/html').send(data)
+        }
+    }
+
+    function updateSEOTags (request, data) {
+        switch (true) {
+        case !request.sid && request.raw.url === '/':
+            // We can safely assume that unauthenticated users reaching the root endpoint are on the login page
+            // so we can safely replace tags used by crawlers to serve them statically for ease of indexing
+            data = data.replace(
+                '<title>FlowFuse</title>',
+                '<title>Log in - FlowFuse</title>'
+            )
+            data = data.replace(
+                '<meta name="description" content="Build applications, integrate data and manage your Node-RED instances with enterprise-grade security.">',
+                '<meta name="description" content="Log in to FlowFuse to access your industrial data, manage Node-RED instances, and continue building powerful integrations with enterprise-grade security.">'
+            )
+            return data
+        case !request.sid && request.raw.url.includes('/account/create'):
+            // We can safely assume that unauthenticated users reaching the root endpoint are on the account creation page
+            // so we can safely replace tags used by crawlers to serve them statically for ease of indexing
+            data = data.replace(
+                '<title>FlowFuse</title>',
+                '<title>Sign up - FlowFuse</title>'
+            )
+            data = data.replace(
+                '<meta name="description" content="Build applications, integrate data and manage your Node-RED instances with enterprise-grade security.">',
+                '<meta name="description" content="Sign up for FlowFuse and start building applications, integrating data, and managing your Node-RED instances with enterprise-grade security.">'
+            )
+            return data
+        default:
+            return data
+        }
     }
 
     let cachedIndex = null
@@ -96,50 +132,27 @@ module.exports = async function (app) {
 
     app.register(Avatar, { prefix: '/avatar' })
 
-    app.get('/', async (request, reply) => {
-        if (!app.settings.get('setup:initialised')) {
-            reply.redirect('/setup')
-            return
-        }
-        if (app.config.telemetry?.frontend?.plausible) {
-            app.log.warn('Configuration found for Plausible. Please note that support for Plausible will be deprecated after FlowFuse 0.9')
-        }
-        // check if we need to inject plausible
-        if (app.config.telemetry?.frontend) {
-            const injectedContent = await injectAnalytics(app.config)
-            reply.type('text/html').send(injectedContent)
-        } else {
-            reply.sendFile('index.html')
-        }
-        return reply
-    })
-
     // Setup static file serving for the UI assets.
     app.register(require('@fastify/static'), {
         index: false,
         root: frontendAssetsDir
     })
 
+    app.get('/', async (request, reply) => {
+        if (!app.settings.get('setup:initialised')) {
+            reply.redirect('/setup')
+            return
+        }
+
+        return await getIndexFile(request, reply, app)
+    })
+
     // Any requests not handled by this time get served `index.html`.
     // This allows the frontend vue router to change the browser URL and we cope
     // if the user then hits reload
     app.setNotFoundHandler(async (request, reply) => {
-        // // check if we need to inject plausible
-        // if (app.config.telemetry.frontend?.plausible?.domain) {
-        //     const injectedContent = await injectPlausible(app.config.telemetry.frontend.plausible.domain, app.config.telemetry.frontend.plausible.extension)
-        //     reply.type('text/html').send(injectedContent)
-        // } else {
-        //     reply.sendFile('index.html')
-        // }
-        // check if we need to inject plausible
         if (request.method === 'GET' && !request.url.startsWith('/api')) {
-            if (app.config.telemetry?.frontend) {
-                const injectedContent = await injectAnalytics(app.config)
-                reply.type('text/html').send(injectedContent)
-            } else {
-                reply.sendFile('index.html')
-            }
-            return reply
+            return await getIndexFile(request, reply, app)
         } else {
             return reply.status(404).send()
         }

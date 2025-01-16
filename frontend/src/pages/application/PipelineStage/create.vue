@@ -43,7 +43,7 @@ export default {
         },
         deviceGroups: {
             type: Array,
-            required: true
+            default: () => []
         },
         pipeline: {
             type: Object,

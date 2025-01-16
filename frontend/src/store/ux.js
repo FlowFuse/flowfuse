@@ -5,6 +5,7 @@ import {
     TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
 } from '@heroicons/vue/outline'
 
+import DeviceGroupOutlineIcon from '../components/icons/DeviceGroupOutline.js'
 import PipelinesIcon from '../components/icons/Pipelines.js'
 import ProjectsIcon from '../components/icons/Projects.js'
 import usePermissions from '../composables/Permissions.js'
@@ -21,7 +22,8 @@ const state = () => ({
     },
     tours: {
         welcome: false,
-        education: false
+        education: false,
+        'first-device': false
     },
     mainNav: {
         context: 'team',
@@ -66,10 +68,11 @@ const getters = {
                             to: { name: 'Instances', params: { team_slug: team.slug } },
                             tag: 'team-instances',
                             icon: ProjectsIcon,
+                            featureUnavailable: !features.isHostedInstancesEnabledForTeam,
                             disabled: noBilling
                         },
                         {
-                            label: 'Edge Devices',
+                            label: 'Remote Instances',
                             to: { name: 'TeamDevices', params: { team_slug: team.slug } },
                             tag: 'team-devices',
                             icon: ChipIcon,
@@ -81,6 +84,15 @@ const getters = {
                     title: 'Operations',
                     hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
+                        {
+                            label: 'Groups',
+                            to: { name: 'device-groups', params: { team_slug: team.slug } },
+                            tag: 'device-groups',
+                            icon: DeviceGroupOutlineIcon,
+                            disabled: noBilling,
+                            featureUnavailable: !features.isDeviceGroupsFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member)
+                        },
                         {
                             label: 'Pipelines',
                             to: { name: 'team-pipelines', params: { team_slug: team.slug } },
@@ -401,9 +413,6 @@ const actions = {
         commit('activateTour', tour)
     },
     deactivateTour ({ commit, state }, tour) {
-        if (tour === 'welcome') {
-            commit('activateTour', 'education')
-        }
         commit('deactivateTour', tour)
     }
 }

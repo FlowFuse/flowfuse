@@ -41,7 +41,7 @@ module.exports = {
    * @param {*} template the template to validate against
    * @returns the validated and cleansed object
    */
-    validateSettings: function (app, settings, template) {
+    validateSettings: function (app, settings, template, importing = false) {
         const result = {}
         // First pass - copy over only the known and policy-permitted settings
         templateFields.forEach((name) => {
@@ -195,7 +195,7 @@ module.exports = {
                 }
             }
         }
-        if (typeof result.httpNodeAuth?.pass === 'string' && result.httpNodeAuth.pass.length > 0) {
+        if (!importing && typeof result.httpNodeAuth?.pass === 'string' && result.httpNodeAuth.pass.length > 0) {
             result.httpNodeAuth.pass = hash(result.httpNodeAuth.pass)
         }
         if (result.apiMaxLength) {
