@@ -65,14 +65,16 @@
                             <p>Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
                         </template>
                         <template #actions>
-                            <ff-button class="center" @click="showCreateDeviceGroupDialog">Create Group</ff-button>
+                            <ff-button class="center" data-action="create-device-group" @click="showCreateDeviceGroupDialog">
+                                Create Group
+                            </ff-button>
                         </template>
                     </EmptyState>
                 </template>
             </div>
         </template>
     </ff-page>
-    <ff-dialog ref="create-dialog" class="ff-dialog-box--info" header="Create Group">
+    <ff-dialog ref="create-dialog" class="ff-dialog-box--info" header="Create Group" data-dialog="create-group">
         <template #default>
             <slot name="helptext">
                 <p>Enter the name and description of the Device Group to create.</p>
@@ -80,28 +82,34 @@
             <div class="flex gap-4">
                 <div class="flex-grow">
                     <div class="form-row max-w-sm mb-2">
-                        <label>
-                            <span class="block mb-1">
-                                Application
-                            </span>
-                            <ff-listbox
-                                v-model="input.application"
-                                :options="applicationOptions"
-                                data-el="snapshots-list"
-                                label-key="label"
-                                option-title-key="description"
-                                class="flex-grow w-full"
-                            />
-                        </label>
+                        <label class="block text-sm font-medium mb-1">Application</label>
+                        <ff-listbox
+                            v-model="input.application"
+                            :options="applicationOptions"
+                            data-el="applications-list"
+                            class="flex-grow w-full"
+                        />
                     </div>
                     <FormRow v-model="input.name" class="mb-2" :error="!input.name ? 'required' : ''" data-form="name">Name</FormRow>
-                    <FormRow v-model="input.description" data-form="name">Description</FormRow>
+                    <FormRow v-model="input.description" data-form="description">Description</FormRow>
                 </div>
             </div>
         </template>
         <template #actions>
-            <ff-button kind="secondary" @click="$refs['create-dialog'].close()">Cancel</ff-button>
-            <ff-button kind="primary" @click="createDeviceGroup">Create</ff-button>
+            <ff-button
+                kind="secondary"
+                data-action="dialog-cancel"
+                @click="$refs['create-dialog'].close()"
+            >
+                Cancel
+            </ff-button>
+            <ff-button
+                kind="primary"
+                data-action="dialog-confirm"
+                @click="createDeviceGroup"
+            >
+                Create
+            </ff-button>
         </template>
     </ff-dialog>
 </template>
