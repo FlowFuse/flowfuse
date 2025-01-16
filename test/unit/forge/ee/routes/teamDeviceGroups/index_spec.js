@@ -7,7 +7,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 describe('Team Device Groups API', function () {
     let app
-    /** @type {import('../../../../../lib/TestModelFactory')} */
+    /** @type {import('../../../../../lib/TestModelFactory.js')} */
     let factory = null
     let objectCount = 0
     const generateName = (root = 'object') => `${root}-${objectCount++}`
