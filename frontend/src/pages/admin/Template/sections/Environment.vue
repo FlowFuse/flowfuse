@@ -302,8 +302,13 @@ export default {
             }
         },
         removeEnv (index) {
-            const field = this.editable.settings.env[index]
-            delete this.envVarLookup[field.name]
+            if (typeof index === 'string' && index.startsWith('add-')) {
+                index = this.editable.settings.env.findIndex(env => env.index === index)
+            } else {
+                const field = this.editable.settings.env[index]
+                delete this.envVarLookup[field.name]
+            }
+
             this.editable.settings.env.splice(index, 1)
         },
         importEnv () {
