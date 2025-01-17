@@ -1,5 +1,5 @@
 import {
-    BookOpenIcon, ChatIcon, ChevronLeftIcon, ChipIcon, CogIcon, CollectionIcon,
+    BookOpenIcon, ChatIcon, ChipIcon, CogIcon, CollectionIcon,
     ColorSwatchIcon, CurrencyDollarIcon, DatabaseIcon,
     DesktopComputerIcon, LockClosedIcon, RssIcon,
     TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
@@ -44,114 +44,15 @@ const getters = {
         const accountFeatures = rootState.account.features
         const noBilling = rootGetters['account/noBilling']
         const features = rootGetters['account/featuresCheck']
-
-        const adminContext = [
-            {
-                entries: [
-                    {
-                        label: 'Back to Dashboard',
-                        to: { name: 'Home' },
-                        tag: 'back',
-                        icon: ChevronLeftIcon
-                    }
-                ]
-            },
-            {
-                title: 'Admin',
-                entries: [
-                    {
-                        label: 'Overview',
-                        to: { name: 'admin-overview' },
-                        tag: 'admin-overview',
-                        icon: CollectionIcon
-                    },
-                    {
-                        label: 'Users',
-                        to: { name: 'admin-users' },
-                        tag: 'admin-users',
-                        icon: UsersIcon
-                    },
-                    {
-                        label: 'Teams',
-                        to: { name: 'admin-teams' },
-                        tag: 'admin-teams',
-                        icon: UserGroupIcon
-                    },
-                    {
-                        label: 'Audit Log',
-                        to: { name: 'admin-audit-logs' },
-                        tag: 'admin-auditlog',
-                        icon: DatabaseIcon
-                    },
-                    {
-                        label: 'Notifications Hub',
-                        to: { name: 'admin-notifications-hub' },
-                        tag: 'notifications-hub',
-                        icon: ChatIcon
-                    }
-                ]
-            },
-            {
-                title: 'Setup',
-                entries: [
-                    {
-                        label: 'Team Types',
-                        to: { name: 'admin-team-types' },
-                        tag: 'admin-teamtypes',
-                        icon: ColorSwatchIcon
-                    },
-                    {
-                        label: 'Instance Types',
-                        to: { name: 'admin-instance-types' },
-                        tag: 'admin-instancetypes',
-                        icon: ColorSwatchIcon
-                    },
-                    {
-                        label: 'Stacks',
-                        to: { name: 'admin-stacks' },
-                        tag: 'admin-stacks',
-                        icon: DesktopComputerIcon
-                    },
-                    {
-                        label: 'Templates',
-                        to: { name: 'admin-templates' },
-                        tag: 'admin-templates',
-                        icon: TemplateIcon
-                    },
-                    {
-                        label: 'Blueprints',
-                        to: { name: 'admin-flow-blueprints' },
-                        tag: 'admin-flow-blueprints',
-                        icon: TemplateIcon,
-                        featureUnavailable: !features.isBlueprintsFeatureEnabledForPlatform
-                    }
-                ]
-            },
-            {
-                title: 'General',
-                entries: [
-                    {
-                        label: 'Settings',
-                        to: { name: 'admin-settings' },
-                        tag: 'admin-settings',
-                        icon: CogIcon
-                    }
-                ]
-            }
-        ]
-
-        const teamContext = team
-            ? [
+        return {
+            team: [
                 {
                     title: '',
                     hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
                         {
                             label: 'Applications',
-                            to: {
-                                name: 'Applications',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'Applications', params: { team_slug: team.slug } },
                             tag: 'team-applications',
                             icon: TemplateIcon,
                             disabled: noBilling
@@ -164,10 +65,7 @@ const getters = {
                     entries: [
                         {
                             label: 'Hosted Instances',
-                            to: {
-                                name: 'Instances',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'Instances', params: { team_slug: team.slug } },
                             tag: 'team-instances',
                             icon: ProjectsIcon,
                             featureUnavailable: !features.isHostedInstancesEnabledForTeam,
@@ -175,10 +73,7 @@ const getters = {
                         },
                         {
                             label: 'Remote Instances',
-                            to: {
-                                name: 'TeamDevices',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'TeamDevices', params: { team_slug: team.slug } },
                             tag: 'team-devices',
                             icon: ChipIcon,
                             disabled: noBilling
@@ -191,10 +86,7 @@ const getters = {
                     entries: [
                         {
                             label: 'Groups',
-                            to: {
-                                name: 'device-groups',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'device-groups', params: { team_slug: team.slug } },
                             tag: 'device-groups',
                             icon: DeviceGroupOutlineIcon,
                             disabled: noBilling,
@@ -203,10 +95,7 @@ const getters = {
                         },
                         {
                             label: 'Pipelines',
-                            to: {
-                                name: 'team-pipelines',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'team-pipelines', params: { team_slug: team.slug } },
                             tag: 'team-pipelines',
                             icon: PipelinesIcon,
                             disabled: noBilling,
@@ -215,10 +104,7 @@ const getters = {
                         },
                         {
                             label: 'Bill Of Materials',
-                            to: {
-                                name: 'team-bom',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'team-bom', params: { team_slug: team.slug } },
                             tag: 'team-bom',
                             icon: TableIcon,
                             disabled: noBilling,
@@ -227,10 +113,7 @@ const getters = {
                         },
                         {
                             label: 'Broker',
-                            to: {
-                                name: 'team-unified-namespace',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'team-unified-namespace', params: { team_slug: team.slug } },
                             tag: 'team-unified-namespace',
                             icon: RssIcon,
                             disabled: noBilling,
@@ -245,10 +128,7 @@ const getters = {
                     entries: [
                         {
                             label: 'Library',
-                            to: {
-                                name: 'TeamLibrary',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'TeamLibrary', params: { team_slug: team.slug } },
                             tag: 'shared-library',
                             icon: BookOpenIcon,
                             disabled: noBilling,
@@ -256,10 +136,7 @@ const getters = {
                         },
                         {
                             label: 'Members',
-                            to: {
-                                name: 'team-members',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'team-members', params: { team_slug: team.slug } },
                             tag: 'team-members',
                             icon: UsersIcon,
                             disabled: noBilling
@@ -273,10 +150,7 @@ const getters = {
                     entries: [
                         {
                             label: 'Audit Log',
-                            to: {
-                                name: 'AuditLog',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'AuditLog', params: { team_slug: team.slug } },
                             tag: 'team-audit',
                             icon: DatabaseIcon,
                             disabled: noBilling,
@@ -284,14 +158,11 @@ const getters = {
                         },
                         {
                             label: 'Billing',
-                            to: {
-                                name: 'Billing',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'Billing', params: { team_slug: team.slug } },
                             tag: 'team-billing',
                             icon: CurrencyDollarIcon,
                             hidden: (() => {
-                            // hide menu entry for non-billing setups
+                                // hide menu entry for non-billing setups
                                 if (noBilling) {
                                     return true
                                 }
@@ -303,20 +174,104 @@ const getters = {
                         },
                         {
                             label: 'Team Settings',
-                            to: {
-                                name: 'TeamSettings',
-                                params: { team_slug: team.slug }
-                            },
+                            to: { name: 'TeamSettings', params: { team_slug: team.slug } },
                             tag: 'team-settings',
                             icon: CogIcon,
                             permission: 'team:edit'
                         }
                     ]
                 }
-            ]
-            : []
-        const userContext = team
-            ? [
+            ],
+            admin: [
+                {
+                    entries: [
+                        state.mainNav.backToButton
+                    ]
+                },
+                {
+                    title: 'Admin',
+                    entries: [
+                        {
+                            label: 'Overview',
+                            to: { name: 'admin-overview' },
+                            tag: 'admin-overview',
+                            icon: CollectionIcon
+                        },
+                        {
+                            label: 'Users',
+                            to: { name: 'admin-users' },
+                            tag: 'admin-users',
+                            icon: UsersIcon
+                        },
+                        {
+                            label: 'Teams',
+                            to: { name: 'admin-teams' },
+                            tag: 'admin-teams',
+                            icon: UserGroupIcon
+                        },
+                        {
+                            label: 'Audit Log',
+                            to: { name: 'admin-audit-logs' },
+                            tag: 'admin-auditlog',
+                            icon: DatabaseIcon
+                        },
+                        {
+                            label: 'Notifications Hub',
+                            to: { name: 'admin-notifications-hub' },
+                            tag: 'notifications-hub',
+                            icon: ChatIcon
+                        }
+                    ]
+                },
+                {
+                    title: 'Setup',
+                    entries: [
+                        {
+                            label: 'Team Types',
+                            to: { name: 'admin-team-types' },
+                            tag: 'admin-teamtypes',
+                            icon: ColorSwatchIcon
+                        },
+                        {
+                            label: 'Instance Types',
+                            to: { name: 'admin-instance-types' },
+                            tag: 'admin-instancetypes',
+                            icon: ColorSwatchIcon
+                        },
+                        {
+                            label: 'Stacks',
+                            to: { name: 'admin-stacks' },
+                            tag: 'admin-stacks',
+                            icon: DesktopComputerIcon
+                        },
+                        {
+                            label: 'Templates',
+                            to: { name: 'admin-templates' },
+                            tag: 'admin-templates',
+                            icon: TemplateIcon
+                        },
+                        {
+                            label: 'Blueprints',
+                            to: { name: 'admin-flow-blueprints' },
+                            tag: 'admin-flow-blueprints',
+                            icon: TemplateIcon,
+                            featureUnavailable: !features.isBlueprintsFeatureEnabledForPlatform
+                        }
+                    ]
+                },
+                {
+                    title: 'General',
+                    entries: [
+                        {
+                            label: 'Settings',
+                            to: { name: 'admin-settings' },
+                            tag: 'admin-settings',
+                            icon: CogIcon
+                        }
+                    ]
+                }
+            ],
+            user: [
                 {
                     entries: [
                         state.mainNav.backToButton
@@ -345,30 +300,21 @@ const getters = {
                         }
                     ]
                 }
-            ]
-            : []
-        const backContext = team
-            ? [
+            ],
+            back: [
                 {
                     entries: [
                         state.mainNav.backToButton
                     ]
                 }
-            ]
-            : []
-
-        return {
-            team: teamContext,
-            admin: adminContext,
-            user: userContext,
-            back: backContext,
+            ],
             none: []
         }
     },
     mainNavContext: (state, getters, rootState) => {
         const team = rootState.account.team
 
-        if (!team && state.mainNav.context !== 'admin') {
+        if (!team) {
             // todo this compensates for a brief moment after logging in where we don't have a team loaded and can't properly
             //  generate menu links. This should be addressed by implementing an application service that bootstrap's the
             //  app and hydrates vuex stores before attempting to render any data
@@ -380,7 +326,7 @@ const getters = {
         return getters.mainNavContexts[state.mainNav.context]
             .map(category => {
                 // filter hidden entries
-                category.entries = category.entries.filter(entry => (!!entry && entry?.hidden) ?? true)
+                category.entries = category.entries.filter(entry => entry.hidden ?? true)
 
                 // filter entries without permission
                 category.entries = category.entries.filter(entry => {
