@@ -1,3 +1,12 @@
+#### 2.13.1: Release
+
+ - Fix missing sideNav during app setup (#5029) @cstns
+ - Fix oauth tests on node 20 (#5024) @knolleary
+ - Fix invalid check for billing enablement (#5028) @knolleary
+ - Change external domain used in offboarding test to be more reliable (#5023) @knolleary
+ - Use camelcase for unit test names (#5022) @cstns
+ - Team groups follow-up (#5021) @cstns
+
 #### 2.13.0: Release
 
  - ci: Fix `Tests` pipeline summary generation  (#4988)

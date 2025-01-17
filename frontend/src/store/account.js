@@ -434,7 +434,7 @@ const actions = {
                 return
             }
         } else {
-            if (!currentTeam || currentTeam.id === team?.id) {
+            if ((!currentTeam && !team) || currentTeam?.id === team?.id) {
                 state.commit('clearPendingTeamChange')
                 return
             }
