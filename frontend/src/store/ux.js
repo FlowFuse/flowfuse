@@ -140,6 +140,42 @@ const getters = {
             }
         ]
 
+        const userContext = [
+            {
+                entries: [
+                    {
+                        label: 'Back to Dashboard',
+                        to: { name: 'Home' },
+                        tag: 'back',
+                        icon: ChevronLeftIcon
+                    }
+                ]
+            },
+            {
+                title: 'User Settings',
+                entries: [
+                    {
+                        label: 'Settings',
+                        to: { name: 'user-settings-overview' },
+                        tag: 'account-settings',
+                        icon: CogIcon
+                    },
+                    {
+                        label: 'Teams',
+                        to: { name: 'user-settings-teams' },
+                        tag: 'account-teams',
+                        icon: UserGroupIcon
+                    },
+                    {
+                        label: 'Security',
+                        to: { name: 'user-settings-security' },
+                        tag: 'account-security',
+                        icon: LockClosedIcon
+                    }
+                ]
+            }
+        ]
+
         const teamContext = team
             ? [
                 {
@@ -315,38 +351,7 @@ const getters = {
                 }
             ]
             : []
-        const userContext = team
-            ? [
-                {
-                    entries: [
-                        state.mainNav.backToButton
-                    ]
-                },
-                {
-                    title: 'User Settings',
-                    entries: [
-                        {
-                            label: 'Settings',
-                            to: { name: 'user-settings-overview' },
-                            tag: 'account-settings',
-                            icon: CogIcon
-                        },
-                        {
-                            label: 'Teams',
-                            to: { name: 'user-settings-teams' },
-                            tag: 'account-teams',
-                            icon: UserGroupIcon
-                        },
-                        {
-                            label: 'Security',
-                            to: { name: 'user-settings-security' },
-                            tag: 'account-security',
-                            icon: LockClosedIcon
-                        }
-                    ]
-                }
-            ]
-            : []
+
         const backContext = team
             ? [
                 {
@@ -368,7 +373,7 @@ const getters = {
     mainNavContext: (state, getters, rootState) => {
         const team = rootState.account.team
 
-        if (!team && state.mainNav.context !== 'admin') {
+        if (!team && !['admin', 'user'].includes(state.mainNav.context)) {
             // todo this compensates for a brief moment after logging in where we don't have a team loaded and can't properly
             //  generate menu links. This should be addressed by implementing an application service that bootstrap's the
             //  app and hydrates vuex stores before attempting to render any data
