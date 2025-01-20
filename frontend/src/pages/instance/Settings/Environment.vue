@@ -179,9 +179,13 @@ export default {
                     hidden: field.hidden
                 })
             })
-            await InstanceApi.updateInstance(this.project.id, { settings })
-            this.$emit('instance-updated')
-            alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
+            InstanceApi.updateInstance(this.project.id, { settings })
+                .then(() => {
+                    // wait before we reload the instance so we don't get a blip by returning the old values
+                    setTimeout(() => this.$emit('instance-updated'), 1000)
+                })
+                .then(() => alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000))
+                .catch(e => e)
         },
         onFormValidated (hasErrors) {
             this.hasErrors = hasErrors
