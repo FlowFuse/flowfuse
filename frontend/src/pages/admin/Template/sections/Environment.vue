@@ -103,7 +103,7 @@
                                 </template>
                                 <template v-else>
                                     <span
-                                        v-if="!!(originalEnvVars.find(v => v.index === item.index)).hidden"
+                                        v-if="!!(originalEnvVars.find(v => v.index === item.index))?.hidden"
                                         :key="item.index"
                                         v-ff-tooltip:left="'Cannot be made public again, only overwritten'"
                                         class="mx-2"
