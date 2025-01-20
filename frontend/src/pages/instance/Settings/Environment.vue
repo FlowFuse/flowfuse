@@ -92,16 +92,6 @@ export default {
                             originalCount++
                             if (this.original.settings.envMap[field.name]) {
                                 const original = this.original.settings.envMap[field.name]
-
-                                // original = {
-                                //     hidden: false,
-                                //     ...original
-                                // }
-                                // field = {
-                                //     hidden: false,
-                                //     ...field
-                                // }
-
                                 if (original.index !== field.index) {
                                     changed = true
                                 } else if (original.name !== field.name) {
