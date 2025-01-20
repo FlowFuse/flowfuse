@@ -1,6 +1,11 @@
 <template>
     <form class="space-y-6">
-        <TemplateSettingsEnvironment :readOnly="!hasPermission('device:edit-env')" v-model="editable" :editTemplate="false" />
+        <TemplateSettingsEnvironment
+            :readOnly="!hasPermission('device:edit-env')"
+            v-model="editable"
+            :original-env-vars="original.settings.env"
+            :editTemplate="false"
+        />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
             <ff-button size="small" :disabled="!unsavedChanges || hasError" @click="saveSettings()">Save Settings</ff-button>
         </div>
@@ -90,7 +95,8 @@ export default {
             },
             original: {
                 settings: {
-                    envMap: {}
+                    envMap: {},
+                    env: []
                 }
             },
             templateEnvValues: {}
@@ -112,6 +118,13 @@ export default {
                     this.editable.settings.env.push(Object.assign({}, envVar))
                     // make a map of the key:value so it's easier to check for changes
                     this.original.settings.envMap[envVar.name] = envVar
+                })
+                Object.keys(this.original.settings.envMap).forEach((key, i) => {
+                    this.original.settings.env.push({
+                        key: i,
+                        hidden: false,
+                        ...this.original.settings.envMap[key]
+                    })
                 })
             }
         },

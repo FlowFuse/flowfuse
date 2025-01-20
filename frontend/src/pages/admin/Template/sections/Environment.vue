@@ -185,6 +185,10 @@ export default {
             // for the dialog that opens, e.g. "FlowFuse - Device Group Environment Variables"
             type: String,
             default: null
+        },
+        originalEnvVars: {
+            type: Array,
+            required: true
         }
     },
     emits: ['update:modelValue', 'validated'],
@@ -193,7 +197,6 @@ export default {
             addedCount: 0,
             input: {},
             envVarLookup: {},
-            originalEnvVars: null,
             search: '',
             pauseEnvWatch: false,
             errors: { }
@@ -227,15 +230,11 @@ export default {
         'editable.settings.env': {
             deep: true,
             handler: 'validate'
-        },
-        modelValue: {
-            handler (model) {
-                if (this.originalEnvVars === null || this.originalEnvVars.length === 0) {
-                    this.originalEnvVars = JSON.parse(JSON.stringify(model.settings?.env || [])) // make a copy for later comparison
-                }
-            },
-            immediate: true
         }
+        // modelValue: {
+        //     handler: 'setOriginalValues',
+        //     immediate: true
+        // }
     },
     mounted () {
         this.updateLookup()
@@ -382,6 +381,11 @@ export default {
 
             field.hidden = !field.hidden
         }
+        // setOriginalValues (model) {
+        //     if (this.originalEnvVars === null || this.originalEnvVars.length === 0) {
+        //         this.originalEnvVars = JSON.parse(JSON.stringify(model.settings?.env || [])) // make a copy for later comparison
+        //     }
+        // }
     }
 }
 </script>

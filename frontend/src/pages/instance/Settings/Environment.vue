@@ -4,6 +4,7 @@
             v-model="editable"
             :readOnly="!hasPermission('device:edit-env')"
             :editTemplate="false"
+            :original-env-vars="original.settings.env"
             @validated="onFormValidated"
         />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
