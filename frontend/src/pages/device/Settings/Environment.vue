@@ -5,9 +5,10 @@
             v-model="editable"
             :original-env-vars="original.settings.env"
             :editTemplate="false"
+            @validated="onFormValidated"
         />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges || hasError" @click="saveSettings()">Save Settings</ff-button>
+            <ff-button size="small" :disabled="isUpdateButtonDisabled" @click="saveSettings()">Save Settings</ff-button>
         </div>
     </form>
 </template>
@@ -105,7 +106,11 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership'])
+        ...mapState('account', ['teamMembership']),
+        isUpdateButtonDisabled () {
+            if (this.hasError) return true
+            return !this.unsavedChanges
+        }
     },
     mounted () {
         this.getSettings()
@@ -148,6 +153,9 @@ export default {
             await deviceApi.updateSettings(this.device.id, settings)
             this.$emit('device-updated')
             alerts.emit('Device settings successfully updated. NOTE: changes will be applied once the device restarts.', 'confirmation', 6000)
+        },
+        onFormValidated (hasErrors) {
+            this.hasError = hasErrors
         }
     }
 }
