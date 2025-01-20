@@ -83,12 +83,39 @@
                             <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> encrypted</div>
                         </td>
                         <td class="ff-data-table--cell !p-1 border w-16 align-top">
-                            <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center mt-1">
+                            <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center mt-1 items-center gap-3">
                                 <ff-button kind="tertiary" size="small" @click="removeEnv(item.index)">
                                     <template #icon>
                                         <TrashIcon />
                                     </template>
                                 </ff-button>
+                                <template v-if="typeof item.index === 'string' && item.index.startsWith('add-')">
+                                    <ff-button kind="tertiary" size="small" @click="setEnvHidden(item.index)">
+                                        <template #icon>
+                                            <EyeOffIcon v-if="item.hidden" />
+                                            <EyeIcon v-else />
+                                        </template>
+                                    </ff-button>
+                                </template>
+                                <template v-else>
+                                    <span
+                                        v-if="!!(originalEnvVars.find(v => v.index === item.index)).hidden"
+                                        :key="item.index"
+                                        v-ff-tooltip:left="'Cannot be made public again, only overwritten'"
+                                        class="mx-2"
+                                    >
+                                        <EyeOffIcon class="ff-icon-sm color-grey" />
+                                    </span>
+                                    <ff-button
+                                        v-else
+                                        kind="tertiary" size="small" @click="setEnvHidden(item.index)"
+                                    >
+                                        <template #icon>
+                                            <EyeOffIcon v-if="item.hidden" />
+                                            <EyeIcon v-else />
+                                        </template>
+                                    </ff-button>
+                                </template>
                             </div>
                             <div
                                 v-else-if="(item.deprecated === true)"
@@ -112,7 +139,7 @@
 </template>
 
 <script>
-import { DocumentDownloadIcon, ExclamationIcon, InformationCircleIcon, LockClosedIcon, PlusSmIcon, TrashIcon } from '@heroicons/vue/outline'
+import { DocumentDownloadIcon, ExclamationIcon, EyeIcon, EyeOffIcon, InformationCircleIcon, LockClosedIcon, PlusSmIcon, TrashIcon } from '@heroicons/vue/outline'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
@@ -133,7 +160,9 @@ export default {
         PlusSmIcon,
         LockClosedIcon,
         ExclamationIcon,
-        InformationCircleIcon
+        InformationCircleIcon,
+        EyeIcon,
+        EyeOffIcon
     },
     props: {
         editTemplate: {
@@ -209,6 +238,14 @@ export default {
                 }
                 this.validate()
             }
+        },
+        modelValue: {
+            handler (model) {
+                if (this.originalEnvVars === null || this.originalEnvVars.length === 0) {
+                    this.originalEnvVars = JSON.parse(JSON.stringify(model.settings?.env || [])) // make a copy for later comparison
+                }
+            },
+            immediate: true
         }
     },
     mounted () {
@@ -223,12 +260,6 @@ export default {
             const envVars = this.editable?.settings?.env || []
             this.updateLookup()
             const counts = {}
-
-            // if this.originalEnvVars = null, then this is the first time here
-            // so we need to make a copy of the original env vars for later comparison
-            if (this.originalEnvVars === null) {
-                this.originalEnvVars = JSON.parse(JSON.stringify(this.editable?.settings?.env || [])) // make a copy for later comparison
-            }
 
             // first scan: sanitise the policy field & index, clear errors, count up duplicate names
             envVars.forEach((field, i) => {
@@ -253,9 +284,6 @@ export default {
                     field.error = 'Duplicate name'
                 }
             })
-
-            // lastly, update originalEnvVars
-            this.originalEnvVars = JSON.parse(JSON.stringify(this.editable?.settings?.env || [])) // for later comparison
         },
         updateLookup () {
             this.envVarLookup = {}
@@ -274,6 +302,7 @@ export default {
                 name: key || '',
                 value: value || '',
                 encrypted: encrypt,
+                hidden: false,
                 policy: this.editTemplate ? false : undefined
             }
             this.envVarLookup[field.name] = this.editable.settings.env.length
@@ -342,6 +371,18 @@ export default {
                 fileUpload.value = ''
             }
             fileUpload.click()
+        },
+        setEnvHidden (index) {
+            let field
+            const isUnsavedVar = typeof index === 'string' && index.startsWith('add-')
+
+            if (isUnsavedVar) {
+                field = this.editable.settings.env.find(env => env.index === index)
+            } else {
+                field = this.editable.settings.env[index]
+            }
+
+            field.hidden = !field.hidden
         }
     }
 }

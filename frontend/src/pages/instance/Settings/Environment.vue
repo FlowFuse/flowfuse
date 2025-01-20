@@ -92,11 +92,23 @@ export default {
                             originalCount++
                             if (this.original.settings.envMap[field.name]) {
                                 const original = this.original.settings.envMap[field.name]
+
+                                // original = {
+                                //     hidden: false,
+                                //     ...original
+                                // }
+                                // field = {
+                                //     hidden: false,
+                                //     ...field
+                                // }
+
                                 if (original.index !== field.index) {
                                     changed = true
                                 } else if (original.name !== field.name) {
                                     changed = true
                                 } else if (original.value !== field.value) {
+                                    changed = true
+                                } else if (original.hidden !== field.hidden) {
                                     changed = true
                                 }
                             } else {
@@ -131,6 +143,11 @@ export default {
                 })
                 if (this.project.settings.env) {
                     this.project.settings.env.forEach((envVar) => {
+                        // hidden key backwards compatability
+                        envVar = {
+                            hidden: false,
+                            ...envVar
+                        }
                         envVar.index = this.editable.settings.env.length // ensure all env vars have an index
                         if (templateEnvMap[envVar.name]) {
                             if (templateEnvMap[envVar.name].policy) {
@@ -165,7 +182,8 @@ export default {
                 }
                 settings.env.push({
                     name: field.name,
-                    value: field.value
+                    value: field.value,
+                    hidden: field.hidden
                 })
             })
             await InstanceApi.updateInstance(this.project.id, { settings })
