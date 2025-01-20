@@ -491,7 +491,8 @@ module.exports = {
             sourceProjectEnvVars.forEach(envVar => {
                 newProjectSettings.env.push({
                     name: envVar.name,
-                    value: options.envVars === 'keys' ? '' : envVar.value
+                    value: options.envVars === 'keys' ? '' : envVar.value,
+                    hidden: envVar.hidden ?? false
                 })
             })
         }
