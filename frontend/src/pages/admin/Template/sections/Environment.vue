@@ -67,7 +67,11 @@
                             <div v-if="!item.encrypted" class="w-full">
                                 <template v-if="(!readOnly && (editTemplate || item.policy === undefined || item.policy))">
                                     <!-- editable -->
-                                    <textarea v-model="item.value" :class="'w-full font-mono max-h-40' + ((item.value && item.value.split('\n').length > 1) ? ' h-20' : ' h-8') + (item.deprecated ? ' text-yellow-700 italic' : '')" />
+                                    <textarea
+                                        v-model="item.value"
+                                        :placeholder="item.hidden ? 'Value hidden' : ''"
+                                        :class="'w-full font-mono max-h-40' + ((item.value && item.value.split('\n').length > 1) ? ' h-20' : ' h-8') + (item.deprecated ? ' text-yellow-700 italic' : '')"
+                                    />
                                 </template>
                                 <template v-else>
                                     <FormRow

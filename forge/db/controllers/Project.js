@@ -270,7 +270,13 @@ module.exports = {
         result.push(makeVar('FF_PROJECT_ID', project.id || '', true)) // deprecated as of V1.6.0
         result.push(makeVar('FF_PROJECT_NAME', project.name || '', true)) // deprecated as of V1.6.0
         result.push(...app.db.controllers.Project.removePlatformSpecificEnvVars(envVars))
-        return result
+
+        return result.map((env) => {
+            if (Object.hasOwnProperty.call(env, 'hidden') && env.hidden === true) {
+                env.value = ''
+            }
+            return env
+        })
     },
 
     /**
