@@ -3,6 +3,8 @@
  */
 const { DataTypes } = require('sequelize')
 
+const Controllers = require('../controllers')
+
 module.exports = {
     name: 'BrokerCredentials',
     schema: {
@@ -20,12 +22,37 @@ module.exports = {
     indexes: [
         { name: 'broker_name_team_unique', fields: ['name', 'TeamId'], unique: true }
     ],
+    hooks: function (M, app) {
+        return {
+            afterDestroy: async( brokerCredentials, opts) => {
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'broker',
+                        ownerId: brokerCredentials.id
+                    }
+                })
+            }
+        }
+    },
     associations: function (M) {
         this.belongsTo(M.Team)
+        this.hasOne(M.AccessToken, {
+            foreignKey: 'ownerId',
+            constraints: false,
+            scope: {
+                ownerType: 'broker'
+            }
+        })
     },
     finders: function (M) {
         return {
             instance: {
+                async refreshAuthTokens () {
+                    const brokerToken = await Controllers.AccessToken.createTokenForBroker(this, null)
+                    return {
+                        token: brokerToken.token
+                    }
+                }
             },
             static: {
                 byId: async function (idOrHash) {
