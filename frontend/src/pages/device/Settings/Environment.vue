@@ -57,6 +57,8 @@ export default {
                     // or if we do recognise it, but the value is different
                     if (!this.original.settings.envMap[field.name] || field.value !== this.original.settings.envMap[field.name].value) {
                         changed = true
+                    } else if (field.hidden !== this.original.settings.envMap[field.name].hidden) {
+                        changed = true
                     }
                     // there is an issue with he key/value
                     if (field.error) {
@@ -115,13 +117,17 @@ export default {
                 this.editable.settings.env = []
                 const settings = await deviceApi.getSettings(this.device.id)
                 settings.env?.forEach(envVar => {
+                    envVar = {
+                        hidden: false,
+                        ...envVar
+                    }
                     this.editable.settings.env.push(Object.assign({}, envVar))
                     // make a map of the key:value so it's easier to check for changes
                     this.original.settings.envMap[envVar.name] = envVar
                 })
                 Object.keys(this.original.settings.envMap).forEach((key, i) => {
                     this.original.settings.env.push({
-                        key: i,
+                        index: i,
                         hidden: false,
                         ...this.original.settings.envMap[key]
                     })
@@ -135,7 +141,8 @@ export default {
             this.editable.settings.env.forEach(field => {
                 settings.env.push({
                     name: field.name,
-                    value: field.value
+                    value: field.value,
+                    hidden: field.hidden
                 })
             })
             await deviceApi.updateSettings(this.device.id, settings)
