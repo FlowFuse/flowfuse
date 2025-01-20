@@ -57,7 +57,7 @@
                                 class="font-mono"
                                 :containerClass="'w-full' + (!readOnly && (editTemplate || item.policy === undefined)) ? ' env-cell-uneditable':''"
                                 :inputClass="item.deprecated ? 'w-full text-yellow-700 italic' : 'w-full'"
-                                :error="item.error"
+                                :error="errors[item.index].error"
                                 :disabled="item.encrypted"
                                 value-empty-text=""
                                 :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"
@@ -187,7 +187,7 @@ export default {
             default: null
         }
     },
-    emits: ['update:modelValue'],
+    emits: ['update:modelValue', 'validated'],
     data () {
         return {
             addedCount: 0,
@@ -195,7 +195,8 @@ export default {
             envVarLookup: {},
             originalEnvVars: null,
             search: '',
-            pauseEnvWatch: false
+            pauseEnvWatch: false,
+            errors: { }
         }
     },
     computed: {
@@ -225,23 +226,7 @@ export default {
         },
         'editable.settings.env': {
             deep: true,
-            handler (v) {
-                // only validate if the env data has changed (ignore the error
-                // field as that is updated in the validate method & would cause
-                // an infinite loop)
-                const _v = v.map(row => {
-                    const { error, ...rest } = row
-                    return rest
-                })
-                const _oldV = (this.originalEnvVars || []).map(row => {
-                    const { error, ...rest } = row
-                    return rest
-                })
-                if (JSON.stringify(_v) === JSON.stringify(_oldV)) {
-                    return // no changes to validate
-                }
-                this.validate()
-            }
+            handler: 'validate'
         },
         modelValue: {
             handler (model) {
@@ -265,29 +250,38 @@ export default {
             this.updateLookup()
             const counts = {}
 
-            // first scan: sanitise the policy field & index, clear errors, count up duplicate names
             envVars.forEach((field, i) => {
+                // set field policy
                 if (field.policy === undefined && (field.platform === true || field.deprecated === true)) {
                     field.policy = false
                 }
+                // set field index if not present
                 if (typeof field.index === 'undefined' || (typeof field.index === 'number' && field.index !== i)) {
                     field.index = i
                 }
-                counts[field.name] = (counts[field.name] || 0) + 1 // count the number of times each name appears
-                field.error = '' // clear any error
+
+                // count the number of times each name appears
+                counts[field.name] = (counts[field.name] || 0) + 1
+
+                // clear existing errors
+                this.errors[field.index] = { error: '' }
             })
 
+            let hasErrors = false
             // second scan: check for errors & flag them
             envVars.forEach((field, i) => {
-                const newRow = typeof field.index === 'string' && field.index.startsWith('add-')
                 if (field.name === '' || / /.test(field.name)) {
-                    field.error = 'Invalid name' // if name is empty  are empty - or - name contains spaces
-                } else if (newRow && field.name.startsWith('FF_')) {
-                    field.error = 'Reserved name'
+                    this.errors[field.index].error = 'Invalid name' // if name is empty  are empty - or - name contains spaces
+                    hasErrors = true
+                } else if (field.name.startsWith('FF_') && !field.platform) {
+                    this.errors[field.index].error = 'Reserved name'
+                    hasErrors = true
                 } else if (counts[field.name] > 1) {
-                    field.error = 'Duplicate name'
+                    this.errors[field.index].error = 'Duplicate name'
+                    hasErrors = true
                 }
             })
+            this.$emit('validated', hasErrors)
         },
         updateLookup () {
             this.envVarLookup = {}

@@ -1,8 +1,15 @@
 <template>
     <form class="space-y-6">
-        <TemplateSettingsEnvironment v-model="editable" :readOnly="!hasPermission('device:edit-env')" :editTemplate="false" />
+        <TemplateSettingsEnvironment
+            v-model="editable"
+            :readOnly="!hasPermission('device:edit-env')"
+            :editTemplate="false"
+            @validated="onFormValidated"
+        />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges || hasErrors" @click="saveSettings()">Save settings</ff-button>
+            <ff-button size="small" :disabled="!unsavedChanges || hasErrors" @click="saveSettings()">
+                Save settings
+            </ff-button>
         </div>
     </form>
 </template>
@@ -64,8 +71,7 @@ export default {
                     description: false,
                     settings: {},
                     policy: {}
-                },
-                errors: {}
+                }
             },
             original: {},
             templateEnvValues: {}
@@ -81,11 +87,9 @@ export default {
             handler (v) {
                 if (this.project.template) {
                     let changed = false
-                    let errors = false
 
                     let originalCount = 0
                     this.editable.settings.env.forEach(field => {
-                        errors = errors || !!field.error
                         if (/^add/.test(field.index)) {
                             changed = true
                         } else {
@@ -110,7 +114,6 @@ export default {
                         changed = true
                     }
                     this.unsavedChanges = changed
-                    this.hasErrors = errors
                 }
             }
         }
@@ -179,6 +182,9 @@ export default {
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
             alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
+        },
+        onFormValidated (hasErrors) {
+            this.hasErrors = hasErrors
         }
     }
 }
