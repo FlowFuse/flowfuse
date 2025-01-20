@@ -231,10 +231,6 @@ export default {
             deep: true,
             handler: 'validate'
         }
-        // modelValue: {
-        //     handler: 'setOriginalValues',
-        //     immediate: true
-        // }
     },
     mounted () {
         this.updateLookup()
@@ -274,6 +270,9 @@ export default {
                     hasErrors = true
                 } else if (field.name.startsWith('FF_') && !field.platform) {
                     this.errors[field.index].error = 'Reserved name'
+                    hasErrors = true
+                } else if (!field.name.match(/^[a-zA-Z_]+[a-zA-Z0-9_]*$/)) {
+                    this.errors[field.index].error = 'Names must start with a character'
                     hasErrors = true
                 } else if (counts[field.name] > 1) {
                     this.errors[field.index].error = 'Duplicate name'
@@ -381,11 +380,6 @@ export default {
 
             field.hidden = !field.hidden
         }
-        // setOriginalValues (model) {
-        //     if (this.originalEnvVars === null || this.originalEnvVars.length === 0) {
-        //         this.originalEnvVars = JSON.parse(JSON.stringify(model.settings?.env || [])) // make a copy for later comparison
-        //     }
-        // }
     }
 }
 </script>
