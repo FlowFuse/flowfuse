@@ -433,6 +433,8 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        // Need to create a Access Token then pass it to the container driver
+        // to spin up a mqtt-schema-agent
         const input = request.body
         input.credentials = JSON.stringify(request.body.credentials)
         input.TeamId = app.db.models.Team.decodeHashid(request.params.teamId)
@@ -451,6 +453,17 @@ module.exports = async function (app) {
         preHandler: [
             async (request, reply) => {
                 // TODO Needs custom preHandler to work with token for mqtt agent only
+                if (request.session?.scope?.includes('broker:credentials')) {
+                    if (request.session.ownerType === 'team') {
+                        if (request.params.teamId !== request.session.ownerId) {
+                            reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                        }
+                    } else {
+                        reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                    }
+                } else {
+                    reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                }
             }
         ],
         schema: {
@@ -480,18 +493,22 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        console.log(request.params)
+        // console.log(request.params)
         const creds = await app.db.models.BrokerCredentials.byId(request.params.brokerId)
         if (creds) {
-            const resp = creds.toJSON()
-            resp.id = resp.hashid
-            delete resp.hashid
-            delete resp.slug
-            delete resp.links
-            resp.credentials = JSON.parse(resp.credentials)
-            reply.send(resp)
+            if (creds.TeamId === request.params.teamId) {
+                const resp = creds.toJSON()
+                resp.id = resp.hashid
+                delete resp.hashid
+                delete resp.slug
+                delete resp.links
+                resp.credentials = JSON.parse(resp.credentials)
+                reply.send(resp)
+            } else {
+                reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+            }
         } else {
-            reply.status(404).send({})
+            reply.status(404).send({ code: 'not_found', error: 'not found' })
         }
     })
 
@@ -565,6 +582,8 @@ module.exports = async function (app) {
         const creds = await app.db.models.BrokerCredentials.byId(request.params.brokerId)
         if (creds) {
             try {
+                // TODO Need to tear down the running mqtt-schema-agent
+                // and remove the AccessToken
                 await creds.destroy()
                 reply.send({})
             } catch (err) {
@@ -617,7 +636,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        console.log(request.body)
+        // console.log(request.body)
         reply.send({})
     })
 }

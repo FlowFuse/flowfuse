@@ -1,5 +1,5 @@
 /**
- * 
+ * Credentials for connecting to 3rd Party MQTT brokers
  */
 const { DataTypes } = require('sequelize')
 
@@ -14,7 +14,8 @@ module.exports = {
         ssl: { type: DataTypes.BOOLEAN, allowNull: false, default: false },
         verifySSL: { type: DataTypes.BOOLEAN, allowNull: false, default: false },
         clientId: { type: DataTypes.STRING, allowNull: false },
-        credentials: { type: DataTypes.TEXT, allowNull: false }
+        credentials: { type: DataTypes.TEXT, allowNull: false },
+        state: { type: DataTypes.STRING, allowNull: false, default: 'running' }
     },
     indexes: [
         { name: 'broker_name_team_unique', fields: ['name', 'TeamId'], unique: true }
@@ -24,6 +25,8 @@ module.exports = {
     },
     finders: function (M) {
         return {
+            instance: {
+            },
             static: {
                 byId: async function (idOrHash) {
                     let id = idOrHash
