@@ -3,7 +3,7 @@
         <TemplateSettingsEnvironment
             :readOnly="!hasPermission('device:edit-env')"
             v-model="editable"
-            :original-env-vars="original.settings.env"
+            :original-env-vars="original?.settings?.env ?? []"
             :editTemplate="false"
             @validated="onFormValidated"
         />

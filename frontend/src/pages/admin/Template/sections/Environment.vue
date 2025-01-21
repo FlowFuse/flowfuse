@@ -27,6 +27,7 @@
                 search-placeholder="Search environment variables..."
                 :columns="editTemplate ? [,,,,] : [,,,]"
                 :noDataMessage="noDataMessage"
+                data-el="env-vars-table"
             >
                 <template #actions>
                     <template v-if="!readOnly">
@@ -35,7 +36,7 @@
                             <template #icon><DocumentDownloadIcon /></template>
                             <span class="hidden sm:flex pl-1">Import .env</span>
                         </ff-button>
-                        <ff-button kind="primary" accesskey="a" @click="addVarHandler">
+                        <ff-button kind="primary" accesskey="a" data-el="add-variable" @click="addVarHandler">
                             <template #icon><PlusSmIcon /></template>
                             <span class="hidden sm:flex pl-1">Add variable</span>
                         </ff-button>
@@ -50,16 +51,18 @@
                     </ff-data-table-row>
                 </template>
                 <template #rows>
-                    <ff-data-table-row v-for="(item) in filteredRows" :key="item.index">
+                    <ff-data-table-row v-for="(item) in filteredRows" :key="item.index" :data-row="'row-' + item.name">
                         <td class="ff-data-table--cell !pl-1 !pr-0 !py-1 border min-w-max max-w-sm align-top">
                             <FormRow
                                 v-model="item.name"
+                                v-ff-tooltip:left="'Cannot be renamed'"
                                 class="font-mono"
                                 :containerClass="'w-full' + (!readOnly && (editTemplate || item.policy === undefined)) ? ' env-cell-uneditable':''"
                                 :inputClass="item.deprecated ? 'w-full text-yellow-700 italic' : 'w-full'"
                                 :error="errors[item.index].error"
                                 :disabled="item.encrypted || (typeof item.index === 'number' && item.hidden)"
                                 value-empty-text=""
+                                data-el="var-name"
                                 :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"
                             />
                         </td>
@@ -70,6 +73,7 @@
                                     <textarea
                                         v-model="item.value"
                                         :placeholder="item.hidden ? 'Value hidden' : ''"
+                                        data-el="var-value"
                                         :class="'w-full font-mono max-h-40' + ((item.value && item.value.split('\n').length > 1) ? ' h-20' : ' h-8') + (item.deprecated ? ' text-yellow-700 italic' : '')"
                                     />
                                 </template>
@@ -79,6 +83,7 @@
                                         class="font-mono"
                                         containerClass="w-full env-cell-uneditable"
                                         :inputClass="item.deprecated ? 'text-yellow-700 italic' : ''"
+                                        data-el="var-value"
                                         value-empty-text=""
                                         :type="'uneditable'"
                                     />
@@ -88,13 +93,13 @@
                         </td>
                         <td class="ff-data-table--cell !p-1 border w-16 align-top">
                             <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center mt-1 items-center gap-3">
-                                <ff-button kind="tertiary" size="small" @click="removeEnv(item.index)">
+                                <ff-button kind="tertiary" size="small" data-el="remove" @click="removeEnv(item.index)">
                                     <template #icon>
                                         <TrashIcon />
                                     </template>
                                 </ff-button>
                                 <template v-if="typeof item.index === 'string' && item.index.startsWith('add-')">
-                                    <ff-button kind="tertiary" size="small" @click="setEnvHidden(item.index)">
+                                    <ff-button kind="tertiary" size="small" data-el="visibility" @click="setEnvHidden(item.index)">
                                         <template #icon>
                                             <EyeOffIcon v-if="item.hidden" />
                                             <EyeIcon v-else />
@@ -106,13 +111,15 @@
                                         v-if="!!(originalEnvVars.find(v => v.index === item.index))?.hidden"
                                         :key="item.index"
                                         v-ff-tooltip:left="'Cannot be made public again, only overwritten'"
-                                        class="mx-2"
+                                        class="mx-2 disabled"
+                                        data-el="visibility"
                                     >
                                         <EyeOffIcon class="ff-icon-sm color-grey" />
                                     </span>
                                     <ff-button
                                         v-else
-                                        kind="tertiary" size="small" @click="setEnvHidden(item.index)"
+                                        kind="tertiary" size="small" data-el="visibility"
+                                        @click="setEnvHidden(item.index)"
                                     >
                                         <template #icon>
                                             <EyeOffIcon v-if="item.hidden" />
@@ -384,7 +391,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .ff-data-table--cell textarea {
     resize: vertical;
     max-height: 10rem; /* 160px approx ~8 lines, after which user will need to scroll */

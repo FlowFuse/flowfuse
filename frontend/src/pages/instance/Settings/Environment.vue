@@ -4,11 +4,11 @@
             v-model="editable"
             :readOnly="!hasPermission('device:edit-env')"
             :editTemplate="false"
-            :original-env-vars="original.settings.env"
+            :original-env-vars="original?.settings?.env ?? []"
             @validated="onFormValidated"
         />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges || hasErrors" @click="saveSettings()">
+            <ff-button size="small" :disabled="!unsavedChanges || hasErrors" data-el="submit" @click="saveSettings()">
                 Save settings
             </ff-button>
         </div>
