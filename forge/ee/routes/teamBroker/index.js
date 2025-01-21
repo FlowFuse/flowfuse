@@ -443,6 +443,7 @@ module.exports = async function (app) {
         input.credentials = JSON.stringify(request.body.credentials)
         input.TeamId = app.db.models.Team.decodeHashid(request.params.teamId)
         const creds = await app.db.models.BrokerCredentials.create(input)
+        creds.refreshAuthTokens()
         const clean = app.db.views.BrokerCredentials.clean(creds)
         reply.status(201).send(clean)
     })
