@@ -130,6 +130,8 @@ export default {
                     // make a map of the key:value so it's easier to check for changes
                     this.original.settings.envMap[envVar.name] = envVar
                 })
+
+                this.original.settings.env = []
                 Object.keys(this.original.settings.envMap).forEach((key, i) => {
                     this.original.settings.env.push({
                         index: i,
