@@ -19,5 +19,13 @@ module.exports = {
             clientId: result.clientId
         }
         return cleaned
+    },
+    cleanList: function (app, list) {
+        const filtered = []
+        list.brokers.forEach(u => {
+            filtered.push(this.clean(app, u))
+        })
+        list.brokers = filtered
+        return list
     }
 }

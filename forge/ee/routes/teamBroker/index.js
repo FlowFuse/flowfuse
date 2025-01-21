@@ -381,13 +381,16 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const creds = app.db.model.BrokerCredentials.byTeam(request.params.teamId)
-        // TODO need a view to strip out the actual credentials
-        reply.send(creds)
+        const paginationOptions = app.getPaginationOptions(request)
+        const credsList = await app.db.models.BrokerCredentials.byTeam(request.params.teamId, paginationOptions)
+        reply.send(app.db.views.BrokerCredentials.cleanList(credsList))
     })
 
     /**
      * Add new Credentials for a 3rd Party Broker
+     * @name /api/v1/teams/:teamId/broker/credentials
+     * @static
+     * @memberof forge.routes.api.team.broker
      */
     app.post('/credentials', {
         preHandler: app.needsPermission('broker:credentials:create'),
@@ -417,7 +420,7 @@ module.exports = async function (app) {
                 }
             },
             response: {
-                200: {
+                201: {
                     type: 'object',
                     properties: {
 
@@ -436,16 +439,17 @@ module.exports = async function (app) {
         // Need to create a Access Token then pass it to the container driver
         // to spin up a mqtt-schema-agent
         const input = request.body
+        input.state = 'stopped'
         input.credentials = JSON.stringify(request.body.credentials)
         input.TeamId = app.db.models.Team.decodeHashid(request.params.teamId)
         const creds = await app.db.models.BrokerCredentials.create(input)
         const clean = app.db.views.BrokerCredentials.clean(creds)
-        reply.send(clean)
+        reply.status(201).send(clean)
     })
 
     /**
      * Get Credentials for a 3rd Party Broker
-     * @name /api/v1/teams/:teamId/broker/:brokerId/creds
+     * @name /api/v1/teams/:teamId/broker/:brokerId/credentials
      * @static
      * @memberof forge.routes.api.team.broker
      */
@@ -454,8 +458,8 @@ module.exports = async function (app) {
             async (request, reply) => {
                 // TODO Needs custom preHandler to work with token for mqtt agent only
                 if (request.session?.scope?.includes('broker:credentials')) {
-                    if (request.session.ownerType === 'team') {
-                        if (request.params.teamId !== request.session.ownerId) {
+                    if (request.session.ownerType === 'broker') {
+                        if (request.params.teamId !== request.session.Broker.Team.hashid) {
                             reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
                         }
                     } else {
@@ -514,8 +518,11 @@ module.exports = async function (app) {
 
     /**
      * Edit 3rd Party Broker credentials
+     * @name /api/v1/teams/:teamId/broker/:brokerId
+     * @static
+     * @memberof forge.routes.api.team.broker
      */
-    app.put('/:brokerId/credentials', {
+    app.put('/:brokerId', {
         preHandler: app.needsPermission('broker:credentials:edit'),
         schema: {
             summary: 'Delete credentials for a 3rd party MQTT broker',
@@ -525,6 +532,22 @@ module.exports = async function (app) {
                 properties: {
                     teamId: { type: 'string' },
                     brokerId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    host: { type: 'string' },
+                    port: { type: 'number' },
+                    protocol: { type: 'string' },
+                    protocolVersion: { type: 'number' },
+                    ssl: { type: 'boolean' },
+                    verifySSL: { type: 'boolean' },
+                    clientId: { type: 'string' },
+                    credentials: {
+                        type: 'object'
+                    }
                 }
             },
             response: {
@@ -544,13 +567,22 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-
+        const brokerCreds = await app.db.models.BrokerCredentials.byId(request.params.brokerId)
+        if (request.body.credentials) {
+            request.body.credentials = JSON.stringify(request.body.credentials)
+        }
+        await brokerCreds.update(request.body)
+        const clean = app.db.views.BrokerCredentials.clean(brokerCreds)
+        reply.send(clean)
     })
 
     /**
      * Remove 3rd Party Broker credentials
+     * @name /api/v1/teams/:teamId/broker/:brokerId
+     * @static
+     * @memberof forge.routes.api.team.broker
      */
-    app.delete('/:brokerId/credentials', {
+    app.delete('/:brokerId', {
         preHandler: app.needsPermission('broker:credentials:delete'),
         schema: {
             summary: 'Delete credentials for a 3rd party MQTT broker',

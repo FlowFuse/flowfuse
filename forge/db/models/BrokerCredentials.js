@@ -4,6 +4,7 @@
 const { DataTypes } = require('sequelize')
 
 const Controllers = require('../controllers')
+const { buildPaginationSearchClause } = require('../utils')
 
 module.exports = {
     name: 'BrokerCredentials',
@@ -17,14 +18,14 @@ module.exports = {
         verifySSL: { type: DataTypes.BOOLEAN, allowNull: false, default: false },
         clientId: { type: DataTypes.STRING, allowNull: false },
         credentials: { type: DataTypes.TEXT, allowNull: false },
-        state: { type: DataTypes.STRING, allowNull: false, default: 'running' }
+        state: { type: DataTypes.STRING, allowNull: false, default: 'stopped' }
     },
     indexes: [
         { name: 'broker_name_team_unique', fields: ['name', 'TeamId'], unique: true }
     ],
     hooks: function (M, app) {
         return {
-            afterDestroy: async( brokerCredentials, opts) => {
+            afterDestroy: async (brokerCredentials, opts) => {
                 await M.AccessToken.destroy({
                     where: {
                         ownerType: 'broker',
@@ -61,18 +62,45 @@ module.exports = {
                         id = M.BrokerCredentials.decodeHashid(idOrHash)
                     }
                     return this.findOne({
-                        where: { id }
+                        where: { id },
+                        include: {
+                            model: M.Team
+                        }
                     })
                 },
-                byTeam: async function (teamId) {
+                byTeam: async function (teamId, pagination = {}, where = {}) {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
                     }
-                    return this.findAll({
-                        where: {
-                            TeamId: teamId
-                        }
-                    })
+                    const limit = Math.min(parseInt(pagination.limit) || 100, 100)
+                    if (pagination.cursor) {
+                        pagination.cursor = M.TeamBrokerClient.decodeHashid(pagination.cursor)
+                    }
+                    const [rows, count] = await Promise.all([
+                        this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, []),
+                            include: {
+                                model: M.Team,
+                                where: { id: teamId }
+                            },
+                            order: [['id', 'ASC']],
+                            limit
+
+                        }),
+                        this.count({
+                            include: {
+                                model: M.Team,
+                                where: { id: teamId }
+                            }
+                        })
+                    ])
+                    return {
+                        meta: {
+                            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
+                        },
+                        count,
+                        brokers: rows
+                    }
                 }
             }
         }

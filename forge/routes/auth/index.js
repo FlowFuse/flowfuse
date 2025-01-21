@@ -121,6 +121,13 @@ async function init (app, opts) {
                             delete request.session.scope
                         }
                     }
+                    if (accessToken.ownerType === 'broker') {
+                        request.session.Broker = await app.db.models.BrokerClient.findOne({ where: { id: parseInt(accessToken.ownerId) } })
+                        if (!request.session.Broker) {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        }
+                    }
                     return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })

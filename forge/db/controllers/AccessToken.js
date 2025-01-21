@@ -404,5 +404,5 @@ module.exports = {
             ownerType: 'broker'
         })
         return { token }
-    },
+    }
 }

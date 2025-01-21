@@ -20,6 +20,7 @@ module.exports = {
             verifySSL: { type: DataTypes.BOOLEAN, allowNull: false, default: false },
             clientId: { type: DataTypes.STRING, allowNull: false },
             credentials: { type: DataTypes.TEXT, allowNull: false },
+            state: { type: DataTypes.STRING, allowNull: false, default: 'stopped' },
             createdAt: { type: DataTypes.DATE },
             updatedAt: { type: DataTypes.DATE },
             TeamId: {

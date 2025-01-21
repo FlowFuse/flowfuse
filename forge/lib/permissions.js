@@ -191,9 +191,9 @@ const Permissions = {
 
     // 3rd Party Broker
     'broker:credentials:list': { description: 'List 3rd Party Broker credentials', role: Roles.Owner },
-    'broker:credentials:create': { description: '', role: Roles.Owner },
-    'broker:credentials:edit': { description: '', role: Roles.Owner },
-    'broker:credentials:delete': { description: '', role: Roles.Owner }
+    'broker:credentials:create': { description: 'Create new Broker credentials', role: Roles.Owner },
+    'broker:credentials:edit': { description: 'Edit Broker Credentials', role: Roles.Owner },
+    'broker:credentials:delete': { description: 'Delete Broker Credentials', role: Roles.Owner }
 }
 
 module.exports = {
