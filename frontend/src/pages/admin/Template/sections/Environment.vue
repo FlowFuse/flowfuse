@@ -60,7 +60,7 @@
                                 :containerClass="'w-full' + (!readOnly && (editTemplate || item.policy === undefined)) ? ' env-cell-uneditable':''"
                                 :inputClass="item.deprecated ? 'w-full text-yellow-700 italic' : 'w-full'"
                                 :error="errors[item.index].error"
-                                :disabled="item.encrypted || (typeof item.index === 'number' && item.hidden)"
+                                :disabled="isDisabledName(item)"
                                 value-empty-text=""
                                 data-el="var-name"
                                 :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"
@@ -386,6 +386,11 @@ export default {
             }
 
             field.hidden = !field.hidden
+        },
+        isDisabledName (item) {
+            if (item.encrypted) return true
+            const originalItem = this.originalEnvVars.find(env => env.index === item.index)
+            return typeof item.index === 'number' && item.hidden && originalItem?.hidden
         }
     }
 }
