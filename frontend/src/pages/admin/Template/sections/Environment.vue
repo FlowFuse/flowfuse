@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-4" @submit.prevent>
+    <form class="space-y-4 ff-environment" @submit.prevent>
         <FormHeading>
             <div class="flex">
                 <div class="mr-4">Environment Variables</div>
@@ -58,7 +58,7 @@
                                 :containerClass="'w-full' + (!readOnly && (editTemplate || item.policy === undefined)) ? ' env-cell-uneditable':''"
                                 :inputClass="item.deprecated ? 'w-full text-yellow-700 italic' : 'w-full'"
                                 :error="errors[item.index].error"
-                                :disabled="item.encrypted"
+                                :disabled="item.encrypted || (typeof item.index === 'number' && item.hidden)"
                                 value-empty-text=""
                                 :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"
                             />
@@ -412,5 +412,15 @@ export default {
 }
 .ff-data-table--cell div.uneditable {
     cursor: default;
+}
+</style>
+
+<style lang="scss">
+.ff-environment {
+    .ff-input.ff-text-input {
+        input:disabled {
+            color: $ff-grey-600
+        }
+    }
 }
 </style>
