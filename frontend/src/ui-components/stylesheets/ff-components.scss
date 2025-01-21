@@ -965,6 +965,7 @@ li.ff-list-item {
     cursor: pointer;
     position: relative;
     display: flex;
+    max-height: 20px;
     svg {
       position: relative;
       z-index: 2;
