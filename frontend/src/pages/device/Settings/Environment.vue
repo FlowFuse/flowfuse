@@ -8,7 +8,9 @@
             @validated="onFormValidated"
         />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="isUpdateButtonDisabled" @click="saveSettings()">Save Settings</ff-button>
+            <ff-button size="small" :disabled="isUpdateButtonDisabled" @click="saveSettings()" data-el="submit">
+                Save Settings
+            </ff-button>
         </div>
     </form>
 </template>
