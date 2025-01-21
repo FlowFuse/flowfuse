@@ -6,7 +6,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 const MAX_BROKER_USERS_PER_TEAM = 5
 
-describe('Team Broker API', function () {
+describe.only('Team Broker API', function () {
     describe('unlicensed', function () {
         let app
         it('client limit set to 0 for unlicensed', async function () {
@@ -751,6 +751,8 @@ describe('Team Broker API', function () {
                     url: `/api/v1/teams/${app.team.hashid}/broker/${brokerCredentialId}`,
                     cookies: { sid: TestObjects.tokens.alice }
                 })
+                console.error(response.statusCode)
+                console.error(response.body)
                 response.statusCode.should.equal(200)
                 // result.brokers.should.have.a.lengthOf(1)
                 response = await app.inject({
