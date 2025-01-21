@@ -277,7 +277,7 @@ describe('Team Broker API', function () {
                 createRequest.statusCode.should.equal(201)
 
                 const endLog = await getAuditLog()
-                endLog.should.have.property('count', 3)
+                endLog.should.have.property('count', 4)
                 const overageLogEntry = endLog.log[0]
                 overageLogEntry.should.have.property('event', 'platform.license.overage')
                 overageLogEntry.body.should.have.property('info')
