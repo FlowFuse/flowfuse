@@ -223,12 +223,14 @@ const create = async (options) => {
         // PostHog Event & Group Capture
         product.capture('$ff-team-created', {
             'team-name': options.name,
+            'team-type-id': options.type,
             'created-at': res.data.createdAt
         }, {
             team: res.data.id
         })
         const props = {
             'team-name': options.name,
+            'team-type-id': options.type,
             'created-at': res.data.createdAt,
             'count-applications': 0,
             'count-instances': 0,
