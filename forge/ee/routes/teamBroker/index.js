@@ -620,7 +620,6 @@ module.exports = async function (app) {
                 await creds.destroy()
                 reply.send({})
             } catch (err) {
-                console.error(err)
                 reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
             }
         } else {

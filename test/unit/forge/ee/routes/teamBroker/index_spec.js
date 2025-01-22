@@ -6,7 +6,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 const MAX_BROKER_USERS_PER_TEAM = 5
 
-describe('Team Broker API', function () {
+describe.only('Team Broker API', function () {
     describe('unlicensed', function () {
         let app
         it('client limit set to 0 for unlicensed', async function () {

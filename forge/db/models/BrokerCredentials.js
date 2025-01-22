@@ -29,7 +29,7 @@ module.exports = {
                 await M.AccessToken.destroy({
                     where: {
                         ownerType: 'broker',
-                        ownerId: brokerCredentials.id
+                        ownerId: '' + brokerCredentials.id
                     }
                 })
             }
