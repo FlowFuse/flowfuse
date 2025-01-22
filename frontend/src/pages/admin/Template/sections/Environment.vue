@@ -99,7 +99,13 @@
                                     </template>
                                 </ff-button>
                                 <template v-if="typeof item.index === 'string' && item.index.startsWith('add-')">
-                                    <ff-button kind="tertiary" size="small" data-el="visibility" @click="setEnvHidden(item.index)">
+                                    <ff-button
+                                        v-ff-tooltip:left="'Setting visibility to hidden will lock the variable name and make the value hidden. To revert, you\'ll need to delete and recreate the variable.'"
+                                        kind="tertiary"
+                                        size="small"
+                                        data-el="visibility"
+                                        @click="setEnvHidden(item.index)"
+                                    >
                                         <template #icon>
                                             <EyeOffIcon v-if="item.hidden" />
                                             <EyeIcon v-else />
@@ -118,6 +124,7 @@
                                     </span>
                                     <ff-button
                                         v-else
+                                        v-ff-tooltip:left="'Setting visibility to hidden will lock the variable name and make the value hidden. To revert, you\'ll need to delete and recreate the variable.'"
                                         kind="tertiary" size="small" data-el="visibility"
                                         @click="setEnvHidden(item.index)"
                                     >
