@@ -400,7 +400,7 @@ module.exports = {
             token,
             expiresAt,
             scope,
-            ownerId: broker.id,
+            ownerId: ''+ broker.id,
             ownerType: 'broker'
         })
         return { token }
