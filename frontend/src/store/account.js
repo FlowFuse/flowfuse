@@ -127,9 +127,9 @@ const getters = {
                 }
 
                 // // dashboard users don't receive the team.type in the response payload
-                // if (state.teamMembership?.role === 5 && !state.team?.type?.properties) {
-                //     return true
-                // }
+                if (state.teamMembership?.role === 5 && !state.team?.type?.properties) {
+                    return true
+                }
 
                 let available = false
 
