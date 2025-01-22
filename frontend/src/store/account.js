@@ -126,6 +126,11 @@ const getters = {
                     return false
                 }
 
+                // // dashboard users don't receive the team.type in the response payload
+                if (state.teamMembership?.role === 5 && !state.team?.type?.properties) {
+                    return true
+                }
+
                 let available = false
 
                 // loop over the different instance types
