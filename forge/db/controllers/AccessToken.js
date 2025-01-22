@@ -391,7 +391,12 @@ module.exports = {
     },
 
     createTokenForBroker: async function (app, broker, expiresAt, scope = []) {
-        const existingBrokerToken = await broker.getAccessToken()
+        const existingBrokerToken = await app.db.models.AccessToken.findOne({
+            where: {
+                ownerId: '' + broker.id,
+                ownerType: 'broker'
+            }
+        })
         if (existingBrokerToken) {
             await existingBrokerToken.destroy()
         }
@@ -400,7 +405,7 @@ module.exports = {
             token,
             expiresAt,
             scope,
-            ownerId: ''+ broker.id,
+            ownerId: '' + broker.id,
             ownerType: 'broker'
         })
         return { token }
