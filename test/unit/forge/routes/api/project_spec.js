@@ -561,7 +561,7 @@ describe('Project API', function () {
                 runtimeSettings.should.have.property('env')
                 runtimeSettings.env.should.have.property('one', 'a')
                 runtimeSettings.env.should.have.property('two', 'b')
-                runtimeSettings.env.should.have.property('three', '')
+                runtimeSettings.env.should.have.property('three', 'c')
             })
 
             it('Create a project cloned from existing one - env-var keys only', async function () {
