@@ -82,7 +82,12 @@ module.exports = function (app) {
                 result.launcherSettings.disableAutoSafeMode = disableAutoSafeMode.value
             }
             // Environment
-            result.settings.env = app.db.controllers.Project.insertPlatformSpecificEnvVars(proj, result.settings.env)
+            result.settings.env = app.db.controllers.Project.insertPlatformSpecificEnvVars(proj, result.settings.env).map((env) => {
+                if (Object.hasOwnProperty.call(env, 'hidden') && env.hidden === true) {
+                    env.value = ''
+                }
+                return env
+            })
             if (!result.settings.palette?.modules) {
                 // If there are no modules listed in settings, check the StorageSettings
                 // for the project to see what Node-RED may already think is installed
