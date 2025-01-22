@@ -166,12 +166,8 @@ module.exports = {
         result.push(makeVar('FF_SNAPSHOT_ID', snapshotId))
         result.push(makeVar('FF_SNAPSHOT_NAME', snapshotName))
         result.push(...app.db.controllers.Device.removePlatformSpecificEnvVars(envVars))
-        return result.map((env) => {
-            if (Object.hasOwnProperty.call(env, 'hidden') && env.hidden === true) {
-                env.value = ''
-            }
-            return env
-        })
+
+        return result
     },
 
     /**

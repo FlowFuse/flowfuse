@@ -718,6 +718,12 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const settings = await request.device.getAllSettings()
+        settings.env = settings.env.map((env) => {
+            if (Object.hasOwnProperty.call(env, 'hidden') && env.hidden === true) {
+                env.value = ''
+            }
+            return env
+        })
         if (request.teamMembership?.role === Roles.Owner) {
             reply.send(settings)
         } else {
