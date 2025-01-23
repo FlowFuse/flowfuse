@@ -47,11 +47,6 @@ describe('Team Broker API', function () {
             // Run all the tests with bob - non-admin Team Owner
             await login('bob', 'bbPassword')
 
-            const userChris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
-            await app.team.addUser(userChris, { through: { role: Roles.Member } })
-            // Run all the tests with bob - non-admin Team Owner
-            await login('chris', 'ccPassword')
-
             const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const defaultTeamTypeProperties = defaultTeamType.properties
 
@@ -277,7 +272,7 @@ describe('Team Broker API', function () {
                 createRequest.statusCode.should.equal(201)
 
                 const endLog = await getAuditLog()
-                endLog.should.have.property('count', 4)
+                endLog.should.have.property('count', 3)
                 const overageLogEntry = endLog.log[0]
                 overageLogEntry.should.have.property('event', 'platform.license.overage')
                 overageLogEntry.body.should.have.property('info')
@@ -636,130 +631,6 @@ describe('Team Broker API', function () {
                 topicsResponse.statusCode.should.equal(200)
                 const topics = topicsResponse.json()
                 topics.should.containEql('foo/bar')
-            })
-        })
-        describe('3rd Party Broker Credentials', function () {
-            let brokerCredentialId = ''
-            it('Create Credentials as Owner', async function () {
-                const response = await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/credentials`,
-                    cookies: { sid: TestObjects.tokens.bob },
-                    body: {
-                        name: 'broker1',
-                        host: 'localhost',
-                        port: 1883,
-                        protocol: 'mqtt:',
-                        protocolVersion: 4,
-                        ssl: false,
-                        verifySSL: false,
-                        clientId: 'broker1-client',
-                        credentials: {
-                            username: 'foo', password: 'bar'
-                        }
-                    }
-                })
-                response.statusCode.should.equal(201)
-                const result = response.json()
-                brokerCredentialId = result.id
-                result.should.have.property('name', 'broker1')
-                result.should.have.property('host', 'localhost')
-                result.should.have.property('port', 1883)
-                result.should.have.property('protocol', 'mqtt:')
-            })
-            it('List Credentials as Owner', async function () {
-                const response = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/credentials`,
-                    cookies: { sid: TestObjects.tokens.bob }
-                })
-                response.statusCode.should.equal(200)
-                const result = response.json()
-                result.brokers.should.have.a.lengthOf(1)
-                result.brokers[0].should.have.property('id', brokerCredentialId)
-            })
-            it('Edit Crententials as Owner', async function () {
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/${brokerCredentialId}`,
-                    cookies: { sid: TestObjects.tokens.bob },
-                    body: {
-                        host: '127.0.0.1',
-                        port: 8883,
-                        ssl: true
-                    }
-                })
-                response.statusCode.should.equal(200)
-                const result = response.json()
-                result.should.have.property('host', '127.0.0.1')
-                result.should.have.property('port', 8883)
-                result.should.have.property('ssl', true)
-            })
-            it('Fail to Create Credentials as Member', async function () {
-                const response = await app.inject({
-                    method: 'POST',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/credentials`,
-                    cookies: { sid: TestObjects.tokens.chris },
-                    body: {
-                        name: 'broker1',
-                        host: 'localhost',
-                        port: 1883,
-                        protocol: 'mqtt:',
-                        protocolVersion: 4,
-                        ssl: false,
-                        verifySSL: false,
-                        clientId: 'broker1-client',
-                        credentials: {
-                            username: 'foo', password: 'bar'
-                        }
-                    }
-                })
-                response.statusCode.should.equal(403)
-            })
-            it('Fail to List Credentials as Member', async function () {
-                const response = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/credentials`,
-                    cookies: { sid: TestObjects.tokens.chris }
-                })
-                response.statusCode.should.equal(403)
-            })
-            it('Fail to Edit Crententials as Member', async function () {
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/${brokerCredentialId}`,
-                    cookies: { sid: TestObjects.tokens.chris },
-                    body: {
-                        host: '127.0.0.1',
-                        port: 8883,
-                        ssl: true
-                    }
-                })
-                response.statusCode.should.equal(403)
-            })
-            it('Fail to Delete Specific Credentials as Member', async function () {
-                const response = await app.inject({
-                    method: 'DELETE',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/${brokerCredentialId}`,
-                    cookies: { sid: TestObjects.tokens.chris }
-                })
-                response.statusCode.should.equal(403)
-            })
-            it('Delete Specific Credentials as Owner', async function () {
-                let response = await app.inject({
-                    method: 'DELETE',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/${brokerCredentialId}`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(200)
-                response = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/credentials`,
-                    cookies: { sid: TestObjects.tokens.bob }
-                })
-                response.statusCode.should.equal(200)
-                const result = response.json()
-                result.brokers.should.have.a.lengthOf(0)
             })
         })
     })

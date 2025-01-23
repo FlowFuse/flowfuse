@@ -28,6 +28,7 @@ module.exports = async function (app) {
         await app.register(require('./staticAssets'), { prefix: '/api/v1/projects/:projectId/files', logLevel: app.config.logging.http })
         await app.register(require('./projectHistory'), { prefix: '/api/v1/projects/:instanceId/history', logLevel: app.config.logging.http })
         await app.register(require('./teamBroker'), { prefix: '/api/v1/teams/:teamId/broker', logLevel: app.config.logging.http })
+        await app.register(require('./teamBroker/3rdPartyBroker'), { prefix: '/api/v1/teams/:teamId/brokers', logLevel: app.config.logging.http })
 
         // Important: keep SSO last to avoid its error handling polluting other routes.
         await app.register(require('./sso'), { logLevel: app.config.logging.http })
