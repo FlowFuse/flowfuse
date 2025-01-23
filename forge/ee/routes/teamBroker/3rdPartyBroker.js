@@ -35,7 +35,7 @@ module.exports = async function (app) {
         }
     })
 
-   /**
+    /**
      * Get All Credentials for 3rd Party Brokers linked to a team
      * @name /api/v1/teams:/teamId/brokers
      * @static

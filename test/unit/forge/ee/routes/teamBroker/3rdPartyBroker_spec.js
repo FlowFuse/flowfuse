@@ -15,19 +15,19 @@ describe('3rd Party Broker API', function () {
         const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNDFmNmRjLTBmM2QtNGFmNy1hNzk0LWIyNWFhNGJmYTliZCIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGdXNlIERldmVsb3BtZW50IiwibmJmIjoxNzMwNjc4NDAwLCJleHAiOjIwNzc3NDcyMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxMCwidGVhbXMiOjEwLCJpbnN0YW5jZXMiOjEwLCJtcXR0Q2xpZW50cyI6NiwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTczMDcyMTEyNH0.02KMRf5kogkpH3HXHVSGprUm0QQFLn21-3QIORhxFgRE9N5DIE8YnTH_f8W_21T6TlYbDUmf4PtWyj120HTM2w'
         app = await setup({ license })
         await login('alice', 'aaPassword')
-    
+
         const userBob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         await app.team.addUser(userBob, { through: { role: Roles.Owner } })
         // Run all the tests with bob - non-admin Team Owner
         await login('bob', 'bbPassword')
-    
+
         const userChris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
         await app.team.addUser(userChris, { through: { role: Roles.Member } })
         await login('chris', 'ccPassword')
-    
+
         const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
         const defaultTeamTypeProperties = defaultTeamType.properties
-    
+
         if (defaultTeamTypeProperties.features) {
             defaultTeamTypeProperties.features.teamBroker = true
         } else {
@@ -52,7 +52,7 @@ describe('3rd Party Broker API', function () {
         await app.close()
     })
 
-    async function login(username, password) {
+    async function login (username, password) {
         const response = await app.inject({
             method: 'POST',
             url: '/account/login',
