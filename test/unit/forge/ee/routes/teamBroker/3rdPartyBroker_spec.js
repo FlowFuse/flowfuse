@@ -6,7 +6,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 
 const MAX_BROKER_USERS_PER_TEAM = 5
 
-describe.only('3rd Party Broker API', function () {
+describe('3rd Party Broker API', function () {
     let app
     const TestObjects = { tokens: {} }
 
