@@ -29,6 +29,14 @@ module.exports = async function (app) {
                     return // eslint-disable-line no-useless-return
                 }
             }
+
+            if (request.params.brokerId) {
+                request.broker = await app.db.models.BrokerCredentials.byId(request.params.brokerId)
+                if (!request.broker) {
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    return // eslint-disable-line no-useless-return
+                }
+            }
         }
         if (!request.teamMembership) {
             request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
@@ -313,5 +321,86 @@ module.exports = async function (app) {
         } else {
             reply.status(404).send({})
         }
+    })
+
+    /**
+     * Get used Topics from a MQTT Broker
+     * @name /api/v1/teams/:teamId/broker/:brokerId/topics
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
+    app.get('/:brokerId/topics', {
+        preHandler: app.needsPermission('broker:topics:list'),
+        schema: {
+            summary: '',
+            tags: ['MQTT Broker'],
+        }
+    }, async (request, reply) => {
+        // should support pagination 
+        const topics = await app.db.models.MQTTTopicSchema.byBroker(request.params.brokerId)
+        reply.send(topics)
+    })
+
+    /**
+     * Store Topics from a 3rd Party Broker
+     * @name /api/v1/teams/:teamId/broker/:brokerId/topics
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
+    app.post('/:brokerId/topics', {
+        // Might need a custom handler here to allow agent to upload
+        preHandler: app.needsPermission('broker:topics:write'),
+        schema: {
+            summary: 'Store Topics from a 3rd party MQTT broker',
+            tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    brokerId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+
+                },
+                additionalProperties: true
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+
+                    },
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        // console.log(request.body)
+        reply.send({})
+    })
+
+    /**
+     * Modify Topic metadata from a 3rd Party Broker
+     * @name /api/v1/teams/:teamId/broker/:brokerId/topics/:topicId
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
+    app.put('/:brokerId/topics/:topicId', {
+        preHandler: app.needsPermission('broker:topics:write'),
+        schema: {
+            summary: '',
+            tags: ['MQTT Broker'],
+        }
+    }, async (request, reply) => {
+    
     })
 }
