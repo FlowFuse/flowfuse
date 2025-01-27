@@ -401,6 +401,49 @@ module.exports = async function (app) {
             tags: ['MQTT Broker'],
         }
     }, async (request, reply) => {
-    
+        const topic = await app.db.models.MQTTTopicSchema.byId(request.params.topicId)
+        if (topic) {
+            if (topic.Team.hashid === request.params.teamid) {
+                topic.metadata = JSON.stringify(request.body)
+                await topic.save()
+                // need view to clean up
+                reply.status(201).send(topic)
+            } else {
+                reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+            }
+        } else {
+            reply.status(404).send({ code: 'not_found', error: 'not found' })
+        }
+    })
+
+    /**
+     * Modify Topic metadata from a 3rd Party Broker
+     * @name /api/v1/teams/:teamId/broker/:brokerId/topics/:topicId
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
+    app.delete('/:brokerId/topics/:topicId', {
+        preHandler: app.needsPermission('broker:topics:write'),
+        schema: {
+            summary: '',
+            tags: ['MQTT Broker'],
+        }
+    }, async (request, reply) => {
+        const topic = await app.db.models.MQTTTopicSchema.byId(request.params.topicId)
+        if (topic) {
+            if (topic.Team.hashid === request.params.teamid) {
+                // need to check if topic belongs to broker requested
+                // if (request.params.brokerId !== 'broker' && topic.BrokerCredentialsId.hashid === request.params.brokerId) {
+                    
+                // } else if (request.params.brokerId === 'broker' && topic) {
+
+                // }
+                await topic.destroy()
+            } else {
+                reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+            }
+        } else {
+            reply.status(404).send({ code: 'not_found', error: 'not found' })
+        }
     })
 }
