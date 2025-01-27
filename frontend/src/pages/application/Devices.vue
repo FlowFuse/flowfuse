@@ -22,7 +22,7 @@ import DevicesBrowser from '../../components/DevicesBrowser.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import Tours from '../../tours/Tours.js'
 
-import TourFirstDevice from '../../tours/tour-first-device.json'
+import TourFirstDevice from '../../tours/tour-first-device.js'
 
 export default {
     name: 'ApplicationDevices',

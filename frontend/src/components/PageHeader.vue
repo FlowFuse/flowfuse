@@ -177,8 +177,8 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux', ['toggleLeftDrawer']),
-        ...mapActions('ux', ['activateTour']),
+        ...mapActions('ux', ['toggleLeftDrawer', 'activateTour']),
+        ...mapGetters('account', ['featuresCheck']),
         openEducationModal () {
             this.activateTour('education')
             product.capture('clicked-open-education-modal')
