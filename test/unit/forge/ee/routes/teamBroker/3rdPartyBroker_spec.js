@@ -232,7 +232,7 @@ describe('3rd Party Broker API', function () {
                 method: 'POST',
                 url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
                 headers: {
-                    'Authorization': `${agentToken}`
+                    Authorization: `${agentToken}`
                 },
                 body: {
                     topic: 'foo/bar/baz/qux'
@@ -240,12 +240,15 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(201)
         })
-        it('Get Topics for 3rd Pary broker as a Team Owner', async function  () {
+        it('Get Topics for 3rd Pary broker as a Team Owner', async function () {
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
                 cookies: { sid: TestObjects.tokens.bob }
             })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.a.lengthOf(2)
         })
         it('Add Metadata to a Topic', async function () {
             let response = await app.inject({
