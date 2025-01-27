@@ -17,7 +17,7 @@ module.exports = {
         this.belongsTo(M.Team, { foreignKey: { allowNull: false } })
         this.belongsTo(M.BrokerCredentials, { foreignKey: { allowNull: true } })
     },
-    finders: function(M, app) {
+    finders: function (M, app) {
         return {
             static: {
                 byId: async (id) => {
@@ -30,7 +30,7 @@ module.exports = {
                 },
                 byBroker: async (brokerId) => {
                     if (typeof brokerId === 'string') {
-                        brokerId = M.BrokerCredentials.decodeHashid(id)
+                        brokerId = M.BrokerCredentials.decodeHashid(brokerId)
                     }
                     return this.findAll({
                         where: { BrokerCredentialsId: brokerId }
@@ -38,7 +38,7 @@ module.exports = {
                 },
                 byTeam: async (teamId) => {
                     if (typeof teamId === 'string') {
-                        teamId = M.Team.decodeHashid(id)
+                        teamId = M.Team.decodeHashid(teamId)
                     }
                     return this.findAll({
                         where: { TeamId: teamId }
@@ -46,7 +46,7 @@ module.exports = {
                 },
                 getTeamBroker: async (teamId) => {
                     if (typeof teamId === 'string') {
-                        teamId = M.Team.decodeHashid(id)
+                        teamId = M.Team.decodeHashid(teamId)
                     }
                     return this.findAll({
                         where: {

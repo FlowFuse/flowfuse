@@ -334,9 +334,31 @@ module.exports = async function (app) {
         schema: {
             summary: '',
             tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    brokerId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+
+                    },
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
         }
     }, async (request, reply) => {
-        // should support pagination 
+        // should support pagination
         const topics = await app.db.models.MQTTTopicSchema.byBroker(request.params.brokerId)
         reply.send(topics)
     })
@@ -399,6 +421,14 @@ module.exports = async function (app) {
         schema: {
             summary: '',
             tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    brokerId: { type: 'string' },
+                    topicId: { type: 'string' }
+                }
+            }
         }
     }, async (request, reply) => {
         const topic = await app.db.models.MQTTTopicSchema.byId(request.params.topicId)
@@ -427,6 +457,14 @@ module.exports = async function (app) {
         schema: {
             summary: '',
             tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    brokerId: { type: 'string' },
+                    topicId: { type: 'string' }
+                }
+            }
         }
     }, async (request, reply) => {
         const topic = await app.db.models.MQTTTopicSchema.byId(request.params.topicId)
@@ -434,7 +472,7 @@ module.exports = async function (app) {
             if (topic.Team.hashid === request.params.teamid) {
                 // need to check if topic belongs to broker requested
                 // if (request.params.brokerId !== 'broker' && topic.BrokerCredentialsId.hashid === request.params.brokerId) {
-                    
+
                 // } else if (request.params.brokerId === 'broker' && topic) {
 
                 // }

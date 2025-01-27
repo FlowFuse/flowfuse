@@ -188,7 +188,7 @@ const Permissions = {
     'broker:clients:edit': { description: 'Edit Team Broker clients', role: Roles.Owner },
     'broker:clients:delete': { description: 'Delete Team Broker clients', role: Roles.Owner },
     'broker:topics:list': { description: 'List active Team Broker topics', role: Roles.Member },
-    'broker:topics:write': { description: 'Edit Topic metadata', role: Roles.Owner},
+    'broker:topics:write': { description: 'Edit Topic metadata', role: Roles.Owner },
 
     // 3rd Party Broker
     'broker:credentials:list': { description: 'List 3rd Party Broker credentials', role: Roles.Owner },

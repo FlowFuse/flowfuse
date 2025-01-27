@@ -17,7 +17,7 @@ module.exports = {
             updatedAt: { type: DataTypes.DATE },
             BrokerCredentialsId: {
                 type: DataTypes.INTEGER,
-                references: { model: 'BrokerCredentials', key: 'id'},
+                references: { model: 'BrokerCredentials', key: 'id' },
                 onDelete: 'cascade',
                 onUpdate: 'cascade'
             },
