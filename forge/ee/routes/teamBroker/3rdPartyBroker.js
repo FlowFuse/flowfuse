@@ -428,6 +428,21 @@ module.exports = async function (app) {
                     brokerId: { type: 'string' },
                     topicId: { type: 'string' }
                 }
+            },
+            response: {
+                201: {
+                    type: 'object',
+                    properties: {
+
+                    },
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
             }
         }
     }, async (request, reply) => {
@@ -437,7 +452,13 @@ module.exports = async function (app) {
                 topic.metadata = JSON.stringify(request.body)
                 await topic.save()
                 // need view to clean up
-                reply.status(201).send(topic)
+                const response = topic.toJSON()
+                if (response.metadata) {
+                    response.metadata = JSON.parse(response.metadata)
+                }
+                response.id = response.hashid
+                delete response.hashid
+                reply.status(201).send(response)
             } else {
                 reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
             }
@@ -464,6 +485,20 @@ module.exports = async function (app) {
                     brokerId: { type: 'string' },
                     topicId: { type: 'string' }
                 }
+            },
+            response: {
+                201: {
+                    type: 'object',
+                    properties: {
+
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
             }
         }
     }, async (request, reply) => {
@@ -477,6 +512,7 @@ module.exports = async function (app) {
 
                 // }
                 await topic.destroy()
+                reply.status(201).send({})
             } else {
                 reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
             }
