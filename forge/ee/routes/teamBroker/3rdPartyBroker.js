@@ -360,7 +360,8 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         // should support pagination
         const topics = await app.db.models.MQTTTopicSchema.byBroker(request.params.brokerId)
-        reply.send(topics)
+        const clean = app.db.views.MQTTTopicSchema.cleanList(topics)
+        reply.send(clean)
     })
 
     /**
@@ -390,10 +391,10 @@ module.exports = async function (app) {
                 additionalProperties: true
             },
             response: {
-                200: {
+                201: {
                     type: 'object',
                     properties: {
-
+                        topic: { type: 'string' }
                     },
                     additionalProperties: true
                 },
@@ -407,7 +408,22 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         // console.log(request.body)
-        reply.send({})
+        const teamId = app.db.models.Team.decodeHashid(request.params.teamId)[0]
+        let brokerId
+        if (request.params.brokerId !== 'team') {
+            brokerId = app.db.models.BrokerCredentials.decodeHashid(request.params.brokerId)[0]
+        }
+        const topicList = await app.db.models.MQTTTopicSchema.upsert({
+            topic: request.body.topic,
+            BrokerCredentialsId: brokerId,
+            TeamId: teamId
+        }, {
+            topic: request.body.topic,
+            BrokerCredentialsId: brokerId,
+            TeamId: teamId
+        })
+        const topic = topicList[0]
+        reply.status(201).send(app.db.views.MQTTTopicSchema.clean(topic))
     })
 
     /**
@@ -448,8 +464,8 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const topic = await app.db.models.MQTTTopicSchema.byId(request.params.topicId)
         if (topic) {
-            if (topic.Team.hashid === request.params.teamid) {
-                topic.metadata = JSON.stringify(request.body)
+            if (topic.Team.hashid === request.params.teamId) {
+                topic.metadata = JSON.stringify(request.body.metadata)
                 await topic.save()
                 // need view to clean up
                 const response = topic.toJSON()
@@ -504,15 +520,18 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const topic = await app.db.models.MQTTTopicSchema.byId(request.params.topicId)
         if (topic) {
-            if (topic.Team.hashid === request.params.teamid) {
+            if (topic.Team.hashid === request.params.teamId) {
                 // need to check if topic belongs to broker requested
-                // if (request.params.brokerId !== 'broker' && topic.BrokerCredentialsId.hashid === request.params.brokerId) {
-
-                // } else if (request.params.brokerId === 'broker' && topic) {
-
-                // }
-                await topic.destroy()
-                reply.status(201).send({})
+                if (request.params.brokerId !== 'team' && topic.BrokerCredentials.hashid === request.params.brokerId) {
+                    await topic.destroy()
+                    reply.status(201).send({})
+                    return
+                } else if (request.params.brokerId === 'team' && topic.BrokerCredentialsId === null) {
+                    await topic.destroy()
+                    reply.status(201).send({})
+                    return
+                }
+                reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
             } else {
                 reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
             }

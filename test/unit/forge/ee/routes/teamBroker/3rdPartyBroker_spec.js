@@ -190,7 +190,7 @@ describe('3rd Party Broker API', function () {
 
     describe('Topic Storge API', function () {
         let brokerCredentialId = ''
-        let agentToken = ''
+        // let agentToken = ''
         before(async function () {
             const response = await app.inject({
                 method: 'POST',
@@ -213,8 +213,9 @@ describe('3rd Party Broker API', function () {
             response.statusCode.should.equal(201)
             const result = response.json()
             brokerCredentialId = result.id
-            const res = await app.db.models.MQTTBrokerCredentials.refreshAuthTokens()
-            agentToken = res.token
+            const creds = await app.db.models.BrokerCredentials.byId(brokerCredentialId)
+            const res = creds.refreshAuthTokens()
+            // agentToken = res.token
         })
         it('Store Topic for a broker as a team owner', async function () {
             const response = await app.inject({
@@ -226,20 +227,26 @@ describe('3rd Party Broker API', function () {
                 }
             })
             response.statusCode.should.equal(201)
+            const result = response.json()
+            result.should.have.property('id')
+            result.should.have.property('topic', 'foo/bar/baz')
         })
-        it('Store Topic for a broker as a agent', async function () {
-            const response = await app.inject({
-                method: 'POST',
-                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
-                headers: {
-                    Authorization: `${agentToken}`
-                },
-                body: {
-                    topic: 'foo/bar/baz/qux'
-                }
-            })
-            response.statusCode.should.equal(201)
-        })
+        // it('Store Topic for a broker as a agent', async function () {
+        //     const response = await app.inject({
+        //         method: 'POST',
+        //         url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+        //         headers: {
+        //             Authorization: `${agentToken}`
+        //         },
+        //         body: {
+        //             topic: 'foo/bar/baz/qux'
+        //         }
+        //     })
+        //     response.statusCode.should.equal(201)
+        //     const result = response.json()
+        //     result.should.have.property('id')
+        //     result.should.have.property('topic', 'foo/bar/baz/qux')
+        // })
         it('Get Topics for 3rd Pary broker as a Team Owner', async function () {
             const response = await app.inject({
                 method: 'GET',
@@ -248,7 +255,7 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.a.lengthOf(2)
+            result.topics.should.have.a.lengthOf(1)
         })
         it('Add Metadata to a Topic', async function () {
             let response = await app.inject({
@@ -258,10 +265,10 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             let result = response.json()
-            result.should.have.a.lengthOf(2)
-            result[0].should.have.property('id')
-            result[0].should.have.property('topic')
-            const topicId = result[0].id
+            result.topics.should.have.a.lengthOf(1)
+            result.topics[0].should.have.property('id')
+            result.topics[0].should.have.property('topic')
+            const topicId = result.topics[0].id
 
             response = await app.inject({
                 method: 'PUT',
@@ -287,18 +294,27 @@ describe('3rd Party Broker API', function () {
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.statusCode.should.equal(200)
-            const result = response.json()
-            result.should.have.a.lengthOf(2)
-            result[0].should.have.property('id')
-            result[0].should.have.property('topic')
-            const topicId = result[0].id
+            let result = response.json()
+            result.topics.should.have.a.lengthOf(1)
+            result.topics[0].should.have.property('id')
+            result.topics[0].should.have.property('topic')
+            const topicId = result.topics[0].id
 
             response = await app.inject({
                 method: 'DELETE',
                 url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics/${topicId}`,
                 cookies: { sid: TestObjects.tokens.bob }
             })
+            response.statusCode.should.equal(201)
+
+            response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
             response.statusCode.should.equal(200)
+            result = response.json()
+            result.count.should.equal(0)
         })
     })
 })

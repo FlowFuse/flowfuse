@@ -4,6 +4,8 @@
 
 const { DataTypes } = require('sequelize')
 
+const { buildPaginationSearchClause } = require('../utils')
+
 module.exports = {
     name: 'MQTTTopicSchema',
     schema: {
@@ -11,11 +13,11 @@ module.exports = {
         metadata: { type: DataTypes.TEXT, allowNull: true }
     },
     // indexes: [
-    //     { name : '', fields}
+    //     { name : '', fields: ['topic', 'TeamId', 'BrokerCredentialsId']}
     // ],
     associations: function (M) {
         this.belongsTo(M.Team, { foreignKey: { allowNull: false } })
-        this.belongsTo(M.BrokerCredentials, { foreignKey: { allowNull: true } })
+        this.belongsTo(M.BrokerCredentials, { as: 'BrokerCredentials', foreignKey: { allowNull: true } })
     },
     finders: function (M, app) {
         return {
@@ -25,35 +27,68 @@ module.exports = {
                         id = M.MQTTTopicSchema.decodeHashid(id)
                     }
                     return this.findOne({
-                        where: { id }
+                        where: { id },
+                        include: [
+                            {
+                                model: M.Team
+                            },
+                            {
+                                model: M.BrokerCredentials,
+                                as: 'BrokerCredentials'
+                            }
+                        ]
                     })
                 },
-                byBroker: async (brokerId) => {
+                byBroker: async (brokerId, pagination = {}, where = {}) => {
                     if (typeof brokerId === 'string') {
                         brokerId = M.BrokerCredentials.decodeHashid(brokerId)
                     }
-                    return this.findAll({
-                        where: { BrokerCredentialsId: brokerId }
-                    })
+                    const limit = Math.min(parseInt(pagination.limit) || 100, 100)
+                    if (pagination.cursor) {
+                        pagination.cursor = M.MQTTTopicSchema.decodeHashid(pagination.cursor)
+                    }
+                    where.BrokerCredentialsId = brokerId
+                    const [rows, count] = await Promise.all([
+                        this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, [])
+                        }),
+                        this.count({
+                            where
+                        })
+                    ])
+                    return {
+                        meta: {
+                            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
+                        },
+                        count,
+                        topics: rows
+                    }
                 },
-                byTeam: async (teamId) => {
+                getTeamBroker: async (teamId, pagination = {}, where = {}) => {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
                     }
-                    return this.findAll({
-                        where: { TeamId: teamId }
-                    })
-                },
-                getTeamBroker: async (teamId) => {
-                    if (typeof teamId === 'string') {
-                        teamId = M.Team.decodeHashid(teamId)
+                    const limit = Math.min(parseInt(pagination.limit) || 100, 100)
+                    if (pagination.cursor) {
+                        pagination.cursor = M.MQTTTopicSchema.decodeHashid(pagination.cursor)
                     }
-                    return this.findAll({
-                        where: {
-                            TeamId: teamId,
-                            BrokerCredentialsId: null
-                        }
-                    })
+                    where.TeamId = teamId
+                    where.BrokerCredentialsId = null
+                    const [rows, count] = await Promise.all([
+                        this.findAll({
+                            where: buildPaginationSearchClause(pagination, where, [])
+                        }),
+                        this.count({
+                            where
+                        })
+                    ])
+                    return {
+                        meta: {
+                            next_cursor: rows.length === limit ? rows[rows.length - 1].hashid : undefined
+                        },
+                        count,
+                        topics: rows
+                    }
                 }
             }
         }
