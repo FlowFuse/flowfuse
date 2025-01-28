@@ -125,7 +125,7 @@ export default {
             // Re-dispatch the click event for Shepherd
             const newEvent = new Event('click', { bubbles: false, cancelable: true })
             newEvent.custom = true
-            event.originalTarget.dispatchEvent(newEvent)
+            event.target.dispatchEvent(newEvent)
         },
         copy (text) {
             this.copyToClipboard(text).then(() => {
