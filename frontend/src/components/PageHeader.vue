@@ -99,7 +99,7 @@ export default {
         },
         ...mapState('account', ['user', 'team', 'teams']),
         ...mapState('ux', ['leftDrawer']),
-        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount']),
+        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount', 'featuresCheck']),
         ...mapGetters('ux', ['hiddenLeftDrawer']),
         navigationOptions () {
             return [
@@ -126,7 +126,7 @@ export default {
                     onclick: (route) => window.open(route.url, '_blank'),
                     onclickparams: { url: 'https://flowfuse.com/docs/' }
                 },
-                this.isTrialAccount
+                this.isTrialAccount || !this.featuresCheck?.isHostedInstancesEnabledForTeam
                     ? {
                         label: 'Getting Started',
                         icon: AcademicCapIcon,
@@ -178,7 +178,6 @@ export default {
     },
     methods: {
         ...mapActions('ux', ['toggleLeftDrawer', 'activateTour']),
-        ...mapGetters('account', ['featuresCheck']),
         openEducationModal () {
             this.activateTour('education')
             product.capture('clicked-open-education-modal')
