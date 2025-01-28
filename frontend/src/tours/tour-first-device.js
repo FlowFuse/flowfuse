@@ -6,7 +6,17 @@ export default [
             element: 'a[data-nav="application-devices-overview"]',
             on: 'bottom'
         },
-        modalOverlayOpeningPadding: 12
+        modalOverlayOpeningPadding: 12,
+        beforeShowPromise: () => {
+            return new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (document.querySelector('a[data-nav="application-devices-overview"]')) {
+                        clearInterval(interval)
+                        resolve()
+                    }
+                }, 100)
+            })
+        }
     },
     {
         title: 'Add Remote Instance',
