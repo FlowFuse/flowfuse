@@ -213,8 +213,8 @@ describe('3rd Party Broker API', function () {
             response.statusCode.should.equal(201)
             const result = response.json()
             brokerCredentialId = result.id
-            const creds = await app.db.models.BrokerCredentials.byId(brokerCredentialId)
-            const res = creds.refreshAuthTokens()
+            // const creds = await app.db.models.BrokerCredentials.byId(brokerCredentialId)
+            // const res = creds.refreshAuthTokens()
             // agentToken = res.token
         })
         it('Store Topic for a broker as a team owner', async function () {
