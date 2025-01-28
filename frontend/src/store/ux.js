@@ -218,7 +218,8 @@ const getters = {
                             },
                             tag: 'team-devices',
                             icon: ChipIcon,
-                            disabled: noBilling
+                            disabled: noBilling,
+                            alert: !features.isHostedInstancesEnabledForTeam && team.deviceCount === 0
                         }
                     ]
                 },
