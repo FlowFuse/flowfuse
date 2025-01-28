@@ -136,7 +136,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('ux', ['tours']),
+        ...mapState('ux', ['tours', 'completeTours']),
         ...mapGetters('account', ['featuresCheck', 'team']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
@@ -234,65 +234,13 @@ export default {
                 this.$router.replace({ query: '' })
                 // allow the Alerts service to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
-
-                // we just 'paid' for a freemium account
-                if (!this.featuresCheck?.isHostedInstancesEnabledForTeam && this.tours.welcome) {
-                    if (this.applicationsList[0]) {
-                        // we'll redirect to the application devices page and start the device-tour
-                        return this.$store.dispatch('ux/activateTour', 'first-device')
-                            .then(() => this.$router.push({
-                                name: 'ApplicationDevices',
-                                params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
-                            }))
-                            .then(() => Tours.create(
-                                'first-device',
-                                TourFirstDevice,
-                                this.$store
-                            ))
-                            .then((tour) => tour.start())
-                            .catch(e => e)
-                    }
-                }
             })
         }
 
-        this.$nextTick(() => {
-            // First time here?
-            if (this.tours.welcome) {
-                switch (true) {
-                case !this.tours['first-device'] && this.isFreemiumTeamType:
-                    // we're starting the delayed free tour for freemium tiers (without any instances pre-created)
-                    (Tours.create('welcome',
-                        TourWelcomeFree,
-                        this.$store,
-                        () => {
-                            if (this.deviceCount === 0) {
-                                this.$store.dispatch('ux/activateTour', 'first-device')
-                            } else {
-                                this.$store.dispatch('ux/activateTour', 'education')
-                            }
-                        })).start()
-                    break
-                case this.instanceCount > 0 && !this.isFreemiumTeamType:
-                    // Running with an Instance pre-configured (Trial team types)
-                    (Tours.create('welcome', TourWelcome, this.$store, () => {
-                        this.$store.dispatch('ux/activateTour', 'education')
-                    })).start()
-                    break
-                case !this.isFreemiumTeamType:
-                    // any regular team type
-                    (Tours.create('welcome', TourWelcomeFree, this.$store, () => {
-                        if (this.deviceCount === 0) {
-                            this.$store.dispatch('ux/activateTour', 'first-device')
-                        }
-                    })).start()
-                    break
-                default:
-                    // no tours
-                    break
-                }
-            }
-        })
+        // First time here?
+        if (this.tours.welcome) {
+            this.dispatchTour()
+        }
 
         this.setSearchQuery()
     },
@@ -382,23 +330,55 @@ export default {
             if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'searchQuery')) {
                 this.filterTerm = this.$route.query.searchQuery
             }
+        },
+        dispatchTour () {
+            switch (true) {
+            case this.isFreemiumTeamType && !this.completeTours.includes('first-device'):
+                // freemium users must first undergo the first-device tour on the ApplicationDevices page
+                return this.$store.dispatch('ux/activateTour', 'first-device')
+                    .then(() => this.$router.push({
+                        name: 'ApplicationDevices',
+                        params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
+                    }))
+                    .then(() => Tours.create(
+                        'first-device',
+                        TourFirstDevice,
+                        this.$store
+                    ))
+                    .then((tour) => tour.start())
+                    .catch(e => e)
+
+            case this.isFreemiumTeamType && this.completeTours.includes('first-device'):
+                // we're starting the delayed free tour for freemium tiers (without any instances pre-created)
+                return (Tours.create('welcome',
+                    TourWelcomeFree,
+                    this.$store,
+                    () => {
+                        if (this.deviceCount === 0) {
+                            this.$store.dispatch('ux/activateTour', 'first-device')
+                        } else {
+                            this.$store.dispatch('ux/activateTour', 'education')
+                        }
+                    })).start()
+
+            case !this.isFreemiumTeamType && this.instanceCount > 0:
+                // Running with an Instance pre-configured (Trial team types)
+                return (Tours.create('welcome', TourWelcome, this.$store, () => {
+                    this.$store.dispatch('ux/activateTour', 'education')
+                })).start()
+
+            case !this.isFreemiumTeamType:
+                // any regular team type
+                return (Tours.create('welcome', TourWelcomeFree, this.$store, () => {
+                    if (this.deviceCount === 0) {
+                        this.$store.dispatch('ux/activateTour', 'first-device')
+                    }
+                })).start()
+
+            default:
+                // no tours
+            }
         }
-        // startFreemiumTour () {
-        //     // we'll redirect to the application devices page to start the tour
-        //     return this.$store.dispatch('ux/activateTour', 'first-device')
-        //         .then(() => this.$router.push({
-        //             name: 'ApplicationDevices',
-        //             params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
-        //         }))
-        //         .then(() => Tours.create(
-        //             'first-device',
-        //             TourFirstDevice,
-        //             this.$store,
-        //             () => this.$store.dispatch('ux/activateTour', 'education')
-        //         ))
-        //         .then((tour) => tour.start())
-        //         .catch(e => e)
-        // }
     }
 }
 </script>

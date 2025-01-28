@@ -25,6 +25,7 @@ const state = () => ({
         education: false,
         'first-device': false
     },
+    completeTours: [],
     mainNav: {
         context: 'team',
         backToButton: null
@@ -440,6 +441,7 @@ const mutations = {
     },
     deactivateTour (state, tour) {
         state.tours[tour] = false
+        state.completeTours.push(tour)
     }
 }
 
