@@ -102,7 +102,7 @@
 <script>
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -110,6 +110,7 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Tours from '../../../tours/Tours.js'
 
+import TourFirstDevice from '../../../tours/tour-first-device.js'
 import TourWelcomeFree from '../../../tours/tour-welcome-free.json'
 import TourWelcome from '../../../tours/tour-welcome.json'
 
@@ -136,6 +137,7 @@ export default {
     },
     computed: {
         ...mapState('ux', ['tours']),
+        ...mapGetters('account', ['featuresCheck', 'team']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
                 return {
@@ -201,6 +203,23 @@ export default {
                         }
                     })
             } return this.applicationsList
+        },
+        deviceCount () {
+            if (this.applicationsList.length === 0) return 0
+            return this.applicationsList.reduce((count, app) => {
+                count += app.devices.length
+                return count
+            }, 0)
+        },
+        instanceCount () {
+            if (this.applicationsList.length === 0) return 0
+            return this.applicationsList.reduce((count, app) => {
+                count += app.instances.length
+                return count
+            }, 0)
+        },
+        isFreemiumTeamType () {
+            return !this.featuresCheck?.isHostedInstancesEnabledForTeam
         }
     },
     watch: {
@@ -210,42 +229,71 @@ export default {
         await this.fetchData()
         if ('billing_session' in this.$route.query) {
             this.$nextTick(() => {
-                // Clear the query param so a reload of the page does retrigger
+                // Clear the query param so a reload of the page does re-trigger
                 // the notification
                 this.$router.replace({ query: '' })
-                // allow the Alerts servcie to have subscription by wrapping in nextTick
+                // allow the Alerts service to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
+
+                // we just 'paid' for a freemium account
+                if (!this.featuresCheck?.isHostedInstancesEnabledForTeam && this.tours.welcome) {
+                    if (this.applicationsList[0]) {
+                        // we'll redirect to the application devices page and start the device-tour
+                        return this.$store.dispatch('ux/activateTour', 'first-device')
+                            .then(() => this.$router.push({
+                                name: 'ApplicationDevices',
+                                params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
+                            }))
+                            .then(() => Tours.create(
+                                'first-device',
+                                TourFirstDevice,
+                                this.$store
+                            ))
+                            .then((tour) => tour.start())
+                            .catch(e => e)
+                    }
+                }
             })
         }
-        // Do we have an Instance already? Tells us which tour to run
-        const instanceCount = this.applicationsList.reduce((count, app) => {
-            count += app.instances.length
-            return count
-        }, 0)
-        // Do we have an Instance already? Tells us which tour to run
-        const deviceCount = this.applicationsList.reduce((count, app) => {
-            count += app.devices.length
-            return count
-        }, 0)
 
-        // First time here?
-        if (this.tours.welcome) {
-            let tour = null
-            if (instanceCount > 0) {
-                // Running with an Instance pre-configured
-                tour = Tours.create('welcome', TourWelcome, this.$store, () => {
-                    this.$store.dispatch('ux/activateTour', 'education')
-                })
-            } else {
-                // Free Tier Tour (No Instances)
-                tour = Tours.create('welcome', TourWelcomeFree, this.$store, () => {
-                    if (deviceCount === 0) {
-                        this.$store.dispatch('ux/activateTour', 'first-device')
-                    }
-                })
+        this.$nextTick(() => {
+            // First time here?
+            if (this.tours.welcome) {
+                switch (true) {
+                case !this.tours['first-device'] && this.isFreemiumTeamType:
+                    // we're starting the delayed free tour for freemium tiers (without any instances pre-created)
+                    (Tours.create('welcome',
+                        TourWelcomeFree,
+                        this.$store,
+                        () => {
+                            if (this.deviceCount === 0) {
+                                this.$store.dispatch('ux/activateTour', 'first-device')
+                            } else {
+                                this.$store.dispatch('ux/activateTour', 'education')
+                            }
+                        })).start()
+                    break
+                case this.instanceCount > 0 && !this.isFreemiumTeamType:
+                    // Running with an Instance pre-configured (Trial team types)
+                    (Tours.create('welcome', TourWelcome, this.$store, () => {
+                        this.$store.dispatch('ux/activateTour', 'education')
+                    })).start()
+                    break
+                case !this.isFreemiumTeamType:
+                    // any regular team type
+                    (Tours.create('welcome', TourWelcomeFree, this.$store, () => {
+                        if (this.deviceCount === 0) {
+                            this.$store.dispatch('ux/activateTour', 'first-device')
+                        }
+                    })).start()
+                    break
+                default:
+                    // no tours
+                    break
+                }
             }
-            tour.start()
-        }
+        })
+
         this.setSearchQuery()
     },
     methods: {
@@ -335,6 +383,22 @@ export default {
                 this.filterTerm = this.$route.query.searchQuery
             }
         }
+        // startFreemiumTour () {
+        //     // we'll redirect to the application devices page to start the tour
+        //     return this.$store.dispatch('ux/activateTour', 'first-device')
+        //         .then(() => this.$router.push({
+        //             name: 'ApplicationDevices',
+        //             params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
+        //         }))
+        //         .then(() => Tours.create(
+        //             'first-device',
+        //             TourFirstDevice,
+        //             this.$store,
+        //             () => this.$store.dispatch('ux/activateTour', 'education')
+        //         ))
+        //         .then((tour) => tour.start())
+        //         .catch(e => e)
+        // }
     }
 }
 </script>
