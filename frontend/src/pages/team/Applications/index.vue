@@ -333,7 +333,7 @@ export default {
         },
         dispatchTour () {
             switch (true) {
-            case this.isFreemiumTeamType && !this.completeTours.includes('first-device'):
+            case this.isFreemiumTeamType && !this.completeTours.includes('first-device') && this.applicationsList[0]:
                 // freemium users must first undergo the first-device tour on the ApplicationDevices page
                 return this.$store.dispatch('ux/activateTour', 'first-device')
                     .then(() => this.$router.push({
