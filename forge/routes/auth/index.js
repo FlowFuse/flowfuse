@@ -122,7 +122,10 @@ async function init (app, opts) {
                         }
                     }
                     if (accessToken.ownerType === 'broker') {
-                        request.session.Broker = await app.db.models.BrokerClient.findOne({ where: { id: parseInt(accessToken.ownerId) } })
+                        request.session.Broker = await app.db.models.BrokerCredentials.findOne({
+                            where: { id: parseInt(accessToken.ownerId) },
+                            include: [{ model: app.db.models.Team }]
+                        })
                         if (!request.session.Broker) {
                             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                             return

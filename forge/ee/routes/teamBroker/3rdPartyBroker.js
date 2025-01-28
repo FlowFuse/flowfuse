@@ -38,7 +38,7 @@ module.exports = async function (app) {
                 }
             }
         }
-        if (!request.teamMembership) {
+        if (!request.teamMembership && request.session.User) {
             request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
         }
     })
@@ -197,12 +197,16 @@ module.exports = async function (app) {
         // console.log(request.params)
         const creds = await app.db.models.BrokerCredentials.byId(request.params.brokerId)
         if (creds) {
-            if (creds.TeamId === request.params.teamId) {
+            if (creds.Team.hashid === request.params.teamId) {
                 const resp = creds.toJSON()
                 resp.id = resp.hashid
                 delete resp.hashid
                 delete resp.slug
                 delete resp.links
+                delete resp.Team
+                delete resp.TeamId
+                delete resp.createdAt
+                delete resp.updatedAt
                 resp.credentials = JSON.parse(resp.credentials)
                 reply.send(resp)
             } else {
@@ -372,7 +376,21 @@ module.exports = async function (app) {
      */
     app.post('/:brokerId/topics', {
         // Might need a custom handler here to allow agent to upload
-        preHandler: app.needsPermission('broker:topics:write'),
+        preHandler: [
+            async (request, reply) => {
+                if (request.session?.scope?.includes('broker:topics')) {
+                    if (request.session.ownerType === 'broker') {
+                        if (request.params.teamId !== request.session.Broker.Team.hashid) {
+                            reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                        }
+                    } else {
+                        reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                    }
+                } else {
+                    reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                }
+            }
+        ],
         schema: {
             summary: 'Store Topics from a 3rd party MQTT broker',
             tags: ['MQTT Broker'],
