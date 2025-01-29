@@ -223,12 +223,14 @@ const create = async (options) => {
         // PostHog Event & Group Capture
         product.capture('$ff-team-created', {
             'team-name': options.name,
+            'team-type-id': options.type,
             'created-at': res.data.createdAt
         }, {
             team: res.data.id
         })
         const props = {
             'team-name': options.name,
+            'team-type-id': options.type,
             'created-at': res.data.createdAt,
             'count-applications': 0,
             'count-instances': 0,
@@ -432,6 +434,11 @@ const getDependencies = (teamId) => {
         .then(res => res.data)
 }
 
+const getTeamDeviceGroups = (teamId) => {
+    return client.get(`/api/v1/teams/${teamId}/device-groups`)
+        .then(res => res.data)
+}
+
 /**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
@@ -464,5 +471,6 @@ export default {
     deleteTeamDeviceProvisioningToken,
     bulkDeviceDelete,
     bulkDeviceMove,
-    getDependencies
+    getDependencies,
+    getTeamDeviceGroups
 }

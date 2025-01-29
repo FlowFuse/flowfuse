@@ -1143,6 +1143,37 @@ describe('Device API', async function () {
                 nonPlatformVars[0].should.have.property('value', 'foo')
                 settings.should.not.have.property('invalid')
             })
+            it('can set hidden env vars for the device', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}/settings`,
+                    body: {
+                        env: [{ name: 'a', value: 'foo' }, { name: 'b', value: 'bar', hidden: true }]
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('status', 'okay')
+
+                const settingsResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/settings`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                const settings = settingsResponse.json()
+                settings.should.have.property('env')
+                const nonPlatformVars = settings.env.filter(e => !e.name.startsWith('FF_')) // ignore platform defined vars
+                nonPlatformVars.should.have.length(2)
+                nonPlatformVars[0].should.have.property('name', 'a')
+                nonPlatformVars[0].should.have.property('value', 'foo')
+                nonPlatformVars[1].should.have.property('name', 'b')
+                nonPlatformVars[1].should.have.property('value', '')
+                nonPlatformVars[1].should.have.property('hidden', true)
+                settings.should.not.have.property('invalid')
+            })
+
             it('non team owner can set env vars for the device', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const response = await app.inject({

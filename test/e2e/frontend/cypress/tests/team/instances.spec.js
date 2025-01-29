@@ -55,6 +55,14 @@ describe('Team - Instances', () => {
     })
 
     describe('Users with dashboard only permissions', () => {
+        beforeEach(() => {
+            // viewer roled users don't receive the teamType in the team payload
+            cy.intercept('get', '/api/*/teams/slug/bteam', req => req.reply(res => {
+                const { type, ...response } = res.body
+                res.send(response)
+            })).as('getTeam')
+        })
+
         it('are shown a static message if no dashboard instances are found', () => {
             cy.intercept('GET', '/api/*/teams/*/user',
                 req => req.reply(res => {
@@ -73,8 +81,9 @@ describe('Team - Instances', () => {
                 }).as('getDashboardInstances')
 
             cy.login('bob', 'bbPassword')
-            cy.visit('/')
+            cy.visit('/team/bteam')
 
+            cy.wait('@getTeam')
             cy.wait('@getUser')
             cy.wait('@getDashboardInstances')
 
@@ -130,8 +139,9 @@ describe('Team - Instances', () => {
                 }).as('getDashboardInstances')
 
             cy.login('bob', 'bbPassword')
-            cy.visit('/')
+            cy.visit('/team/bteam')
 
+            cy.wait('@getTeam')
             cy.wait('@getUser')
             cy.wait('@getDashboardInstances')
 
