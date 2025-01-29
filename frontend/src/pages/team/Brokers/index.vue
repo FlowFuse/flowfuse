@@ -72,7 +72,9 @@ export default {
         async fetchData () {
             if (this.featuresCheck.isMqttBrokerFeatureEnabled) {
                 this.loading = true
-                return this.fetchUnsClients()
+                return this.$store.dispatch('product/fetchUnsClients')
+                    .catch(err => console.error(err))
+                    .then(() => this.$store.dispatch('product/getBrokers'))
                     .catch(err => console.error(err))
                     .finally(() => {
                         this.loading = false

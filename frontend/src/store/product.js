@@ -5,7 +5,8 @@ const state = () => ({
     flags: null,
     interview: null,
     UNS: {
-        clients: []
+        clients: [],
+        brokers: []
     }
 })
 
@@ -26,6 +27,9 @@ const mutations = {
     },
     setUnsClients (state, payload) {
         state.UNS.clients = payload
+    },
+    setUnsBrokers (state, payload) {
+        state.UNS.brokers = payload
     }
 }
 
@@ -69,6 +73,11 @@ const actions = {
         const team = rootState.account?.team
         return brokerApi.getClients(team.id)
             .then(response => commit('setUnsClients', response.clients))
+    },
+    async getBrokers ({ commit, rootState }) {
+        const team = rootState.account?.team
+        return brokerApi.getBrokers(team.id)
+            .then(response => commit('setUnsBrokers', response.brokers))
     }
 }
 
