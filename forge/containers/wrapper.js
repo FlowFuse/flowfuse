@@ -275,5 +275,28 @@ module.exports = {
         } else {
             throw new Error('Driver does not implement file API ')
         }
+    },
+
+    //Broker Agent API
+    startBrokerAgent: async (broker) => {
+        if (this._driver.startBrokerAgent) {
+            return this._driver.startBrokerAgent(broker)
+        } else {
+            throw new Error('Driver does not implement Broker API ')
+        }
+    },
+    stopBrokerAgent: async (broker) => {
+        if (this._driver.stopBrokerAgent) {
+            return this._driver.stopBrokerAgent(broker)
+        } else {
+            throw new Error('Driver does not implement Broker API ')
+        }
+    },
+    getBrokerAgentState: async (broker) => {
+        if (this._driver.stopBrokerAgent) {
+            return this._driver.getBrokerAgentState(broker)
+        } else {
+            throw new Error('Driver does not implement Broker API ')
+        }
     }
 }
