@@ -40,6 +40,11 @@ const getBrokers = (teamId) => {
         .then(res => res.data)
 }
 
+const createBroker = (teamId, payload) => {
+    return client.post(`/api/v1/teams/${teamId}/brokers`, payload)
+        .then(res => res.data)
+}
+
 export default {
     getClients,
     getClient,
@@ -47,5 +52,6 @@ export default {
     updateClient,
     deleteClient,
     getTopics,
-    getBrokers
+    getBrokers,
+    createBroker
 }

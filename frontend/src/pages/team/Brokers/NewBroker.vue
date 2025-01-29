@@ -31,7 +31,7 @@
 
                         <FormRow
                             v-model="form.port"
-                            type="input"
+                            type="number"
                             name="port"
                             placeholder="1883"
                             class="port flex-1"
@@ -99,6 +99,9 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
+import brokerApi from '../../../api/broker.js'
 import FormRow from '../../../components/FormRow.vue'
 import FfButton from '../../../ui-components/components/Button.vue'
 import FfListbox from '../../../ui-components/components/form/ListBox.vue'
@@ -111,7 +114,7 @@ export default {
             form: {
                 name: '',
                 host: '',
-                port: '',
+                port: null,
                 protocol: '',
                 protocolVersion: '4',
                 ssl: 'false',
@@ -158,9 +161,19 @@ export default {
             ]
         }
     },
+    computed: {
+        ...mapState('account', ['team'])
+    },
     methods: {
         onSubmit () {
-            console.warn('submit')
+            const payload = { ...this.form }
+
+            if (!payload.port) {
+                payload.port = 1883
+            }
+
+            return brokerApi.createBroker(this.team.id, this.form)
+                .catch(e => console.error(e))
         }
     }
 }
