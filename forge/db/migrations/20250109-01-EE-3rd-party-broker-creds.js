@@ -22,7 +22,7 @@ module.exports = {
             credentials: { type: DataTypes.TEXT, allowNull: false },
             state: { type: DataTypes.STRING, allowNull: false, default: 'stopped' },
             settings: {
-                type: 'string',
+                type: DataTypes.TEXT,
                 allowNull: true,
                 default: '{}',
                 get () {
