@@ -173,6 +173,7 @@ export default {
             }
 
             return brokerApi.createBroker(this.team.id, this.form)
+                .then(() => this.$router.push({ name: 'team-brokers' }))
                 .catch(e => console.error(e))
         }
     }
