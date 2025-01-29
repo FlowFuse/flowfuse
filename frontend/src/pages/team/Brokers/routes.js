@@ -44,6 +44,14 @@ export default {
             meta: {
                 title: 'Team - New MQTT Broker'
             }
+        },
+        {
+            name: 'team-brokers-settings',
+            path: ':id/settings',
+            component: BrokerNew,
+            meta: {
+                title: 'Team - New MQTT Broker'
+            }
         }
     ]
 }

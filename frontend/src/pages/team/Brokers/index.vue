@@ -38,15 +38,24 @@ export default {
     },
     computed: {
         ...mapGetters('account', ['featuresCheck']),
-        ...mapGetters('product', ['hasFfUnsClients']),
+        ...mapGetters('product', ['hasFfUnsClients', 'hasOtherBrokers']),
         tabs () {
-            if (!this.hasFfUnsClients || this.isCreatingFirstClient) {
-                // hides available tabs for the create page
+            if (!this.hasOtherBrokers && (!this.hasFfUnsClients || this.isCreatingFirstClient)) {
+                // hides tabs while configuring a broker
                 return []
             }
             return [
                 { label: 'Hierarchy', to: { name: 'team-brokers-hierarchy' }, tag: 'team-brokers-hierarchy' },
-                { label: 'Clients', to: { name: 'team-brokers-clients' }, tag: 'team-brokers-clients' }
+
+                // todo should be hidden when third party broker is displayed
+                { label: 'Clients', to: { name: 'team-brokers-clients' }, tag: 'team-brokers-clients' },
+
+                // todo should be hidden when the ff broker is displayed
+                {
+                    label: 'Settings',
+                    to: { name: 'team-brokers-settings', params: { id: 1 /* todo hardcoded */ } },
+                    tag: 'team-brokers-settings'
+                }
             ]
         },
         isCreatingFirstClient () {
@@ -63,7 +72,7 @@ export default {
 
         await this.fetchData()
 
-        if (!this.hasFfUnsClients && !this.isCreatingFirstClient) {
+        if (!this.hasOtherBrokers && (!this.hasFfUnsClients && !this.isCreatingFirstClient)) {
             return this.$router.push({ name: 'team-brokers-add' })
         }
     },

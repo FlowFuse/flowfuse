@@ -15,7 +15,8 @@ const getters = {
     settings (state) {
         return state.settings
     },
-    hasFfUnsClients: state => state.UNS.clients.length > 0
+    hasFfUnsClients: state => state.UNS.clients.length > 0,
+    hasOtherBrokers: state => state.UNS.brokers.length > 0
 }
 
 const mutations = {
