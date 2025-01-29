@@ -5,6 +5,9 @@ import TeamApplications from './Applications/index.vue'
 import TeamAuditLog from './AuditLog.vue'
 import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing.vue'
+import BrokersClients from './Brokers/Clients/index.vue'
+import BrokersHierarchy from './Brokers/Hierarchy/index.vue'
+import Brokers from './Brokers/index.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamInstances from './Instances.vue'
 import Library from './Library/index.vue'
@@ -17,9 +20,6 @@ import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
 import TeamSettings from './Settings/index.vue'
-import UNSClients from './UNS/Clients/index.vue'
-import UNSHierarchy from './UNS/Hierarchy/index.vue'
-import UnifiedNameSpace from './UNS/index.vue'
 import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
@@ -114,7 +114,7 @@ export default [
                     {
                         name: 'team-unified-namespace',
                         path: 'broker',
-                        component: UnifiedNameSpace,
+                        component: Brokers,
                         redirect: { name: 'team-namespace-hierarchy' },
                         meta: {
                             title: 'Team - MQTT Broker'
@@ -123,7 +123,7 @@ export default [
                             {
                                 name: 'team-namespace-hierarchy',
                                 path: 'hierarchy',
-                                component: UNSHierarchy,
+                                component: BrokersHierarchy,
                                 meta: {
                                     title: 'Team - MQTT Broker Topic Hierarchy'
                                 }
@@ -131,7 +131,7 @@ export default [
                             {
                                 name: 'team-namespace-clients',
                                 path: 'clients',
-                                component: UNSClients,
+                                component: BrokersClients,
                                 meta: {
                                     title: 'Team - MQTT Broker Clients'
                                 }
