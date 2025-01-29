@@ -61,7 +61,7 @@ export default {
         await this.fetchData()
 
         if (!this.hasFfUnsClients) {
-            return this.$router.push({ name: 'team-brokers-create' })
+            return this.$router.push({ name: 'team-brokers-add' })
         }
     },
     methods: {
