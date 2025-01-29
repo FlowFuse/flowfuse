@@ -40,14 +40,17 @@ export default {
         ...mapGetters('account', ['featuresCheck']),
         ...mapGetters('product', ['hasFfUnsClients']),
         tabs () {
-            if (!this.hasFfUnsClients) {
+            if (!this.hasFfUnsClients && !this.isCreatingFirstClient) {
                 // hides available tabs for the create page
                 return []
             }
             return [
-                { label: 'Hierarchy', to: { name: 'team-brokers-hierarchy' }, tag: 'team-brokers-hierarchy' },
+                { label: 'Hierarchy', to: { name: 'team-brokers-hierarchy' }, tag: 'team-brokers-hierarchy', hidden: this.isCreatingFirstClient },
                 { label: 'Clients', to: { name: 'team-brokers-clients' }, tag: 'team-brokers-clients' }
             ]
+        },
+        isCreatingFirstClient () {
+            return Object.hasOwnProperty.call(this.$route.query, 'creating-client')
         }
     },
     watch: {
@@ -60,7 +63,7 @@ export default {
 
         await this.fetchData()
 
-        if (!this.hasFfUnsClients) {
+        if (!this.hasFfUnsClients && !this.isCreatingFirstClient) {
             return this.$router.push({ name: 'team-brokers-add' })
         }
     },

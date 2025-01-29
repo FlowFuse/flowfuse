@@ -1,5 +1,5 @@
+import BrokerChoose from './ChooseBroker.vue'
 import BrokersClients from './Clients/index.vue'
-import BrokersCreate from './CreateBroker.vue'
 import BrokersHierarchy from './Hierarchy/index.vue'
 import Brokers from './index.vue'
 
@@ -31,7 +31,7 @@ export default {
         {
             name: 'team-brokers-add',
             path: 'add',
-            component: BrokersCreate,
+            component: BrokerChoose,
             meta: {
                 title: 'Team - Add MQTT Brokers'
             }
