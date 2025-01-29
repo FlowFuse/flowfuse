@@ -29,7 +29,7 @@
             <label class="w-full block text-sm font-medium text-gray-700 mb-2">Stage Type</label>
             <ff-tile-selection v-model="input.stageType" data-form="stage-type">
                 <ff-tile-selection-option
-                    label="Instance"
+                    label="Hosted Instance"
                     :value="StageType.INSTANCE"
                     description=""
                     color="#8F0000"
@@ -37,7 +37,7 @@
                     <template #icon><IconNodeRedSolid /></template>
                 </ff-tile-selection-option>
                 <ff-tile-selection-option
-                    label="Device"
+                    label="Remote Instance"
                     :value="StageType.DEVICE"
                     description=""
                     color="#31959A"
@@ -82,7 +82,7 @@
                 class="flex-grow"
             >
                 <template #default>
-                    Choose Instance
+                    Choose Hosted Instance
                 </template>
             </FormRow>
 
@@ -96,7 +96,7 @@
                 class="flex-grow"
             >
                 <template #default>
-                    Choose Device
+                    Choose Remote Instance
                 </template>
             </FormRow>
 
@@ -410,10 +410,10 @@ export default {
         },
         deviceDropdownPlaceholder () {
             if (this.devicesNotInUse.length === 0) {
-                return 'No application level devices available'
+                return 'No Remote Instances available in Application'
             }
 
-            return 'Choose Application Level Device'
+            return 'Choose Remote Instance'
         },
         deviceGroupsEnabled () {
             return this.features?.deviceGroups && this.team?.type.properties.features?.deviceGroups

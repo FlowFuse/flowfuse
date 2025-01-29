@@ -92,6 +92,7 @@ import teamTypesApi from '../../api/teamTypes.js'
 import FormHeading from '../../components/FormHeading.vue'
 
 import Alerts from '../../services/alerts.js'
+import Product from '../../services/product.js'
 
 export default {
     name: 'ChangeTeamType',
@@ -107,6 +108,9 @@ export default {
             instanceTypes: {},
             icons: {
                 chevronLeft: ChevronLeftIcon
+            },
+            init: {
+                teamTypeId: ''
             },
             input: {
                 teamTypeId: '',
@@ -264,6 +268,7 @@ export default {
     },
     async mounted () {
         this.mounted = true
+        this.init.teamTypeId = this.team.type.id
     },
     methods: {
         updateTeam () {
@@ -275,6 +280,13 @@ export default {
             teamApi.updateTeam(this.team.id, opts).then(async result => {
                 await this.$store.dispatch('account/refreshTeams')
                 await this.$store.dispatch('account/refreshTeam')
+                // send posthog event
+                Product.capture('$ff-team-type-changed', {
+                    'team-type-id': opts.type,
+                    'team-type-id-previous': this.init.teamTypeId
+                }, {
+                    team: this.team.id
+                })
                 this.$router.push({ name: 'Team', params: { team_slug: result.slug } })
             }).catch(err => {
                 Alerts.emit('Unable to change team type: ' + err.response.data.error, 'warning', 15000)
