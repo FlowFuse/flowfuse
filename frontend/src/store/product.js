@@ -68,11 +68,7 @@ const actions = {
     async fetchUnsClients ({ commit, rootState }) {
         const team = rootState.account?.team
         return brokerApi.getClients(team.id)
-            .then(response => {
-                if (response.clients.length) {
-                    commit('setUnsClients', response.clients)
-                }
-            })
+            .then(response => commit('setUnsClients', response.clients))
     }
 }
 

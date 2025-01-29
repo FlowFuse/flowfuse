@@ -168,9 +168,10 @@ export default {
                 kind: 'danger',
                 confirmLabel: 'Delete'
             }, async () => {
-                await brokerApi.deleteClient(this.team.id, client.username)
-                await this.fetchUnsClients()
-                Alerts.emit('Successfully deleted Client.', 'confirmation')
+                brokerApi.deleteClient(this.team.id, client.username)
+                    .then(() => this.$store.dispatch('product/fetchUnsClients'))
+                    .then(() => Alerts.emit('Successfully deleted Client.', 'confirmation'))
+                    .catch(e => e)
             })
         }
     }
