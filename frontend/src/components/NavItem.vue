@@ -7,8 +7,8 @@
             <span v-if="featureUnavailable" data-el="premium-feature" v-ff-tooltip="'Not available in this Tier'">
                 <SparklesIcon class="ff-icon transition-fade--color hollow" style="stroke-width: 1;" />
             </span>
-            <span v-if="alert" data-el="nav-alert" v-ff-tooltip="'Attention required'">
-                <ExclamationCircleIcon class="ff-icon transition-fade--color hollow text-indigo-500" style="stroke-width: 1.5;" />
+            <span v-if="alert" data-el="nav-alert" v-ff-tooltip="alert.title ?? 'Attention required'" @click="onAlertClick">
+                <ExclamationCircleIcon class="ff-icon transition-fade--color hollow " style="stroke-width: 1.5;" />
             </span>
         </div>
         <ff-notification-pill v-if="notifications > 0" :count="notifications" />
@@ -18,6 +18,8 @@
 <script>
 
 import { ExclamationCircleIcon, SparklesIcon } from '@heroicons/vue/outline'
+
+import { useNavigationHelper } from '../composables/NavigationHelper.js'
 
 export default {
     name: 'NavItem',
@@ -47,8 +49,21 @@ export default {
             default: () => 0
         },
         alert: {
-            type: Boolean,
-            default: false
+            type: Object,
+            default: null
+        }
+    },
+    setup () {
+        const { openInANewTab } = useNavigationHelper()
+        return {
+            openInANewTab
+        }
+    },
+    methods: {
+        onAlertClick () {
+            if (this.alert.url) {
+                this.openInANewTab(this.alert.url)
+            }
         }
     }
 }

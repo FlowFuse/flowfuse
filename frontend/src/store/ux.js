@@ -220,6 +220,11 @@ const getters = {
                             icon: ChipIcon,
                             disabled: noBilling,
                             alert: !features.isHostedInstancesEnabledForTeam && team.deviceCount === 0
+                                ? {
+                                    title: 'Connect to Device Agent',
+                                    url: 'https://flowfuse.com/docs/device-agent/introduction/'
+                                }
+                                : null
                         }
                     ]
                 },
