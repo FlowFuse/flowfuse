@@ -14,7 +14,14 @@ export default {
     methods: {
         goToTeam () {
             if (this.slug) {
-                this.$router.push({ name: 'Team', params: { team_slug: this.slug } })
+                this.$store.dispatch('account/setTeam', this.slug)
+                    .then(() => this.$router.push({
+                        name: 'Team',
+                        params: {
+                            team_slug: this.slug
+                        }
+                    }))
+                    .catch(e => console.warn(e))
             }
         }
     }

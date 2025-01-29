@@ -6,12 +6,12 @@
             </template>
             <template #helptext>
                 <p>Snapshots generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
-                <p>Snapshots are also required for deploying to devices. In the Deployments page of a Project, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
+                <p>Snapshots are also required for deploying to Remote Instances. In the Pipelines page of an Application, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
                 <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/FlowFuse/nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
             </template>
             <template #tools>
                 <div class="space-x-2 flex align-center">
-                    <ff-checkbox v-model="showDeviceSnapshotsOnly" v-ff-tooltip:left="'Untick this to show snapshots from other devices and instances within this application'" data-form="device-only-snapshots" label="Show only Snapshots created by this device" />
+                    <ff-checkbox v-model="showDeviceSnapshotsOnly" v-ff-tooltip:left="'Untick this to show snapshots from other Instances within this application'" data-form="device-only-snapshots" label="Show only Snapshots created by on this Instance" />
                 </div>
             </template>
         </SectionTopMenu>
@@ -48,10 +48,10 @@
                         and capture the flows, credentials and runtime settings.
                     </p>
                     <p v-if="device.ownerType !== 'application'" class="block">
-                        A device must first be <a class="ff-link" href="https://flowfuse.com/docs/device-agent/register/#assign-the-device-to-an-application" target="_blank" rel="noreferrer">assigned to an Application</a>, in order to create snapshots.
+                        A Remote Instance must first be <a class="ff-link" href="https://flowfuse.com/docs/device-agent/register/#assign-the-device-to-an-application" target="_blank" rel="noreferrer">assigned to an Application</a>, in order to create snapshots.
                     </p>
                     <p v-else-if="!developerMode" class="block">
-                        A device must be in developer mode and online to create a snapshot.
+                        A Remote Instance must be in Developer Mode and online to create a Snapshot.
                     </p>
                 </template>
                 <template v-if="hasPermission('device:snapshot:create')" #actions>
