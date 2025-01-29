@@ -66,7 +66,7 @@ export default {
                         'Requires a third-party broker to be setup'
                     ],
                     contentType: 'dash',
-                    to: { name: 'Home' }
+                    to: { name: 'team-brokers-new' }
                 }
             ]
         }

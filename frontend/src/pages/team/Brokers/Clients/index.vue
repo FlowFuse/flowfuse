@@ -78,17 +78,27 @@
                             <p>Get started by adding your first client to manage topic permissions and secure communications within your broker.</p>
                         </template>
                         <template #actions>
-                            <ff-button
-                                v-if="hasPermission('broker:clients:create')"
-                                data-action="create-client"
-                                kind="primary"
-                                @click="createClient()"
-                            >
-                                <template #icon-left>
-                                    <PlusSmIcon />
-                                </template>
-                                Create Client
-                            </ff-button>
+                            <section class="flex gap-4 flex-col">
+                                <ff-button
+                                    v-if="hasPermission('broker:clients:create')"
+                                    data-action="create-client"
+                                    kind="primary"
+                                    @click="createClient()"
+                                >
+                                    <template #icon-left>
+                                        <PlusSmIcon />
+                                    </template>
+                                    Create Client
+                                </ff-button>
+                                <ff-button
+                                    v-if="Object.hasOwnProperty.call($route.query, 'creating-client')"
+                                    data-action="back"
+                                    kind="tertiary"
+                                    @click="$router.back()"
+                                >
+                                    Cancel
+                                </ff-button>
+                            </section>
                         </template>
                     </EmptyState>
                 </template>
@@ -149,10 +159,6 @@ export default {
                 ].includes(true)
             })
         }
-    },
-    mounted () {
-        // clears the creating-client query that allows users to reach this page after selecting a broker
-        this.$router.replace({ query: '' })
     },
     methods: {
         ...mapActions('product', ['fetchUnsClients']),
