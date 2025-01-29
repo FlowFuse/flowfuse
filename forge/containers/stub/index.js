@@ -423,7 +423,7 @@ module.exports = {
         }
     },
 
-    // 3rd party broker 
+    // 3rd party broker
     startBrokerAgent: async (broker) => {},
     stopBrokerAgent: async (broker) => {},
     getBrokerAgentState: async (broker) => {}
