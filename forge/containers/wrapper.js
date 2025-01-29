@@ -277,7 +277,7 @@ module.exports = {
         }
     },
 
-    //Broker Agent API
+    // Broker Agent API
     startBrokerAgent: async (broker) => {
         if (this._driver.startBrokerAgent) {
             return this._driver.startBrokerAgent(broker)

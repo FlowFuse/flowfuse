@@ -21,14 +21,20 @@ module.exports = {
         state: { type: DataTypes.STRING, allowNull: false, default: 'stopped' },
         settings: {
             type: 'string',
-            allowNull: false,
+            allowNull: true,
             default: '{}',
-            get() {
+            get () {
                 const rawValue = this.getDataValue('settings')
-                return JSON.parse(rawValue)
+                if (rawValue) {
+                    return JSON.parse(rawValue)
+                } else {
+                    return {}
+                }
             },
             set (value) {
-                this.setDataValue('settings', JSON.stringify(value))
+                if (value) {
+                    this.setDataValue('settings', JSON.stringify(value))
+                }
             }
         }
     },
