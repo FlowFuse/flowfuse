@@ -30,7 +30,7 @@ import usePermissions from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
 export default {
-    name: 'UnifiedNameSpace',
+    name: 'TeamBrokers',
     setup () {
         const { hasAMinimumTeamRoleOf } = usePermissions()
 
@@ -40,12 +40,12 @@ export default {
         ...mapGetters('account', ['featuresCheck']),
         ...mapGetters('product', ['hasFfUnsClients']),
         tabs () {
-            if (!this.hasFfUnsClients && !this.isCreatingFirstClient) {
+            if (!this.hasFfUnsClients || this.isCreatingFirstClient) {
                 // hides available tabs for the create page
                 return []
             }
             return [
-                { label: 'Hierarchy', to: { name: 'team-brokers-hierarchy' }, tag: 'team-brokers-hierarchy', hidden: this.isCreatingFirstClient },
+                { label: 'Hierarchy', to: { name: 'team-brokers-hierarchy' }, tag: 'team-brokers-hierarchy' },
                 { label: 'Clients', to: { name: 'team-brokers-clients' }, tag: 'team-brokers-clients' }
             ]
         },

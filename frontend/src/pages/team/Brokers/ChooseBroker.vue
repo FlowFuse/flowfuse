@@ -58,7 +58,7 @@ export default {
                         '20 x MQTT Clients included in your plan'
                     ],
                     contentType: 'check',
-                    to: { name: 'team-brokers-clients', query: { 'creating-first-client': true } }
+                    to: { name: 'team-brokers-clients', query: { 'creating-client': true } }
                 },
                 {
                     title: 'Bring your Own Broker',
@@ -70,6 +70,10 @@ export default {
                 }
             ]
         }
+    },
+    mounted () {
+        // clears the creating-client query param that allows users to reach this page
+        this.$router.replace({ query: '' })
     }
 }
 </script>

@@ -93,10 +93,7 @@
                     </EmptyState>
                 </template>
             </div>
-            <ClientDialog
-                ref="clientDialog"
-                :clients="clients"
-            />
+            <ClientDialog ref="clientDialog" />
         </template>
     </div>
 </template>
@@ -119,7 +116,7 @@ import BrokerClient from './components/BrokerClient.vue'
 import ClientDialog from './dialogs/ClientDialog.vue'
 
 export default {
-    name: 'UNSClients',
+    name: 'BrokerClients',
     components: {
         BrokerClient,
         SearchIcon,
@@ -153,6 +150,10 @@ export default {
             })
         }
     },
+    mounted () {
+        // clears the creating-client query that allows users to reach this page after selecting a broker
+        this.$router.replace({ query: '' })
+    },
     methods: {
         ...mapActions('product', ['fetchUnsClients']),
         async createClient () {
@@ -171,6 +172,11 @@ export default {
                 brokerApi.deleteClient(this.team.id, client.username)
                     .then(() => this.$store.dispatch('product/fetchUnsClients'))
                     .then(() => Alerts.emit('Successfully deleted Client.', 'confirmation'))
+                    .then(() => {
+                        if (this.clients.length === 0) {
+                            this.$router.push({ name: 'team-brokers-add', query: { 'creating-client': true } })
+                        }
+                    })
                     .catch(e => e)
             })
         }
