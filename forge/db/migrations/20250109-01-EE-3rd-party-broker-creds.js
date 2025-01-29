@@ -21,6 +21,18 @@ module.exports = {
             clientId: { type: DataTypes.STRING, allowNull: false },
             credentials: { type: DataTypes.TEXT, allowNull: false },
             state: { type: DataTypes.STRING, allowNull: false, default: 'stopped' },
+            settings: {
+                type: 'string',
+                allowNull: false,
+                default: '{}',
+                get() {
+                    const rawValue = this.getDataValue('settings')
+                    return JSON.parse(rawValue)
+                },
+                set (value) {
+                    this.setDataValue('settings', JSON.stringify(value))
+                }
+            },
             createdAt: { type: DataTypes.DATE },
             updatedAt: { type: DataTypes.DATE },
             TeamId: {

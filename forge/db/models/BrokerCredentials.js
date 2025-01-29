@@ -18,7 +18,19 @@ module.exports = {
         verifySSL: { type: DataTypes.BOOLEAN, allowNull: false, default: false },
         clientId: { type: DataTypes.STRING, allowNull: false },
         credentials: { type: DataTypes.TEXT, allowNull: false },
-        state: { type: DataTypes.STRING, allowNull: false, default: 'stopped' }
+        state: { type: DataTypes.STRING, allowNull: false, default: 'stopped' },
+        settings: {
+            type: 'string',
+            allowNull: false,
+            default: '{}',
+            get() {
+                const rawValue = this.getDataValue('settings')
+                return JSON.parse(rawValue)
+            },
+            set (value) {
+                this.setDataValue('settings', JSON.stringify(value))
+            }
+        }
     },
     indexes: [
         { name: 'broker_name_team_unique', fields: ['name', 'TeamId'], unique: true }
