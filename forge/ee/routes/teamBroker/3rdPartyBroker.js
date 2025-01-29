@@ -30,7 +30,7 @@ module.exports = async function (app) {
                 }
             }
         }
-        if (!request.teamMembership) {
+        if (!request.teamMembership && request.session?.User) {
             request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
         }
     })
@@ -130,10 +130,23 @@ module.exports = async function (app) {
         input.state = 'stopped'
         input.credentials = JSON.stringify(request.body.credentials)
         input.TeamId = app.db.models.Team.decodeHashid(request.params.teamId)
-        const creds = await app.db.models.BrokerCredentials.create(input)
-        creds.refreshAuthTokens()
-        const clean = app.db.views.BrokerCredentials.clean(creds)
-        reply.status(201).send(clean)
+        try {
+            const creds = await app.db.models.BrokerCredentials.create(input)
+            await creds.reload({ include: [{ model: app.db.models.Team }] })
+            try {
+                await app.containers.startBrokerAgent(creds)
+            } catch (err) {
+                // console.log(err)
+            }
+            const clean = app.db.views.BrokerCredentials.clean(creds)
+            reply.status(201).send(clean)
+        } catch (err) {
+            if (err.name === 'SequelizeUniqueConstraintError') {
+                reply.status(409).send({ error: 'broker_exists', message: 'Broker already exists for team' })
+            } else {
+                reply.status(500).send({ code: 'unexpected_error', error: err.toString() })
+            }
+        }
     })
 
     /**
@@ -186,10 +199,9 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        // console.log(request.params)
         const creds = await app.db.models.BrokerCredentials.byId(request.params.brokerId)
         if (creds) {
-            if (creds.TeamId === request.params.teamId) {
+            if (creds.Team.hashid === request.params.teamId) {
                 const resp = creds.toJSON()
                 resp.id = resp.hashid
                 delete resp.hashid
@@ -305,6 +317,7 @@ module.exports = async function (app) {
             try {
                 // TODO Need to tear down the running mqtt-schema-agent
                 // and remove the AccessToken
+                await app.containers.stopBrokerAgent(creds)
                 await creds.destroy()
                 reply.send({})
             } catch (err) {

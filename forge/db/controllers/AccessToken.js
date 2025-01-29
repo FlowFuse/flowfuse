@@ -390,7 +390,7 @@ module.exports = {
         }
     },
 
-    createTokenForBroker: async function (app, broker, expiresAt, scope = []) {
+    createTokenForBroker: async function (app, broker, expiresAt, scope = ['broker:credentials', 'broker:topics']) {
         const existingBrokerToken = await app.db.models.AccessToken.findOne({
             where: {
                 ownerId: '' + broker.id,
