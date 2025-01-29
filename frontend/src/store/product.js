@@ -1,14 +1,20 @@
+import brokerApi from '../api/broker.js'
+
 // initial state
 const state = () => ({
     flags: null,
-    interview: null
+    interview: null,
+    UNS: {
+        clients: []
+    }
 })
 
 // getters
 const getters = {
     settings (state) {
         return state.settings
-    }
+    },
+    hasFfUnsClients: state => state.UNS.clients.length > 0
 }
 
 const mutations = {
@@ -17,6 +23,9 @@ const mutations = {
     },
     setInterview (state, payload) {
         state.interview = payload
+    },
+    setUnsClients (state, payload) {
+        state.UNS.clients = payload
     }
 }
 
@@ -55,6 +64,15 @@ const actions = {
         } catch (err) {
             console.error('posthog error logging feature flags')
         }
+    },
+    async fetchUnsClients ({ commit, rootState }) {
+        const team = rootState.account?.team
+        return brokerApi.getClients(team.id)
+            .then(response => {
+                if (response.clients.length) {
+                    commit('setUnsClients', response.clients)
+                }
+            })
     }
 }
 

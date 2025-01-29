@@ -96,8 +96,6 @@
             <ClientDialog
                 ref="clientDialog"
                 :clients="clients"
-                @client-created="fetchData"
-                @client-updated="fetchData"
             />
         </template>
     </div>
@@ -105,7 +103,7 @@
 
 <script>
 import { PlusSmIcon, RssIcon, SearchIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
 import EmptyState from '../../../../components/EmptyState.vue'
@@ -134,7 +132,6 @@ export default {
     data () {
         return {
             loading: false,
-            clients: [],
             filterTerm: ''
         }
     },
@@ -143,6 +140,9 @@ export default {
             return Roles
         },
         ...mapState('account', ['user', 'team', 'teamMembership', 'features']),
+        ...mapState('product', {
+            clients: state => state.UNS.clients
+        }),
         filteredClients () {
             if (!this.filterTerm.length) return this.clients
 
@@ -153,26 +153,8 @@ export default {
             })
         }
     },
-    watch: {
-        team: 'fetchData'
-    },
-    mounted () {
-        this.fetchData()
-    },
     methods: {
-        async fetchData () {
-            if (this.isMqttBrokerFeatureEnabled) {
-                this.loading = true
-                return await brokerApi.getClients(this.team.id)
-                    .then(response => {
-                        this.clients = response.clients
-                    })
-                    .catch(err => console.error(err))
-                    .finally(() => {
-                        this.loading = false
-                    })
-            }
-        },
+        ...mapActions('product', ['fetchUnsClients']),
         async createClient () {
             this.$refs.clientDialog.showCreate()
         },
@@ -187,7 +169,7 @@ export default {
                 confirmLabel: 'Delete'
             }, async () => {
                 await brokerApi.deleteClient(this.team.id, client.username)
-                await this.fetchData()
+                await this.fetchUnsClients()
                 Alerts.emit('Successfully deleted Client.', 'confirmation')
             })
         }

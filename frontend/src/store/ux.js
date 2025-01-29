@@ -101,9 +101,9 @@ const getters = {
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner)
                         },
                         {
-                            label: 'Broker',
-                            to: { name: 'team-unified-namespace', params: { team_slug: team.slug } },
-                            tag: 'team-unified-namespace',
+                            label: 'Brokers',
+                            to: { name: 'team-brokers', params: { team_slug: team.slug } },
+                            tag: 'team-brokers',
                             icon: RssIcon,
                             disabled: noBilling,
                             featureUnavailable: !features.isMqttBrokerFeatureEnabled,

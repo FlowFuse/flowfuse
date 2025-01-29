@@ -24,6 +24,8 @@
 
 <script>
 
+import { mapActions, mapGetters } from 'vuex'
+
 import usePermissions from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
@@ -35,16 +37,44 @@ export default {
         return { hasAMinimumTeamRoleOf }
     },
     computed: {
+        ...mapGetters('account', ['featuresCheck']),
+        ...mapGetters('product', ['hasFfUnsClients']),
         tabs () {
+            if (!this.hasFfUnsClients) {
+                // hides available tabs for the create page
+                return []
+            }
             return [
-                { label: 'Hierarchy', to: { name: 'team-namespace-hierarchy' }, tag: 'team-namespace-hierarchy' },
-                { label: 'Clients', to: { name: 'team-namespace-clients' }, tag: 'team-namespace-clients' }
+                { label: 'Hierarchy', to: { name: 'team-brokers-hierarchy' }, tag: 'team-brokers-hierarchy' },
+                { label: 'Clients', to: { name: 'team-brokers-clients' }, tag: 'team-brokers-clients' }
             ]
         }
     },
-    mounted () {
+    watch: {
+        team: 'fetchData'
+    },
+    async mounted () {
         if (!this.hasAMinimumTeamRoleOf(Roles.Member)) {
             return this.$router.push({ name: 'Home' })
+        }
+
+        await this.fetchData()
+
+        if (!this.hasFfUnsClients) {
+            return this.$router.push({ name: 'team-brokers-create' })
+        }
+    },
+    methods: {
+        ...mapActions('product', ['fetchUnsClients']),
+        async fetchData () {
+            if (this.featuresCheck.isMqttBrokerFeatureEnabled) {
+                this.loading = true
+                return this.fetchUnsClients()
+                    .catch(err => console.error(err))
+                    .finally(() => {
+                        this.loading = false
+                    })
+            }
         }
     }
 }
