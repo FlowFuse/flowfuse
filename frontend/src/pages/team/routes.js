@@ -5,9 +5,7 @@ import TeamApplications from './Applications/index.vue'
 import TeamAuditLog from './AuditLog.vue'
 import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing.vue'
-import BrokersClients from './Brokers/Clients/index.vue'
-import BrokersHierarchy from './Brokers/Hierarchy/index.vue'
-import Brokers from './Brokers/index.vue'
+import BrokersRoutes from './Brokers/routes.js'
 import TeamDevices from './Devices/index.vue'
 import TeamInstances from './Instances.vue'
 import Library from './Library/index.vue'
@@ -40,6 +38,7 @@ export default [
                     title: 'Team - Overview'
                 },
                 children: [
+                    BrokersRoutes,
                     {
                         path: 'applications',
                         children: [
@@ -110,33 +109,6 @@ export default [
                         },
                         redirect: { name: 'LibraryTeamLibrary' },
                         children: [...LibraryRoutes]
-                    },
-                    {
-                        name: 'team-unified-namespace',
-                        path: 'broker',
-                        component: Brokers,
-                        redirect: { name: 'team-namespace-hierarchy' },
-                        meta: {
-                            title: 'Team - MQTT Broker'
-                        },
-                        children: [
-                            {
-                                name: 'team-namespace-hierarchy',
-                                path: 'hierarchy',
-                                component: BrokersHierarchy,
-                                meta: {
-                                    title: 'Team - MQTT Broker Topic Hierarchy'
-                                }
-                            },
-                            {
-                                name: 'team-namespace-clients',
-                                path: 'clients',
-                                component: BrokersClients,
-                                meta: {
-                                    title: 'Team - MQTT Broker Clients'
-                                }
-                            }
-                        ]
                     },
                     {
                         name: 'team-members',
