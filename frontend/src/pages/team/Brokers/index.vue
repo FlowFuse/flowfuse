@@ -151,7 +151,7 @@ export default {
                 }
             })
             .then(() => this.setActiveBrokerId())
-            .afterAll(() => {
+            .finally(() => {
                 this.loading = false
             })
             .catch(e => e)
@@ -183,7 +183,6 @@ export default {
                     this.activeBrokerId = this.brokers[0].id
                     break
                 case this.brokers.length === 0 && !this.hasBrokers:
-                    console.log(111)
                     this.$router.push({ name: 'team-brokers-add' })
                     break
                 default:
