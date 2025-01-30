@@ -17,7 +17,7 @@
                 </template>
                 <template v-if="shouldDisplayTools" #tools>
                     <section class="flex gap-3">
-                        <ff-listbox v-model="activeBrokerId" :options="brokerOptions" />
+                        <ff-listbox v-if="brokers.length > 1" v-model="activeBrokerId" :options="brokerOptions" />
                         <ff-button kind="secondary" @click="$router.push({ name: 'team-brokers-add', params: {brokerId: ''} })">
                             Add a new Broker
                         </ff-button>
@@ -181,6 +181,10 @@ export default {
                     break
                 case !routeBrokerId && this.hasBrokers:
                     this.activeBrokerId = this.brokers[0].id
+                    break
+                case this.brokers.length === 0 && !this.hasBrokers:
+                    console.log(111)
+                    this.$router.push({ name: 'team-brokers-add' })
                     break
                 default:
                     this.activeBrokerId = routeBrokerId
