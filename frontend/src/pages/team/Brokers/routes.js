@@ -6,7 +6,7 @@ import Brokers from './index.vue'
 
 export default {
     name: 'team-brokers',
-    path: 'broker',
+    path: 'brokers/:brokerId?',
     component: Brokers,
     redirect: { name: 'team-brokers-hierarchy' },
     meta: {
@@ -47,7 +47,7 @@ export default {
         },
         {
             name: 'team-brokers-settings',
-            path: ':id/settings',
+            path: 'settings',
             component: BrokerNew,
             meta: {
                 title: 'Team - New MQTT Broker'

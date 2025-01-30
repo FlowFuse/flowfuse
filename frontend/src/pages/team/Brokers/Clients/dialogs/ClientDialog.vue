@@ -207,6 +207,11 @@ export default {
                     this.input.acls
                 )
                     .then(() => this.fetchUnsClients())
+                    .then(() => this.$store.dispatch('product/addFfBroker'))
+                    .then(() => this.$router.push({
+                        name: 'team-brokers-clients',
+                        params: { brokerId: '' }
+                    }))
                     .then(() => {
                         this.$refs.dialog.close()
                         this.clearData()

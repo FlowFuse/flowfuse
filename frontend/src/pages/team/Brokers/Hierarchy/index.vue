@@ -65,7 +65,7 @@ import EmptyState from '../../../../components/EmptyState.vue'
 import TopicSegment from './components/TopicSegment.vue'
 
 export default {
-    name: 'UNSHierarchy',
+    name: 'BrokerHierarchy',
     components: { TopicSegment, EmptyState },
     data () {
         return {

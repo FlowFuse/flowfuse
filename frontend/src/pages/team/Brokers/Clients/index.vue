@@ -178,9 +178,10 @@ export default {
                 brokerApi.deleteClient(this.team.id, client.username)
                     .then(() => this.$store.dispatch('product/fetchUnsClients'))
                     .then(() => Alerts.emit('Successfully deleted Client.', 'confirmation'))
-                    .then(() => {
+                    .then(async () => {
                         if (this.clients.length === 0) {
-                            this.$router.push({ name: 'team-brokers-add', query: { 'creating-client': true } })
+                            await this.$store.dispatch('product/removeFfBroker')
+                            await this.$router.push({ name: 'team-brokers' })
                         }
                     })
                     .catch(e => e)

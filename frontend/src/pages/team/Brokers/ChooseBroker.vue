@@ -25,11 +25,17 @@
                     </ul>
                 </template>
                 <template #call-to-action>
-                    <ff-button class="w-full" :kind="option.ribbon ? 'primary' : 'secondary'" :to="option.to">
+                    <ff-button class="w-full" :kind="option.ribbon || options.length === 1 ? 'primary' : 'secondary'" :to="option.to">
                         Select
                     </ff-button>
                 </template>
             </MediumTile>
+        </section>
+
+        <section class="actions flex items-center justify-center">
+            <ff-button v-if="shouldDisplayBackButton" kind="tertiary" @click="$router.back()">
+                Back
+            </ff-button>
         </section>
     </div>
 </template>
@@ -37,6 +43,7 @@
 <script>
 
 import { CheckIcon, MinusIcon } from '@heroicons/vue/outline'
+import { mapGetters } from 'vuex'
 
 import MediumTile from '../../../components/tiles/MediumTile.vue'
 
@@ -47,10 +54,10 @@ export default {
         CheckIcon,
         MinusIcon
     },
-    data () {
-        return {
-            types: [],
-            options: [
+    computed: {
+        ...mapGetters('product', ['hasFfUnsClients', 'hasBrokers']),
+        options () {
+            return [
                 {
                     ribbon: 'Recommended',
                     title: 'FlowFuse Broker',
@@ -58,7 +65,8 @@ export default {
                         '20 x MQTT Clients included in your plan'
                     ],
                     contentType: 'check',
-                    to: { name: 'team-brokers-clients', query: { 'creating-client': true } }
+                    to: { name: 'team-brokers-clients', query: { 'creating-client': true } },
+                    hidden: this.hasFfUnsClients
                 },
                 {
                     title: 'Bring your Own Broker',
@@ -68,7 +76,10 @@ export default {
                     contentType: 'dash',
                     to: { name: 'team-brokers-new' }
                 }
-            ]
+            ].filter(op => !op.hidden)
+        },
+        shouldDisplayBackButton () {
+            return this.hasFfUnsClients || this.hasBrokers
         }
     },
     mounted () {

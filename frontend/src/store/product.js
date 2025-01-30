@@ -16,7 +16,7 @@ const getters = {
         return state.settings
     },
     hasFfUnsClients: state => state.UNS.clients.length > 0,
-    hasOtherBrokers: state => state.UNS.brokers.length > 0
+    hasBrokers: state => state.UNS.brokers.length > 0
 }
 
 const mutations = {
@@ -30,21 +30,29 @@ const mutations = {
         state.UNS.clients = payload
     },
     setUnsBrokers (state, payload) {
-        payload.forEach(broker => state.UNS.brokers.push(broker))
+        state.UNS.brokers = payload
     },
-    addFfBroker (state) {
-        // todo I'm winging it here
-        state.UNS.brokers.push({
-            local: true,
-            id: 'flowfuse',
-            name: 'FlowFuse Broker',
-            clientId: 'some-id',
-            host: '??',
-            port: 0,
-            protocol: '',
-            ssl: false,
-            verifySSL: true
-        })
+    pushBroker (state, payload) {
+        state.UNS.brokers.push(payload)
+    },
+    pushFfBroker (state, payload) {
+        if (!state.UNS.brokers.find(b => b.local) && state.UNS.clients.length > 0) {
+            // Artificially adding the flowfuse broker in the list
+            state.UNS.brokers.push({
+                local: true,
+                id: 'flowfuse',
+                name: 'FlowFuse Broker',
+                clientId: 'some-id',
+                host: '??',
+                port: 0,
+                protocol: '',
+                ssl: false,
+                verifySSL: true
+            })
+        }
+    },
+    removeFfBroker (state, payload) {
+        state.UNS.brokers = state.UNS.brokers.filter(b => !b.local)
     }
 }
 
@@ -89,15 +97,27 @@ const actions = {
         return brokerApi.getClients(team.id)
             .then(response => commit('setUnsClients', response.clients))
     },
-    async getBrokers ({ commit, rootState }) {
+    async getBrokers ({ commit, rootState, getters }) {
         const team = rootState.account?.team
         return brokerApi.getBrokers(team.id)
-            .then(response => commit('setUnsBrokers', response.brokers))
+            .then(response => response.brokers)
+            .then(brokers => commit('setUnsBrokers', brokers))
+            .then(() => commit('pushFfBroker'))
     },
-    async artificiallyAddFfBrokerInBrokersList ({ state, commit }) {
-        if (state.UNS.clients.length) {
-            commit('addFfBroker')
-        }
+    async createBroker ({ commit, rootState }, payload) {
+        const team = rootState.account?.team
+        return brokerApi.createBroker(team.id, payload)
+            .then(broker => {
+                commit('pushBroker', broker)
+                return broker
+            })
+            .catch(e => e)
+    },
+    addFfBroker ({ commit }) {
+        commit('pushFfBroker')
+    },
+    removeFfBroker ({ commit }) {
+        commit('removeFfBroker')
     }
 }
 

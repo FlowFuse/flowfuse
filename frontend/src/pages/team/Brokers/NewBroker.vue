@@ -101,7 +101,6 @@
 <script>
 import { mapState } from 'vuex'
 
-import brokerApi from '../../../api/broker.js'
 import FormRow from '../../../components/FormRow.vue'
 import FfButton from '../../../ui-components/components/Button.vue'
 import FfListbox from '../../../ui-components/components/form/ListBox.vue'
@@ -115,7 +114,7 @@ export default {
                 name: '',
                 host: '',
                 port: null,
-                protocol: '',
+                protocol: 'mqtt:',
                 protocolVersion: '4',
                 ssl: 'false',
                 verifySSL: 'true',
@@ -172,8 +171,11 @@ export default {
                 payload.port = 1883
             }
 
-            return brokerApi.createBroker(this.team.id, this.form)
-                .then(() => this.$router.push({ name: 'team-brokers' }))
+            return this.$store.dispatch('product/createBroker', payload)
+                .then(res => this.$router.push({
+                    name: 'team-brokers',
+                    params: { brokerId: res.id }
+                }))
                 .catch(e => console.error(e))
         }
     }
