@@ -253,42 +253,53 @@ describe('3rd Party Broker API', function () {
         //     result.should.have.property('topic', 'foo/bar/baz')
         // })
         it('Store Topic for a broker as a agent', async function () {
-            const response = await app.inject({
+            let response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
                 headers: {
                     Authorization: `Bearer ${agentToken}`
                 },
                 body: {
-                    topic: 'foo/bar/baz/qux'
+                    'foo/bar/baz/qux': 1738236145678
                 }
             })
             response.statusCode.should.equal(201)
-            const result = response.json()
-            result.should.have.property('id')
-            result.should.have.property('topic', 'foo/bar/baz/qux')
 
-            await app.inject({
+            response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
                 headers: {
                     Authorization: `Bearer ${agentToken}`
                 },
                 body: {
-                    topic: 'foo/bar/baz'
+                    'foo/bar/baz': 1738236145678
                 }
             })
+            response.statusCode.should.equal(201)
 
-            await app.inject({
+            response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
                 headers: {
                     Authorization: `Bearer ${agentToken}`
                 },
                 body: {
-                    topic: 'bar/baz/qux'
+                    'bar/baz/qux': 1738236145678
                 }
             })
+            response.statusCode.should.equal(201)
+
+            response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+                headers: {
+                    Authorization: `Bearer ${agentToken}`
+                },
+                body: {
+                    'bar/baz/qux': 1738236145678
+                }
+            })
+            response.statusCode.should.equal(201)
         })
         it('Get Topics for 3rd Pary broker as a Team Owner', async function () {
             const response = await app.inject({

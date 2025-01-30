@@ -28,7 +28,7 @@ module.exports = {
                 onUpdate: 'cascade'
             }
         })
-        // await context.addIndex('MQTTTopicSchemas', { name: '' })
+        await context.addIndex('MQTTTopicSchemas', { name: 'topic_team_broker_unique', fields: ['topic', 'TeamId', 'BrokerCredentialsId'], unique: true })
     },
     down: async (context) => {
     }

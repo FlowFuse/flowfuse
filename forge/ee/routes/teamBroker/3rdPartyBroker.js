@@ -438,23 +438,24 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        // console.log(request.body)
         const teamId = app.db.models.Team.decodeHashid(request.params.teamId)[0]
         let brokerId
         if (request.params.brokerId !== 'team') {
             brokerId = app.db.models.BrokerCredentials.decodeHashid(request.params.brokerId)[0]
         }
-        const topicList = await app.db.models.MQTTTopicSchema.upsert({
-            topic: request.body.topic,
-            BrokerCredentialsId: brokerId,
-            TeamId: teamId
-        }, {
-            topic: request.body.topic,
-            BrokerCredentialsId: brokerId,
-            TeamId: teamId
+        const topics = Object.keys(request.body)
+        topics.forEach(async topic => {
+            await app.db.models.MQTTTopicSchema.upsert({
+                topic,
+                BrokerCredentialsId: brokerId,
+                TeamId: teamId
+            }, {
+                topic,
+                BrokerCredentialsId: brokerId,
+                TeamId: teamId
+            })
         })
-        const topic = topicList[0]
-        reply.status(201).send(app.db.views.MQTTTopicSchema.clean(topic))
+        reply.status(201).send({})
     })
 
     /**

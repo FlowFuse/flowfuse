@@ -12,9 +12,9 @@ module.exports = {
         topic: { type: DataTypes.STRING, allowNull: false },
         metadata: { type: DataTypes.TEXT, allowNull: true }
     },
-    // indexes: [
-    //     { name : '', fields: ['topic', 'TeamId', 'BrokerCredentialsId']}
-    // ],
+    indexes: [
+        { name: 'topic_team_broker_unique', fields: ['topic', 'TeamId', 'BrokerCredentialsId'], unique: true }
+    ],
     associations: function (M) {
         this.belongsTo(M.Team, { foreignKey: { allowNull: false } })
         this.belongsTo(M.BrokerCredentials, { as: 'BrokerCredentials', foreignKey: { allowNull: true } })
