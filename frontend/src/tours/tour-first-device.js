@@ -1,23 +1,23 @@
 export default [
-    {
-        title: 'Application: Remote Instances',
-        text: '<p>Here we can manage the <b>Remote Instances</b> managed by our Application.</p>',
-        attachTo: {
-            element: 'a[data-nav="application-devices-overview"]',
-            on: 'bottom'
-        },
-        modalOverlayOpeningPadding: 12,
-        beforeShowPromise: () => {
-            return new Promise((resolve) => {
-                const interval = setInterval(() => {
-                    if (document.querySelector('a[data-nav="application-devices-overview"]')) {
-                        clearInterval(interval)
-                        resolve()
-                    }
-                }, 100)
-            })
-        }
-    },
+    // {
+    //     title: 'Application: Remote Instances',
+    //     text: '<p>Here we can manage the <b>Remote Instances</b> managed by our Application.</p>',
+    //     attachTo: {
+    //         element: 'a[data-nav="application-devices-overview"]',
+    //         on: 'bottom'
+    //     },
+    //     modalOverlayOpeningPadding: 12,
+    //     beforeShowPromise: () => {
+    //         return new Promise((resolve) => {
+    //             const interval = setInterval(() => {
+    //                 if (document.querySelector('a[data-nav="application-devices-overview"]')) {
+    //                     clearInterval(interval)
+    //                     resolve()
+    //                 }
+    //             }, 100)
+    //         })
+    //     }
+    // },
     {
         title: 'Add Remote Instance',
         text: "<p>Let's add our first Remote Instance to FlowFuse.</p><p>We have two steps to complete here:</p><ol class=\"list-disc pl-4 space-y-2 mb-2\"><li>Add your <b>Remote Instance</b> to FlowFuse.</li><li>Install and run the <b>FlowFuse Device Agent</b> on the hardware where you want the Instance to run.</li></ol><p>After this, you'll be able to update and deploy flows to your hardware from anywhere in the world.",
@@ -31,6 +31,16 @@ export default [
         advanceOn: {
             selector: 'button[data-action="register-device"]',
             event: 'click'
+        },
+        beforeShowPromise: () => {
+            return new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (document.querySelector('button[data-action="register-device"]')) {
+                        clearInterval(interval)
+                        resolve()
+                    }
+                }, 100)
+            })
         }
     },
     {
