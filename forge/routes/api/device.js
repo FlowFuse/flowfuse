@@ -1,3 +1,4 @@
+const { hash } = require('../../db/utils')
 // eslint-disable-next-line no-unused-vars
 const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelManager')
 const { Roles } = require('../../lib/roles')
@@ -629,6 +630,10 @@ module.exports = async function (app) {
                     editor: {
                         type: 'object',
                         additionalProperties: true
+                    },
+                    security: {
+                        type: 'object',
+                        additionalProperties: true
                     }
                 }
             },
@@ -677,6 +682,17 @@ module.exports = async function (app) {
         }
         if (request.teamMembership?.role === Roles.Owner) {
             // owner is permitted to update all settings
+            if (request.body.security?.httpNodeAuth) {
+                // If type = basic and pass not present, merge in existing value
+                if (request.body.security.httpNodeAuth.type === 'basic') {
+                    if (!request.body.security.httpNodeAuth.pass) {
+                        request.body.security.httpNodeAuth.pass = currentSettings.security?.httpNodeAuth?.pass
+                    } else {
+                        // Store the hashed password
+                        request.body.security.httpNodeAuth.pass = hash(request.body.security.httpNodeAuth.pass)
+                    }
+                }
+            }
             await request.device.updateSettings(request.body)
             const keys = Object.keys(request.body)
             // capture key/val updates sent in body
@@ -720,7 +736,8 @@ module.exports = async function (app) {
                         env: { type: 'array', items: { type: 'object', additionalProperties: true } },
                         autoSnapshot: { type: 'boolean' },
                         palette: { type: 'object', additionalProperties: true },
-                        editor: { type: 'object', additionalProperties: true }
+                        editor: { type: 'object', additionalProperties: true },
+                        security: { type: 'object', additionalProperties: true }
                     }
                 },
                 '4xx': {
@@ -736,6 +753,11 @@ module.exports = async function (app) {
             }
             return env
         })
+        // Never return the node auth password
+        if (settings.security?.httpNodeAuth?.pass) {
+            // Do not return actual value - use a boolean to indicate it is set
+            settings.security.httpNodeAuth.pass = true
+        }
         if (request.teamMembership?.role === Roles.Owner) {
             reply.send(settings)
         } else {

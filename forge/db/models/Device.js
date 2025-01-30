@@ -15,7 +15,8 @@ const ALLOWED_SETTINGS = {
     autoSnapshot: 1,
     editor: 1,
     env: 1,
-    palette: 1
+    palette: 1,
+    security: 1
 }
 
 const DEFAULT_SETTINGS = {
@@ -70,6 +71,13 @@ module.exports = {
         this.hasMany(M.DeviceSettings)
         this.hasMany(M.ProjectSnapshot) // associate device at application level with snapshots
         this.belongsTo(M.DeviceGroup, { foreignKey: { allowNull: true } }) // SEE: forge/db/models/DeviceGroup.js for the other side of this relationship
+        this.hasOne(M.AuthClient, {
+            foreignKey: 'ownerId',
+            constraints: false,
+            scope: {
+                ownerType: 'device'
+            }
+        })
     },
     hooks: function (M, app) {
         return {
@@ -135,6 +143,12 @@ module.exports = {
                     }
                 })
                 await M.BrokerClient.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: '' + device.id
+                    }
+                })
+                await M.AuthClient.destroy({
                     where: {
                         ownerType: 'device',
                         ownerId: '' + device.id
