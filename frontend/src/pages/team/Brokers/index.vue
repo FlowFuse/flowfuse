@@ -83,6 +83,7 @@ export default {
                 this.loading = true
                 return this.$store.dispatch('product/fetchUnsClients')
                     .catch(err => console.error(err))
+                    .then(() => this.$store.dispatch('product/artificiallyAddFfBrokerInBrokersList'))
                     .then(() => this.$store.dispatch('product/getBrokers'))
                     .catch(err => console.error(err))
                     .finally(() => {

@@ -30,7 +30,21 @@ const mutations = {
         state.UNS.clients = payload
     },
     setUnsBrokers (state, payload) {
-        state.UNS.brokers = payload
+        payload.forEach(broker => state.UNS.brokers.push(broker))
+    },
+    addFfBroker (state) {
+        // todo I'm winging it here
+        state.UNS.brokers.push({
+            local: true,
+            id: 'flowfuse',
+            name: 'FlowFuse Broker',
+            clientId: 'some-id',
+            host: '??',
+            port: 0,
+            protocol: '',
+            ssl: false,
+            verifySSL: true
+        })
     }
 }
 
@@ -79,6 +93,11 @@ const actions = {
         const team = rootState.account?.team
         return brokerApi.getBrokers(team.id)
             .then(response => commit('setUnsBrokers', response.brokers))
+    },
+    async artificiallyAddFfBrokerInBrokersList ({ state, commit }) {
+        if (state.UNS.clients.length) {
+            commit('addFfBroker')
+        }
     }
 }
 
