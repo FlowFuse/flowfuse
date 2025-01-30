@@ -61,7 +61,7 @@ describe('OAuth', async function () {
             authURL.search = new URLSearchParams(params)
             return {
                 verifier,
-                authURL
+                authURL: `${authURL.pathname}${authURL.search}`
             }
         }
 

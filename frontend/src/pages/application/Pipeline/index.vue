@@ -15,6 +15,7 @@
 
 <script>
 import ApplicationApi from '../../../api/application.js'
+import Alerts from '../../../services/alerts.js'
 
 export default {
     name: 'PipelineIndex',
@@ -55,24 +56,37 @@ export default {
                 })
         },
         async fetchData () {
-            return this.loadPipeline()
-                .then(() => ApplicationApi.getApplicationDevices(this.application.id))
-                .then(res => {
-                    this.devices = res.devices
-                })
-                .then(() => ApplicationApi.getDeviceGroups(this.application.id))
-                .then((res) => {
-                    this.deviceGroups = res.groups
-                })
-                .catch(() => {
-                    this.$router.push({
-                        name: 'page-not-found',
-                        params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
-                        // preserve existing query and hash if any
-                        query: this.$router.currentRoute.value.query,
-                        hash: this.$router.currentRoute.value.hash
-                    })
-                })
+            try {
+                await this.loadPipeline()
+            } catch (err) {
+                this.notFound()
+            }
+
+            try {
+                this.devices = (await ApplicationApi.getApplicationDevices(this.application.id)).devices
+            } catch (err) {
+                this.devices = []
+                Alerts.emit('Failed to load Remote Instances', 'warning')
+            }
+            try {
+                this.deviceGroups = (await ApplicationApi.getDeviceGroups(this.application.id)).groups
+            } catch (err) {
+                if (err.request.status === 404) {
+                    // if feature is unavailable for this Team Type, this returns a 404, but we need to handle cleanly
+                    this.deviceGroups = []
+                } else {
+                    Alerts.emit('Failed to load Device Groups', 'warning')
+                }
+            }
+        },
+        notFound () {
+            this.$router.push({
+                name: 'page-not-found',
+                params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
+                // preserve existing query and hash if any
+                query: this.$router.currentRoute.value.query,
+                hash: this.$router.currentRoute.value.hash
+            })
         }
     }
 }

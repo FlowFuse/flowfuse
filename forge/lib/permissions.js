@@ -133,6 +133,7 @@ const Permissions = {
 
     // Team
     'team:bom': { description: 'Get the Team Bill of Materials', role: Roles.Owner },
+    'team:device-group:list': { description: 'List Team device groups', role: Roles.Member },
 
     // Device Groups
     'application:device-group:create': { description: 'Create a device group', role: Roles.Owner },

@@ -1,20 +1,22 @@
 <template>
     <ff-loading v-if="loading" message="Loading Logs..." />
-    <div v-if="device?.status && device?.status !== 'stopped'" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
-        <span
-            v-for="(item, itemIdx) in logEntries"
-            :key="itemIdx"
-            class="whitespace-pre-wrap"
-            :class="'forge-log-entry-level-' + item.level"
-        >
-            <span>{{ item.date }}</span>
-            <span>{{ "  " }}</span>
-            <span>{{ `[${item.level || ''}]`.padEnd(10, ' ') }}</span>
-            <span class="flex-grow break-all whitespace-pre-wrap">{{ item.msg.replace(/^[\n]*/, '') }}</span>
-            <br v-if="itemIdx !== logEntries.length - 1">
-        </span>
-    </div>
-    <div v-else>Logs unavailable</div>
+    <template v-else>
+        <div v-if="device?.status && deviceOnline" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
+            <span
+                v-for="(item, itemIdx) in logEntries"
+                :key="itemIdx"
+                class="whitespace-pre-wrap"
+                :class="'forge-log-entry-level-' + item.level"
+            >
+                <span>{{ item.date }}</span>
+                <span>{{ "  " }}</span>
+                <span>{{ `[${item.level || ''}]`.padEnd(10, ' ') }}</span>
+                <span class="flex-grow break-all whitespace-pre-wrap">{{ item.msg.replace(/^[\n]*/, '') }}</span>
+                <br v-if="itemIdx !== logEntries.length - 1">
+            </span>
+        </div>
+        <div v-else class="ff-no-data">Logs Unavailable</div>
+    </template>
 </template>
 
 <script>
@@ -40,6 +42,12 @@ export default {
             keepAliveInterval: null,
             connection: null,
             client: null
+        }
+    },
+    computed: {
+        deviceOnline () {
+            const offline = ['stopped', 'offline', 'error']
+            return !offline.includes(this.device.status)
         }
     },
     async mounted () {
@@ -72,6 +80,11 @@ export default {
                 this.keepAliveInterval = setInterval(() => {
                     this.client.publish(`${topic}/heartbeat`, 'alive')
                 }, 10000)
+            })
+
+            this.client.on('close', () => {
+                // if no broker to connect to, we see this event
+                this.loading = false
             })
 
             this.client.on('offline', () => {

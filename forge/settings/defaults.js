@@ -47,6 +47,8 @@ module.exports = {
     'user:team:auto-create:teamType': null,
     // The type of instance to auto-create when an account signs up, defaults to none.
     'user:team:auto-create:instanceType': null,
+    // Auto-create a default application whenever a team is created
+    'user:team:auto-create:application': false,
 
     // Can external users be invited to join teams
     'team:user:invite:external': false,
