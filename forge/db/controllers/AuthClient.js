@@ -38,6 +38,13 @@ module.exports = {
         return client
     },
 
+    removeClientForDevice: async function (app, device) {
+        const existingAuthClient = await device.getAuthClient()
+        if (existingAuthClient) {
+            await existingAuthClient.destroy()
+        }
+    },
+
     getAuthClient: async function (app, clientID, clientSecret) {
         const client = await app.db.models.AuthClient.findOne({
             where: { clientID }

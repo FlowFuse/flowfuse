@@ -692,6 +692,9 @@ module.exports = async function (app) {
                         request.body.security.httpNodeAuth.pass = hash(request.body.security.httpNodeAuth.pass)
                     }
                 }
+                if (request.body.security.httpNodeAuth.type !== 'flowforge-user') {
+                    await app.db.controllers.AuthClient.removeClientForDevice(request.device)
+                }
             }
             await request.device.updateSettings(request.body)
             const keys = Object.keys(request.body)
