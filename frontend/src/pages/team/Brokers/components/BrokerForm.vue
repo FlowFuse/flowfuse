@@ -91,8 +91,18 @@
                 </section>
             </form>
             <div class="my-6 flex gap-3 justify-end max-w-full lg:max-w-3xl">
-                <ff-button kind="tertiary" @click="$router.back()">Cancel</ff-button>
-                <ff-button kind="secondary" @click="onSubmit">Submit</ff-button>
+                <ff-button v-if="!isUpdatingExistingBroker" kind="tertiary" @click="$router.back()">
+                    Cancel
+                </ff-button>
+                <ff-button
+                    v-if="isUpdatingExistingBroker" kind="tertiary" class="ff-btn--tertiary-danger"
+                    @click="openDeleteDialog"
+                >
+                    Delete
+                </ff-button>
+                <ff-button kind="secondary" @click="onSubmit">
+                    Submit
+                </ff-button>
             </div>
         </div>
     </section>
@@ -102,6 +112,8 @@
 import { mapState } from 'vuex'
 
 import FormRow from '../../../../components/FormRow.vue'
+import Alerts from '../../../../services/alerts.js'
+import Dialog from '../../../../services/dialog.js'
 import FfButton from '../../../../ui-components/components/Button.vue'
 import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
 
@@ -178,7 +190,7 @@ export default {
         }
     },
     mounted () {
-        if (this.broker) this.hydrateForm()
+        if (this.broker) this.hydrateForm(this.broker)
     },
     methods: {
         onSubmit () {
@@ -188,19 +200,51 @@ export default {
                 payload.port = 1883
             }
 
-            return this.$store.dispatch('product/createBroker', payload)
-                .then(res => this.$router.push({
-                    name: 'team-brokers',
-                    params: { brokerId: res.id }
-                }))
-                .catch(e => console.error(e))
+            if (this.isUpdatingExistingBroker) {
+                if (payload.credentials.username.length && payload.credentials.password.length) {
+                    delete payload.credentials
+                }
+                return this.$store.dispatch('product/updateBroker', { payload, brokerId: this.broker.id })
+                    .then((res) => {
+                        this.hydrateForm(res)
+                        return res
+                    })
+                    .then((res) => Alerts.emit(`Broker ${res.name} updated successfully.`, 'confirmation'))
+                    .catch(e => console.error(e))
+            } else {
+                return this.$store.dispatch('product/createBroker', payload)
+                    .then(res => this.$router.push({
+                        name: 'team-brokers',
+                        params: { brokerId: res.id }
+                    }))
+                    .catch(e => console.error(e))
+            }
         },
-        hydrateForm () {
-            const { id, ...broker } = this.broker
+        hydrateForm (payload) {
+            const { id, ...broker } = payload
             broker.ssl = broker.ssl.toString()
             broker.verifySSL = broker.verifySSL.toString()
 
             this.form = { ...this.form, ...broker }
+        },
+        openDeleteDialog () {
+            return Dialog.showAsync({
+                header: `Delete ${this.form.name}`,
+                kind: 'danger',
+                text: `Are you sure you want delete your ${this.form.name} broker configuration?`,
+                confirmLabel: 'Yes, delete'
+            })
+                .then(answer => {
+                    if (answer === 'confirm') {
+                        return this.deleteBroker()
+                    }
+                })
+                .catch(e => e)
+        },
+        deleteBroker () {
+            return this.$store.dispatch('product/deleteBroker', this.broker.id)
+                .then(() => this.$router.push({ name: 'team-brokers' }))
+                .catch(e => e)
         }
     }
 }

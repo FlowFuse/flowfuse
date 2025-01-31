@@ -1,5 +1,7 @@
 <template>
-    <BrokerForm v-if="activeBroker" :broker="activeBroker" />
+    <section>
+        <BrokerForm :broker="activeBroker" />
+    </section>
 </template>
 
 <script>

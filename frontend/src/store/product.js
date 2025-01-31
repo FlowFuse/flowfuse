@@ -53,6 +53,19 @@ const mutations = {
     },
     removeFfBroker (state, payload) {
         state.UNS.brokers = state.UNS.brokers.filter(b => !b.local)
+    },
+    updateBroker (state, payload) {
+        for (let i = 0; i < state.UNS.brokers.length; i++) {
+            if (state.UNS.brokers[i].id === payload.id) {
+                state.UNS.brokers[i] = { ...state.UNS.brokers[i], ...payload }
+            }
+        }
+    },
+    removeBroker (state, payload) {
+        const index = state.UNS.brokers.indexOf(br => br.id === payload)
+        if (index) {
+            state.UNS.brokers.splice(index)
+        }
     }
 }
 
@@ -112,6 +125,20 @@ const actions = {
                 return broker
             })
             .catch(e => e)
+    },
+    async updateBroker ({ commit, rootState }, { payload, brokerId }) {
+        const team = rootState.account?.team
+        return brokerApi.updateBroker(team.id, brokerId, payload)
+            .then(broker => {
+                commit('updateBroker', broker)
+                return broker
+            })
+            .catch(e => e)
+    },
+    deleteBroker ({ commit, rootState }, brokerId) {
+        const team = rootState.account?.team
+        return brokerApi.deleteBroker(team.id, brokerId)
+            .then(commit('removeBroker', brokerId))
     },
     addFfBroker ({ commit }) {
         commit('pushFfBroker')
