@@ -20,9 +20,6 @@ import { mapState } from 'vuex'
 
 import DevicesBrowser from '../../components/DevicesBrowser.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-import Tours from '../../tours/Tours.js'
-
-import TourFirstDevice from '../../tours/tour-first-device.json'
 
 export default {
     name: 'ApplicationDevices',
@@ -38,12 +35,6 @@ export default {
     },
     computed: {
         ...mapState('ux', ['tours'])
-    },
-    mounted () {
-        if (this.tours['first-device']) {
-            const tour = Tours.create('first-device', TourFirstDevice, this.$store)
-            tour.start()
-        }
     }
 }
 </script>
