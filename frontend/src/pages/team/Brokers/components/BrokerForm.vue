@@ -101,13 +101,24 @@
 <script>
 import { mapState } from 'vuex'
 
-import FormRow from '../../../components/FormRow.vue'
-import FfButton from '../../../ui-components/components/Button.vue'
-import FfListbox from '../../../ui-components/components/form/ListBox.vue'
+import FormRow from '../../../../components/FormRow.vue'
+import FfButton from '../../../../ui-components/components/Button.vue'
+import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
 
 export default {
-    name: 'NewBroker',
-    components: { FfButton, FfListbox, FormRow },
+    name: 'BrokerForm',
+    components: {
+        FfListbox,
+        FormRow,
+        FfButton
+    },
+    props: {
+        broker: {
+            type: Object,
+            default: null,
+            required: false
+        }
+    },
     data () {
         return {
             form: {
@@ -161,7 +172,13 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState('account', ['team']),
+        isUpdatingExistingBroker () {
+            return !!this.broker
+        }
+    },
+    mounted () {
+        if (this.broker) this.hydrateForm()
     },
     methods: {
         onSubmit () {
@@ -177,6 +194,13 @@ export default {
                     params: { brokerId: res.id }
                 }))
                 .catch(e => console.error(e))
+        },
+        hydrateForm () {
+            const { id, ...broker } = this.broker
+            broker.ssl = broker.ssl.toString()
+            broker.verifySSL = broker.verifySSL.toString()
+
+            this.form = { ...this.form, ...broker }
         }
     }
 }

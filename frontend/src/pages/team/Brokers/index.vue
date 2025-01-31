@@ -5,9 +5,11 @@
                 <template #context>
                     View the recently used topics and configure clients for your FlowFuse MQTT Broker.
                 </template>
+
                 <template #pictogram>
                     <img alt="info" src="../../../images/pictograms/mqtt_broker_red.png">
                 </template>
+
                 <template #helptext>
                     <p>The <b>Broker</b> feature provides a centralized framework for managing and visualizing your entire data ecosystem, consolidating MQTT broker instances and topic structures within a single interface.</p>
                     <p>Within the Broker, <b>Client</b> page allows you to manage the clients that have access to the Broker, with customizable Access Control List (ACL) rules for secure and controlled data flow.</p>
@@ -15,9 +17,11 @@
                     <p>Together, these components deliver an integrated approach to managing client connections, security settings, and message flow, supporting efficient and secure data communication across your system.</p>
                     <p>Documentation <a href="https://flowfuse.com/docs/user/teambroker" target="_blank">here</a></p>
                 </template>
+
                 <template v-if="shouldDisplayTools" #tools>
                     <section class="flex gap-3">
                         <ff-listbox v-if="brokers.length > 1" v-model="activeBrokerId" :options="brokerOptions" />
+
                         <ff-button kind="secondary" @click="$router.push({ name: 'team-brokers-add', params: {brokerId: ''} })">
                             Add a new Broker
                         </ff-button>
