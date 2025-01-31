@@ -2,8 +2,8 @@
     <div class="unified-namespace-hierarchy">
         <div class="title mb-5 flex gap-3 items-center">
             <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
-            <h3 class="m-0 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
-            <ff-button v-if="featuresCheck.isMqttBrokerFeatureEnabled" @click="openSchema()">
+            <h3 class="my-2 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
+            <ff-button v-if="shouldDisplaySchemaButton" @click="openSchema()">
                 <template #icon-right><ExternalLinkIcon /></template>
                 Open Schema
             </ff-button>
@@ -168,6 +168,9 @@ export default {
         },
         hierarchySegments () {
             return Object.keys(this.hierarchy).sort()
+        },
+        shouldDisplaySchemaButton () {
+            return this.featuresCheck.isMqttBrokerFeatureEnabled && !this.$route.params.brokerId
         }
     },
     async mounted () {
