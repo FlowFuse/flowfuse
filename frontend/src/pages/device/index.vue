@@ -397,6 +397,7 @@ export default {
             Alerts.emit('Device successfully assigned to application.', 'confirmation')
         },
         openEditor () {
+            this.$store.dispatch('ux/validateUserAction', 'hasOpenedDeviceEditor')
             window.open(this.deviceEditorURL, `device-editor-${this.device.id}`)
         },
         async openTunnel (launchEditor = false) {
