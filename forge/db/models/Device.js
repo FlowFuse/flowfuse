@@ -71,13 +71,10 @@ module.exports = {
         this.hasMany(M.DeviceSettings)
         this.hasMany(M.ProjectSnapshot) // associate device at application level with snapshots
         this.belongsTo(M.DeviceGroup, { foreignKey: { allowNull: true } }) // SEE: forge/db/models/DeviceGroup.js for the other side of this relationship
-        this.hasOne(M.AuthClient, {
-            foreignKey: 'ownerId',
-            constraints: false,
-            scope: {
-                ownerType: 'device'
-            }
-        })
+
+        // Also hasOne AuthClient (for ff-auth) - but not adding the association as we don't
+        // want the sequelize mixins to be added to the Device model - they don't
+        // handle the casting from int to string for the deviceId/ownerId
     },
     hooks: function (M, app) {
         return {
@@ -182,6 +179,13 @@ module.exports = {
                 async getAccessToken () {
                     return M.AccessToken.findOne({
                         where: { ownerId: '' + this.id, ownerType: 'device', scope: 'device' }
+                    })
+                },
+                async getAuthClient () {
+                    // Cannot use a hasOne association as the resulting getAuthClient
+                    // mixin doesn't know to cast this.id to a string
+                    return M.AuthClient.findOne({
+                        where: { ownerId: '' + this.id, ownerType: 'device' }
                     })
                 },
                 async updateSettingsHash (settings) {

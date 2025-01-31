@@ -34,7 +34,11 @@ module.exports = {
             clientID: generateToken(32, 'ffd'),
             clientSecret: generateToken(48)
         }
-        await device.createAuthClient(client)
+        await app.db.models.AuthClient.create({
+            ownerType: 'device',
+            ownerId: '' + device.id,
+            ...client
+        })
         return client
     },
 
