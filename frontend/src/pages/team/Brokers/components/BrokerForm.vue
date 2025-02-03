@@ -91,12 +91,12 @@
                 </section>
             </form>
             <div class="my-6 flex gap-3 justify-end max-w-full lg:max-w-3xl">
-                <ff-button v-if="!isUpdatingExistingBroker" kind="tertiary" @click="$router.back()">
+                <ff-button v-if="hasBackButton" kind="tertiary" @click="$router.back()">
                     Cancel
                 </ff-button>
                 <ff-button
-                    v-if="isUpdatingExistingBroker" kind="tertiary" class="ff-btn--tertiary-danger"
-                    @click="openDeleteDialog"
+                    v-if="hasDeleteButton" kind="tertiary" class="ff-btn--tertiary-danger"
+                    @click="$emit('delete')"
                 >
                     Delete
                 </ff-button>
@@ -109,11 +109,8 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
 
 import FormRow from '../../../../components/FormRow.vue'
-import Alerts from '../../../../services/alerts.js'
-import Dialog from '../../../../services/dialog.js'
 import FfButton from '../../../../ui-components/components/Button.vue'
 import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
 
@@ -129,8 +126,17 @@ export default {
             type: Object,
             default: null,
             required: false
+        },
+        hasDeleteButton: {
+            type: Boolean,
+            default: false
+        },
+        hasBackButton: {
+            type: Boolean,
+            default: false
         }
     },
+    emits: ['delete', 'submit'],
     data () {
         return {
             form: {
@@ -183,16 +189,6 @@ export default {
             ]
         }
     },
-    computed: {
-        ...mapState('account', ['team']),
-        ...mapState('product', {
-            brokers: state => state.UNS.brokers
-        }),
-        ...mapGetters('product', ['hasFfUnsClients']),
-        isUpdatingExistingBroker () {
-            return !!this.broker
-        }
-    },
     watch: {
         broker: 'hydrateForm'
     },
@@ -207,25 +203,7 @@ export default {
                 payload.port = 1883
             }
 
-            if (this.isUpdatingExistingBroker) {
-                if (payload.credentials.username.length && payload.credentials.password.length) {
-                    delete payload.credentials
-                }
-                return this.$store.dispatch('product/updateBroker', { payload, brokerId: this.broker.id })
-                    .then((res) => {
-                        this.hydrateForm(res)
-                        return res
-                    })
-                    .then((res) => Alerts.emit(`Broker ${res.name} updated successfully.`, 'confirmation'))
-                    .catch(e => console.error(e))
-            } else {
-                return this.$store.dispatch('product/createBroker', payload)
-                    .then(res => this.$router.push({
-                        name: 'team-brokers',
-                        params: { brokerId: res.id }
-                    }))
-                    .catch(e => console.error(e))
-            }
+            this.$emit('submit', payload)
         },
         hydrateForm (payload) {
             if (payload) {
@@ -235,31 +213,6 @@ export default {
 
                 this.form = { ...this.form, ...broker }
             }
-        },
-        openDeleteDialog () {
-            return Dialog.showAsync({
-                header: `Delete ${this.form.name}`,
-                kind: 'danger',
-                text: `Are you sure you want delete your ${this.form.name} broker configuration?`,
-                confirmLabel: 'Yes, delete'
-            })
-                .then(answer => {
-                    if (answer === 'confirm') {
-                        return this.deleteBroker()
-                    }
-                })
-                .catch(e => e)
-        },
-        deleteBroker () {
-            return this.$store.dispatch('product/deleteBroker', this.broker.id)
-                .then(() => {
-                    let name = 'team-brokers'
-                    if (this.brokers.length === 0 && !this.hasFfUnsClients) {
-                        name = 'team-brokers-add'
-                    }
-                    return this.$router.push({ name, params: { brokerId: '' } })
-                })
-                .catch(e => e)
         }
     }
 }
