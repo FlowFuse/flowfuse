@@ -59,6 +59,11 @@ const deleteBroker = (teamId, brokerId) => {
         .then(res => res.data)
 }
 
+const getBrokerTopics = (teamId, brokerId) => {
+    return client.get(`/api/v1/teams/${teamId}/brokers/${brokerId}/topics`)
+        .then(res => res.data)
+}
+
 export default {
     getClients,
     getClient,
@@ -69,5 +74,6 @@ export default {
     getBrokers,
     createBroker,
     updateBroker,
-    deleteBroker
+    deleteBroker,
+    getBrokerTopics
 }

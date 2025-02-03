@@ -10,7 +10,7 @@
         </div>
 
         <div class="space-y-6">
-            <ff-loading v-if="loading" message="Loading Clients..." />
+            <ff-loading v-if="loading" message="Loading Topics..." />
 
             <template v-else>
                 <section v-if="topics.length > 0" class="topics">
@@ -156,13 +156,20 @@ export default {
             return this.featuresCheck.isMqttBrokerFeatureEnabled && !this.$route.params.brokerId
         }
     },
+    watch: {
+        $route: 'getTopics'
+    },
     async mounted () {
         await this.getTopics()
     },
     methods: {
         async getTopics () {
             this.loading = true
-            return brokerClient.getTopics(this.team.id)
+            const promise = this.$route.params.brokerId
+                ? brokerClient.getBrokerTopics(this.team.id, this.$route.params.brokerId)
+                : brokerClient.getTopics(this.team.id)
+
+            return promise
                 .then(res => {
                     this.topics = res
                 })
