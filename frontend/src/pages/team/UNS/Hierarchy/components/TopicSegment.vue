@@ -1,6 +1,6 @@
 <template>
     <div class="segment-wrapper" :class="{open: isSegmentOpen, empty: isEmpty}" data-el="segment-wrapper" :data-value="segment.name">
-        <div class="segment flex" @click="toggleChildren">
+        <div class="segment flex" @click="toggleChildren();rowClick(segment)">
             <div class="diagram">
                 <span v-if="!isRoot" class="connector-elbow" />
                 <span v-if="shouldShowTrunk" class="connector-trunk" />
@@ -32,6 +32,7 @@
                 :has-siblings="Object.keys(children).length > 1"
                 :is-last-sibling="key === Object.keys(children).length - 1"
                 :class="{'pl-10': !isRoot}"
+                @segment-selected="rowClick"
                 @segment-state-changed="$emit('segment-state-changed', $event)"
             />
         </div>
@@ -69,7 +70,7 @@ export default {
             type: Boolean
         }
     },
-    emits: ['segment-state-changed'],
+    emits: ['segment-selected', 'segment-state-changed'],
     data () {
         return {
             isSegmentOpen: false
@@ -114,6 +115,9 @@ export default {
         this.isSegmentOpen = this.segment.open
     },
     methods: {
+        rowClick (segment) {
+            this.$emit('segment-selected', segment)
+        },
         toggleChildren () {
             if (this.hasChildren) {
                 this.isSegmentOpen = !this.isSegmentOpen
