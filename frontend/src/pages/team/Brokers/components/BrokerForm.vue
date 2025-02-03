@@ -109,7 +109,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import FormRow from '../../../../components/FormRow.vue'
 import Alerts from '../../../../services/alerts.js'
@@ -185,9 +185,16 @@ export default {
     },
     computed: {
         ...mapState('account', ['team']),
+        ...mapState('product', {
+            brokers: state => state.UNS.brokers
+        }),
+        ...mapGetters('product', ['hasFfUnsClients']),
         isUpdatingExistingBroker () {
             return !!this.broker
         }
+    },
+    watch: {
+        broker: 'hydrateForm'
     },
     mounted () {
         if (this.broker) this.hydrateForm(this.broker)
@@ -221,11 +228,13 @@ export default {
             }
         },
         hydrateForm (payload) {
-            const { id, ...broker } = payload
-            broker.ssl = broker.ssl.toString()
-            broker.verifySSL = broker.verifySSL.toString()
+            if (payload) {
+                const { id, ...broker } = payload
+                broker.ssl = broker.ssl.toString()
+                broker.verifySSL = broker.verifySSL.toString()
 
-            this.form = { ...this.form, ...broker }
+                this.form = { ...this.form, ...broker }
+            }
         },
         openDeleteDialog () {
             return Dialog.showAsync({
@@ -243,7 +252,13 @@ export default {
         },
         deleteBroker () {
             return this.$store.dispatch('product/deleteBroker', this.broker.id)
-                .then(() => this.$router.push({ name: 'team-brokers' }))
+                .then(() => {
+                    let name = 'team-brokers'
+                    if (this.brokers.length === 0 && !this.hasFfUnsClients) {
+                        name = 'team-brokers-add'
+                    }
+                    return this.$router.push({ name, params: { brokerId: '' } })
+                })
                 .catch(e => e)
         }
     }

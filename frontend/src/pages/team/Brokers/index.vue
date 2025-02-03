@@ -19,10 +19,10 @@
                 </template>
 
                 <template v-if="shouldDisplayTools" #tools>
-                    <section class="flex gap-3">
+                    <section class="flex gap-3 flex-wrap">
                         <ff-listbox v-if="brokers.length > 1" v-model="activeBrokerId" :options="brokerOptions" />
 
-                        <ff-button kind="secondary" @click="$router.push({ name: 'team-brokers-add', params: {brokerId: ''} })">
+                        <ff-button kind="secondary" class="truncate" @click="$router.push({ name: 'team-brokers-add', params: {brokerId: ''} })">
                             Add a new Broker
                         </ff-button>
                     </section>
@@ -52,7 +52,6 @@ export default {
     },
     data () {
         return {
-            activeBrokerId: null,
             loading: true
         }
     },
@@ -62,6 +61,35 @@ export default {
         ...mapState('product', {
             brokers: state => state.UNS.brokers
         }),
+        activeBrokerId: {
+            get () {
+                const routeBrokerId = this.$route.params.brokerId
+                switch (true) {
+                case routeBrokerId:
+                    return routeBrokerId
+                case !routeBrokerId && this.hasFfUnsClients:
+                    return 'flowfuse'
+                case !routeBrokerId && this.hasBrokers:
+                    return this.brokers[0].id
+                default:
+                    return routeBrokerId
+                }
+            },
+            set (brokerId) {
+                switch (true) {
+                case brokerId === 'flowfuse':
+                    // navigate to the flowfuse broker
+                    return this.$router.push({ name: 'team-brokers', params: { brokerId: '' } })
+
+                case this.activeBrokerId === 'flowfuse' && this.$route.name === 'team-brokers-clients':
+                    // navigate from the ff clients page to 3rdParty broker
+                    return this.$router.push({ name: 'team-brokers-hierarchy', params: { brokerId } })
+
+                default:
+                    return this.$router.push({ name: this.$route.name, params: { brokerId } })
+                }
+            }
+        },
         broker () {
             return this.brokers.find(broker => broker.id === this.activeBrokerId)
         },
@@ -114,8 +142,9 @@ export default {
             return this.brokers.map(broker => ({ label: broker.name, value: broker.id }))
         },
         isLocalBroker () {
-            return !Object.hasOwnProperty.call(this.$route.params, 'brokerId') ||
-            !!(Object.hasOwnProperty.call(this.$route.params, 'brokerId') && this.$route.params.brokerId.length === 0)
+            const hasBrokerIdParam = Object.hasOwnProperty.call(this.$route.params, 'brokerId')
+
+            return !hasBrokerIdParam || !!(hasBrokerIdParam && this.$route.params.brokerId.length === 0)
         },
         shouldDisplayTools () {
             if (['team-brokers-add', 'team-brokers-new'].includes(this.$route.name)) {
@@ -131,17 +160,8 @@ export default {
     },
     watch: {
         team: 'fetchData',
-        hasFfUnsClients: 'setActiveBrokerId',
-        '$route.params.brokerId': 'setActiveBrokerId',
-        activeBrokerId (brokerId) {
-            if (brokerId === 'flowfuse') {
-                brokerId = ''
-            }
-            this.$router.push({
-                name: 'team-brokers',
-                params: { brokerId }
-            })
-        }
+        hasFfUnsClients: 'shouldRedirectToAddPage',
+        brokers: 'shouldRedirectToAddPage'
     },
     mounted () {
         if (!this.hasAMinimumTeamRoleOf(Roles.Member)) {
@@ -154,7 +174,12 @@ export default {
                     return this.$router.push({ name: 'team-brokers-add' })
                 }
             })
-            .then(() => this.setActiveBrokerId())
+            .then(() => {
+                // forces redirect to the first 3rd party broker if the users doesn't have the ff broker configured
+                if (!this.hasFfUnsClients && this.brokers.length > 0) {
+                    this.activeBrokerId = this.brokers[0].id
+                }
+            })
             .finally(() => {
                 this.loading = false
             })
@@ -168,6 +193,15 @@ export default {
                 return this.$store.dispatch('product/fetchUnsClients')
                     .catch(err => console.error(err))
                     .then(() => this.$store.dispatch('product/getBrokers'))
+                    .then(() => {
+                        if (
+                            Object.prototype.hasOwnProperty.call(this.$route.params, 'brokerId') &&
+                            !!this.$route.params.brokerId.length &&
+                            !this.brokers.find(br => br.id === this.$route.params.brokerId)
+                        ) {
+                            return this.$router.push({ name: 'page-not-found' })
+                        }
+                    })
                     .catch(err => console.error(err))
                     .finally(() => {
                         this.loading = false
@@ -176,23 +210,10 @@ export default {
 
             return Promise.resolve()
         },
-        setActiveBrokerId () {
-            return new Promise(() => {
-                const routeBrokerId = this.$route.params.brokerId
-                switch (true) {
-                case !routeBrokerId && this.hasFfUnsClients:
-                    this.activeBrokerId = 'flowfuse'
-                    break
-                case !routeBrokerId && this.hasBrokers:
-                    this.activeBrokerId = this.brokers[0].id
-                    break
-                case this.brokers.length === 0 && !this.hasBrokers:
-                    this.$router.push({ name: 'team-brokers-add' })
-                    break
-                default:
-                    this.activeBrokerId = routeBrokerId
-                }
-            })
+        shouldRedirectToAddPage () {
+            if (!this.hasFfUnsClients && this.brokers.length === 0) {
+                setTimeout(() => this.$router.push({ name: 'team-brokers-add' }))
+            }
         }
     }
 }
