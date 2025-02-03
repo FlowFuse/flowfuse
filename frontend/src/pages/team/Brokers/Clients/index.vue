@@ -5,40 +5,63 @@
             <h3 class="my-2" data-el="subtitle">MQTT Broker</h3>
         </div>
 
-        <EmptyState
-            v-if="!isMqttBrokerFeatureEnabled"
-            :featureUnavailable="!isMqttBrokerFeatureEnabledForPlatform"
-            :featureUnavailableToTeam="!isMqttBrokerFeatureEnabledForTeam"
-        >
-            <template #img>
-                <img src="../../../../images/empty-states/mqtt-forbidden.png" alt="pipelines-logo">
-            </template>
-            <template #header>
-                <span>Broker Not Available</span>
-            </template>
-            <template #message>
-                <p>The <b>MQTT Broker</b> page offers a streamlined interface for managing your broker instance and defining client connections.</p>
-                <p>You can create and manage MQTT clients, each with customizable Access Control List (ACL) rules to ensure secure and controlled communication. The ACL rules allow for fine-grained control over each client’s access to specific topics, supporting both publishing and subscribing actions.</p>
-                <p>This overview provides a clear and organized view of your broker’s configuration, helping you manage client connections, security settings, and message flow efficiently.</p>
-            </template>
-        </EmptyState>
-
-        <template v-else>
-            <div class="space-y-6">
-                <ff-loading v-if="loading" message="Loading Clients..." />
-                <template v-else>
-                    <section v-if="clients.length > 0">
-                        <div class="header ff-data-table--options">
-                            <ff-text-input
-                                v-model="filterTerm"
-                                class="ff-data-table--search"
-                                data-form="search"
-                                placeholder="Search Clients..."
-                            >
-                                <template #icon><SearchIcon /></template>
-                            </ff-text-input>
+        <div class="space-y-6">
+            <ff-loading v-if="loading" message="Loading Clients..." />
+            <template v-else>
+                <section v-if="clients.length > 0">
+                    <div class="header ff-data-table--options">
+                        <ff-text-input
+                            v-model="filterTerm"
+                            class="ff-data-table--search"
+                            data-form="search"
+                            placeholder="Search Clients..."
+                        >
+                            <template #icon><SearchIcon /></template>
+                        </ff-text-input>
+                        <ff-button
+                            v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
+                            data-action="create-client"
+                            kind="primary"
+                            @click="createClient()"
+                        >
+                            <template #icon-left>
+                                <PlusSmIcon />
+                            </template>
+                            Create Client
+                        </ff-button>
+                    </div>
+                    <div class="clients-wrapper">
+                        <div class="header grid grid-cols-6 gap-4 font-bold">
+                            <span class="username">Username/ClientId</span>
+                            <span class="rules">Rules</span>
+                        </div>
+                        <ul data-el="clients-list" class="clients-list">
+                            <li v-for="client in filteredClients" :key="client.id" class="client" data-el="client">
+                                <broker-client
+                                    :client="client"
+                                    @edit-client="onEditClient"
+                                    @delete-client="onDeleteClient"
+                                />
+                            </li>
+                            <li v-if="!filteredClients.length" class="text-center p-5">
+                                No clients found by that name.
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+                <EmptyState v-else>
+                    <template #img>
+                        <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
+                    </template>
+                    <template #header>Create your first Broker Client</template>
+                    <template #message>
+                        <p>It looks like you haven't created any MQTT clients.</p>
+                        <p>Get started by adding your first client to manage topic permissions and secure communications within your broker.</p>
+                    </template>
+                    <template #actions>
+                        <section class="flex gap-4 flex-col">
                             <ff-button
-                                v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
+                                v-if="hasPermission('broker:clients:create')"
                                 data-action="create-client"
                                 kind="primary"
                                 @click="createClient()"
@@ -48,63 +71,21 @@
                                 </template>
                                 Create Client
                             </ff-button>
-                        </div>
-                        <div class="clients-wrapper">
-                            <div class="header grid grid-cols-6 gap-4 font-bold">
-                                <span class="username">Username/ClientId</span>
-                                <span class="rules">Rules</span>
-                            </div>
-                            <ul data-el="clients-list" class="clients-list">
-                                <li v-for="client in filteredClients" :key="client.id" class="client" data-el="client">
-                                    <broker-client
-                                        :client="client"
-                                        @edit-client="onEditClient"
-                                        @delete-client="onDeleteClient"
-                                    />
-                                </li>
-                                <li v-if="!filteredClients.length" class="text-center p-5">
-                                    No clients found by that name.
-                                </li>
-                            </ul>
-                        </div>
-                    </section>
-                    <EmptyState v-else>
-                        <template #img>
-                            <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
-                        </template>
-                        <template #header>Create your first Broker Client</template>
-                        <template #message>
-                            <p>It looks like you haven't created any MQTT clients.</p>
-                            <p>Get started by adding your first client to manage topic permissions and secure communications within your broker.</p>
-                        </template>
-                        <template #actions>
-                            <section class="flex gap-4 flex-col">
-                                <ff-button
-                                    v-if="hasPermission('broker:clients:create')"
-                                    data-action="create-client"
-                                    kind="primary"
-                                    @click="createClient()"
-                                >
-                                    <template #icon-left>
-                                        <PlusSmIcon />
-                                    </template>
-                                    Create Client
-                                </ff-button>
-                                <ff-button
-                                    v-if="Object.hasOwnProperty.call($route.query, 'creating-client')"
-                                    data-action="back"
-                                    kind="tertiary"
-                                    @click="$router.back()"
-                                >
-                                    Cancel
-                                </ff-button>
-                            </section>
-                        </template>
-                    </EmptyState>
-                </template>
-            </div>
-            <ClientDialog ref="clientDialog" />
-        </template>
+                            <ff-button
+                                v-if="Object.hasOwnProperty.call($route.query, 'creating-client')"
+                                data-action="back"
+                                kind="tertiary"
+                                @click="$router.back()"
+                            >
+                                Cancel
+                            </ff-button>
+                        </section>
+                    </template>
+                </EmptyState>
+            </template>
+        </div>
+
+        <ClientDialog ref="clientDialog" />
     </div>
 </template>
 

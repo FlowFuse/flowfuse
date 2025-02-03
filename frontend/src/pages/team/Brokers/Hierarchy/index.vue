@@ -9,53 +9,35 @@
             </ff-button>
         </div>
 
-        <EmptyState
-            v-if="!featuresCheck.isMqttBrokerFeatureEnabled"
-            :featureUnavailable="!featuresCheck.isMqttBrokerFeatureEnabledForPlatform"
-            :featureUnavailableToTeam="!featuresCheck.isMqttBrokerFeatureEnabledForTeam"
-        >
-            <template #img>
-                <img src="../../../../images/empty-states/mqtt-forbidden.png" alt="pipelines-logo">
-            </template>
-            <template #header>
-                <span>Topic Hierarchy Not Available</span>
-            </template>
-            <template #message>
-                <p>The <b>Topic Hierarchy</b> offers a clear, organized visualization of topic structures, providing fine-grained control over publishing and subscribing permissions.</p>
-            </template>
-        </EmptyState>
+        <div class="space-y-6">
+            <ff-loading v-if="loading" message="Loading Clients..." />
 
-        <template v-else>
-            <div class="space-y-6">
-                <ff-loading v-if="loading" message="Loading Clients..." />
+            <template v-else>
+                <section v-if="topics.length > 0" class="topics">
+                    <topic-segment
+                        v-for="(segment, key) in hierarchySegments"
+                        :key="segment"
+                        :segment="hierarchy[segment]"
+                        :children="hierarchy[segment].children"
+                        :has-siblings="Object.keys(hierarchy).length > 1"
+                        :is-last-sibling="key === Object.keys(hierarchy).length-1"
+                        :is-root="true"
+                        @segment-state-changed="toggleSegmentVisibility"
+                    />
+                </section>
 
-                <template v-else>
-                    <section v-if="topics.length > 0" class="topics">
-                        <topic-segment
-                            v-for="(segment, key) in hierarchySegments"
-                            :key="segment"
-                            :segment="hierarchy[segment]"
-                            :children="hierarchy[segment].children"
-                            :has-siblings="Object.keys(hierarchy).length > 1"
-                            :is-last-sibling="key === Object.keys(hierarchy).length-1"
-                            :is-root="true"
-                            @segment-state-changed="toggleSegmentVisibility"
-                        />
-                    </section>
-
-                    <EmptyState v-else>
-                        <template #img>
-                            <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
-                        </template>
-                        <template #header>Start Building Your Topic Hierarchy</template>
-                        <template #message>
-                            <p>It looks like no topics have been created yet.</p>
-                            <p>Topics are automatically generated as your MQTT clients publish events to the broker. Get started by connecting a client and publishing your first message.</p>
-                        </template>
-                    </EmptyState>
-                </template>
-            </div>
-        </template>
+                <EmptyState v-else>
+                    <template #img>
+                        <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
+                    </template>
+                    <template #header>Start Building Your Topic Hierarchy</template>
+                    <template #message>
+                        <p>It looks like no topics have been created yet.</p>
+                        <p>Topics are automatically generated as your MQTT clients publish events to the broker. Get started by connecting a client and publishing your first message.</p>
+                    </template>
+                </EmptyState>
+            </template>
+        </div>
     </div>
 </template>
 

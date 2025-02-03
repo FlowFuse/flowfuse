@@ -30,7 +30,24 @@
             </ff-page-header>
         </template>
 
-        <router-view />
+        <EmptyState
+            v-if="!featuresCheck.isMqttBrokerFeatureEnabled"
+            :featureUnavailable="!featuresCheck.isMqttBrokerFeatureEnabledForPlatform"
+            :featureUnavailableToTeam="!featuresCheck.isMqttBrokerFeatureEnabledForTeam"
+            class="-mt-4"
+        >
+            <template #img>
+                <img src="../../../images/empty-states/mqtt-forbidden.png" alt="pipelines-logo">
+            </template>
+            <template #header>
+                <span>Brokers Not Available</span>
+            </template>
+            <template #message>
+                <p>The <b>Brokers</b> feature provides a centralized framework for managing and visualizing your entire data ecosystem, consolidating MQTT broker instances and topic structures within a single interface.</p>
+            </template>
+        </EmptyState>
+
+        <router-view v-else />
     </ff-page>
 </template>
 
@@ -38,13 +55,15 @@
 
 import { mapActions, mapGetters, mapState } from 'vuex'
 
+import EmptyState from '../../../components/EmptyState.vue'
+
 import usePermissions from '../../../composables/Permissions.js'
 import FfButton from '../../../ui-components/components/Button.vue'
 import { Roles } from '../../../utils/roles.js'
 
 export default {
     name: 'TeamBrokers',
-    components: { FfButton },
+    components: { EmptyState, FfButton },
     setup () {
         const { hasAMinimumTeamRoleOf } = usePermissions()
 
