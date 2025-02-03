@@ -67,6 +67,7 @@ export default {
     computed: {
         ...mapState('account', ['team']),
         ...mapGetters('account', ['featuresCheck']),
+        ...mapGetters('product', ['hasFfUnsClients', 'hasBrokers']),
         hierarchy: {
             get () {
                 const hierarchy = {}
@@ -156,6 +157,9 @@ export default {
         }
     },
     async mounted () {
+        if (!this.hasFfUnsClients && !this.hasBrokers) {
+            return this.$router.push({ name: 'team-brokers-add' })
+        }
         await this.getTopics()
     },
     methods: {
