@@ -66,6 +66,10 @@ const mutations = {
         if (index) {
             state.UNS.brokers.splice(index)
         }
+    },
+    clearUns (state, payload) {
+        state.UNS.brokers = []
+        state.UNS.clients = []
     }
 }
 
@@ -145,6 +149,9 @@ const actions = {
     },
     removeFfBroker ({ commit }) {
         commit('removeFfBroker')
+    },
+    clearUns ({ commit }) {
+        commit('clearUns')
     }
 }
 

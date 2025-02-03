@@ -185,6 +185,9 @@ export default {
             })
             .catch(e => e)
     },
+    beforeUnmount () {
+        this.$store.dispatch('product/clearUns')
+    },
     methods: {
         ...mapActions('product', ['fetchUnsClients']),
         async fetchData () {
