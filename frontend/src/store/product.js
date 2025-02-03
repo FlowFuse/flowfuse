@@ -62,9 +62,9 @@ const mutations = {
         }
     },
     removeBroker (state, payload) {
-        const index = state.UNS.brokers.indexOf(br => br.id === payload)
-        if (index) {
-            state.UNS.brokers.splice(index)
+        const index = state.UNS.brokers.findIndex(br => br.id === payload)
+        if (index !== -1) {
+            state.UNS.brokers.splice(index, 1)
         }
     },
     clearUns (state, payload) {

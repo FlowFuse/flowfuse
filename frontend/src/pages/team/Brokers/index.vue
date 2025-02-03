@@ -19,7 +19,7 @@
                 </template>
 
                 <template v-if="shouldDisplayTools" #tools>
-                    <section class="flex gap-3 flex-wrap">
+                    <section v-if="!loading" class="flex gap-3 flex-wrap">
                         <ff-listbox v-if="brokers.length > 1" v-model="activeBrokerId" :options="brokerOptions" />
 
                         <ff-button kind="secondary" class="truncate" @click="$router.push({ name: 'team-brokers-add', params: {brokerId: ''} })">
@@ -30,8 +30,10 @@
             </ff-page-header>
         </template>
 
+        <ff-loading v-if="loading" message="Loading Brokers..." />
+
         <EmptyState
-            v-if="!featuresCheck.isMqttBrokerFeatureEnabled"
+            v-else-if="!featuresCheck.isMqttBrokerFeatureEnabled"
             :featureUnavailable="!featuresCheck.isMqttBrokerFeatureEnabledForPlatform"
             :featureUnavailableToTeam="!featuresCheck.isMqttBrokerFeatureEnabledForTeam"
             class="-mt-4"
@@ -56,6 +58,7 @@
 import { mapActions, mapGetters, mapState } from 'vuex'
 
 import EmptyState from '../../../components/EmptyState.vue'
+import FfLoading from '../../../components/Loading.vue'
 
 import usePermissions from '../../../composables/Permissions.js'
 import FfButton from '../../../ui-components/components/Button.vue'
@@ -63,7 +66,14 @@ import { Roles } from '../../../utils/roles.js'
 
 export default {
     name: 'TeamBrokers',
-    components: { EmptyState, FfButton },
+    components: { FfLoading, EmptyState, FfButton },
+    beforeRouteLeave (to, from, next) {
+        if (to.params?.team_slug !== from.params?.team_slug) {
+            this.clearUns()
+        }
+
+        return next()
+    },
     setup () {
         const { hasAMinimumTeamRoleOf } = usePermissions()
 
@@ -140,6 +150,8 @@ export default {
             const title = 'Brokers'
 
             switch (true) {
+            case this.loading:
+                return { title, context }
             case !this.featuresCheck.isMqttBrokerFeatureEnabled:
                 return {
                     title,
@@ -149,11 +161,6 @@ export default {
                 return {
                     title: 'Add a new Broker',
                     context: 'Simplified MQTT broker setup and management.'
-                }
-            case 'asd':
-                return {
-                    title,
-                    context: 'View the recently used topics and configure clients for your FlowFuse MQTT Broker.'
                 }
             default:
                 return {
@@ -197,9 +204,13 @@ export default {
         }
     },
     watch: {
-        team: 'fetchData',
-        hasFfUnsClients: 'shouldRedirectToAddPage',
-        brokers: 'shouldRedirectToAddPage'
+        hasFfUnsClients: 'redirectIfNeeded',
+        brokers: 'redirectIfNeeded',
+        '$route.name' (routeName) {
+            if (routeName === 'team-brokers-hierarchy') {
+                this.redirectIfNeeded()
+            }
+        }
     },
     mounted () {
         if (!this.hasAMinimumTeamRoleOf(Roles.Member)) {
@@ -207,11 +218,7 @@ export default {
         }
 
         this.fetchData()
-            .then(() => {
-                if (!this.hasBrokers && (!this.hasFfUnsClients && !this.isCreatingFirstClient)) {
-                    return this.$router.push({ name: 'team-brokers-add' })
-                }
-            })
+            .then(() => this.redirectIfNeeded)
             .then(() => {
                 // forces redirect to the first 3rd party broker if the users doesn't have the ff broker configured
                 if (!this.hasFfUnsClients && this.brokers.length > 0) {
@@ -223,38 +230,55 @@ export default {
             })
             .catch(e => e)
     },
-    beforeUnmount () {
-        this.$store.dispatch('product/clearUns')
-    },
     methods: {
         ...mapActions('product', ['fetchUnsClients']),
         async fetchData () {
-            if (this.featuresCheck.isMqttBrokerFeatureEnabled) {
-                this.loading = true
-                return this.$store.dispatch('product/fetchUnsClients')
-                    .catch(err => console.error(err))
-                    .then(() => this.$store.dispatch('product/getBrokers'))
-                    .then(() => {
-                        if (
-                            Object.prototype.hasOwnProperty.call(this.$route.params, 'brokerId') &&
+            this.loading = true
+            return this.$store.dispatch('product/fetchUnsClients')
+                .catch(err => console.error(err))
+                .then(() => this.$store.dispatch('product/getBrokers'))
+                .then(() => {
+                    if (
+                        Object.prototype.hasOwnProperty.call(this.$route.params, 'brokerId') &&
                             !!this.$route.params.brokerId.length &&
                             !this.brokers.find(br => br.id === this.$route.params.brokerId)
-                        ) {
-                            return this.$router.push({ name: 'page-not-found' })
-                        }
-                    })
-                    .catch(err => console.error(err))
+                    ) {
+                        return this.$router.push({ name: 'page-not-found' })
+                    }
+                })
+                .catch(err => console.error(err))
+                .finally(() => {
+                    this.loading = false
+                })
+        },
+        redirectIfNeeded () {
+            this.loading = true
+
+            switch (true) {
+            case this.hasFfUnsClients:
+                return this.$router.push({ name: 'team-brokers' })
                     .finally(() => {
                         this.loading = false
                     })
+            case !this.hasFfUnsClients && this.brokers.length > 0:
+                return this.$router.push({ name: 'team-brokers', params: { brokerId: this.brokers[0].id } })
+                    .finally(() => {
+                        this.loading = false
+                    })
+            case !this.hasFfUnsClients && this.brokers.length === 0:
+                setTimeout(
+                    () => this.$router.push({ name: 'team-brokers-add' })
+                        .finally(() => {
+                            this.loading = false
+                        })
+                )
+                break
+            default:
+                 // no redirect
             }
-
-            return Promise.resolve()
         },
-        shouldRedirectToAddPage () {
-            if (!this.hasFfUnsClients && this.brokers.length === 0) {
-                setTimeout(() => this.$router.push({ name: 'team-brokers-add' }))
-            }
+        clearUns () {
+            this.$store.dispatch('product/clearUns')
         }
     }
 }

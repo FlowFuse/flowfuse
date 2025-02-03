@@ -157,9 +157,6 @@ export default {
         }
     },
     async mounted () {
-        if (!this.hasFfUnsClients && !this.hasBrokers) {
-            return this.$router.push({ name: 'team-brokers-add' })
-        }
         await this.getTopics()
     },
     methods: {

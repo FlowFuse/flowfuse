@@ -213,7 +213,7 @@ export default {
                         params: { brokerId: '' }
                     }))
                     .then(() => {
-                        this.$refs.dialog.close()
+                        this.$refs.dialog?.close()
                         this.clearData()
                     })
                     .catch(err => console.error(err))
