@@ -1,9 +1,9 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header :title="pageTitle" :tabs="tabs">
+            <ff-page-header :title="pageTitle.title" :tabs="tabs">
                 <template #context>
-                    View the recently used topics and configure clients for your FlowFuse MQTT Broker.
+                    {{ pageTitle.context }}
                 </template>
 
                 <template #pictogram>
@@ -136,11 +136,30 @@ export default {
             ]
         },
         pageTitle () {
+            const context = 'Centralized MQTT management and visualization.'
+            const title = 'Brokers'
+
             switch (true) {
+            case !this.featuresCheck.isMqttBrokerFeatureEnabled:
+                return {
+                    title,
+                    context
+                }
             case this.$route.name === 'team-brokers-add':
-                return 'Add a new Broker'
+                return {
+                    title: 'Add a new Broker',
+                    context: 'Simplified MQTT broker setup and management.'
+                }
+            case 'asd':
+                return {
+                    title,
+                    context: 'View the recently used topics and configure clients for your FlowFuse MQTT Broker.'
+                }
             default:
-                return this.broker ? this.broker.name : 'Brokers'
+                return {
+                    title: this.broker ? this.broker.name : title,
+                    context
+                }
             }
         },
         shouldHidePageTabs () {
