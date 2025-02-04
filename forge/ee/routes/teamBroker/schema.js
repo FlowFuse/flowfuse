@@ -24,7 +24,10 @@ module.exports = async function (app) {
             schema.servers = {
                 'team-broker': {
                     host: teamBrokerHost,
-                    protocol: 'mqtt'
+                    protocol: 'mqtt',
+                    security: [{
+                        type: 'userPassword'
+                    }]
                 }
             }
         }

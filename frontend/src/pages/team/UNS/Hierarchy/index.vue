@@ -2,7 +2,11 @@
     <div class="unified-namespace-hierarchy">
         <div class="title mb-5 flex gap-3 items-center">
             <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
-            <h3 class="m-0" data-el="subtitle">Topic Hierarchy</h3>
+            <h3 class="m-0 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
+            <ff-button v-if="featuresCheck.isMqttBrokerFeatureEnabled" @click="openSchema()">
+                <template #icon-right><ExternalLinkIcon /></template>
+                Open Schema
+            </ff-button>
         </div>
 
         <EmptyState
@@ -57,16 +61,21 @@
 
 <script>
 
+import { ExternalLinkIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState } from 'vuex'
 
 import brokerClient from '../../../../api/broker.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 
+import { useNavigationHelper } from '../../../../composables/NavigationHelper.js'
+
 import TopicSegment from './components/TopicSegment.vue'
+
+const { openInANewTab } = useNavigationHelper()
 
 export default {
     name: 'UNSHierarchy',
-    components: { TopicSegment, EmptyState },
+    components: { TopicSegment, EmptyState, ExternalLinkIcon },
     data () {
         return {
             loading: false,
@@ -179,6 +188,9 @@ export default {
         toggleSegmentVisibility (segment) {
             // trigger's the hierarchy setter
             this.hierarchy = segment
+        },
+        openSchema () {
+            openInANewTab(`/api/v1/teams/${this.team.id}/broker/team-broker/schema.yml`, '_blank')
         }
     }
 }

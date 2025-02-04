@@ -17,6 +17,7 @@
                                 :label="entry.label"
                                 :icon="entry.icon"
                                 :featureUnavailable="entry.featureUnavailable"
+                                :alert="entry.alert ?? null"
                             />
                         </router-link>
                     </li>

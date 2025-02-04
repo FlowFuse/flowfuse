@@ -646,7 +646,19 @@ module.exports = async function (app) {
         const currentSettings = await request.device.getAllSettings()
         // remove any extra properties from env to ensure they match the format of the body data
         // and prevent updates from being logged for unchanged values
-        currentSettings.env = (currentSettings.env || []).map(e => ({ name: e.name, value: e.value }))
+        currentSettings.env = (currentSettings.env || []).map(e => ({ name: e.name, value: e.value, hidden: e.hidden ?? false }))
+        if (request.body.env) {
+            request.body.env.map(env => {
+                if (env.hidden === true && env.value === '') {
+                    // we need to re-map the hidden value so it won't get overwritten
+                    const existingVar = currentSettings.env.find(currentEnv => currentEnv.name === env.name)
+                    if (existingVar) {
+                        env.value = existingVar.value
+                    }
+                }
+                return env
+            })
+        }
         const captureUpdates = (key) => {
             if (key === 'env') {
                 // transform the env array to a map for better logging format
@@ -718,6 +730,12 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const settings = await request.device.getAllSettings()
+        settings.env = settings.env.map((env) => {
+            if (Object.hasOwnProperty.call(env, 'hidden') && env.hidden === true) {
+                env.value = ''
+            }
+            return env
+        })
         if (request.teamMembership?.role === Roles.Owner) {
             reply.send(settings)
         } else {

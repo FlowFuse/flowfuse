@@ -81,7 +81,7 @@ const getters = {
         !state.team?.billing?.active
     },
     isTrialAccount (state) {
-        return state.team?.billing?.trial
+        return !!state.team?.billing?.trial
     },
     isAdminUser: (state) => !!state.user.admin,
     defaultUserTeam: (state, getters) => {
@@ -124,6 +124,11 @@ const getters = {
             isHostedInstancesEnabledForTeam: ((state) => {
                 if (!state.team) {
                     return false
+                }
+
+                // // dashboard users don't receive the team.type in the response payload
+                if (state.teamMembership?.role === 5 && !state.team?.type?.properties) {
+                    return true
                 }
 
                 let available = false
@@ -192,7 +197,8 @@ const getters = {
             isBOMFeatureEnabled: preCheck.isBOMFeatureEnabledForPlatform && preCheck.isBOMFeatureEnabledForTeam,
             isTimelineFeatureEnabled: preCheck.isTimelineFeatureEnabledForPlatform && preCheck.isTimelineFeatureEnabledForTeam,
             isMqttBrokerFeatureEnabled: preCheck.isMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
-            devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform
+            devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
+            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups
         }
     }
 }
@@ -204,6 +210,9 @@ const mutations = {
     },
     clearPending (state) {
         state.pending = false
+    },
+    setPending (state, pending) {
+        state.pending = pending
     },
     setLoginInflight (state) {
         state.loginInflight = true
@@ -275,6 +284,7 @@ const actions = {
 
             const user = await userApi.getUser()
             commit('login', user)
+            dispatch('ux/checkIfIsNewlyCreatedUser', user, { root: true })
 
             // User is logged in
             if (router.currentRoute.value.meta.requiresLogin === false) {
@@ -397,6 +407,7 @@ const actions = {
             } else if (credentials.token) {
                 await userApi.verifyMFAToken(credentials.token)
             }
+            state.commit('setPending', true)
             state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
         } catch (err) {
             if (err.response?.status >= 401) {
@@ -429,7 +440,7 @@ const actions = {
                 return
             }
         } else {
-            if (!currentTeam || currentTeam.id === team?.id) {
+            if ((!currentTeam && !team) || currentTeam?.id === team?.id) {
                 state.commit('clearPendingTeamChange')
                 return
             }
