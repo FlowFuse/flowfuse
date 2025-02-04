@@ -11,6 +11,7 @@
                 :ribbon="option.ribbon"
                 :title="option.title"
                 :image-path="option.image"
+                :data-value="option.title"
             >
                 <template #image>
                     <img alt="tile-image" class="w-36 m-auto" src="../../../images/empty-states/mqtt-empty.png">
@@ -25,7 +26,11 @@
                     </ul>
                 </template>
                 <template #call-to-action>
-                    <ff-button class="w-full" :kind="option.ribbon || options.length === 1 ? 'primary' : 'secondary'" :to="option.to">
+                    <ff-button
+                        class="w-full" data-el="select"
+                        :kind="option.ribbon || options.length === 1 ? 'primary' : 'secondary'"
+                        :to="option.to"
+                    >
                         Select
                     </ff-button>
                 </template>
@@ -33,7 +38,7 @@
         </section>
 
         <section class="actions flex items-center justify-center">
-            <ff-button v-if="shouldDisplayBackButton" kind="tertiary" @click="$router.back()">
+            <ff-button v-if="shouldDisplayBackButton" kind="tertiary" data-el="page-back" @click="$router.back()">
                 Back
             </ff-button>
         </section>

@@ -1,6 +1,6 @@
 <template>
-    <section class="ff-medium-tile flex gap-7" :class="{ribbon: hasRibbon}">
-        <div v-if="hasRibbon" class="ff-ribbon" :class="{ red: ribbonColor === 'red', blue: ribbonColor ==='blue' }">
+    <section class="ff-medium-tile flex gap-7" :class="{ribbon: hasRibbon}" data-el="medium-tile">
+        <div v-if="hasRibbon" class="ff-ribbon" :class="{ red: ribbonColor === 'red', blue: ribbonColor ==='blue' }" data-el="ribbon">
             <slot name="ribbon">{{ ribbon }}</slot>
         </div>
 

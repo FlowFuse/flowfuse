@@ -20,9 +20,19 @@
 
                 <template v-if="shouldDisplayTools" #tools>
                     <section v-if="!loading" class="flex gap-3 flex-wrap">
-                        <ff-listbox v-if="brokers.length > 1" v-model="activeBrokerId" :options="brokerOptions" />
+                        <ff-listbox
+                            v-if="brokers.length > 1"
+                            v-model="activeBrokerId"
+                            :options="brokerOptions"
+                            data-el="brokers-list"
+                        />
 
-                        <ff-button kind="secondary" class="truncate" @click="$router.push({ name: 'team-brokers-add', params: {brokerId: ''} })">
+                        <ff-button
+                            kind="secondary"
+                            class="truncate"
+                            data-el="add-new-broker"
+                            @click="$router.push({ name: 'team-brokers-add', params: {brokerId: ''} })"
+                        >
                             Add a new Broker
                         </ff-button>
                     </section>
