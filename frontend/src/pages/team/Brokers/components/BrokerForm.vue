@@ -159,7 +159,7 @@ export default {
                     value: 'mqtt:'
                 },
                 {
-                    label: 'Ws',
+                    label: 'WS',
                     value: 'ws:'
                 }
             ],
