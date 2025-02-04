@@ -135,7 +135,7 @@ module.exports = async function (app) {
         // Need to create a Access Token then pass it to the container driver
         // to spin up a mqtt-schema-agent
         const input = request.body
-        input.state = 'stopped'
+        input.state = 'running'
         input.credentials = JSON.stringify(request.body.credentials)
         input.TeamId = app.db.models.Team.decodeHashid(request.params.teamId)
         try {
