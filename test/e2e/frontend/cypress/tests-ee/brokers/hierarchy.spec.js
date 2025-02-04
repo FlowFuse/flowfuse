@@ -7,7 +7,7 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
                     meta: {},
                     count: 2
                 }).as('getBrokers')
-                cy.intercept('GET', '/api/*/teams/*/broker/topics', {
+                cy.intercept('GET', '/api/*/teams/*/brokers/team-broker/topics', {
                     topics: [],
                     meta: {},
                     count: 2
@@ -43,7 +43,7 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
                     meta: {},
                     count: 2
                 }).as('getBrokers')
-                cy.intercept('GET', '/api/*/teams/*/broker/topics', {
+                cy.intercept('GET', '/api/*/teams/*/brokers/team-broker/topics', {
                     topics: [],
                     meta: {},
                     count: 2
@@ -88,13 +88,17 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
                     meta: {},
                     count: 2
                 }).as('getClients')
-                cy.intercept('GET', '/api/*/teams/*/broker/topics', [
-                    'foo/bar/baz',
-                    'foo/thud',
-                    'foo/flam/paz/daz',
-                    'wibble/wabble/bork',
-                    'wibble/wabble/bork/spork'
-                ]).as('getTopics')
+                cy.intercept('GET', '/api/*/teams/*/brokers/team-broker/topics', {
+                    meta: {},
+                    count: 5,
+                    topics: [
+                        { id: 'ta', topic: 'foo/bar/baz' },
+                        { id: 'tb', topic: 'foo/thud' },
+                        { id: 'tc', topic: 'foo/flam/paz/daz' },
+                        { id: 'td', topic: 'wibble/wabble/bork' },
+                        { id: 'te', topic: 'wibble/wabble/bork/spork' }
+                    ]
+                }).as('getTopics')
                 cy.get('[data-nav="team-brokers"]').click()
 
                 cy.wait('@getTopics')
