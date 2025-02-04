@@ -153,7 +153,9 @@ export default {
             return Object.keys(this.hierarchy).sort()
         },
         shouldDisplaySchemaButton () {
-            return this.featuresCheck.isMqttBrokerFeatureEnabled && !this.$route.params.brokerId
+            // For now, only show schema on Team Broker. This will need to be extended for 3rd party
+            // brokers later
+            return this.featuresCheck.isMqttBrokerFeatureEnabled && this.$route.params.brokerId === 'team-broker'
         }
     },
     watch: {
