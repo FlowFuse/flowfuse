@@ -6,7 +6,7 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
             cy.home()
 
             cy.get('[data-nav="team-broker"]').should('not.exist')
-            cy.visit('team/ateam/broker/hierarchy')
+            cy.visit('team/ateam/brokers/hierarchy')
             cy.url().should('include', 'team/ateam/applications')
         })
 
@@ -16,7 +16,7 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
             cy.visit('/')
 
             cy.get('[data-nav="team-unified-namespace"]').should('not.exist')
-            cy.visit('team/ateam/broker/hierarchy')
+            cy.visit('team/ateam/brokers/hierarchy')
             cy.contains('There are no dashboards in this team.')
         })
     })
