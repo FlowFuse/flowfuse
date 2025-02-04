@@ -390,7 +390,7 @@ describe('FlowForge - Unified Namespace Clients', () => {
                 cy.url().should('include', 'team/ateam/applications')
             })
 
-            it.only('should have the Brokers menu entry hidden and route guard for dashboard roles', () => {
+            it('should have the Brokers menu entry hidden and route guard for dashboard roles', () => {
                 cy.intercept('GET', '/api/*/teams/*/user', { role: 5 }).as('getTeamRole')
                 cy.login('bob', 'bbPassword')
                 cy.visit('/')
