@@ -166,19 +166,21 @@ export default {
     },
     methods: {
         async getTopics () {
-            this.loading = true
-            const promise = this.$route.params.brokerId !== 'team-broker'
-                ? brokerClient.getBrokerTopics(this.team.id, this.$route.params.brokerId)
-                : brokerClient.getTopics(this.team.id)
+            if (this.$route.params.brokerId) {
+                this.loading = true
+                const promise = this.$route.params.brokerId !== 'team-broker'
+                    ? brokerClient.getBrokerTopics(this.team.id, this.$route.params.brokerId)
+                    : brokerClient.getTopics(this.team.id)
 
-            return promise
-                .then(res => {
-                    this.topics = res
-                })
-                .catch(err => err)
-                .finally(() => {
-                    this.loading = false
-                })
+                return promise
+                    .then(res => {
+                        this.topics = res
+                    })
+                    .catch(err => err)
+                    .finally(() => {
+                        this.loading = false
+                    })
+            }
         },
         toggleSegmentVisibility (segment) {
             // trigger's the hierarchy setter
