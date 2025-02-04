@@ -285,6 +285,12 @@ module.exports = async function (app) {
             request.body.credentials = JSON.stringify(request.body.credentials)
         }
         await brokerCreds.update(request.body)
+        try {
+            await app.containers.sendBrokerAgentCommand(brokerCreds, 'restart')
+        } catch (err) {
+
+        }
+
         const clean = app.db.views.BrokerCredentials.clean(brokerCreds)
         reply.send(clean)
     })
