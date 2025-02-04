@@ -135,13 +135,13 @@ export default {
                     label: 'Clients',
                     to: { name: 'team-brokers-clients' },
                     tag: 'team-brokers-clients',
-                    hidden: !this.isLocalBroker
+                    hidden: !this.isTeamBroker
                 },
                 {
                     label: 'Settings',
                     to: { name: 'team-brokers-settings' },
                     tag: 'team-brokers-settings',
-                    hidden: this.isLocalBroker
+                    hidden: this.isTeamBroker
                 }
             ]
         },
@@ -186,10 +186,8 @@ export default {
         brokerOptions () {
             return this.brokers.map(broker => ({ label: broker.name, value: broker.id }))
         },
-        isLocalBroker () {
-            const hasBrokerIdParam = Object.hasOwnProperty.call(this.$route.params, 'brokerId')
-
-            return !hasBrokerIdParam || !!(hasBrokerIdParam && this.$route.params.brokerId.length === 0)
+        isTeamBroker () {
+            return this.$route.params.brokerId && this.$route.params.brokerId === 'team-broker'
         },
         shouldDisplayTools () {
             if (['team-brokers-add', 'team-brokers-new'].includes(this.$route.name)) {
