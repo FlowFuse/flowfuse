@@ -624,13 +624,14 @@ describe('Team Broker API', function () {
 
                 const topicsResponse = await app.inject({
                     method: 'GET',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/team-broker/topics`,
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
                     cookies: { sid: TestObjects.tokens.bob }
                 })
 
                 topicsResponse.statusCode.should.equal(200)
                 const topics = topicsResponse.json()
-                topics.topics[0].topic.should.containEql('foo/bar')
+                topics.topics.sort(function (A, B) { return A.topic.localeCompare(B.topic) })
+                topics.topics[1].topic.should.containEql('foo/foo')
             })
         })
     })
