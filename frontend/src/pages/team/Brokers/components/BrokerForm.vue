@@ -155,7 +155,7 @@ export default {
             },
             protocolOptions: [
                 {
-                    label: 'Mqtt',
+                    label: 'MQTT',
                     value: 'mqtt:'
                 },
                 {
