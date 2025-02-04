@@ -155,11 +155,11 @@ export default {
             },
             protocolOptions: [
                 {
-                    label: 'Mqtt',
+                    label: 'MQTT',
                     value: 'mqtt:'
                 },
                 {
-                    label: 'Ws',
+                    label: 'WS',
                     value: 'ws:'
                 }
             ],
