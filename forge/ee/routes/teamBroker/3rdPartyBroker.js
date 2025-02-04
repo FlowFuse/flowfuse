@@ -284,22 +284,15 @@ module.exports = async function (app) {
                 request.body.credentials = JSON.stringify(request.body.credentials)
             }
             await request.broker.update(request.body)
+            try {
+                await app.containers.sendBrokerAgentCommand(request.broker, 'restart')
+            } catch (err) {
+            }
             const clean = app.db.views.BrokerCredentials.clean(request.broker)
             reply.send(clean)
         } else {
             reply.status(404).send({ code: 'not_found', error: 'not found' })
         }
-
-        await brokerCreds.update(request.body)
-
-        try {
-            await app.containers.sendBrokerAgentCommand(brokerCreds, 'restart')
-        } catch (err) {
-
-        }
-
-        const clean = app.db.views.BrokerCredentials.clean(brokerCreds)
-        reply.send(clean)
     })
 
     /**
