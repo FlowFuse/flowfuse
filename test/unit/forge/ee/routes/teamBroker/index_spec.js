@@ -624,13 +624,13 @@ describe('Team Broker API', function () {
 
                 const topicsResponse = await app.inject({
                     method: 'GET',
-                    url: `/api/v1/teams/${app.team.hashid}/broker/topics`,
+                    url: `/api/v1/teams/${app.team.hashid}/broker/team-broker/topics`,
                     cookies: { sid: TestObjects.tokens.bob }
                 })
 
                 topicsResponse.statusCode.should.equal(200)
                 const topics = topicsResponse.json()
-                topics.should.containEql('foo/bar')
+                topics.topics[0].topic.should.containEql('foo/bar')
             })
         })
     })
