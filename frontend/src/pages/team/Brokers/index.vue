@@ -106,9 +106,9 @@ export default {
             },
             set (brokerId) {
                 switch (true) {
-                case brokerId === 'flowfuse':
+                case brokerId === 'team-broker':
                     // navigate to the flowfuse broker
-                    return this.$router.push({ name: 'team-brokers', params: { brokerId: '' } })
+                    return this.$router.push({ name: 'team-brokers', params: { brokerId: 'team-broker' } })
 
                 case this.activeBrokerId === 'flowfuse' && this.$route.name === 'team-brokers-clients':
                     // navigate from the ff clients page to 3rdParty broker
@@ -256,7 +256,7 @@ export default {
 
             switch (true) {
             case this.hasFfUnsClients:
-                return this.$router.push({ name: 'team-brokers' })
+                return this.$router.push({ name: 'team-brokers', params: { brokerId: 'team-broker' } })
                     .finally(() => {
                         this.loading = false
                     })

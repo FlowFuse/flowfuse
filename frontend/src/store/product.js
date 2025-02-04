@@ -40,9 +40,9 @@ const mutations = {
             // Artificially adding the flowfuse broker in the list
             state.UNS.brokers.push({
                 local: true,
-                id: 'flowfuse',
+                id: 'team-broker',
                 name: 'FlowFuse Broker',
-                clientId: 'some-id',
+                clientId: 'team-broker',
                 host: '??',
                 port: 0,
                 protocol: '',
