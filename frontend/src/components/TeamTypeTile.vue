@@ -50,7 +50,7 @@ export default {
     computed: {
         ...mapState('account', ['user', 'teams']),
         pricing: function () {
-            const billing = this.teamType.properties?.billing.description?.split('/')
+            const billing = this.teamType.properties?.billing?.description?.split('/')
             const price = {}
             if (typeof billing !== 'undefined') {
                 price.value = billing[0]

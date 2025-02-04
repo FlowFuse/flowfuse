@@ -498,7 +498,8 @@ describe('Project API', function () {
                         dashboardUI: '/test-dash',
                         env: [
                             { name: 'one', value: 'a' },
-                            { name: 'two', value: 'b' }
+                            { name: 'two', value: 'b' },
+                            { name: 'three', value: 'c', hidden: true }
                         ]
                     }
                 )
@@ -560,6 +561,7 @@ describe('Project API', function () {
                 runtimeSettings.should.have.property('env')
                 runtimeSettings.env.should.have.property('one', 'a')
                 runtimeSettings.env.should.have.property('two', 'b')
+                runtimeSettings.env.should.have.property('three', 'c')
             })
 
             it('Create a project cloned from existing one - env-var keys only', async function () {
@@ -1621,7 +1623,8 @@ describe('Project API', function () {
                     codeEditor: 'monaco',
                     env: [
                         { name: 'one', value: 'a' },
-                        { name: 'two', value: 'b' }
+                        { name: 'two', value: 'b' },
+                        { name: 'three', value: 'c', hidden: true }
                     ]
                 }
             )
@@ -1633,7 +1636,8 @@ describe('Project API', function () {
                     settings: {
                         env: [
                             { name: 'one', value: '1' },
-                            { name: 'two', value: '2' }
+                            { name: 'two', value: '2' },
+                            { name: 'three', value: '3', hidden: true }
                         ]
                     }
                 },
@@ -1646,7 +1650,8 @@ describe('Project API', function () {
             newSettings.should.have.property('httpAdminRoot', '/test-red') // should be unchanged
             newSettings.should.have.property('env', [
                 { name: 'one', value: '1' },
-                { name: 'two', value: '2' }
+                { name: 'two', value: '2' },
+                { name: 'three', value: '3', hidden: true }
             ]) // should be unchanged
         })
         it('Change project env vars - member', async function () {
@@ -2612,6 +2617,52 @@ describe('Project API', function () {
             })
             response.should.have.property('statusCode')
             response.statusCode.should.eqls(400)
+        })
+        it('should return empty values for hidden env vars', async () => {
+            const projectSettings = await TestObjects.project1.getSetting('settings')
+            projectSettings.env = [{ name: 'hidden_var', value: 'hidden-content', hidden: true }]
+            await TestObjects.project1.updateSetting('settings', projectSettings)
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${app.project.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.should.have.property('statusCode')
+            response.statusCode.should.eqls(200)
+
+            const json = response.json()
+            json.settings.env[4].should.have.property('name', 'hidden_var')
+            json.settings.env[4].should.have.property('value', '')
+            json.settings.env[4].should.have.property('hidden', true)
+        })
+        it('should store hidden env vars', async () => {
+            const projectSettings = await TestObjects.project1.getSetting('settings')
+            projectSettings.env = [{ name: 'hidden_var', value: 'initial-content', hidden: true }]
+            await TestObjects.project1.updateSetting('settings', projectSettings)
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${app.project.id}`,
+                body: {
+                    settings: {
+                        env: [
+                            { name: 'hidden_var', value: 'updated-content', hidden: true }
+                        ]
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const json = response.json()
+
+            json.settings.env[4].should.have.property('name', 'hidden_var')
+            json.settings.env[4].should.have.property('value', '')
+            json.settings.env[4].should.have.property('hidden', true)
+
+            const updatedProjectSettings = await TestObjects.project1.getSetting('settings')
+            updatedProjectSettings.env[0].should.have.property('name', 'hidden_var')
+            updatedProjectSettings.env[0].should.have.property('value', 'updated-content')
+            updatedProjectSettings.env[0].should.have.property('hidden', true)
         })
         // it('Reject Illegal names', async function () {
         //     const response = await app.inject({

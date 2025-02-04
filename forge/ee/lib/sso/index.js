@@ -13,6 +13,9 @@ module.exports.init = async function (app) {
         const provider = await app.db.models.SAMLProvider.byId(id)
         if (provider) {
             const result = { ...provider.getOptions() }
+            // @node-saml@4 renamed `cert` to `idpCert`
+            result.idpCert = result.cert
+            delete result.cert
             return result
         }
         return null
