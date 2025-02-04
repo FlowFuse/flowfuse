@@ -313,41 +313,4 @@ module.exports = async function (app) {
             reply.status(404).send({})
         }
     })
-
-    /**
-     * List all topics used by the Team
-     * @name /api/v1/teams/:teamId/broker/topics
-     * @static
-     * @memberof forge.routes.api.team.broker
-     */
-    app.get('/topics', {
-        preHandler: app.needsPermission('broker:topics:list'),
-        schema: {
-            summary: 'Gets list of topics used by a team',
-            tags: ['MQTT Broker'],
-            params: {
-                type: 'object',
-                properties: {
-                    teamId: { type: 'string' }
-                }
-            },
-            response: {
-                200: {
-                    type: 'array',
-                    items: {
-                        type: 'string'
-                    }
-                },
-                '4xx': {
-                    $ref: 'APIError'
-                },
-                500: {
-                    $ref: 'APIError'
-                }
-            }
-        }
-    }, async (request, reply) => {
-        const list = await app.teamBroker.getUsedTopics(request.team.hashid)
-        reply.send(list)
-    })
 }

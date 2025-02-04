@@ -40,6 +40,9 @@ module.exports = {
                     })
                 },
                 byBroker: async (brokerId, pagination = {}, where = {}) => {
+                    if (brokerId === 'team') {
+                        throw new Error('use getTeamBroker')
+                    }
                     if (typeof brokerId === 'string') {
                         brokerId = M.BrokerCredentials.decodeHashid(brokerId)
                     }
@@ -73,7 +76,7 @@ module.exports = {
                         pagination.cursor = M.MQTTTopicSchema.decodeHashid(pagination.cursor)
                     }
                     where.TeamId = teamId
-                    where.BrokerCredentialsId = null
+                    where.BrokerCredentialsId = app.settings.get('team:broker:creds')
                     const [rows, count] = await Promise.all([
                         this.findAll({
                             where: buildPaginationSearchClause(pagination, where, [])

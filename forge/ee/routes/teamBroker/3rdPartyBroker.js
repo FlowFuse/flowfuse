@@ -30,7 +30,7 @@ module.exports = async function (app) {
                 }
             }
 
-            if (request.params.brokerId) {
+            if (request.params.brokerId && request.params.brokerId !== 'team-broker') {
                 request.broker = await app.db.models.BrokerCredentials.byId(request.params.brokerId)
                 if (!request.broker) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -207,10 +207,9 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const creds = await app.db.models.BrokerCredentials.byId(request.params.brokerId)
-        if (creds) {
-            if (creds.Team.hashid === request.params.teamId) {
-                const resp = creds.toJSON()
+        if (request.broker) {
+            if (request.broker.Team.hashid === request.params.teamId) {
+                const resp = request.broker.toJSON()
                 resp.id = resp.hashid
                 delete resp.hashid
                 delete resp.slug
@@ -280,13 +279,20 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const brokerCreds = await app.db.models.BrokerCredentials.byId(request.params.brokerId)
-        if (request.body.credentials) {
-            request.body.credentials = JSON.stringify(request.body.credentials)
+        if (request.broker) {
+            if (request.body.credentials) {
+                request.body.credentials = JSON.stringify(request.body.credentials)
+            }
+            await request.broker.update(request.body)
+            try {
+                await app.containers.sendBrokerAgentCommand(request.broker, 'restart')
+            } catch (err) {
+            }
+            const clean = app.db.views.BrokerCredentials.clean(request.broker)
+            reply.send(clean)
+        } else {
+            reply.status(404).send({ code: 'not_found', error: 'not found' })
         }
-        await brokerCreds.update(request.body)
-        const clean = app.db.views.BrokerCredentials.clean(brokerCreds)
-        reply.send(clean)
     })
 
     /**
@@ -324,13 +330,12 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const creds = await app.db.models.BrokerCredentials.byId(request.params.brokerId)
-        if (creds) {
+        if (request.broker) {
             try {
                 // TODO Need to tear down the running mqtt-schema-agent
                 // and remove the AccessToken
-                await app.containers.stopBrokerAgent(creds)
-                await creds.destroy()
+                await app.containers.stopBrokerAgent(request.broker)
+                await request.broker.destroy()
                 reply.send({})
             } catch (err) {
                 reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
@@ -376,7 +381,12 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         // should support pagination
-        const topics = await app.db.models.MQTTTopicSchema.byBroker(request.params.brokerId)
+        let topics = []
+        if (request.params.brokerId === 'team-broker') {
+            topics = await app.db.models.MQTTTopicSchema.getTeamBroker(request.team.id)
+        } else {
+            topics = await app.db.models.MQTTTopicSchema.byBroker(request.params.brokerId)
+        }
         const clean = app.db.views.MQTTTopicSchema.cleanList(topics)
         reply.send(clean)
     })
@@ -440,8 +450,11 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const teamId = app.db.models.Team.decodeHashid(request.params.teamId)[0]
         let brokerId
-        if (request.params.brokerId !== 'team') {
+        if (request.params.brokerId !== 'team-broker') {
             brokerId = app.db.models.BrokerCredentials.decodeHashid(request.params.brokerId)[0]
+        } else {
+            // Get the placeholder creds object id used for team brokers
+            brokerId = app.settings.get('team:broker:creds')
         }
         const topics = Object.keys(request.body)
         topics.forEach(async topic => {
@@ -554,11 +567,11 @@ module.exports = async function (app) {
         if (topic) {
             if (topic.Team.hashid === request.params.teamId) {
                 // need to check if topic belongs to broker requested
-                if (request.params.brokerId !== 'team' && topic.BrokerCredentials.hashid === request.params.brokerId) {
+                if (request.params.brokerId !== 'team-broker' && topic.BrokerCredentials.hashid === request.params.brokerId) {
                     await topic.destroy()
                     reply.status(201).send({})
                     return
-                } else if (request.params.brokerId === 'team' && topic.BrokerCredentialsId === null) {
+                } else if (request.params.brokerId === 'team-broker' && topic.BrokerCredentialsId === app.settings.get('team:broker:creds')) {
                     await topic.destroy()
                     reply.status(201).send({})
                     return

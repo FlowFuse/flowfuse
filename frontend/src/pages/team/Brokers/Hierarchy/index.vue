@@ -71,8 +71,10 @@ export default {
         hierarchy: {
             get () {
                 const hierarchy = {}
-                const topics = this.topics
-
+                // this.topics is an array of topic objects { id, topic, metadata }.
+                // For now, just turn into a flat array of topic strings - this will
+                // need changing when we have to keep the metadata info attached
+                const topics = this.topics.map(topic => topic.topic)
                 // Sort topics alphabetically to ensure consistency in hierarchy generation
                 topics.sort().forEach(topic => {
                     const parts = topic.split('/')
@@ -166,21 +168,15 @@ export default {
     },
     methods: {
         async getTopics () {
-            if (this.$route.params.brokerId) {
-                this.loading = true
-                const promise = this.$route.params.brokerId !== 'team-broker'
-                    ? brokerClient.getBrokerTopics(this.team.id, this.$route.params.brokerId)
-                    : brokerClient.getTopics(this.team.id)
-
-                return promise
-                    .then(res => {
-                        this.topics = res
-                    })
-                    .catch(err => err)
-                    .finally(() => {
-                        this.loading = false
-                    })
-            }
+            this.loading = true
+            return brokerClient.getBrokerTopics(this.team.id, this.$route.params.brokerId)
+                .then(res => {
+                    this.topics = res.topics || []
+                })
+                .catch(err => err)
+                .finally(() => {
+                    this.loading = false
+                })
         },
         toggleSegmentVisibility (segment) {
             // trigger's the hierarchy setter
