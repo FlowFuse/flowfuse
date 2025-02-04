@@ -1,5 +1,5 @@
 /**
- * Add MQTT Topic Schema tabl
+ * Add MQTT Topic Schema table
  */
 const { DataTypes } = require('sequelize')
 

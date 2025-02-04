@@ -1,7 +1,9 @@
 const YAML = require('yaml')
 module.exports = async function (app) {
     app.get('/team-broker/schema.yml', async (request, reply) => {
-        const list = await app.teamBroker.getUsedTopics(request.team.hashid)
+        const topics = await app.db.models.MQTTTopicSchema.getTeamBroker(request.team.hashid)
+        const list = topics.topics.map(t => t.topic)
+        list.sort()
         const schema = {
             asyncapi: '3.0.0',
             info: {
