@@ -167,7 +167,7 @@ export default {
     methods: {
         async getTopics () {
             this.loading = true
-            const promise = this.$route.params.brokerId
+            const promise = this.$route.params.brokerId !== 'team-broker'
                 ? brokerClient.getBrokerTopics(this.team.id, this.$route.params.brokerId)
                 : brokerClient.getTopics(this.team.id)
 
