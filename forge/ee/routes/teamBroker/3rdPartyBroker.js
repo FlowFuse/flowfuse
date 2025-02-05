@@ -458,14 +458,14 @@ module.exports = async function (app) {
         }
         const topics = Object.keys(request.body)
         topics.forEach(async topic => {
-            await app.db.models.MQTTTopicSchema.upsert({
+            const type = request.body[topic].type
+            const created = await app.db.models.MQTTTopicSchema.upsert({
                 topic,
                 BrokerCredentialsId: brokerId,
-                TeamId: teamId
-            }, {
-                topic,
-                BrokerCredentialsId: brokerId,
-                TeamId: teamId
+                TeamId: teamId,
+                inferredSchema: JSON.stringify(type)
+            },{
+                fields: ['inferredSchema']
             })
         })
         reply.status(201).send({})
