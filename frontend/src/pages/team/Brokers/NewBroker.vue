@@ -4,7 +4,7 @@
 
 <script>
 
-import BrokerForm from '../components/BrokerForm.vue'
+import BrokerForm from './components/BrokerForm.vue'
 
 export default {
     name: 'NewBroker',
