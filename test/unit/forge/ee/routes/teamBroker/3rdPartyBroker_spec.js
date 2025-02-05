@@ -260,7 +260,10 @@ describe('3rd Party Broker API', function () {
                     Authorization: `Bearer ${agentToken}`
                 },
                 body: {
-                    'foo/bar/baz/qux': 1738236145678
+                    'foo/bar/baz/qux': {
+                        time: 1738236145678,
+                        type: { type: 'string' }
+                    }
                 }
             })
             response.statusCode.should.equal(201)
@@ -272,7 +275,9 @@ describe('3rd Party Broker API', function () {
                     Authorization: `Bearer ${agentToken}`
                 },
                 body: {
-                    'foo/bar/baz': 1738236145678
+                    'foo/bar/baz': {
+                        time: 1738236145678
+                    }
                 }
             })
             response.statusCode.should.equal(201)
@@ -284,7 +289,10 @@ describe('3rd Party Broker API', function () {
                     Authorization: `Bearer ${agentToken}`
                 },
                 body: {
-                    'bar/baz/qux': 1738236145678
+                    'bar/baz/qux': {
+                        time: 1738236145678,
+                        type: { type: 'number' }
+                    }
                 }
             })
             response.statusCode.should.equal(201)
@@ -296,7 +304,10 @@ describe('3rd Party Broker API', function () {
                     Authorization: `Bearer ${agentToken}`
                 },
                 body: {
-                    'bar/baz/qux': 1738236145678
+                    'bar/baz/qux': {
+                        time: 1738236145978,
+                        type: { type: 'number' }
+                    }
                 }
             })
             response.statusCode.should.equal(201)

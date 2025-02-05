@@ -459,14 +459,20 @@ module.exports = async function (app) {
         const topics = Object.keys(request.body)
         topics.forEach(async topic => {
             const type = request.body[topic].type
-            const created = await app.db.models.MQTTTopicSchema.upsert({
-                topic,
-                BrokerCredentialsId: brokerId,
-                TeamId: teamId,
-                inferredSchema: JSON.stringify(type)
-            },{
-                fields: ['inferredSchema']
-            })
+            try {
+                await app.db.models.MQTTTopicSchema.upsert({
+                    topic,
+                    BrokerCredentialsId: brokerId,
+                    TeamId: teamId,
+                    inferredSchema: JSON.stringify(type)
+                }, {
+                    fields: ['inferredSchema'],
+                    conflictFields: ['topic', 'TeamId', 'BrokerCredentialsId']
+                })
+            } catch (err) {
+                // reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
+                // return
+            }
         })
         reply.status(201).send({})
     })
