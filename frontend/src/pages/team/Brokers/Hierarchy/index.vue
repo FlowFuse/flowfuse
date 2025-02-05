@@ -2,60 +2,42 @@
     <div class="unified-namespace-hierarchy">
         <div class="title mb-5 flex gap-3 items-center">
             <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
-            <h3 class="m-0 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
-            <ff-button v-if="featuresCheck.isMqttBrokerFeatureEnabled" @click="openSchema()">
+            <h3 class="my-2 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
+            <ff-button v-if="shouldDisplaySchemaButton" @click="openSchema()">
                 <template #icon-right><ExternalLinkIcon /></template>
                 Open Schema
             </ff-button>
         </div>
 
-        <EmptyState
-            v-if="!featuresCheck.isMqttBrokerFeatureEnabled"
-            :featureUnavailable="!featuresCheck.isMqttBrokerFeatureEnabledForPlatform"
-            :featureUnavailableToTeam="!featuresCheck.isMqttBrokerFeatureEnabledForTeam"
-        >
-            <template #img>
-                <img src="../../../../images/empty-states/mqtt-forbidden.png" alt="pipelines-logo">
-            </template>
-            <template #header>
-                <span>Topic Hierarchy Not Available</span>
-            </template>
-            <template #message>
-                <p>The <b>Topic Hierarchy</b> offers a clear, organized visualization of topic structures, providing fine-grained control over publishing and subscribing permissions.</p>
-            </template>
-        </EmptyState>
+        <div class="space-y-6">
+            <ff-loading v-if="loading" message="Loading Topics..." />
 
-        <template v-else>
-            <div class="space-y-6">
-                <ff-loading v-if="loading" message="Loading Clients..." />
+            <template v-else>
+                <section v-if="topics.length > 0" class="topics">
+                    <topic-segment
+                        v-for="(segment, key) in hierarchySegments"
+                        :key="segment"
+                        :segment="hierarchy[segment]"
+                        :children="hierarchy[segment].children"
+                        :has-siblings="Object.keys(hierarchy).length > 1"
+                        :is-last-sibling="key === Object.keys(hierarchy).length-1"
+                        :is-root="true"
+                        @segment-state-changed="toggleSegmentVisibility"
+                    />
+                </section>
 
-                <template v-else>
-                    <section v-if="topics.length > 0" class="topics">
-                        <topic-segment
-                            v-for="(segment, key) in hierarchySegments"
-                            :key="segment"
-                            :segment="hierarchy[segment]"
-                            :children="hierarchy[segment].children"
-                            :has-siblings="Object.keys(hierarchy).length > 1"
-                            :is-last-sibling="key === Object.keys(hierarchy).length-1"
-                            :is-root="true"
-                            @segment-state-changed="toggleSegmentVisibility"
-                        />
-                    </section>
-
-                    <EmptyState v-else>
-                        <template #img>
-                            <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
-                        </template>
-                        <template #header>Start Building Your Topic Hierarchy</template>
-                        <template #message>
-                            <p>It looks like no topics have been created yet.</p>
-                            <p>Topics are automatically generated as your MQTT clients publish events to the broker. Get started by connecting a client and publishing your first message.</p>
-                        </template>
-                    </EmptyState>
-                </template>
-            </div>
-        </template>
+                <EmptyState v-else>
+                    <template #img>
+                        <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
+                    </template>
+                    <template #header>Start Building Your Topic Hierarchy</template>
+                    <template #message>
+                        <p>It looks like no topics have been created yet.</p>
+                        <p>Topics are automatically generated as your MQTT clients publish events to the broker. Get started by connecting a client and publishing your first message.</p>
+                    </template>
+                </EmptyState>
+            </template>
+        </div>
     </div>
 </template>
 
@@ -74,7 +56,7 @@ import TopicSegment from './components/TopicSegment.vue'
 const { openInANewTab } = useNavigationHelper()
 
 export default {
-    name: 'UNSHierarchy',
+    name: 'BrokerHierarchy',
     components: { TopicSegment, EmptyState, ExternalLinkIcon },
     data () {
         return {
@@ -85,11 +67,14 @@ export default {
     computed: {
         ...mapState('account', ['team']),
         ...mapGetters('account', ['featuresCheck']),
+        ...mapGetters('product', ['hasFfUnsClients', 'hasBrokers']),
         hierarchy: {
             get () {
                 const hierarchy = {}
-                const topics = this.topics
-
+                // this.topics is an array of topic objects { id, topic, metadata }.
+                // For now, just turn into a flat array of topic strings - this will
+                // need changing when we have to keep the metadata info attached
+                const topics = this.topics.map(topic => topic.topic)
                 // Sort topics alphabetically to ensure consistency in hierarchy generation
                 topics.sort().forEach(topic => {
                     const parts = topic.split('/')
@@ -168,7 +153,15 @@ export default {
         },
         hierarchySegments () {
             return Object.keys(this.hierarchy).sort()
+        },
+        shouldDisplaySchemaButton () {
+            // For now, only show schema on Team Broker. This will need to be extended for 3rd party
+            // brokers later
+            return this.featuresCheck.isMqttBrokerFeatureEnabled && this.$route.params.brokerId === 'team-broker'
         }
+    },
+    watch: {
+        $route: 'getTopics'
     },
     async mounted () {
         await this.getTopics()
@@ -176,9 +169,9 @@ export default {
     methods: {
         async getTopics () {
             this.loading = true
-            return brokerClient.getTopics(this.team.id)
+            return brokerClient.getBrokerTopics(this.team.id, this.$route.params.brokerId)
                 .then(res => {
-                    this.topics = res
+                    this.topics = res.topics || []
                 })
                 .catch(err => err)
                 .finally(() => {

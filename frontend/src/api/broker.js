@@ -2,6 +2,8 @@ import paginateUrl from '../utils/paginateUrl.js'
 
 import client from './client.js'
 
+// FF Broker
+
 const getClients = (teamId, params, cursor, limit) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/broker/clients`, cursor, limit)
     return client.get(url, { params }).then(res => res.data)
@@ -30,8 +32,30 @@ const updateClient = (teamId, username, { acls, password }) => {
     }).then(res => res.data)
 }
 
-const getTopics = (teamId) => {
-    return client.get(`/api/v1/teams/${teamId}/broker/topics`)
+// Third Party Brokers
+
+const getBrokers = (teamId) => {
+    return client.get(`/api/v1/teams/${teamId}/brokers`)
+        .then(res => res.data)
+}
+
+const createBroker = (teamId, payload) => {
+    return client.post(`/api/v1/teams/${teamId}/brokers`, payload)
+        .then(res => res.data)
+}
+
+const updateBroker = (teamId, brokerId, payload) => {
+    return client.put(`/api/v1/teams/${teamId}/brokers/${brokerId}`, payload)
+        .then(res => res.data)
+}
+
+const deleteBroker = (teamId, brokerId) => {
+    return client.delete(`/api/v1/teams/${teamId}/brokers/${brokerId}`)
+        .then(res => res.data)
+}
+
+const getBrokerTopics = (teamId, brokerId) => {
+    return client.get(`/api/v1/teams/${teamId}/brokers/${brokerId}/topics`)
         .then(res => res.data)
 }
 
@@ -41,5 +65,9 @@ export default {
     createClient,
     updateClient,
     deleteClient,
-    getTopics
+    getBrokers,
+    createBroker,
+    updateBroker,
+    deleteBroker,
+    getBrokerTopics
 }
