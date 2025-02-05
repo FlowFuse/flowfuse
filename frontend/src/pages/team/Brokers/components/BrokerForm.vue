@@ -1,5 +1,5 @@
 <template>
-    <section class="new-broker">
+    <section class="broker-form" data-form="broker-form">
         <div class="max-w-3xl">
             <form class="flex gap-9 flex-wrap" @submit.prevent="onSubmit">
                 <section class="server space-y-3 max-w-lg min-w-min flex-1">
@@ -10,6 +10,7 @@
                         name="name"
                         class="name"
                         container-class="max-w"
+                        data-input="name"
                     >
                         <template #default>
                             Name
@@ -23,6 +24,7 @@
                             name="host"
                             class="host flex-1"
                             container-class="max-w"
+                            data-input="host"
                         >
                             <template #default>
                                 Host
@@ -36,6 +38,7 @@
                             placeholder="1883"
                             class="port flex-1"
                             container-class="max-w"
+                            data-input="port"
                         >
                             <template #default>
                                 Port
@@ -46,24 +49,24 @@
                     <div class="flex gap-3 md:flex-nowrap flex-wrap">
                         <div class="form-row flex flex-col protocol flex-1">
                             <label for="protocol" class="text-gray-800 block text-sm font-medium mb-1">Protocol</label>
-                            <ff-listbox id="protocol" v-model="form.protocol" :options="protocolOptions" />
+                            <ff-listbox id="protocol" v-model="form.protocol" :options="protocolOptions" data-select="protocol" />
                         </div>
 
                         <div class="form-row flex flex-col protocolVersion flex-1">
                             <label for="protocolVersion" class="text-gray-800 block text-sm font-medium mb-1">Protocol Version</label>
-                            <ff-listbox id="protocolVersion" v-model="form.protocolVersion" :options="protocolVersionOptions" />
+                            <ff-listbox id="protocolVersion" v-model="form.protocolVersion" :options="protocolVersionOptions" data-select="protocolVersion" />
                         </div>
                     </div>
 
                     <div class="flex gap-3 md:flex-nowrap flex-wrap">
                         <div class="form-row flex flex-col flex-1 ssl">
                             <label for="ssl" class="text-gray-800 block text-sm font-medium mb-1">SSL</label>
-                            <ff-listbox id="ssl" v-model="form.ssl" :options="booleanOptions" />
+                            <ff-listbox id="ssl" v-model="form.ssl" :options="booleanOptions" data-select="ssl" />
                         </div>
 
                         <div class="form-row flex flex-col flex-1 verifySSL">
                             <label for="verifySSL" class="text-gray-800 block text-sm font-medium mb-1">Verify SSL</label>
-                            <ff-listbox id="verifySSL" v-model="form.verifySSL" :options="booleanOptions" />
+                            <ff-listbox id="verifySSL" v-model="form.verifySSL" :options="booleanOptions" data-select="verifySSL" />
                         </div>
                     </div>
                 </section>
@@ -71,19 +74,19 @@
                 <section class="credentials space-y-3 flex-1 max-w-sm">
                     <h6 class="mb-5 pb-2 title">Credentials</h6>
 
-                    <FormRow v-model="form.clientId" type="input" name="clientId" class="clientId">
+                    <FormRow v-model="form.clientId" type="input" name="clientId" class="clientId" data-input="clientId">
                         <template #default>
                             ClientID
                         </template>
                     </FormRow>
 
-                    <FormRow v-model="form.credentials.username" type="input" name="username" class="username">
+                    <FormRow v-model="form.credentials.username" type="input" name="username" class="username" data-input="username">
                         <template #default>
                             Username
                         </template>
                     </FormRow>
 
-                    <FormRow v-model="form.credentials.password" type="password" name="password" class="password">
+                    <FormRow v-model="form.credentials.password" type="password" name="password" class="password" data-input="password">
                         <template #default>
                             Password
                         </template>
@@ -91,16 +94,17 @@
                 </section>
             </form>
             <div class="my-6 flex gap-3 justify-end max-w-full lg:max-w-3xl">
-                <ff-button v-if="hasBackButton" kind="tertiary" @click="$router.back()">
+                <ff-button v-if="hasBackButton" kind="tertiary" data-action="back" @click="$router.back()">
                     Cancel
                 </ff-button>
                 <ff-button
                     v-if="hasDeleteButton" kind="tertiary" class="ff-btn--tertiary-danger"
+                    data-action="delete"
                     @click="$emit('delete')"
                 >
                     Delete
                 </ff-button>
-                <ff-button kind="secondary" @click="onSubmit">
+                <ff-button kind="secondary" data-action="submit" @click="onSubmit">
                     Submit
                 </ff-button>
             </div>
@@ -219,7 +223,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.new-broker {
+.broker-form {
     .server, .credentials {
         .title {
             border-bottom: 1px solid $ff-grey-200;

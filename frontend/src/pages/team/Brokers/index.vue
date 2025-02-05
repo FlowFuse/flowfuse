@@ -169,7 +169,7 @@ export default {
                     title,
                     context
                 }
-            case ['team-brokers-first-client', 'team-brokers-add'].includes(this.$route.name):
+            case this.isCreationPage:
                 return {
                     title: 'Add a new Broker',
                     context: 'Simplified MQTT broker setup and management.'
@@ -195,6 +195,9 @@ export default {
         isCreatingFirstClient () {
             return this.$route.name === 'team-brokers-first-client'
         },
+        isCreationPage () {
+            return ['team-brokers-first-client', 'team-brokers-new', 'team-brokers-add'].includes(this.$route.name)
+        },
         brokerOptions () {
             return this.brokers.map(broker => ({ label: broker.name, value: broker.id }))
         },
@@ -202,7 +205,7 @@ export default {
             return this.$route.params.brokerId === 'team-broker'
         },
         shouldDisplayTools () {
-            if (['team-brokers-add', 'team-brokers-new', 'team-brokers-first-client'].includes(this.$route.name)) {
+            if (this.isCreationPage) {
                 return false
             }
 
@@ -216,8 +219,7 @@ export default {
     watch: {
         hasFfUnsClients: 'redirectIfNeeded',
         $route (route) {
-            const routeRequiresBrokerId = !['team-brokers-add', 'team-brokers-new', 'team-brokers-first-client']
-                .includes(this.$route.name)
+            const routeRequiresBrokerId = !this.isCreationPage
 
             if (!route.params.brokerId && routeRequiresBrokerId) {
                 this.redirectIfNeeded()
@@ -257,8 +259,9 @@ export default {
                 })
         },
         redirectIfNeeded () {
+            const brokerId = this.$route.params.brokerId
             switch (true) {
-            case this.hasFfUnsClients:
+            case this.hasFfUnsClients && !this.isCreationPage:
                 this.activeBrokerId = 'team-broker'
                 break
 
@@ -266,11 +269,11 @@ export default {
                 this.activeBrokerId = this.brokers[0].id
                 break
 
-            case this.hasFfUnsClients && !this.$route.params.brokerId:
+            case this.hasFfUnsClients && !brokerId && !this.isCreationPage:
                 this.activeBrokerId = 'team-broker'
                 break
 
-            case this.hasBrokers && !this.$route.params.brokerId:
+            case this.hasBrokers && !brokerId && !this.isCreationPage:
                 this.activeBrokerId = this.brokers[0].id
                 break
 
