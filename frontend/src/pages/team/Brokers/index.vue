@@ -169,7 +169,7 @@ export default {
                     title,
                     context
                 }
-            case ['team-brokers-first-client', 'team-brokers-add'].includes(this.$route.name):
+            case ['team-brokers-first-client', 'team-brokers-add', 'team-brokers-new'].includes(this.$route.name):
                 return {
                     title: 'Add a new Broker',
                     context: 'Simplified MQTT broker setup and management.'
