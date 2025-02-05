@@ -1,9 +1,9 @@
 import BrokerChoose from './ChooseBroker.vue'
 import BrokersClients from './Clients/index.vue'
-import BrokerSettings from './External/BrokerSettings.vue'
-import BrokerNew from './External/NewBroker.vue'
 import FirstClient from './FirstClient.vue'
 import BrokersHierarchy from './Hierarchy/index.vue'
+import BrokerNew from './NewBroker.vue'
+import BrokerSettings from './Settings/index.vue'
 import Brokers from './index.vue'
 
 export default {
