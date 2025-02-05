@@ -1,4 +1,4 @@
-describe('FlowForge - Unified Namespace Clients', () => {
+describe('FlowForge - Brokers Clients', () => {
     describe('is accessible to users with correct permissions', () => {
         beforeEach(() => {
             cy.login('alice', 'aaPassword')
@@ -19,23 +19,23 @@ describe('FlowForge - Unified Namespace Clients', () => {
     })
 
     describe('is not accessible to users with insufficient permissions', () => {
-        it('should have the unified namespace menu entry hidden and route guard for viewer roles', () => {
+        it('should have the brokers menu entry hidden and route guard for viewer roles', () => {
             cy.intercept('GET', '/api/*/teams/*/user', { role: 10 })
             cy.login('bob', 'bbPassword')
             cy.home()
 
             cy.get('[data-nav="team-brokers"]').should('not.exist')
-            cy.visit('team/ateam/brokers/clients')
+            cy.visit('team/ateam/brokers/team-broker/clients')
             cy.url().should('include', 'team/ateam/applications')
         })
 
-        it('should have the unified namespace menu entry hidden and route guard for dashboard roles', () => {
+        it('should have the brokers menu entry hidden and route guard for dashboard roles', () => {
             cy.intercept('GET', '/api/*/teams/*/user', { role: 5 }).as('getTeamRole')
             cy.login('bob', 'bbPassword')
             cy.visit('/')
 
             cy.get('[data-nav="team-brokers"]').should('not.exist')
-            cy.visit('team/ateam/brokers/clients')
+            cy.visit('team/ateam/brokers/team-broker/clients')
             cy.contains('There are no dashboards in this team.')
         })
     })

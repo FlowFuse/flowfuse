@@ -2,6 +2,13 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
     describe('FlowFuse Broker', () => {
         describe('is accessible to users with correct permissions', () => {
             beforeEach(() => {
+                cy.intercept('GET', '/api/*/teams/*', (req) => {
+                    req.reply((response) => {
+                        // ensure we keep bom disabled
+                        response.body.type.properties.features.teamBroker = false
+                        return response
+                    })
+                })
                 cy.intercept('GET', '/api/*/teams/*/brokers', {
                     brokers: [],
                     meta: {},
@@ -157,7 +164,7 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
                 cy.home()
 
                 cy.get('[data-nav="team-brokers"]').should('not.exist')
-                cy.visit('team/ateam/brokers/hierarchy')
+                cy.visit('team/ateam/brokers')
                 cy.url().should('include', 'team/ateam/applications')
             })
 
@@ -167,7 +174,7 @@ describe('FlowForge - Unified Namespace Hierarchy', () => {
                 cy.visit('/')
 
                 cy.get('[data-nav="team-brokers"]').should('not.exist')
-                cy.visit('team/ateam/brokers/hierarchy')
+                cy.visit('team/ateam/brokers')
                 cy.contains('Dashboards')
                 cy.contains('A list of Node-RED instances with Dashboards belonging to this Team.')
             })

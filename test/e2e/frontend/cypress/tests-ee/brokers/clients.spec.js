@@ -2,6 +2,14 @@ describe('FlowForge - Unified Namespace Clients', () => {
     describe('FlowFuse Broker', () => {
         describe('is accessible to users with correct permissions', () => {
             beforeEach(() => {
+                cy.intercept('GET', '/api/*/teams/*', (req) => {
+                    req.reply((response) => {
+                    // ensure we keep bom disabled
+                        response.body.type.properties.features.teamBroker = false
+                        return response
+                    })
+                }).as('getTeam')
+
                 cy.login('alice', 'aaPassword')
                 cy.home()
             })
@@ -33,13 +41,6 @@ describe('FlowForge - Unified Namespace Clients', () => {
                     meta: {},
                     count: 2
                 }).as('getTopics')
-                cy.intercept('GET', '/api/*/teams/*', (req) => {
-                    req.reply((response) => {
-                        // ensure we keep bom enabled
-                        response.body.type.properties.features.teamBroker = true
-                        return response
-                    })
-                }).as('getTeam')
                 cy.login('alice', 'aaPassword')
                 cy.home()
 
@@ -386,7 +387,7 @@ describe('FlowForge - Unified Namespace Clients', () => {
                 cy.home()
 
                 cy.get('[data-nav="team-brokers"]').should('not.exist')
-                cy.visit('team/ateam/brokers/clients')
+                cy.visit('team/ateam/brokers')
                 cy.url().should('include', 'team/ateam/applications')
             })
 
@@ -396,7 +397,7 @@ describe('FlowForge - Unified Namespace Clients', () => {
                 cy.visit('/')
 
                 cy.get('[data-nav="team-brokers"]').should('not.exist')
-                cy.visit('team/ateam/brokers/clients')
+                cy.visit('team/ateam/brokers')
                 cy.contains('Dashboards')
                 cy.contains('A list of Node-RED instances with Dashboards belonging to this Team.')
             })
@@ -405,5 +406,75 @@ describe('FlowForge - Unified Namespace Clients', () => {
 
     describe('3rd party brokers', () => {
 
+    })
+
+    describe('Brokers - common', () => {
+        beforeEach(() => {
+            cy.intercept('GET', '/api/*/teams/*/broker/topics', {
+                topics: [],
+                meta: {},
+                count: 0
+            }).as('getTopics')
+
+            cy.login('alice', 'aaPassword')
+            cy.home()
+        })
+
+        it('shows the choose broker page when no team or 3rd party brokers exist', () => {
+            cy.get('[data-nav="team-brokers"]').click()
+
+            cy.get('[data-cy="page-name"]').contains('Add a new Broker')
+            cy.contains('Simplified MQTT broker setup and management.')
+            cy.get('[data-el="add-new-broker"]').should('not.exist')
+            cy.get('[data-el="brokers-list"]').should('not.exist')
+
+            cy.contains('Chose which Broker you\'d like to get setup with:')
+
+            cy.get('[data-el="medium-tile"]').should('have.length', 2)
+            cy.get('[data-el="medium-tile"][data-value="FlowFuse Broker"]').should('exist')
+            cy.get('[data-el="medium-tile"][data-value="FlowFuse Broker"] [data-el="ribbon"]').should('exist')
+            cy.get('[data-el="medium-tile"][data-value="FlowFuse Broker"] [data-el="select"]').should('exist')
+
+            cy.get('[data-el="medium-tile"][data-value="Bring your Own Broker"]').should('exist')
+            cy.get('[data-el="medium-tile"][data-value="Bring your Own Broker"] [data-el="select"]').should('exist')
+
+            cy.get('[data-el="page-back"]').should('not.exist')
+        })
+
+        it('should allow users to configure the team-broker when no brokers exist', () => {
+            cy.get('[data-nav="team-brokers"]').click()
+
+            cy.get('[data-el="medium-tile"][data-value="FlowFuse Broker"] [data-el="select"]').click()
+
+            cy.get('[data-el="empty-state"]').should('exist')
+
+            // checking we can navigate back
+            cy.get('[data-el="empty-state"] [data-action="back"]').should('exist')
+            cy.get('[data-el="empty-state"] [data-action="back"]').click()
+
+            cy.get('[data-el="medium-tile"]').should('have.length', 2)
+            cy.get('[data-el="medium-tile"][data-value="FlowFuse Broker"] [data-el="select"]').click()
+
+            cy.get('[data-el="create-client-dialog"]').should('not.be.visible')
+
+            cy.get('[data-el="empty-state"] [data-action="create-client"]').should('exist')
+            cy.get('[data-el="empty-state"] [data-action="create-client"]').click()
+
+            cy.get('[data-el="create-client-dialog"]').should('be.visible')
+            cy.get('[data-el="create-client-dialog"]').within(() => {
+                cy.get('[data-el="username"]').type('client-name')
+                cy.get('[data-el="password"]').type('top-secret')
+                cy.get('[data-el="confirm-password"]').type('top-secret')
+                cy.get('[data-action="dialog-confirm"]').click()
+            })
+
+            cy.get('[data-el="client"]').should('have.length', 1)
+            cy.get('[data-el="client"]').should('contain', 'client-name@')
+
+            // cleanup
+            cy.get('[data-el="client"] [data-action="delete-client"]').click()
+            cy.get('[data-el="platform-dialog"]').should('be.visible')
+            cy.get('[data-el="platform-dialog"] [data-action="dialog-confirm"]').click()
+        })
     })
 })
