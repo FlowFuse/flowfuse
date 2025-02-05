@@ -210,7 +210,7 @@ export default {
                     .then(() => this.$store.dispatch('product/addFfBroker'))
                     .then(() => this.$router.push({
                         name: 'team-brokers-clients',
-                        params: { brokerId: '' }
+                        params: { ...this.$route.params, brokerId: 'team-broker' }
                     }))
                     .then(() => {
                         this.$refs.dialog?.close()

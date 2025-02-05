@@ -42,10 +42,11 @@ export default {
             return this.$store.dispatch('product/deleteBroker', this.activeBroker.id)
                 .then(() => {
                     let name = 'team-brokers'
+
                     if (this.brokers.length === 0 && !this.hasFfUnsClients) {
                         name = 'team-brokers-add'
                     }
-                    return this.$router.push({ name, params: { brokerId: '' } })
+                    return this.$router.push({ name })
                 })
                 .catch(e => e)
         },

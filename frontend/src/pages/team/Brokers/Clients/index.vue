@@ -71,14 +71,6 @@
                                 </template>
                                 Create Client
                             </ff-button>
-                            <ff-button
-                                v-if="Object.hasOwnProperty.call($route.query, 'creating-client')"
-                                data-action="back"
-                                kind="tertiary"
-                                @click="$router.back()"
-                            >
-                                Cancel
-                            </ff-button>
                         </section>
                     </template>
                 </EmptyState>

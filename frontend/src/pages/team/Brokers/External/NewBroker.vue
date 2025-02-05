@@ -13,7 +13,7 @@ export default {
         onSubmit (payload) {
             return this.$store.dispatch('product/createBroker', payload)
                 .then(res => this.$router.push({
-                    name: 'team-brokers',
+                    name: 'team-brokers-hierarchy',
                     params: { brokerId: res.id }
                 }))
                 .catch(e => console.error(e))

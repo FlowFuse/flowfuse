@@ -18,8 +18,8 @@
                     <p>Documentation <a href="https://flowfuse.com/docs/user/teambroker" target="_blank">here</a></p>
                 </template>
 
-                <template v-if="shouldDisplayTools" #tools>
-                    <section v-if="!loading" class="flex gap-3 flex-wrap">
+                <template #tools>
+                    <section v-if="!loading && shouldDisplayTools" class="flex gap-3 flex-wrap">
                         <ff-listbox
                             v-if="brokers.length > 1"
                             v-model="activeBrokerId"
@@ -95,7 +95,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapGetters('account', ['featuresCheck', 'team']),
         ...mapGetters('product', ['hasFfUnsClients', 'hasBrokers']),
         ...mapState('product', {
             brokers: state => state.UNS.brokers
@@ -107,7 +107,7 @@ export default {
                 case routeBrokerId:
                     return routeBrokerId
                 case !routeBrokerId && this.hasFfUnsClients:
-                    return 'flowfuse'
+                    return 'team-broker'
                 case !routeBrokerId && this.hasBrokers:
                     return this.brokers[0].id
                 default:
@@ -117,15 +117,17 @@ export default {
             set (brokerId) {
                 switch (true) {
                 case brokerId === 'team-broker':
+                    this.loading = true
                     // navigate to the flowfuse broker
-                    return this.$router.push({ name: 'team-brokers', params: { brokerId: 'team-broker' } })
-
-                case this.activeBrokerId === 'flowfuse' && this.$route.name === 'team-brokers-clients':
-                    // navigate from the ff clients page to 3rdParty broker
-                    return this.$router.push({ name: 'team-brokers-hierarchy', params: { brokerId } })
-
+                    return this.$router.push({ name: 'team-brokers-hierarchy', params: { brokerId: 'team-broker' } })
+                        .finally(() => {
+                            this.loading = false
+                        })
                 default:
-                    return this.$router.push({ name: this.$route.name, params: { brokerId } })
+                    return this.$router.push({ name: 'team-brokers-hierarchy', params: { brokerId } })
+                        .finally(() => {
+                            this.loading = false
+                        })
                 }
             }
         },
@@ -133,23 +135,23 @@ export default {
             return this.brokers.find(broker => broker.id === this.activeBrokerId)
         },
         tabs () {
-            if (this.shouldHidePageTabs) return []
+            if (this.shouldHidePageTabs || !this.$route.params.brokerId) return []
 
             return [
                 {
                     label: 'Hierarchy',
-                    to: { name: 'team-brokers-hierarchy' },
+                    to: { name: 'team-brokers-hierarchy', params: this.$route.params },
                     tag: 'team-brokers-hierarchy'
                 },
                 {
                     label: 'Clients',
-                    to: { name: 'team-brokers-clients' },
+                    to: { name: 'team-brokers-clients', params: this.$route.params },
                     tag: 'team-brokers-clients',
                     hidden: !this.isTeamBroker
                 },
                 {
                     label: 'Settings',
-                    to: { name: 'team-brokers-settings' },
+                    to: { name: 'team-brokers-settings', params: this.$route.params },
                     tag: 'team-brokers-settings',
                     hidden: this.isTeamBroker
                 }
@@ -167,7 +169,7 @@ export default {
                     title,
                     context
                 }
-            case this.$route.name === 'team-brokers-add':
+            case ['team-brokers-first-client', 'team-brokers-add'].includes(this.$route.name):
                 return {
                     title: 'Add a new Broker',
                     context: 'Simplified MQTT broker setup and management.'
@@ -191,16 +193,16 @@ export default {
             return !this.hasBrokers && (!this.hasFfUnsClients || this.isCreatingFirstClient)
         },
         isCreatingFirstClient () {
-            return Object.prototype.hasOwnProperty.call(this.$route.query, 'creating-client')
+            return this.$route.name === 'team-brokers-first-client'
         },
         brokerOptions () {
             return this.brokers.map(broker => ({ label: broker.name, value: broker.id }))
         },
         isTeamBroker () {
-            return this.$route.params.brokerId && this.$route.params.brokerId === 'team-broker'
+            return this.$route.params.brokerId === 'team-broker'
         },
         shouldDisplayTools () {
-            if (['team-brokers-add', 'team-brokers-new'].includes(this.$route.name)) {
+            if (['team-brokers-add', 'team-brokers-new', 'team-brokers-first-client'].includes(this.$route.name)) {
                 return false
             }
 
@@ -213,9 +215,11 @@ export default {
     },
     watch: {
         hasFfUnsClients: 'redirectIfNeeded',
-        brokers: 'redirectIfNeeded',
-        '$route.name' (routeName) {
-            if (routeName === 'team-brokers-hierarchy') {
+        $route (route) {
+            const routeRequiresBrokerId = !['team-brokers-add', 'team-brokers-new', 'team-brokers-first-client']
+                .includes(this.$route.name)
+
+            if (!route.params.brokerId && routeRequiresBrokerId) {
                 this.redirectIfNeeded()
             }
         }
@@ -224,15 +228,8 @@ export default {
         if (!this.hasAMinimumTeamRoleOf(Roles.Member)) {
             return this.$router.push({ name: 'Home' })
         }
-
         this.fetchData()
-            .then(() => this.redirectIfNeeded)
-            .then(() => {
-                // forces redirect to the first 3rd party broker if the users doesn't have the ff broker configured
-                if (!this.hasFfUnsClients && this.brokers.length > 0) {
-                    this.activeBrokerId = this.brokers[0].id
-                }
-            })
+            .then(() => this.redirectIfNeeded())
             .finally(() => {
                 this.loading = false
             })
@@ -260,27 +257,29 @@ export default {
                 })
         },
         redirectIfNeeded () {
-            this.loading = true
-
             switch (true) {
             case this.hasFfUnsClients:
-                return this.$router.push({ name: 'team-brokers', params: { brokerId: 'team-broker' } })
-                    .finally(() => {
-                        this.loading = false
-                    })
-            case !this.hasFfUnsClients && this.brokers.length > 0:
-                return this.$router.push({ name: 'team-brokers', params: { brokerId: this.brokers[0].id } })
-                    .finally(() => {
-                        this.loading = false
-                    })
-            case !this.hasFfUnsClients && this.brokers.length === 0:
-                setTimeout(
-                    () => this.$router.push({ name: 'team-brokers-add' })
-                        .finally(() => {
-                            this.loading = false
-                        })
-                )
+                this.activeBrokerId = 'team-broker'
                 break
+
+            case !this.hasFfUnsClients && this.hasBrokers:
+                this.activeBrokerId = this.brokers[0].id
+                break
+
+            case this.hasFfUnsClients && !this.$route.params.brokerId:
+                this.activeBrokerId = 'team-broker'
+                break
+
+            case this.hasBrokers && !this.$route.params.brokerId:
+                this.activeBrokerId = this.brokers[0].id
+                break
+
+            case !this.hasFfUnsClients && !this.hasBrokers:
+                this.loading = true
+                return this.$router.push({ name: 'team-brokers-add' })
+                    .finally(() => {
+                        this.loading = false
+                    })
             default:
                  // no redirect
             }
