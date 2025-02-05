@@ -10,7 +10,8 @@ module.exports = {
     name: 'MQTTTopicSchema',
     schema: {
         topic: { type: DataTypes.STRING, allowNull: false },
-        metadata: { type: DataTypes.TEXT, allowNull: true }
+        metadata: { type: DataTypes.TEXT, allowNull: true },
+        inferredSchema: { type: DataTypes.TEXT, allowNull: true }
     },
     indexes: [
         { name: 'topic_team_broker_unique', fields: ['topic', 'TeamId', 'BrokerCredentialsId'], unique: true }

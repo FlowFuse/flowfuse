@@ -4,7 +4,8 @@ module.exports = {
         const cleaned = {
             id: result.hashid,
             topic: result.topic,
-            metadata: result.metadata ? JSON.parse(result.metadata) : undefined
+            metadata: result.metadata ? JSON.parse(result.metadata) : undefined,
+            inferredSchema: result.inferredSchema ? JSON.parse(result.inferredSchema) : undefined
         }
         return cleaned
     },
