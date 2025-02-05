@@ -1,5 +1,16 @@
 describe('FlowFuse - Brokers', () => {
     describe('Third Party Broker', () => {
+        beforeEach(() => {
+            cy.intercept('GET', '/api/*/teams/*/broker/topics', {
+                topics: [],
+                meta: {},
+                count: 0
+            }).as('getTopics')
+
+            cy.login('alice', 'aaPassword')
+            cy.home()
+        })
+
         it('should not display the clients tab for third party brokers and redirect to hierarchy when accessing it directly', () => {
             cy.intercept('GET', '/api/*/teams/*/broker/clients', {
                 clients: [],
