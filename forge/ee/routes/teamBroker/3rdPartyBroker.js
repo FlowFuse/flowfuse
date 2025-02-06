@@ -401,17 +401,18 @@ module.exports = async function (app) {
         // Might need a custom handler here to allow agent to upload
         preHandler: [
             async (request, reply) => {
-                // if (request.session?.scope?.includes('broker:topics')) {
-                //     if (request.session.ownerType === 'broker') {
-                //         if (request.params.teamId !== request.session.Broker.Team.hashid) {
-                //             reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
-                //         }
-                //     } else {
-                //         reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
-                //     }
-                // } else {
-                //     reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
-                // }
+                if (request.session?.scope?.includes('broker:topics')) {
+                    if (request.session.ownerType === 'broker') {
+                        if (request.params.teamId !== request.session.Broker.Team.hashid) {
+                            reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                        }
+                    } else {
+                        reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                    }
+                } else {
+                    const hasPermission = app.needsPermission('broker:topics:write')
+                    await hasPermission(request, reply) // hasPermission sends the error response if required which stops the request
+                }
             }
         ],
         schema: {
@@ -525,23 +526,6 @@ module.exports = async function (app) {
                 await topic.save()
             }
             reply.status(201).send(app.db.views.MQTTTopicSchema.clean(topic))
-        } else {
-            reply.status(404).send({ code: 'not_found', error: 'not found' })
-        }
-    })
-
-    // This may be helpful - not sure yet. If you're seeing this in a review commented out,
-    // we can probably get rid as I haven't found a use for it yet.
-    app.get('/:brokerId/topics/:topicId', {
-        preHandler: app.needsPermission('broker:topics:write')
-    }, async (request, reply) => {
-        let brokerId = request.params.brokerId
-        if (brokerId === 'team-broker') {
-            brokerId = app.settings.get('team:broker:creds')
-        }
-        const topic = await app.db.models.MQTTTopicSchema.get(request.params.teamId, brokerId, request.params.topicId)
-        if (topic) {
-            reply.status(200).send({ topic: topic.topic, metadata: topic.metadata })
         } else {
             reply.status(404).send({ code: 'not_found', error: 'not found' })
         }
