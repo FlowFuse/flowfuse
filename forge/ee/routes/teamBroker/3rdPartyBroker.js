@@ -1,6 +1,4 @@
 module.exports = async function (app) {
-    app.addHook('preHandler', app.verifySession)
-
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
             // let teamId = request.params.teamId
@@ -465,7 +463,7 @@ module.exports = async function (app) {
                     topicObj.inferredSchema = JSON.stringify(topicInfo.type)
                 }
                 if (Object.hasOwn(topicInfo, 'metadata')) {
-                    topicObj.metadata = JSON.stringify(topicInfo.metadata)
+                    topicObj.metadata = topicInfo.metadata
                 }
                 try {
                     await app.db.models.MQTTTopicSchema.upsert(topicObj, {
@@ -524,7 +522,8 @@ module.exports = async function (app) {
         const topic = await app.db.models.MQTTTopicSchema.get(request.params.teamId, brokerId, request.params.topicId)
         if (topic) {
             if (request.body.metadata) {
-                topic.metadata = JSON.stringify(request.body.metadata)
+                topic.metadata = request.body.metadata
+                console.log('updating to metadata', request.body.metadata)
                 await topic.save()
             }
             reply.status(201).send(app.db.views.MQTTTopicSchema.clean(topic))
