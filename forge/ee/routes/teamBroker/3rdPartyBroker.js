@@ -107,20 +107,7 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                type: 'object',
-                properties: {
-                    name: { type: 'string' },
-                    host: { type: 'string' },
-                    port: { type: 'number' },
-                    protocol: { type: 'string' },
-                    protocolVersion: { type: 'number' },
-                    ssl: { type: 'boolean' },
-                    verifySSL: { type: 'boolean' },
-                    clientId: { type: 'string' },
-                    credentials: {
-                        type: 'object'
-                    }
-                }
+                $ref: '3rdPartyBroker'
             },
             response: {
                 201: {
