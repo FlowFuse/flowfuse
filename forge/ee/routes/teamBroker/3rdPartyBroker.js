@@ -401,17 +401,17 @@ module.exports = async function (app) {
         // Might need a custom handler here to allow agent to upload
         preHandler: [
             async (request, reply) => {
-                if (request.session?.scope?.includes('broker:topics')) {
-                    if (request.session.ownerType === 'broker') {
-                        if (request.params.teamId !== request.session.Broker.Team.hashid) {
-                            reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
-                        }
-                    } else {
-                        reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
-                    }
-                } else {
-                    reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
-                }
+                // if (request.session?.scope?.includes('broker:topics')) {
+                //     if (request.session.ownerType === 'broker') {
+                //         if (request.params.teamId !== request.session.Broker.Team.hashid) {
+                //             reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                //         }
+                //     } else {
+                //         reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                //     }
+                // } else {
+                //     reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                // }
             }
         ],
         schema: {
@@ -423,13 +423,6 @@ module.exports = async function (app) {
                     teamId: { type: 'string' },
                     brokerId: { type: 'string' }
                 }
-            },
-            body: {
-                type: 'object',
-                properties: {
-
-                },
-                additionalProperties: true
             },
             response: {
                 201: {
@@ -456,17 +449,25 @@ module.exports = async function (app) {
             // Get the placeholder creds object id used for team brokers
             brokerId = app.settings.get('team:broker:creds')
         }
-        const topics = Object.keys(request.body)
-        topics.forEach(async topic => {
-            const type = request.body[topic].type
+        let body = request.body
+        if (!Array.isArray(body)) {
+            body = [body]
+        }
+        body.forEach(async topicInfo => {
+            const topicObj = {
+                topic: topicInfo.topic,
+                BrokerCredentialsId: brokerId,
+                TeamId: teamId
+            }
+            if (Object.hasOwn(topicInfo, 'type')) {
+                topicObj.type = JSON.stringify(topicInfo.type)
+            }
+            if (Object.hasOwn(topicInfo, 'metadata')) {
+                topicObj.metadata = JSON.stringify(topicInfo.metadata)
+            }
             try {
-                await app.db.models.MQTTTopicSchema.upsert({
-                    topic,
-                    BrokerCredentialsId: brokerId,
-                    TeamId: teamId,
-                    inferredSchema: JSON.stringify(type)
-                }, {
-                    fields: ['inferredSchema'],
+                await app.db.models.MQTTTopicSchema.upsert(topicObj, {
+                    fields: ['inferredSchema', 'metadata'],
                     conflictFields: ['topic', 'TeamId', 'BrokerCredentialsId']
                 })
             } catch (err) {
@@ -513,30 +514,42 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const topic = await app.db.models.MQTTTopicSchema.byId(request.params.topicId)
+        let brokerId = request.params.brokerId
+        if (brokerId === 'team-broker') {
+            brokerId = app.settings.get('team:broker:creds')
+        }
+        const topic = await app.db.models.MQTTTopicSchema.get(request.params.teamId, brokerId, request.params.topicId)
         if (topic) {
-            if (topic.Team.hashid === request.params.teamId) {
+            if (request.body.metadata) {
                 topic.metadata = JSON.stringify(request.body.metadata)
                 await topic.save()
-                // need view to clean up
-                const response = topic.toJSON()
-                if (response.metadata) {
-                    response.metadata = JSON.parse(response.metadata)
-                }
-                response.id = response.hashid
-                delete response.hashid
-                reply.status(201).send(response)
-            } else {
-                reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
             }
+            reply.status(201).send(app.db.views.MQTTTopicSchema.clean(topic))
+        } else {
+            reply.status(404).send({ code: 'not_found', error: 'not found' })
+        }
+    })
+
+    // This may be helpful - not sure yet. If you're seeing this in a review commented out,
+    // we can probably get rid as I haven't found a use for it yet.
+    app.get('/:brokerId/topics/:topicId', {
+        preHandler: app.needsPermission('broker:topics:write')
+    }, async (request, reply) => {
+        let brokerId = request.params.brokerId
+        if (brokerId === 'team-broker') {
+            brokerId = app.settings.get('team:broker:creds')
+        }
+        const topic = await app.db.models.MQTTTopicSchema.get(request.params.teamId, brokerId, request.params.topicId)
+        if (topic) {
+            reply.status(200).send({ topic: topic.topic, metadata: topic.metadata })
         } else {
             reply.status(404).send({ code: 'not_found', error: 'not found' })
         }
     })
 
     /**
-     * Modify Topic metadata from a 3rd Party Broker
-     * @name /api/v1/teams/:teamId/broker/:brokerId/topics/:topicId
+     * Delete a topic entry
+     * @name /api/v1/teams/:teamId/broker/:brokerId/topics/*
      * @static
      * @memberof forge.routes.api.team.broker
      */
@@ -569,23 +582,14 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const topic = await app.db.models.MQTTTopicSchema.byId(request.params.topicId)
+        let brokerId = request.params.brokerId
+        if (brokerId === 'team-broker') {
+            brokerId = app.settings.get('team:broker:creds')
+        }
+        const topic = await app.db.models.MQTTTopicSchema.get(request.params.teamId, brokerId, request.params.topicId)
         if (topic) {
-            if (topic.Team.hashid === request.params.teamId) {
-                // need to check if topic belongs to broker requested
-                if (request.params.brokerId !== 'team-broker' && topic.BrokerCredentials.hashid === request.params.brokerId) {
-                    await topic.destroy()
-                    reply.status(201).send({})
-                    return
-                } else if (request.params.brokerId === 'team-broker' && topic.BrokerCredentialsId === app.settings.get('team:broker:creds')) {
-                    await topic.destroy()
-                    reply.status(201).send({})
-                    return
-                }
-                reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
-            } else {
-                reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
-            }
+            await topic.destroy()
+            reply.status(201).send({})
         } else {
             reply.status(404).send({ code: 'not_found', error: 'not found' })
         }

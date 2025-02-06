@@ -68,6 +68,27 @@ module.exports = {
                         topics: rows
                     }
                 },
+                /**
+                 * Get a single topic based on team/broker/topic
+                 */
+                get: async (teamId, brokerId, topicId) => {
+                    if (typeof topicId === 'string') {
+                        topicId = M.MQTTTopicSchema.decodeHashid(topicId)
+                    }
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
+                    if (typeof brokerId === 'string') {
+                        brokerId = M.BrokerCredentials.decodeHashid(brokerId)
+                    }
+                    return this.findOne({
+                        where: {
+                            id: topicId,
+                            TeamId: teamId,
+                            BrokerCredentialsId: brokerId
+                        }
+                    })
+                },
                 getTeamBroker: async (teamId, pagination = {}, where = {}) => {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)

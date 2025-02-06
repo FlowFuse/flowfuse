@@ -1,11 +1,11 @@
 <template>
-    <div class="segment-wrapper" :class="{open: isSegmentOpen, empty: isEmpty}" data-el="segment-wrapper" :data-value="segment.name">
+    <div class="segment-wrapper" :class="{open: isSegmentOpen, empty: isEmpty, selected: isSegmentSelected}" data-el="segment-wrapper" :data-value="segment.name">
         <div class="segment flex" @click="toggleChildren();rowClick(segment)">
             <div class="diagram">
                 <span v-if="!isRoot" class="connector-elbow" />
                 <span v-if="shouldShowTrunk" class="connector-trunk" />
             </div>
-            <div class="content flex gap-1.5 items-center font-bold" :class="{'cursor-pointer': hasChildren, 'cursor-default': !hasChildren, 'pl-10': !isRoot}">
+            <div class="content flex gap-1.5 items-center font-bold cursor-pointer" :class="{'pl-10': !isRoot}">
                 <ChevronRightIcon v-if="hasChildren" class="chevron ff-icon-sm" />
                 <p class="flex gap-2.5 items-end" :class="{'ml-2': !hasChildren}">
                     <span class="title">
@@ -19,7 +19,7 @@
                         </span>
                     </span>
                     <span v-if="hasChildren" class="font-normal opacity-50 text-xs">{{ topicsCounterLabel }}</span>
-                    <text-copier :text="isRoot ? segment.name : (`${segment.path}/${segment.name}`)" :show-text="false" class="ff-text-copier" />
+                    <text-copier :text="segment.topic" :show-text="false" class="ff-text-copier" />
                 </p>
             </div>
         </div>
@@ -32,6 +32,7 @@
                 :has-siblings="Object.keys(children).length > 1"
                 :is-last-sibling="key === Object.keys(children).length - 1"
                 :class="{'pl-10': !isRoot}"
+                :selected-segment="selectedSegment"
                 @segment-selected="rowClick"
                 @segment-state-changed="$emit('segment-state-changed', $event)"
             />
@@ -68,6 +69,11 @@ export default {
         isLastSibling: {
             required: true,
             type: Boolean
+        },
+        selectedSegment: {
+            required: false,
+            type: Object,
+            default: null
         }
     },
     emits: ['segment-selected', 'segment-state-changed'],
@@ -98,6 +104,9 @@ export default {
         },
         shouldShowTrunk () {
             return !this.isRoot && this.hasSiblings && this.isLastSibling
+        },
+        isSegmentSelected () {
+            return this.segment?.topic === this.selectedSegment?.topic
         }
     },
     watch: {
@@ -193,11 +202,13 @@ export default {
     .children {
         overflow: hidden;
     }
-
-    &.open > {
+    &.selected > {
         .segment {
             background: $ff-indigo-50;
-
+        }
+    }
+    &.open > {
+        .segment {
             .content {
                 .title {
                     color: $ff-indigo-700;
