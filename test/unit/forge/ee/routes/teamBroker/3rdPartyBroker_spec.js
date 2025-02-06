@@ -17,6 +17,7 @@ describe('3rd Party Broker API', function () {
         await login('alice', 'aaPassword')
 
         const userBob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
+        app.userBob = userBob
         await app.team.addUser(userBob, { through: { role: Roles.Owner } })
         // Run all the tests with bob - non-admin Team Owner
         await login('bob', 'bbPassword')
@@ -238,20 +239,6 @@ describe('3rd Party Broker API', function () {
             const res = await creds.refreshAuthTokens()
             agentToken = res.token
         })
-        // it('Store Topic for a broker as a team owner', async function () {
-        //     const response = await app.inject({
-        //         method: 'POST',
-        //         url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
-        //         cookies: { sid: TestObjects.tokens.bob },
-        //         body: {
-        //             topic: 'foo/bar/baz'
-        //         }
-        //     })
-        //     response.statusCode.should.equal(201)
-        //     const result = response.json()
-        //     result.should.have.property('id')
-        //     result.should.have.property('topic', 'foo/bar/baz')
-        // })
         it('Store Topic for a broker as a agent', async function () {
             let response = await app.inject({
                 method: 'POST',
@@ -419,6 +406,102 @@ describe('3rd Party Broker API', function () {
             response.statusCode.should.equal(200)
             result = response.json()
             result.count.should.equal(2)
+        })
+        describe('Team Broker', function () {
+            before(async function () {
+                app.team2 = await app.factory.createTeam({ name: 'BTeam' })
+                await app.team2.addUser(app.userBob, { through: { role: Roles.Owner } })
+            })
+            it('Store Topic for a team-broker as a team owner', async function () {
+                // Add to ATeam
+                let response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: [
+                        {
+                            topic: 'bar/baz/qux',
+                            metadata: { description: 'a topic' }
+                        }
+                    ]
+                })
+                response.statusCode.should.equal(201)
+
+                // Add to BTeam
+                response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team2.hashid}/brokers/team-broker/topics`,
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: [
+                        {
+                            topic: 'bar/baz/qux',
+                            metadata: { description: 'another topic' }
+                        }
+                    ]
+                })
+                response.statusCode.should.equal(201)
+            })
+            it('Get Topics for team-broker as a Team Owner', async function () {
+                // Check no cross-pollution between ATeam and BTeam
+                let response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                let result = response.json()
+                result.topics.should.have.a.lengthOf(1)
+                result.topics[0].should.have.property('topic', 'bar/baz/qux')
+                result.topics[0].should.have.property('metadata', { description: 'a topic' })
+
+                response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team2.hashid}/brokers/team-broker/topics`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                result = response.json()
+                result.topics.should.have.a.lengthOf(1)
+                result.topics[0].should.have.property('topic', 'bar/baz/qux')
+                result.topics[0].should.have.property('metadata', { description: 'another topic' })
+            })
+
+            it('Delete Topic', async function () {
+                let response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                let result = response.json()
+                result.topics.should.have.a.lengthOf(1)
+                const topicId = result.topics[0].id
+
+                // Verify delete against wrong team fails
+                response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${app.team2.hashid}/brokers/team-broker/topics/${topicId}`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(404)
+
+                // Verify we can delete against the right team
+                response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics/${topicId}`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(201)
+
+                response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                result = response.json()
+                result.count.should.equal(0)
+            })
         })
     })
 })
