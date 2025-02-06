@@ -64,7 +64,14 @@ module.exports = async function (app) {
                 200: {
                     type: 'object',
                     properties: {
-
+                        meta: { $ref: 'PaginationMeta' },
+                        count: { type: 'number' },
+                        brokers: {
+                            type: 'array',
+                            items: {
+                                $ref: '3rdPartyBroker'
+                            }
+                        }
                     },
                     additionalProperties: true
                 },
@@ -117,11 +124,7 @@ module.exports = async function (app) {
             },
             response: {
                 201: {
-                    type: 'object',
-                    properties: {
-
-                    },
-                    additionalProperties: true
+                    $ref: '3rdPartyBroker'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -192,11 +195,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    type: 'object',
-                    properties: {
-
-                    },
-                    additionalProperties: true
+                    $ref: '3rdPartyBroker'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -264,11 +263,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    type: 'object',
-                    properties: {
-
-                    },
-                    additionalProperties: true
+                    $ref: '3rdPartyBroker'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -292,6 +287,48 @@ module.exports = async function (app) {
             reply.send(clean)
         } else {
             reply.status(404).send({ code: 'not_found', error: 'not found' })
+        }
+    })
+
+    /**
+     * Get details and status of a 3rd Party Broker
+     */
+    app.get('/:brokerId', {
+        preHandler: app.needsPermission('broker:credentials:list'),
+        schema: {
+            summary: 'Get 3rd Party Broker details and status',
+            tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    brokerId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: '3rdPartyBroker'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        if (request.params.brokerId !== 'team-broker') {
+            try {
+                const state = await app.containers.getBrokerAgentState(request.broker)
+                const clean = app.db.views.BrokerCredentials.clean(request.broker)
+                clean.state = state
+                reply.send(clean)
+            } catch (err) {
+                reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
+            }
+        } else {
+            reply.status(40).send({error: 'not_supported', message: 'not supported'})
         }
     })
 
@@ -341,7 +378,7 @@ module.exports = async function (app) {
                 reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
             }
         } else {
-            reply.status(404).send({})
+            reply.status(404).send({error: 'not_found', message: 'not found'})
         }
     })
 
