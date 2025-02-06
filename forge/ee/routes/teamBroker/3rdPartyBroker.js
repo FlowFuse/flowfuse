@@ -462,7 +462,7 @@ module.exports = async function (app) {
                     TeamId: teamId
                 }
                 if (Object.hasOwn(topicInfo, 'type')) {
-                    topicObj.type = JSON.stringify(topicInfo.type)
+                    topicObj.inferredSchema = JSON.stringify(topicInfo.type)
                 }
                 if (Object.hasOwn(topicInfo, 'metadata')) {
                     topicObj.metadata = JSON.stringify(topicInfo.metadata)
