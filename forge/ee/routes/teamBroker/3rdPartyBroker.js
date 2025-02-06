@@ -315,7 +315,7 @@ module.exports = async function (app) {
                 reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
             }
         } else {
-            reply.status(40).send({error: 'not_supported', message: 'not supported'})
+            reply.status(40).send({ error: 'not_supported', message: 'not supported' })
         }
     })
 
@@ -365,7 +365,7 @@ module.exports = async function (app) {
                 reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
             }
         } else {
-            reply.status(404).send({error: 'not_found', message: 'not found'})
+            reply.status(404).send({ error: 'not_found', message: 'not found' })
         }
     })
 
