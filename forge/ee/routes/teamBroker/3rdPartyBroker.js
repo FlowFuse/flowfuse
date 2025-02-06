@@ -523,7 +523,6 @@ module.exports = async function (app) {
         if (topic) {
             if (request.body.metadata) {
                 topic.metadata = request.body.metadata
-                console.log('updating to metadata', request.body.metadata)
                 await topic.save()
             }
             reply.status(201).send(app.db.views.MQTTTopicSchema.clean(topic))
