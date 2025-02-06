@@ -455,25 +455,27 @@ module.exports = async function (app) {
             body = [body]
         }
         body.forEach(async topicInfo => {
-            const topicObj = {
-                topic: topicInfo.topic,
-                BrokerCredentialsId: brokerId,
-                TeamId: teamId
-            }
-            if (Object.hasOwn(topicInfo, 'type')) {
-                topicObj.type = JSON.stringify(topicInfo.type)
-            }
-            if (Object.hasOwn(topicInfo, 'metadata')) {
-                topicObj.metadata = JSON.stringify(topicInfo.metadata)
-            }
-            try {
-                await app.db.models.MQTTTopicSchema.upsert(topicObj, {
-                    fields: ['inferredSchema', 'metadata'],
-                    conflictFields: ['topic', 'TeamId', 'BrokerCredentialsId']
-                })
-            } catch (err) {
-                // reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
-                // return
+            if (topicInfo.topic) {
+                const topicObj = {
+                    topic: topicInfo.topic,
+                    BrokerCredentialsId: brokerId,
+                    TeamId: teamId
+                }
+                if (Object.hasOwn(topicInfo, 'type')) {
+                    topicObj.type = JSON.stringify(topicInfo.type)
+                }
+                if (Object.hasOwn(topicInfo, 'metadata')) {
+                    topicObj.metadata = JSON.stringify(topicInfo.metadata)
+                }
+                try {
+                    await app.db.models.MQTTTopicSchema.upsert(topicObj, {
+                        fields: ['inferredSchema', 'metadata'],
+                        conflictFields: ['topic', 'TeamId', 'BrokerCredentialsId']
+                    })
+                } catch (err) {
+                    // reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
+                    // return
+                }
             }
         })
         reply.status(201).send({})

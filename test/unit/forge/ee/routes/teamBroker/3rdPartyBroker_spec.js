@@ -209,7 +209,7 @@ describe('3rd Party Broker API', function () {
         })
     })
 
-    describe('Topic Storge API', function () {
+    describe('Topic Storage API', function () {
         let brokerCredentialId = ''
         let agentToken = ''
         before(async function () {
@@ -259,12 +259,13 @@ describe('3rd Party Broker API', function () {
                 headers: {
                     Authorization: `Bearer ${agentToken}`
                 },
-                body: {
-                    'foo/bar/baz/qux': {
+                body: [
+                    {
+                        topic: 'foo/bar/baz/qux',
                         time: 1738236145678,
                         type: { type: 'string' }
                     }
-                }
+                ]
             })
             response.statusCode.should.equal(201)
 
@@ -274,11 +275,12 @@ describe('3rd Party Broker API', function () {
                 headers: {
                     Authorization: `Bearer ${agentToken}`
                 },
-                body: {
-                    'foo/bar/baz': {
+                body: [
+                    {
+                        topic: 'foo/bar/baz',
                         time: 1738236145678
                     }
-                }
+                ]
             })
             response.statusCode.should.equal(201)
 
@@ -288,12 +290,13 @@ describe('3rd Party Broker API', function () {
                 headers: {
                     Authorization: `Bearer ${agentToken}`
                 },
-                body: {
-                    'bar/baz/qux': {
+                body: [
+                    {
+                        topic: 'bar/baz/qux',
                         time: 1738236145678,
                         type: { type: 'number' }
                     }
-                }
+                ]
             })
             response.statusCode.should.equal(201)
 
@@ -303,14 +306,50 @@ describe('3rd Party Broker API', function () {
                 headers: {
                     Authorization: `Bearer ${agentToken}`
                 },
-                body: {
-                    'bar/baz/qux': {
+                body: [
+                    {
+                        topic: 'bar/baz/qux',
                         time: 1738236145978,
                         type: { type: 'number' }
                     }
-                }
+                ]
             })
             response.statusCode.should.equal(201)
+        })
+        it('Store Topic for a broker as a team owner', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob },
+                body: [
+                    {
+                        topic: 'bar/baz/qux',
+                        metadata: { description: 'a topic' }
+                    }
+                ]
+            })
+            response.statusCode.should.equal(201)
+        })
+        it('Verify topics all correct', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.topics.should.have.a.lengthOf(3)
+            const topics = result.topics
+            topics.sort((A, B) => A.topic.localeCompare(B.topic))
+
+            topics[0].should.have.property('topic', 'bar/baz/qux')
+            topics[0].should.have.property('metadata', { description: 'a topic' })
+
+            topics[1].should.have.property('topic', 'foo/bar/baz')
+            topics[1].should.have.property('metadata', {})
+
+            topics[2].should.have.property('topic', 'foo/bar/baz/qux')
+            topics[2].should.have.property('metadata', {})
         })
         it('Get Topics for 3rd Pary broker as a Team Owner', async function () {
             const response = await app.inject({
