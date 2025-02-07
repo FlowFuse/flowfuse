@@ -41,5 +41,51 @@ describe('FlowFuse - Brokers', () => {
 
             cy.get('[data-el="add-new-broker"]').should('exist')
         })
+
+        it.only('should allow users to navigate directly to a third party broker if they have one set up even if they have the flowfuse broker', () => {
+            const brokerId = 'OPK5AMZ5aJ'
+
+            cy.intercept('GET', '/api/*/teams/*/broker/clients', {
+                clients: [{
+                    id: '1',
+                    username: 'john',
+                    acls: [
+                        {
+                            action: 'both',
+                            pattern: 'both/#'
+                        },
+                        {
+                            action: 'subscribe',
+                            pattern: 'subscribe/#'
+                        },
+                        {
+                            action: 'publish',
+                            pattern: 'publish/#'
+                        }
+                    ]
+                }],
+                meta: {},
+                count: 0
+            })
+            cy.intercept('GET', '/api/*/teams/*/brokers', {
+                brokers: [{
+                    id: brokerId,
+                    name: 'external-broker',
+                    host: '',
+                    port: 1883,
+                    protocol: 'mqtt:',
+                    ssl: false,
+                    verifySSL: true,
+                    clientId: ''
+                }],
+                meta: {},
+                count: 0
+            })
+
+            cy.visit(`/team/ateam/brokers/${brokerId}/hierarchy`)
+
+            cy.get('[data-el="page-name"]').contains('external-broker')
+            cy.get('[data-el="empty-state"]').should('exist')
+        })
     })
 })

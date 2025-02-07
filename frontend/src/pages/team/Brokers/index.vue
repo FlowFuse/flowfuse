@@ -217,7 +217,11 @@ export default {
         }
     },
     watch: {
-        hasFfUnsClients: 'redirectIfNeeded',
+        hasFfUnsClients () {
+            if (!this.loading) {
+                this.redirectIfNeeded()
+            }
+        },
         $route (route) {
             const routeRequiresBrokerId = !this.isCreationPage
 
@@ -241,27 +245,31 @@ export default {
         ...mapActions('product', ['fetchUnsClients']),
         async fetchData () {
             this.loading = true
-            return this.$store.dispatch('product/fetchUnsClients')
-                .catch(err => console.error(err))
-                .then(() => this.$store.dispatch('product/getBrokers'))
-                .then(() => {
-                    if (
-                        Object.prototype.hasOwnProperty.call(this.$route.params, 'brokerId') &&
+            if (this.featuresCheck.isMqttBrokerFeatureEnabled) {
+                return this.$store.dispatch('product/fetchUnsClients')
+                    .catch(err => console.error(err))
+                    .then(() => this.$store.dispatch('product/getBrokers'))
+                    .then(() => {
+                        if (
+                            Object.prototype.hasOwnProperty.call(this.$route.params, 'brokerId') &&
                             !!this.$route.params.brokerId.length &&
                             !this.brokers.find(br => br.id === this.$route.params.brokerId)
-                    ) {
-                        return this.$router.push({ name: 'page-not-found' })
-                    }
-                })
-                .catch(err => console.error(err))
-                .finally(() => {
-                    this.loading = false
-                })
+                        ) {
+                            return this.$router.push({ name: 'page-not-found' })
+                        }
+                    })
+                    .catch(err => console.error(err))
+                    .finally(() => {
+                        this.loading = false
+                    })
+            }
+
+            return Promise.resolve()
         },
         redirectIfNeeded () {
             const brokerId = this.$route.params.brokerId
             switch (true) {
-            case this.hasFfUnsClients && !this.isCreationPage:
+            case this.hasFfUnsClients && !this.isCreationPage && !this.hasBrokers:
                 this.activeBrokerId = 'team-broker'
                 break
 
