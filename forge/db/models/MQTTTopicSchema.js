@@ -10,7 +10,20 @@ module.exports = {
     name: 'MQTTTopicSchema',
     schema: {
         topic: { type: DataTypes.STRING, allowNull: false },
-        metadata: { type: DataTypes.TEXT, allowNull: true },
+        metadata: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            get () {
+                const rawValue = this.getDataValue('metadata')
+                if (rawValue === undefined || rawValue === null) {
+                    return rawValue
+                }
+                return JSON.parse(rawValue)
+            },
+            set (value) {
+                this.setDataValue('metadata', JSON.stringify(value))
+            }
+        },
         inferredSchema: { type: DataTypes.TEXT, allowNull: true }
     },
     indexes: [
@@ -67,6 +80,27 @@ module.exports = {
                         count,
                         topics: rows
                     }
+                },
+                /**
+                 * Get a single topic based on team/broker/topic
+                 */
+                get: async (teamId, brokerId, topicId) => {
+                    if (typeof topicId === 'string') {
+                        topicId = M.MQTTTopicSchema.decodeHashid(topicId)
+                    }
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
+                    if (typeof brokerId === 'string') {
+                        brokerId = M.BrokerCredentials.decodeHashid(brokerId)
+                    }
+                    return this.findOne({
+                        where: {
+                            id: topicId,
+                            TeamId: teamId,
+                            BrokerCredentialsId: brokerId
+                        }
+                    })
                 },
                 getTeamBroker: async (teamId, pagination = {}, where = {}) => {
                     if (typeof teamId === 'string') {

@@ -1,42 +1,82 @@
 <template>
-    <div class="unified-namespace-hierarchy">
-        <div class="title mb-5 flex gap-3 items-center">
-            <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
-            <h3 class="my-2 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
-            <ff-button v-if="shouldDisplaySchemaButton" @click="openSchema()">
-                <template #icon-right><ExternalLinkIcon /></template>
-                Open Schema
-            </ff-button>
+    <div class="ff-broker-hierarchy">
+        <div class="unified-namespace-hierarchy">
+            <div class="title mb-5 flex gap-3 items-center">
+                <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
+                <h3 class="my-2 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
+                <ff-button v-if="shouldDisplaySchemaButton" @click="openSchema()">
+                    <template #icon-right><ExternalLinkIcon /></template>
+                    Open Schema
+                </ff-button>
+            </div>
+
+            <div class="space-y-6">
+                <ff-loading v-if="loading" message="Loading Topics..." />
+
+                <template v-else>
+                    <section v-if="topics.length > 0" class="topics">
+                        <topic-segment
+                            v-for="(segment, key) in hierarchySegments"
+                            :key="segment"
+                            :segment="hierarchy[segment]"
+                            :children="hierarchy[segment].children"
+                            :has-siblings="Object.keys(hierarchy).length > 1"
+                            :is-last-sibling="key === Object.keys(hierarchy).length-1"
+                            :is-root="true"
+                            :selected-segment="inspecting"
+                            @segment-selected="segmentSelected"
+                            @segment-state-changed="toggleSegmentVisibility"
+                        />
+                    </section>
+
+                    <EmptyState v-else>
+                        <template #img>
+                            <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
+                        </template>
+                        <template #header>Start Building Your Topic Hierarchy</template>
+                        <template #message>
+                            <p>It looks like no topics have been created yet.</p>
+                            <p>Topics are automatically generated as your MQTT clients publish events to the broker. Get started by connecting a client and publishing your first message.</p>
+                        </template>
+                    </EmptyState>
+                </template>
+            </div>
         </div>
-
-        <div class="space-y-6">
-            <ff-loading v-if="loading" message="Loading Topics..." />
-
-            <template v-else>
-                <section v-if="topics.length > 0" class="topics">
-                    <topic-segment
-                        v-for="(segment, key) in hierarchySegments"
-                        :key="segment"
-                        :segment="hierarchy[segment]"
-                        :children="hierarchy[segment].children"
-                        :has-siblings="Object.keys(hierarchy).length > 1"
-                        :is-last-sibling="key === Object.keys(hierarchy).length-1"
-                        :is-root="true"
-                        @segment-state-changed="toggleSegmentVisibility"
-                    />
-                </section>
-
-                <EmptyState v-else>
-                    <template #img>
-                        <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
-                    </template>
-                    <template #header>Start Building Your Topic Hierarchy</template>
-                    <template #message>
-                        <p>It looks like no topics have been created yet.</p>
-                        <p>Topics are automatically generated as your MQTT clients publish events to the broker. Get started by connecting a client and publishing your first message.</p>
-                    </template>
-                </EmptyState>
-            </template>
+        <div v-if="!loading && topics.length > 0" class="ff-topic-inspector" style="width: 50%;">
+            <div class="title mb-5 flex gap-3 items-center">
+                <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
+                <h3 class="my-2 flex-grow" data-el="subtitle">Topic Inspector</h3>
+                <div v-if="inspecting" class="flex items-center gap-4">
+                    <ff-button :disabled="!hasUnsavedChanges" kind="secondary" @click="clearTopicMetaChanges()">
+                        Cancel
+                    </ff-button>
+                    <ff-button :disabled="!hasUnsavedChanges" @click="saveTopicMeta()">
+                        Save
+                    </ff-button>
+                </div>
+            </div>
+            <div v-if="inspecting" class="ff-topic-inspecting">
+                <label class="ff-topic-path">
+                    <span>
+                        <template v-for="(part, idx) in selectedTopicParts" :key="idx">
+                            <span v-if="idx > 0">/<wbr></span>
+                            <span>{{ part }}</span>
+                        </template>
+                    </span>
+                    <text-copier :text="selectedTopic" :show-text="false" prompt-position="left" class="ff-text-copier" />
+                </label>
+                <ff-divider />
+                <FormRow v-model="inspecting.metadata.description" containerClass="max-w-full">Description</FormRow>
+            </div>
+            <EmptyState v-else>
+                <template #img>
+                    <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
+                </template>
+                <template #header>Inspect Your Topic Hierarchy</template>
+                <template #message>
+                    <p>Select a topic from the hierarchy to view additional information about it.</p>
+                </template>
+            </EmptyState>
         </div>
     </div>
 </template>
@@ -46,9 +86,11 @@
 import { ExternalLinkIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState } from 'vuex'
 
-import brokerClient from '../../../../api/broker.js'
+import brokerApi from '../../../../api/broker.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 
+import FormRow from '../../../../components/FormRow.vue'
+import TextCopier from '../../../../components/TextCopier.vue'
 import { useNavigationHelper } from '../../../../composables/NavigationHelper.js'
 
 import TopicSegment from './components/TopicSegment.vue'
@@ -57,11 +99,12 @@ const { openInANewTab } = useNavigationHelper()
 
 export default {
     name: 'BrokerHierarchy',
-    components: { TopicSegment, EmptyState, ExternalLinkIcon },
+    components: { TopicSegment, EmptyState, ExternalLinkIcon, FormRow, TextCopier },
     data () {
         return {
             loading: false,
-            topics: []
+            topics: {},
+            inspecting: null
         }
     },
     computed: {
@@ -71,14 +114,12 @@ export default {
         hierarchy: {
             get () {
                 const hierarchy = {}
-                // this.topics is an array of topic objects { id, topic, metadata }.
-                // For now, just turn into a flat array of topic strings - this will
-                // need changing when we have to keep the metadata info attached
-                const topics = this.topics.map(topic => topic.topic)
+                const topicLookup = {}
                 // Sort topics alphabetically to ensure consistency in hierarchy generation
-                topics.sort().forEach(topic => {
-                    const parts = topic.split('/')
-                    if (topic.startsWith('/')) {
+                this.topics.forEach(topic => {
+                    topicLookup[topic.topic] = topic
+                    const parts = topic.topic.split('/')
+                    if (topic.topic.startsWith('/')) {
                         // Handle empty root topic
                         parts.shift()
                         parts[0] = '/' + parts[0]
@@ -90,6 +131,11 @@ export default {
                         hierarchy[rootName] = {
                             name: rootName,
                             path: rootName,
+                            topic: rootName,
+                            id: topicLookup[rootName]?.id,
+                            metadata: topicLookup[rootName]?.metadata || {},
+                            originalMetadata: JSON.stringify(topicLookup[rootName]?.metadata || {}),
+                            isRoot: true,
                             open: false,
                             childrenCount: 0,
                             children: {}
@@ -105,6 +151,10 @@ export default {
                             current[part] = {
                                 name: part,
                                 path,
+                                topic: path + '/' + part,
+                                id: topicLookup[path + '/' + part]?.id,
+                                metadata: topicLookup[path + '/' + part]?.metadata || {},
+                                originalMetadata: JSON.stringify(topicLookup[path + '/' + part]?.metadata || {}),
                                 open: false,
                                 childrenCount: 0,
                                 children: {}
@@ -129,7 +179,6 @@ export default {
                 for (const key in hierarchy) {
                     calculateChildrenCount(hierarchy[key])
                 }
-
                 return hierarchy
             },
             set (segment) {
@@ -157,7 +206,19 @@ export default {
         shouldDisplaySchemaButton () {
             // For now, only show schema on Team Broker. This will need to be extended for 3rd party
             // brokers later
-            return this.featuresCheck.isMqttBrokerFeatureEnabled && this.$route.params.brokerId === 'team-broker'
+            return this.featuresCheck.isMqttBrokerFeatureEnabled
+        },
+        selectedTopic () {
+            if (!this.inspecting) {
+                return ''
+            }
+            return this.inspecting.topic
+        },
+        selectedTopicParts () {
+            return this.selectedTopic.split('/')
+        },
+        hasUnsavedChanges () {
+            return this.inspecting && JSON.stringify(this.inspecting.metadata) !== this.inspecting.originalMetadata
         }
     },
     watch: {
@@ -169,9 +230,10 @@ export default {
     methods: {
         async getTopics () {
             this.loading = true
-            return brokerClient.getBrokerTopics(this.team.id, this.$route.params.brokerId)
+            return brokerApi.getBrokerTopics(this.team.id, this.$route.params.brokerId)
                 .then(res => {
                     this.topics = res.topics || []
+                    this.topics.sort((A, B) => A.topic.localeCompare(B.topic))
                 })
                 .catch(err => err)
                 .finally(() => {
@@ -182,19 +244,84 @@ export default {
             // trigger's the hierarchy setter
             this.hierarchy = segment
         },
+        segmentSelected (segment) {
+            this.inspecting = segment
+        },
         openSchema () {
-            openInANewTab(`/api/v1/teams/${this.team.id}/broker/team-broker/schema.yml`, '_blank')
+            openInANewTab(`/api/v1/teams/${this.team.id}/broker/${this.$route.params.brokerId}/schema.yml`, '_blank')
+        },
+        async saveTopicMeta () {
+            if (this.inspecting.id) {
+                // This is a preexisting topic in the database
+                await brokerApi.updateBrokerTopic(this.team.id, this.$route.params.brokerId, this.inspecting.id, {
+                    metadata: this.inspecting.metadata
+                })
+                this.inspecting.originalMetadata = JSON.stringify(this.inspecting.metadata)
+            } else {
+                // This is not a preexisting topic - so we need to create one
+                // This also works for updating an existing one based on 'topic' - as it does an upsert
+                await brokerApi.addBrokerTopic(this.team.id, this.$route.params.brokerId, {
+                    topic: this.inspecting.topic,
+                    metadata: this.inspecting.metadata
+                })
+                this.inspecting.originalMetadata = JSON.stringify(this.inspecting.metadata)
+            }
+        },
+        async clearTopicMetaChanges () {
+            if (this.inspecting) {
+                this.inspecting.metadata = JSON.parse(this.inspecting.originalMetadata)
+            }
         }
     }
 }
 </script>
 <style scoped lang="scss">
+.ff-broker-hierarchy {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+}
+
+.ff-topic-inspector {
+    transition: width 0.3s;
+    overflow: hidden;
+}
+
+.ff-topic-inspecting {
+    background: $ff-white;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid $ff-grey-100;
+}
+
+.ff-topic-path {
+    display: flex;
+    background-color: $ff-indigo-50;
+    color: $ff-indigo-600;
+    border-radius: 6px;
+    border: 1px solid $ff-indigo-100;
+    padding: 6px;
+    font-weight: 600;
+    & > span:first-child {
+        flex-grow: 1
+    }
+    & > span:last-child {
+        flex-grow: 0
+    }
+}
+
 .unified-namespace-hierarchy {
+    flex-grow: 1;
+    min-width: 50%;
     .topics {
         background: $ff-white;
         padding: 10px;
-        border-radius: 5px;
+        border-radius: 6px;
         border: 1px solid $ff-grey-100;
     }
+}
+
+.title {
+    height: 34px;
 }
 </style>

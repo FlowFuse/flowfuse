@@ -1,6 +1,4 @@
 module.exports = async function (app) {
-    app.addHook('preHandler', app.verifySession)
-
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
             // let teamId = request.params.teamId
@@ -410,7 +408,8 @@ module.exports = async function (app) {
                         reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
                     }
                 } else {
-                    reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                    const hasPermission = app.needsPermission('broker:topics:write')
+                    await hasPermission(request, reply) // hasPermission sends the error response if required which stops the request
                 }
             }
         ],
@@ -423,13 +422,6 @@ module.exports = async function (app) {
                     teamId: { type: 'string' },
                     brokerId: { type: 'string' }
                 }
-            },
-            body: {
-                type: 'object',
-                properties: {
-
-                },
-                additionalProperties: true
             },
             response: {
                 201: {
@@ -456,22 +448,32 @@ module.exports = async function (app) {
             // Get the placeholder creds object id used for team brokers
             brokerId = app.settings.get('team:broker:creds')
         }
-        const topics = Object.keys(request.body)
-        topics.forEach(async topic => {
-            const type = request.body[topic].type
-            try {
-                await app.db.models.MQTTTopicSchema.upsert({
-                    topic,
+        let body = request.body
+        if (!Array.isArray(body)) {
+            body = [body]
+        }
+        body.forEach(async topicInfo => {
+            if (topicInfo.topic) {
+                const topicObj = {
+                    topic: topicInfo.topic,
                     BrokerCredentialsId: brokerId,
-                    TeamId: teamId,
-                    inferredSchema: JSON.stringify(type)
-                }, {
-                    fields: ['inferredSchema'],
-                    conflictFields: ['topic', 'TeamId', 'BrokerCredentialsId']
-                })
-            } catch (err) {
-                // reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
-                // return
+                    TeamId: teamId
+                }
+                if (Object.hasOwn(topicInfo, 'type')) {
+                    topicObj.inferredSchema = JSON.stringify(topicInfo.type)
+                }
+                if (Object.hasOwn(topicInfo, 'metadata')) {
+                    topicObj.metadata = topicInfo.metadata
+                }
+                try {
+                    await app.db.models.MQTTTopicSchema.upsert(topicObj, {
+                        fields: ['inferredSchema', 'metadata'],
+                        conflictFields: ['topic', 'TeamId', 'BrokerCredentialsId']
+                    })
+                } catch (err) {
+                    // reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
+                    // return
+                }
             }
         })
         reply.status(201).send({})
@@ -513,30 +515,25 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const topic = await app.db.models.MQTTTopicSchema.byId(request.params.topicId)
+        let brokerId = request.params.brokerId
+        if (brokerId === 'team-broker') {
+            brokerId = app.settings.get('team:broker:creds')
+        }
+        const topic = await app.db.models.MQTTTopicSchema.get(request.params.teamId, brokerId, request.params.topicId)
         if (topic) {
-            if (topic.Team.hashid === request.params.teamId) {
-                topic.metadata = JSON.stringify(request.body.metadata)
+            if (request.body.metadata) {
+                topic.metadata = request.body.metadata
                 await topic.save()
-                // need view to clean up
-                const response = topic.toJSON()
-                if (response.metadata) {
-                    response.metadata = JSON.parse(response.metadata)
-                }
-                response.id = response.hashid
-                delete response.hashid
-                reply.status(201).send(response)
-            } else {
-                reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
             }
+            reply.status(201).send(app.db.views.MQTTTopicSchema.clean(topic))
         } else {
             reply.status(404).send({ code: 'not_found', error: 'not found' })
         }
     })
 
     /**
-     * Modify Topic metadata from a 3rd Party Broker
-     * @name /api/v1/teams/:teamId/broker/:brokerId/topics/:topicId
+     * Delete a topic entry
+     * @name /api/v1/teams/:teamId/broker/:brokerId/topics/*
      * @static
      * @memberof forge.routes.api.team.broker
      */
@@ -569,23 +566,14 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const topic = await app.db.models.MQTTTopicSchema.byId(request.params.topicId)
+        let brokerId = request.params.brokerId
+        if (brokerId === 'team-broker') {
+            brokerId = app.settings.get('team:broker:creds')
+        }
+        const topic = await app.db.models.MQTTTopicSchema.get(request.params.teamId, brokerId, request.params.topicId)
         if (topic) {
-            if (topic.Team.hashid === request.params.teamId) {
-                // need to check if topic belongs to broker requested
-                if (request.params.brokerId !== 'team-broker' && topic.BrokerCredentials.hashid === request.params.brokerId) {
-                    await topic.destroy()
-                    reply.status(201).send({})
-                    return
-                } else if (request.params.brokerId === 'team-broker' && topic.BrokerCredentialsId === app.settings.get('team:broker:creds')) {
-                    await topic.destroy()
-                    reply.status(201).send({})
-                    return
-                }
-                reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
-            } else {
-                reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
-            }
+            await topic.destroy()
+            reply.status(201).send({})
         } else {
             reply.status(404).send({ code: 'not_found', error: 'not found' })
         }

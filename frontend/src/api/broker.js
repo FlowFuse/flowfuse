@@ -59,6 +59,15 @@ const getBrokerTopics = (teamId, brokerId) => {
         .then(res => res.data)
 }
 
+const addBrokerTopic = (teamId, brokerId, payload) => {
+    return client.post(`/api/v1/teams/${teamId}/brokers/${brokerId}/topics`, payload)
+        .then(res => res.data)
+}
+const updateBrokerTopic = (teamId, brokerId, topicId, payload) => {
+    return client.put(`/api/v1/teams/${teamId}/brokers/${brokerId}/topics/${topicId}`, payload)
+        .then(res => res.data)
+}
+
 export default {
     getClients,
     getClient,
@@ -69,5 +78,7 @@ export default {
     createBroker,
     updateBroker,
     deleteBroker,
-    getBrokerTopics
+    getBrokerTopics,
+    addBrokerTopic,
+    updateBrokerTopic
 }
