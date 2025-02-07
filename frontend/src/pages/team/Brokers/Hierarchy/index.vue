@@ -42,7 +42,7 @@
                 </template>
             </div>
         </div>
-        <div class="ff-topic-inspector" style="width: 50%;">
+        <div v-if="!loading && topics.length > 0" class="ff-topic-inspector" style="width: 50%;">
             <div class="title mb-5 flex gap-3 items-center">
                 <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
                 <h3 class="my-2 flex-grow" data-el="subtitle">Topic Inspector</h3>
@@ -206,7 +206,7 @@ export default {
         shouldDisplaySchemaButton () {
             // For now, only show schema on Team Broker. This will need to be extended for 3rd party
             // brokers later
-            return this.featuresCheck.isMqttBrokerFeatureEnabled && this.$route.params.brokerId === 'team-broker'
+            return this.featuresCheck.isMqttBrokerFeatureEnabled
         },
         selectedTopic () {
             if (!this.inspecting) {
@@ -248,7 +248,7 @@ export default {
             this.inspecting = segment
         },
         openSchema () {
-            openInANewTab(`/api/v1/teams/${this.team.id}/broker/team-broker/schema.yml`, '_blank')
+            openInANewTab(`/api/v1/teams/${this.team.id}/broker/${this.$route.params.brokerId}/schema.yml`, '_blank')
         },
         async saveTopicMeta () {
             if (this.inspecting.id) {

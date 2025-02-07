@@ -10,7 +10,20 @@ module.exports = {
     name: 'MQTTTopicSchema',
     schema: {
         topic: { type: DataTypes.STRING, allowNull: false },
-        metadata: { type: DataTypes.TEXT, allowNull: true },
+        metadata: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            get () {
+                const rawValue = this.getDataValue('metadata')
+                if (rawValue === undefined || rawValue === null) {
+                    return rawValue
+                }
+                return JSON.parse(rawValue)
+            },
+            set (value) {
+                this.setDataValue('metadata', JSON.stringify(value))
+            }
+        },
         inferredSchema: { type: DataTypes.TEXT, allowNull: true }
     },
     indexes: [
