@@ -69,7 +69,7 @@ module.exports = async function (app) {
                         brokers: {
                             type: 'array',
                             items: {
-                                $ref: '3rdPartyBroker'
+                                $ref: 'MQTTBroker'
                             }
                         }
                     },
@@ -107,11 +107,11 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                $ref: '3rdPartyBroker'
+                $ref: 'MQTTBroker'
             },
             response: {
                 201: {
-                    $ref: '3rdPartyBroker'
+                    $ref: 'MQTTBroker'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -182,7 +182,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    $ref: '3rdPartyBroker'
+                    $ref: 'MQTTBroker'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -250,7 +250,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    $ref: '3rdPartyBroker'
+                    $ref: 'MQTTBroker'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -294,7 +294,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    $ref: '3rdPartyBroker'
+                    $ref: 'MQTTBroker'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -312,7 +312,7 @@ module.exports = async function (app) {
                 clean.state = state
                 reply.send(clean)
             } catch (err) {
-                reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
+                reply.status(500).send({ error: 'unknown_error', message: err.toString() })
             }
         } else {
             reply.status(40).send({ error: 'not_supported', message: 'not supported' })
@@ -362,7 +362,7 @@ module.exports = async function (app) {
                 await request.broker.destroy()
                 reply.send({})
             } catch (err) {
-                reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
+                reply.status(500).send({ error: 'unknown_error', message: err.toString() })
             }
         } else {
             reply.status(404).send({ error: 'not_found', message: 'not found' })

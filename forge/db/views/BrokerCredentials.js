@@ -1,6 +1,6 @@
 module.exports = function (app) {
     app.addSchema({
-        $id: '3rdPartyBroker',
+        $id: 'MQTTBroker',
         type: 'object',
         properties: {
             id: { type: 'string' },
