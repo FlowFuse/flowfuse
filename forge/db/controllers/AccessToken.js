@@ -6,6 +6,17 @@ const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with re
 
 const DEFAULT_DEVICE_OTC_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
 
+/*
+ * fft - project
+ * ffpr - password reset
+ * ffd - device
+ * ffu - user
+ * ffadp - auto device provisioning
+ * ffpat - personal access token
+ * ffhttp - httpNode access token
+ * fftpb - third party broker
+ */
+
 module.exports = {
     /**
      * Create an AccessToken for the given project.
@@ -377,5 +388,26 @@ module.exports = {
         if (accessToken) {
             await accessToken.destroy()
         }
+    },
+
+    createTokenForBroker: async function (app, broker, expiresAt, scope = ['broker:credentials', 'broker:topics']) {
+        const existingBrokerToken = await app.db.models.AccessToken.findOne({
+            where: {
+                ownerId: '' + broker.id,
+                ownerType: 'broker'
+            }
+        })
+        if (existingBrokerToken) {
+            await existingBrokerToken.destroy()
+        }
+        const token = generateToken(32, 'fftpb')
+        await app.db.models.AccessToken.create({
+            token,
+            expiresAt,
+            scope,
+            ownerId: '' + broker.id,
+            ownerType: 'broker'
+        })
+        return { token }
     }
 }
