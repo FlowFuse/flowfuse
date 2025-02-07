@@ -1,35 +1,18 @@
-describe('FlowForge - Unified Namespace Clients', () => {
-    describe('is accessible to users with correct permissions', () => {
-        beforeEach(() => {
-            cy.login('alice', 'aaPassword')
-            cy.home()
-        })
-
-        it('users have access to the UNS entry in the main menu', () => {
-            cy.get('[data-nav="team-unified-namespace"]').should('exist')
-            cy.get('[data-nav="team-unified-namespace"]').should('not.be.disabled')
-            cy.get('[data-nav="team-unified-namespace"] [data-el="premium-feature"]').should('exist')
-        })
-
-        it('should display the upgrade banner when accessing the clients with the not available logo', () => {
-            cy.get('[data-nav="team-unified-namespace"]').click()
-            cy.get('[data-nav="team-namespace-clients"]').click()
-            cy.get('[data-el="page-banner-feature-unavailable-to-team"]').should('exist')
-            cy.contains('Broker Not Available')
-            cy.contains('The MQTT Broker page offers a streamlined interface for managing your broker instance and defining client connections.')
-        })
-    })
-
-    describe('is accessible to feature enabled teams ', () => {
+describe('FlowFuse - Brokers', () => {
+    describe('Team Broker', () => {
         let projectId
+
         beforeEach(() => {
-            cy.intercept('GET', '/api/*/teams/*', (req) => {
-                req.reply((response) => {
-                    // ensure we keep bom enabled
-                    response.body.type.properties.features.teamBroker = true
-                    return response
-                })
-            }).as('getTeam')
+            cy.intercept('GET', '/api/*/teams/*/brokers', {
+                brokers: [],
+                meta: {},
+                count: 2
+            }).as('getBrokers')
+            cy.intercept('GET', '/api/*/teams/*/broker/topics', {
+                topics: [],
+                meta: {},
+                count: 2
+            }).as('getTopics')
             cy.login('alice', 'aaPassword')
             cy.home()
 
@@ -38,49 +21,14 @@ describe('FlowForge - Unified Namespace Clients', () => {
                     projectId = response.body.teams[0].id
                 })
         })
-        it('should have the UNS menu entry without the missing feature icon', () => {
-            cy.get('[data-nav="team-unified-namespace"]').should('exist')
-            cy.get('[data-nav="team-unified-namespace"]').should('not.be.disabled')
-            cy.get('[data-nav="team-unified-namespace"] [data-el="premium-feature"]').should('not.exist')
+
+        it('should have the Brokers menu entry without the missing feature icon', () => {
+            cy.get('[data-nav="team-brokers"]').should('exist')
+            cy.get('[data-nav="team-brokers"]').should('not.be.disabled')
+            cy.get('[data-nav="team-brokers"] [data-el="premium-feature"]').should('not.exist')
         })
 
-        it('should display the empty state visible when no clients created and can create a client', () => {
-            cy.intercept('GET', '/api/*/teams/*/broker/clients', {
-                clients: [],
-                meta: {},
-                count: 0
-            }).as('getClients')
-            cy.intercept('POST', `http://localhost:3002/api/v1/teams/${projectId}/broker/client`, { statusCode: 201 }).as('submitClient')
-
-            cy.get('[data-nav="team-unified-namespace"]').click()
-            cy.get('[data-nav="team-namespace-clients"]').click()
-
-            cy.wait('@getClients')
-
-            cy.get('[data-el="subtitle"]').contains('MQTT Broker')
-            cy.contains('View the recently used topics and configure clients for your FlowFuse MQTT Broker.')
-
-            cy.get('[data-el="empty-state"]').contains('Create your first Broker Client')
-            cy.get('[data-action="create-client"]').should('exist')
-            cy.get('[data-action="create-client"]').should('not.be.disabled')
-
-            cy.get('[data-el="create-client-dialog"]').should('not.be.visible')
-            cy.get('[data-action="create-client"]').click()
-            cy.get('[data-el="create-client-dialog"]').should('be.visible')
-
-            cy.get('[data-el="create-client-dialog"]').within(() => {
-                cy.get('[data-el="username"] input').type('username')
-                cy.get('[data-el="password"] input').type('password')
-                cy.get('[data-el="confirm-password"] input').type('password')
-
-                cy.get('[data-action="dialog-confirm"]').click()
-                cy.wait('@submitClient')
-            })
-
-            cy.wait('@getClients')
-        })
-
-        it('should correctly display a list of clients ', () => {
+        it('should display a list of clients ', () => {
             cy.intercept('GET', '/api/*/teams/*/broker/clients', {
                 clients: [
                     {
@@ -119,8 +67,9 @@ describe('FlowForge - Unified Namespace Clients', () => {
                 meta: {},
                 count: 2
             }).as('getClients')
-            cy.get('[data-nav="team-unified-namespace"]').click()
-            cy.get('[data-nav="team-namespace-clients"]').click()
+
+            cy.get('[data-nav="team-brokers"]').click()
+            cy.get('[data-nav="team-brokers-clients"]').click()
 
             cy.get('[data-form="search"]').should('be.visible')
             cy.get('[data-action="create-client"]').should('be.visible')
@@ -206,8 +155,8 @@ describe('FlowForge - Unified Namespace Clients', () => {
                 count: 1
             }).as('getClients')
 
-            cy.get('[data-nav="team-unified-namespace"]').click()
-            cy.get('[data-nav="team-namespace-clients"]').click()
+            cy.get('[data-nav="team-brokers"]').click()
+            cy.get('[data-nav="team-brokers-clients"]').click()
 
             cy.get('[data-el="create-client-dialog"]').should('not.be.visible')
             cy.get('[data-action="create-client"]').should('not.be.disabled')
@@ -304,8 +253,8 @@ describe('FlowForge - Unified Namespace Clients', () => {
                 statusCode: 200
             }).as('updateClient')
 
-            cy.get('[data-nav="team-unified-namespace"]').click()
-            cy.get('[data-nav="team-namespace-clients"]').click()
+            cy.get('[data-nav="team-brokers"]').click()
+            cy.get('[data-nav="team-brokers-clients"]').click()
 
             cy.wait('@getClients')
 
@@ -386,8 +335,8 @@ describe('FlowForge - Unified Namespace Clients', () => {
                 count: 1
             }).as('getClients')
 
-            cy.get('[data-nav="team-unified-namespace"]').click()
-            cy.get('[data-nav="team-namespace-clients"]').click()
+            cy.get('[data-nav="team-brokers"]').click()
+            cy.get('[data-nav="team-brokers-clients"]').click()
 
             cy.get('[data-el="platform-dialog"]').should('not.be.visible')
             cy.get('[data-action="delete-client"]').click()
@@ -402,28 +351,44 @@ describe('FlowForge - Unified Namespace Clients', () => {
             cy.wait('@deleteClient')
             cy.wait('@getClients')
         })
-    })
 
-    describe('is not accessible to users with insufficient permissions', () => {
-        it('should have the UNS menu entry hidden and route guard for viewer roles', () => {
-            cy.intercept('GET', '/api/*/teams/*/user', { role: 10 })
-            cy.login('bob', 'bbPassword')
+        it('should not display the settings tab for the local broker and redirect to hierarchy when accessing it directly', () => {
+            cy.intercept('GET', '/api/*/teams/*/broker/clients', {
+                clients: [{
+                    id: '1',
+                    username: 'john',
+                    acls: [
+                        {
+                            action: 'both',
+                            pattern: 'both/#'
+                        },
+                        {
+                            action: 'subscribe',
+                            pattern: 'subscribe/#'
+                        },
+                        {
+                            action: 'publish',
+                            pattern: 'publish/#'
+                        }
+                    ]
+                }],
+                meta: {},
+                count: 0
+            })
+            cy.intercept('GET', '/api/*/teams/*/brokers', {
+                brokers: [],
+                meta: {},
+                count: 0
+            })
+
             cy.home()
+            cy.get('[data-nav="team-brokers"]').click()
 
-            cy.get('[data-nav="team-unified-namespace"]').should('not.exist')
-            cy.visit('team/ateam/broker/clients')
-            cy.url().should('include', 'team/ateam/applications')
-        })
+            cy.get('[data-nav="team-brokers-hierarchy"]').should('exist')
+            cy.get('[data-nav="team-brokers-clients"]').should('exist')
+            cy.get('[data-nav="team-brokers-settings"]').should('not.exist')
 
-        it('should have the UNS menu entry hidden and route guard for dashboard roles', () => {
-            cy.intercept('GET', '/api/*/teams/*/user', { role: 5 }).as('getTeamRole')
-            cy.login('bob', 'bbPassword')
-            cy.visit('/')
-
-            cy.get('[data-nav="team-unified-namespace"]').should('not.exist')
-            cy.visit('team/ateam/broker/clients')
-            cy.contains('Dashboards')
-            cy.contains('A list of Node-RED instances with Dashboards belonging to this Team.')
+            cy.get('[data-el="add-new-broker"]').should('exist')
         })
     })
 })

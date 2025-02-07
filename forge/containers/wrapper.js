@@ -298,5 +298,12 @@ module.exports = {
         } else {
             throw new Error('Driver does not implement Broker API ')
         }
+    },
+    sendBrokerAgentCommand: async (broker, command) => {
+        if (this._driver.sendBrokerAgentCommand) {
+            return this._driver.sendBrokerAgentCommand(broker, command)
+        } else {
+            throw new Error('Driver does not implement Broker API ')
+        }
     }
 }

@@ -71,7 +71,7 @@
 
 <script>
 import { PlusIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import brokerApi from '../../../../../api/broker.js'
 import FormRow from '../../../../../components/FormRow.vue'
@@ -86,13 +86,6 @@ export default {
         AclItem,
         PlusIcon
     },
-    props: {
-        clients: {
-            required: true,
-            type: Array
-        }
-    },
-    emits: ['client-created', 'client-updated'],
     setup () {
         return {
             showCreate () {
@@ -151,6 +144,9 @@ export default {
     },
     computed: {
         ...mapState('account', ['team']),
+        ...mapState('product', {
+            clients: state => state.UNS.clients
+        }),
         disableConfirm () {
             if (!this.input.username) {
                 return true
@@ -181,6 +177,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions('product', ['fetchUnsClients']),
         async confirm () {
             if (!this.validateForm()) {
                 return
@@ -195,11 +192,12 @@ export default {
                         newUsername: this.input.username,
                         password: this.input.password
                     }
-                ).then(() => {
-                    this.$emit('client-updated')
-                    this.$refs.dialog.close()
-                    this.clearData()
-                })
+                )
+                    .then(() => this.fetchUnsClients())
+                    .then(() => {
+                        this.$refs.dialog.close()
+                        this.clearData()
+                    })
                     .catch(err => console.error(err))
             } else {
                 return brokerApi.createClient(
@@ -208,9 +206,14 @@ export default {
                     this.input.password,
                     this.input.acls
                 )
+                    .then(() => this.fetchUnsClients())
+                    .then(() => this.$store.dispatch('product/addFfBroker'))
+                    .then(() => this.$router.push({
+                        name: 'team-brokers-clients',
+                        params: { ...this.$route.params, brokerId: 'team-broker' }
+                    }))
                     .then(() => {
-                        this.$emit('client-created')
-                        this.$refs.dialog.close()
+                        this.$refs.dialog?.close()
                         this.clearData()
                     })
                     .catch(err => console.error(err))

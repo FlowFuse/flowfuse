@@ -113,6 +113,10 @@ module.exports = async function (settings = {}, config = {}) {
             }
         }
     }
+
+    if (forge.license.active()) {
+        teamTypeProperties.features.teamBroker = true
+    }
     teamType.properties = teamTypeProperties
     await teamType.save()
 

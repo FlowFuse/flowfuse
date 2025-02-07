@@ -81,7 +81,8 @@ const modelTypes = [
     'OAuthSession',
     'Notification',
     'TeamBrokerClient',
-    'BrokerCredentials'
+    'BrokerCredentials',
+    'MQTTTopicSchema'
 ]
 
 // A local map of the known models.

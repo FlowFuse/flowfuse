@@ -1,31 +1,41 @@
-module.exports = {
-    credentials: function (app, credentials) {
-        const filtered = []
-        credentials.forEach(c => {
-            filtered.push(this.clean(app, c))
-        })
-        return filtered
-    },
-    clean: function (app, cred) {
-        const result = cred.toJSON()
-        const cleaned = {
-            id: result.hashid,
-            name: result.name,
-            host: result.host,
-            port: result.port,
-            protocol: result.protocol,
-            ssl: result.ssl,
-            verifySSL: result.verifySSL,
-            clientId: result.clientId
+module.exports = function (app) {
+    app.addSchema({
+        $id: 'MQTTBroker',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            host: { type: 'string' },
+            port: { type: 'number' },
+            protocol: { type: 'string' },
+            ssl: { type: 'boolean' },
+            verifySSL: { type: 'boolean' },
+            clientId: { type: 'string' }
+        },
+        additionalProperties: true
+    })
+    return {
+        clean: function (cred) {
+            const result = cred.toJSON()
+            const cleaned = {
+                id: result.hashid,
+                name: result.name,
+                host: result.host,
+                port: result.port,
+                protocol: result.protocol,
+                ssl: result.ssl,
+                verifySSL: result.verifySSL,
+                clientId: result.clientId
+            }
+            return cleaned
+        },
+        cleanList: function (list) {
+            const filtered = []
+            list.brokers.forEach(u => {
+                filtered.push(this.clean(u))
+            })
+            list.brokers = filtered
+            return list
         }
-        return cleaned
-    },
-    cleanList: function (app, list) {
-        const filtered = []
-        list.brokers.forEach(u => {
-            filtered.push(this.clean(app, u))
-        })
-        list.brokers = filtered
-        return list
     }
 }
