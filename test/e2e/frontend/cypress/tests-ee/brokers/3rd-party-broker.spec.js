@@ -42,7 +42,7 @@ describe('FlowFuse - Brokers', () => {
             cy.get('[data-el="add-new-broker"]').should('exist')
         })
 
-        it.only('should allow users to navigate directly to a third party broker if they have one set up even if they have the flowfuse broker', () => {
+        it('should allow users to navigate directly to a third party broker if they have one set up even if they have the flowfuse broker', () => {
             const brokerId = 'OPK5AMZ5aJ'
 
             cy.intercept('GET', '/api/*/teams/*/broker/clients', {
