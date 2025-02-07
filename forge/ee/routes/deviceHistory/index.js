@@ -1,13 +1,14 @@
-const projectShared = require('../../../routes/api/shared/project.js')
+const deviceShared = require('../../../routes/api/shared/device.js')
 
 module.exports = async function (app) {
-    app.addHook('preHandler', projectShared.defaultPreHandler.bind(null, app))
+    app.addHook('preHandler', deviceShared.defaultPreHandler.bind(null, app))
     app.addHook('preHandler', async (request, reply) => {
-        const team = await app.db.models.Team.byId(request.project.TeamId)
+        const id = request.device?.Team?.id
+        const team = await app.db.models.Team.byId(id)
         if (team) {
             request.team = team
             // Check this feature is enabled for this team type.
-            if (team.TeamType.getFeatureProperty('projectHistory', true)) {
+            if (team.TeamType.getFeatureProperty('deviceHistory', true)) {
                 return
             }
         }
@@ -24,13 +25,13 @@ module.exports = async function (app) {
     app.get('/', {
         preHandler: app.needsPermission('project:history'),
         schema: {
-            summary: 'Get instance history',
+            summary: 'Get Device history',
             hide: true, // mark as explicitly hidden (internal for now)
-            tags: [/* 'Instances' */], // no tag hides route from swagger (internal for now)
+            tags: [/* 'Devices' */], // no tag hides route from swagger (internal for now)
             params: {
                 type: 'object',
                 properties: {
-                    instanceId: { type: 'string' }
+                    deviceId: { type: 'string' }
                 }
             },
             query: {
@@ -56,8 +57,8 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const logEntries = await app.db.models.AuditLog.forTimelineHistory(
-            request.project.id,
-            'project',
+            request.device.id,
+            'device',
             paginationOptions
         )
         const timelineView = app.db.views.AuditLog.timelineList(logEntries?.timeline || [])
