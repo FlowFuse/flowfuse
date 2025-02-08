@@ -251,6 +251,18 @@ module.exports = async function (app) {
             enabled: app.config.assistant?.enabled || false,
             requestTimeout: app.config.assistant?.requestTimeout || 60000
         }
+
+        if (settings.security?.httpNodeAuth?.type) {
+            response.security = settings.security
+            if (response.security.httpNodeAuth.type === 'flowforge-user') {
+                // Convert the old 'flowforge-user' type to 'ff-user'
+                response.security.httpNodeAuth.type = 'ff-user'
+                // Regenerate the auth client for this device
+                const authClient = await app.db.controllers.AuthClient.createClientForDevice(request.device)
+                response.security.httpNodeAuth.clientID = authClient.clientID
+                response.security.httpNodeAuth.clientSecret = authClient.clientSecret
+            }
+        }
         reply.send(response)
     })
 }
