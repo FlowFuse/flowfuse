@@ -253,9 +253,6 @@ export default {
                             this.brokerState = 'error'
                             console.error(e)
                         })
-                        .finally(() => {
-                            this.loading = false
-                        })
                 }
             },
             immediate: true
@@ -335,7 +332,7 @@ export default {
         getBrokerState () {
             return brokerAPI.getBrokerStatus(this.team.id, this.activeBrokerId)
                 .then(response => {
-                    if (response.state.connected) {
+                    if (response?.state?.connected) {
                         this.brokerState = 'running'
                     } else {
                         this.brokerState = 'error'
