@@ -271,7 +271,7 @@ export default {
                     this.brokerState = 'error'
                 }
             }
-        },5000)
+        }, 5000)
     },
     unmounted () {
         clearInterval(this.stateInterval)
