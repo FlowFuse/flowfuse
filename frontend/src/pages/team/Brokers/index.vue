@@ -6,6 +6,10 @@
                     {{ pageTitle.context }}
                 </template>
 
+                <template #status v-if="broker.id !== 'team-broker'">
+                    <BrokerStatusBadge :status="brokerState" />
+                </template>
+
                 <template #pictogram>
                     <img alt="info" src="../../../images/pictograms/mqtt_broker_red.png">
                 </template>
@@ -73,10 +77,13 @@ import FfLoading from '../../../components/Loading.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import FfButton from '../../../ui-components/components/Button.vue'
 import { Roles } from '../../../utils/roles.js'
+import BrokerStatusBadge from './components/BrokerStatusBadge.vue'
+
+import brokerAPI from '../../../api/broker.js'
 
 export default {
     name: 'TeamBrokers',
-    components: { FfLoading, EmptyState, FfButton },
+    components: { BrokerStatusBadge, FfLoading, EmptyState, FfButton },
     beforeRouteLeave (to, from, next) {
         if (to.params?.team_slug !== from.params?.team_slug) {
             this.clearUns()
@@ -91,7 +98,8 @@ export default {
     },
     data () {
         return {
-            loading: true
+            loading: true,
+            brokerState: 'running'
         }
     },
     computed: {
@@ -125,6 +133,16 @@ export default {
                         })
                 default:
                     return this.$router.push({ name: 'team-brokers-hierarchy', params: { brokerId } })
+                        .then(() => {
+                                brokerAPI.getBrokerStatus(this.team.id,this.activeBrokerId).then(brokerState => {
+                                if (brokerState.state.connected) {
+                                    this.brokerState = 'running'
+                                } else {
+                                    this.brokerState = 'error'
+                                }
+                                }).catch(e => {
+                                })
+                        })
                         .finally(() => {
                             this.loading = false
                         })

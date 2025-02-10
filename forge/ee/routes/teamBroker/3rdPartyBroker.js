@@ -368,6 +368,38 @@ module.exports = async function (app) {
     })
 
     /**
+     * Start collection from a Broker
+     */
+        app.post('/:brokerId/start', {
+            preHandler: app.needsPermission('broker:credentials:edit'),
+            schema: { }
+        }, async (request, reply) => {
+            let brokerId = request.params.brokerId
+            if (brokerId === 'team-broker') {
+                reply.status(403).send({})
+            } else {
+                await app.containers.sendBrokerAgentCommand(request.broker,'start')
+                reply.status(200).send({})
+            }
+        })
+    
+        /**
+         * Stop collection from a Broker
+         */
+        app.post('/:brokerId/stop', {
+            preHandler: app.needsPermission('broker:credentials:edit'),
+            schema: { }
+        }, async (request, reply) => {
+            let brokerId = request.params.brokerId
+            if (brokerId === 'team-broker') {
+                reply.status(403).send({})
+            } else {
+                await app.containers.sendBrokerAgentCommand(request.broker,'stop')
+                reply.status(200).send({})
+            }
+        })
+
+    /**
      * Get used Topics from a MQTT Broker
      * @name /api/v1/teams/:teamId/broker/:brokerId/topics
      * @static

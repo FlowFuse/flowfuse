@@ -39,6 +39,12 @@ const getBrokers = (teamId) => {
         .then(res => res.data)
 }
 
+const getBrokerStatus = (teamId, brokerId) => {
+    console.log('getBrokerStatus')
+    return client.get(`/api/v1/teams/${teamId}/brokers/${brokerId}`)
+        .then(res => res.data)
+}
+
 const createBroker = (teamId, payload) => {
     return client.post(`/api/v1/teams/${teamId}/brokers`, payload)
         .then(res => res.data)
@@ -68,6 +74,16 @@ const updateBrokerTopic = (teamId, brokerId, topicId, payload) => {
         .then(res => res.data)
 }
 
+const startBroker = (teamId, brokerId) => {
+    return client.post(`/api/v1/teams/${teamId}/brokers/${brokerId}/start`)
+        .then(res => res.data)
+}
+
+const stopBroker = (teamId, brokerId) => {
+    return client.post(`/api/v1/teams/${teamId}/brokers/${brokerId}/stop`)
+        .then(res => res.data)
+}
+
 export default {
     getClients,
     getClient,
@@ -80,5 +96,8 @@ export default {
     deleteBroker,
     getBrokerTopics,
     addBrokerTopic,
-    updateBrokerTopic
+    updateBrokerTopic,
+    getBrokerStatus,
+    startBroker,
+    stopBroker
 }
