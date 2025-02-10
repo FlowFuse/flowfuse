@@ -15,15 +15,15 @@ module.exports = async function (app) {
         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
     })
     /**
-     * Get project history
-     *  - returns a timeline of changes to the project
+     * Get device history
+     *  - returns a timeline of changes to the device
      *  - ?cursor= can be used to set the 'most recent log entry' to query from
      *  - ?limit= can be used to modify how many entries to return
-     * @name /api/v1/projects/:id/history
-     * @memberof forge.routes.api.project
+     * @name /api/v1/devices/:id/history
+     * @memberof forge.routes.api.devices
      */
     app.get('/', {
-        preHandler: app.needsPermission('project:history'),
+        preHandler: app.needsPermission('device:history'),
         schema: {
             summary: 'Get Device history',
             hide: true, // mark as explicitly hidden (internal for now)
