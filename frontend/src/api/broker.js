@@ -40,7 +40,6 @@ const getBrokers = (teamId) => {
 }
 
 const getBrokerStatus = (teamId, brokerId) => {
-    console.log('getBrokerStatus')
     return client.get(`/api/v1/teams/${teamId}/brokers/${brokerId}`)
         .then(res => res.data)
 }

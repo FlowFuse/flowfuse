@@ -6,7 +6,7 @@
                     {{ pageTitle.context }}
                 </template>
 
-                <template #status v-if="broker.id !== 'team-broker'">
+                <template v-if="broker.id !== 'team-broker'" #status>
                     <BrokerStatusBadge :status="brokerState" />
                 </template>
 
@@ -71,15 +71,16 @@
 
 import { mapActions, mapGetters, mapState } from 'vuex'
 
+import brokerAPI from '../../../api/broker.js'
+
 import EmptyState from '../../../components/EmptyState.vue'
 import FfLoading from '../../../components/Loading.vue'
 
 import usePermissions from '../../../composables/Permissions.js'
 import FfButton from '../../../ui-components/components/Button.vue'
 import { Roles } from '../../../utils/roles.js'
-import BrokerStatusBadge from './components/BrokerStatusBadge.vue'
 
-import brokerAPI from '../../../api/broker.js'
+import BrokerStatusBadge from './components/BrokerStatusBadge.vue'
 
 export default {
     name: 'TeamBrokers',
@@ -134,14 +135,16 @@ export default {
                 default:
                     return this.$router.push({ name: 'team-brokers-hierarchy', params: { brokerId } })
                         .then(() => {
-                                brokerAPI.getBrokerStatus(this.team.id,this.activeBrokerId).then(brokerState => {
-                                if (brokerState.state.connected) {
-                                    this.brokerState = 'running'
-                                } else {
-                                    this.brokerState = 'error'
-                                }
-                                }).catch(e => {
-                                })
+                            return brokerAPI.getBrokerStatus(this.team.id, this.activeBrokerId)
+                        })
+                        .then(brokerState => {
+                            if (brokerState.state.connected) {
+                                this.brokerState = 'running'
+                            } else {
+                                this.brokerState = 'error'
+                            }
+                        })
+                        .catch(e => {
                         })
                         .finally(() => {
                             this.loading = false
