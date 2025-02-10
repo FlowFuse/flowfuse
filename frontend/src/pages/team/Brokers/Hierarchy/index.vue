@@ -280,7 +280,7 @@ export default {
             this.inspecting = segment
         },
         openSchema () {
-            openInANewTab(`/api/v1/teams/${this.team.id}/broker/${this.$route.params.brokerId}/schema.yml`, '_blank')
+            openInANewTab(`/team/${this.team.slug}/broker/${this.$route.params.brokerId}/docs`)
         },
         async saveTopicMeta () {
             if (this.inspecting.id) {
