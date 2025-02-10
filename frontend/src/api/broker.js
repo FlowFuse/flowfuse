@@ -83,6 +83,11 @@ const stopBroker = (teamId, brokerId) => {
         .then(res => res.data)
 }
 
+const suspendBroker = (teamId, brokerId) => {
+    return client.post(`/api/v1/teams/${teamId}/brokers/${brokerId}/suspend`)
+        .then(res => res.data)
+}
+
 export default {
     getClients,
     getClient,
@@ -98,5 +103,6 @@ export default {
     updateBrokerTopic,
     getBrokerStatus,
     startBroker,
-    stopBroker
+    stopBroker,
+    suspendBroker
 }
