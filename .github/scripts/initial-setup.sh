@@ -251,6 +251,7 @@ curl -ks -w "\n" -XPOST \
                         "customHostnames":true,
                         "staticAssets":true,
                         "projectHistory":true,
+                        "deviceHistory":true,
                         "teamBroker":true
                     },
                     "instances": {
@@ -296,6 +297,7 @@ curl -ks -w "\n" -XPOST \
                         "staticAssets":true,
                         "bom":true,
                         "projectHistory":true,
+                        "deviceHistory":true,
                         "teamBroker":true
                     },
                     "instances": {
@@ -393,7 +395,7 @@ kubectl run flowfuse-setup-4 \
   --image bitnami/postgresql:14.10.0-debian-11-r3 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"TeamMembers\" (\"role\",\"UserId\",\"TeamId\")\
-    VALUES 
+    VALUES
       (30, 2, 1),
       (30, 2, 2),
       (30, 2, 3),
