@@ -426,6 +426,8 @@ module.exports = {
     // 3rd party broker
     startBrokerAgent: async (broker) => {},
     stopBrokerAgent: async (broker) => {},
-    getBrokerAgentState: async (broker) => {},
+    getBrokerAgentState: async (broker) => {
+        return {connected: true, error: ''}
+    },
     sendBrokerAgentCommand: async (broker, command) => {}
 }
