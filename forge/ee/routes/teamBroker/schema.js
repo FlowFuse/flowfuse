@@ -1,12 +1,13 @@
 const YAML = require('yaml')
+
 module.exports = async function (app) {
-    app.get('/team-broker/schema.yml', async (request, reply) => {
-        const list = await app.teamBroker.getUsedTopics(request.team.hashid)
+    async function genSchema (team) {
+        const list = await app.teamBroker.getUsedTopics(team.hashid)
         const schema = {
             asyncapi: '3.0.0',
             info: {
                 version: '1.0.0',
-                title: `${request.team.name} Team Broker`,
+                title: `${team.name} Team Broker`,
                 description: 'An auto-generated schema of the topics being used on the team broker'
             }
         }
@@ -40,6 +41,14 @@ module.exports = async function (app) {
                 }
             })
         }
+        return schema
+    }
+    app.get('/team-broker/schema.yml', async (request, reply) => {
+        const schema = await genSchema(request.team)
         reply.send(YAML.stringify(schema))
+    })
+    app.get('/team-broker/schema', async (request, reply) => {
+        const schema = await genSchema(request.team)
+        reply.send(schema)
     })
 }

@@ -35,11 +35,17 @@ const getTopics = (teamId) => {
         .then(res => res.data)
 }
 
+const getJsonSchema = (teamId, brokerId) => {
+    return client.get(`/api/v1/teams/${teamId}/broker/${brokerId}/schema`)
+        .then(res => res.data)
+}
+
 export default {
     getClients,
     getClient,
     createClient,
     updateClient,
     deleteClient,
-    getTopics
+    getTopics,
+    getJsonSchema
 }

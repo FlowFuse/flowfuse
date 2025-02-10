@@ -190,7 +190,7 @@ export default {
             this.hierarchy = segment
         },
         openSchema () {
-            openInANewTab(`/api/v1/teams/${this.team.id}/broker/team-broker/schema.yml`, '_blank')
+            openInANewTab(`/team/${this.team.slug}/broker/docs`)
         }
     }
 }

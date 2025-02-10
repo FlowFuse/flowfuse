@@ -19,6 +19,7 @@ import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
 import TeamSettings from './Settings/index.vue'
 import UNSClients from './UNS/Clients/index.vue'
+import UNSDocs from './UNS/Docs/index.vue'
 import UNSHierarchy from './UNS/Hierarchy/index.vue'
 import UnifiedNameSpace from './UNS/index.vue'
 import ChangeTeamType from './changeType.vue'
@@ -138,6 +139,15 @@ export default [
                                 }
                             }
                         ]
+                    },
+                    {
+                        name: 'team-namespace-docs',
+                        path: 'broker/docs',
+                        component: UNSDocs,
+                        meta: {
+                            title: 'Topic Hierarchy Documentation',
+                            layout: 'docs'
+                        }
                     },
                     {
                         name: 'team-members',
