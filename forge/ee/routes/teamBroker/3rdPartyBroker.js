@@ -368,6 +368,59 @@ module.exports = async function (app) {
     })
 
     /**
+     * Start collection from a Broker
+     */
+    app.post('/:brokerId/start', {
+        preHandler: app.needsPermission('broker:credentials:edit'),
+        schema: { }
+    }, async (request, reply) => {
+        if (request.params.brokerId === 'team-broker') {
+            reply.status(403).send({})
+        } else {
+            if (request.broker.status === 'running') {
+                await app.containers.sendBrokerAgentCommand(request.broker, 'start')
+            } else {
+                await app.containers.startBrokerAgent(request.broker)
+                request.broker.status = 'running'
+                await request.broker.save()
+            }
+            reply.status(200).send({})
+        }
+    })
+
+    /**
+     * Stop collection from a Broker
+     */
+    app.post('/:brokerId/stop', {
+        preHandler: app.needsPermission('broker:credentials:edit'),
+        schema: { }
+    }, async (request, reply) => {
+        if (request.params.brokerId === 'team-broker') {
+            reply.status(403).send({})
+        } else {
+            await app.containers.sendBrokerAgentCommand(request.broker, 'stop')
+            reply.status(200).send({})
+        }
+    })
+
+    /**
+     * Suspend Broker agnet
+     */
+    app.post('/:brokerId/suspend', {
+        preHandler: app.needsPermission('broker:credentials:edit'),
+        schema: { }
+    }, async (request, reply) => {
+        if (request.params.brokerId === 'team-broker') {
+            reply.status(403).send({})
+        } else {
+            await app.containers.stopBrokerAgent(request.broker)
+            request.broker.status = 'suspended'
+            await request.broker.save()
+            reply.status(200).send({})
+        }
+    })
+
+    /**
      * Get used Topics from a MQTT Broker
      * @name /api/v1/teams/:teamId/broker/:brokerId/topics
      * @static
