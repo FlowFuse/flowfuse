@@ -17,11 +17,11 @@
 </template>
 
 <script>
-import { AdjustmentsIcon, CameraIcon, DotsHorizontalIcon, DownloadIcon, PlusIcon } from '@heroicons/vue/outline'
+import { AdjustmentsIcon, CameraIcon, DotsHorizontalIcon, DownloadIcon, PlusIcon, RefreshIcon } from '@heroicons/vue/outline'
 
-import PipelinesIcon from '../../../../../components/icons/Pipelines.js'
-import ProjectsIcon from '../../../../../components/icons/Projects.js'
-import UndoIcon from '../../../../../components/icons/Undo.js'
+import PipelinesIcon from '../../icons/Pipelines.js'
+import ProjectsIcon from '../../icons/Projects.js'
+import UndoIcon from '../../icons/Undo.js'
 
 export default {
     name: 'TimelineGraph',
@@ -50,8 +50,10 @@ export default {
                 return ProjectsIcon
             case this.event.event === 'project.snapshot.created':
                 return CameraIcon
-            case this.event.event === 'project.settings.updated':
+            case ['project.settings.updated', 'device.settings.updated'].includes(this.event.event):
                 return AdjustmentsIcon
+            case ['device.restarted'].includes(this.event.event):
+                return RefreshIcon
             case this.event.event === 'project.created':
                 return PlusIcon
             case this.event.event === 'load-more':
@@ -110,7 +112,8 @@ export default {
                     'project.snapshot.rolled-back',
                     'flows.set',
                     'project.created',
-                    'project.settings.updated'
+                    'project.settings.updated',
+                    'device.settings.updated'
                 ].includes(this.timeline[id]?.event)) return true
             }
 
