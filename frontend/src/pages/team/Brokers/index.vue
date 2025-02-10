@@ -100,7 +100,8 @@ export default {
     data () {
         return {
             loading: true,
-            brokerState: 'running'
+            brokerState: 'running',
+            stateInterval: null
         }
     },
     computed: {
@@ -261,6 +262,19 @@ export default {
                 this.loading = false
             })
             .catch(e => e)
+        this.stateInterval = setInterval(async () => {
+            if (this.activeBrokerId !== 'team-broker') {
+                const state = await brokerAPI.getBrokerStatus(this.team.id, this.activeBrokerId)
+                if (state.state.connected) {
+                    this.brokerState = 'running'
+                } else {
+                    this.brokerState = 'error'
+                }
+            }
+        },5000)
+    },
+    unmounted () {
+        clearInterval(this.stateInterval)
     },
     methods: {
         ...mapActions('product', ['fetchUnsClients']),
