@@ -153,7 +153,7 @@ module.exports = {
                     }
 
                     const where = {
-                        entityId,
+                        entityId: '' + entityId,
                         entityType,
                         event: {
                             [Op.in]: events
