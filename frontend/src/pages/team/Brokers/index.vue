@@ -6,8 +6,8 @@
                     {{ pageTitle.context }}
                 </template>
 
-                <template v-if="broker.id !== 'team-broker'" #status>
-                    <BrokerStatusBadge :status="brokerState" />
+                <template #status>
+                    <BrokerStatusBadge v-if="broker?.id !== 'team-broker'" :status="brokerState" />
                 </template>
 
                 <template #pictogram>
@@ -100,8 +100,8 @@ export default {
     data () {
         return {
             loading: true,
-            brokerState: 'running',
-            stateInterval: null
+            brokerState: 'updating',
+            brokerStatusPollingInterval: null
         }
     },
     computed: {
@@ -135,18 +135,7 @@ export default {
                         })
                 default:
                     return this.$router.push({ name: 'team-brokers-hierarchy', params: { brokerId } })
-                        .then(() => {
-                            return brokerAPI.getBrokerStatus(this.team.id, this.activeBrokerId)
-                        })
-                        .then(brokerState => {
-                            if (brokerState.state.connected) {
-                                this.brokerState = 'running'
-                            } else {
-                                this.brokerState = 'error'
-                            }
-                        })
-                        .catch(e => {
-                        })
+                        .catch(e => console.error(e))
                         .finally(() => {
                             this.loading = false
                         })
@@ -250,6 +239,26 @@ export default {
             if (!route.params.brokerId && routeRequiresBrokerId) {
                 this.redirectIfNeeded()
             }
+        },
+        activeBrokerId: {
+            handler (id) {
+                this.clearBrokerStatusPollingInterval()
+
+                if (id && id !== 'team-broker') {
+                    this.getBrokerState()
+                        .then(() => {
+                            this.brokerStatusPollingInterval = setInterval(() => this.getBrokerState(), 5000)
+                        })
+                        .catch(e => {
+                            this.brokerState = 'error'
+                            console.error(e)
+                        })
+                        .finally(() => {
+                            this.loading = false
+                        })
+                }
+            },
+            immediate: true
         }
     },
     mounted () {
@@ -261,20 +270,10 @@ export default {
             .finally(() => {
                 this.loading = false
             })
-            .catch(e => e)
-        this.stateInterval = setInterval(async () => {
-            if (this.activeBrokerId !== 'team-broker') {
-                const state = await brokerAPI.getBrokerStatus(this.team.id, this.activeBrokerId)
-                if (state.state.connected) {
-                    this.brokerState = 'running'
-                } else {
-                    this.brokerState = 'error'
-                }
-            }
-        }, 5000)
+            .catch(e => console.error(e))
     },
     unmounted () {
-        clearInterval(this.stateInterval)
+        this.clearBrokerStatusPollingInterval()
     },
     methods: {
         ...mapActions('product', ['fetchUnsClients']),
@@ -332,6 +331,25 @@ export default {
         },
         clearUns () {
             this.$store.dispatch('product/clearUns')
+        },
+        getBrokerState () {
+            return brokerAPI.getBrokerStatus(this.team.id, this.activeBrokerId)
+                .then(response => {
+                    if (response.state.connected) {
+                        this.brokerState = 'running'
+                    } else {
+                        this.brokerState = 'error'
+                    }
+                })
+                .catch(e => {
+                    this.brokerState = 'error'
+                    console.error(e)
+                })
+        },
+        clearBrokerStatusPollingInterval () {
+            if (this.brokerStatusPollingInterval) {
+                clearInterval(this.brokerStatusPollingInterval)
+            }
         }
     }
 }
