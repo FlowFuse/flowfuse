@@ -7,7 +7,7 @@
                 </template>
 
                 <template #status>
-                    <BrokerStatusBadge v-if="broker?.id !== 'team-broker'" :status="brokerState" :pendingStateChange="!brokerState" />
+                    <BrokerStatusBadge v-if="broker?.id !== 'team-broker' && !isCreationPage" :status="brokerState" :pendingStateChange="!brokerState" />
                 </template>
 
                 <template #pictogram>
