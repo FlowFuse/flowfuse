@@ -128,9 +128,6 @@ const Permissions = {
     // Projects
     'project:history': { description: 'View Hosted Instances project history', role: Roles.Member },
 
-    // Devices
-    'device:history': { description: 'View Remote Instances history', role: Roles.Member },
-
     // Application
     'application:bom': { description: 'Get the Application Bill of Materials', role: Roles.Owner },
 

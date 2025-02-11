@@ -251,7 +251,6 @@ curl -ks -w "\n" -XPOST \
                         "customHostnames":true,
                         "staticAssets":true,
                         "projectHistory":true,
-                        "deviceHistory":true,
                         "teamBroker":true
                     },
                     "instances": {
@@ -297,7 +296,6 @@ curl -ks -w "\n" -XPOST \
                         "staticAssets":true,
                         "bom":true,
                         "projectHistory":true,
-                        "deviceHistory":true,
                         "teamBroker":true
                     },
                     "instances": {

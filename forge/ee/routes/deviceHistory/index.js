@@ -8,7 +8,7 @@ module.exports = async function (app) {
         if (team) {
             request.team = team
             // Check this feature is enabled for this team type.
-            if (team.TeamType.getFeatureProperty('deviceHistory', true)) {
+            if (team.TeamType.getFeatureProperty('projectHistory', true)) {
                 return
             }
         }
@@ -23,7 +23,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.devices
      */
     app.get('/', {
-        preHandler: app.needsPermission('device:history'),
+        preHandler: app.needsPermission('project:history'),
         schema: {
             summary: 'Get Device history',
             hide: true, // mark as explicitly hidden (internal for now)

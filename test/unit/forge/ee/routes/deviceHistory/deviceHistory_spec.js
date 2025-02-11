@@ -43,7 +43,7 @@ describe('Devices API (EE)', function () {
         async function enableTeamTypeFeatureFlag (enabled) {
             const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
             const defaultTeamTypeProperties = defaultTeamType.properties
-            defaultTeamTypeProperties.features.deviceHistory = enabled
+            defaultTeamTypeProperties.features.projectHistory = enabled
             defaultTeamType.properties = defaultTeamTypeProperties
             await defaultTeamType.save()
         }
