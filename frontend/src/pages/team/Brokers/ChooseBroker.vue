@@ -61,10 +61,11 @@ export default {
     },
     computed: {
         ...mapGetters('product', ['hasFfUnsClients', 'hasBrokers']),
+        ...mapGetters('account', ['featuresCheck']),
         options () {
             return [
                 {
-                    ribbon: 'Recommended',
+                    ribbon: this.featuresCheck.isExternalMqttBrokerFeatureEnabled ? 'Recommended' : '',
                     title: 'FlowFuse Broker',
                     content: [
                         '20 x MQTT Clients included in your plan'
@@ -79,7 +80,8 @@ export default {
                         'Requires a third-party broker to be setup'
                     ],
                     contentType: 'dash',
-                    to: { name: 'team-brokers-new' }
+                    to: { name: 'team-brokers-new' },
+                    hidden: !this.featuresCheck.isExternalMqttBrokerFeatureEnabled
                 }
             ].filter(op => !op.hidden)
         },

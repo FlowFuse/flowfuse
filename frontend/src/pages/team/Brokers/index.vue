@@ -7,7 +7,7 @@
                 </template>
 
                 <template #status>
-                    <BrokerStatusBadge v-if="broker?.id !== 'team-broker'" :status="brokerState" :pendingStateChange="!brokerState" />
+                    <BrokerStatusBadge v-if="broker?.id !== 'team-broker' && !isCreationPage" :status="brokerState" :pendingStateChange="!brokerState" />
                 </template>
 
                 <template #pictogram>
@@ -23,7 +23,7 @@
                 </template>
 
                 <template #tools>
-                    <section v-if="!loading && shouldDisplayTools" class="flex gap-3 flex-wrap">
+                    <section v-if="!loading && shouldDisplayTools && featuresCheck.isExternalMqttBrokerFeatureEnabled" class="flex gap-3 flex-wrap">
                         <ff-listbox
                             v-if="brokers.length > 1"
                             v-model="activeBrokerId"
