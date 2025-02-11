@@ -113,7 +113,7 @@ describe('FlowForge - Version History', () => {
             cy.get('[data-el="timeline-list"] li').contains('Tatooine CNC Shop Snapshot deployed from instance-1-1')
             cy.get('[data-el="timeline-list"] li').contains('Princess Amidala')
 
-            cy.get('[data-el="timeline-list"] li').contains('Instance Settings Updated')
+            cy.get('[data-el="timeline-list"] li').contains('Settings Updated')
             cy.get('[data-el="timeline-list"] li').contains('Ahsoka Tano')
 
             cy.get('[data-el="timeline-list"] li').contains('Snapshot Captured: Auto Snapshot - 2024-10-18 12:41:28')
