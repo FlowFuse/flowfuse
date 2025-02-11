@@ -126,7 +126,7 @@ const Permissions = {
      */
 
     // Projects
-    'project:history': { description: 'View project history', role: Roles.Member },
+    'project:history': { description: 'View Hosted Instances project history', role: Roles.Member },
 
     // Application
     'application:bom': { description: 'Get the Application Bill of Materials', role: Roles.Owner },
