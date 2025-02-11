@@ -7,7 +7,7 @@
                 </template>
 
                 <template #status>
-                    <BrokerStatusBadge v-if="broker?.id !== 'team-broker'" :status="brokerState" />
+                    <BrokerStatusBadge v-if="broker?.id !== 'team-broker'" :status="brokerState" :pendingStateChange="!brokerState" />
                 </template>
 
                 <template #pictogram>
@@ -100,7 +100,7 @@ export default {
     data () {
         return {
             loading: true,
-            brokerState: 'updating',
+            brokerState: '',
             brokerStatusPollingInterval: null
         }
     },
