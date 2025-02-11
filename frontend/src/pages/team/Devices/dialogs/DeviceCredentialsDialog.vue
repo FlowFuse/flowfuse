@@ -168,8 +168,8 @@ brokerPassword: ${this.device.credentials.broker.password}
     setup () {
         return {
             show (device) {
-                this.$refs.dialog.show()
                 this.device = device
+                this.$refs.dialog.show()
             }
         }
     }

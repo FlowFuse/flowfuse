@@ -44,7 +44,11 @@
                                 <ExternalLinkIcon />
                             </span>
                         </button>
-                        <DropdownMenu v-if="hasPermission('device:change-status')" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
+                        <ff-button v-if="neverConnected" kind="secondary" @click="deviceAction('updateCredentials', device.id, device)">
+                            <template #icon-left><ExclamationIcon class="ff-icon" /></template>
+                            Finish Setup
+                        </ff-button>
+                        <DropdownMenu v-if="hasPermission('device:change-status') && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
                 </template>
             </SectionNavigationHeader>
@@ -104,12 +108,13 @@
             data-el="assignment-dialog-application"
             @assign-device="assignDeviceToApplication"
         />
+        <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
     </main>
 </template>
 
 <script>
 
-import { ExternalLinkIcon } from '@heroicons/vue/outline'
+import { ExclamationIcon, ExternalLinkIcon } from '@heroicons/vue/outline'
 import { TerminalIcon } from '@heroicons/vue/solid'
 import semver from 'semver'
 import { mapState } from 'vuex'
@@ -120,15 +125,19 @@ import SectionNavigationHeader from '../../components/SectionNavigationHeader.vu
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import deviceActionsMixin from '../../mixins/DeviceActions.js'
 import permissionsMixin from '../../mixins/Permissions.js'
+
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import { DeviceStateMutator } from '../../utils/DeviceStateMutator.js'
 import { Roles } from '../../utils/roles.js'
-
 import { createPollTimer } from '../../utils/timers.js'
+
 import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
 import DeviceAssignInstanceDialog from '../team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
+
+import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog.vue'
 
 import AssignDeviceDialog from './components/AssignDeviceDialog.vue'
 
@@ -152,6 +161,7 @@ const deviceTransitionStates = [
 export default {
     name: 'DevicePage',
     components: {
+        ExclamationIcon,
         ExternalLinkIcon,
         DeveloperModeToggle,
         DeviceModeBadge,
@@ -163,9 +173,10 @@ export default {
         TeamTrialBanner,
         AssignDeviceDialog,
         DeviceAssignApplicationDialog,
-        DeviceAssignInstanceDialog
+        DeviceAssignInstanceDialog,
+        DeviceCredentialsDialog
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, deviceActionsMixin],
     data: function () {
         return {
             mounted: false,
@@ -224,6 +235,9 @@ export default {
         },
         deviceEditorURL: function () {
             return this.device.editor?.url || ''
+        },
+        neverConnected () {
+            return !this.device.lastSeenAt
         },
         notAssigned () {
             const device = this.device
@@ -286,9 +300,13 @@ export default {
                 //     action: this.startDevice,
                 //     disabled: deviceStateChanging || this.deviceRunning
                 // },
-                { name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled }
                 // { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: deviceStateChanging || flowActionsDisabled }
             ]
+
+            if (!this.neverConnected) {
+                // if we've never connected, we know we can't restart
+                result.push({ name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled })
+            }
 
             if (this.hasPermission('device:delete')) {
                 result.push(null)
