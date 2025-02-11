@@ -123,13 +123,7 @@ export default {
             loading: false,
             topics: {},
             inspecting: null,
-            expandedTopics: new Set([
-                'AcmeFactory',
-                'AcmeFactory/Southampton',
-                'AcmeFactory/Southampton/Widget',
-                'AcmeFactory/Southampton/Widget/Assembly1',
-                'AcmeFactory/Southampton/Widget/Assembly1/Injection',
-                'AcmeFactory/Southampton/Widget/Assembly1/Injection/config'])
+            expandedTopics: new Set()
         }
     },
     computed: {
