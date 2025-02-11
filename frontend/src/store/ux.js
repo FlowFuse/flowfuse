@@ -25,10 +25,15 @@ const state = () => ({
         education: false,
         'first-device': false
     },
+    completeTours: [],
     mainNav: {
         context: 'team',
         backToButton: null
-    }
+    },
+    userActions: {
+        hasOpenedDeviceEditor: false
+    },
+    isNewlyCreatedUser: false
 })
 
 const getters = {
@@ -217,7 +222,13 @@ const getters = {
                             },
                             tag: 'team-devices',
                             icon: ChipIcon,
-                            disabled: noBilling
+                            disabled: noBilling,
+                            alert: state.isNewlyCreatedUser && !state.userActions.hasOpenedDeviceEditor
+                                ? {
+                                    title: 'Connect to Device Agent',
+                                    url: 'https://flowfuse.com/docs/device-agent/introduction/'
+                                }
+                                : null
                         }
                     ]
                 },
@@ -435,8 +446,17 @@ const mutations = {
     activateTour (state, tour) {
         state.tours[tour] = true
     },
+    setNewlyCreatedUser (state, payload) {
+        state.isNewlyCreatedUser = payload
+    },
     deactivateTour (state, tour) {
         state.tours[tour] = false
+        state.completeTours.push(tour)
+    },
+    setUserAction (state, { action, payload }) {
+        if (Object.prototype.hasOwnProperty.call(state.userActions, action)) {
+            state.userActions[action] = payload
+        }
     }
 }
 
@@ -465,11 +485,24 @@ const actions = {
     setMainNavBackButton ({ commit }, button) {
         commit('setMainNavBackButton', button)
     },
+    setNewlyCreatedUser ({ commit }) {
+        commit('setNewlyCreatedUser', true)
+    },
     activateTour ({ commit }, tour) {
         commit('activateTour', tour)
     },
     deactivateTour ({ commit, state }, tour) {
         commit('deactivateTour', tour)
+    },
+    validateUserAction ({ commit }, action) {
+        commit('setUserAction', { action, payload: true })
+    },
+    checkIfIsNewlyCreatedUser ({ commit }, user) {
+        const userCreatedDate = new Date(user.createdAt).getTime()
+        const oneWeekAgo = new Date()
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+
+        commit('setNewlyCreatedUser', userCreatedDate >= oneWeekAgo.getTime())
     }
 }
 
@@ -482,6 +515,12 @@ export default {
     meta: {
         persistence: {
             tours: {
+                storage: 'localStorage'
+            },
+            isNewlyCreatedUser: {
+                storage: 'localStorage'
+            },
+            userActions: {
                 storage: 'localStorage'
             }
         }

@@ -20,7 +20,7 @@
     "title": "Concept: Remote Instances",
     "text": "<p><b>Remote Instances</b> are Node-RED instances that are managed and deployed onto your own hardware.</p><p>This could be Instances running in factories or on a Raspberry Pi on your desk.</p>",
     "attachTo": {
-        "element": "section[data-el=\"application-devices-none\"]",
+        "element": "section[data-el=\"application-devices-none\"], section[data-el=\"application-devices\"]",
         "on": "bottom"
     }
 }, {

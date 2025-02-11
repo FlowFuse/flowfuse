@@ -81,7 +81,7 @@ const getters = {
         !state.team?.billing?.active
     },
     isTrialAccount (state) {
-        return state.team?.billing?.trial
+        return !!state.team?.billing?.trial
     },
     isAdminUser: (state) => !!state.user.admin,
     defaultUserTeam: (state, getters) => {
@@ -288,6 +288,7 @@ const actions = {
 
             const user = await userApi.getUser()
             commit('login', user)
+            dispatch('ux/checkIfIsNewlyCreatedUser', user, { root: true })
 
             // User is logged in
             if (router.currentRoute.value.meta.requiresLogin === false) {

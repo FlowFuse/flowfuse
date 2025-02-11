@@ -6,6 +6,7 @@
                     <h6 class="mb-5 pb-2 title">Server</h6>
                     <FormRow
                         v-model="form.name"
+                        :error="formErrors.name"
                         type="input"
                         name="name"
                         class="name"
@@ -20,6 +21,7 @@
                     <div class="flex gap-3 md:flex-nowrap flex-wrap">
                         <FormRow
                             v-model="form.host"
+                            :error="formErrors.host"
                             type="input"
                             name="host"
                             class="host flex-1"
@@ -104,7 +106,7 @@
                 >
                     Delete
                 </ff-button>
-                <ff-button kind="secondary" data-action="submit" @click="onSubmit">
+                <ff-button kind="secondary" data-action="submit" :disabled="!isFormValid" @click="onSubmit">
                     Submit
                 </ff-button>
             </div>
@@ -191,6 +193,24 @@ export default {
                     value: 'false'
                 }
             ]
+        }
+    },
+    computed: {
+        isFormValid () {
+            if (this.form.name.length === 0) {
+                return false
+            }
+            if (this.form.host.length === 0) {
+                return false
+            }
+
+            return true
+        },
+        formErrors () {
+            return {
+                name: this.form.name.length ? '' : 'Name is mandatory',
+                host: this.form.host.length ? '' : 'Host is mandatory'
+            }
         }
     },
     watch: {
