@@ -4,6 +4,12 @@ module.exports.init = function (app) {
         app.config.features.register('teamBroker', true, true)
     }
 
+    if (app.config.driver.type === 'localfs' || 
+        app.config.driver.type === 'kubernetes' ||
+        app.config.driver.type === 'stub') {
+        app.config.features.register('3rdPartyBroker', true, true)
+    }
+
     /*
      * need to add functions here to boot clients when team
      * or when client creds removed
