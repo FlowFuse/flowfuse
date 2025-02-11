@@ -69,7 +69,7 @@ describe('FlowFuse - Brokers', () => {
         cy.get('[data-el="add-new-broker"]').should('not.exist')
         cy.get('[data-el="brokers-list"]').should('not.exist')
 
-        cy.contains('Chose which Broker you\'d like to get setup with:')
+        cy.contains('Choose which Broker you\'d like to get setup with:')
 
         cy.get('[data-el="medium-tile"]').should('have.length', 2)
         cy.get('[data-el="medium-tile"][data-value="FlowFuse Broker"]').should('exist')

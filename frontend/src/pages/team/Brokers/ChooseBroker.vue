@@ -1,7 +1,7 @@
 <template>
     <div class="create-broker py-20 flex flex-col gap-9" data-el="choose-broker">
         <section class="flex gap-6 justify-center relative z-10 flex-wrap">
-            <h2>Chose which Broker you'd like to get setup with:</h2>
+            <h2>Choose which Broker you'd like to get setup with:</h2>
         </section>
 
         <section class="flex gap-6 justify-center relative z-10 flex-wrap">
@@ -77,7 +77,7 @@ export default {
                 {
                     title: 'Bring your Own Broker',
                     content: [
-                        'Requires a third-party broker to be setup'
+                        'Connect and monitor your own MQTT Broker'
                     ],
                     contentType: 'dash',
                     to: { name: 'team-brokers-new' },
