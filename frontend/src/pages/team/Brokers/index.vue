@@ -344,6 +344,7 @@ export default {
                 })
         },
         clearBrokerStatusPollingInterval () {
+            this.brokerState = ''
             if (this.brokerStatusPollingInterval) {
                 clearInterval(this.brokerStatusPollingInterval)
             }
