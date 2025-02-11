@@ -333,7 +333,7 @@ export default {
             return brokerAPI.getBrokerStatus(this.team.id, this.activeBrokerId)
                 .then(response => {
                     if (response?.state?.connected) {
-                        this.brokerState = 'running'
+                        this.brokerState = 'connected'
                     } else {
                         this.brokerState = 'error'
                     }
