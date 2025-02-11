@@ -39,8 +39,9 @@
                         </template>
                         <template #header>Start Building Your Topic Hierarchy</template>
                         <template #message>
-                            <p>It looks like no topics have been created yet.</p>
-                            <p>Topics are automatically generated as your MQTT clients publish events to the broker. Get started by connecting a client and publishing your first message.</p>
+                            <p>It looks like no topics have been detected yet.</p>
+                            <p>Topics are automatically detected as your MQTT clients publish events to the broker. Get started by connecting a client and publishing your first message.</p>
+                            <p>Note there may be a short delay before the topics are shown here.</p>
                         </template>
                     </EmptyState>
                 </template>
@@ -59,19 +60,31 @@
                     </ff-button>
                 </div>
             </div>
-            <div v-if="inspecting" class="ff-topic-inspecting">
-                <label class="ff-topic-path">
-                    <span>
-                        <template v-for="(part, idx) in selectedTopicParts" :key="idx">
-                            <span v-if="idx > 0">/<wbr></span>
-                            <span>{{ part }}</span>
-                        </template>
-                    </span>
-                    <text-copier :text="selectedTopic" :show-text="false" prompt-position="left" class="ff-text-copier" />
-                </label>
-                <ff-divider />
-                <FormRow v-model="inspecting.metadata.description" containerClass="max-w-full">Description</FormRow>
-            </div>
+            <template v-if="inspecting">
+                <div class="ff-topic-inspecting">
+                    <label class="ff-topic-path">
+                        <span>
+                            <template v-for="(part, idx) in selectedTopicParts" :key="idx">
+                                <span v-if="idx > 0">/<wbr></span>
+                                <span>{{ part }}</span>
+                            </template>
+                        </span>
+                        <text-copier :text="selectedTopic" :show-text="false" prompt-position="left" class="ff-text-copier" />
+                    </label>
+                    <ff-divider />
+                    <FormRow v-model="inspecting.metadata.description" containerClass="max-w-full">Description</FormRow>
+                </div>
+                <template v-if="!isTeamBroker">
+                    <div class="title mt-2 mb-2 flex gap-3 items-center">
+                        <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
+                        <h3 class="my-2 flex-grow" data-el="subtitle">Payload Schema</h3>
+                    </div>
+                    <div class="ff-topic-inspecting">
+                        <label class="text-gray-800 block text-sm font-medium mb-1">Detected Schema</label>
+                        <topic-schema :schema="inspecting.inferredSchema" />
+                    </div>
+                </template>
+            </template>
             <EmptyState v-else>
                 <template #img>
                     <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
@@ -97,19 +110,26 @@ import FormRow from '../../../../components/FormRow.vue'
 import TextCopier from '../../../../components/TextCopier.vue'
 import { useNavigationHelper } from '../../../../composables/NavigationHelper.js'
 
+import TopicSchema from './components/TopicSchema.vue'
 import TopicSegment from './components/TopicSegment.vue'
 
 const { openInANewTab } = useNavigationHelper()
 
 export default {
     name: 'BrokerHierarchy',
-    components: { TopicSegment, EmptyState, ExternalLinkIcon, RefreshIcon, FormRow, TextCopier },
+    components: { TopicSchema, TopicSegment, EmptyState, ExternalLinkIcon, RefreshIcon, FormRow, TextCopier },
     data () {
         return {
             loading: false,
             topics: {},
             inspecting: null,
-            expandedTopics: new Set()
+            expandedTopics: new Set([
+                'AcmeFactory',
+                'AcmeFactory/Southampton',
+                'AcmeFactory/Southampton/Widget',
+                'AcmeFactory/Southampton/Widget/Assembly1',
+                'AcmeFactory/Southampton/Widget/Assembly1/Injection',
+                'AcmeFactory/Southampton/Widget/Assembly1/Injection/config'])
         }
     },
     computed: {
@@ -140,6 +160,7 @@ export default {
                             id: topicLookup[rootName]?.id,
                             metadata: topicLookup[rootName]?.metadata || {},
                             originalMetadata: JSON.stringify(topicLookup[rootName]?.metadata || {}),
+                            inferredSchema: topicLookup[rootName]?.inferredSchema || { type: 'unknown' },
                             isRoot: true,
                             open: this.expandedTopics.has(rootName),
                             childrenCount: 0,
@@ -161,6 +182,7 @@ export default {
                                 id: topicLookup[topic]?.id,
                                 metadata: topicLookup[topic]?.metadata || {},
                                 originalMetadata: JSON.stringify(topicLookup[topic]?.metadata || {}),
+                                inferredSchema: topicLookup[topic]?.inferredSchema || { type: 'unknown' },
                                 open: this.expandedTopics.has(topic),
                                 childrenCount: 0,
                                 children: {}
@@ -230,6 +252,9 @@ export default {
         },
         hasUnsavedChanges () {
             return this.inspecting && JSON.stringify(this.inspecting.metadata) !== this.inspecting.originalMetadata
+        },
+        isTeamBroker () {
+            return this.$route.params.brokerId === 'team-broker'
         }
     },
     watch: {

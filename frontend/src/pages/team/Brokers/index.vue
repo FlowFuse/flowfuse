@@ -15,10 +15,13 @@
                 </template>
 
                 <template #helptext>
-                    <p>The <b>Broker</b> feature provides a centralized framework for managing and visualizing your entire data ecosystem, consolidating MQTT broker instances and topic structures within a single interface.</p>
-                    <p>Within the Broker, <b>Client</b> page allows you to manage the clients that have access to the Broker, with customizable Access Control List (ACL) rules for secure and controlled data flow.</p>
+                    <p>The <b>Broker</b> feature provides a way to framework for managing and visualizing your entire data ecosystem, consolidating MQTT broker instances and topic structures within a single interface.</p>
+                    <template v-if="isTeamBroker">
+                        <p>The FlowFuse Team Broker is an MQTT broker ready to start using within your team.</p>
+                        <p>The <b>Client</b> page allows you to manage the clients that have access to the Broker, with customizable Access Control List (ACL) rules for secure and controlled data flow.</p>
+                    </template>
                     <p>The topic <b>Hierarchy</b> offers a clear, organized visualization of the topics being used within your broker.</p>
-                    <p>Together, these components deliver an integrated approach to managing client connections, security settings, and message flow, supporting efficient and secure data communication across your system.</p>
+                    <p>These components deliver an integrated approach to managing client connections, security settings, and message flow, supporting efficient and secure data communication across your system.</p>
                     <p>Documentation <a href="https://flowfuse.com/docs/user/teambroker" target="_blank">here</a></p>
                 </template>
 
