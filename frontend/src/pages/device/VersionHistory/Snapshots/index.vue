@@ -1,75 +1,77 @@
 <template>
-    <div class="mb-3">
-        <SectionTopMenu hero="Snapshots" help-header="FlowFuse - Snapshots">
-            <template #pictogram>
-                <img alt="info" src="../../../images/pictograms/snapshot_red.png">
+    <div id="device-snapshots">
+        <div class="mb-3">
+            <SectionTopMenu hero="Snapshots" help-header="FlowFuse - Snapshots">
+                <template #pictogram>
+                    <img alt="info" src="../../../../images/pictograms/snapshot_red.png">
+                </template>
+                <template #helptext>
+                    <p>Snapshots generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
+                    <p>Snapshots are also required for deploying to Remote Instances. In the Pipelines page of an Application, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
+                    <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/FlowFuse/nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
+                </template>
+                <template #tools>
+                    <div class="space-x-2 flex align-center">
+                        <ff-checkbox v-model="showDeviceSnapshotsOnly" v-ff-tooltip:left="'Untick this to show snapshots from other Instances within this application'" data-form="device-only-snapshots" label="Show only Snapshots created by on this Instance" />
+                    </div>
+                </template>
+            </SectionTopMenu>
+        </div>
+        <div class="space-y-6">
+            <ff-loading v-if="loading" message="Loading Snapshots..." />
+            <template v-if="features.deviceEditor && snapshots.length > 0">
+                <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+                <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
+                    <template v-if="hasPermission('device:snapshot:create')" #actions>
+                        <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" :disabled="busy" @click="showImportSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload Snapshot</ff-button>
+                        <ff-button kind="primary" data-action="create-snapshot" :disabled="!developerMode || busy" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
+                    </template>
+                    <template #context-menu="{row}">
+                        <ff-list-item :disabled="!canDeploy(row)" label="Restore Snapshot" @click="showDeploySnapshotDialog(row)" />
+                        <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
+                        <ff-list-item :disabled="!hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
+                        <ff-list-item :disabled="!hasPermission('snapshot:full')" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
+                        <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
+                        <ff-list-item :disabled="!hasPermission('device:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
+                        <ff-list-item :disabled="!canDelete(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
+                    </template>
+                </ff-data-table>
             </template>
-            <template #helptext>
-                <p>Snapshots generate a point-in-time backup of your Node-RED flow, credentials and runtime settings.</p>
-                <p>Snapshots are also required for deploying to Remote Instances. In the Pipelines page of an Application, you can define your “Target Snapshot”, which will then be deployed to all connected devices.</p>
-                <p>You can also generate Snapshots directly from any instance of Node-RED using the <a target="_blank" href="https://github.com/FlowFuse/nr-tools-plugin">FlowFuse NR Tools Plugin.</a></p>
+            <template v-else-if="!loading">
+                <EmptyState :feature-unavailable="!features.deviceEditor" :feature-unavailable-message="'This requires Developer Mode on Devices, which is a FlowFuse Enterprise Feature'">
+                    <template #img>
+                        <img src="../../../../images/empty-states/instance-snapshots.png">
+                    </template>
+                    <template #header>Create your First Snapshot</template>
+                    <template #message>
+                        <p>
+                            Snapshots are point-in-time backups of your Node-RED Instances
+                            and capture the flows, credentials and runtime settings.
+                        </p>
+                        <p v-if="device.ownerType !== 'application'" class="block">
+                            A Remote Instance must first be <a class="ff-link" href="https://flowfuse.com/docs/device-agent/register/#assign-the-device-to-an-application" target="_blank" rel="noreferrer">assigned to an Application</a>, in order to create snapshots.
+                        </p>
+                        <p v-else-if="!developerMode" class="block">
+                            A Remote Instance must be in Developer Mode and online to create a Snapshot.
+                        </p>
+                    </template>
+                    <template v-if="hasPermission('device:snapshot:create')" #actions>
+                        <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" :disabled="busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="import-snapshot" @click="showImportSnapshotDialog">
+                            <template #icon-left><UploadIcon /></template>Upload Snapshot
+                        </ff-button>
+                        <ff-button kind="primary" :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="create-snapshot" @click="showCreateSnapshotDialog">
+                            <template #icon-left><PlusSmIcon /></template>Create Snapshot
+                        </ff-button>
+                    </template>
+                </EmptyState>
             </template>
-            <template #tools>
-                <div class="space-x-2 flex align-center">
-                    <ff-checkbox v-model="showDeviceSnapshotsOnly" v-ff-tooltip:left="'Untick this to show snapshots from other Instances within this application'" data-form="device-only-snapshots" label="Show only Snapshots created by on this Instance" />
-                </div>
-            </template>
-        </SectionTopMenu>
-    </div>
-    <div class="space-y-6">
-        <ff-loading v-if="loading" message="Loading Snapshots..." />
-        <template v-if="features.deviceEditor && snapshots.length > 0">
-            <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-            <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
-                <template v-if="hasPermission('device:snapshot:create')" #actions>
-                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" data-action="import-snapshot" :disabled="busy" @click="showImportSnapshotDialog"><template #icon-left><UploadIcon /></template>Upload Snapshot</ff-button>
-                    <ff-button kind="primary" data-action="create-snapshot" :disabled="!developerMode || busy" @click="showCreateSnapshotDialog"><template #icon-left><PlusSmIcon /></template>Create Snapshot</ff-button>
-                </template>
-                <template #context-menu="{row}">
-                    <ff-list-item :disabled="!canDeploy(row)" label="Restore Snapshot" @click="showDeploySnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('device:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
-                    <ff-list-item :disabled="!canDelete(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
-                </template>
-            </ff-data-table>
-        </template>
-        <template v-else-if="!loading">
-            <EmptyState :feature-unavailable="!features.deviceEditor" :feature-unavailable-message="'This requires Developer Mode on Devices, which is a FlowFuse Enterprise Feature'">
-                <template #img>
-                    <img src="../../../images/empty-states/instance-snapshots.png">
-                </template>
-                <template #header>Create your First Snapshot</template>
-                <template #message>
-                    <p>
-                        Snapshots are point-in-time backups of your Node-RED Instances
-                        and capture the flows, credentials and runtime settings.
-                    </p>
-                    <p v-if="device.ownerType !== 'application'" class="block">
-                        A Remote Instance must first be <a class="ff-link" href="https://flowfuse.com/docs/device-agent/register/#assign-the-device-to-an-application" target="_blank" rel="noreferrer">assigned to an Application</a>, in order to create snapshots.
-                    </p>
-                    <p v-else-if="!developerMode" class="block">
-                        A Remote Instance must be in Developer Mode and online to create a Snapshot.
-                    </p>
-                </template>
-                <template v-if="hasPermission('device:snapshot:create')" #actions>
-                    <ff-button v-if="hasPermission('snapshot:import')" kind="secondary" :disabled="busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="import-snapshot" @click="showImportSnapshotDialog">
-                        <template #icon-left><UploadIcon /></template>Upload Snapshot
-                    </ff-button>
-                    <ff-button kind="primary" :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'" data-action="create-snapshot" @click="showCreateSnapshotDialog">
-                        <template #icon-left><PlusSmIcon /></template>Create Snapshot
-                    </ff-button>
-                </template>
-            </EmptyState>
-        </template>
-        <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="true" :device="device" @device-import-success="onSnapshotCreated" @device-import-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
-        <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
-        <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="onSnapshotEdit" />
-        <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :show-owner-select="false" :owner="device" owner-type="device" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
-        <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
-        <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
+            <SnapshotCreateDialog ref="snapshotCreateDialog" title="Create Device Snapshot" data-el="dialog-create-device-snapshot" :show-set-as-target="true" :device="device" @device-import-success="onSnapshotCreated" @device-import-failed="onSnapshotFailed" @canceled="onSnapshotCancel" />
+            <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
+            <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="onSnapshotEdit" />
+            <SnapshotImportDialog ref="snapshotImportDialog" title="Upload Snapshot" data-el="dialog-import-snapshot" :show-owner-select="false" :owner="device" owner-type="device" @snapshot-import-success="onSnapshotImportSuccess" @snapshot-import-failed="onSnapshotImportFailed" @canceled="onSnapshotImportCancel" />
+            <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+            <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
+        </div>
     </div>
 </template>
 
@@ -78,28 +80,28 @@ import { PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import ApplicationApi from '../../../api/application.js'
-import DeviceApi from '../../../api/devices.js'
-import SnapshotApi from '../../../api/snapshots.js'
+import ApplicationApi from '../../../../api/application.js'
+import DeviceApi from '../../../../api/devices.js'
+import SnapshotApi from '../../../../api/snapshots.js'
 
-import EmptyState from '../../../components/EmptyState.vue'
-import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-import AssetCompareDialog from '../../../components/dialogs/AssetCompareDialog.vue'
-import AssetDetailDialog from '../../../components/dialogs/AssetDetailDialog.vue'
-import SnapshotEditDialog from '../../../components/dialogs/SnapshotEditDialog.vue'
-import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
-import UserCell from '../../../components/tables/cells/UserCell.vue'
-import { downloadData } from '../../../composables/Download.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
-import Alerts from '../../../services/alerts.js'
-import Dialog from '../../../services/dialog.js'
-import { applySystemUserDetails } from '../../../transformers/snapshots.transformer.js'
-import DaysSince from '../../application/Snapshots/components/cells/DaysSince.vue'
-import SnapshotName from '../../application/Snapshots/components/cells/SnapshotName.vue'
-import SnapshotSource from '../../application/Snapshots/components/cells/SnapshotSource.vue'
-import SnapshotExportDialog from '../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
+import EmptyState from '../../../../components/EmptyState.vue'
+import SectionTopMenu from '../../../../components/SectionTopMenu.vue'
+import AssetCompareDialog from '../../../../components/dialogs/AssetCompareDialog.vue'
+import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
+import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
+import SnapshotImportDialog from '../../../../components/dialogs/SnapshotImportDialog.vue'
+import UserCell from '../../../../components/tables/cells/UserCell.vue'
+import { downloadData } from '../../../../composables/Download.js'
+import permissionsMixin from '../../../../mixins/Permissions.js'
+import Alerts from '../../../../services/alerts.js'
+import Dialog from '../../../../services/dialog.js'
+import { applySystemUserDetails } from '../../../../transformers/snapshots.transformer.js'
+import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
+import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
+import SnapshotSource from '../../../application/Snapshots/components/cells/SnapshotSource.vue'
+import SnapshotExportDialog from '../../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
-import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
+import SnapshotCreateDialog from './dialogs/SnapshotAssignDialog.vue'
 
 export default {
     name: 'DeviceSnapshots',
