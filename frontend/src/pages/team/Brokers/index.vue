@@ -6,6 +6,10 @@
                     {{ pageTitle.context }}
                 </template>
 
+                <template #status>
+                    <BrokerStatusBadge v-if="broker?.id !== 'team-broker'" :status="brokerState" :pendingStateChange="!brokerState" />
+                </template>
+
                 <template #pictogram>
                     <img alt="info" src="../../../images/pictograms/mqtt_broker_red.png">
                 </template>
@@ -67,6 +71,8 @@
 
 import { mapActions, mapGetters, mapState } from 'vuex'
 
+import brokerAPI from '../../../api/broker.js'
+
 import EmptyState from '../../../components/EmptyState.vue'
 import FfLoading from '../../../components/Loading.vue'
 
@@ -74,9 +80,11 @@ import usePermissions from '../../../composables/Permissions.js'
 import FfButton from '../../../ui-components/components/Button.vue'
 import { Roles } from '../../../utils/roles.js'
 
+import BrokerStatusBadge from './components/BrokerStatusBadge.vue'
+
 export default {
     name: 'TeamBrokers',
-    components: { FfLoading, EmptyState, FfButton },
+    components: { BrokerStatusBadge, FfLoading, EmptyState, FfButton },
     beforeRouteLeave (to, from, next) {
         if (to.params?.team_slug !== from.params?.team_slug) {
             this.clearUns()
@@ -91,7 +99,9 @@ export default {
     },
     data () {
         return {
-            loading: true
+            loading: true,
+            brokerState: '',
+            brokerStatusPollingInterval: null
         }
     },
     computed: {
@@ -125,6 +135,7 @@ export default {
                         })
                 default:
                     return this.$router.push({ name: 'team-brokers-hierarchy', params: { brokerId } })
+                        .catch(e => console.error(e))
                         .finally(() => {
                             this.loading = false
                         })
@@ -228,6 +239,23 @@ export default {
             if (!route.params.brokerId && routeRequiresBrokerId) {
                 this.redirectIfNeeded()
             }
+        },
+        activeBrokerId: {
+            handler (id) {
+                this.clearBrokerStatusPollingInterval()
+
+                if (id && id !== 'team-broker') {
+                    this.getBrokerState()
+                        .then(() => {
+                            this.brokerStatusPollingInterval = setInterval(() => this.getBrokerState(), 5000)
+                        })
+                        .catch(e => {
+                            this.brokerState = 'error'
+                            console.error(e)
+                        })
+                }
+            },
+            immediate: true
         }
     },
     mounted () {
@@ -239,7 +267,10 @@ export default {
             .finally(() => {
                 this.loading = false
             })
-            .catch(e => e)
+            .catch(e => console.error(e))
+    },
+    unmounted () {
+        this.clearBrokerStatusPollingInterval()
     },
     methods: {
         ...mapActions('product', ['fetchUnsClients']),
@@ -297,6 +328,26 @@ export default {
         },
         clearUns () {
             this.$store.dispatch('product/clearUns')
+        },
+        getBrokerState () {
+            return brokerAPI.getBrokerStatus(this.team.id, this.activeBrokerId)
+                .then(response => {
+                    if (response?.state?.connected) {
+                        this.brokerState = 'connected'
+                    } else {
+                        this.brokerState = 'error'
+                    }
+                })
+                .catch(e => {
+                    this.brokerState = 'error'
+                    console.error(e)
+                })
+        },
+        clearBrokerStatusPollingInterval () {
+            this.brokerState = ''
+            if (this.brokerStatusPollingInterval) {
+                clearInterval(this.brokerStatusPollingInterval)
+            }
         }
     }
 }
