@@ -232,46 +232,23 @@ export default {
             return !hasApplication && !hasInstance
         },
         navigation () {
-            const navigation = [
-                { label: 'Overview', to: `/device/${this.$route.params.id}/overview`, tag: 'device-overview' }
-            ]
-
-            // snapshots - if device is owned by an application,
-            if (this.device?.ownerType !== 'instance') {
-                navigation.push({
-                    label: 'Snapshots',
-                    to: `/device/${this.$route.params.id}/snapshots`,
-                    tag: 'device-snapshots'
-                })
-            }
-
-            navigation.push(
-                { label: 'Audit Log', to: `/device/${this.$route.params.id}/audit-log`, tag: 'device-audit-log' }
-            )
-
-            // device logs - if project comms is enabled,
-            if (this.features.projectComms) {
-                navigation.push({
-                    label: 'Node-RED Logs',
-                    to: `/device/${this.$route.params.id}/logs`,
-                    tag: 'device-logs',
-                    icon: TerminalIcon
-                })
-            }
-
-            // settings - always
-            navigation.push({ label: 'Settings', to: `/device/${this.$route.params.id}/settings`, tag: 'device-settings' })
-
-            // developer mode - if available and device is in developer mode
-            if (this.isDevModeAvailable && this.device.mode === 'developer') {
-                navigation.push({
+            return [
+                { label: 'Overview', to: { name: 'DeviceOverview' }, tag: 'device-overview' },
+                {
+                    label: 'Version History',
+                    to: { name: 'DeviceSnapshots', params: { id: this.$route.params.id } },
+                    tag: 'version-history',
+                    hidden: !(this.device?.ownerType !== 'instance')
+                },
+                { label: 'Audit Log', to: { name: 'device-audit-log' }, tag: 'device-audit-log' },
+                { label: 'Settings', to: { name: 'device-settings' }, tag: 'device-settings' },
+                {
                     label: 'Developer Mode',
-                    to: `/device/${this.$route.params.id}/developer-mode`,
-                    tag: 'device-devmode'
-                })
-            }
-
-            return navigation
+                    to: { name: 'DeviceDeveloperMode' },
+                    tag: 'device-devmode',
+                    hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
+                }
+            ]
         },
         actionsDropdownOptions () {
             const flowActionsDisabled = !(this.device.status !== 'suspended')
