@@ -18,7 +18,7 @@ module.exports = {
         verifySSL: { type: DataTypes.BOOLEAN, allowNull: false, default: false },
         clientId: { type: DataTypes.STRING, allowNull: false },
         credentials: { type: DataTypes.TEXT, allowNull: false },
-        state: { type: DataTypes.STRING, allowNull: false, default: 'stopped' },
+        state: { type: DataTypes.STRING, allowNull: false, default: 'running' },
         settings: {
             type: DataTypes.TEXT,
             allowNull: true,
