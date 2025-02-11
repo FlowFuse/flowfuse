@@ -57,6 +57,7 @@ export default [
             },
             {
                 path: 'logs',
+                name: 'device-logs',
                 component: DeviceLogs,
                 meta: {
                     title: 'Device - Logs'

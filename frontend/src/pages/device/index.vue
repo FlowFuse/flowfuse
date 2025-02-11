@@ -241,6 +241,12 @@ export default {
                     hidden: !(this.device?.ownerType !== 'instance')
                 },
                 { label: 'Audit Log', to: { name: 'device-audit-log' }, tag: 'device-audit-log' },
+                {
+                    label: 'Node-RED Logs',
+                    to: { name: 'device-logs' },
+                    tag: 'device-logs',
+                    icon: TerminalIcon
+                },
                 { label: 'Settings', to: { name: 'device-settings' }, tag: 'device-settings' },
                 {
                     label: 'Developer Mode',
