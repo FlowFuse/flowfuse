@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import projectHistoryAPI from '../../../../api/projectHistory.js'
+import versionHistoryAPI from '../../../../api/versionHistory.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
@@ -137,7 +137,7 @@ export default {
                 // we retrieve the timeline for that instance and display it for a short period of time
                 if (this.instance.id && this.instance.id === this.$route.params.id) {
                     const nextCursor = loadMore ? this.next_cursor : undefined
-                    projectHistoryAPI.getHistory(this.instance.id, nextCursor, 10)
+                    versionHistoryAPI.getInstanceHistory(this.instance.id, nextCursor, 10)
                         .then((response) => {
                             this.loading = false
                             if (loadMore) {
