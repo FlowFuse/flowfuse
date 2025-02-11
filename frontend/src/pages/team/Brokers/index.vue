@@ -23,7 +23,7 @@
                 </template>
 
                 <template #tools>
-                    <section v-if="!loading && shouldDisplayTools" class="flex gap-3 flex-wrap">
+                    <section v-if="!loading && shouldDisplayTools && featuresCheck.isExternalMqttBrokerFeatureEnabled" class="flex gap-3 flex-wrap">
                         <ff-listbox
                             v-if="brokers.length > 1"
                             v-model="activeBrokerId"
