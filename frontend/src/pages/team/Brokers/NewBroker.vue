@@ -4,11 +4,21 @@
 
 <script>
 
+import { mapGetters } from 'vuex'
+
 import BrokerForm from './components/BrokerForm.vue'
 
 export default {
     name: 'NewBroker',
     components: { BrokerForm },
+    computed: {
+        ...mapGetters('account', ['featuresCheck'])
+    },
+    mounted () {
+        if (!this.featuresCheck.isExternalMqttBrokerFeatureEnabled) {
+            this.$router.push({ name: 'team-brokers' })
+        }
+    },
     methods: {
         onSubmit (payload) {
             return this.$store.dispatch('product/createBroker', payload)
