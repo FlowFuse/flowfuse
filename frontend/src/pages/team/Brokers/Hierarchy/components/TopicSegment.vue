@@ -114,7 +114,8 @@ export default {
             handler () {
                 this.$emit('segment-state-changed', {
                     state: this.isSegmentOpen,
-                    path: this.segment.path
+                    path: this.segment.path,
+                    topic: this.segment.topic
                 })
             },
             immediate: false

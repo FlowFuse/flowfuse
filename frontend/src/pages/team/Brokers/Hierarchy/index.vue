@@ -4,6 +4,10 @@
             <div class="title mb-5 flex gap-3 items-center">
                 <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
                 <h3 class="my-2 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
+                <ff-button kind="tertiary" @click="refreshHierarchy()">
+                    <template #icon><RefreshIcon /></template>
+                </ff-button>
+
                 <ff-button v-if="shouldDisplaySchemaButton" @click="openSchema()">
                     <template #icon-right><ExternalLinkIcon /></template>
                     Open Schema
@@ -83,7 +87,7 @@
 
 <script>
 
-import { ExternalLinkIcon } from '@heroicons/vue/solid'
+import { ExternalLinkIcon, RefreshIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
@@ -99,12 +103,13 @@ const { openInANewTab } = useNavigationHelper()
 
 export default {
     name: 'BrokerHierarchy',
-    components: { TopicSegment, EmptyState, ExternalLinkIcon, FormRow, TextCopier },
+    components: { TopicSegment, EmptyState, ExternalLinkIcon, RefreshIcon, FormRow, TextCopier },
     data () {
         return {
             loading: false,
             topics: {},
-            inspecting: null
+            inspecting: null,
+            expandedTopics: new Set()
         }
     },
     computed: {
@@ -136,7 +141,7 @@ export default {
                             metadata: topicLookup[rootName]?.metadata || {},
                             originalMetadata: JSON.stringify(topicLookup[rootName]?.metadata || {}),
                             isRoot: true,
-                            open: false,
+                            open: this.expandedTopics.has(rootName),
                             childrenCount: 0,
                             children: {}
                         }
@@ -148,14 +153,15 @@ export default {
                     parts.forEach((part, index) => {
                         if (!current[part]) {
                             const path = hierarchy[rootName].path + (index > 0 ? `/${parts.slice(0, index).join('/')}` : '')
+                            const topic = path + '/' + part
                             current[part] = {
                                 name: part,
                                 path,
-                                topic: path + '/' + part,
-                                id: topicLookup[path + '/' + part]?.id,
-                                metadata: topicLookup[path + '/' + part]?.metadata || {},
-                                originalMetadata: JSON.stringify(topicLookup[path + '/' + part]?.metadata || {}),
-                                open: false,
+                                topic,
+                                id: topicLookup[topic]?.id,
+                                metadata: topicLookup[topic]?.metadata || {},
+                                originalMetadata: JSON.stringify(topicLookup[topic]?.metadata || {}),
+                                open: this.expandedTopics.has(topic),
                                 childrenCount: 0,
                                 children: {}
                             }
@@ -182,8 +188,13 @@ export default {
                 return hierarchy
             },
             set (segment) {
-                const keys = segment.path.split('/')
+                const keys = segment.topic.split('/')
                 let current = this.hierarchy
+                if (segment.state) {
+                    this.expandedTopics.add(segment.topic)
+                } else {
+                    this.expandedTopics.delete(segment.topic)
+                }
 
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i]
@@ -222,7 +233,9 @@ export default {
         }
     },
     watch: {
-        $route: 'getTopics'
+        $route: function () {
+            this.getTopics()
+        }
     },
     async mounted () {
         await this.getTopics()
@@ -271,6 +284,9 @@ export default {
             if (this.inspecting) {
                 this.inspecting.metadata = JSON.parse(this.inspecting.originalMetadata)
             }
+        },
+        async refreshHierarchy () {
+            this.getTopics()
         }
     }
 }
