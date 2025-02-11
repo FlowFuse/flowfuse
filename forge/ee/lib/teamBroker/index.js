@@ -7,7 +7,7 @@ module.exports.init = function (app) {
     if (app.config.driver.type === 'localfs' ||
         app.config.driver.type === 'kubernetes' ||
         app.config.driver.type === 'stub') {
-        // app.config.features.register('externalBroker', true, true)
+        app.config.features.register('externalBroker', true, true)
     }
 
     /*
