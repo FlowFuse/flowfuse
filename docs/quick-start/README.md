@@ -28,7 +28,7 @@ For a full installation guide, including how to setup FlowFuse in a production e
 
 ## Prerequisites
 
-Before you begin, ensure you have [Docker](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your system (either as a standalone binary or as docker plugin)
+Before you begin, ensure you have [Docker](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) (in `2.23.1` version or higher) installed on your system (either as a standalone binary or as docker plugin)
 
 ## Step 1: Configure Domain
 

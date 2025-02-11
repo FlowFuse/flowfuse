@@ -102,7 +102,7 @@
 <script>
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -110,6 +110,7 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Tours from '../../../tours/Tours.js'
 
+import TourFirstDevice from '../../../tours/tour-first-device.js'
 import TourWelcomeFree from '../../../tours/tour-welcome-free.json'
 import TourWelcome from '../../../tours/tour-welcome.json'
 
@@ -135,7 +136,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('ux', ['tours']),
+        ...mapState('ux', ['tours', 'completeTours']),
+        ...mapGetters('account', ['featuresCheck', 'team']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
                 return {
@@ -201,6 +203,23 @@ export default {
                         }
                     })
             } return this.applicationsList
+        },
+        deviceCount () {
+            if (this.applicationsList.length === 0) return 0
+            return this.applicationsList.reduce((count, app) => {
+                count += app.devices.length
+                return count
+            }, 0)
+        },
+        instanceCount () {
+            if (this.applicationsList.length === 0) return 0
+            return this.applicationsList.reduce((count, app) => {
+                count += app.instances.length
+                return count
+            }, 0)
+        },
+        isFreemiumTeamType () {
+            return !this.featuresCheck?.isHostedInstancesEnabledForTeam
         }
     },
     watch: {
@@ -210,42 +229,19 @@ export default {
         await this.fetchData()
         if ('billing_session' in this.$route.query) {
             this.$nextTick(() => {
-                // Clear the query param so a reload of the page does retrigger
+                // Clear the query param so a reload of the page does re-trigger
                 // the notification
                 this.$router.replace({ query: '' })
-                // allow the Alerts servcie to have subscription by wrapping in nextTick
+                // allow the Alerts service to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
         }
-        // Do we have an Instance already? Tells us which tour to run
-        const instanceCount = this.applicationsList.reduce((count, app) => {
-            count += app.instances.length
-            return count
-        }, 0)
-        // Do we have an Instance already? Tells us which tour to run
-        const deviceCount = this.applicationsList.reduce((count, app) => {
-            count += app.devices.length
-            return count
-        }, 0)
 
         // First time here?
         if (this.tours.welcome) {
-            let tour = null
-            if (instanceCount > 0) {
-                // Running with an Instance pre-configured
-                tour = Tours.create('welcome', TourWelcome, this.$store, () => {
-                    this.$store.dispatch('ux/activateTour', 'education')
-                })
-            } else {
-                // Free Tier Tour (No Instances)
-                tour = Tours.create('welcome', TourWelcomeFree, this.$store, () => {
-                    if (deviceCount === 0) {
-                        this.$store.dispatch('ux/activateTour', 'first-device')
-                    }
-                })
-            }
-            tour.start()
+            this.dispatchTour()
         }
+
         this.setSearchQuery()
     },
     methods: {
@@ -333,6 +329,54 @@ export default {
         setSearchQuery () {
             if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'searchQuery')) {
                 this.filterTerm = this.$route.query.searchQuery
+            }
+        },
+        dispatchTour () {
+            switch (true) {
+            case this.isFreemiumTeamType && !this.completeTours.includes('first-device') && !!this.applicationsList[0]:
+                // freemium users must first undergo the first-device tour on the ApplicationDevices page
+                return this.$store.dispatch('ux/activateTour', 'first-device')
+                    .then(() => this.$router.push({
+                        name: 'ApplicationDevices',
+                        params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
+                    }))
+                    .then(() => Tours.create(
+                        'first-device',
+                        TourFirstDevice,
+                        this.$store
+                    ))
+                    .then((tour) => tour.start())
+                    .catch(e => e)
+
+            case this.isFreemiumTeamType && this.completeTours.includes('first-device'):
+                // we're starting the delayed free tour for freemium tiers (without any instances pre-created)
+                return (Tours.create('welcome',
+                    TourWelcomeFree,
+                    this.$store,
+                    () => {
+                        if (this.deviceCount === 0) {
+                            this.$store.dispatch('ux/activateTour', 'first-device')
+                        } else {
+                            this.$store.dispatch('ux/activateTour', 'education')
+                        }
+                    })).start()
+
+            case !this.isFreemiumTeamType && this.instanceCount > 0:
+                // Running with an Instance pre-configured (Trial team types)
+                return (Tours.create('welcome', TourWelcome, this.$store, () => {
+                    this.$store.dispatch('ux/activateTour', 'education')
+                })).start()
+
+            case !this.isFreemiumTeamType:
+                // any regular team type
+                return (Tours.create('welcome', TourWelcomeFree, this.$store, () => {
+                    if (this.deviceCount === 0) {
+                        this.$store.dispatch('ux/activateTour', 'first-device')
+                    }
+                })).start()
+
+            default:
+                // no tours
             }
         }
     }

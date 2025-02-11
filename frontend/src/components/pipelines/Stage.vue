@@ -1,5 +1,5 @@
 <template>
-    <div v-if="stage" class="ff-pipeline-stage" data-el="ff-pipeline-stage" :class="{'ff-pipeline-stage--error': inDeveloperMode}">
+    <div v-if="stage" class="ff-pipeline-stage" data-el="ff-pipeline-stage" :class="{'ff-pipeline-stage--error': inDeveloperMode && stageIndex > 0}">
         <div class="ff-pipeline-stage-banner">
             <div class="ff-pipeline-stage-banner-name">
                 <label>{{ stage.name }}</label>
@@ -33,7 +33,7 @@
                     v-if="stage.stageType !== StageType.DEVICEGROUP"
                     v-ff-tooltip:right="'Run Pipeline Stage'"
                     data-action="stage-run"
-                    :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying || inDeveloperMode}"
+                    :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying }"
                     @click="runStage"
                 >
                     <PlayIcon
@@ -213,6 +213,9 @@ export default {
     },
     emits: ['stage-deleted', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
     computed: {
+        stageIndex () {
+            return this.pipeline.stages.indexOf(this.stage)
+        },
         deploying () {
             return this.stage.isDeploying
         },
@@ -258,9 +261,9 @@ export default {
                 }
             }
 
-            if (this.pipeline.stages.length > 0 && this.pipeline.stages.indexOf(this.stage) > 0) {
+            if (this.pipeline.stages.length > 0 && this.stageIndex > 0) {
                 route.query = {
-                    sourceStage: this.pipeline.stages[this.pipeline.stages.indexOf(this.stage)].id
+                    sourceStage: this.pipeline.stages[this.stageIndex].id
                 }
             }
 

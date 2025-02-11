@@ -87,7 +87,7 @@ The following guide walks through a full production-ready deployment. If you wan
 Before you begin, ensure you have the following:
 
 1. **Domain Name & DNS:** A domain name that you own and can configure DNS settings for (explained in [DNS](#dns))
-2. **Install Docker:** [Docker Engine](https://docs.docker.com/engine/) and [Docker Compose](https://docs.docker.com/compose/install/) must be installed on your system (either as a standalone binary or as docker plugin)
+2. **Install Docker:** [Docker Engine](https://docs.docker.com/engine/) and [Docker Compose](https://docs.docker.com/compose/install/) (in `2.23.1` version or higher) must be installed on your system (either as a standalone binary or as docker plugin).
 
 For a production-ready environment, we also recommend: 
 * **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
