@@ -410,7 +410,7 @@ jobs:
           helm upgrade --install \
             --create-namespace \
             --namespace "pr-${{ env.PR_NUMBER }}" \
-            --timeout 300s \
+            --timeout 450s \
             --wait \
             --atomic \
             --values ci/ci-values.yaml \
