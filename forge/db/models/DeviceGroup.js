@@ -114,14 +114,27 @@ module.exports = {
                         }
                     })
                 },
-                getAll: async (pagination = {}, where = {}) => {
+                getAll: async (pagination = {}, where = {}, options = {}) => {
+                    const { includeApplication = false } = options
                     const limit = parseInt(pagination.limit) || 1000
+
                     if (pagination.cursor) {
                         pagination.cursor = M.DeviceGroup.decodeHashid(pagination.cursor)
                     }
-                    if (where.ApplicationId && typeof where.ApplicationId === 'string') {
-                        where.ApplicationId = M.Application.decodeHashid(where.ApplicationId)
+
+                    if (where.ApplicationId) {
+                        if (typeof where.ApplicationId === 'string') {
+                            where.ApplicationId = M.Application.decodeHashid(where.ApplicationId)
+                        } else if (Array.isArray(where.ApplicationId)) {
+                            where.ApplicationId = where.ApplicationId.map(hashId => {
+                                if (typeof hashId === 'string') {
+                                    return M.Application.decodeHashid(hashId)
+                                }
+                                return hashId
+                            })
+                        }
                     }
+
                     const [rows, count] = await Promise.all([
                         this.findAll({
                             where: buildPaginationSearchClause(pagination, where, ['DeviceGroup.name', 'DeviceGroup.description']),
@@ -130,7 +143,14 @@ module.exports = {
                                     model: M.ProjectSnapshot,
                                     as: 'targetSnapshot',
                                     attributes: ['hashid', 'id', 'name']
-                                }
+                                },
+                                ...(includeApplication
+                                    ? [{
+                                        model: M.Application,
+                                        as: 'Application',
+                                        attributes: ['hashid', 'id', 'name']
+                                    }]
+                                    : [])
                             ],
                             attributes: {
                                 include: [

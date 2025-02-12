@@ -38,43 +38,43 @@ describe('FlowForge - Devices - With Billing', () => {
 
     it('doesn\'t show a "Snapshots" tab for devices bound to an Instance', () => {
         cy.contains('span', 'assigned-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').should('not.exist')
+        cy.get('[data-nav="version-history"]').should('not.exist')
     })
 
     it('shows a "Snapshots" tab for unassigned devices', () => {
         cy.contains('span', 'team2-unassigned-device').click()
-        cy.get('[data-nav="device-snapshots"]').should('exist')
+        cy.get('[data-nav="version-history"]').should('exist')
     })
 
     it('empty state informs users they need to bind the Device to an Application for unassigned devices on the "Snapshot" tab', () => {
         cy.contains('span', 'team2-unassigned-device').click()
-        cy.get('[data-nav="device-snapshots"]').click()
-        cy.contains('A device must first be assigned to an Application')
+        cy.get('[data-nav="version-history"]').click()
+        cy.contains('A Remote Instance must first be assigned to an Application')
     })
 
     it('shows a "Snapshots" tab for devices bound to an Instance', () => {
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').should('exist')
+        cy.get('[data-nav="version-history"]').should('exist')
     })
 
     it('empty state informs users they need to be in Developer Mode for Devices assigned to an Application on the "Snapshot" tab', () => {
         cy.intercept('api/*/applications/*/snapshots?deviceId=*', { count: 0, snapshots: [] }).as('getDeviceSnapshots')
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
         cy.wait('@getDeviceSnapshots')
-        cy.contains('A device must be in developer mode and online to create a snapshot.')
+        cy.contains('A Remote Instance must be in Developer Mode and online to create a Snapshot.')
     })
 
     it('doesn\'t show any "Enterprise Feature Only" guidance if billing is enabled', () => {
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
         cy.get('[data-el="page-banner-feature-unavailable"]').should('not.exist')
     })
 
     it('shows only Snapshots for this device by default', () => {
         cy.intercept('api/*/applications/*/snapshots?deviceId=*').as('getDeviceSnapshots')
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
 
         // depending on order of tests, there may or may not be snapshots
         // therefore the empty state may me present or the table may be present
@@ -103,7 +103,7 @@ describe('FlowForge - Devices - With Billing', () => {
         }).as('getDeviceSnapshots')
 
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
 
         cy.get('[data-form="device-only-snapshots"]').click()
 
@@ -116,7 +116,7 @@ describe('FlowForge - Devices - With Billing', () => {
     it('offers correct options in snapshot table kebab menu', () => {
         cy.intercept('GET', '/api/*/applications/*/snapshots*', snapshots).as('getSnapshots')
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
 
         // check the view all snapshots option
         cy.get('[data-form="device-only-snapshots"]').click()
@@ -155,7 +155,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.intercept('GET', '/api/*/snapshots/*/full', deviceFullSnapshot).as('fullSnapshot')
 
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
 
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
@@ -176,7 +176,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.intercept('PUT', '/api/*/snapshots/*', {}).as('updateSnapshot')
 
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
 
         cy.wait('@getSnapshots')
 
@@ -220,7 +220,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.intercept('GET', '/api/*/snapshots/*/full', deviceFullSnapshot).as('fullSnapshot')
 
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
 
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
@@ -248,10 +248,10 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
 
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
 
         // click data-action="import-snapshot" to open the dialog
-        cy.get('[data-action="import-snapshot"]').click()
+        cy.get('[data-el="empty-state"] [data-action="import-snapshot"]').click()
 
         cy.get('[data-el="dialog-import-snapshot"]').should('be.visible')
 
@@ -298,7 +298,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.intercept('POST', '/api/*/snapshots/import').as('importSnapshot')
 
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
 
         // click data-action="import-snapshot" to open the dialog
         cy.get('[data-action="import-snapshot"]').click()
@@ -347,7 +347,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.intercept('GET', '/api/*/snapshots/*/full', deviceFullSnapshot).as('fullSnapshot')
 
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
 
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
@@ -373,7 +373,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.intercept('GET', '/api/*/snapshots/*').as('snapshot')
 
         cy.contains('span', 'application-device-a').click()
-        cy.get('[data-nav="device-snapshots"]').click()
+        cy.get('[data-nav="version-history"]').click()
 
         // ensure package.json does not exist in the downloads folder before the test
         cy.task('clearDownloads')

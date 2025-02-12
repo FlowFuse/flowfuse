@@ -12,10 +12,9 @@
                     <img src="../../../images/pictograms/application_red.png">
                 </template>
                 <template #helptext>
-                    <p>This is a list of all Applications hosted on the same domain as FlowFuse.</p>
-                    <p>Each Application can host multiple Node-RED instances.</p>
-                    <p>Click an application header to go to the overview of that application.</p>
-                    <p>Click an instance within an application to go to the Instances overview.</p>
+                    <p>Each Application can host multiple Node-RED instances, both Hosted and Remote.</p>
+                    <p>Click an Application header to go to the overview of that Application.</p>
+                    <p>Click an Instance within an Application to go to the Instance's overview.</p>
                 </template>
                 <template #tools>
                     <ff-button
@@ -103,7 +102,7 @@
 <script>
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -111,6 +110,8 @@ import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Tours from '../../../tours/Tours.js'
 
+import TourFirstDevice from '../../../tours/tour-first-device.js'
+import TourWelcomeFree from '../../../tours/tour-welcome-free.json'
 import TourWelcome from '../../../tours/tour-welcome.json'
 
 import ApplicationListItem from './components/Application.vue'
@@ -135,7 +136,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('ux', ['tours']),
+        ...mapState('ux', ['tours', 'completeTours']),
+        ...mapGetters('account', ['featuresCheck', 'team']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
                 return {
@@ -201,27 +203,45 @@ export default {
                         }
                     })
             } return this.applicationsList
+        },
+        deviceCount () {
+            if (this.applicationsList.length === 0) return 0
+            return this.applicationsList.reduce((count, app) => {
+                count += app.devices.length
+                return count
+            }, 0)
+        },
+        instanceCount () {
+            if (this.applicationsList.length === 0) return 0
+            return this.applicationsList.reduce((count, app) => {
+                count += app.instances.length
+                return count
+            }, 0)
+        },
+        isFreemiumTeamType () {
+            return !this.featuresCheck?.isHostedInstancesEnabledForTeam
         }
     },
     watch: {
         team: 'fetchData'
     },
-    mounted () {
-        this.fetchData()
+    async mounted () {
+        await this.fetchData()
         if ('billing_session' in this.$route.query) {
             this.$nextTick(() => {
-                // Clear the query param so a reload of the page does retrigger
+                // Clear the query param so a reload of the page does re-trigger
                 // the notification
                 this.$router.replace({ query: '' })
-                // allow the Alerts servcie to have subscription by wrapping in nextTick
+                // allow the Alerts service to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
         }
-        // first time arriving here
+
+        // First time here?
         if (this.tours.welcome) {
-            const tour = Tours.create('welcome', TourWelcome)
-            tour.start()
+            this.dispatchTour()
         }
+
         this.setSearchQuery()
     },
     methods: {
@@ -309,6 +329,54 @@ export default {
         setSearchQuery () {
             if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'searchQuery')) {
                 this.filterTerm = this.$route.query.searchQuery
+            }
+        },
+        dispatchTour () {
+            switch (true) {
+            case this.isFreemiumTeamType && !this.completeTours.includes('first-device') && !!this.applicationsList[0]:
+                // freemium users must first undergo the first-device tour on the ApplicationDevices page
+                return this.$store.dispatch('ux/activateTour', 'first-device')
+                    .then(() => this.$router.push({
+                        name: 'ApplicationDevices',
+                        params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
+                    }))
+                    .then(() => Tours.create(
+                        'first-device',
+                        TourFirstDevice,
+                        this.$store
+                    ))
+                    .then((tour) => tour.start())
+                    .catch(e => e)
+
+            case this.isFreemiumTeamType && this.completeTours.includes('first-device'):
+                // we're starting the delayed free tour for freemium tiers (without any instances pre-created)
+                return (Tours.create('welcome',
+                    TourWelcomeFree,
+                    this.$store,
+                    () => {
+                        if (this.deviceCount === 0) {
+                            this.$store.dispatch('ux/activateTour', 'first-device')
+                        } else {
+                            this.$store.dispatch('ux/activateTour', 'education')
+                        }
+                    })).start()
+
+            case !this.isFreemiumTeamType && this.instanceCount > 0:
+                // Running with an Instance pre-configured (Trial team types)
+                return (Tours.create('welcome', TourWelcome, this.$store, () => {
+                    this.$store.dispatch('ux/activateTour', 'education')
+                })).start()
+
+            case !this.isFreemiumTeamType:
+                // any regular team type
+                return (Tours.create('welcome', TourWelcomeFree, this.$store, () => {
+                    if (this.deviceCount === 0) {
+                        this.$store.dispatch('ux/activateTour', 'first-device')
+                    }
+                })).start()
+
+            default:
+                // no tours
             }
         }
     }

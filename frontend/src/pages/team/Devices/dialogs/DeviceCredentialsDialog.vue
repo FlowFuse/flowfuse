@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Device Configuration" data-el="team-device-config-dialog">
+    <ff-dialog ref="dialog" :header="`Device Agent Configuration - ${device?.name}`" data-el="team-device-config-dialog">
         <template #default>
             <form class="text-gray-800">
                 <template v-if="!hasCredentials">
@@ -14,7 +14,10 @@
                 <template v-if="hasCredentials">
                     <template v-if="otc">
                         <p>
-                            With the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a> installed on your device, run the following command to setup its connection to the platform:
+                            Install the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a> onto the hardware where you want to run your Node-RED Instance.
+                        </p>
+                        <p class="mt-2">
+                            Then, with the Device Agent installed, run the following command to connect it to FlowFuse:
                         </p>
                         <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ otcCommand }}</pre>
                         <div class="flex flex-row justify-end space-x-2 -mt-1">
@@ -72,11 +75,11 @@
         </template>
         <template #actions>
             <template v-if="!hasCredentials">
-                <ff-button kind="secondary" @click="close()">Cancel</ff-button>
+                <ff-button kind="secondary" @click="close">Cancel</ff-button>
                 <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate configuration</ff-button>
             </template>
             <template v-else>
-                <ff-button class="ml-4" @click="close()">Done</ff-button>
+                <ff-button class="ml-4" @click="close">Done</ff-button>
             </template>
         </template>
     </ff-dialog>
@@ -113,9 +116,16 @@ export default {
             const creds = await deviceApi.generateCredentials(this.device.id)
             this.device.credentials = creds
         },
-        close () {
+        close (event) {
+            if (event.custom) return // Ignore synthetic Shepherd events
+
             this.$refs.dialog.close()
             this.device.credentials = undefined
+
+            // Re-dispatch the click event for Shepherd
+            const newEvent = new Event('click', { bubbles: false, cancelable: true })
+            newEvent.custom = true
+            event.target.dispatchEvent(newEvent)
         },
         copy (text) {
             this.copyToClipboard(text).then(() => {
@@ -158,8 +168,8 @@ brokerPassword: ${this.device.credentials.broker.password}
     setup () {
         return {
             show (device) {
-                this.$refs.dialog.show()
                 this.device = device
+                this.$refs.dialog.show()
             }
         }
     }

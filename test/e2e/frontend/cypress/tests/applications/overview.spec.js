@@ -80,8 +80,8 @@ describe('FlowForge - Applications', () => {
 
             cy.contains('My app')
             cy.contains('My empty app description')
-            cy.contains('This Application currently has no attached Node-RED Instances .')
-            cy.contains('This Application currently has no attached devices .')
+            cy.contains('This Application currently has no attached Hosted Instances.')
+            cy.contains('This Application currently has no attached Remote Instances.')
         })
 
         it('can list application instances', () => {
@@ -1245,7 +1245,7 @@ describe('FlowForge - Applications', () => {
                 {
                     index: 0,
                     label: 'Edit Details',
-                    dialogTitle: 'Update Device',
+                    dialogTitle: 'Update Remote Instance',
                     dialogDataEl: 'team-device-create-dialog'
                 },
                 {
@@ -1257,7 +1257,7 @@ describe('FlowForge - Applications', () => {
                 {
                     index: 2,
                     label: 'Regenerate Configuration',
-                    dialogTitle: 'Device Configuration',
+                    dialogTitle: 'Device Agent Configuration',
                     dialogDataEl: 'team-device-config-dialog',
                     dialogCancelButtonSelector: '.ff-dialog-actions > button.ff-btn--secondary'
                 },
@@ -1273,8 +1273,8 @@ describe('FlowForge - Applications', () => {
                     {
                         id: '1',
                         name: 'a device',
-                        lastSeenAt: null,
-                        lastSeenMs: null,
+                        lastSeenAt: new Date(),
+                        lastSeenMs: (new Date()).getTime(),
                         status: 'offline',
                         mode: 'autonomous',
                         isDeploying: false
@@ -1335,6 +1335,64 @@ describe('FlowForge - Applications', () => {
                     // cancel the dialog
                     cy.get(`[data-el="${item.dialogDataEl}"] ${item.dialogCancelButtonSelector || '[data-action="dialog-cancel"]'}`).click()
                 })
+            })
+
+            it('"Finish Setup" button is shown for devices that have never connected', () => {
+                const devices = [
+                    {
+                        id: '1',
+                        name: 'never seen device',
+                        lastSeenAt: null,
+                        lastSeenMs: null,
+                        status: 'offline',
+                        mode: 'autonomous',
+                        isDeploying: false
+                    }
+                ]
+                cy.intercept('get', '/api/*/applications/*/devices*', {
+                    meta: {},
+                    count: devices.length,
+                    devices
+                }).as('getDevices')
+
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications*',
+                    {
+                        count: 1,
+                        applications: [
+                            {
+                                id: 'some-id',
+                                name: 'My App',
+                                description: 'My app description',
+                                instancesSummary: {
+                                    count: 0,
+                                    instances: []
+                                },
+                                devicesSummary: {
+                                    count: 5,
+                                    devices
+                                }
+                            }
+                        ]
+                    }
+                ).as('getApplications')
+                cy.intercept(
+                    'GET',
+                    '/api/*/teams/*/applications/status*',
+                    {
+                        count: 1,
+                        applications: [{ id: 'some-id', instances: [], devices: [] }]
+                    }
+                ).as('getAppStatuses')
+
+                cy.visit('/')
+
+                cy.wait('@getApplications')
+                cy.wait('@getAppStatuses')
+                cy.wait('@getDevices')
+
+                cy.get('[data-el="device-tile"]').first().get('[data-action="finish-setup"]').should('exist')
             })
         })
     })

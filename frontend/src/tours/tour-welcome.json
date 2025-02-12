@@ -3,7 +3,7 @@
     "text": "<p>Welcome to FlowFuse, the complete platform for building, managing and deploying your Node-RED applications.</p><p><b>Let's take a quick tour to get you started.</b></p>"
 }, {
     "title": "Concept: Applications",
-    "text": "<p><b>This is your first Application in FlowFuse.</b></p><p>Applications are the top level container for your Node-RED Instances, Edge Devices and other resources.</p>",
+    "text": "<p><b>This is your first Application in FlowFuse.</b></p><p>Applications help to organize your Node-RED Instances and other resources.</p>",
     "attachTo": {
         "element": "li[data-el=\"application-item\"]",
         "on": "bottom"

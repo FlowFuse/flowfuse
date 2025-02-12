@@ -17,7 +17,7 @@ describe('FlowForge - Team Devices', () => {
         })
 
         it('shows a placeholder message when no devices have been created', () => {
-            cy.get('main').contains('Connect your First Device')
+            cy.get('main').contains('Connect your First Remote Instance')
         })
 
         it('provides functionality to register a device', () => {
@@ -26,7 +26,7 @@ describe('FlowForge - Team Devices', () => {
             cy.get('button[data-action="register-device"]').click()
 
             cy.get('.ff-dialog-box').should('be.visible')
-            cy.get('.ff-dialog-header').contains('Add Device')
+            cy.get('.ff-dialog-header').contains('Add Remote Instance')
             // disabled primary button by default
             cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').contains('Add').should('be.disabled')
 
@@ -42,7 +42,7 @@ describe('FlowForge - Team Devices', () => {
 
             // show user the device config
             cy.get('.ff-dialog-box').should('be.visible')
-            cy.get('.ff-dialog-header').contains('Device Configuration')
+            cy.get('.ff-dialog-header').contains('Device Agent Configuration')
 
             cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 1)
             cy.get('[data-el="devices-browser"] tbody').find('tr').contains('device1')
@@ -64,7 +64,7 @@ describe('FlowForge - Team Devices', () => {
 
             cy.wait('@deleteDevice')
 
-            cy.get('main').contains('Connect your First Device')
+            cy.get('main').contains('Connect your First Remote Instance')
         })
 
         it('can load multiple pages of devices when the API paginates', function () {

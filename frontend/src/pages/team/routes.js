@@ -5,6 +5,8 @@ import TeamApplications from './Applications/index.vue'
 import TeamAuditLog from './AuditLog.vue'
 import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing.vue'
+import BrokersRoutes from './Brokers/routes.js'
+import DeviceGroups from './DeviceGroups/index.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamInstances from './Instances.vue'
 import Library from './Library/index.vue'
@@ -17,9 +19,6 @@ import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
 import TeamSettings from './Settings/index.vue'
-import UNSClients from './UNS/Clients/index.vue'
-import UNSHierarchy from './UNS/Hierarchy/index.vue'
-import UnifiedNameSpace from './UNS/index.vue'
 import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
@@ -40,6 +39,7 @@ export default [
                     title: 'Team - Overview'
                 },
                 children: [
+                    BrokersRoutes,
                     {
                         path: 'applications',
                         children: [
@@ -110,33 +110,6 @@ export default [
                         },
                         redirect: { name: 'LibraryTeamLibrary' },
                         children: [...LibraryRoutes]
-                    },
-                    {
-                        name: 'team-unified-namespace',
-                        path: 'broker',
-                        component: UnifiedNameSpace,
-                        redirect: { name: 'team-namespace-hierarchy' },
-                        meta: {
-                            title: 'Team - MQTT Broker'
-                        },
-                        children: [
-                            {
-                                name: 'team-namespace-hierarchy',
-                                path: 'hierarchy',
-                                component: UNSHierarchy,
-                                meta: {
-                                    title: 'Team - MQTT Broker Topic Hierarchy'
-                                }
-                            },
-                            {
-                                name: 'team-namespace-clients',
-                                path: 'clients',
-                                component: UNSClients,
-                                meta: {
-                                    title: 'Team - MQTT Broker Clients'
-                                }
-                            }
-                        ]
                     },
                     {
                         name: 'team-members',
@@ -215,6 +188,14 @@ export default [
                         meta: {
                             title: 'Team - Bill of Materials'
                         }
+                    },
+                    {
+                        name: 'device-groups',
+                        path: 'groups',
+                        component: DeviceGroups,
+                        meta: {
+                            title: 'Team - Groups'
+                        }
                     }
                 ]
             },
@@ -227,10 +208,10 @@ export default [
                     title: 'Create Team',
                     menu: {
                         type: 'back',
-                        backTo: (params) => {
+                        backTo: ({ team }) => {
                             return {
                                 label: 'Back to Dashboard',
-                                to: { name: 'Team', params }
+                                to: { name: 'Team', params: { team_slug: team.slug } }
                             }
                         }
                     }

@@ -93,6 +93,16 @@
                 <p>Administrators can always create teams.</p>
             </template>
         </FormRow>
+        <template v-if="input['team:create']">
+            <FormRow v-model="input['user:team:auto-create:application']" type="checkbox" containerClass="max-w-sm ml-9">
+                Create a default application in the team
+                <template #description>
+                    <p>
+                        Whenever a team is created, this will create a default application within that team.
+                    </p>
+                </template>
+            </FormRow>
+        </template>
         <FormRow v-model="input['team:user:invite:external']" type="checkbox" :disabled="!!errors.requiresEmail" :error="errors.requiresEmail">
             Allow users to invite external users to teams
             <template #description>
@@ -187,6 +197,7 @@ const validSettings = [
     'user:team:auto-create',
     'user:team:auto-create:teamType',
     'user:team:auto-create:instanceType',
+    'user:team:auto-create:application',
     'user:tcs-required',
     'user:tcs-url',
     'user:tcs-date',

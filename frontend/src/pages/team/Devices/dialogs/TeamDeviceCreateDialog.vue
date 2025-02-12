@@ -1,6 +1,6 @@
 <template>
     <ff-dialog
-        ref="dialog" :header="device ? 'Update Device' : 'Add Device'"
+        ref="dialog" :header="device ? 'Update Remote Instance' : 'Add Remote Instance'"
         :confirm-label="device ? 'Update' : 'Add'" :disable-primary="!formValid" data-el="team-device-create-dialog"
         @confirm="confirm()"
     >
@@ -9,11 +9,11 @@
             <form class="space-y-6 mt-2">
                 <FormRow v-model="input.name" data-form="device-name" :error="errors.name" :disabled="editDisabled" container-class="w-full">
                     <template #default>Name</template>
-                    <template #description>Provide a unique, identifiable name for your device.</template>
+                    <template #description>Provide a unique, identifiable name for your Remote Instance.</template>
                 </FormRow>
                 <FormRow v-model="input.type" data-form="device-type" :error="errors.type" :disabled="editDisabled" container-class="w-full">
                     <template #default>Type</template>
-                    <template #description>Use this field to better identify your device, and sort/filter in your device list.</template>
+                    <template #description>Use this field to better identify your Remote Instance.</template>
                 </FormRow>
                 <FormRow
                     v-if="showApplicationsList"
@@ -24,7 +24,7 @@
                     data-form="application"
                     container-class="w-full"
                 >
-                    <template #description>Assign the device to an application (optional).</template>
+                    <template #description>Assign the Remote Instance to an Application (recommended).</template>
                     Application
                 </FormRow>
                 <div v-if="deviceIsBillable">
@@ -191,6 +191,7 @@ export default {
             } else {
                 opts.team = this.team.id
                 this.$emit('deviceCreating')
+                this.team.deviceCount++
                 devicesApi.create(opts).then((response) => {
                     if (!this.instance && !this.application && !this.input.application) {
                         this.$emit('deviceCreated', response)
@@ -223,6 +224,7 @@ export default {
                         })
                     }
                 }).catch(err => {
+                    this.team.deviceCount--
                     this.$emit('deviceCreated', null)
                     console.error(err.response.data)
                     if (err.response.data) {

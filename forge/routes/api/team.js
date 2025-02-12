@@ -382,6 +382,17 @@ module.exports = async function (app) {
         }
     })
 
+    async function createTeamApplication (user, team) {
+        const applicationName = `${user.name}'s Application`
+        const application = await app.db.models.Application.create({
+            name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
+            TeamId: team.id
+        })
+        await app.auditLog.Team.application.created(user, null, team, application)
+        await app.auditLog.Application.application.created(user, null, application)
+        return application
+    }
+
     /**
      * Create a new team
      * /api/v1/teams
@@ -474,6 +485,7 @@ module.exports = async function (app) {
 
             const teamView = app.db.views.Team.team(team)
 
+            let defaultTeamCreated = false
             if (app.license.active() && app.billing) {
                 if (trialMode) {
                     await app.billing.setupTrialTeamSubscription(team, request.session.User)
@@ -490,17 +502,10 @@ module.exports = async function (app) {
                         } else if (!instanceTemplate) {
                             app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Unable to find the default instance template`)
                         } else {
-                            const applicationName = `${request.session.User.name}'s Application`
-                            const application = await app.db.models.Application.create({
-                                name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
-                                TeamId: team.id
-                            })
-                            await app.auditLog.Team.application.created(request.session.User, null, team, application)
-                            await app.auditLog.Application.application.created(request.session.User, null, application)
-
                             const safeTeamName = team.name.toLowerCase().replace(/[\W_]/g, '-')
                             const safeUserName = request.session.User.username.toLowerCase().replace(/[\W_]/g, '-')
-
+                            const application = await createTeamApplication(request.session.User, team)
+                            defaultTeamCreated = true
                             const instanceProperties = {
                                 name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
                             }
@@ -513,7 +518,10 @@ module.exports = async function (app) {
                     teamView.billingURL = session.url
                 }
             }
-
+            // Haven't created an application yet, but settings say we should
+            if (!defaultTeamCreated && app.settings.get('user:team:auto-create:application')) {
+                await createTeamApplication(request.session.User, team)
+            }
             reply.send(teamView)
         } catch (err) {
             // prepare response

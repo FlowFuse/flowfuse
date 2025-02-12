@@ -69,6 +69,9 @@ export default {
     watch: {
         '$route.params.team_slug' (slug) {
             this.$store.dispatch('account/setTeam', slug)
+        },
+        team () {
+            this.checkRoute(this.$route)
         }
     },
     mounted () {
@@ -79,16 +82,19 @@ export default {
     },
     methods: {
         checkRoute: async function (route) {
-            const allowedRoutes = [
-                '/team/' + this.team?.slug + '/billing',
-                '/team/' + this.team?.slug + '/settings',
-                '/team/' + this.team?.slug + '/settings/general',
-                '/team/' + this.team?.slug + '/settings/danger',
-                '/team/' + this.team?.slug + '/settings/change-type'
-            ]
-            if (allowedRoutes.indexOf(route.path) === -1) {
-                // if we're on a path that requires billing
-                await this.checkBilling()
+            const allowedRoutes = []
+
+            if (this.team) {
+                allowedRoutes.push('/team/' + this.team.slug + '/billing')
+                allowedRoutes.push('/team/' + this.team.slug + '/settings')
+                allowedRoutes.push('/team/' + this.team.slug + '/settings/general')
+                allowedRoutes.push('/team/' + this.team.slug + '/settings/danger')
+                allowedRoutes.push('/team/' + this.team.slug + '/settings/change-type')
+
+                if (allowedRoutes.indexOf(route.path) === -1) {
+                    // if we're on a path that requires billing
+                    await this.checkBilling()
+                }
             }
         },
         checkBilling: async function () {

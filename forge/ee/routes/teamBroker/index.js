@@ -1,6 +1,6 @@
-module.exports = async function (app) {
-    app.addHook('preHandler', app.verifySession)
+const schemaApi = require('./schema')
 
+module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
             // let teamId = request.params.teamId
@@ -34,6 +34,8 @@ module.exports = async function (app) {
             request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
         }
     })
+
+    await schemaApi(app)
 
     /**
      * Get the Teams MQTT Clients
@@ -308,42 +310,5 @@ module.exports = async function (app) {
         } else {
             reply.status(404).send({})
         }
-    })
-
-    /**
-     * List all topics used by the Team
-     * @name /api/v1/teams/:teamId/broker/topics
-     * @static
-     * @memberof forge.routes.api.team.broker
-     */
-    app.get('/topics', {
-        preHandler: app.needsPermission('broker:topics:list'),
-        schema: {
-            summary: 'Gets list of topics used by a team',
-            tags: ['MQTT Broker'],
-            params: {
-                type: 'object',
-                properties: {
-                    teamId: { type: 'string' }
-                }
-            },
-            response: {
-                200: {
-                    type: 'array',
-                    items: {
-                        type: 'string'
-                    }
-                },
-                '4xx': {
-                    $ref: 'APIError'
-                },
-                500: {
-                    $ref: 'APIError'
-                }
-            }
-        }
-    }, async (request, reply) => {
-        const list = await app.teamBroker.getUsedTopics(request.team.hashid)
-        reply.send(list)
     })
 }

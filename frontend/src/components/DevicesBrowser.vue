@@ -6,11 +6,11 @@
     >
         <ff-loading
             v-if="loadingStatuses || loadingDevices"
-            message="Loading Devices..."
+            message="Loading Remote Instances..."
         />
         <template v-else-if="team">
-            <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." :class="{'mt-0': displayingTeam }" />
-            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." :class="{'mt-0': displayingTeam }" />
+            <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the limit for Remote Instances in this team." :class="{'mt-0': displayingTeam }" />
+            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the limit for Instances in this team." :class="{'mt-0': displayingTeam }" />
             <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
             <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(allDeviceStatuses.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
@@ -19,7 +19,7 @@
                 :columns="columns"
                 :rows="devicesWithStatuses"
                 :show-search="true"
-                search-placeholder="Search Devices"
+                search-placeholder="Search Remote Instances"
                 :show-load-more="moreThanOnePage"
                 :check-key="row => row.id"
                 :show-row-checkboxes="true"
@@ -54,7 +54,7 @@
                         <template #icon-left>
                             <PlusSmIcon />
                         </template>
-                        Add Device
+                        Add Remote Instance
                     </ff-button>
                 </template>
                 <template
@@ -108,14 +108,14 @@
                         <template #img>
                             <img src="../images/empty-states/team-devices.png">
                         </template>
-                        <template #header>Connect your First Device</template>
+                        <template #header>Connect your First Remote Instance</template>
                         <template #message>
                             <p>
-                                Devices in FlowFuse allow you to manage Node-RED instances
+                                FlowFuse allow you to manage Node-RED instances
                                 running on remote hardware.
                             </p>
                             <p>
-                                A Device runs the <a
+                                To manage your  <a
                                     class="ff-link" href="https://flowfuse.com/docs/user/devices"
                                     target="_blank"
                                 >FlowFuse Device Agent</a>, and can be used to deploy and debug
@@ -134,7 +134,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Device
+                                Add Remote Instance
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -144,10 +144,10 @@
                         <template #img>
                             <img src="../images/empty-states/instance-devices.png">
                         </template>
-                        <template #header>Connect your First Device</template>
+                        <template #header>Connect your First Remote Instances</template>
                         <template #message>
                             <p>
-                                Here, you will see a list of Devices connected to this Node-RED Instance.
+                                Here, you will see a list of Remote Instances connected to this Hosted Instance.
                             </p>
                             <p>
                                 You can deploy <router-link class="ff-link" :to="{name: 'instance-snapshots', params: {id: instance.id}}">Snapshots</router-link> of this Instance to your connected Devices.
@@ -173,7 +173,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Device
+                                Add Remote Instance
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -183,7 +183,7 @@
                         <template #img>
                             <img src="../images/empty-states/instance-devices.png">
                         </template>
-                        <template #header>Connect your First Device</template>
+                        <template #header>Connect your First Remote Instance</template>
                         <template #message>
                             <p>
                                 Here, you will see a list of Devices belonging to this Application.
@@ -212,14 +212,14 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Device
+                                Add Remote Instance
                             </ff-button>
                         </template>
                     </EmptyState>
                 </template>
                 <div v-else class="ff-no-data ff-no-data-large">
                     <span data-el="no-devices">
-                        No devices found.
+                        No Remote Instances found.
                     </span>
                 </div>
             </template>
@@ -235,21 +235,11 @@
         @device-updated="deviceUpdated"
     >
         <template #description>
-            <p>
-                Here, you can add a new device to your
-                <template v-if="displayingTeam">team.</template>
-                <template v-if="displayingApplication">application.</template>
-                <template v-else-if="displayingInstance">application instance.</template>
-                This will generate a <b>device.yml</b> file that should be
-                placed on the target device.
+            <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours['first-device']">
+                Describe your new Remote Instance here.
             </p>
-            <p class="my-4">
-                If you want your device to be automatically registered to an instance, in order to remotely deploy flows, you can use provisioning tokens
-                in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link>
-            </p>
-            <p class="my-4">
-                Further info on Devices can be found
-                <a href="https://flowfuse.com/docs/user/devices/" target="_blank">here</a>.
+            <p v-else>
+                Remote Instances are managed using the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
             </p>
         </template>
     </TeamDeviceCreateDialog>
@@ -327,7 +317,7 @@ import { ClockIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
@@ -339,7 +329,7 @@ import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAs
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
 
-import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge.vue'
+import DeviceLastSeenCell from '../pages/device/components/DeviceLastSeenCell.vue'
 import SnapshotAssignDialog from '../pages/instance/VersionHistory/Snapshots/dialogs/SnapshotAssignDialog.vue'
 import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
 import DeviceAssignApplicationDialog from '../pages/team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
@@ -415,11 +405,13 @@ export default {
     },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
+        ...mapState('ux', ['tours']),
+        ...mapGetters('account', ['featuresCheck']),
         columns () {
             const columns = [
-                { label: 'Device', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
+                { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
-                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenBadge) } },
+                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenCell) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
             ]
 

@@ -1,9 +1,5 @@
-/**
- * WARNING: There is ongoing work to move Application functionality up into applications
- * or down into instances.
- *
- * No new functionality should be added here.
- */
+import store from '../../store/index.js'
+
 import ApplicationActivity from './Activity.vue'
 import Dependencies from './Dependencies/Dependencies.vue'
 import ApplicationDeviceGroupSettingsEnvironment from './DeviceGroup/Settings/Environment.vue'
@@ -25,10 +21,19 @@ import ApplicationSnapshots from './Snapshots.vue'
 import ApplicationCreateInstance from './createInstance.vue'
 import ApplicationIndex from './index.vue'
 
+// import account vuex store
+
 export default [
     {
         path: ':id',
-        redirect: { name: 'ApplicationInstances' },
+        redirect: function () {
+            const features = store.getters['account/featuresCheck']
+            if (features.isHostedInstancesEnabledForTeam) {
+                return { name: 'ApplicationInstances' }
+            } else {
+                return { name: 'ApplicationDevices' }
+            }
+        },
         name: 'Application',
         component: ApplicationIndex,
         meta: {
@@ -156,8 +161,16 @@ export default [
             sourceInstanceId: route.query.sourceInstanceId
         }),
         meta: {
-            // todo add a back button
-            title: 'Application - Instances - Create'
+            title: 'Application - Instances - Create',
+            menu: {
+                type: 'back',
+                backTo: ({ query, params }) => {
+                    return {
+                        label: 'Back',
+                        to: { name: 'ApplicationInstances', params, query }
+                    }
+                }
+            }
         }
     },
     {
@@ -174,7 +187,6 @@ export default [
                 name: 'ApplicationDeviceGroupDevices',
                 component: ApplicationDeviceGroupDevices,
                 meta: {
-                    // todo add a back button to the application device-groups
                     title: 'Application - Device Group - Members'
                 }
             },
@@ -183,7 +195,6 @@ export default [
                 name: 'ApplicationDeviceGroupSettings',
                 component: ApplicationDeviceGroupSettings,
                 meta: {
-                    // todo add back button
                     title: 'Application - Device Group - Settings'
                 },
                 redirect: {
