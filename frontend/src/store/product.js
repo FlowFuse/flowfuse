@@ -7,16 +7,30 @@ const state = () => ({
     UNS: {
         clients: [],
         brokers: []
+    },
+    brokers: {
+        expandedTopics: {}
     }
 })
 
 // getters
 const getters = {
-    settings (state) {
-        return state.settings
-    },
     hasFfUnsClients: state => state.UNS.clients.length > 0,
-    hasBrokers: state => state.UNS.brokers.length > 0
+    hasBrokers: state => state.UNS.brokers.length > 0,
+    brokerExpandedTopics: (state, getters, rootState) => (brokerId) => {
+        const team = rootState.account.team
+
+        if (
+            !team ||
+            !brokerId ||
+            !Object.prototype.hasOwnProperty.call(state.brokers.expandedTopics, team.slug) ||
+            !Object.prototype.hasOwnProperty.call(state.brokers.expandedTopics[team.slug], brokerId)
+        ) {
+            return new Set()
+        }
+
+        return state.brokers.expandedTopics[team.slug][brokerId]
+    }
 }
 
 const mutations = {
@@ -70,6 +84,25 @@ const mutations = {
     clearUns (state, payload) {
         state.UNS.brokers = []
         state.UNS.clients = []
+    },
+    toggleOpenTopic (state, { topic, team, brokerId }) {
+        if (!Object.prototype.hasOwnProperty.call(state.brokers.expandedTopics, team.slug)) {
+            // console.log('no team slug, creating empty team object')
+            state.brokers.expandedTopics[team.slug] = {}
+        }
+
+        if (!Object.prototype.hasOwnProperty.call(state.brokers.expandedTopics[team.slug], brokerId)) {
+            state.brokers.expandedTopics[team.slug][brokerId] = new Set()
+            state.brokers.expandedTopics[team.slug][brokerId].add(topic)
+            return
+        }
+
+        if (state.brokers.expandedTopics[team.slug][brokerId].has(topic)) {
+            state.brokers.expandedTopics[team.slug][brokerId].delete(topic)
+            return
+        }
+
+        state.brokers.expandedTopics[team.slug][brokerId].add(topic)
     }
 }
 
@@ -152,6 +185,13 @@ const actions = {
     },
     clearUns ({ commit }) {
         commit('clearUns')
+    },
+    handleBrokerTopicState ({ commit, rootState }, { topic, brokerId }) {
+        commit('toggleOpenTopic', {
+            topic,
+            brokerId,
+            team: rootState.account.team
+        })
     }
 }
 
