@@ -27,7 +27,7 @@
 
                 <template #tools>
                     <section v-if="!loading && shouldDisplayTools && featuresCheck.isExternalMqttBrokerFeatureEnabled" class="flex gap-3 flex-wrap">
-                        <ff-toggle-switch v-model="active" mode="async" :loading="statePending" @click="toggleAgent" />
+                        <ff-toggle-switch v-if="activeBrokerId !== 'team-broker'" v-model="active" mode="async" :loading="statePending" @click="toggleAgent" />
                         <ff-listbox
                             v-if="brokers.length > 1"
                             v-model="activeBrokerId"
