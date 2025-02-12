@@ -305,9 +305,9 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         if (request.params.brokerId !== 'team-broker') {
             try {
-                const state = await app.containers.getBrokerAgentState(request.broker)
+                const status = await app.containers.getBrokerAgentState(request.broker)
                 const clean = app.db.views.BrokerCredentials.clean(request.broker)
-                clean.state = state
+                clean.status = status
                 reply.send(clean)
             } catch (err) {
                 reply.status(500).send({ error: 'unknown_error', message: err.toString() })
@@ -377,11 +377,11 @@ module.exports = async function (app) {
         if (request.params.brokerId === 'team-broker') {
             reply.status(403).send({})
         } else {
-            if (request.broker.status === 'running') {
+            if (request.broker.state === 'running') {
                 await app.containers.sendBrokerAgentCommand(request.broker, 'start')
             } else {
                 await app.containers.startBrokerAgent(request.broker)
-                request.broker.status = 'running'
+                request.broker.state = 'running'
                 await request.broker.save()
             }
             reply.status(200).send({})
@@ -414,7 +414,7 @@ module.exports = async function (app) {
             reply.status(403).send({})
         } else {
             await app.containers.stopBrokerAgent(request.broker)
-            request.broker.status = 'suspended'
+            request.broker.state = 'suspended'
             await request.broker.save()
             reply.status(200).send({})
         }

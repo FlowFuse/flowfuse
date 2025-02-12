@@ -336,12 +336,16 @@ export default {
         getBrokerState () {
             return brokerAPI.getBrokerStatus(this.team.id, this.activeBrokerId)
                 .then(response => {
-                    if (response?.state?.connected) {
-                        this.brokerState = 'connected'
-                    } else if (response?.state?.error === 'error_getting_status') {
-                        this.brokerState = 'starting'
+                    if (response?.state === 'running') {
+                        if (response?.status?.connected) {
+                            this.brokerState = 'connected'
+                        } else if (response?.state?.error === 'error_getting_status') {
+                            this.brokerState = 'starting'
+                        } else {
+                            this.brokerState = 'error'
+                        }
                     } else {
-                        this.brokerState = 'error'
+                        this.brokerState = 'suspended'
                     }
                 })
                 .catch(e => {
@@ -355,7 +359,7 @@ export default {
                 clearInterval(this.brokerStatusPollingInterval)
             }
         }
-    }
+    } 
 }
 </script>
 
