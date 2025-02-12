@@ -1,5 +1,5 @@
 <template>
-    <ff-button kind="secondary" @click="finishSetup">
+    <ff-button kind="secondary" data-action="finish-setup" @click="finishSetup">
         <template #icon-left><ExclamationIcon class="ff-icon" /></template>
         Finish Setup
     </ff-button>
