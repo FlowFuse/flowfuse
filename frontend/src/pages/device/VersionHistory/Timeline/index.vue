@@ -183,15 +183,16 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 #visual-timeline {
     .timeline {
         border: 1px solid $ff-grey-300;
         border-radius: 3px;
         overflow: auto;
-
-        li {
-
+        li:last-child {
+            .connector.bottom {
+                display: none;
+            }
         }
     }
 }
