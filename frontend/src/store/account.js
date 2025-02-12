@@ -184,6 +184,8 @@ const getters = {
             isMqttBrokerFeatureEnabledForPlatform: !!state.features?.teamBroker,
             isMqttBrokerFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.teamBroker,
 
+            isExternalMqttBrokerFeatureEnabledForPlatform: !!state.features?.externalBroker,
+
             // DevOps Pipelines
             devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines']
         }
@@ -197,6 +199,8 @@ const getters = {
             isBOMFeatureEnabled: preCheck.isBOMFeatureEnabledForPlatform && preCheck.isBOMFeatureEnabledForTeam,
             isTimelineFeatureEnabled: preCheck.isTimelineFeatureEnabledForPlatform && preCheck.isTimelineFeatureEnabledForTeam,
             isMqttBrokerFeatureEnabled: preCheck.isMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
+            // external broker must be enabled for platform, and share the same team-level feature flag as the team broker
+            isExternalMqttBrokerFeatureEnabled: preCheck.isExternalMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
             devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
             isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups
         }

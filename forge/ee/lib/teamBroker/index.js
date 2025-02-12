@@ -4,6 +4,12 @@ module.exports.init = function (app) {
         app.config.features.register('teamBroker', true, true)
     }
 
+    if (app.config.driver.type === 'localfs' ||
+        app.config.driver.type === 'kubernetes' ||
+        app.config.driver.type === 'stub') {
+        app.config.features.register('externalBroker', true, true)
+    }
+
     /*
      * need to add functions here to boot clients when team
      * or when client creds removed
@@ -31,69 +37,25 @@ module.exports.init = function (app) {
         }
     }
 
-    /*
-     * This needs moving to Redis at some point for multiple forge app
-     * Instances. Redis will also survive a restart which with CI may
-     * become a problem.
-    */
-    const TOPIC_TTL = (1000 * 60 * 60 * 25) // 25 hours
-    const TOPIC_CACHE_SYNC_INTERVAL = (5 * 60 * 1000) // 5 mins
-    const topicsList = app.settings.get('team:broker:topics') || {}
-    let topicListDirty = false
-
-    async function expireTopicCache () {
-        const now = Date.now()
-        const keys = Object.keys(topicsList)
-        for (let i = 0; i < keys.length; i++) {
-            const teamTopics = Object.keys(topicsList[keys[i]])
-            for (let j = 0; j < teamTopics.length; j++) {
-                if (topicsList[keys[i]][teamTopics[j]].ttl < now) {
-                    delete topicsList[keys[i]][teamTopics[j]]
-                    topicListDirty = true
-                }
-            }
-        }
-        if (topicListDirty) {
-            await app.settings.set('team:broker:topics', topicsList)
-            topicListDirty = false
-        }
-    }
-
-    // sync to the database every 5 mins if changed
-    const topicSyncInterval = setInterval(async () => {
-        if (topicListDirty) {
-            await app.settings.set('team:broker:topics', topicsList)
-            topicListDirty = false
-        }
-    }, TOPIC_CACHE_SYNC_INTERVAL)
-
-    app.addHook('onClose', async () => {
-        await app.settings.set('team:broker:topics', topicsList)
-        if (topicSyncInterval) {
-            clearInterval(topicSyncInterval)
-        }
-    })
-
+    /**
+     * Used by the Team Broker ACL route to record a topic as being in use
+     * @param {String} topic the topic being published to
+     * @param {String} team the team hashid of the broker being published to
+     */
     async function addUsedTopic (topic, team) {
-        const teamList = topicsList[team]
-        if (!teamList) {
-            topicsList[team] = {
-                [topic]: { ttl: Date.now() + (TOPIC_TTL) }
-            }
-        } else {
-            teamList[topic] = { ttl: Date.now() + (TOPIC_TTL) }
-        }
-        topicListDirty = true
-    }
-
-    async function getUsedTopics (teamId) {
-        const topics = topicsList[teamId] ? Object.keys(topicsList[teamId]) : []
-        return topics
+        const teamId = app.db.models.Team.decodeHashid(team)
+        await app.db.models.MQTTTopicSchema.upsert({
+            topic,
+            TeamId: teamId,
+            BrokerCredentialsId: app.settings.get('team:broker:creds') ?? null
+        }, {
+            topic,
+            TeamId: teamId,
+            BrokerCredentialsId: app.settings.get('team:broker:creds') ?? null
+        })
     }
 
     app.decorate('teamBroker', {
-        addUsedTopic,
-        getUsedTopics,
-        expireTopicCache
+        addUsedTopic
     })
 }
