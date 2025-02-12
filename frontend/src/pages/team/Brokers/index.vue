@@ -15,7 +15,7 @@
                 </template>
 
                 <template #helptext>
-                    <p>The <b>Broker</b> feature provides a way to framework for managing and visualizing your entire data ecosystem, consolidating MQTT broker instances and topic structures within a single interface.</p>
+                    <p>The <b>Broker</b> feature provides a framework for managing and visualizing your entire data ecosystem, consolidating MQTT broker instances and topic structures within a single interface.</p>
                     <template v-if="isTeamBroker">
                         <p>The FlowFuse Team Broker is an MQTT broker ready to start using within your team.</p>
                         <p>The <b>Client</b> page allows you to manage the clients that have access to the Broker, with customizable Access Control List (ACL) rules for secure and controlled data flow.</p>
