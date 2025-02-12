@@ -4,7 +4,6 @@
             <template #icon-left><ExclamationIcon class="ff-icon" /></template>
             Finish Setup
         </ff-button>
-        <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
     </template>
     <DeviceLastSeenBadge v-else :lastSeenAt="lastSeenAt" :lastSeenSince="lastSeenSince" />
 </template>
@@ -22,6 +21,7 @@ export default {
         DeviceLastSeenBadge
     },
     mixins: [deviceActionsMixin],
+    inheritAttrs: false,
     props: {
         id: {
             type: String,
