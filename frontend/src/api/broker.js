@@ -88,6 +88,11 @@ const suspendBroker = (teamId, brokerId) => {
         .then(res => res.data)
 }
 
+const getJsonSchema = (teamId, brokerId) => {
+    return client.get(`/api/v1/teams/${teamId}/broker/${brokerId}/schema`)
+        .then(res => res.data)
+}
+
 export default {
     getClients,
     getClient,
@@ -104,5 +109,6 @@ export default {
     getBrokerStatus,
     startBroker,
     stopBroker,
-    suspendBroker
+    suspendBroker,
+    getJsonSchema
 }
