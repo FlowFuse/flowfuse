@@ -27,6 +27,7 @@
 
                 <template #tools>
                     <section v-if="!loading && shouldDisplayTools && featuresCheck.isExternalMqttBrokerFeatureEnabled" class="flex gap-3 flex-wrap">
+                        <ff-toggle-switch v-model="active" mode="async" :loading="statePending" @click="toggleAgent" />
                         <ff-listbox
                             v-if="brokers.length > 1"
                             v-model="activeBrokerId"
@@ -67,7 +68,7 @@
             </template>
         </EmptyState>
 
-        <router-view v-else />
+        <router-view v-else :brokerState="brokerState" />
     </ff-page>
 </template>
 
@@ -103,6 +104,7 @@ export default {
     data () {
         return {
             loading: true,
+            loadingState: false,
             brokerStatusPollingInterval: null,
             brokerState: ''
         }
@@ -228,6 +230,15 @@ export default {
             }
 
             return true
+        },
+        statePending () {
+            const loading = this.loading || this.loadingState
+            return loading || !this.brokerState || this.brokerState === 'suspending' || this.brokerState === 'starting'
+        },
+        active: {
+            get () {
+                return this.brokerState === 'connected'
+            }
         }
     },
     watch: {
@@ -356,6 +367,19 @@ export default {
             this.brokerState = ''
             if (this.brokerStatusPollingInterval) {
                 clearInterval(this.brokerStatusPollingInterval)
+            }
+        },
+        async toggleAgent () {
+            this.loadingState = true
+            const state = await brokerAPI.getBrokerStatus(this.team.id, this.$route.params.brokerId)
+            if (state.state === 'running') {
+                await brokerAPI.suspendBroker(this.team.id, this.$route.params.brokerId)
+                this.brokerState = 'suspending'
+                this.loadingState = false
+            } else {
+                await brokerAPI.startBroker(this.team.id, this.$route.params.brokerId)
+                this.brokerState = 'starting'
+                this.loadingState = false
             }
         }
     }
