@@ -26,7 +26,7 @@ const getters = {
             !Object.prototype.hasOwnProperty.call(state.brokers.expandedTopics, team.slug) ||
             !Object.prototype.hasOwnProperty.call(state.brokers.expandedTopics[team.slug], brokerId)
         ) {
-            return new Set()
+            return {}
         }
 
         return state.brokers.expandedTopics[team.slug][brokerId]
@@ -92,17 +92,17 @@ const mutations = {
         }
 
         if (!Object.prototype.hasOwnProperty.call(state.brokers.expandedTopics[team.slug], brokerId)) {
-            state.brokers.expandedTopics[team.slug][brokerId] = new Set()
-            state.brokers.expandedTopics[team.slug][brokerId].add(topic)
+            state.brokers.expandedTopics[team.slug][brokerId] = {}
+            state.brokers.expandedTopics[team.slug][brokerId][topic] = ''
             return
         }
 
-        if (state.brokers.expandedTopics[team.slug][brokerId].has(topic)) {
-            state.brokers.expandedTopics[team.slug][brokerId].delete(topic)
+        if (Object.prototype.hasOwnProperty.call(state.brokers.expandedTopics[team.slug][brokerId], topic)) {
+            delete state.brokers.expandedTopics[team.slug][brokerId][topic]
             return
         }
 
-        state.brokers.expandedTopics[team.slug][brokerId].add(topic)
+        state.brokers.expandedTopics[team.slug][brokerId][topic] = ''
     }
 }
 
@@ -200,5 +200,12 @@ export default {
     state,
     getters,
     actions,
-    mutations
+    mutations,
+    meta: {
+        persistence: {
+            brokers: {
+                storage: 'localStorage'
+            }
+        }
+    }
 }

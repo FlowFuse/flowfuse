@@ -309,7 +309,7 @@ export default {
             this.getTopics()
         },
         checkIfTopicOpen (topic) {
-            return this.expandedTopics.has(topic)
+            return Object.prototype.hasOwnProperty.call(this.expandedTopics, topic)
         }
     }
 }
