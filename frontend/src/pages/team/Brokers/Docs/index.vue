@@ -1,6 +1,6 @@
 <template>
     <div>
-        <router-link class="ff-return-link" :to="{ name: 'team-unified-namespace' }">
+        <router-link class="ff-return-link" :to="{ name: 'team-brokers-hierarchy', params: { brokerId: brokerId } }">
             <ChevronLeftIcon class="ff-icon ff-icon-sm" />
             Return to FlowFuse
         </router-link>

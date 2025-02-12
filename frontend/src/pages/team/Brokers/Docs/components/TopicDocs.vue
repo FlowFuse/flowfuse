@@ -7,7 +7,9 @@
             </div>
         </div>
         <div class="ff-topic-docs-row-meta">
-            Meta Data
+            <label>Description:</label>
+            <p v-if="topic.description">{{ topic.description }}</p>
+            <p v-else class="ff-empty-state">No description available.</p>
         </div>
     </div>
 </template>
@@ -37,7 +39,6 @@ export default {
 <style lang="scss" scoped>
 .ff-topic-docs {
     border: 1px solid $ff-blue-300;
-    font-weight: bold;
     border-radius: 6px;
     &.open {
         .ff-icon {
@@ -50,7 +51,7 @@ export default {
         }
         .ff-topic-docs-row-meta {
             padding: 12px;
-            height: 100px;
+            max-height: 100px;
         }
     }
 }
@@ -58,6 +59,7 @@ export default {
     transition: 0.15s transform;
 }
 .ff-topic-docs-row-header {
+    font-weight: bold;
     background-color: $ff-blue-50;
     padding: 12px;
     font-weight: bold;
@@ -72,9 +74,20 @@ export default {
 }
 .ff-topic-docs-row-meta {
     padding: 0 12px;
-    height: 0px;
+    max-height: 0px;
     min-height: 0;
     overflow: hidden;
-    transition: 0.3s height, 0.3s padding;
+    transition: 0.3s max-height, 0.3s padding;
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 3px;
+    }
+    .ff-empty-state {
+        color: $ff-grey-400;
+        background-color: $ff-grey-50;
+        padding: 12px;
+        margin-top: 6px;
+    }
 }
 </style>

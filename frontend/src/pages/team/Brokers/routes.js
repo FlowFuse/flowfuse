@@ -70,7 +70,7 @@ export default [{
         }
     ]
 }, {
-    name: 'team-namespace-docs',
+    name: 'team-broker-docs',
     path: 'broker/:brokerId/docs',
     component: BrokerDocs,
     meta: {
