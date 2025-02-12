@@ -98,14 +98,13 @@ export default {
     },
     setup () {
         const { hasAMinimumTeamRoleOf } = usePermissions()
-
         return { hasAMinimumTeamRoleOf }
     },
     data () {
         return {
             loading: true,
-            brokerState: '',
-            brokerStatusPollingInterval: null
+            brokerStatusPollingInterval: null,
+            brokerState: ''
         }
     },
     computed: {
@@ -359,7 +358,7 @@ export default {
                 clearInterval(this.brokerStatusPollingInterval)
             }
         }
-    } 
+    }
 }
 </script>
 
