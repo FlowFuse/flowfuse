@@ -30,20 +30,22 @@
                         <span class="italic">No Application or Instance Assigned</span> - <a class="ff-link" data-action="assign-device" @click="openAssignmentDialog">Assign</a>
                     </div>
                 </template>
-                <template v-if="isDevModeAvailable" #tools>
+                <template #tools>
                     <!--
                         div style 34px is a workaround to prevent the Device Editor button growing taller than adjacent
                         button (size difference is caused by odd padding in the toggle button, which though not visible
                         is still there and affects the button height in this div group)
                     -->
                     <div class="space-x-2 flex align-center" style="height: 34px;">
-                        <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
-                        <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
-                            Open Editor
-                            <span class="ff-btn--icon ff-btn--icon-right">
-                                <ExternalLinkIcon />
-                            </span>
-                        </button>
+                        <template v-if="isDevModeAvailable">
+                            <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
+                            <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
+                                Open Editor
+                                <span class="ff-btn--icon ff-btn--icon-right">
+                                    <ExternalLinkIcon />
+                                </span>
+                            </button>
+                        </template>
                         <FinishSetupButton v-if="neverConnected" :device="device" />
                         <DropdownMenu v-if="hasPermission('device:change-status') && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
