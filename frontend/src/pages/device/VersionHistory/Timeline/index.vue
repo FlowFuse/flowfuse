@@ -8,7 +8,7 @@
         >
             <transition-group name="fade">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
-                <ul v-else ref="timeline" data-el="timeline-list" class="timeline" :style="{'max-height': listHeightCss}">
+                <ul v-else-if="activeTimeline.length" ref="timeline" data-el="timeline-list" class="timeline" :style="{'max-height': listHeightCss}">
                     <li v-for="event in activeTimeline" :key="event.id">
                         <timeline-event
                             :event="event"
@@ -25,6 +25,19 @@
                         />
                     </li>
                 </ul>
+                <empty-state v-else>
+                    <template #img>
+                        <img src="../../../../images/empty-states/instance-timeline.png" alt="pipelines-logo">
+                    </template>
+                    <template #header>
+                        <span>Nothing to see here just yet!</span>
+                    </template>
+                    <template #message>
+                        <p>The Timeline provides a concise, chronological view of key activities within your Node-RED instance.</p>
+                        <p>It tracks various events such as pipeline stage deployments, snapshot restorations, flow deployments, snapshot creations, and updates to instance settings.</p>
+                        <p>This compact view helps you quickly understand the history of your instance, offering clear insight into when and what changes have been made.</p>
+                    </template>
+                </empty-state>
             </transition-group>
         </section>
         <section v-else>
@@ -42,9 +55,6 @@
                 </template>
             </empty-state>
         </section>
-        <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
-        <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
-        <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="fetchData(false)" />
     </div>
 </template>
 
@@ -53,13 +63,10 @@ import versionHistoryAPI from '../../../../api/versionHistory.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
-import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
-import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
 import TimelineEvent from '../../../../components/version-history/timeline/TimelineEvent.vue'
 import { scrollTo } from '../../../../composables/Ux.js'
 import featuresMixin from '../../../../mixins/Features.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
-import SnapshotExportDialog from '../../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 export default {
     name: 'HistoryTimeline',
@@ -67,15 +74,12 @@ export default {
         EmptyState,
         FeatureUnavailableToTeam,
         FeatureUnavailable,
-        SnapshotEditDialog,
-        SnapshotExportDialog,
-        AssetDetailDialog,
         TimelineEvent
     },
     mixins: [snapshotsMixin, featuresMixin],
     inheritAttrs: false,
     props: {
-        instance: {
+        device: {
             type: Object,
             required: true
         },
@@ -116,7 +120,7 @@ export default {
             },
             deep: true
         },
-        'instance.id': 'fetchData'
+        'device.id': 'fetchData'
     },
     mounted () {
         this.fetchData()
@@ -133,11 +137,11 @@ export default {
                     this.loading = true
                 }
 
-                // handling a specific scenario where users can navigate to the source snapshot instance, and when they click back,
-                // we retrieve the timeline for that instance and display it for a short period of time
-                if (this.instance.id && this.instance.id === this.$route.params.id) {
+                // handling a specific scenario where users can navigate to the source snapshot device, and when they click back,
+                // we retrieve the timeline for that device and display it for a short period of time
+                if (this.device.id && this.device.id === this.$route.params.id) {
                     const nextCursor = loadMore ? this.next_cursor : undefined
-                    versionHistoryAPI.getInstanceHistory(this.instance.id, nextCursor, 10)
+                    versionHistoryAPI.getDeviceHistory(this.device.id, nextCursor, 10)
                         .then((response) => {
                             this.loading = false
                             if (loadMore) {
@@ -179,15 +183,16 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 #visual-timeline {
     .timeline {
         border: 1px solid $ff-grey-300;
         border-radius: 3px;
         overflow: auto;
-
-        li {
-
+        li:last-child {
+            .connector.bottom {
+                display: none;
+            }
         }
     }
 }

@@ -76,9 +76,9 @@
 <script>
 import { defineComponent } from 'vue'
 
-import permissionsMixin from '../../../../../mixins/Permissions.js'
+import permissionsMixin from '../../../mixins/Permissions.js'
 
-import daysSince from '../../../../../utils/daysSince.js'
+import daysSince from '../../../utils/daysSince.js'
 
 import TimelineGraph from './TimelineGraph.vue'
 
@@ -196,10 +196,10 @@ export default {
                 return defineComponent({
                     template: '<span>Instance Created</span>'
                 })
-            case this.event.event === 'project.settings.updated':
+            case ['project.settings.updated', 'device.settings.updated'].includes(this.event.event):
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
-                    template: '<span>Instance Settings Updated</span>'
+                    template: '<span>Settings Updated</span>'
                 })
             default:
                 // eslint-disable-next-line vue/one-component-per-file
@@ -224,7 +224,7 @@ export default {
                 return 'Snapshot Created'
             case this.event.event === 'project.created':
                 return 'Instance Created'
-            case this.event.event === 'project.settings.updated':
+            case ['project.settings.updated', 'device.settings.updated'].includes(this.event.event):
                 return 'Settings Updated'
             default:
                 return this.event.event

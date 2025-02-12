@@ -337,6 +337,8 @@ export default {
                 .then(response => {
                     if (response?.state?.connected) {
                         this.brokerState = 'connected'
+                    } else if (response?.state?.error === 'error_getting_status') {
+                        this.brokerState = 'starting'
                     } else {
                         this.brokerState = 'error'
                     }
