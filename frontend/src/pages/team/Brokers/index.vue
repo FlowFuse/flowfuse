@@ -349,7 +349,7 @@ export default {
                     if (response?.state === 'running') {
                         if (response?.status?.connected) {
                             this.brokerState = 'connected'
-                        } else if (response?.state?.error === 'error_getting_status') {
+                        } else if (response?.status?.error === 'error_getting_status') {
                             this.brokerState = 'starting'
                         } else {
                             this.brokerState = 'error'
