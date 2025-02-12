@@ -40,7 +40,8 @@
                             data-el="add-new-broker"
                             @click="$router.push({ name: 'team-brokers-add', params: {brokerId: ''} })"
                         >
-                            Add a new Broker
+                            <template #icon-left><PlusIcon /></template>
+                            Add Broker
                         </ff-button>
                     </section>
                 </template>
@@ -72,6 +73,7 @@
 
 <script>
 
+import { PlusIcon } from '@heroicons/vue/outline'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
 import brokerAPI from '../../../api/broker.js'
@@ -80,14 +82,13 @@ import EmptyState from '../../../components/EmptyState.vue'
 import FfLoading from '../../../components/Loading.vue'
 
 import usePermissions from '../../../composables/Permissions.js'
-import FfButton from '../../../ui-components/components/Button.vue'
 import { Roles } from '../../../utils/roles.js'
 
 import BrokerStatusBadge from './components/BrokerStatusBadge.vue'
 
 export default {
     name: 'TeamBrokers',
-    components: { BrokerStatusBadge, FfLoading, EmptyState, FfButton },
+    components: { BrokerStatusBadge, FfLoading, EmptyState, PlusIcon },
     beforeRouteLeave (to, from, next) {
         if (to.params?.team_slug !== from.params?.team_slug) {
             this.clearUns()
