@@ -30,21 +30,24 @@
                         <span class="italic">No Application or Instance Assigned</span> - <a class="ff-link" data-action="assign-device" @click="openAssignmentDialog">Assign</a>
                     </div>
                 </template>
-                <template v-if="isDevModeAvailable" #tools>
+                <template #tools>
                     <!--
                         div style 34px is a workaround to prevent the Device Editor button growing taller than adjacent
                         button (size difference is caused by odd padding in the toggle button, which though not visible
                         is still there and affects the button height in this div group)
                     -->
                     <div class="space-x-2 flex align-center" style="height: 34px;">
-                        <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
-                        <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
-                            Open Editor
-                            <span class="ff-btn--icon ff-btn--icon-right">
-                                <ExternalLinkIcon />
-                            </span>
-                        </button>
-                        <DropdownMenu v-if="hasPermission('device:change-status')" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
+                        <template v-if="isDevModeAvailable">
+                            <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
+                            <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
+                                Open Editor
+                                <span class="ff-btn--icon ff-btn--icon-right">
+                                    <ExternalLinkIcon />
+                                </span>
+                            </button>
+                        </template>
+                        <FinishSetupButton v-if="neverConnected" :device="device" />
+                        <DropdownMenu v-if="hasPermission('device:change-status') && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
                 </template>
             </SectionNavigationHeader>
@@ -116,17 +119,20 @@ import { mapState } from 'vuex'
 
 import deviceApi from '../../api/devices.js'
 import DropdownMenu from '../../components/DropdownMenu.vue'
+import FinishSetupButton from '../../components/FinishSetup.vue'
 import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import deviceActionsMixin from '../../mixins/DeviceActions.js'
 import permissionsMixin from '../../mixins/Permissions.js'
+
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import { DeviceStateMutator } from '../../utils/DeviceStateMutator.js'
 import { Roles } from '../../utils/roles.js'
-
 import { createPollTimer } from '../../utils/timers.js'
+
 import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
 import DeviceAssignInstanceDialog from '../team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
 
@@ -152,6 +158,7 @@ const deviceTransitionStates = [
 export default {
     name: 'DevicePage',
     components: {
+        FinishSetupButton,
         ExternalLinkIcon,
         DeveloperModeToggle,
         DeviceModeBadge,
@@ -165,7 +172,7 @@ export default {
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, deviceActionsMixin],
     data: function () {
         return {
             mounted: false,
@@ -225,6 +232,9 @@ export default {
         deviceEditorURL: function () {
             return this.device.editor?.url || ''
         },
+        neverConnected () {
+            return !this.device.lastSeenAt
+        },
         notAssigned () {
             const device = this.device
             const hasApplication = device?.ownerType === 'application' && device.application
@@ -269,9 +279,13 @@ export default {
                 //     action: this.startDevice,
                 //     disabled: deviceStateChanging || this.deviceRunning
                 // },
-                { name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled }
                 // { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: deviceStateChanging || flowActionsDisabled }
             ]
+
+            if (!this.neverConnected) {
+                // if we've never connected, we know we can't restart
+                result.push({ name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled })
+            }
 
             if (this.hasPermission('device:delete')) {
                 result.push(null)
