@@ -44,10 +44,7 @@
                                 <ExternalLinkIcon />
                             </span>
                         </button>
-                        <ff-button v-if="neverConnected" kind="secondary" @click="deviceAction('updateCredentials', device.id, device)">
-                            <template #icon-left><ExclamationIcon class="ff-icon" /></template>
-                            Finish Setup
-                        </ff-button>
+                        <FinishSetupButton v-if="neverConnected" :device="device" />
                         <DropdownMenu v-if="hasPermission('device:change-status') && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
                 </template>
@@ -108,19 +105,19 @@
             data-el="assignment-dialog-application"
             @assign-device="assignDeviceToApplication"
         />
-        <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
     </main>
 </template>
 
 <script>
 
-import { ExclamationIcon, ExternalLinkIcon } from '@heroicons/vue/outline'
+import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { TerminalIcon } from '@heroicons/vue/solid'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../api/devices.js'
 import DropdownMenu from '../../components/DropdownMenu.vue'
+import FinishSetupButton from '../../components/FinishSetup.vue'
 import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
@@ -136,8 +133,6 @@ import { createPollTimer } from '../../utils/timers.js'
 
 import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
 import DeviceAssignInstanceDialog from '../team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
-
-import DeviceCredentialsDialog from '../team/Devices/dialogs/DeviceCredentialsDialog.vue'
 
 import AssignDeviceDialog from './components/AssignDeviceDialog.vue'
 
@@ -161,7 +156,7 @@ const deviceTransitionStates = [
 export default {
     name: 'DevicePage',
     components: {
-        ExclamationIcon,
+        FinishSetupButton,
         ExternalLinkIcon,
         DeveloperModeToggle,
         DeviceModeBadge,
@@ -173,8 +168,7 @@ export default {
         TeamTrialBanner,
         AssignDeviceDialog,
         DeviceAssignApplicationDialog,
-        DeviceAssignInstanceDialog,
-        DeviceCredentialsDialog
+        DeviceAssignInstanceDialog
     },
     mixins: [permissionsMixin, deviceActionsMixin],
     data: function () {

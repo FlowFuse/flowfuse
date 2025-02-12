@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Device Agent Configuration" data-el="team-device-config-dialog">
+    <ff-dialog ref="dialog" :header="`Device Agent Configuration - ${device?.name}`" data-el="team-device-config-dialog">
         <template #default>
             <form class="text-gray-800">
                 <template v-if="!hasCredentials">
