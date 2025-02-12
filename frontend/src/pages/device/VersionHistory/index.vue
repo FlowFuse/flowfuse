@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu>
         <template #hero>
-            <toggle-button-group :buttons="pageToggle" class="page-toggle" data-nav="page-toggle" title="View" />
+            <toggle-button-group :buttons="pageToggle" data-nav="page-toggle" title="View" />
         </template>
         <template #pictogram>
             <img v-if="$route.name.includes('timeline')" alt="info" src="../../../images/pictograms/timeline_red.png">
@@ -20,11 +20,19 @@
             </template>
         </template>
         <template #tools>
-            <section class="flex gap-2 items-center self-center">
+            <section class="flex gap-2 items-center self-center truncate">
+                <ff-checkbox
+                    v-model="showDeviceSnapshotsOnly"
+                    v-ff-tooltip:left="'Untick this to show snapshots from other Instances within this application'"
+                    data-form="device-only-snapshots"
+                    label="Instance Snapshots Only"
+                    class="truncate"
+                />
                 <ff-button
                     v-if="hasPermission('snapshot:import')"
                     kind="secondary"
                     data-action="import-snapshot"
+                    :disabled="busy"
                     @click="showImportSnapshotDialog"
                 >
                     <template #icon-left><UploadIcon /></template>Upload Snapshot
@@ -32,6 +40,7 @@
                 <ff-button
                     kind="primary"
                     data-action="create-snapshot"
+                    :disabled="!developerMode || busy"
                     @click="showCreateSnapshotDialog"
                 >
                     <template #icon-left><PlusSmIcon /></template>Create Snapshot
@@ -44,8 +53,9 @@
         <transition name="page-fade" mode="out-in">
             <component
                 :is="Component"
-                :instance="instance"
                 :reloadHooks="reloadHooks"
+                :device="device"
+                :showDeviceSnapshotsOnly="showDeviceSnapshotsOnly"
                 @show-import-snapshot-dialog="showImportSnapshotDialog"
                 @show-create-snapshot-dialog="showCreateSnapshotDialog"
                 @instance-updated="$emit('instance-updated')"
@@ -55,18 +65,24 @@
 
     <SnapshotCreateDialog
         ref="snapshotCreateDialog"
-        data-el="dialog-create-snapshot"
-        :project="instance"
-        @snapshot-created="snapshotCreated"
+        title="Create Device Snapshot"
+        data-el="dialog-create-device-snapshot"
+        :show-set-as-target="true"
+        :device="device"
+        @device-upload-success="onSnapshotCreated"
+        @device-upload-failed="onSnapshotFailed"
+        @canceled="onSnapshotCancel"
     />
     <SnapshotImportDialog
         ref="snapshotImportDialog"
         title="Upload Snapshot"
         data-el="dialog-import-snapshot"
-        :owner="instance"
-        owner-type="instance"
+        :show-owner-select="false"
+        :owner="device"
+        owner-type="device"
         @snapshot-import-success="onSnapshotImportSuccess"
         @snapshot-import-failed="onSnapshotImportFailed"
+        @canceled="onSnapshotImportCancel"
     />
 </template>
 
@@ -80,7 +96,7 @@ import ToggleButtonGroup from '../../../components/elements/ToggleButtonGroup.vu
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
-import SnapshotCreateDialog from './Snapshots/dialogs/SnapshotCreateDialog.vue'
+import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
 
 export default {
     name: 'VersionHistory',
@@ -95,7 +111,7 @@ export default {
     mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
-        instance: {
+        device: {
             type: Object,
             required: true
         }
@@ -103,43 +119,57 @@ export default {
     emits: ['instance-updated'],
     data () {
         return {
-            reloadHooks: []
+            reloadHooks: [],
+            pageToggle: [
+                { title: 'Snapshots', to: { name: 'device-snapshots', params: this.$route.params } },
+                { title: 'Timeline', to: { name: 'device-version-history-timeline', params: this.$route.params } }
+            ],
+            showDeviceSnapshotsOnly: true,
+            busyMakingSnapshot: false,
+            busyImportingSnapshot: false
         }
     },
     computed: {
-        pageToggle () {
-            if (this.$route.name.includes('editor')) {
-                return [
-                    { title: 'Snapshots', to: { path: './snapshots', params: this.$route.params } },
-                    { title: 'Timeline', to: { path: './timeline', params: this.$route.params } }
-                ]
-            }
-
-            return [
-                { title: 'Snapshots', to: { name: 'instance-snapshots', params: this.$route.params } },
-                { title: 'Timeline', to: { name: 'instance-version-history-timeline', params: this.$route.params } }
-            ]
+        developerMode () {
+            return this.device?.mode === 'developer'
+        },
+        busy () {
+            return this.busyMakingSnapshot || this.busyImportingSnapshot
         }
     },
     methods: {
         showCreateSnapshotDialog () {
+            this.busyMakingSnapshot = true
             this.$refs.snapshotCreateDialog.show()
+        },
+        onSnapshotCreated (snapshot) {
+            this.busyMakingSnapshot = false
+            this.reloadHooks.push({ event: 'snapshot-created', payload: snapshot })
+        },
+        onSnapshotFailed (err) {
+            console.error(err)
+            Alerts.emit('Failed to create snapshot of device.', 'warning')
+            this.busyMakingSnapshot = false
+        },
+        onSnapshotCancel () {
+            this.busyMakingSnapshot = false
         },
         showImportSnapshotDialog () {
             this.busyImportingSnapshot = true
             this.$refs.snapshotImportDialog.show()
         },
-        snapshotCreated (snapshot) {
-            this.$emit('instance-updated')
-            this.reloadHooks.push({ event: 'snapshot-created', payload: snapshot })
-        },
         onSnapshotImportSuccess (snapshot) {
-            this.$emit('instance-updated')
             this.reloadHooks.push({ event: 'snapshot-imported', payload: snapshot })
+            this.busyImportingSnapshot = false
         },
         onSnapshotImportFailed (err) {
+            console.error(err)
             const message = err.response?.data?.error || 'Failed to import snapshot.'
             Alerts.emit(message, 'warning')
+            this.busyImportingSnapshot = false
+        },
+        onSnapshotImportCancel () {
+            this.busyImportingSnapshot = false
         }
     }
 }
