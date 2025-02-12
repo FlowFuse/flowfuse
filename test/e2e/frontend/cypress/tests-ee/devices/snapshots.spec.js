@@ -251,7 +251,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.get('[data-nav="version-history"]').click()
 
         // click data-action="import-snapshot" to open the dialog
-        cy.get('[data-action="import-snapshot"]').click()
+        cy.get('[data-el="empty-state"] [data-action="import-snapshot"]').click()
 
         cy.get('[data-el="dialog-import-snapshot"]').should('be.visible')
 

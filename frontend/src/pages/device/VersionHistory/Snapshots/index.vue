@@ -120,7 +120,9 @@ export default {
         return {
             loading: false,
             deviceCounts: {},
-            snapshots: []
+            snapshots: [],
+            busyMakingSnapshot: false,
+            busyImportingSnapshot: false
         }
     },
     computed: {
@@ -174,6 +176,12 @@ export default {
                     value: s.id
                 }
             })
+        },
+        busy () {
+            return this.busyMakingSnapshot || this.busyImportingSnapshot
+        },
+        developerMode () {
+            return this.device?.mode === 'developer'
         }
     },
     watch: {
