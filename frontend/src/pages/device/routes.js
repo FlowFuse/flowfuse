@@ -10,6 +10,7 @@ import DeviceSettingsEditor from './Settings/Editor.vue'
 import DeviceSettingsEnvironment from './Settings/Environment.vue'
 import DeviceSettingsGeneral from './Settings/General.vue'
 import DeviceSettingsPalette from './Settings/Palette.vue'
+import DeviceSettingsSecurity from './Settings/Security.vue'
 import DeviceSettings from './Settings/index.vue'
 import VersionHistory from './VersionHistory/index.vue'
 import VersionHistoryRoutes from './VersionHistory/routes.js'
@@ -43,6 +44,7 @@ export default [
                     { path: 'general', component: DeviceSettingsGeneral },
                     { path: 'environment', component: DeviceSettingsEnvironment },
                     { path: 'editor', component: DeviceSettingsEditor },
+                    { path: 'security', component: DeviceSettingsSecurity },
                     { path: 'palette', component: DeviceSettingsPalette },
                     { path: 'danger', component: DeviceSettingsDanger }
                 ]
