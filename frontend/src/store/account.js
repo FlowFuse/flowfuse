@@ -421,9 +421,10 @@ const actions = {
             }
         }
     },
-    async logout ({ commit }) {
+    async logout ({ commit, rootState }) {
         commit('logout')
         userApi.logout()
+            .then(() => commit('product/clearBrokers', null, { root: true }))
             .catch(_ => {})
             .finally(() => {
                 if (window._hsq) {

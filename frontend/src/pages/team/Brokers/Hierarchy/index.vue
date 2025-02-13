@@ -127,14 +127,13 @@ export default {
         return {
             loading: false,
             topics: {},
-            inspecting: null,
-            expandedTopics: new Set()
+            inspecting: null
         }
     },
     computed: {
         ...mapState('account', ['team']),
         ...mapGetters('account', ['featuresCheck']),
-        ...mapGetters('product', ['hasFfUnsClients', 'hasBrokers']),
+        ...mapGetters('product', ['hasFfUnsClients', 'hasBrokers', 'brokerExpandedTopics']),
         hierarchy: {
             get () {
                 const hierarchy = {}
@@ -161,7 +160,7 @@ export default {
                             originalMetadata: JSON.stringify(topicLookup[rootName]?.metadata || {}),
                             inferredSchema: topicLookup[rootName]?.inferredSchema || { type: 'unknown' },
                             isRoot: true,
-                            open: this.expandedTopics.has(rootName),
+                            open: this.checkIfTopicOpen(rootName),
                             childrenCount: 0,
                             children: {}
                         }
@@ -182,7 +181,7 @@ export default {
                                 metadata: topicLookup[topic]?.metadata || {},
                                 originalMetadata: JSON.stringify(topicLookup[topic]?.metadata || {}),
                                 inferredSchema: topicLookup[topic]?.inferredSchema || { type: 'unknown' },
-                                open: this.expandedTopics.has(topic),
+                                open: this.checkIfTopicOpen(topic),
                                 childrenCount: 0,
                                 children: {}
                             }
@@ -211,11 +210,7 @@ export default {
             set (segment) {
                 const keys = segment.topic.split('/')
                 let current = this.hierarchy
-                if (segment.state) {
-                    this.expandedTopics.add(segment.topic)
-                } else {
-                    this.expandedTopics.delete(segment.topic)
-                }
+                this.$store.dispatch('product/handleBrokerTopicState', { topic: segment.topic, brokerId: this.brokerId })
 
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i]
@@ -252,8 +247,14 @@ export default {
         hasUnsavedChanges () {
             return this.inspecting && JSON.stringify(this.inspecting.metadata) !== this.inspecting.originalMetadata
         },
+        brokerId () {
+            return this.$route.params.brokerId
+        },
         isTeamBroker () {
-            return this.$route.params.brokerId === 'team-broker'
+            return this.brokerId === 'team-broker'
+        },
+        expandedTopics () {
+            return this.brokerExpandedTopics(this.brokerId)
         }
     },
     watch: {
@@ -311,6 +312,9 @@ export default {
         },
         async refreshHierarchy () {
             this.getTopics()
+        },
+        checkIfTopicOpen (topic) {
+            return Object.prototype.hasOwnProperty.call(this.expandedTopics, topic)
         }
     }
 }
