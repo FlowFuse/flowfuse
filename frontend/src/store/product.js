@@ -103,6 +103,11 @@ const mutations = {
         }
 
         state.brokers.expandedTopics[team.slug][brokerId][topic] = ''
+    },
+    clearBrokers (state) {
+        state.brokers = {
+            expandedTopics: {}
+        }
     }
 }
 
