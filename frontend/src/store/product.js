@@ -1,7 +1,10 @@
 import brokerApi from '../api/broker.js'
 
+import commonActions from './common/actions.js'
+import commonMutations from './common/mutations.js'
+
 // initial state
-const state = () => ({
+const initialState = () => ({
     flags: null,
     interview: null,
     UNS: {
@@ -12,6 +15,17 @@ const state = () => ({
         expandedTopics: {}
     }
 })
+
+const meta = {
+    persistence: {
+        brokers: {
+            storage: 'localStorage'
+            // clearOnLogout: true (cleared by default)
+        }
+    }
+}
+
+const state = initialState
 
 // getters
 const getters = {
@@ -33,7 +47,9 @@ const getters = {
     }
 }
 
+// mutations
 const mutations = {
+    ...commonMutations,
     setFlags (state, flags) {
         state.flags = flags
     },
@@ -103,16 +119,12 @@ const mutations = {
         }
 
         state.brokers.expandedTopics[team.slug][brokerId][topic] = ''
-    },
-    clearBrokers (state) {
-        state.brokers = {
-            expandedTopics: {}
-        }
     }
 }
 
 // actions
 const actions = {
+    ...commonActions(initialState, meta, 'product'),
     async checkFlags (state) {
         try {
             window.posthog?.onFeatureFlags((flags, values) => {
@@ -206,11 +218,5 @@ export default {
     getters,
     actions,
     mutations,
-    meta: {
-        persistence: {
-            brokers: {
-                storage: 'localStorage'
-            }
-        }
-    }
+    meta
 }

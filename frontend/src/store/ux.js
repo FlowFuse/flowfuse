@@ -11,7 +11,10 @@ import ProjectsIcon from '../components/icons/Projects.js'
 import usePermissions from '../composables/Permissions.js'
 import { Roles } from '../utils/roles.js'
 
-const state = () => ({
+import commonActions from './common/actions.js'
+import commonMutations from './common/mutations.js'
+
+const initialState = () => ({
     leftDrawer: {
         state: false,
         component: null
@@ -35,6 +38,23 @@ const state = () => ({
     },
     isNewlyCreatedUser: false
 })
+
+const meta = {
+    persistence: {
+        tours: {
+            storage: 'localStorage'
+            // clearOnLogout: true (cleared by default)
+        },
+        isNewlyCreatedUser: {
+            storage: 'localStorage'
+        },
+        userActions: {
+            storage: 'localStorage'
+        }
+    }
+}
+
+const state = initialState
 
 const getters = {
     hiddenLeftDrawer: (state, getters) => {
@@ -417,6 +437,7 @@ const getters = {
 }
 
 const mutations = {
+    ...commonMutations,
     openRightDrawer (state, { component }) {
         state.rightDrawer.state = true
         state.rightDrawer.component = component
@@ -461,6 +482,7 @@ const mutations = {
 }
 
 const actions = {
+    ...commonActions(initialState, meta, 'ux'),
     openRightDrawer ({ commit }, { component }) {
         commit('openRightDrawer', { component })
     },
@@ -512,17 +534,5 @@ export default {
     getters,
     mutations,
     actions,
-    meta: {
-        persistence: {
-            tours: {
-                storage: 'localStorage'
-            },
-            isNewlyCreatedUser: {
-                storage: 'localStorage'
-            },
-            userActions: {
-                storage: 'localStorage'
-            }
-        }
-    }
+    meta
 }
