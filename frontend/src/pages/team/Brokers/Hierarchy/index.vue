@@ -4,11 +4,11 @@
             <div class="title mb-5 flex gap-3 items-center">
                 <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
                 <h3 class="my-2 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
-                <ff-button kind="secondary" @click="refreshHierarchy()">
+                <ff-button v-if="brokerState === 'connected'" kind="secondary" @click="refreshHierarchy()">
                     <template #icon><RefreshIcon /></template>
                 </ff-button>
-
-                <ff-button v-if="shouldDisplaySchemaButton" :to="{ name: 'team-broker-docs', params: { brokerId: $route.params.brokerId } }">
+                <ff-button v-if="shouldDisplaySchemaButton" @click="openSchema()">
+                    <template #icon-right><ExternalLinkIcon /></template>
                     Open Schema
                 </ff-button>
             </div>
@@ -99,7 +99,7 @@
 
 <script>
 
-import { RefreshIcon } from '@heroicons/vue/solid'
+import { ExternalLinkIcon, RefreshIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
@@ -107,13 +107,22 @@ import EmptyState from '../../../../components/EmptyState.vue'
 
 import FormRow from '../../../../components/FormRow.vue'
 import TextCopier from '../../../../components/TextCopier.vue'
+import { useNavigationHelper } from '../../../../composables/NavigationHelper.js'
 
 import TopicSchema from './components/TopicSchema.vue'
 import TopicSegment from './components/TopicSegment.vue'
 
+const { openInANewTab } = useNavigationHelper()
+
 export default {
     name: 'BrokerHierarchy',
-    components: { TopicSchema, TopicSegment, EmptyState, RefreshIcon, FormRow, TextCopier },
+    components: { TopicSchema, TopicSegment, EmptyState, ExternalLinkIcon, RefreshIcon, FormRow, TextCopier },
+    props: {
+        brokerState: {
+            type: String,
+            required: true
+        }
+    },
     data () {
         return {
             loading: false,
@@ -274,6 +283,9 @@ export default {
         },
         segmentSelected (segment) {
             this.inspecting = segment
+        },
+        openSchema () {
+            openInANewTab(`/api/v1/teams/${this.team.id}/broker/${this.$route.params.brokerId}/schema.yml`, '_blank')
         },
         async saveTopicMeta () {
             if (this.inspecting.id) {
