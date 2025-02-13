@@ -1,4 +1,5 @@
 const YAML = require('yaml')
+
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
@@ -42,24 +43,23 @@ module.exports = async function (app) {
         }
     })
 
-    app.get('/:brokerId/schema.yml', {
-        preHandler: app.needsPermission('broker:topics:list')
-    }, async (request, reply) => {
+    async function genSchema (team, broker) {
+        // const list = await app.teamBroker.getUsedTopics(team.hashid)
         const schema = {
             asyncapi: '3.0.0',
             info: {
                 version: '1.0.0',
-                title: `${request.team.name} Team Broker`,
+                title: `${team.name} Team Broker`,
                 description: 'An auto-generated schema of the topics being used on the team broker'
             }
         }
 
         let topics
-        const isTeamBroker = request.params.brokerId === 'team-broker'
+        const isTeamBroker = broker.id === 'team-broker'
         if (isTeamBroker) {
-            schema.info.title = `${request.team.name} Team Broker`
+            schema.info.title = `${team.name} Team Broker`
             schema.info.description = 'An auto-generated schema of the topics being used on the team broker'
-            topics = await app.db.models.MQTTTopicSchema.getTeamBroker(request.team.hashid)
+            topics = await app.db.models.MQTTTopicSchema.getTeamBroker(team.hashid)
             // Figure out the hostname for the team broker
             let teamBrokerHost = app.config.broker?.teamBroker?.host
             if (!teamBrokerHost) {
@@ -80,20 +80,20 @@ module.exports = async function (app) {
                 }
             }
         } else {
-            schema.info.title = `${request.broker.name}`
-            schema.info.description = `An auto-generated schema of the topics being used on the '${request.broker.name}' broker`
-            topics = await app.db.models.MQTTTopicSchema.byBroker(request.broker.id)
+            schema.info.title = `${broker.name}`
+            schema.info.description = `An auto-generated schema of the topics being used on the '${broker.name}' broker`
+            topics = await app.db.models.MQTTTopicSchema.byBroker(broker.id)
 
             schema.servers = {
-                [request.broker.name]: {
-                    host: request.broker.host + ':' + request.broker.port,
+                [broker.name]: {
+                    host: broker.host + ':' + broker.port,
                     protocol: 'mqtt'
                 }
             }
-            if (request.broker.credentials) {
-                const creds = JSON.parse(request.broker.credentials)
+            if (broker.credentials) {
+                const creds = JSON.parse(broker.credentials)
                 if (creds.username && creds.password) {
-                    schema.servers[request.broker.name].security = [{
+                    schema.servers[broker.name].security = [{
                         type: 'userPassword'
                     }]
                 }
@@ -113,6 +113,30 @@ module.exports = async function (app) {
                 }
             })
         }
+        return schema
+    }
+    app.get('/:brokerId/schema.yml', {
+        preHandler: app.needsPermission('broker:topics:list')
+    }, async (request, reply) => {
+        let broker = request.broker
+        if (request.params.brokerId === 'team-broker') {
+            broker = {
+                id: 'team-broker'
+            }
+        }
+        const schema = await genSchema(request.team, broker)
         reply.send(YAML.stringify(schema))
+    })
+    app.get('/:brokerId/schema', {
+        preHandler: app.needsPermission('broker:topics:list')
+    }, async (request, reply) => {
+        let broker = request.broker
+        if (request.params.brokerId === 'team-broker') {
+            broker = {
+                id: 'team-broker'
+            }
+        }
+        const schema = await genSchema(request.team, broker)
+        reply.send(schema)
     })
 }
