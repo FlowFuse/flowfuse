@@ -393,7 +393,7 @@ kubectl run flowfuse-setup-4 \
   --image bitnami/postgresql:14.10.0-debian-11-r3 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"TeamMembers\" (\"role\",\"UserId\",\"TeamId\")\
-    VALUES 
+    VALUES
       (30, 2, 1),
       (30, 2, 2),
       (30, 2, 3),
