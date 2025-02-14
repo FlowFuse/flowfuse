@@ -70,7 +70,7 @@ module.exports = fp(async function (app, opts) {
                 if (Object.hasOwn(activeLicense, key)) {
                     if (key === 'tier') {
                         return activeLicense[key]?.toLowerCase()
-                    } 
+                    }
                     return activeLicense[key]
                 }
                 return undefined
