@@ -71,7 +71,7 @@ export default [{
     ]
 }, {
     name: 'team-broker-docs',
-    path: 'broker/:brokerId/docs',
+    path: 'brokers/:brokerId/docs',
     component: BrokerDocs,
     meta: {
         title: 'Topic Hierarchy Documentation',
