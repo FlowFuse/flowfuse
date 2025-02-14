@@ -1,21 +1,7 @@
 <template>
     <SectionTopMenu>
         <template #hero>
-            <div class="page-toggle" data-nav="page-toggle">
-                <div class="title">
-                    <span>View:</span>
-                </div>
-                <div class="toggle">
-                    <template v-if="$route.name.includes('editor')">
-                        <router-link :to="{path: './snapshots'}">Snapshots</router-link>
-                        <router-link :to="{path: './timeline'}">Timeline</router-link>
-                    </template>
-                    <template v-else>
-                        <router-link :to="{name: 'instance-snapshots'}">Snapshots</router-link>
-                        <router-link :to="{name: 'instance-version-history-timeline'}">Timeline</router-link>
-                    </template>
-                </div>
-            </div>
+            <toggle-button-group :buttons="pageToggle" class="page-toggle" data-nav="page-toggle" title="View" />
         </template>
         <template #pictogram>
             <img v-if="$route.name.includes('timeline')" alt="info" src="../../../images/pictograms/timeline_red.png">
@@ -89,6 +75,7 @@ import { PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
+import ToggleButtonGroup from '../../../components/elements/ToggleButtonGroup.vue'
 
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
@@ -98,6 +85,7 @@ import SnapshotCreateDialog from './Snapshots/dialogs/SnapshotCreateDialog.vue'
 export default {
     name: 'VersionHistory',
     components: {
+        ToggleButtonGroup,
         SnapshotImportDialog,
         SnapshotCreateDialog,
         PlusSmIcon,
@@ -116,6 +104,21 @@ export default {
     data () {
         return {
             reloadHooks: []
+        }
+    },
+    computed: {
+        pageToggle () {
+            if (this.$route.name.includes('editor')) {
+                return [
+                    { title: 'Snapshots', to: { path: './snapshots', params: this.$route.params } },
+                    { title: 'Timeline', to: { path: './timeline', params: this.$route.params } }
+                ]
+            }
+
+            return [
+                { title: 'Snapshots', to: { name: 'instance-snapshots', params: this.$route.params } },
+                { title: 'Timeline', to: { name: 'instance-version-history-timeline', params: this.$route.params } }
+            ]
         }
     },
     methods: {
@@ -143,35 +146,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.page-toggle {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-
-    .title {
-        color: $ff-black;
-        font-weight: 400;
-    }
-
-    .toggle {
-        border: 1px solid $ff-blue-800;
-        display: flex;
-        gap: 10px;
-        border-radius: 5px;
-
-        a {
-            padding: 5px 10px;
-            margin: 1px;
-            border-radius: 5px;
-            transition: ease-in-out .2s;
-
-            &.router-link-active {
-                background: $ff-blue-800;
-                color: $ff-white;
-            }
-        }
-    }
-}
 .page-fade-enter-active, .page-fade-leave-active {
     transition: opacity .2s ease-in-out;
 }

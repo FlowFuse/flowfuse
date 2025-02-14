@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Device Agent Configuration" data-el="team-device-config-dialog">
+    <ff-dialog ref="dialog" :header="`Device Agent Configuration - ${device?.name}`" data-el="team-device-config-dialog">
         <template #default>
             <form class="text-gray-800">
                 <template v-if="!hasCredentials">
@@ -75,11 +75,11 @@
         </template>
         <template #actions>
             <template v-if="!hasCredentials">
-                <ff-button kind="secondary" @click="close()">Cancel</ff-button>
+                <ff-button kind="secondary" @click="close">Cancel</ff-button>
                 <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate configuration</ff-button>
             </template>
             <template v-else>
-                <ff-button class="ml-4" @click="close()">Done</ff-button>
+                <ff-button class="ml-4" @click="close">Done</ff-button>
             </template>
         </template>
     </ff-dialog>
@@ -116,9 +116,16 @@ export default {
             const creds = await deviceApi.generateCredentials(this.device.id)
             this.device.credentials = creds
         },
-        close () {
+        close (event) {
+            if (event.custom) return // Ignore synthetic Shepherd events
+
             this.$refs.dialog.close()
             this.device.credentials = undefined
+
+            // Re-dispatch the click event for Shepherd
+            const newEvent = new Event('click', { bubbles: false, cancelable: true })
+            newEvent.custom = true
+            event.target.dispatchEvent(newEvent)
         },
         copy (text) {
             this.copyToClipboard(text).then(() => {
@@ -161,8 +168,8 @@ brokerPassword: ${this.device.credentials.broker.password}
     setup () {
         return {
             show (device) {
-                this.$refs.dialog.show()
                 this.device = device
+                this.$refs.dialog.show()
             }
         }
     }

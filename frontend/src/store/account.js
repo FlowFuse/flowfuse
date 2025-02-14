@@ -81,7 +81,7 @@ const getters = {
         !state.team?.billing?.active
     },
     isTrialAccount (state) {
-        return state.team?.billing?.trial
+        return !!state.team?.billing?.trial
     },
     isAdminUser: (state) => !!state.user.admin,
     defaultUserTeam: (state, getters) => {
@@ -124,6 +124,11 @@ const getters = {
             isHostedInstancesEnabledForTeam: ((state) => {
                 if (!state.team) {
                     return false
+                }
+
+                // // dashboard users don't receive the team.type in the response payload
+                if (state.teamMembership?.role === 5 && !state.team?.type?.properties) {
+                    return true
                 }
 
                 let available = false
@@ -179,6 +184,8 @@ const getters = {
             isMqttBrokerFeatureEnabledForPlatform: !!state.features?.teamBroker,
             isMqttBrokerFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.teamBroker,
 
+            isExternalMqttBrokerFeatureEnabledForPlatform: !!state.features?.externalBroker,
+
             // DevOps Pipelines
             devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines']
         }
@@ -192,6 +199,8 @@ const getters = {
             isBOMFeatureEnabled: preCheck.isBOMFeatureEnabledForPlatform && preCheck.isBOMFeatureEnabledForTeam,
             isTimelineFeatureEnabled: preCheck.isTimelineFeatureEnabledForPlatform && preCheck.isTimelineFeatureEnabledForTeam,
             isMqttBrokerFeatureEnabled: preCheck.isMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
+            // external broker must be enabled for platform, and share the same team-level feature flag as the team broker
+            isExternalMqttBrokerFeatureEnabled: preCheck.isExternalMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
             devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
             isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups
         }
@@ -279,6 +288,7 @@ const actions = {
 
             const user = await userApi.getUser()
             commit('login', user)
+            dispatch('ux/checkIfIsNewlyCreatedUser', user, { root: true })
 
             // User is logged in
             if (router.currentRoute.value.meta.requiresLogin === false) {
@@ -411,9 +421,10 @@ const actions = {
             }
         }
     },
-    async logout ({ commit }) {
+    async logout ({ commit, rootState }) {
         commit('logout')
         userApi.logout()
+            .then(() => commit('product/clearBrokers', null, { root: true }))
             .catch(_ => {})
             .finally(() => {
                 if (window._hsq) {

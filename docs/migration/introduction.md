@@ -13,20 +13,22 @@ meta:
 
 # Migrating a Node-RED application to FlowFuse 
 
-This guide will help you to move an existing set of flows from Node-RED into 
-one managed by the FlowFuse platform.
+This guide will help you to move existing Node-RED instances into 
+FlowFuse.
 
-When migrating from your Node-RED to a FlowFuse managed instance you'll export
+When migrating your Node-RED instances into FlowFuse, you'll export
 the flows, credentials, and environment variables.
 
 Before you start ensure you can log in to FlowFuse Cloud or your own FlowFuse
-server and have created the target Node-RED instance.
+server, and that you have created your Node-RED instance that you wish to move into FlowFuse. 
+
+If you have not yet created a Node-RED instance that you want to manage within FlowFuse, you can create the new instance within FlowFuse directly, and the following instructions will not apply in your case.
 
 ## Migrating the flows and credentials
 
 Install the Node-RED tools plugin as explained
 [in the documentation](/docs/migration/node-red-tools.md). After you created a snapshot for
-the target instance you'll have copied over the flows and credentials.
+the Node-RED instance you wish to move, you'll have copied over the flows and credentials.
 
 ## Migrating Environment Variables
 

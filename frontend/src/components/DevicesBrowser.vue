@@ -235,7 +235,10 @@
         @device-updated="deviceUpdated"
     >
         <template #description>
-            <p>
+            <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours['first-device']">
+                Describe your new Remote Instance here.
+            </p>
+            <p v-else>
                 Remote Instances are managed using the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
             </p>
         </template>
@@ -314,7 +317,7 @@ import { ClockIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
@@ -326,7 +329,7 @@ import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAs
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
 
-import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge.vue'
+import DeviceLastSeenCell from '../pages/device/components/DeviceLastSeenCell.vue'
 import SnapshotAssignDialog from '../pages/instance/VersionHistory/Snapshots/dialogs/SnapshotAssignDialog.vue'
 import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
 import DeviceAssignApplicationDialog from '../pages/team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
@@ -402,11 +405,13 @@ export default {
     },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
+        ...mapState('ux', ['tours']),
+        ...mapGetters('account', ['featuresCheck']),
         columns () {
             const columns = [
                 { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
-                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenBadge) } },
+                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenCell) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
             ]
 

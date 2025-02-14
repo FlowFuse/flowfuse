@@ -1,3 +1,4 @@
+const { hash } = require('../../db/utils')
 // eslint-disable-next-line no-unused-vars
 const { DeviceTunnelManager } = require('../../ee/lib/deviceEditor/DeviceTunnelManager')
 const { Roles } = require('../../lib/roles')
@@ -629,6 +630,10 @@ module.exports = async function (app) {
                     editor: {
                         type: 'object',
                         additionalProperties: true
+                    },
+                    security: {
+                        type: 'object',
+                        additionalProperties: true
                     }
                 }
             },
@@ -646,7 +651,19 @@ module.exports = async function (app) {
         const currentSettings = await request.device.getAllSettings()
         // remove any extra properties from env to ensure they match the format of the body data
         // and prevent updates from being logged for unchanged values
-        currentSettings.env = (currentSettings.env || []).map(e => ({ name: e.name, value: e.value }))
+        currentSettings.env = (currentSettings.env || []).map(e => ({ name: e.name, value: e.value, hidden: e.hidden ?? false }))
+        if (request.body.env) {
+            request.body.env.map(env => {
+                if (env.hidden === true && env.value === '') {
+                    // we need to re-map the hidden value so it won't get overwritten
+                    const existingVar = currentSettings.env.find(currentEnv => currentEnv.name === env.name)
+                    if (existingVar) {
+                        env.value = existingVar.value
+                    }
+                }
+                return env
+            })
+        }
         const captureUpdates = (key) => {
             if (key === 'env') {
                 // transform the env array to a map for better logging format
@@ -665,6 +682,20 @@ module.exports = async function (app) {
         }
         if (request.teamMembership?.role === Roles.Owner) {
             // owner is permitted to update all settings
+            if (request.body.security?.httpNodeAuth) {
+                // If type = basic and pass not present, merge in existing value
+                if (request.body.security.httpNodeAuth.type === 'basic') {
+                    if (!request.body.security.httpNodeAuth.pass) {
+                        request.body.security.httpNodeAuth.pass = currentSettings.security?.httpNodeAuth?.pass
+                    } else {
+                        // Store the hashed password
+                        request.body.security.httpNodeAuth.pass = hash(request.body.security.httpNodeAuth.pass)
+                    }
+                }
+                if (request.body.security.httpNodeAuth.type !== 'flowforge-user') {
+                    await app.db.controllers.AuthClient.removeClientForDevice(request.device)
+                }
+            }
             await request.device.updateSettings(request.body)
             const keys = Object.keys(request.body)
             // capture key/val updates sent in body
@@ -708,7 +739,8 @@ module.exports = async function (app) {
                         env: { type: 'array', items: { type: 'object', additionalProperties: true } },
                         autoSnapshot: { type: 'boolean' },
                         palette: { type: 'object', additionalProperties: true },
-                        editor: { type: 'object', additionalProperties: true }
+                        editor: { type: 'object', additionalProperties: true },
+                        security: { type: 'object', additionalProperties: true }
                     }
                 },
                 '4xx': {
@@ -718,6 +750,17 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const settings = await request.device.getAllSettings()
+        settings.env = settings.env.map((env) => {
+            if (Object.hasOwnProperty.call(env, 'hidden') && env.hidden === true) {
+                env.value = ''
+            }
+            return env
+        })
+        // Never return the node auth password
+        if (settings.security?.httpNodeAuth?.pass) {
+            // Do not return actual value - use a boolean to indicate it is set
+            settings.security.httpNodeAuth.pass = true
+        }
         if (request.teamMembership?.role === Roles.Owner) {
             reply.send(settings)
         } else {

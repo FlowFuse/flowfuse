@@ -17,6 +17,7 @@
                                 :label="entry.label"
                                 :icon="entry.icon"
                                 :featureUnavailable="entry.featureUnavailable"
+                                :alert="entry.alert ?? null"
                             />
                         </router-link>
                     </li>
@@ -93,7 +94,14 @@ export default {
                 return { ...defaultBackToRoute, ...this.nearestMetaMenu.backTo }
 
             case isNearestMenuAnObject && hasBackToProp && typeof this.nearestMetaMenu.backTo === 'function':
-                return { ...defaultBackToRoute, ...this.nearestMetaMenu.backTo({ team_slug: this.team?.slug }) }
+                return {
+                    ...defaultBackToRoute,
+                    ...this.nearestMetaMenu.backTo({
+                        params: this.$route.params,
+                        query: this.$route.query,
+                        team: this.team
+                    })
+                }
 
             case typeof this.nearestMetaMenu === 'string':
             default:

@@ -22,6 +22,10 @@ on:
         description: 'flowfuse/nr-file-nodes branch name'
         required: true
         default: 'main'
+      nr_assistant_branch:
+        description: 'flowfuse/nr-assistant branch name'
+        required: true
+        default: 'main'
   pull_request:
     types: 
       - opened
@@ -120,16 +124,34 @@ jobs:
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
+  publish_nr_assistant:
+    name: Build and publish nr-assistant package
+    needs: validate-user
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.nr_assistant_branch != 'main'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    with:
+      package_name: nr-assistant
+      publish_package: true
+      repository_name: 'FlowFuse/nr-assistant'
+      branch_name: ${{ inputs.nr_assistant_branch }}
+      release_name: "pre-staging-${{ inputs.nr_assistant_branch }}"
+    secrets:
+      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
   publish_nr_launcher:
     name: Build and publish nr-launcher package
     needs: 
       - validate-user
       - publish_nr_project_nodes
       - publish_nr_file_nodes
+      - publish_nr_assistant
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
-      (always() && inputs.nr_launcher_branch != 'main') || needs.publish_nr_project_nodes.result == 'success' || needs.publish_nr_file_nodes.result == 'success'
+      (always() && inputs.nr_launcher_branch != 'main') || needs.publish_nr_project_nodes.result == 'success' || needs.publish_nr_file_nodes.result == 'success' || needs.publish_nr_assistant.result == 'success'
     uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
     with:
       package_name: flowfuse-nr-launcher
@@ -140,7 +162,7 @@ jobs:
       package_dependencies: |
         @flowfuse/nr-project-nodes=${{ inputs.nr_project_nodes_branch != 'main' && needs.publish_nr_project_nodes.outputs.release_name || 'nightly' }}
         @flowfuse/nr-file-nodes=${{ inputs.nr_file_nodes_branch != 'main' && needs.publish_nr_file_nodes.outputs.release_name || 'nightly' }}
-        @flowfuse/nr-assistant=nightly
+        @flowfuse/nr-assistant=${{ inputs.nr_assistant_branch != 'main' && needs.publish_nr_assistant.outputs.release_name || 'nightly' }}
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
