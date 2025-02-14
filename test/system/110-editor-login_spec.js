@@ -66,6 +66,9 @@ describe('Node-RED Editor Login', function () {
         TestObjects.tokens = {}
         TestObjects.tokens.Instance1 = (await TestObjects.Instance1.refreshAuthTokens())
 
+        TestObjects.device1 = await factory.createDevice({ name: 'device1', type: 'dt1' }, TestObjects.ATeam)
+        TestObjects.device1AuthClient = await app.db.controllers.AuthClient.createClientForDevice(TestObjects.device1)
+
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
@@ -86,12 +89,13 @@ describe('Node-RED Editor Login', function () {
         return app.close()
     })
 
-    async function doEditorLogin (userToken, scope, dashboardOnly = false) {
+    async function doEditorLogin (userToken, scope, dashboardOnly = false, clientID) {
         const state = base64URLEncode(crypto.randomBytes(16))
         const verifier = base64URLEncode(crypto.randomBytes(32))
         const redirectCallback = 'http://example.com/auth/strategy/callback'
         const params = {}
-        params.client_id = TestObjects.tokens.Instance1.clientID
+        clientID = clientID || TestObjects.tokens.Instance1.clientID
+        params.client_id = clientID
         params.scope = scope
         params.response_type = 'code'
         params.state = state
@@ -140,7 +144,7 @@ describe('Node-RED Editor Login', function () {
         params2.grant_type = 'authorization_code'
         params2.code = callbackURL.searchParams.get('code')
         params2.redirect_uri = redirectCallback
-        params2.client_id = TestObjects.tokens.Instance1.clientID
+        params2.client_id = clientID
         params2.code_verifier = verifier
 
         const response3 = await app.inject({
@@ -231,5 +235,19 @@ describe('Node-RED Editor Login', function () {
         response.statusCode.should.equal(200)
         const result = JSON.parse(response.body)
         result.should.have.property('username', 'chris')
+    })
+
+    it('httpAuth login via oauth flow for device', async function () {
+        const tokens = await doEditorLogin(TestObjects.tokens.alice, 'httpAuth-0.18', false, TestObjects.device1AuthClient.clientID)
+        const response = await app.inject({
+            url: '/api/v1/user',
+            method: 'GET',
+            headers: {
+                authorization: `Bearer ${tokens.access_token}`
+            }
+        })
+        response.statusCode.should.equal(200)
+        const result = JSON.parse(response.body)
+        result.should.have.property('username', 'alice')
     })
 })

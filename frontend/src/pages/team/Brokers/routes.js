@@ -1,12 +1,13 @@
 import BrokerChoose from './ChooseBroker.vue'
 import BrokersClients from './Clients/index.vue'
+import BrokerDocs from './Docs/index.vue'
 import FirstClient from './FirstClient.vue'
 import BrokersHierarchy from './Hierarchy/index.vue'
 import BrokerNew from './NewBroker.vue'
 import BrokerSettings from './Settings/index.vue'
 import Brokers from './index.vue'
 
-export default {
+export default [{
     name: 'team-brokers',
     path: 'brokers',
     component: Brokers,
@@ -68,4 +69,12 @@ export default {
             }
         }
     ]
-}
+}, {
+    name: 'team-broker-docs',
+    path: 'broker/:brokerId/docs',
+    component: BrokerDocs,
+    meta: {
+        title: 'Topic Hierarchy Documentation',
+        layout: 'docs'
+    }
+}]

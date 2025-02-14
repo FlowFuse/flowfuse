@@ -39,7 +39,7 @@ export default [
                     title: 'Team - Overview'
                 },
                 children: [
-                    BrokersRoutes,
+                    ...BrokersRoutes,
                     {
                         path: 'applications',
                         children: [

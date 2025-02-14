@@ -43,6 +43,7 @@
 <script>
 import { ArchiveIcon } from '@heroicons/vue/outline'
 import { ChevronRightIcon } from '@heroicons/vue/solid'
+import { ref } from 'vue'
 
 import TextCopier from '../../../../../components/TextCopier.vue'
 export default {
@@ -77,10 +78,10 @@ export default {
         }
     },
     emits: ['segment-selected', 'segment-state-changed'],
-    data () {
-        return {
-            isSegmentOpen: false
-        }
+    setup (props) {
+        const isSegmentOpen = ref(props.segment.open)
+
+        return { isSegmentOpen }
     },
     computed: {
         childrenCount () {
@@ -120,9 +121,6 @@ export default {
             },
             immediate: false
         }
-    },
-    mounted () {
-        this.isSegmentOpen = this.segment.open
     },
     methods: {
         rowClick (segment) {
