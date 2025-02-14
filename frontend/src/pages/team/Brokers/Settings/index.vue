@@ -30,7 +30,7 @@ export default {
             return Dialog.showAsync({
                 header: `Delete ${this.activeBroker.name}`,
                 kind: 'danger',
-                text: `Are you sure you want delete your ${this.activeBroker.name} broker configuration?`,
+                text: `Are you sure you want to delete your ${this.activeBroker.name} broker configuration?`,
                 confirmLabel: 'Yes, delete'
             })
                 .then(answer => {

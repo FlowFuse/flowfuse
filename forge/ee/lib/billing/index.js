@@ -585,6 +585,23 @@ module.exports.init = async function (app) {
                 await app.db.controllers.Subscription.createUnmanagedSubscription(team)
             }
         },
+        /**
+         * If in unmanaged mode, this will update the subscription to be 'canceled'
+         * but leave all instances running.
+         *
+         * The team will need to create a new stripe subscription before they
+         * can continue accessing the team.
+         *
+         * @param {*} team
+         */
+        disableManualBilling: async (team) => {
+            app.log.info(`Disabling manual billing for team ${team.hashid}`)
+            const subscription = await team.getSubscription()
+            if (subscription && subscription.status === app.db.models.Subscription.STATUS.UNMANAGED) {
+                subscription.status = app.db.models.Subscription.STATUS.CANCELED
+                await subscription.save()
+            }
+        },
         updateTrialSettings: async (team, settings) => {
             // Team must already be in trial mode without a Stripe subscription
             const subscription = await team.getSubscription()
