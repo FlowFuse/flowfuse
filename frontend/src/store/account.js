@@ -69,7 +69,6 @@ const state = initialState
 
 // getters
 const getters = {
-    ...commonMutations,
     settings (state) {
         return state.settings
     },
@@ -231,6 +230,7 @@ const getters = {
     }
 }
 
+// mutations
 const mutations = {
     ...commonMutations,
     setSettings (state, settings) {
@@ -304,7 +304,7 @@ const mutations = {
 
 // actions
 const actions = {
-    ...commonActions(initialState, meta, 'account'),
+    ...commonActions(initialState, meta),
     async checkState ({ commit, dispatch }, redirectUrlAfterLogin) {
         try {
             const settings = await settingsApi.getSettings()

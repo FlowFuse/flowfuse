@@ -124,7 +124,7 @@ const mutations = {
 
 // actions
 const actions = {
-    ...commonActions(initialState, meta, 'product'),
+    ...commonActions(initialState, meta),
     async checkFlags (state) {
         try {
             window.posthog?.onFeatureFlags((flags, values) => {

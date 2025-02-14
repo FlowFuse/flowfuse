@@ -482,7 +482,7 @@ const mutations = {
 }
 
 const actions = {
-    ...commonActions(initialState, meta, 'ux'),
+    ...commonActions(initialState, meta),
     openRightDrawer ({ commit }, { component }) {
         commit('openRightDrawer', { component })
     },
