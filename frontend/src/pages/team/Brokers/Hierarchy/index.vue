@@ -4,7 +4,7 @@
             <div class="title mb-5 flex gap-3 items-center">
                 <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
                 <h3 class="my-2 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
-                <ff-button v-if="brokerState === 'connected'" kind="secondary" @click="refreshHierarchy()">
+                <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="refreshHierarchy()">
                     <template #icon><RefreshIcon /></template>
                 </ff-button>
                 <ff-button v-if="shouldDisplaySchemaButton" :to="{ name: 'team-broker-docs', params: { brokerId: $route.params.brokerId } }">
@@ -97,7 +97,6 @@
 </template>
 
 <script>
-
 import { RefreshIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState } from 'vuex'
 
@@ -251,6 +250,9 @@ export default {
         },
         expandedTopics () {
             return this.brokerExpandedTopics(this.brokerId)
+        },
+        shouldDisplayRefreshButton () {
+            return this.isTeamBroker || this.brokerState === 'connected'
         }
     },
     watch: {
