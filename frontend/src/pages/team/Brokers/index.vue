@@ -27,6 +27,7 @@
 
                 <template #tools>
                     <section v-if="!loading && shouldDisplayTools && featuresCheck.isExternalMqttBrokerFeatureEnabled" class="flex gap-3 flex-wrap">
+                        <ff-toggle-switch v-if="activeBrokerId !== 'team-broker'" v-model="active" mode="async" :loading="statePending" @click="toggleAgent" />
                         <ff-listbox
                             v-if="brokers.length > 1"
                             v-model="activeBrokerId"
@@ -67,7 +68,7 @@
             </template>
         </EmptyState>
 
-        <router-view v-else />
+        <router-view v-else :brokerState="brokerState" />
     </ff-page>
 </template>
 
@@ -98,14 +99,14 @@ export default {
     },
     setup () {
         const { hasAMinimumTeamRoleOf } = usePermissions()
-
         return { hasAMinimumTeamRoleOf }
     },
     data () {
         return {
             loading: true,
-            brokerState: '',
-            brokerStatusPollingInterval: null
+            loadingState: false,
+            brokerStatusPollingInterval: null,
+            brokerState: ''
         }
     },
     computed: {
@@ -229,6 +230,15 @@ export default {
             }
 
             return true
+        },
+        statePending () {
+            const loading = this.loading || this.loadingState
+            return loading || !this.brokerState || this.brokerState === 'suspending' || this.brokerState === 'starting'
+        },
+        active: {
+            get () {
+                return this.brokerState === 'connected'
+            }
         }
     },
     watch: {
@@ -336,12 +346,16 @@ export default {
         getBrokerState () {
             return brokerAPI.getBrokerStatus(this.team.id, this.activeBrokerId)
                 .then(response => {
-                    if (response?.state?.connected) {
-                        this.brokerState = 'connected'
-                    } else if (response?.state?.error === 'error_getting_status') {
-                        this.brokerState = 'starting'
+                    if (response?.state === 'running') {
+                        if (response?.status?.connected) {
+                            this.brokerState = 'connected'
+                        } else if (response?.status?.error === 'error_getting_status') {
+                            this.brokerState = 'starting'
+                        } else {
+                            this.brokerState = 'error'
+                        }
                     } else {
-                        this.brokerState = 'error'
+                        this.brokerState = 'suspended'
                     }
                 })
                 .catch(e => {
@@ -353,6 +367,19 @@ export default {
             this.brokerState = ''
             if (this.brokerStatusPollingInterval) {
                 clearInterval(this.brokerStatusPollingInterval)
+            }
+        },
+        async toggleAgent () {
+            this.loadingState = true
+            const state = await brokerAPI.getBrokerStatus(this.team.id, this.$route.params.brokerId)
+            if (state.state === 'running') {
+                await brokerAPI.suspendBroker(this.team.id, this.$route.params.brokerId)
+                this.brokerState = 'suspending'
+                this.loadingState = false
+            } else {
+                await brokerAPI.startBroker(this.team.id, this.$route.params.brokerId)
+                this.brokerState = 'starting'
+                this.loadingState = false
             }
         }
     }
