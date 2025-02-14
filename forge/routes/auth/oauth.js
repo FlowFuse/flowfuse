@@ -141,7 +141,7 @@ module.exports = async function (app) {
         }
         const requestId = base64URLEncode(crypto.randomBytes(32))
         await requestCache.set(requestId, requestObject)
-
+        app.log.info(`OAUTH start ${requestId} ${redirect_uri}`)
         const isNodeRED = /^(editor($|-))|httpAuth-/.test(scope)
         if (isNodeRED) {
             if (request.sid) {
@@ -237,6 +237,7 @@ module.exports = async function (app) {
                     code: requestObject.code,
                     state: requestObject.state
                 })
+                app.log.info(`OAUTH complete ${requestId} ${requestObject.redirect_uri} redirect: ${responseUrl.toString()}`)
                 reply.redirect(responseUrl.toString())
                 return
             }
