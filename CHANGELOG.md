@@ -1,3 +1,16 @@
+#### 2.14.1: Release
+
+ - BUG: display the refresh button for the team-broker (#5137) @cstns
+ - Revert "Add debug on redirect_uri oauth flow" (#5136) @knolleary
+ - Force license Tier to be lowercase (#5135) @hardillb
+ - Fix: Adds new "Open Schema" button (#5134) @joepavitt
+ - Add debug on redirect_uri oauth flow (#5132) @knolleary
+ - Add option to disable manual billing (#5129) @knolleary
+ - Bump @vue/test-utils from 2.4.3 to 2.4.6 (#5042) @app/dependabot
+ - Bump serialize-javascript and mocha (#5110) @app/dependabot
+ - Bump untitaker/hyperlink from 0.1.43 to 0.1.44 (#5074) @app/dependabot
+ - Fix race condition in license expired unit test (#5119) @hardillb
+
 #### 2.14.0: Release
 
  - Persist opened topic state (#5114) @cstns
