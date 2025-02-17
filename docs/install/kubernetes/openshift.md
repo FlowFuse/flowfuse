@@ -93,8 +93,8 @@ Before you begin, ensure you have the following:
 6. **FlowFuse License:** A valid FlowFuse license key. You can request a quote [here](https://flowfuse.com/pricing/request-quote/)
 
 For a production-ready environment, we also recommend: 
-* **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
-* **TLS Certificate:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#i-would-like-to-secure-the-platform-with-https%2C-how-can-i-do-that%3F)) 
+* **Database:** Prepare dedicated database on a external database server (see [FAQ](README.md#how-to-use-external-database-server%3F) for more details)
+* **TLS Certificate:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](README.md#i-would-like-to-secure-the-platform-with-https%2C-how-can-i-do-that%3F)) 
 
 ### DNS
 
