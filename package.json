@@ -91,7 +91,7 @@
         "jsonwebtoken": "^9.0.0",
         "ldapts": "^7.0.12",
         "lottie-web-vue": "^2.0.7",
-        "marked": "^12.0.0",
+        "marked": "^15.0.7",
         "mqtt": "^5.1.1",
         "mqtt-match": "^3.0.0",
         "nodemailer": "^6.9.3",
