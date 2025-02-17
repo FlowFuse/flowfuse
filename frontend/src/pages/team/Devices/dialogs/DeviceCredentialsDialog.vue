@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Device Agent Configuration" data-el="team-device-config-dialog">
+    <ff-dialog ref="dialog" :header="`Device Agent Configuration - ${device?.name}`" data-el="team-device-config-dialog">
         <template #default>
             <form class="text-gray-800">
                 <template v-if="!hasCredentials">
@@ -168,8 +168,8 @@ brokerPassword: ${this.device.credentials.broker.password}
     setup () {
         return {
             show (device) {
-                this.$refs.dialog.show()
                 this.device = device
+                this.$refs.dialog.show()
             }
         }
     }

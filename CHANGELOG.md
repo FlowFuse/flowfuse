@@ -1,3 +1,47 @@
+#### 2.14.1: Release
+
+ - BUG: display the refresh button for the team-broker (#5137) @cstns
+ - Revert "Add debug on redirect_uri oauth flow" (#5136) @knolleary
+ - Force license Tier to be lowercase (#5135) @hardillb
+ - Fix: Adds new "Open Schema" button (#5134) @joepavitt
+ - Add debug on redirect_uri oauth flow (#5132) @knolleary
+ - Add option to disable manual billing (#5129) @knolleary
+ - Bump @vue/test-utils from 2.4.3 to 2.4.6 (#5042) @app/dependabot
+ - Bump serialize-javascript and mocha (#5110) @app/dependabot
+ - Bump untitaker/hyperlink from 0.1.43 to 0.1.44 (#5074) @app/dependabot
+ - Fix race condition in license expired unit test (#5119) @hardillb
+
+#### 2.14.0: Release
+
+ - Persist opened topic state (#5114) @cstns
+ - Add button to allow start/stop of MQTT agent (#5113) @hardillb
+ - Formatted Schema Documentation View (#5112) @joepavitt
+ - Add support for httpNodeAuth settings on devices (#5068) @knolleary
+ - Bump babel-loader from 9.1.3 to 9.2.1 (#4957) @app/dependabot
+ - Add a starting state for the MQTT-Schema-Agent status (#5109) @hardillb
+ - Add "Finish Setup" button for Remote Instances (#5106) @joepavitt
+ - Version history for devices UI (#5107) @cstns
+ - External Broker support (#5015) @hardillb
+ - Add a devices/:deviceId/history API endpoint (#5090) @cstns
+ - [docs] Remove outdated info on private npm tokens (#5097) @knolleary
+ - Allow a dev-mode device at Stage 0 to be triggered (#5089) @knolleary
+ - Bump vitest and @vitest/coverage-istanbul (#5077) @app/dependabot
+ - Applications routing follow up (#4891) @cstns
+ - ci: Add `nr-assistant` package build step to a pre-staging deployment (#5060) @ppawlowski
+ - Free product tour revision (#5059) @cstns
+ - docs: Specify minimum docker compose version (#5070) @ppawlowski
+ - Fix hidden env vars getting overwritten to blank value when updating other env-vars (#5064) @cstns
+ - Docs: Clearer DNS instructions and cross-linking (#4886) @joepavitt
+ - Bump @fastify/multipart from 8.3.0 to 8.3.1 (#5052) @app/dependabot
+ - Allow env var values to be hidden in UI (#5043) @cstns
+ - Fix dashboard role users blank page (#5049) @cstns
+ - Bump vite from 5.4.7 to 5.4.14 (#5048) @app/dependabot
+ - Update migration docs (#5047) @gstout52
+ - Add docs on how to setup SSO on FlowFuse Cloud (#5040) @knolleary
+ - PostHog - New "team-type-changed" event & add team type on team-created event (#5044) @joepavitt
+ - Update node-saml to 5 (#5037) @knolleary
+ - Update introduction.md (#5034) @gstout52
+
 #### 2.13.1: Release
 
  - Fix missing sideNav during app setup (#5029) @cstns

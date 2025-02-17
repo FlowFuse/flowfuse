@@ -38,7 +38,9 @@
                         It must be reactivated before it can be put into manual billing mode.
                     </template>
                     <template v-else-if="isUnmanaged">
-                        This team is already in manual billing mode.
+                        <b>This team is in manual billing mode.</b><br>
+                        Enabling billing will require the team to setup
+                        billing again before they can continue using the team.
                     </template>
                     <template v-else-if="trialMode">
                         <b>This team is in trial mode.</b><br>
@@ -62,7 +64,8 @@
                 </div>
             </div>
             <div class="min-w-fit flex-shrink-0">
-                <ff-button kind="danger" data-action="admin-setup-billing" :disabled="team.suspended || isUnmanaged" @click="confirmManualBilling()">Setup Manual Billing</ff-button>
+                <ff-button v-if="!isUnmanaged" kind="danger" data-action="admin-setup-billing" :disabled="team.suspended" @click="confirmManualBilling()">Setup Manual Billing</ff-button>
+                <ff-button v-else kind="danger" data-action="admin-disable-billing" @click="disableManualBilling()">Enable Billing</ff-button>
             </div>
         </div>
     </div>
@@ -78,6 +81,7 @@ import billingApi from '../../../api/billing.js'
 import FormHeading from '../../../components/FormHeading.vue'
 
 import formatDateMixin from '../../../mixins/DateTime.js'
+import Dialog from '../../../services/dialog.js'
 
 import ConfirmTeamManualBillingDialog from '../dialogs/ConfirmTeamManualBillingDialog.vue'
 import ExtendTeamTrialDialog from '../dialogs/ExtendTeamTrialDialog.vue'
@@ -143,6 +147,20 @@ export default {
                 await this.$store.dispatch('account/refreshTeam')
             }).catch(err => {
                 console.warn(err)
+            })
+        },
+        async disableManualBilling () {
+            return Dialog.show({
+                header: 'Enable Billing',
+                kind: 'danger',
+                text: 'Are you sure you want to re-enable billing for this team?'
+            }, async () => {
+                billingApi.disableManualBilling(this.team.id).then(async () => {
+                    await this.$store.dispatch('account/refreshTeams')
+                    await this.$store.dispatch('account/refreshTeam')
+                }).catch(err => {
+                    console.warn(err)
+                })
             })
         },
         confirmExtendTrial () {

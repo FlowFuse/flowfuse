@@ -182,6 +182,7 @@
         @apply text-yellow-900;
     }
     .forge-status-success,
+    .forge-status-connected,
     .forge-status-running {
         @apply bg-green-200;
         @apply border-green-400;
