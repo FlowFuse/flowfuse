@@ -1,14 +1,6 @@
 <template>
-    <router-link
-        v-slot="{ href, navigate }"
-        v-bind="extendedProps"
-        custom
-    >
-        <a
-            v-bind="$attrs"
-            :href="href"
-            @click="navigate"
-        >
+    <router-link v-slot="{ href, navigate }" v-bind="extendedProps" custom>
+        <a v-bind="$attrs" :href="href" @click="navigate">
             <slot />
         </a>
     </router-link>
@@ -25,12 +17,23 @@ export default {
         ...DefaultRouterLink.props
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState('account', ['team', 'teams']),
         extendedProps () {
             const props = { ...this.$props }
-            if (!props.to.params.team_slug) {
-                props.to.params.team_slug = this.team.slug
+
+            if (!this.team) {
+                // rewrite the url to point home where the user will either get redirected to his default team or to the
+                // team creation page
+                props.to.name = 'Home'
             }
+
+            if (!props.to.params?.team_slug) {
+                props.to.params = {
+                    ...(props.to.params ?? {}),
+                    team_slug: this.team.slug
+                }
+            }
+
             return props
         }
     }
