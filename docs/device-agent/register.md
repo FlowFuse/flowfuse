@@ -160,7 +160,7 @@ automatically be assigned to an Application or Instance.
 
 #### Assign to Application
 
-This step will permit you to push Snapshots to your Remote Instance via [DevOps Pipelines](/docs/user/devops-pipelines), or via a [Target Snapshot](/docs/user/snapshots/#application-owned-devices) from the Application.
+This step will permit you to push Snapshots to your Remote Instance via [DevOps Pipelines](/docs/user/devops-pipelines.md), or via a [Target Snapshot](/docs/user/snapshots/#application-owned-devices) from the Application.
 
 1. Go to your teams's **Remote Instances** page.
 2. Open the dropdown menu to the right of the Remote Instance you want to assign and
