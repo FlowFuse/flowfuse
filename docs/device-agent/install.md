@@ -13,14 +13,19 @@ meta:
 
 ## Prerequisites
 
+#### NodeJS Version
+
 The Device Agent requires Node.js 18 or later.
+
+#### Operating System/Image**
 
 It can be installed on most Linux distributions, Windows, and MacOS, or via the provided Docker image.
 
-The Device Agent connects back to the FlowFuse platform on port 443. You will need to ensure your network permits traffic on that port. For FlowFuse Cloud, the device agent will connect to:
+#### Networking
 
- - `app.flowfuse.com:443`
- - `mqtt.flowfuse.cloud:443`
+The Device Agent connects back to the FlowFuse platform on port 443. You will need to ensure your network permits traffic on that port. For FlowFuse Cloud, the device agent will connect to:
+    - `app.flowfuse.com:443`
+    - `mqtt.flowfuse.cloud:443`
 
 Additionally, the Device Agent does not install Node-RED at startup. When the agent receives a snapshot to run, it will need to download the required Node-RED version mentioned in the snapshot. Therefore, ensure that your firewall allows access to the following npm registry endpoint:
 
