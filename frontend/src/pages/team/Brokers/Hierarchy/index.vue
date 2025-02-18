@@ -13,10 +13,22 @@
             </div>
 
             <div class="space-y-6">
+                <ff-text-input
+                    v-model="filterTerm"
+                    class="ff-data-table--search"
+                    data-form="search"
+                    placeholder="Search topics..."
+                >
+                    <template #icon><SearchIcon /></template>
+                    <template #icon-right>
+                        <XIcon v-if="filterTerm.length" class="ff-icon-sm cursor-pointer ease-in mr-2" @click="filterTerm=''" />
+                    </template>
+                </ff-text-input>
+
                 <ff-loading v-if="loading" message="Loading Topics..." />
 
                 <template v-else>
-                    <section v-if="topics.length > 0" class="topics">
+                    <section v-if="filteredTopics.length > 0" class="topics">
                         <topic-segment
                             v-for="(segment, key) in hierarchySegments"
                             :key="segment"
@@ -30,6 +42,18 @@
                             @segment-state-changed="toggleSegmentVisibility"
                         />
                     </section>
+
+                    <EmptyState v-else-if="filteredTopics.length === 0 && topics.length > 0">
+                        <template #img>
+                            <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
+                        </template>
+                        <template #header>No Matching Topics Found</template>
+                        <template #message>
+                            <p>We couldn't find any topics that match your search criteria.</p>
+                            <p>Try adjusting your search or ensure that your MQTT clients have published relevant topics to the broker.</p>
+                            <p>If topics were recently published, there may be a short delay before they appear.</p>
+                        </template>
+                    </EmptyState>
 
                     <EmptyState v-else>
                         <template #img>
@@ -97,6 +121,7 @@
 </template>
 
 <script>
+import { SearchIcon, XIcon } from '@heroicons/vue/outline'
 import { RefreshIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState } from 'vuex'
 
@@ -111,7 +136,7 @@ import TopicSegment from './components/TopicSegment.vue'
 
 export default {
     name: 'BrokerHierarchy',
-    components: { TopicSchema, TopicSegment, EmptyState, RefreshIcon, FormRow, TextCopier },
+    components: { SearchIcon, TopicSchema, TopicSegment, EmptyState, RefreshIcon, FormRow, TextCopier, XIcon },
     props: {
         brokerState: {
             type: String,
@@ -122,19 +147,27 @@ export default {
         return {
             loading: false,
             topics: {},
-            inspecting: null
+            inspecting: null,
+            filterTerm: ''
         }
     },
     computed: {
         ...mapState('account', ['team']),
         ...mapGetters('account', ['featuresCheck']),
         ...mapGetters('product', ['hasFfUnsClients', 'hasBrokers', 'brokerExpandedTopics']),
+        filteredTopics () {
+            if (this.filterTerm.length === 0) {
+                return this.topics
+            }
+
+            return this.topics.filter(topic => topic.topic.toLowerCase().includes(this.filterTerm.toLowerCase()))
+        },
         hierarchy: {
             get () {
                 const hierarchy = {}
                 const topicLookup = {}
                 // Sort topics alphabetically to ensure consistency in hierarchy generation
-                this.topics.forEach(topic => {
+                this.filteredTopics.forEach(topic => {
                     topicLookup[topic.topic] = topic
                     const parts = topic.topic.split('/')
                     if (topic.topic.startsWith('/')) {
