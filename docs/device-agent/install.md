@@ -17,7 +17,7 @@ meta:
 
 The Device Agent requires Node.js 18 or later.
 
-#### Operating System/Image**
+#### Operating System/Image
 
 It can be installed on most Linux distributions, Windows, and MacOS, or via the provided Docker image.
 
