@@ -53,8 +53,13 @@ const meta = {
             storage: 'localStorage'
             // clearOnLogout: true (cleared by default)
         },
+        settings: {
+            storage: 'localStorage',
+            clearOnLogout: false
+        },
         features: {
-            storage: 'localStorage'
+            storage: 'localStorage',
+            clearOnLogout: false
         },
         teamMembership: {
             storage: 'sessionStorage'
