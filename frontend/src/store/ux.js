@@ -25,7 +25,7 @@ const state = () => ({
         education: false,
         'first-device': false
     },
-    completeTours: [],
+    completeTours: {},
     mainNav: {
         context: 'team',
         backToButton: null
@@ -451,7 +451,14 @@ const mutations = {
     },
     deactivateTour (state, tour) {
         state.tours[tour] = false
-        state.completeTours.push(tour)
+        state.completeTours[tour] = true
+    },
+    resetTours (state) {
+        Object.keys(state.tours)
+            .forEach(key => {
+                state.tours[key] = false
+            })
+        state.completeTours = {}
     },
     setUserAction (state, { action, payload }) {
         if (Object.prototype.hasOwnProperty.call(state.userActions, action)) {
@@ -493,6 +500,9 @@ const actions = {
     },
     deactivateTour ({ commit, state }, tour) {
         commit('deactivateTour', tour)
+    },
+    resetTours ({ commit }) {
+        commit('resetTours')
     },
     validateUserAction ({ commit }, action) {
         commit('setUserAction', { action, payload: true })

@@ -223,7 +223,16 @@ export default {
         }
     },
     watch: {
-        team: 'fetchData'
+        team: 'fetchData',
+        tours: {
+            handler (tours) {
+                if (tours.welcome) {
+                    this.dispatchTour()
+                }
+            },
+            deep: true,
+            immediate: true
+        }
     },
     async mounted () {
         await this.fetchData()
@@ -235,11 +244,6 @@ export default {
                 // allow the Alerts service to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
-        }
-
-        // First time here?
-        if (this.tours.welcome) {
-            this.dispatchTour()
         }
 
         this.setSearchQuery()
@@ -331,9 +335,12 @@ export default {
                 this.filterTerm = this.$route.query.searchQuery
             }
         },
+        hasTourBeenCompleted (tour) {
+            return Object.prototype.hasOwnProperty.call(this.completeTours, tour)
+        },
         dispatchTour () {
             switch (true) {
-            case this.isFreemiumTeamType && !this.completeTours.includes('first-device') && !!this.applicationsList[0]:
+            case this.isFreemiumTeamType && !this.hasTourBeenCompleted('first-device') && !!this.applicationsList[0]:
                 // freemium users must first undergo the first-device tour on the ApplicationDevices page
                 return this.$store.dispatch('ux/activateTour', 'first-device')
                     .then(() => this.$router.push({
@@ -348,7 +355,7 @@ export default {
                     .then((tour) => tour.start())
                     .catch(e => e)
 
-            case this.isFreemiumTeamType && this.completeTours.includes('first-device'):
+            case this.isFreemiumTeamType && this.hasTourBeenCompleted('first-device'):
                 // we're starting the delayed free tour for freemium tiers (without any instances pre-created)
                 return (Tours.create('welcome',
                     TourWelcomeFree,
