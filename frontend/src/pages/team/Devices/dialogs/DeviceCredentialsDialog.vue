@@ -13,11 +13,21 @@
                 </template>
                 <template v-if="hasCredentials">
                     <template v-if="otc">
-                        <p>
-                            Install the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a> onto the hardware where you want to run your Node-RED Instance.
+                        <label class="block font-bold mb-2">Install Device Agent</label>
+                        <p>Run this command on the hardware where you want your Remote Instance to run:</p>
+                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">npm install @flowfuse/device-agent</pre>
+                        <div class="flex flex-row justify-end space-x-2 -mt-1">
+                            <ff-button kind="tertiary" size="small" @click="copy('npm install @flowfuse/device-agent')">
+                                <template #icon-right><ClipboardCopyIcon /></template>
+                                <span class="">Copy</span>
+                            </ff-button>
+                        </div>
+                        <p class="text-gray-600 italic text-sm -mt-6">
+                            Note: For more detailed instructions on installing the Device Agent, checkout the documentation <a href="https://flowfuse.com/docs/device-agent/" target="_blank">here</a>.
                         </p>
+                        <label class="block font-bold mt-4 mb-2">Connect Agent to FlowFuse</label>
                         <p class="mt-2">
-                            Then, with the Device Agent installed, run the following command to connect it to FlowFuse:
+                            Then, with the Device Agent installed, run the following command, on your hardware, to connect it to FlowFuse:
                         </p>
                         <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ otcCommand }}</pre>
                         <div class="flex flex-row justify-end space-x-2 -mt-1">
