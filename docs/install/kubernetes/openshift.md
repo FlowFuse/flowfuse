@@ -90,7 +90,7 @@ Before you begin, ensure you have the following:
 3. **Helm:** FlowFuse provides the Helm chart to manage platform deployment. Installation can be done through the instructions on [their website](https://helm.sh)
 4. **OpenShift Cluster:** an OpenShift cluster instance with at least two worker nodes
 5. **Ingress Controller:** An Ingress controller installed on the cluster. FlowFuse Helm chart uses the [Ingress NGINX Controller](https://github.com/kubernetes/ingress-nginx) by default.
-6. **FlowFuse License:** A valid FlowFuse license key. You can request a quote [here](https://flowfuse.com/pricing/request-quote/)
+6. **FlowFuse License:** A valid FlowFuse license key is required to run on OpenShift. You can request a quote [here](https://flowfuse.com/pricing/request-quote/)
 
 For a production-ready environment, we also recommend: 
 * **Database:** Prepare dedicated database on a external database server (see [FAQ](README.md#how-to-use-external-database-server%3F) for more details)
