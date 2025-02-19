@@ -1,4 +1,5 @@
 const should = require('should') // eslint-disable-line
+const houseKeepingJob = require('../../../../../forge/housekeeper/tasks/inviteReminder.js')
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -415,6 +416,52 @@ describe('Team Invitations API', function () {
             app.config.email.transport.getMessageQueue()[1].subject.should.equal('Invitation to collaborate on FlowFuse')
             app.config.email.transport.getMessageQueue()[2].to.should.equal(TestObjects.bob.email)
             app.config.email.transport.getMessageQueue()[2].subject.should.equal('Invitation for evans@example com to BTeam not accepted yet')
+        })
+    })
+
+    describe('Resending user invites', async function () {
+        before(function () {
+            app.settings.set('team:user:invite:external', true)
+        })
+        after(function () {
+            app.settings.set('team:user:invite:external', false)
+        })
+        it('Queues an email when a valid invitation id is provided', async () => {
+            const invitation = await app.db.controllers.Invitation.createInvitations(
+                TestObjects.tokens.bob,
+                TestObjects.BTeam,
+                [
+                    TestObjects.chris.email
+                ],
+                Roles.Member)
+
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
+
+            const slug = invitation[TestObjects.chris.email].slug
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations/${slug}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
+        })
+        it('Returns a 404 when an invitation is not found', async () => {
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations/invalid-id`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
+
+            const result = response.json()
+            result.should.have.property('code', 'not_found')
+            result.should.have.property('error', 'Not Found')
+
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
         })
     })
 
