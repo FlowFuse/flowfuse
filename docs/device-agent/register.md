@@ -118,7 +118,7 @@ NOTES
 
 <img src="images/device_gui.png" width="550px" style="margin: auto; margin-bottom: 12px;" />
 
-If the Device Agent is running [with the Web UI enabled](docs/device-agent/running.md#device-agent-command-line-options), you can download the
+If the Device Agent is running [with the Web UI enabled](./running.md#device-agent-command-line-options), you can download the
 configuration file to the Remote Instance using the Web UI. This is useful if you don't
 have direct access to the Remote Instance's file system. Once the configuration file is
 downloaded, the device agent will automatically restart and load the configuration.
