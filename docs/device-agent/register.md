@@ -43,11 +43,11 @@ contains all the information needed to connect your hardware to the FlowFuse pla
 
 #### Quick Connect
 
-By default, you are offered the [Setup command](#setup-command) method that was introduced in FlowFuse V2.1, and provides a one-time passcode to automatically connect the hardware to FlowFuse.
+By default, you are offered the [Setup command](#quick-connect) method that was introduced in FlowFuse V2.1, and provides a one-time passcode to automatically connect the hardware to FlowFuse.
 
 <img src="images/config_yml1.png" width="500px" />
 
-If you run this command on the hardware, where oyu have the Device Agent installed, then the hardware will automatically configure itself and connect to FlowFuse.
+Running this command on hardware with the Device Agent installed will automatically configure it and connect it to FlowFuse.
 
 #### Manual Setup
 
@@ -60,7 +60,7 @@ Repeat these steps for each Remote Instance you want to connect to the platform.
 
 If you have dozens, or hundreds of pieces of hardware to connect, you can use the **Provisioning Configuration** method.
 
-This approach provides you with a single "Provisioning Token" for all of your Remote Instances. When passed to the `flowfuse-device-agent`, this token will automatically register your Remote Instances with the relevant instance or application. There is no need to "Add Remote Instance" each time, as is the case with the [Single Device Registration](#single-device-registration) method.
+This approach provides you with a single "Provisioning Token" for all of your Remote Instances. When passed to the `flowfuse-device-agent`, this token will automatically register your Remote Instances with the relevant instance or application. There is no need to "Add Remote Instance" each time, as is the case with the [Single Device Registration](#single-remote-instance-registration) method.
 
 ### Generating "Provisioning Configuration"
 
@@ -88,7 +88,7 @@ file present in its working directory
 
 There are three methods by which you can get this configuration onto your hardware:
 
-- **[Quick Connect](#setup-command):** Copy the Setup Command (with one-time passcode) and run it in a terminal window on the hardware. Your hardware will then automatically configure itself.
+- **[Quick Connect](#quick-connect):** Copy the Setup Command (with one-time passcode) and run it in a terminal window on the hardware. Your hardware will then automatically configure itself.
 - **[Device Agent Web UI](#device-agent-web-ui):** Copy the configuration file (`device.yml`) to your hardware using its built in Web UI.
    * _The Device Agent must be running and the [command line flag](./running.md#device-agent-command-line-options) for the Web UI must be enabled._
 - **[Manual Download](#manual-download):** Download the configuration file directly into the hardware's [Working Directory](./install.md#working-directory).
@@ -118,7 +118,7 @@ NOTES
 
 <img src="images/device_gui.png" width="550px" style="margin: auto; margin-bottom: 12px;" />
 
-If the Device Agent is running [with the Web UI enabled](docs/device-agent/running.md#device-agent-command-line-options), you can download the
+If the Device Agent is running [with the Web UI enabled](./running.md#device-agent-command-line-options), you can download the
 configuration file to the Remote Instance using the Web UI. This is useful if you don't
 have direct access to the Remote Instance's file system. Once the configuration file is
 downloaded, the device agent will automatically restart and load the configuration.
@@ -152,7 +152,7 @@ runs will not need to perform the auto registration again.
 ## Assign the Remote Instance
 
 The next step is to assign the device to a Node-RED instance or application. Note, that if
-you've followed [Single Device Registration](#single-device-registration) or 
+you've followed [Single Device Registration](#single-remote-instance-registration) or 
 [Bulk Registration](#bulk-registration) to register your device, it will
 automatically be assigned to an Application or Instance.
 
