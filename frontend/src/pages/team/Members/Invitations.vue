@@ -5,7 +5,13 @@
             <div class="text-right" />
             <ff-data-table data-el="invites-table" :columns="inviteColumns" :rows="invitations">
                 <template #row-actions="{row}">
-                    <ff-button kind="tertiary" class="ff-btn-xs ff-btn--tertiary" data-action="remove-invite" @click="resendInvite(row)">
+                    <ff-button
+                        v-if="!!settings.email"
+                        kind="tertiary"
+                        class="ff-btn-xs ff-btn--tertiary"
+                        data-action="remove-invite"
+                        @click="resendInvite(row)"
+                    >
                         <template #icon>
                             <RefreshIcon />
                         </template>
@@ -26,6 +32,7 @@ import { RefreshIcon, TrashIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
 import { useRoute, useRouter } from 'vue-router'
+import { mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
@@ -55,6 +62,9 @@ export default {
                 { label: 'Expires In', class: ['w-40'], key: 'expires' }
             ]
         }
+    },
+    computed: {
+        ...mapState('account', ['settings'])
     },
     watch: {
         teamMembership: 'fetchData',
