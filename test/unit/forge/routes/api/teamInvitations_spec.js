@@ -1,5 +1,4 @@
 const should = require('should') // eslint-disable-line
-const houseKeepingJob = require('../../../../../forge/housekeeper/tasks/inviteReminder.js')
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
