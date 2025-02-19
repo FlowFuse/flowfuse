@@ -98,7 +98,7 @@ export default {
                 confirmLabel: 'Resend'
             }, async () => {
                 try {
-                    console.log('re-sending')
+                    await teamApi.resendTeamInvitation(invite.team.id, invite.id)
                 } catch (err) {
                     Alerts.emit('Failed to resend invitation: ' + err.toString(), 'warning', 7500)
                 }
