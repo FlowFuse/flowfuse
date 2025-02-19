@@ -47,7 +47,7 @@ By default, you are offered the [Setup command](#setup-command) method that was 
 
 <img src="images/config_yml1.png" width="500px" />
 
-If you run this command on the hardware, where oyu have the Device Agent installed, then the hardware will automatically configure itself and connect to FlowFuse.
+Running this command on hardware with the Device Agent installed will automatically configure it and connect it to FlowFuse.
 
 #### Manual Setup
 
