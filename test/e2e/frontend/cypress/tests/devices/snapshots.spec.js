@@ -24,7 +24,7 @@ describe('FlowForge - Devices', () => {
         cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')
     })
 
-    it.only('exposes the "Version History" tab if assigned to an Instance but the Snapshots tab has an empty state message', () => {
+    it('exposes the "Version History" tab if assigned to an Instance but the Snapshots tab has an empty state message', () => {
         cy.contains('span', 'assigned-device-a').click()
         cy.get('[data-nav="version-history"]').should('exist')
         cy.get('[data-nav="version-history"]').click()

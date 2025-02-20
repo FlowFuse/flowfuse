@@ -1,7 +1,7 @@
 <template>
     <div id="device-snapshots">
         <div v-if="isOwnedByAnInstance" class="space-y-6">
-            <EmptyState>
+            <EmptyState :feature-unavailable="!features.deviceEditor" :feature-unavailable-message="'This requires Developer Mode on Devices, which is a FlowFuse Enterprise Feature'">
                 <template #img>
                     <img src="../../../../images/empty-states/instance-snapshots.png">
                 </template>
