@@ -7,6 +7,7 @@
                 <template #row-actions="{row}">
                     <ff-button
                         v-if="!!settings.email"
+                        v-ff-tooltip:left="'Resend Email Invitation'"
                         kind="tertiary"
                         class="ff-btn-xs ff-btn--tertiary"
                         data-action="remove-invite"
@@ -99,6 +100,7 @@ export default {
             }, async () => {
                 try {
                     await teamApi.resendTeamInvitation(invite.team.id, invite.id)
+                        .then(() => Alerts.emit('The invitation email was sent successfully', 'confirmation'))
                 } catch (err) {
                     Alerts.emit('Failed to resend invitation: ' + err.toString(), 'warning', 7500)
                 }
