@@ -1,6 +1,44 @@
 <template>
     <div id="device-snapshots">
-        <div class="space-y-6">
+        <div v-if="isOwnedByAnInstance" class="space-y-6">
+            <EmptyState>
+                <template #img>
+                    <img src="../../../../images/empty-states/instance-snapshots.png">
+                </template>
+                <template #header>Snapshots are available when a Remote Instance is assigned to an Application</template>
+                <template #message>
+                    <p>
+                        Snapshots are point-in-time backups of your Node-RED Instances
+                        and capture the flows, credentials and runtime settings.
+                    </p>
+                    <p v-if="device.ownerType !== 'application'" class="block">
+                        A Remote Instance must first be <a class="ff-link" href="https://flowfuse.com/docs/device-agent/register/#assign-the-device-to-an-application" target="_blank" rel="noreferrer">assigned to an Application</a>, in order to create snapshots.
+                    </p>
+                    <p v-else-if="!developerMode" class="block">
+                        A Remote Instance must be in Developer Mode and online to create a Snapshot.
+                    </p>
+                </template>
+                <template v-if="hasPermission('device:snapshot:create')" #actions>
+                    <ff-button
+                        v-if="hasPermission('snapshot:import')"
+                        kind="secondary" :disabled="busy || !features.deviceEditor || device.ownerType !== 'application'"
+                        data-action="import-snapshot"
+                        @click="$emit('show-import-snapshot-dialog')"
+                    >
+                        <template #icon-left><UploadIcon /></template>Upload Snapshot
+                    </ff-button>
+                    <ff-button
+                        kind="primary"
+                        :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'"
+                        data-action="create-snapshot"
+                        @click="$emit('show-create-snapshot-dialog')"
+                    >
+                        <template #icon-left><PlusSmIcon /></template>Create Snapshot
+                    </ff-button>
+                </template>
+            </EmptyState>
+        </div>
+        <div v-else class="space-y-6">
             <ff-loading v-if="loading" message="Loading Snapshots..." />
             <template v-else-if="features.deviceEditor && snapshots.length > 0">
                 <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
@@ -182,6 +220,9 @@ export default {
         },
         developerMode () {
             return this.device?.mode === 'developer'
+        },
+        isOwnedByAnInstance () {
+            return this.device?.ownerType === 'instance'
         }
     },
     watch: {
