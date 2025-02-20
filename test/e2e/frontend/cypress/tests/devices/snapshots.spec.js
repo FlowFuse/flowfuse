@@ -34,5 +34,8 @@ describe('FlowForge - Devices', () => {
 
         cy.get('[data-el="empty-state"]').should('exist')
         cy.get('[data-el="empty-state"]').contains('Snapshots are available when a Remote Instance is assigned to an Application')
+
+        cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')
+        cy.get('[data-el="page-banner-feature-unavailable"]').contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
     })
 })
