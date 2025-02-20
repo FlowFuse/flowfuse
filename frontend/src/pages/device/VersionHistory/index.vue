@@ -32,7 +32,7 @@
                     v-if="hasPermission('snapshot:import')"
                     kind="secondary"
                     data-action="import-snapshot"
-                    :disabled="busy"
+                    :disabled="busy || isOwnedByAnInstance"
                     @click="showImportSnapshotDialog"
                 >
                     <template #icon-left><UploadIcon /></template>Upload Snapshot
@@ -135,6 +135,9 @@ export default {
         },
         busy () {
             return this.busyMakingSnapshot || this.busyImportingSnapshot
+        },
+        isOwnedByAnInstance () {
+            return this.device?.ownerType === 'instance'
         }
     },
     methods: {
