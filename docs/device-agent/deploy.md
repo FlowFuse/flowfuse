@@ -35,7 +35,7 @@ to the registered remote instances when you're happy with what you've created.
 A remote instance can be assigned to an application without a snapshot being deployed to it.
 
 In this mode, the remote instance will start Node-RED with a default set of flows that can
-be edited on the remote instance see [Editing the Node-RED flows on a remote instance that is assigned to an application](#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-application) below
+be edited on the remote instance see [Editing the Node-RED flows on a remote instance that is assigned to an application](#editing-the-node-red-flows-on-a-remote-instance-that-is-assigned-to-an-application) below
 
 ## Editing the Node-RED flows on a remote instance that is assigned to an instance
 
