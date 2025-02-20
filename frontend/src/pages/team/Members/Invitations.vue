@@ -79,7 +79,7 @@ export default {
             return Dialog.show({
                 header: 'Delete Invitation',
                 kind: 'danger',
-                html: `Are you sure you want to delete the invitation sent to <i>${invite.invitee.name}</i> ?`,
+                html: `Are you sure you want to delete the invitation sent to <i>${invite.invitee.email || invite.invitee.name}</i> ?`,
                 confirmLabel: 'Delete'
             }, async () => {
                 try {
@@ -95,7 +95,7 @@ export default {
             return Dialog.show({
                 header: 'Resend Invitation',
                 kind: 'primary',
-                html: `Do you want to resend the invitation to <i>${invite.invitee.name}</i> ?`,
+                html: `Do you want to resend the invitation to <i>${invite.invitee.email || invite.invitee.name}</i> ?`,
                 confirmLabel: 'Resend'
             }, async () => {
                 try {
