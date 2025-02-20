@@ -205,6 +205,11 @@ export default {
                 return defineComponent({
                     template: `<span>Flows deployed through the <i>${data.pipeline.name}</i> pipeline, applying the <i>${data.snapshot.name}</i> snapshot</span>`
                 })
+            case this.event.event === 'device.project.deployed':
+                // eslint-disable-next-line vue/one-component-per-file
+                return defineComponent({
+                    template: `<span>Flows deployed through the <i>${data.project.name}</i> hosted instance, applying the <i>${data.snapshot.name}</i> snapshot</span>`
+                })
             default:
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({

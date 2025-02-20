@@ -43,7 +43,8 @@ export default {
                 'project.created',
                 'project.settings.updated',
                 'device.settings.updated',
-                'device.pipeline.deployed'
+                'device.pipeline.deployed',
+                'device.project.deployed'
             ]
         }
     },
@@ -60,6 +61,7 @@ export default {
                 return UndoIcon
             case this.event.event === 'flows.set':
             case this.event.event === 'device.pipeline.deployed':
+            case this.event.event === 'device.project.deployed':
                 return ProjectsIcon
             case this.event.event === 'project.snapshot.created':
                 return CameraIcon
