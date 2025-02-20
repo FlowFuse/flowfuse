@@ -37,7 +37,7 @@ deploy it to the remote instance.
 ### When assigned to an application:
 Once the agent has been assigned to an application it starts up. If the device is new, 
 it will get a default set of flows which can be edited directly. 
-See [Editing the Node-RED flows on a remote instance that is assigned to an application](./deploy.md#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-application) for details.
+See [Editing the Node-RED flows on a remote instance that is assigned to an application](./deploy.md#editing-the-node-red-flows-on-a-remote-instance-that-is-assigned-to-an-application) for details.
 
 ### Device Agent Command Line Options
 
