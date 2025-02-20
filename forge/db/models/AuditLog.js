@@ -125,7 +125,8 @@ module.exports = {
                             'flows.set',
                             'device.restarted',
                             'device.settings.updated',
-                            'device.pipeline.deployed'
+                            'device.pipeline.deployed',
+                            'device.project.deployed'
                             // 'device.assigned',
                             // 'device.credential.generated',
                             // 'device.developer-mode.disabled',
@@ -203,7 +204,6 @@ module.exports = {
                     for (const row of rows) {
                         try {
                             row.body = typeof row.body === 'string' ? JSON.parse(row.body) : JSON.parse('' + row.body)
-                            delete row.body.project // we don't need to include the project object in specific project history
                         } catch (_e) {
                             row.body = {}
                         }

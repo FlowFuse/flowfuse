@@ -46,7 +46,19 @@ module.exports = {
                         device,
                         error,
                         snapshot,
+                        application,
                         pipeline
+                    }))
+                }
+            },
+            project: {
+                async deployed (actionedBy, error, device, project, snapshot) {
+                    await log('device.project.deployed', actionedBy, device?.id, generateBody({
+                        device,
+                        error,
+                        snapshot,
+                        project,
+                        user: actionedBy
                     }))
                 }
             },

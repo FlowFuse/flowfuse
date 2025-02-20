@@ -236,7 +236,8 @@ const iconMap = {
         'application.pipeline.stage-added',
         'application.pipeline.stage-deployed',
         'project.assigned-to-pipeline-stage',
-        'device.pipeline.deployed'
+        'device.pipeline.deployed',
+        'device.project.deployed'
     ],
     resource: [
         'resource.cpu',
