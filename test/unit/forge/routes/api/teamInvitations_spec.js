@@ -418,6 +418,52 @@ describe('Team Invitations API', function () {
         })
     })
 
+    describe('Resending user invites', async function () {
+        before(function () {
+            app.settings.set('team:user:invite:external', true)
+        })
+        after(function () {
+            app.settings.set('team:user:invite:external', false)
+        })
+        it('Queues an email when a valid invitation id is provided', async () => {
+            const invitation = await app.db.controllers.Invitation.createInvitations(
+                TestObjects.tokens.bob,
+                TestObjects.BTeam,
+                [
+                    TestObjects.chris.email
+                ],
+                Roles.Member)
+
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
+
+            const slug = invitation[TestObjects.chris.email].slug
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations/${slug}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
+        })
+        it('Returns a 404 when an invitation is not found', async () => {
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations/invalid-id`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
+
+            const result = response.json()
+            result.should.have.property('code', 'not_found')
+            result.should.have.property('error', 'Not Found')
+
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
+        })
+    })
+
     describe('Delete expired invites', async function () {
         before(function () {
             app.settings.set('team:user:invite:external', true)

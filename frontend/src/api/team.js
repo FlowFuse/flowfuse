@@ -217,6 +217,15 @@ const removeTeamInvitation = (teamId, inviteId) => {
         })
     })
 }
+const resendTeamInvitation = (teamId, inviteId) => {
+    return client.post(`/api/v1/teams/${teamId}/invitations/${inviteId}`).then(() => {
+        product.capture('$ff-invite-resent', {
+            'invite-id': inviteId
+        }, {
+            team: teamId
+        })
+    })
+}
 
 const create = async (options) => {
     return client.post('/api/v1/teams/', options).then(res => {
@@ -460,6 +469,7 @@ export default {
     getTeamInvitations,
     createTeamInvitation,
     removeTeamInvitation,
+    resendTeamInvitation,
     getTeamAuditLog,
     getTeamUserMembership,
     getTeamDevices,
