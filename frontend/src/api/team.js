@@ -218,13 +218,21 @@ const removeTeamInvitation = (teamId, inviteId) => {
     })
 }
 const resendTeamInvitation = (teamId, inviteId) => {
-    return client.post(`/api/v1/teams/${teamId}/invitations/${inviteId}`).then(() => {
-        product.capture('$ff-invite-resent', {
-            'invite-id': inviteId
-        }, {
-            team: teamId
+    return client.post(`/api/v1/teams/${teamId}/invitations/${inviteId}`)
+        .then((response) => response.data)
+        .then((invitation) => {
+            product.capture('$ff-invite-resent', {
+                'invite-id': inviteId
+            }, {
+                team: teamId
+            })
+
+            invitation.roleName = RoleNames[invitation.role || Roles.Member]
+            invitation.createdSince = daysSince(invitation.createdAt)
+            invitation.expires = elapsedTime(invitation.expiresAt, Date.now())
+
+            return invitation
         })
-    })
 }
 
 const create = async (options) => {
