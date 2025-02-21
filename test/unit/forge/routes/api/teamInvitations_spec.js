@@ -451,7 +451,7 @@ describe('Team Invitations API', function () {
             result.should.have.property('team')
             result.should.have.property('invitor')
             result.should.have.property('invitee')
-            // app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
         })
         it('Returns a 404 when an invitation is not found', async () => {
             app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
