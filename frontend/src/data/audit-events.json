@@ -160,6 +160,7 @@
         "device.suspended": "Device Suspended",
         "device.suspend-failed": "Device Suspend Failed",
         "device.settings.updated": "Device Settings Updated",
+        "device.pipeline.deployed": "Flow Deployed through Pipeline",
         "flows.reloaded": "Flows Reloaded",
         "flows.set": "Flow Deployed",
         "library.set": "Saved to Library",
