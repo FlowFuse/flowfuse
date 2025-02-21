@@ -135,6 +135,12 @@ module.exports = {
                             { model: M.User, as: 'invitee' }
                         ]
                     })
+                },
+                extendExpirationDate: async (id) => {
+                    return this.update(
+                        { expiresAt: Date.now() + DEFAULT_INVITATION_EXPIRY },
+                        { where: { id } }
+                    )
                 }
             }
         }

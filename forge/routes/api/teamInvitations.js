@@ -238,7 +238,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    $ref: 'APIStatus'
+                    $ref: 'Invitation'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -247,13 +247,17 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const invitation = await app.db.models.Invitation.byId(request.params.invitationId)
+
         if (invitation && invitation.teamId === request.team.id) {
             const role = invitation.role || Roles.Member
             const invitedUser = app.auditLog.formatters.userObject(invitation.external ? invitation : invitation.invitee)
 
+            await app.db.models.Invitation.extendExpirationDate(invitation.id)
+            await invitation.reload()
+
             await app.db.controllers.Invitation.sendNotification(invitation, invitedUser, request.team, role, true)
 
-            reply.send({ status: 'okay' })
+            reply.send(app.db.views.Invitation.invitation(invitation))
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }

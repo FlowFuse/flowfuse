@@ -98,12 +98,17 @@ export default {
                 html: `Do you want to resend the invitation to <i>${invite.invitee.email || invite.invitee.name}</i> ?`,
                 confirmLabel: 'Resend'
             }, async () => {
-                try {
-                    await teamApi.resendTeamInvitation(invite.team.id, invite.id)
-                        .then(() => Alerts.emit('The invitation email was sent successfully', 'confirmation'))
-                } catch (err) {
-                    Alerts.emit('Failed to resend invitation: ' + err.toString(), 'warning', 7500)
-                }
+                teamApi.resendTeamInvitation(invite.team.id, invite.id)
+                    .then((res) => {
+                        const idx = this.invitations.findIndex(inv => inv.id === res.id)
+
+                        if (idx !== -1) {
+                            this.invitations[idx] = res
+                        }
+
+                        Alerts.emit('The invitation email was sent successfully', 'confirmation')
+                    })
+                    .catch((err) => Alerts.emit('Failed to resend invitation: ' + err.toString(), 'warning', 7500))
             })
         },
         async fetchData () {
