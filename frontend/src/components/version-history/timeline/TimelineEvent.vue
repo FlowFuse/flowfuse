@@ -116,8 +116,8 @@ export default {
             let name
             const data = this.event.data
 
-            switch (true) {
-            case this.event.event === 'project.snapshot.imported':
+            switch (this.event.event) {
+            case 'project.snapshot.imported':
                 name = data.snapshot.name.split(' - Deploy')[0] ?? ''
 
                 if (Object.prototype.hasOwnProperty.call(data ?? {}, 'sourceProject')) {
@@ -158,7 +158,7 @@ export default {
                             snapshot
                         </span>`
                 })
-            case this.event.event === 'project.snapshot.rolled-back':
+            case 'project.snapshot.rolled-back':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     emits: ['preview-snapshot'],
@@ -186,32 +186,38 @@ export default {
                             <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
                         </span>`
                 })
-            case this.event.event === 'flows.set':
+            case 'flows.set':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: '<span>Flows Deployed From Editor</span>'
                 })
-            case this.event.event === 'project.created':
+            case 'project.created':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: '<span>Instance Created</span>'
                 })
-            case ['project.settings.updated', 'device.settings.updated'].includes(this.event.event):
+            case 'project.settings.updated':
+            case 'device.settings.updated':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: '<span>Settings Updated</span>'
                 })
-            case this.event.event === 'device.pipeline.deployed':
+            case 'device.restarted':
+                // eslint-disable-next-line vue/one-component-per-file
+                return defineComponent({
+                    template: '<span>Remote Instance restarted</span>'
+                })
+            case 'device.pipeline.deployed':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: `<span>Flows deployed through the <i>${data.pipeline.name}</i> pipeline, applying the <i>${data.snapshot.name}</i> snapshot</span>`
                 })
-            case this.event.event === 'device.project.deployed':
+            case 'device.project.deployed':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: `<span>Flows deployed through the <i>${data.project.name}</i> hosted instance, applying the <i>${data.snapshot.name}</i> snapshot</span>`
                 })
-            case this.event.event === 'device.snapshot.deployed':
+            case 'device.snapshot.deployed':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: `<span><i>${data.user.name}</i> manually deployed the <i>${data.snapshot.name}</i> snapshot</span>`
@@ -240,6 +246,8 @@ export default {
                 return 'Snapshot Created'
             case 'project.created':
                 return 'Instance Created'
+            case 'device.restarted':
+                return 'Remote Instance Restarted'
             case ['project.settings.updated', 'device.settings.updated'].includes(this.event.event):
                 return 'Settings Updated'
             case 'device.pipeline.deployed':
