@@ -62,6 +62,7 @@
 </template>
 
 <script>
+import DevicesAPI from '../../../../api/devices.js'
 import versionHistoryAPI from '../../../../api/versionHistory.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
@@ -72,6 +73,8 @@ import TimelineEvent from '../../../../components/version-history/timeline/Timel
 import { scrollTo } from '../../../../composables/Ux.js'
 import featuresMixin from '../../../../mixins/Features.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
+import Alerts from '../../../../services/alerts.js'
+import Dialog from '../../../../services/dialog.js'
 import SnapshotExportDialog from '../../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 export default {
@@ -187,6 +190,25 @@ export default {
                     this.listHeight = heightToBottom - 24.5 - 7
                 }
             }
+        },
+        showRollbackDialog (snapshot, alterLoadingState = false) {
+            return new Promise((resolve) => {
+                Dialog.show({
+                    header: 'Restore Snapshot',
+                    kind: 'danger',
+                    text: `This will overwrite the current remote instance.
+                       All changes to the flows, settings and environment variables made since the last snapshot will be lost.
+                       Are you sure you want to deploy to this snapshot?`,
+                    confirmLabel: 'Confirm'
+                }, async () => {
+                    if (alterLoadingState) this.loading = true
+                    return DevicesAPI.setSnapshotAsTarget(this.device.id, snapshot.id)
+                        .then(() => {
+                            Alerts.emit('Successfully deployed snapshot.', 'confirmation')
+                            resolve()
+                        })
+                })
+            })
         }
     }
 }

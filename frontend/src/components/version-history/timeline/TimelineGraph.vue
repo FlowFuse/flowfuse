@@ -124,7 +124,7 @@ export default {
         hasSomethingToChainTo () {
             const currentIndex = this.timeline.findIndex(event => event.id === this.event.id)
             for (const id in this.timeline.slice(0, currentIndex)) {
-                if ((this.timeline[id]?.event) === 'project.snapshot.imported') {
+                if (['project.snapshot.imported', 'device.snapshot.created'].includes(this.timeline[id]?.event)) {
                     // we can only differentiate between a plain snapshot import and a devops deployment history events
                     // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
                     const isPipelineDeployment = Object.prototype.hasOwnProperty.call(this.timeline[id]?.data, 'sourceProject')

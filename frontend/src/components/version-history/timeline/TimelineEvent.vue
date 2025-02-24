@@ -51,6 +51,7 @@
                         @click="$emit('download-package-json', event.data.snapshot)"
                     />
                     <ff-list-item
+                        v-if="!isADeviceSnapshotEvent"
                         :disabled="!hasPermission('project:snapshot:set-target')"
                         label="Set as Device Target"
                         @click="$emit('set-device-target', event.data.snapshot)"
@@ -220,7 +221,17 @@ export default {
             case 'device.snapshot.deployed':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
-                    template: `<span><i>${data.user.name}</i> manually deployed the <i>${data.snapshot.name}</i> snapshot</span>`
+                    emits: ['preview-snapshot'],
+                    methods: {
+                        previewSnapshot () { this.$emit('preview-snapshot') }
+                    },
+                    template: `<span>
+                                    <i>${data.user.name}</i>
+                                    manually deployed the
+                                    <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i>
+                                    <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
+                                    snapshot
+                                </span>`
                 })
             default:
                 // eslint-disable-next-line vue/one-component-per-file
@@ -271,6 +282,10 @@ export default {
         },
         isLoadMore () {
             return this.event.event === 'load-more'
+        },
+        isADeviceSnapshotEvent () {
+            return Object.prototype.hasOwnProperty.call(this.event.data, 'device') &&
+                Object.prototype.hasOwnProperty.call(this.event.data, 'snapshot')
         }
     },
     methods: {
