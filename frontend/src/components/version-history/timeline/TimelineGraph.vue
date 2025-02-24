@@ -67,8 +67,8 @@ export default {
             case 'device.project.deployed':
             case 'device.snapshot.deployed':
                 return ProjectsIcon
-            case this.event.event === 'project.snapshot.created':
-            case this.event.event === 'device.snapshot.created':
+            case 'project.snapshot.created':
+            case 'device.snapshot.created':
                 return CameraIcon
             case 'project.settings.updated':
             case 'device.settings.updated':

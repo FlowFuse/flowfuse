@@ -171,8 +171,8 @@ export default {
                             <a href="#" @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
                         </span>`
                 })
-            case this.event.event === 'project.snapshot.created':
-            case this.event.event === 'device.snapshot.created':
+            case 'project.snapshot.created':
+            case 'device.snapshot.created':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     emits: ['preview-snapshot'],
