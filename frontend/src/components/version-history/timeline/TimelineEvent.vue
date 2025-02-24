@@ -210,6 +210,11 @@ export default {
                 return defineComponent({
                     template: `<span>Flows deployed through the <i>${data.project.name}</i> hosted instance, applying the <i>${data.snapshot.name}</i> snapshot</span>`
                 })
+            case this.event.event === 'device.snapshot.deployed':
+                // eslint-disable-next-line vue/one-component-per-file
+                return defineComponent({
+                    template: `<span><i>${data.user.name}</i> maunally deployed the <i>${data.snapshot.name}</i> snapshot</span>`
+                })
             default:
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
@@ -218,25 +223,27 @@ export default {
             }
         },
         shortTitle () {
-            switch (true) {
-            case this.event.event === 'project.snapshot.imported':
+            switch (this.event.event) {
+            case 'project.snapshot.imported':
                 if (Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')) {
                     // we can only differentiate between a plain snapshot import and a devops deployment history events
                     // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
                     return 'Pipeline Stage Pushed'
                 } else return 'Snapshot Imported'
-            case this.event.event === 'project.snapshot.rolled-back':
+            case 'project.snapshot.rolled-back':
                 return 'Snapshot Restored'
-            case this.event.event === 'flows.set':
+            case 'flows.set':
                 return 'Flows Deployed'
-            case this.event.event === 'project.snapshot.created':
+            case 'project.snapshot.created':
                 return 'Snapshot Created'
-            case this.event.event === 'project.created':
+            case 'project.created':
                 return 'Instance Created'
             case ['project.settings.updated', 'device.settings.updated'].includes(this.event.event):
                 return 'Settings Updated'
-            case this.event.event === 'device.pipeline.deployed':
+            case 'device.pipeline.deployed':
                 return 'Pipeline deployment'
+            case 'device.snapshot.deployed':
+                return 'Snapshot deployment'
             default:
                 return this.event.event
             }
