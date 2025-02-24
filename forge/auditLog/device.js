@@ -92,7 +92,8 @@ module.exports = {
                     await log('device.snapshot.deployed', actionedBy, device?.id, generateBody({
                         device,
                         error,
-                        snapshot
+                        snapshot,
+                        user: actionedBy
                     }))
                 }
             }

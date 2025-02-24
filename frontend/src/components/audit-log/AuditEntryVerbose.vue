@@ -191,6 +191,17 @@
 
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'device.snapshot.deployed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="entry.body?.device && entry.body?.snapshot && entry.body.user">
+            <i>{{ entry.body.user.name }}</i>
+            deployed the
+            <i>{{ entry.body.snapshot.name }}</i>
+            snapshot
+        </span>
+
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
 
     <!-- Account Scoped Events -->
     <template v-else-if="entry.event === 'account.register'">
