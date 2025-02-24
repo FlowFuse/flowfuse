@@ -172,6 +172,7 @@ export default {
                         </span>`
                 })
             case this.event.event === 'project.snapshot.created':
+            case this.event.event === 'device.snapshot.created':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     emits: ['preview-snapshot'],
@@ -235,6 +236,7 @@ export default {
             case 'flows.set':
                 return 'Flows Deployed'
             case 'project.snapshot.created':
+            case 'device.snapshot.created':
                 return 'Snapshot Created'
             case 'project.created':
                 return 'Instance Created'
@@ -254,7 +256,7 @@ export default {
             const isImportedSnapshot = this.event.event === 'project.snapshot.imported' &&
                 !Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')
 
-            return this.event.event === 'project.snapshot.created' || isImportedSnapshot
+            return ['project.snapshot.created', 'device.snapshot.created'].includes(this.event.event) || isImportedSnapshot
         },
         snapshotExists () {
             return this.isSnapshot && this.event.data?.info?.snapshotExists

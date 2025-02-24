@@ -55,6 +55,9 @@
                 </template>
             </empty-state>
         </section>
+        <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+        <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="device" />
+        <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="fetchData(false)" />
     </div>
 </template>
 
@@ -63,14 +66,20 @@ import versionHistoryAPI from '../../../../api/versionHistory.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
+import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
+import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
 import TimelineEvent from '../../../../components/version-history/timeline/TimelineEvent.vue'
 import { scrollTo } from '../../../../composables/Ux.js'
 import featuresMixin from '../../../../mixins/Features.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
+import SnapshotExportDialog from '../../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 export default {
     name: 'HistoryTimeline',
     components: {
+        SnapshotEditDialog,
+        SnapshotExportDialog,
+        AssetDetailDialog,
         EmptyState,
         FeatureUnavailableToTeam,
         FeatureUnavailable,
