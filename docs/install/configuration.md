@@ -287,3 +287,14 @@ Option        | Description
 `content_security_policy.directives` | Overrides the default set of directives, supplied as a JSON object defined by HelmetJS [here](https://helmetjs.github.io/#content-security-policy)
 `content_security_policy.report_only` | Enables reporting only mode. Default: `false`
 `content_security_policy.report_uri` |  Provides at URI for reporting to be sent to if enabled
+
+## NPM Registry
+
+These settings enable per team Node-RED private catalogue generation
+
+Option        | Description
+--------------|------------
+npmRegistry.enabled | Enables NPM Registry support. Default: false
+npmRegistry.url | The URL for the Verdaccio NPM Registry. Default: none
+npmRegistry.admin.username | Username for Verdaccio admin user
+npmRegistry.admin.password | Password for Verdaccio admin user
