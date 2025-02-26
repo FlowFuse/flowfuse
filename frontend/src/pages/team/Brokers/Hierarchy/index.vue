@@ -12,7 +12,7 @@
         <TopicInspector
             v-if="!loading && topics.length > 0"
             :topics="topics"
-            :selected-segment="selectedSegment"
+            :segment="selectedSegment"
             @segment-updated="onSegmentUpdate"
         />
     </div>
@@ -23,8 +23,8 @@ import { mapState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
 
-import TopicHierarchy from './TopicHierarchy.vue'
-import TopicInspector from './TopicInspector.vue'
+import TopicHierarchy from './TopicHierarchy/index.vue'
+import TopicInspector from './TopicInspector/index.vue'
 
 export default {
     name: 'BrokerHierarchy',
@@ -71,6 +71,7 @@ export default {
         },
         onSegmentUpdate (segment) {
             const idx = this.topics.findIndex(topic => topic.id === segment.id)
+            this.selectedSegment = segment
             if (idx !== -1) {
                 this.topics[idx] = segment
             }

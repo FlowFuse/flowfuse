@@ -1,17 +1,17 @@
 <template>
     <div class="unified-namespace-hierarchy">
-        <div class="title mb-5 flex gap-3 items-center">
-            <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
-            <h3 class="my-2 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
-            <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
-                <template #icon><RefreshIcon /></template>
-            </ff-button>
-            <ff-button v-if="shouldDisplaySchemaButton" :to="{ name: 'team-broker-docs', params: { brokerId: $route.params.brokerId } }">
-                Open Schema
-            </ff-button>
-        </div>
+        <main-title title="Topic Hierarchy">
+            <template v-if="selectedSegment" #actions>
+                <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
+                    <template #icon><RefreshIcon /></template>
+                </ff-button>
+                <ff-button v-if="shouldDisplaySchemaButton" :to="{ name: 'team-broker-docs', params: { brokerId: $route.params.brokerId } }">
+                    Open Schema
+                </ff-button>
+            </template>
+        </main-title>
 
-        <div class="space-y-6">
+        <div class="space-y-3">
             <ff-text-input
                 v-model="filterTerm"
                 class="ff-data-table--search"
@@ -44,7 +44,7 @@
 
                 <EmptyState v-else-if="filteredTopics.length === 0 && topics.length > 0">
                     <template #img>
-                        <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
+                        <img src="../../../../../images/empty-states/mqtt-empty.png" alt="logo">
                     </template>
                     <template #header>No Matching Topics Found</template>
                     <template #message>
@@ -56,7 +56,7 @@
 
                 <EmptyState v-else>
                     <template #img>
-                        <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
+                        <img src="../../../../../images/empty-states/mqtt-empty.png" alt="logo">
                     </template>
                     <template #header>Start Building Your Topic Hierarchy</template>
                     <template #message>
@@ -75,13 +75,16 @@ import { SearchIcon, XIcon } from '@heroicons/vue/outline'
 import { RefreshIcon } from '@heroicons/vue/solid'
 import { mapGetters } from 'vuex'
 
-import EmptyState from '../../../../components/EmptyState.vue'
+import EmptyState from '../../../../../components/EmptyState.vue'
 
-import TopicSegment from './components/TopicSegment.vue'
+import MainTitle from '../components/MainTitle.vue'
+
+import TopicSegment from '../components/TopicSegment.vue'
 
 export default {
     name: 'TopicHierarchy',
     components: {
+        MainTitle,
         RefreshIcon,
         EmptyState,
         TopicSegment,
@@ -151,7 +154,6 @@ export default {
                             topic: rootName,
                             id: topicLookup[rootName]?.id,
                             metadata: topicLookup[rootName]?.metadata || {},
-                            originalMetadata: JSON.stringify(topicLookup[rootName]?.metadata || {}),
                             inferredSchema: topicLookup[rootName]?.inferredSchema || { type: 'unknown' },
                             isRoot: true,
                             open: this.checkIfTopicOpen(rootName),
@@ -173,7 +175,6 @@ export default {
                                 topic,
                                 id: topicLookup[topic]?.id,
                                 metadata: topicLookup[topic]?.metadata || {},
-                                originalMetadata: JSON.stringify(topicLookup[topic]?.metadata || {}),
                                 inferredSchema: topicLookup[topic]?.inferredSchema || { type: 'unknown' },
                                 open: this.checkIfTopicOpen(topic),
                                 childrenCount: 0,
