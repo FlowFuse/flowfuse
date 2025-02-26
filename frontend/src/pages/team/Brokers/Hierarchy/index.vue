@@ -39,11 +39,17 @@ export default {
         return {
             loading: false,
             topics: [],
-            selectedSegment: null
+            selectedSegmentId: null
         }
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState('account', ['team']),
+        selectedSegment () {
+            if (this.selectedSegmentId === null) {
+                return null
+            }
+            return this.topics.find(topic => topic.id === this.selectedSegmentId)
+        }
     },
     watch: {
         $route: function () {
@@ -67,7 +73,7 @@ export default {
                 })
         },
         segmentSelected (segment) {
-            this.selectedSegment = segment
+            this.selectedSegmentId = segment.id
         },
         onSegmentUpdate (segment) {
             const idx = this.topics.findIndex(topic => topic.id === segment.id)
