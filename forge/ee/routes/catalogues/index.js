@@ -1,7 +1,7 @@
 const axios = require('axios')
 
 module.exports = async function (app) {
-    app.get('/catalogue', {
+    app.get('/npm/catalogue', {
         config: {
             allowAnonymous: true
         }
