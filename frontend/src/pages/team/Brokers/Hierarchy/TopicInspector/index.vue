@@ -1,7 +1,7 @@
 <template>
     <div class="ff-topic-inspector">
         <main-title title="Topic Inspector">
-            <template v-if="selectedSegment" #actions>
+            <template v-if="segment" #actions>
                 <ff-button :disabled="!hasUnsavedChanges" kind="secondary" @click="clearTopicMetaChanges()">
                     Cancel
                 </ff-button>
@@ -11,7 +11,7 @@
             </template>
         </main-title>
 
-        <template v-if="selectedSegment">
+        <template v-if="segment">
             <payload-metadata :segment="localSegment" @segment-updated="onSegmentUpdated" />
 
             <payload-schema :segment="localSegment" />
@@ -53,7 +53,7 @@ export default {
             type: Object,
             required: true
         },
-        selectedSegment: {
+        segment: {
             type: [Object, null],
             required: true
         }
@@ -61,7 +61,7 @@ export default {
     emits: ['segment-updated'],
     data () {
         return {
-            localSegment: { ...this.selectedSegment }
+            localSegment: { ...this.segment }
         }
     },
     computed: {
@@ -70,11 +70,11 @@ export default {
             return this.$route.params.brokerId
         },
         hasUnsavedChanges () {
-            return this.localSegment && JSON.stringify(this.localSegment.metadata) !== JSON.stringify(this.selectedSegment.metadata)
+            return this.localSegment && JSON.stringify(this.localSegment.metadata) !== JSON.stringify(this.segment.metadata)
         }
     },
     watch: {
-        selectedSegment: {
+        segment: {
             deep: true,
             handler (segment) {
                 this.localSegment = JSON.parse(JSON.stringify(segment))
@@ -84,7 +84,7 @@ export default {
     methods: {
         async clearTopicMetaChanges () {
             if (this.localSegment) {
-                this.localSegment.metadata = JSON.parse(JSON.stringify(this.selectedSegment.metadata))
+                this.localSegment.metadata = JSON.parse(JSON.stringify(this.segment.metadata))
             }
         },
         async saveTopicMeta () {
