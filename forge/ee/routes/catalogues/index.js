@@ -22,7 +22,7 @@ module.exports = async function (app) {
                     if (package === '_updated') {
                         continue
                     }
-                    if (package.startsWith(`@${request.teamId}/`)) {
+                    if (package.startsWith(`@${request.params.teamId}/`)) {
                         modules.push({
                             id: package,
                             description: packageList.data[package].description,
