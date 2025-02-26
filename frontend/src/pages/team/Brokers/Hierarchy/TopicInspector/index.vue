@@ -37,7 +37,7 @@
 
         <EmptyState v-else>
             <template #img>
-                <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
+                <img src="../../../../../images/empty-states/mqtt-empty.png" alt="logo">
             </template>
             <template #header>Inspect Your Topic Hierarchy</template>
             <template #message>
@@ -50,15 +50,15 @@
 <script>
 import { mapState } from 'vuex'
 
-import brokerApi from '../../../../api/broker.js'
-import EmptyState from '../../../../components/EmptyState.vue'
-import FormRow from '../../../../components/FormRow.vue'
-import TextCopier from '../../../../components/TextCopier.vue'
-import CodeBracketSquareIcon from '../../../../components/icons/CodeBracketSquare.js'
+import brokerApi from '../../../../../api/broker.js'
+import EmptyState from '../../../../../components/EmptyState.vue'
+import FormRow from '../../../../../components/FormRow.vue'
+import TextCopier from '../../../../../components/TextCopier.vue'
+import CodeBracketSquareIcon from '../../../../../components/icons/CodeBracketSquare.js'
 
-import MainTitle from './components/MainTitle.vue'
-import SubTitle from './components/SubTitle.vue'
-import TopicSchema from './components/TopicSchema.vue'
+import MainTitle from '../components/MainTitle.vue'
+import SubTitle from '../components/SubTitle.vue'
+import TopicSchema from '../components/TopicSchema.vue'
 
 export default {
     name: 'TopicInspector',

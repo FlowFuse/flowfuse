@@ -44,7 +44,7 @@
 
                 <EmptyState v-else-if="filteredTopics.length === 0 && topics.length > 0">
                     <template #img>
-                        <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
+                        <img src="../../../../../images/empty-states/mqtt-empty.png" alt="logo">
                     </template>
                     <template #header>No Matching Topics Found</template>
                     <template #message>
@@ -56,7 +56,7 @@
 
                 <EmptyState v-else>
                     <template #img>
-                        <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
+                        <img src="../../../../../images/empty-states/mqtt-empty.png" alt="logo">
                     </template>
                     <template #header>Start Building Your Topic Hierarchy</template>
                     <template #message>
@@ -75,11 +75,11 @@ import { SearchIcon, XIcon } from '@heroicons/vue/outline'
 import { RefreshIcon } from '@heroicons/vue/solid'
 import { mapGetters } from 'vuex'
 
-import EmptyState from '../../../../components/EmptyState.vue'
+import EmptyState from '../../../../../components/EmptyState.vue'
 
-import MainTitle from './components/MainTitle.vue'
+import MainTitle from '../components/MainTitle.vue'
 
-import TopicSegment from './components/TopicSegment.vue'
+import TopicSegment from '../components/TopicSegment.vue'
 
 export default {
     name: 'TopicHierarchy',

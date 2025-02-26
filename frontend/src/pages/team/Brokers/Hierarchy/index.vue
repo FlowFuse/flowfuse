@@ -23,8 +23,8 @@ import { mapState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
 
-import TopicHierarchy from './TopicHierarchy.vue'
-import TopicInspector from './TopicInspector.vue'
+import TopicHierarchy from './TopicHierarchy/index.vue'
+import TopicInspector from './TopicInspector/index.vue'
 
 export default {
     name: 'BrokerHierarchy',
