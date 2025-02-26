@@ -3,10 +3,13 @@
         <div class="content flex flex-col gap-1">
             <div class="title-wrapper">
                 <span class="title">Message Format: </span>
-                <span class="format">{{ format }}</span>
+                <span class="format">{{ capitalize(format) }}</span>
             </div>
             <div class="description-wrapper">
-                <p class="description opacity-50 text-xs leading-none">{{ description }}</p>
+                <p v-if="description" class="description opacity-50 text-xs leading-none">{{ description }}</p>
+                <p v-else class="description opacity-50 text-xs leading-none">
+                    FlowFuse has detected that the messages sent to this topic are {{ format.toUpperCase() }}. Would you like to enforce this on your Schema?
+                </p>
             </div>
         </div>
         <div class="actions flex gap-3 items-center">
@@ -23,6 +26,8 @@
 <script>
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/outline'
 
+import { capitalize } from '../../../../../../composables/String.js'
+
 export default {
     name: 'TopicSuggestion',
     components: {
@@ -35,16 +40,19 @@ export default {
             type: String
         },
         description: {
-            required: true,
-            type: String
+            required: false,
+            type: String,
+            default: null
         }
     },
+    emits: ['suggestion-accepted', 'suggestion-rejected'],
     methods: {
+        capitalize,
         accept () {
-            console.log('accept')
+            this.$emit('suggestion-accepted')
         },
         reject () {
-            console.log('reject')
+            this.$emit('suggestion-rejected')
         }
     }
 }

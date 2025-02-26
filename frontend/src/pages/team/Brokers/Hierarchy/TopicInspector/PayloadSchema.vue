@@ -2,15 +2,19 @@
     <main-title title="Payload Schema" class="mt-1" />
 
     <div class="ff-topic-inspecting">
-        <section>
+        <section class="schema-wrapper">
             <sub-title title="Schema" :icon="CodeBracketSquareIcon" />
-            <topic-schema :schema="segment.inferredSchema" />
+            <topic-schema :schema="schema" />
         </section>
 
-        <section>
+        <section v-if="!hasDefinedSchema && isInferredTypePrimitive" class="suggestions-wrapper">
             <sub-title title="Suggestions" :icon="LightBulbIcon" />
             <topic-suggestions>
-                <topic-suggestion format=".json" description="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Deserunt dolores harum modi repudiandae saepe! Adipisci consectetur cum dicta dolorum ducimus id libero nam nemo nisi nobis non omnis quibusdam, suscipit!" />
+                <topic-suggestion
+                    :format="inferredType"
+                    @suggestion-accepted="$emit('suggestion-accepted')"
+                    @suggestion-rejected="$emit('suggestion-rejected')"
+                />
             </topic-suggestions>
         </section>
     </div>
@@ -41,8 +45,23 @@ export default {
             type: Object
         }
     },
+    emits: ['suggestion-accepted', 'suggestion-rejected'],
     setup () {
         return { CodeBracketSquareIcon, LightBulbIcon }
+    },
+    computed: {
+        hasDefinedSchema () {
+            return Object.prototype.hasOwnProperty.call(this.segment.metadata, 'schema')
+        },
+        schema () {
+            return this.segment.metadata.schema ?? null
+        },
+        inferredType () {
+            return this.segment.inferredSchema.type ?? null
+        },
+        isInferredTypePrimitive () {
+            return ['number', 'string', 'boolean'].includes(this.inferredType)
+        }
     }
 }
 </script>
