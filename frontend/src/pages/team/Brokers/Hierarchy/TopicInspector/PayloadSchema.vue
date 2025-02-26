@@ -9,13 +9,9 @@
 
         <section>
             <sub-title title="Suggestions" :icon="LightBulbIcon" />
-            <div class="p-4 border border-gray-200 bg-gray-50 rounded-md">
-                <ul>
-                    <li class="p-4 border border-gray-200 bg-white rounded-md">
-                        el 1
-                    </li>
-                </ul>
-            </div>
+            <topic-suggestions>
+                <topic-suggestion format=".json" description="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Deserunt dolores harum modi repudiandae saepe! Adipisci consectetur cum dicta dolorum ducimus id libero nam nemo nisi nobis non omnis quibusdam, suscipit!" />
+            </topic-suggestions>
         </section>
     </div>
 </template>
@@ -27,13 +23,17 @@ import CodeBracketSquareIcon from '../../../../../components/icons/CodeBracketSq
 import MainTitle from '../components/MainTitle.vue'
 import SubTitle from '../components/SubTitle.vue'
 import TopicSchema from '../components/TopicSchema.vue'
+import TopicSuggestion from '../components/suggestions/TopicSuggestion.vue'
+import TopicSuggestions from '../components/suggestions/TopicSuggestions.vue'
 
 export default {
     name: 'PayloadSchema',
     components: {
         SubTitle,
         MainTitle,
-        TopicSchema
+        TopicSchema,
+        TopicSuggestions,
+        TopicSuggestion
     },
     props: {
         segment: {
