@@ -4,7 +4,7 @@ const setup = require('../../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
-describe.only('Team Catalogue', function () {
+describe('Team Catalogue', function () {
     let app
     const TestObjects = { tokens: {} }
     let httpServer
@@ -34,42 +34,38 @@ describe.only('Team Catalogue', function () {
             if (/^\/-\/all/.test(req.url)) {
                 res.writeHead(200, { 'Content-Type': 'application/json' })
                 const retVal = {
-                    '_updated': 99999
+                    _updated: 99999
                 }
-                retVal[`@${app.team.hashid}/one`] =  {
+                retVal[`@${app.team.hashid}/one`] = {
                     name: `@${app.team.hashid}/one`,
                     'dist-tags': {
-                        'latest': '1.0.0'
+                        latest: '1.0.0'
                     },
-                    'time': {
-                        'modified': '2025-02-18T10:13:18.950Z'
+                    time: {
+                        modified: '2025-02-18T10:13:18.950Z'
                     },
-                    'license': 'Apache-2.0',
-                    'versions': {
+                    license: 'Apache-2.0',
+                    versions: {
                         '1.0.0': 'latest'
                     }
-                  
                 }
-                retVal[`@${app.team.hashid}/two`] =  {
+                retVal[`@${app.team.hashid}/two`] = {
                     name: `@${app.team.hashid}/two`,
                     'dist-tags': {
-                        'latest': '1.0.0'
+                        latest: '1.0.0'
                     },
-                    'time': {
-                        'modified': '2025-02-18T10:13:18.950Z'
+                    time: {
+                        modified: '2025-02-18T10:13:18.950Z'
                     },
-                    'license': 'Apache-2.0',
-                    'versions': {
+                    license: 'Apache-2.0',
+                    versions: {
                         '1.0.0': 'latest'
                     }
-                  
                 }
                 res.end(JSON.stringify(retVal))
             }
         })
-        httpServer.listen(9752, ()=> {
-            console.log('listening on 9752')
-        })
+        httpServer.listen(9752)
     })
 
     after(async function () {
@@ -90,7 +86,7 @@ describe.only('Team Catalogue', function () {
     it('Get Team Catalogue', async function () {
         const response = await app.inject({
             method: 'GET',
-            url: `/api/v1/teams/${app.team.hashid}/npm/catalogue?teamId=${app.team.hashid}`,
+            url: `/api/v1/teams/${app.team.hashid}/npm/catalogue?teamId=${app.team.hashid}`
         })
         response.statusCode.should.equal(200)
         const result = response.json()
