@@ -3,7 +3,13 @@
 
     <div class="ff-topic-inspecting">
         <section class="schema-wrapper">
-            <sub-title title="Schema" :icon="CodeBracketSquareIcon" />
+            <sub-title title="Schema" :icon="CodeBracketSquareIcon">
+                <template v-if="canClearSuggestion" #actions>
+                    <span v-ff-tooltip:left="'Clear accepted suggestion'">
+                        <XCircleIcon class="ff-icon-sm cursor-pointer text-red-500" @click="$emit('clear-suggestion')" />
+                    </span>
+                </template>
+            </sub-title>
             <topic-schema :schema="schema" />
         </section>
 
@@ -21,7 +27,7 @@
 </template>
 
 <script>
-import { LightBulbIcon } from '@heroicons/vue/outline'
+import { LightBulbIcon, XCircleIcon } from '@heroicons/vue/outline'
 
 import CodeBracketSquareIcon from '../../../../../components/icons/CodeBracketSquare.js'
 import MainTitle from '../components/MainTitle.vue'
@@ -37,7 +43,8 @@ export default {
         MainTitle,
         TopicSchema,
         TopicSuggestions,
-        TopicSuggestion
+        TopicSuggestion,
+        XCircleIcon
     },
     props: {
         segment: {
@@ -45,7 +52,7 @@ export default {
             type: Object
         }
     },
-    emits: ['suggestion-accepted', 'suggestion-rejected'],
+    emits: ['suggestion-accepted', 'suggestion-rejected', 'clear-suggestion'],
     setup () {
         return { CodeBracketSquareIcon, LightBulbIcon }
     },
@@ -61,6 +68,9 @@ export default {
         },
         isInferredTypePrimitive () {
             return ['number', 'string', 'boolean'].includes(this.inferredType)
+        },
+        canClearSuggestion () {
+            return this.hasDefinedSchema || this.segment.metadata.schema === null
         }
     }
 }

@@ -18,6 +18,7 @@
                 :segment="localSegment"
                 @suggestion-accepted="onSuggestionAccepted"
                 @suggestion-rejected="onSuggestionRejected"
+                @clear-suggestion="onSuggestionCleared"
             />
         </template>
 
@@ -116,6 +117,10 @@ export default {
         },
         onSuggestionRejected () {
             this.localSegment.metadata.schema = null
+            this.saveTopicMeta()
+        },
+        onSuggestionCleared () {
+            delete this.localSegment.metadata.schema
             this.saveTopicMeta()
         }
     }
