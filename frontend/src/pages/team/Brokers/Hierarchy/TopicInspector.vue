@@ -1,37 +1,40 @@
 <template>
     <div class="ff-topic-inspector">
-        <div class="title mb-5 flex gap-3 items-center">
-            <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
-            <h3 class="my-2 flex-grow" data-el="subtitle">Topic Inspector</h3>
-            <div v-if="selectedSegment" class="flex items-center gap-4">
+        <main-title title="Topic Inspector">
+            <template v-if="selectedSegment" #actions>
                 <ff-button :disabled="!hasUnsavedChanges" kind="secondary" @click="clearTopicMetaChanges()">
                     Cancel
                 </ff-button>
                 <ff-button :disabled="!hasUnsavedChanges" @click="saveTopicMeta()">
                     Save
                 </ff-button>
-            </div>
-        </div>
+            </template>
+        </main-title>
+
         <template v-if="selectedSegment">
             <div class="ff-topic-inspecting">
                 <label class="ff-topic-path">
                     <span>{{ localSegment.topic }}</span>
                     <text-copier :text="selectedTopic" :show-text="false" prompt-position="left" class="ff-text-copier" />
                 </label>
+
                 <ff-divider />
-                <FormRow v-if="localSegment" v-model="localSegment.metadata.description" containerClass="max-w-full">Description</FormRow>
+
+                <FormRow v-if="localSegment" v-model="localSegment.metadata.description" containerClass="max-w-full">
+                    Description
+                </FormRow>
             </div>
+
             <template v-if="!isTeamBroker">
-                <div class="title mt-2 mb-2 flex gap-3 items-center">
-                    <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
-                    <h3 class="my-2 flex-grow" data-el="subtitle">Payload Schema</h3>
-                </div>
+                <main-title title="Payload Schema" />
+
                 <div class="ff-topic-inspecting">
-                    <label class="text-gray-800 block text-sm font-medium mb-1">Detected Schema</label>
+                    <sub-title title="Schema" :icon="CodeBracketSquareIcon" />
                     <topic-schema :schema="selectedSegment.inferredSchema" />
                 </div>
             </template>
         </template>
+
         <EmptyState v-else>
             <template #img>
                 <img src="../../../../images/empty-states/mqtt-empty.png" alt="logo">
@@ -51,7 +54,10 @@ import brokerApi from '../../../../api/broker.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import TextCopier from '../../../../components/TextCopier.vue'
+import CodeBracketSquareIcon from '../../../../components/icons/CodeBracketSquare.js'
 
+import MainTitle from './components/MainTitle.vue'
+import SubTitle from './components/SubTitle.vue'
 import TopicSchema from './components/TopicSchema.vue'
 
 export default {
@@ -60,7 +66,10 @@ export default {
         TopicSchema,
         FormRow,
         EmptyState,
-        TextCopier
+        TextCopier,
+        SubTitle,
+        MainTitle
+        // CodeBracketSquareIcon
     },
     props: {
         topics: {
@@ -73,6 +82,9 @@ export default {
         }
     },
     emits: ['segment-updated'],
+    setup () {
+        return { CodeBracketSquareIcon }
+    },
     data () {
         return {
             localSegment: { ...this.selectedSegment }

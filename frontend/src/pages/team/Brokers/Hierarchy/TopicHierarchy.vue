@@ -1,17 +1,17 @@
 <template>
     <div class="unified-namespace-hierarchy">
-        <div class="title mb-5 flex gap-3 items-center">
-            <img src="../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
-            <h3 class="my-2 flex-grow" data-el="subtitle">Topic Hierarchy</h3>
-            <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
-                <template #icon><RefreshIcon /></template>
-            </ff-button>
-            <ff-button v-if="shouldDisplaySchemaButton" :to="{ name: 'team-broker-docs', params: { brokerId: $route.params.brokerId } }">
-                Open Schema
-            </ff-button>
-        </div>
+        <main-title title="Topic Hierarchy">
+            <template v-if="selectedSegment" #actions>
+                <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
+                    <template #icon><RefreshIcon /></template>
+                </ff-button>
+                <ff-button v-if="shouldDisplaySchemaButton" :to="{ name: 'team-broker-docs', params: { brokerId: $route.params.brokerId } }">
+                    Open Schema
+                </ff-button>
+            </template>
+        </main-title>
 
-        <div class="space-y-6">
+        <div class="space-y-3">
             <ff-text-input
                 v-model="filterTerm"
                 class="ff-data-table--search"
@@ -77,11 +77,14 @@ import { mapGetters } from 'vuex'
 
 import EmptyState from '../../../../components/EmptyState.vue'
 
+import MainTitle from './components/MainTitle.vue'
+
 import TopicSegment from './components/TopicSegment.vue'
 
 export default {
     name: 'TopicHierarchy',
     components: {
+        MainTitle,
         RefreshIcon,
         EmptyState,
         TopicSegment,
