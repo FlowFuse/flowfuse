@@ -1,6 +1,6 @@
 <template>
     <div class="flex gap-2 items-center mb-2">
-        <component :is="icon" v-if="icon" />
+        <component :is="icon" v-if="icon" class="ff-icon-sm" />
         <span class="text-gray-800 block text-sm font-medium">{{ title }}</span>
     </div>
 </template>
