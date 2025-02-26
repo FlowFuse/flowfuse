@@ -1,7 +1,10 @@
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
-describe('Team Catalogue', function () {
+const FF_UTIL = require('flowforge-test-utils')
+const { Roles } = FF_UTIL.require('forge/lib/roles')
+
+describe.only('Team Catalogue', function () {
     let app
     const TestObjects = { tokens: {} }
     let httpServer
@@ -11,7 +14,7 @@ describe('Team Catalogue', function () {
             license,
             npmRegistry: {
                 enabled: true,
-                url: 'http://localhost:4873',
+                url: 'http://localhost:9752',
                 admin: {
                     username: 'admin',
                     password: 'secret'
@@ -64,10 +67,13 @@ describe('Team Catalogue', function () {
                 res.end(JSON.stringify(retVal))
             }
         })
-        httpserver.listen(9752)
+        httpServer.listen(9752, ()=> {
+            console.log('listening on 9752')
+        })
     })
 
     after(async function () {
+        httpServer.close()
         await app.close()
     })
 
@@ -82,6 +88,14 @@ describe('Team Catalogue', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
     it('Get Team Catalogue', async function () {
-
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/teams/${app.team.hashid}/npm/catalogue?teamId=${app.team.hashid}`,
+        })
+        response.statusCode.should.equal(200)
+        const result = response.json()
+        result.should.have.property('name', `FlowFuse Team ${app.team.name} catalogue`)
+        result.should.have.property('modules')
+        result.modules[0].should.have.property('id', `@${app.team.hashid}/one`)
     })
 })
