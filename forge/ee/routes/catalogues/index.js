@@ -1,12 +1,14 @@
 const axios = require('axios')
 
 module.exports = async function (app) {
-
     /**
-     * 
+     * Get Teams npm packages
+     * @name /api/v1/teams/:teamId/npm/packages
+     * @static
+     * @memberof forge.routes.api.team.npm
      */
     app.get('/npm/packages', {
-        preHandler: app.needsPermission('team:packages:read') 
+        preHandler: app.needsPermission('team:packages:read')
     }, async (request, reply) => {
         try {
             const packageList = await axios.get(`${app.config.npmRegistry?.url}/-/all`, {
@@ -20,7 +22,7 @@ module.exports = async function (app) {
 
             const packages = {}
             for (const package in packageList.data) {
-                if (package == '_updated') {
+                if (package === '_updated') {
                     continue
                 }
                 if (package.startsWith(`@${request.teamId}/`)) {
@@ -34,6 +36,12 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * Get Team catlogue
+     * @name /api/v1/teams/:teamId/catalogue
+     * @static
+     * @memberof forge.routes.api.team.npm
+     */
     app.get('/catalogue', {
         config: {
             allowAnonymous: true
