@@ -38,11 +38,11 @@ module.exports = async function (app) {
 
     /**
      * Get Team catlogue
-     * @name /api/v1/teams/:teamId/catalogue
+     * @name /api/v1/teams/:teamId/npm/catalogue
      * @static
      * @memberof forge.routes.api.team.npm
      */
-    app.get('/catalogue', {
+    app.get('/npm/catalogue', {
         config: {
             allowAnonymous: true
         }
