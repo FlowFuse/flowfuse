@@ -12,7 +12,7 @@
         <TopicInspector
             v-if="!loading && topics.length > 0"
             :topics="topics"
-            :selected-segment="selectedSegment"
+            :segment="selectedSegment"
             @segment-updated="onSegmentUpdate"
         />
     </div>
@@ -39,17 +39,11 @@ export default {
         return {
             loading: false,
             topics: [],
-            selectedSegmentId: null
+            selectedSegment: null
         }
     },
     computed: {
-        ...mapState('account', ['team']),
-        selectedSegment () {
-            if (this.selectedSegmentId === null) {
-                return null
-            }
-            return this.topics.find(topic => topic.id === this.selectedSegmentId)
-        }
+        ...mapState('account', ['team'])
     },
     watch: {
         $route: function () {
@@ -73,10 +67,11 @@ export default {
                 })
         },
         segmentSelected (segment) {
-            this.selectedSegmentId = segment.id
+            this.selectedSegment = segment
         },
         onSegmentUpdate (segment) {
             const idx = this.topics.findIndex(topic => topic.id === segment.id)
+            this.selectedSegment = segment
             if (idx !== -1) {
                 this.topics[idx] = segment
             }
