@@ -237,6 +237,8 @@ export default {
                 return 'Settings Updated'
             case this.event.event === 'device.pipeline.deployed':
                 return 'Pipeline deployment'
+            case this.event.event === 'device.project.deployed':
+                return 'Hosted instance deployment'
             default:
                 return this.event.event
             }
