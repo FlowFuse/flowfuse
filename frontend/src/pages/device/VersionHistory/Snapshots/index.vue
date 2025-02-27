@@ -1,6 +1,6 @@
 <template>
     <div id="device-snapshots">
-        <div v-if="isOwnedByAnInstance" class="space-y-6">
+        <div v-if="isOwnedByAnInstance || isUnassigned" class="space-y-6">
             <EmptyState :feature-unavailable="!features.deviceEditor">
                 <template #img>
                     <img src="../../../../images/empty-states/instance-snapshots.png">
@@ -223,6 +223,9 @@ export default {
         },
         isOwnedByAnInstance () {
             return this.device?.ownerType === 'instance'
+        },
+        isUnassigned () {
+            return this.device?.ownerType === ''
         }
     },
     watch: {
@@ -245,7 +248,7 @@ export default {
             return snapshot.device?.id === this.device.id
         },
         fetchData: async function () {
-            if (!this.features.deviceEditor) {
+            if (!this.features.deviceEditor || this.isOwnedByAnInstance || this.isUnassigned) {
                 return
             }
             if (this.device.id && this.device.application) {

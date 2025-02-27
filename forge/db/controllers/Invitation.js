@@ -152,5 +152,41 @@ module.exports = {
         await invitation.destroy()
         await app.notifications.remove(invitedUser, notificationReference)
         app.auditLog.Team.team.user.invite.rejected(user, null, invitation.team, invitation.invitee, role)
+    },
+
+    sendNotification: async (app, invitation, user, team, role, reInvited = false) => {
+        const logInvitation = reInvited ? app.auditLog.Team.team.user.reInvited : app.auditLog.Team.team.user.invited
+
+        if (invitation.external) {
+            let signupLink = `${app.config.base_url}/account/create?email=${encodeURIComponent(invitation.email)}`
+            if (app.license.active()) {
+                // Check if this is for an SSO-enabled domain with auto-create turned on
+                const providerConfig = await app.db.models.SAMLProvider.forEmail(invitation.email)
+                if (providerConfig?.options?.provisionNewUsers) {
+                    signupLink = `${app.config.base_url}`
+                }
+            }
+            await app.postoffice.send(
+                invitation,
+                'UnknownUserInvitation',
+                {
+                    invitation,
+                    signupLink
+                }
+            )
+            await logInvitation(user, null, team, invitation, role)
+        } else {
+            if (app.postoffice.enabled()) {
+                await app.postoffice.send(
+                    invitation.invitee,
+                    'TeamInvitation',
+                    {
+                        teamName: invitation.team.name,
+                        signupLink: `${app.config.base_url}/account/teams/invitations`
+                    }
+                )
+            }
+            await logInvitation(user, null, team, invitation.invitee, role)
+        }
     }
 }

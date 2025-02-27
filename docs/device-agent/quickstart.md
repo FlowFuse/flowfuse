@@ -44,7 +44,7 @@ npm install -g @flowfuse/device-agent
 3. Click **Add Device.**
 4. Fill in the **Device Name** & **Device Type** and select an **Application**
 
-    ![Screenshot of the dialog form to fill out when registering a Device](./images/add_device.png){data-zoomable}
+    ![Screenshot of the dialog form to fill out when registering a Device](./images/add_remote_instance.png){data-zoomable}
     _Screenshot of the dialog form to fill out when registering a Device_
     
 5. Click **Add**
