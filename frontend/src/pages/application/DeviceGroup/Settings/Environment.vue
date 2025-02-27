@@ -131,6 +131,8 @@ export default {
                     // or if we do recognise it, but the value is different
                     if (!this.original.settings.envMap[field.name] || field.value !== this.original.settings.envMap[field.name].value) {
                         changed = true
+                    } else if (field.hidden !== this.original.settings.envMap[field.name].hidden) {
+                        changed = true
                     }
                     // there is an issue with he key/value
                     if (field.error) {
@@ -171,7 +173,8 @@ export default {
             this.editable.settings.env.forEach(field => {
                 settings.env.push({
                     name: field.name,
-                    value: field.value
+                    value: field.value,
+                    hidden: field.hidden ?? false
                 })
             })
             await applicationApi.updateDeviceGroupSettings(this.application.id, this.deviceGroup.id, settings)
