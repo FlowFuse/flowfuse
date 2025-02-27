@@ -10,7 +10,7 @@
                     </section>
                     <section>
                         <label>Schema:</label>
-                        <p v-if="topic.schema">{{ topic.schema }}</p>
+                        <pre v-if="topic.schema" class="p-2 border border-gray-200 bg-gray-50 rounded-md">{{ topic.schema }}</pre>
                         <p v-else class="ff-empty-state">No schema available.</p>
                     </section>
                 </div>
