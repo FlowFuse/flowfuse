@@ -1,7 +1,7 @@
 const axios = require('axios')
 
 module.exports = async function (app) {
-    const preHandler = async (request, reply) => {
+    app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
             if (!request.team) {
                 // For a :teamId route, we can now lookup the full team object
@@ -11,18 +11,18 @@ module.exports = async function (app) {
                     return
                 }
 
-                // TODO When team type enabled
-                // const teamType = await request.team.getTeamType()
-                // if (!teamType.getFeatureProperty('teamNPM', false)) {
-                //     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                //     return // eslint-disable-line no-useless-return
-                // }
+                const teamType = await request.team.getTeamType()
+                if (!teamType.getFeatureProperty('npm', false)) {
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    return // eslint-disable-line no-useless-return
+                }
             }
             if (!request.teamMembership && request.session.User) {
                 request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
             }
         }
-    }
+    })
+
     /**
      * Get Teams npm packages
      * @name /api/v1/teams/:teamId/npm/packages
@@ -30,10 +30,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.npm
      */
     app.get('/npm/packages', {
-        preHandler: [
-            preHandler,
-            app.needsPermission('team:packages:read')
-        ],
+        preHandler: app.needsPermission('team:packages:read'),
         schema: {
             summary: 'Gets the private packages owned by this team',
             tags: ['NPM Packages']
