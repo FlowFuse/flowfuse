@@ -242,6 +242,8 @@ export default {
                 return 'Settings Updated'
             case 'device.pipeline.deployed':
                 return 'Pipeline deployment'
+            case 'device.project.deployed':
+                return 'Hosted instance deployment'
             case 'device.snapshot.deployed':
                 return 'Snapshot deployment'
             default:

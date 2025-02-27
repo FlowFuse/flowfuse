@@ -19,9 +19,15 @@ describe('FlowForge - Devices', () => {
 
     it('exposes a "Snapshots" tab if not assigned to anything & informs users this is a Enterprise Feature', () => {
         cy.contains('span', 'team2-unassigned-device').click()
+
         cy.get('[data-nav="version-history"]').should('exist')
         cy.get('[data-nav="version-history"]').click()
+
+        cy.get('[data-el="empty-state"]').should('exist')
+        cy.get('[data-el="empty-state"]').contains('Snapshots are available when a Remote Instance is assigned to an Application')
+
         cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')
+        cy.get('[data-el="page-banner-feature-unavailable"]').contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
     })
 
     it('exposes the "Version History" tab if assigned to an Instance but the Snapshots tab has an empty state message', () => {

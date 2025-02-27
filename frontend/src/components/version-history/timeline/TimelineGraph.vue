@@ -60,8 +60,9 @@ export default {
                 } else return DownloadIcon
             case this.event.event === 'project.snapshot.rolled-back':
                 return UndoIcon
-            case this.event.event === 'flows.set':
             case this.event.event === 'device.pipeline.deployed':
+                return PipelinesIcon
+            case this.event.event === 'flows.set':
             case this.event.event === 'device.project.deployed':
             case this.event.event === 'device.snapshot.deployed':
                 return ProjectsIcon
