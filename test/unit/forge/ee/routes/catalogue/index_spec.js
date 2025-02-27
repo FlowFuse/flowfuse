@@ -30,6 +30,10 @@ describe('Team Catalogue', function () {
         // Run all the tests with bob - non-admin Team Owner
         await login('bob', 'bbPassword')
 
+        const userChris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
+        await app.team.addUser(userChris, { through: { role: Roles.Member } })
+        await login('chris', 'ccPassword')
+
         httpServer = require('http').createServer((req, res) => {
             if (/^\/-\/all/.test(req.url)) {
                 res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -51,6 +55,19 @@ describe('Team Catalogue', function () {
                 }
                 retVal[`@${app.team.hashid}/two`] = {
                     name: `@${app.team.hashid}/two`,
+                    'dist-tags': {
+                        latest: '1.0.0'
+                    },
+                    time: {
+                        modified: '2025-02-18T10:13:18.950Z'
+                    },
+                    license: 'Apache-2.0',
+                    versions: {
+                        '1.0.0': 'latest'
+                    }
+                }
+                retVal[`@foo/two`] = {
+                    name: `@foo/two`,
                     'dist-tags': {
                         latest: '1.0.0'
                     },
@@ -92,6 +109,27 @@ describe('Team Catalogue', function () {
         const result = response.json()
         result.should.have.property('name', `FlowFuse Team ${app.team.name} catalogue`)
         result.should.have.property('modules')
+        result.modules.should.have.a.lengthOf(2)
         result.modules[0].should.have.property('id', `@${app.team.hashid}/one`)
+    })
+    it('Get Team Packages by Owner', async function () {
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/teams/${app.team.hashid}/npm/packages`,
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+        response.statusCode.should.equal(200)
+        const result = response.json()
+        result.should.have.property(`@${app.team.hashid}/one`)
+        result[`@${app.team.hashid}/one`].should.have.property('name', `@${app.team.hashid}/one`)
+        result[`@${app.team.hashid}/one`].should.have.property('license', 'Apache-2.0')
+    })
+    it('Get Team Packages by Member', async function () {
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/teams/${app.team.hashid}/npm/packages`,
+            cookies: { sid: TestObjects.tokens.chris }
+        })
+        response.statusCode.should.equal(200)
     })
 })

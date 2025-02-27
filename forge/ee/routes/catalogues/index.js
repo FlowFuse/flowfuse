@@ -1,6 +1,28 @@
 const axios = require('axios')
 
 module.exports = async function (app) {
+    const preHandler = async (request, reply) => {
+        if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
+            if (!request.team) {
+                // For a :teamId route, we can now lookup the full team object
+                request.team = await app.db.models.Team.byId(request.params.teamId)
+                if (!request.team) {
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    return
+                }
+
+                // TODO When team type enabled
+                // const teamType = await request.team.getTeamType()
+                // if (!teamType.getFeatureProperty('teamNPM', false)) {
+                //     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                //     return // eslint-disable-line no-useless-return
+                // }
+            }
+            if (!request.teamMembership && request.session.User) {
+                request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
+            }
+        }
+    }
     /**
      * Get Teams npm packages
      * @name /api/v1/teams/:teamId/npm/packages
@@ -8,7 +30,14 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.npm
      */
     app.get('/npm/packages', {
-        preHandler: app.needsPermission('team:packages:read')
+        preHandler: [
+            preHandler,
+            app.needsPermission('team:packages:read')
+        ],
+        schema: {
+            summary: 'Gets the private packages owned by this team',
+            tags: ['NPM Packages']
+        }
     }, async (request, reply) => {
         try {
             const packageList = await axios.get(`${app.config.npmRegistry?.url}/-/all`, {
@@ -25,14 +54,14 @@ module.exports = async function (app) {
                 if (package === '_updated') {
                     continue
                 }
-                if (package.startsWith(`@${request.teamId}/`)) {
+                if (package.startsWith(`@${request.params.teamId}/`)) {
                     packages[package] = packageList.data[package]
                 }
             }
 
             reply.send(packages)
         } catch (err) {
-            reply.status(500).send({ error: 'unkown_error', message: err.toString() })
+            reply.status(500).send({ error: 'unknown_error', message: err.toString() })
         }
     })
 
@@ -83,7 +112,7 @@ module.exports = async function (app) {
                     modules
                 })
             } catch (err) {
-                reply.status(500).send({ error: 'unkown_error', message: err.toString() })
+                reply.status(500).send({ error: 'unknown_error', message: err.toString() })
             }
         } else {
             reply.status(404).send({ error: 'not_found', message: 'not found' })
