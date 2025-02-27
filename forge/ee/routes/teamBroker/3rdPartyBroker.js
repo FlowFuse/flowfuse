@@ -313,7 +313,7 @@ module.exports = async function (app) {
                 reply.status(500).send({ error: 'unknown_error', message: err.toString() })
             }
         } else {
-            reply.status(40).send({ error: 'not_supported', message: 'not supported' })
+            reply.status(400).send({ error: 'not_supported', message: 'not supported' })
         }
     })
 
