@@ -211,7 +211,18 @@ export default {
             case 'device.pipeline.deployed':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
-                    template: `<span>Flows deployed through the <i>${data.pipeline.name}</i> pipeline, applying the <i>${data.snapshot.name}</i> snapshot</span>`
+                    emits: ['preview-snapshot'],
+                    methods: {
+                        previewSnapshot () { this.$emit('preview-snapshot') }
+                    },
+                    template: `<span>
+                                    Flows deployed through the
+                                    <i>${data.pipeline.name}</i>
+                                    pipeline, applying the
+                                    <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i>
+                                    <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
+                                    snapshot
+                                </span>`
                 })
             case 'device.project.deployed':
                 // eslint-disable-next-line vue/one-component-per-file
