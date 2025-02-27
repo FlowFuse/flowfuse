@@ -150,7 +150,7 @@ export default {
                 return false
             }
             return this.isOwnedByAnInstance || this.isOwnedByAnApplication
-        },
+        }
     },
     methods: {
         showCreateSnapshotDialog () {
