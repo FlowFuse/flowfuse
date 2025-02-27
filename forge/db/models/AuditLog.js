@@ -127,31 +127,8 @@ module.exports = {
                             'device.settings.updated',
                             'device.pipeline.deployed',
                             'device.project.deployed',
-                            'device.snapshot.deployed'
-                            // 'device.assigned',
-                            // 'device.credential.generated',
-                            // 'device.developer-mode.disabled',
-                            // 'device.developer-mode.enabled',
-                            // 'device.remote-access.disabled',
-                            // 'device.remote-access.enabled',
-                            // 'team.device.assigned',
-                            // 'team.device.bulk-deleted',
-                            // 'team.device.created',
-                            // 'team.device.credentials-generated',
-                            // 'team.device.deleted',
-                            // 'team.device.developer-mode.disabled',
-                            // 'team.device.developer-mode.enabled',
-                            // 'team.device.provisioning.created',
-                            // 'team.device.remote-access.disabled',
-                            // 'team.device.remote-access.enabled',
-                            // 'team.device.unassigned',
-                            // 'team.device.updated',
-                            // 'application.device.assigned',
-                            // 'application.device.snapshot.created',
-                            // 'application.device.unassigned',
-                            // 'application.deviceGroup.created',
-                            // 'application.deviceGroup.deleted',
-                            // 'application.deviceGroup.members.changed'
+                            'device.snapshot.deployed',
+                            'device.snapshot.created'
                         ]
                     }
 

@@ -95,6 +95,13 @@ module.exports = {
                         snapshot,
                         user: actionedBy
                     }))
+                },
+                async created (actionedBy, error, device, snapshot) {
+                    await log('device.snapshot.created', actionedBy, device.id, generateBody({
+                        error,
+                        device,
+                        snapshot
+                    }))
                 }
             }
         }

@@ -51,6 +51,7 @@
                         @click="$emit('download-package-json', event.data.snapshot)"
                     />
                     <ff-list-item
+                        v-if="!isADeviceSnapshotEvent"
                         :disabled="!hasPermission('project:snapshot:set-target')"
                         label="Set as Device Target"
                         @click="$emit('set-device-target', event.data.snapshot)"
@@ -172,6 +173,7 @@ export default {
                         </span>`
                 })
             case 'project.snapshot.created':
+            case 'device.snapshot.created':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     emits: ['preview-snapshot'],
@@ -219,7 +221,15 @@ export default {
             case 'device.snapshot.deployed':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
-                    template: `<span><i>${data.snapshot.name}</i> snapshot was manually deployed</span>`
+                    emits: ['preview-snapshot'],
+                    methods: {
+                        previewSnapshot () { this.$emit('preview-snapshot') }
+                    },
+                    template: `<span>
+                                    <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i>
+                                    <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
+                                    snapshot was manually deployed
+                                </span>`
                 })
             default:
                 // eslint-disable-next-line vue/one-component-per-file
@@ -241,6 +251,7 @@ export default {
             case 'flows.set':
                 return 'Flows Deployed'
             case 'project.snapshot.created':
+            case 'device.snapshot.created':
                 return 'Snapshot Created'
             case 'project.created':
                 return 'Instance Created'
@@ -264,13 +275,17 @@ export default {
             const isImportedSnapshot = this.event.event === 'project.snapshot.imported' &&
                 !Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')
 
-            return this.event.event === 'project.snapshot.created' || isImportedSnapshot
+            return ['project.snapshot.created', 'device.snapshot.created'].includes(this.event.event) || isImportedSnapshot
         },
         snapshotExists () {
             return this.isSnapshot && this.event.data?.info?.snapshotExists
         },
         isLoadMore () {
             return this.event.event === 'load-more'
+        },
+        isADeviceSnapshotEvent () {
+            return Object.prototype.hasOwnProperty.call(this.event.data, 'device') &&
+                Object.prototype.hasOwnProperty.call(this.event.data, 'snapshot')
         }
     },
     methods: {
