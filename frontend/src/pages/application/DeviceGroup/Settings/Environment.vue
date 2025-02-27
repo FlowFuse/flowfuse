@@ -5,7 +5,7 @@
             :readOnly="!hasPermission('device:edit-env')"
             :editTemplate="false"
             :helpHeader="'Device Group Environment Variables'"
-            :originalEnvVars="deviceGroup.settings.env ?? []"
+            :originalEnvVars="original.settings.env"
         >
             <template #helptext>
                 <p>Environment variables entered here will be merged with the environment variables defined in the member devices.</p>
@@ -106,7 +106,8 @@ export default {
             },
             original: {
                 settings: {
-                    /** @type {EnvVar[]} */ envMap: {}
+                    /** @type {EnvVar[]} */ envMap: {},
+                    env: []
                 }
             },
             templateEnvValues: {}
@@ -159,10 +160,23 @@ export default {
                 this.original.settings.envMap = {}
                 this.editable.settings.env = []
                 const settings = this.deviceGroup.settings
-                settings.env?.forEach(envVar => {
-                    this.editable.settings.env.push(Object.assign({}, envVar))
+                settings.env?.forEach((envVar, i) => {
+                    this.editable.settings.env.push(Object.assign({}, {
+                        index: i,
+                        hidden: false,
+                        ...envVar
+                    }))
                     // make a map of the key:value so it's easier to check for changes
-                    this.original.settings.envMap[envVar.name] = envVar
+                    this.original.settings.envMap[envVar.name] = {
+                        index: i,
+                        hidden: false,
+                        ...envVar
+                    }
+                    this.original.settings.env.push({
+                        index: i,
+                        hidden: false,
+                        ...envVar
+                    })
                 })
             }
         },
