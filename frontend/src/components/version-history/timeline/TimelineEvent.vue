@@ -216,7 +216,19 @@ export default {
             case 'device.project.deployed':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
-                    template: `<span>Flows deployed through the <i>${data.project.name}</i> hosted instance, applying the <i>${data.snapshot.name}</i> snapshot</span>`
+                    emits: ['preview-snapshot'],
+                    data () { return { data } },
+                    methods: {
+                        previewSnapshot () { this.$emit('preview-snapshot') }
+                    },
+                    template: `<span>
+                                    Flows deployed through the
+                                    <router-link :to="{name: 'instance-devices', params: {id: this.data.project.id}}">${data.project.name}</router-link>
+                                    hosted instance, applying the
+                                    <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i>
+                                    <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
+                                    snapshot
+                                </span>`
                 })
             case 'device.snapshot.deployed':
                 // eslint-disable-next-line vue/one-component-per-file
