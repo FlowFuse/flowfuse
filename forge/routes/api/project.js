@@ -846,6 +846,28 @@ module.exports = async function (app) {
             delete settings.settings?.palette?.npmrc
             delete settings.settings?.palette?.catalogue
         }
+        const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false) && false // temp
+        if (teamNPMEnabled) {
+            const npmRegURL = new URL(app.config.npmRegistry.url)
+            const token = ''
+            if (settings.settings?.palette?.npmrc) {
+                settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
+                    `//@${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:+_authToken="${token}"\n`
+            } else {
+                settings.settings.palette.npmrc =
+                    `//@${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:+_authToken="${token}"\n`
+            }
+            if (settings.settings?.palette?.catalogue) {
+                settings.settings.palette.catalogue
+                    .push(`${app.config.baseURL}/api/v1/teams/${settings.teamID}/npm/catalogue?teamId=${settings.teamID}`)
+            } else {
+                settings.settings.palette.catalogue = [
+                    `${app.config.baseURL}/api/v1/teams/${settings.teamID}/npm/catalogue?teamId=${settings.teamID}`
+                ]
+            }
+        }
 
         if (app.config.features.enabled('staticAssets') && teamType.getFeatureProperty('staticAssets', false)) {
             const sharingConfig = await request.project.getSetting(KEY_SHARED_ASSETS) || {}

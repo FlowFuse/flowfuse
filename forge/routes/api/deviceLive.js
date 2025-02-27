@@ -252,6 +252,32 @@ module.exports = async function (app) {
             requestTimeout: app.config.assistant?.requestTimeout || 60000
         }
 
+        // TODO remove $$ false from end of this
+        const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false) && false
+        if (teamNPMEnabled) {
+            const npmRegURL = new URL(app.config.npmRegistry.url)
+            const team = request.device.Team.hashid
+            const token = ''
+            if (response.palette?.npmrc) {
+                settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
+                    `//@${team}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:+_authToken="${token}"\n`
+            } else {
+                response.palette.npmrc =
+                    `//@${team}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:+_authToken="${token}"\n`
+            }
+
+            if (response.palette?.catalogue) {
+                response.palette.catalogue
+                    .push(`${app.config.baseURL}/api/v1/teams/${team}/npm/catalogue?teamId=${team}`)
+            } else {
+                response.palette.catalogue = [
+                    `${app.config.baseURL}/api/v1/teams/${team}/npm/catalogue?teamId=${team}`
+                ]
+            }
+        }
+
         if (settings.security?.httpNodeAuth?.type) {
             response.security = settings.security
             if (response.security.httpNodeAuth.type === 'flowforge-user') {
