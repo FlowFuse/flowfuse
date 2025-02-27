@@ -1,5 +1,5 @@
 <template>
-    <li class="suggestion p-4 border border-gray-200 bg-white rounded-md flex gap-10 items-center">
+    <li class="suggestion p-4 border border-gray-200 bg-white rounded-md flex gap-10 items-center justify-between">
         <div class="content flex flex-col gap-1">
             <div class="title-wrapper">
                 <span class="title">Message Format: </span>
