@@ -178,6 +178,19 @@
 
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'device.project.deployed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project && entry.body?.device && entry.body?.snapshot && entry.body?.user">
+            <i>{{ entry.body.user.name }}</i>
+            updated
+            <i>{{ entry.body.project.name }}'s</i>
+            target snapshot to
+            <i>{{ entry.body.snapshot.name }}</i>
+            snapshot triggering a flow deployment
+        </span>
+
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
 
     <!-- Account Scoped Events -->
     <template v-else-if="entry.event === 'account.register'">
