@@ -32,7 +32,7 @@
                     v-if="hasPermission('snapshot:import')"
                     kind="secondary"
                     data-action="import-snapshot"
-                    :disabled="busy || isOwnedByAnInstance"
+                    :disabled="busy || isOwnedByAnInstance || isUnassigned"
                     @click="showImportSnapshotDialog"
                 >
                     <template #icon-left><UploadIcon /></template>Upload Snapshot
@@ -142,12 +142,15 @@ export default {
         isOwnedByAnApplication () {
             return this.device?.ownerType === 'application'
         },
+        isUnassigned () {
+            return this.device?.ownerType === ''
+        },
         canCreateSnapshot () {
             if (!this.developerMode || this.busy) {
                 return false
             }
             return this.isOwnedByAnInstance || this.isOwnedByAnApplication
-        }
+        },
     },
     methods: {
         showCreateSnapshotDialog () {

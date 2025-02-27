@@ -62,8 +62,9 @@ export default {
                 } else return DownloadIcon
             case 'project.snapshot.rolled-back':
                 return UndoIcon
-            case 'flows.set':
             case 'device.pipeline.deployed':
+                return PipelinesIcon
+            case 'flows.set':
             case 'device.project.deployed':
             case 'device.snapshot.deployed':
                 return ProjectsIcon

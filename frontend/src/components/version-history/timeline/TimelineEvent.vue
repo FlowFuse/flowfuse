@@ -226,11 +226,9 @@ export default {
                         previewSnapshot () { this.$emit('preview-snapshot') }
                     },
                     template: `<span>
-                                    <i>${data.user.name}</i>
-                                    manually deployed the
                                     <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i>
                                     <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
-                                    snapshot
+                                    snapshot was manually deployed
                                 </span>`
                 })
             default:
@@ -263,6 +261,8 @@ export default {
                 return 'Settings Updated'
             case 'device.pipeline.deployed':
                 return 'Pipeline deployment'
+            case 'device.project.deployed':
+                return 'Hosted instance deployment'
             case 'device.snapshot.deployed':
                 return 'Snapshot deployment'
             default:
