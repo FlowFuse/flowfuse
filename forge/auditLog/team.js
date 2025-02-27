@@ -29,6 +29,10 @@ module.exports = {
                     const body = generateBody({ error, user, role })
                     await log('team.user.invited', actionedBy, team?.id, body)
                 },
+                async reInvited (actionedBy, error, team, user, role) {
+                    const body = generateBody({ error, user, role })
+                    await log('team.user.invite-resent', actionedBy, team?.id, body)
+                },
                 async uninvited (actionedBy, error, team, user, role) {
                     const body = generateBody({ error, user, role })
                     await log('team.user.uninvited', actionedBy, team?.id, body)

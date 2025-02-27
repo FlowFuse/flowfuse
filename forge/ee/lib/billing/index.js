@@ -397,11 +397,18 @@ module.exports.init = async function (app) {
         closeSubscription: async (subscription) => {
             if (subscription.subscription) {
                 app.log.info(`Canceling subscription ${subscription.subscription} for team ${subscription.Team.hashid}`)
-
-                await stripe.subscriptions.del(subscription.subscription, {
-                    invoice_now: true,
-                    prorate: true
-                })
+                try {
+                    await stripe.subscriptions.del(subscription.subscription, {
+                        invoice_now: true,
+                        prorate: true
+                    })
+                } catch (err) {
+                    // resource_missing error is okay - that means the subscription cannot be found
+                    // and we can ignore it
+                    if (err.code !== 'resource_missing') {
+                        throw err
+                    }
+                }
             }
             subscription.status = app.db.models.Subscription.STATUS.CANCELED
             await subscription.save()
