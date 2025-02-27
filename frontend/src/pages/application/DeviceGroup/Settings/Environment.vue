@@ -1,6 +1,12 @@
 <template>
     <form class="space-y-6">
-        <TemplateSettingsEnvironment v-model="editable" :readOnly="!hasPermission('device:edit-env')" :editTemplate="false" :helpHeader="'Device Group Environment Variables'">
+        <TemplateSettingsEnvironment
+            v-model="editable"
+            :readOnly="!hasPermission('device:edit-env')"
+            :editTemplate="false"
+            :helpHeader="'Device Group Environment Variables'"
+            :originalEnvVars="deviceGroup.settings.env ?? []"
+        >
             <template #helptext>
                 <p>Environment variables entered here will be merged with the environment variables defined in the member devices.</p>
                 <p>
