@@ -1,26 +1,32 @@
 <template>
-    <div class="ff-topic-docs" :class="{'open': expanded}">
-        <div class="ff-topic-docs-row-header" @click="expanded = !expanded">
-            <label>{{ topic.address }}</label>
-            <div>
-                <ChevronLeftIcon class="ff-icon" />
-            </div>
-        </div>
-        <div class="ff-topic-docs-row-meta">
-            <label>Description:</label>
-            <p v-if="topic.description">{{ topic.description }}</p>
-            <p v-else class="ff-empty-state">No description available.</p>
-        </div>
+    <div class="ff-topic-docs">
+        <ff-accordion :label="topic.address">
+            <template #content>
+                <div class="ff-topic-docs-row-meta">
+                    <section>
+                        <label>Description:</label>
+                        <p v-if="topic.description">{{ topic.description }}</p>
+                        <p v-else class="ff-empty-state">No description available.</p>
+                    </section>
+                    <section>
+                        <label>Schema:</label>
+                        <p v-if="topic.schema">{{ topic.schema }}</p>
+                        <p v-else class="ff-empty-state">No schema available.</p>
+                    </section>
+                </div>
+            </template>
+        </ff-accordion>
     </div>
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/outline'
+
+import FfAccordion from '../../../../../components/Accordion.vue'
 
 export default {
     name: 'TopicDocs',
     components: {
-        ChevronLeftIcon
+        FfAccordion
     },
     props: {
         topic: {
@@ -36,58 +42,58 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .ff-topic-docs {
-    border: 1px solid $ff-blue-300;
-    border-radius: 6px;
-    &.open {
-        .ff-icon {
-            transform: rotate(-90deg);
-        }
-        .ff-topic-docs-row-header {
-            border-bottom-left-radius: 0px;
-            border-bottom-right-radius: 0px;
-            border-bottom: 1px solid $ff-blue-300;
-        }
-        .ff-topic-docs-row-meta {
+    .ff-accordion {
+        margin: 0;
+
+        .ff-accordion--button{
+            font-weight: bold;
+            border: 1px solid $ff-blue-300;
+            background-color: $ff-blue-50;
+            border-radius: 6px;
             padding: 12px;
-            max-height: 100px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            &:hover {
+                cursor: pointer;
+                background-color: $ff-blue-100;
+            }
         }
-    }
-}
-.ff-icon {
-    transition: 0.15s transform;
-}
-.ff-topic-docs-row-header {
-    font-weight: bold;
-    background-color: $ff-blue-50;
-    padding: 12px;
-    font-weight: bold;
-    border-radius: 6px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    &:hover {
-        cursor: pointer;
-        background-color: $ff-blue-100;
-    }
-}
-.ff-topic-docs-row-meta {
-    padding: 0 12px;
-    max-height: 0px;
-    min-height: 0;
-    overflow: hidden;
-    transition: 0.3s max-height, 0.3s padding;
-    label {
-        display: block;
-        font-weight: bold;
-        margin-bottom: 3px;
-    }
-    .ff-empty-state {
-        color: $ff-grey-400;
-        background-color: $ff-grey-50;
-        padding: 12px;
-        margin-top: 6px;
+
+        .ff-accordion--content {
+            border: 1px solid $ff-blue-300;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            padding: 12px;
+
+            .ff-topic-docs-row-meta {
+                section {
+                    margin-bottom: 15px;
+
+                    label {
+                        display: block;
+                        font-weight: bold;
+                        margin-bottom: 3px;
+                    }
+                    .ff-empty-state {
+                        color: $ff-grey-400;
+                        background-color: $ff-grey-50;
+                        padding: 12px;
+                        margin-top: 6px;
+                    }
+                }
+            }
+        }
+
+        &.open {
+            .ff-accordion--button {
+                border-radius: 6px 6px 0 0;
+            }
+        }
     }
 }
 </style>
