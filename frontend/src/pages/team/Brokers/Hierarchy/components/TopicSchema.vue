@@ -1,39 +1,46 @@
 <template>
     <div class="topic-schema">
-        <div v-if="schemaType === 'string'">
-            <b>Type</b>: String
-        </div>
-        <div v-else-if="schemaType === 'number'">
-            <b>Type</b>: Number
-        </div>
-        <div v-else-if="schemaType === 'boolean'">
-            <b>Type</b>: JSON Boolean
-        </div>
-        <div v-else-if="schemaType === 'object'">
-            <div class="mb-2"><b>Type</b>: JSON Object</div>
-            <div class="font-mono">
-                <div>{</div>
-                <div v-for="(property, name) in schema.properties" :key="name" class="ml-4">{{ name }} ({{ property.type }})</div>
-                <div>}</div>
+        <template v-if="schema === null">
+            <p class="text-center opacity-50">
+                No schema defined
+            </p>
+        </template>
+        <template v-else>
+            <div v-if="schemaType === 'string'">
+                <b>Type</b>: String
             </div>
-        </div>
-        <div v-else-if="schemaType === 'array'">
-            <div class="mb-2"><b>Type</b>: JSON Array</div>
-            <div class="font-mono">
-                <div>[</div>
-                <div class="ml-4">...</div>
-                <div v-if="schema.items?.type" class="ml-4">({{ schema.items.type }})</div>
-                <div v-else class="ml-4">(unknown)</div>
-                <div class="ml-4">...</div>
-                <div>]</div>
+            <div v-else-if="schemaType === 'number'">
+                <b>Type</b>: Number
             </div>
-        </div>
-        <div v-else-if="schemaType === 'bin'">
-            <b>Type</b>: Binary Data
-        </div>
-        <div v-else class="topic-schema-unknown">
-            We haven't been able to determine the payload format
-        </div>
+            <div v-else-if="schemaType === 'boolean'">
+                <b>Type</b>: JSON Boolean
+            </div>
+            <div v-else-if="schemaType === 'object'">
+                <div class="mb-2"><b>Type</b>: JSON Object</div>
+                <div class="font-mono">
+                    <div>{</div>
+                    <div v-for="(property, name) in schema.properties" :key="name" class="ml-4">{{ name }} ({{ property.type }})</div>
+                    <div>}</div>
+                </div>
+            </div>
+            <div v-else-if="schemaType === 'array'">
+                <div class="mb-2"><b>Type</b>: JSON Array</div>
+                <div class="font-mono">
+                    <div>[</div>
+                    <div class="ml-4">...</div>
+                    <div v-if="schema.items?.type" class="ml-4">({{ schema.items.type }})</div>
+                    <div v-else class="ml-4">(unknown)</div>
+                    <div class="ml-4">...</div>
+                    <div>]</div>
+                </div>
+            </div>
+            <div v-else-if="schemaType === 'bin'">
+                <b>Type</b>: Binary Data
+            </div>
+            <div v-else class="topic-schema-unknown">
+                We haven't been able to determine the payload format
+            </div>
+        </template>
     </div>
 </template>
 
@@ -45,7 +52,7 @@ export default {
     props: {
         schema: {
             required: true,
-            type: Object
+            type: [Object, null]
         }
     },
     emits: [],
