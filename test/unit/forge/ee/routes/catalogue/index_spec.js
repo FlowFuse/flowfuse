@@ -46,6 +46,11 @@ describe('Team Catalogue', function () {
                 }
             }
 
+            app.device = await app.factory.createDevice({
+                name: 'device1',
+                mode: 'developer'
+            }, app.team, app.instance)
+
             app.defaultTeamType.properties = defaultTeamTypeProperties
             await app.defaultTeamType.save()
 
@@ -115,10 +120,22 @@ describe('Team Catalogue', function () {
             response.cookies[0].should.have.property('name', 'sid')
             TestObjects.tokens[username] = response.cookies[0].value
         }
-        it('Get Team Catalogue', async function () {
+        it('Get Team Catalogue (instance)', async function () {
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${app.team.hashid}/npm/catalogue?teamId=${app.team.hashid}`
+                url: `/api/v1/teams/${app.team.hashid}/npm/catalogue?instance=${app.instance.id}`
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('name', `FlowFuse Team ${app.team.name} catalogue`)
+            result.should.have.property('modules')
+            result.modules.should.have.a.lengthOf(2)
+            result.modules[0].should.have.property('id', `@${app.team.hashid}/one`)
+        })
+        it('Get Team Catalogue (device)', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/npm/catalogue?device=${app.device.hashid}`
             })
             response.statusCode.should.equal(200)
             const result = response.json()
