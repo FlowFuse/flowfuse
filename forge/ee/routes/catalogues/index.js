@@ -73,8 +73,26 @@ module.exports = async function (app) {
             allowAnonymous: true
         }
     }, async (request, reply) => {
-        if (request.params.teamId && request.query.teamId) {
+        if (request.params.teamId && (request.query.device || request.query.instance)) {
             const team = await app.db.models.Team.byId(request.params.teamId)
+
+            let clientTeam
+            if (request.query.device) {
+                const device = await app.db.models.Device.byId(request.query.device)
+                if (device) {
+                    clientTeam = device.Team.hashid
+                }
+            } else if (request.query.instance) {
+                const instance = await app.db.models.Project.byId(request.query.instance)
+                if (instance) {
+                    clientTeam = instance.Team.hashid
+                } 
+            }
+            // Might not need the first test as undefined !== teamid...
+            if (!clientTeam || clientTeam !== request.params.teamId) {
+                reply.status(401).send({error: 'not_authorized', message: 'Not Authorized'})
+                return
+            }
 
             try {
                 const packageList = await axios.get(`${app.config.npmRegistry?.url}/-/all`, {
