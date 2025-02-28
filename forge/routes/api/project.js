@@ -851,7 +851,8 @@ module.exports = async function (app) {
         const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false) && false
         if (teamNPMEnabled) {
             const npmRegURL = new URL(app.config.npmRegistry.url)
-            const token = ''
+            const deviceNPMPassword = '' //TODO get this password
+            const token = Buffer.from(`${request.project.id}@${settings.teamID}:${deviceNPMPassword}`)
             if (settings.settings?.palette?.npmrc) {
                 settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
                     `//@${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
@@ -863,10 +864,10 @@ module.exports = async function (app) {
             }
             if (settings.settings?.palette?.catalogue) {
                 settings.settings.palette.catalogue
-                    .push(`${app.config.baseURL}/api/v1/teams/${settings.teamID}/npm/catalogue?teamId=${settings.teamID}`)
+                    .push(`${app.config.baseURL}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`)
             } else {
                 settings.settings.palette.catalogue = [
-                    `${app.config.baseURL}/api/v1/teams/${settings.teamID}/npm/catalogue?teamId=${settings.teamID}`
+                    `${app.config.baseURL}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`
                 ]
             }
         }

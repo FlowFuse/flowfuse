@@ -257,23 +257,24 @@ module.exports = async function (app) {
         if (teamNPMEnabled) {
             const npmRegURL = new URL(app.config.npmRegistry.url)
             const team = request.device.Team.hashid
-            const token = ''
+            const deviceNPMPassword = '' //TODO get this password
+            const token = Buffer.from(`${request.device.hashid}@${team}:${deviceNPMPassword}`).toString('base64')
             if (response.palette?.npmrc) {
                 settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
                     `//@${team}:registry=${app.config.npmRegistry.url}\n` +
-                    `//${npmRegURL.host}:+_authToken="${token}"\n`
+                    `//${npmRegURL.host}:+_auth="${token}"\n`
             } else {
                 response.palette.npmrc =
                     `//@${team}:registry=${app.config.npmRegistry.url}\n` +
-                    `//${npmRegURL.host}:+_authToken="${token}"\n`
+                    `//${npmRegURL.host}:+_auth="${token}"\n`
             }
 
             if (response.palette?.catalogue) {
                 response.palette.catalogue
-                    .push(`${app.config.baseURL}/api/v1/teams/${team}/npm/catalogue?teamId=${team}`)
+                    .push(`${app.config.baseURL}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`)
             } else {
                 response.palette.catalogue = [
-                    `${app.config.baseURL}/api/v1/teams/${team}/npm/catalogue?teamId=${team}`
+                    `${app.config.baseURL}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`
                 ]
             }
         }
