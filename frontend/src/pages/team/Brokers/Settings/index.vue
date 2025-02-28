@@ -25,9 +25,10 @@ export default {
         },
         errorCode: {
             type: String,
-            required: true
+            default: ''
         }
     },
+    emits: ['broker-updated'],
     computed: {
         ...mapGetters('product', ['hasFfUnsClients']),
         ...mapState('product', {
@@ -67,7 +68,10 @@ export default {
                 delete payload.credentials
             }
             return this.$store.dispatch('product/updateBroker', { payload, brokerId: this.activeBroker.id })
-                .then((res) => Alerts.emit(`Broker ${res.name} updated successfully.`, 'confirmation'))
+                .then((res) => {
+                    this.$emit('broker-updated')
+                    Alerts.emit(`Broker ${res.name} updated successfully.`, 'confirmation')
+                })
                 .catch(e => console.error(e))
         }
     }

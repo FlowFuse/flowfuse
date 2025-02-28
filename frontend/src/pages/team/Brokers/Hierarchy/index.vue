@@ -42,6 +42,7 @@ export default {
             required: true
         }
     },
+    emits: ['broker-updated'],
     data () {
         return {
             loading: false,
