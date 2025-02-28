@@ -142,6 +142,7 @@ module.exports = async function (app) {
             default: request.body.default,
             flows: request.body.flows,
             modules: request.body.modules,
+            externalUrl: request.body.externalUrl,
             teamTypeScope: await sanitiseTeamTypeScope(request.body.teamTypeScope)
         }
         try {
@@ -199,7 +200,8 @@ module.exports = async function (app) {
             'active',
             'icon',
             'order',
-            'default'
+            'default',
+            'externalUrl'
         ].forEach(prop => {
             if (hasValueChanged(request.body[prop], flowTemplate[prop])) {
                 flowTemplate[prop] = request.body[prop]
