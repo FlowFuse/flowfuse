@@ -110,6 +110,7 @@ module.exports = async function (app) {
                 }
                 if (topicObj.metadata?.description) {
                     schema.channels[topicObj.topic].description = topicObj.metadata?.description
+                    schema.channels[topicObj.topic].schema = topicObj.metadata?.schema
                 }
             })
         }

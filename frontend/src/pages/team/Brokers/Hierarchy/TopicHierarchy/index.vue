@@ -1,7 +1,7 @@
 <template>
     <div class="unified-namespace-hierarchy">
         <main-title title="Topic Hierarchy">
-            <template v-if="selectedSegment" #actions>
+            <template #actions>
                 <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
                     <template #icon><RefreshIcon /></template>
                 </ff-button>
