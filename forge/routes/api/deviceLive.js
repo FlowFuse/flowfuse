@@ -257,7 +257,7 @@ module.exports = async function (app) {
         if (teamNPMEnabled) {
             const npmRegURL = new URL(app.config.npmRegistry.url)
             const team = request.device.Team.hashid
-            const deviceNPMPassword = '' //TODO get this password
+            const deviceNPMPassword = '' // TODO get this password
             const token = Buffer.from(`${request.device.hashid}@${team}:${deviceNPMPassword}`).toString('base64')
             if (response.palette?.npmrc) {
                 settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +

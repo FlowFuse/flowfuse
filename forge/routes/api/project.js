@@ -851,7 +851,7 @@ module.exports = async function (app) {
         const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false) && false
         if (teamNPMEnabled) {
             const npmRegURL = new URL(app.config.npmRegistry.url)
-            const deviceNPMPassword = '' //TODO get this password
+            const deviceNPMPassword = '' // TODO get this password
             const token = Buffer.from(`${request.project.id}@${settings.teamID}:${deviceNPMPassword}`)
             if (settings.settings?.palette?.npmrc) {
                 settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +

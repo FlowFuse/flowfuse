@@ -86,11 +86,11 @@ module.exports = async function (app) {
                 const instance = await app.db.models.Project.byId(request.query.instance)
                 if (instance) {
                     clientTeam = instance.Team.hashid
-                } 
+                }
             }
             // Might not need the first test as undefined !== teamid...
             if (!clientTeam || clientTeam !== request.params.teamId) {
-                reply.status(401).send({error: 'not_authorized', message: 'Not Authorized'})
+                reply.status(401).send({ error: 'not_authorized', message: 'Not Authorized' })
                 return
             }
 
