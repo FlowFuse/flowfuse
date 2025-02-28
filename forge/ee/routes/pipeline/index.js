@@ -573,6 +573,7 @@ module.exports = async function (app) {
                 const deployPromise = app.db.controllers.Pipeline.deploySnapshotToDevice(
                     sourceSnapshot,
                     targetDevice,
+                    request.pipeline,
                     {
                         user
 

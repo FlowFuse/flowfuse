@@ -6,7 +6,7 @@
             v-if="isTimelineFeatureEnabled" id="visual-timeline" class="relative"
             :style="{height: listHeightCss}"
         >
-            <transition-group name="fade">
+            <transition name="fade" mode="out-in">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
                 <ul v-else-if="activeTimeline.length" ref="timeline" data-el="timeline-list" class="timeline" :style="{'max-height': listHeightCss}">
                     <li v-for="event in activeTimeline" :key="event.id">
@@ -38,7 +38,7 @@
                         <p>This compact view helps you quickly understand the history of your instance, offering clear insight into when and what changes have been made.</p>
                     </template>
                 </empty-state>
-            </transition-group>
+            </transition>
         </section>
         <section v-else>
             <empty-state>
@@ -55,22 +55,34 @@
                 </template>
             </empty-state>
         </section>
+        <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
+        <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="device" />
+        <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="fetchData(false)" />
     </div>
 </template>
 
 <script>
+import DevicesAPI from '../../../../api/devices.js'
 import versionHistoryAPI from '../../../../api/versionHistory.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
+import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
+import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
 import TimelineEvent from '../../../../components/version-history/timeline/TimelineEvent.vue'
 import { scrollTo } from '../../../../composables/Ux.js'
 import featuresMixin from '../../../../mixins/Features.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
+import Alerts from '../../../../services/alerts.js'
+import Dialog from '../../../../services/dialog.js'
+import SnapshotExportDialog from '../../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 export default {
     name: 'HistoryTimeline',
     components: {
+        SnapshotEditDialog,
+        SnapshotExportDialog,
+        AssetDetailDialog,
         EmptyState,
         FeatureUnavailableToTeam,
         FeatureUnavailable,
@@ -178,6 +190,25 @@ export default {
                     this.listHeight = heightToBottom - 24.5 - 7
                 }
             }
+        },
+        showRollbackDialog (snapshot, alterLoadingState = false) {
+            return new Promise((resolve) => {
+                Dialog.show({
+                    header: 'Restore Snapshot',
+                    kind: 'danger',
+                    text: `This will overwrite the current remote instance.
+                       All changes to the flows, settings and environment variables made since the last snapshot will be lost.
+                       Are you sure you want to deploy to this snapshot?`,
+                    confirmLabel: 'Confirm'
+                }, async () => {
+                    if (alterLoadingState) this.loading = true
+                    return DevicesAPI.setSnapshotAsTarget(this.device.id, snapshot.id)
+                        .then(() => {
+                            Alerts.emit('Successfully deployed snapshot.', 'confirmation')
+                            resolve()
+                        })
+                })
+            })
         }
     }
 }
