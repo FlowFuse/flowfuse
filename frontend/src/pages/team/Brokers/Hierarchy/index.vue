@@ -1,4 +1,5 @@
 <template>
+    <BrokerError v-if="brokerState === 'error' && errorCode" :errorCode="errorCode" />
     <div class="ff-broker-hierarchy">
         <TopicHierarchy
             :broker-state="brokerState"
@@ -23,14 +24,20 @@ import { mapState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
 
+import BrokerError from '../components/BrokerError.vue'
+
 import TopicHierarchy from './TopicHierarchy/index.vue'
 import TopicInspector from './TopicInspector/index.vue'
 
 export default {
     name: 'BrokerHierarchy',
-    components: { TopicInspector, TopicHierarchy },
+    components: { TopicInspector, TopicHierarchy, BrokerError },
     props: {
         brokerState: {
+            type: String,
+            required: true
+        },
+        errorCode: {
             type: String,
             required: true
         }

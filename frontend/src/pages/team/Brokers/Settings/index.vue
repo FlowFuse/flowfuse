@@ -1,5 +1,6 @@
 <template>
     <section>
+        <BrokerError v-if="brokerState === 'error' && errorCode" :errorCode="errorCode" />
         <BrokerForm :broker="activeBroker" :has-delete-button="true" @delete="onDelete" @submit="onSubmit" />
     </section>
 </template>
@@ -11,11 +12,22 @@ import Alerts from '../../../../services/alerts.js'
 
 import Dialog from '../../../../services/dialog.js'
 
+import BrokerError from '../components/BrokerError.vue'
 import BrokerForm from '../components/BrokerForm.vue'
 
 export default {
     name: 'BrokerSettings',
-    components: { BrokerForm },
+    components: { BrokerForm, BrokerError },
+    props: {
+        brokerState: {
+            type: String,
+            required: true
+        },
+        errorCode: {
+            type: String,
+            required: true
+        }
+    },
     computed: {
         ...mapGetters('product', ['hasFfUnsClients']),
         ...mapState('product', {
