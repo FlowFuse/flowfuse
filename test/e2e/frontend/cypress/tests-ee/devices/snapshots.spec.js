@@ -36,9 +36,18 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.visit('/team/bteam/devices')
     })
 
-    it('doesn\'t show a "Snapshots" tab for devices bound to an Instance', () => {
+    it('exposes the "Version History" tab if assigned to an Instance but the Snapshots tab has an empty state message', () => {
         cy.contains('span', 'assigned-device-a').click()
-        cy.get('[data-nav="version-history"]').should('not.exist')
+        cy.get('[data-nav="version-history"]').should('exist')
+        cy.get('[data-nav="version-history"]').click()
+
+        cy.get('[data-action="import-snapshot"]').should('exist')
+        cy.get('[data-action="import-snapshot"]').should('be.disabled')
+
+        cy.get('[data-el="empty-state"]').should('exist')
+        cy.get('[data-el="empty-state"]').contains('Snapshots are available when a Remote Instance is assigned to an Application')
+
+        cy.get('[data-el="page-banner-feature-unavailable"]').should('not.exist')
     })
 
     it('shows a "Snapshots" tab for unassigned devices', () => {

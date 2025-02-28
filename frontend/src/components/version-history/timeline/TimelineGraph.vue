@@ -35,6 +35,18 @@ export default {
             required: true
         }
     },
+    data () {
+        return {
+            chainableEvents: [
+                'project.snapshot.rolled-back',
+                'flows.set',
+                'project.created',
+                'project.settings.updated',
+                'device.settings.updated',
+                'device.pipeline.deployed'
+            ]
+        }
+    },
     computed: {
         icon () {
             switch (true) {
@@ -46,6 +58,8 @@ export default {
                 } else return DownloadIcon
             case this.event.event === 'project.snapshot.rolled-back':
                 return UndoIcon
+            case this.event.event === 'device.pipeline.deployed':
+                return PipelinesIcon
             case this.event.event === 'flows.set':
                 return ProjectsIcon
             case this.event.event === 'project.snapshot.created':
@@ -108,13 +122,7 @@ export default {
                     // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
                     const isPipelineDeployment = Object.prototype.hasOwnProperty.call(this.timeline[id]?.data, 'sourceProject')
                     if (isPipelineDeployment) return true
-                } else if ([
-                    'project.snapshot.rolled-back',
-                    'flows.set',
-                    'project.created',
-                    'project.settings.updated',
-                    'device.settings.updated'
-                ].includes(this.timeline[id]?.event)) return true
+                } else if (this.chainableEvents.includes(this.timeline[id]?.event)) return true
             }
 
             return false

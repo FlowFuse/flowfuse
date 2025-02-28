@@ -124,7 +124,8 @@ module.exports = {
                         events = [
                             'flows.set',
                             'device.restarted',
-                            'device.settings.updated'
+                            'device.settings.updated',
+                            'device.pipeline.deployed'
                             // 'device.assigned',
                             // 'device.credential.generated',
                             // 'device.developer-mode.disabled',
