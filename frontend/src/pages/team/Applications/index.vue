@@ -226,6 +226,7 @@ export default {
         team: 'fetchData',
         tours: {
             handler (tours) {
+                // handles the user manually re-requesting the tour
                 if (tours.welcome) {
                     this.dispatchTour()
                 }
@@ -244,6 +245,11 @@ export default {
                 // allow the Alerts service to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
+        }
+
+        if (this.tours.welcome) {
+            // given we've loaded resources, check for tour status
+            this.dispatchTour()
         }
 
         this.setSearchQuery()
