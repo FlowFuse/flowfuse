@@ -261,8 +261,8 @@ module.exports = async (options = {}) => {
                 contentSecurityPolicy = {
                     directives: {
                         'base-uri': ["'self'"],
-                        'default-src': ["'self'", `*.${runtimeConfig.domain}`],
-                        'frame-src': ["'self'", `*.${runtimeConfig.domain}`],
+                        'default-src': ["'self'"],
+                        'frame-src': ["'self'"],
                         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
                         'worker-src': ["'self'", 'blob:'],
                         'connect-src': ["'self'"],
@@ -272,6 +272,10 @@ module.exports = async (options = {}) => {
                         'upgrade-insecure-requests': null,
                         'frame-ancestors': ["'self'"]
                     }
+                }
+                if (runtimeConfig.domain) {
+                    contentSecurityPolicy.directives['default-src'].push(`*.${runtimeConfig.domain}`)
+                    contentSecurityPolicy.directives['frame-src'].push(`*.${runtimeConfig.domain}`)
                 }
             } else {
                 contentSecurityPolicy = {
