@@ -425,6 +425,7 @@ jobs:
             --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
             --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
             --set forge.projectServiceType=NodePort \
+            --set forge.projectServicePort=32002 \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       - name: Initial setup
