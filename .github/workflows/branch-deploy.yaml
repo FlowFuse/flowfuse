@@ -424,6 +424,7 @@ jobs:
             --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
             --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
             --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
+            --set forge.projectServiceType=NodePort \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       - name: Initial setup
