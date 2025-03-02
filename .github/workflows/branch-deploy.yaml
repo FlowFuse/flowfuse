@@ -390,7 +390,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'FlowFuse/helm'
-          ref: 'main'
+          ref: 'feat-nr-node-port-svc'
           path: 'helm-repo'
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -424,6 +424,8 @@ jobs:
             --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
             --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
             --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
+            --set forge.projectServiceType=NodePort \
+            --set forge.projectServicePort=32002 \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       - name: Initial setup
