@@ -43,7 +43,8 @@ export default {
                 'project.created',
                 'project.settings.updated',
                 'device.settings.updated',
-                'device.pipeline.deployed'
+                'device.pipeline.deployed',
+                'device.project.deployed'
             ]
         }
     },

@@ -161,6 +161,7 @@
         "device.suspend-failed": "Device Suspend Failed",
         "device.settings.updated": "Device Settings Updated",
         "device.pipeline.deployed": "Flow Deployed through Pipeline",
+        "device.project.deployed": "Flow Deployed through Hosted Instance",
         "flows.reloaded": "Flows Reloaded",
         "flows.set": "Flow Deployed",
         "library.set": "Saved to Library",
