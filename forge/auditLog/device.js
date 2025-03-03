@@ -40,6 +40,16 @@ module.exports = {
             async suspendFailed (actionedBy, error, device) {
                 await log('device.suspend-failed', actionedBy || 0, device?.id, generateBody({ error, device }))
             },
+            pipeline: {
+                async deployed (actionedBy, error, device, pipeline, application, snapshot) {
+                    await log('device.pipeline.deployed', actionedBy, device?.id, generateBody({
+                        device,
+                        error,
+                        snapshot,
+                        pipeline
+                    }))
+                }
+            },
             credentials: {
                 async generated (actionedBy, error, device) {
                     await log('device.credential.generated', actionedBy, device?.id, generateBody({ error, device }))

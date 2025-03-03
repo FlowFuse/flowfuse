@@ -158,7 +158,6 @@ export default {
                             snapshot
                         </span>`
                 })
-
             case this.event.event === 'project.snapshot.rolled-back':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
@@ -201,6 +200,11 @@ export default {
                 return defineComponent({
                     template: '<span>Settings Updated</span>'
                 })
+            case this.event.event === 'device.pipeline.deployed':
+                // eslint-disable-next-line vue/one-component-per-file
+                return defineComponent({
+                    template: `<span>Flows deployed through the <i>${data.pipeline.name}</i> pipeline, applying the <i>${data.snapshot.name}</i> snapshot</span>`
+                })
             default:
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
@@ -226,6 +230,8 @@ export default {
                 return 'Instance Created'
             case ['project.settings.updated', 'device.settings.updated'].includes(this.event.event):
                 return 'Settings Updated'
+            case this.event.event === 'device.pipeline.deployed':
+                return 'Pipeline deployment'
             default:
                 return this.event.event
             }
@@ -271,6 +277,10 @@ export default {
             .title {
                 overflow: hidden;
                 text-overflow: ellipsis;
+
+                i {
+                    opacity: .5;
+                }
 
                 a {
                     color: $ff-blue-600;
