@@ -13,7 +13,7 @@
             <topic-schema :schema="schema" />
         </section>
 
-        <section v-if="!hasDefinedSchema && isInferredTypePrimitive" class="suggestions-wrapper">
+        <section v-if="!hasDefinedSchema && supportedInferredTypeSuggestions" class="suggestions-wrapper">
             <sub-title title="Suggestions" :icon="LightBulbIcon" />
             <topic-suggestions>
                 <topic-suggestion
@@ -66,8 +66,11 @@ export default {
         inferredType () {
             return this.segment.inferredSchema.type ?? null
         },
-        isInferredTypePrimitive () {
-            return ['number', 'string', 'boolean'].includes(this.inferredType)
+        inferredSchema () {
+            return this.segment.inferredSchema
+        },
+        supportedInferredTypeSuggestions () {
+            return ['number', 'string', 'boolean', 'object'].includes(this.inferredType)
         },
         canClearSuggestion () {
             return this.hasDefinedSchema || this.segment.metadata.schema === null
