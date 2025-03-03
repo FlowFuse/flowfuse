@@ -9,9 +9,15 @@
                         <p v-else class="ff-empty-state">No description available.</p>
                     </section>
                     <section>
-                        <label>Schema:</label>
-                        <pre v-if="topic.schema" class="p-2 border border-gray-200 bg-gray-50 rounded-md">{{ topic.schema }}</pre>
-                        <p v-else class="ff-empty-state">No schema available.</p>
+                        <label>Payload Schema:</label>
+                        <div class="space-y-2">
+                            <div v-if="topic.schema?.type" class="mt-2 flex items-center justify-between border rounded p-3">
+                                <label>Type</label>
+                                <span class="capitalize">{{ topic.schema.type }}</span>
+                            </div>
+                            <pre v-if="showRaw" class="p-2 border border-gray-200 bg-gray-50 rounded-md">{{ topic.schema }}</pre>
+                            <p v-if="!topic.schema" class="ff-empty-state">No schema available.</p>
+                        </div>
                     </section>
                 </div>
             </template>
@@ -37,6 +43,16 @@ export default {
     data () {
         return {
             expanded: false
+        }
+    },
+    computed: {
+        showRaw () {
+            if (this.topic && this.topic.schema) {
+                const hasTypeDefined = this.topic.schema && this.topic.schema.type
+                const hasOthers = Object.keys(this.topic.schema).length > 1
+                return hasTypeDefined && hasOthers
+            }
+            return false
         }
     }
 }
