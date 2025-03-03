@@ -206,8 +206,35 @@ describe('Team Catalogue', function () {
                 authResult.statusCode.should.equal(200)
             })
             it('generate User token', async function () {
+                let testResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/userToken`,
+                    cookies: {
+                        sid: TestObjects.tokens.bob
+                    }
+                })
+                testResponse.statusCode.should.equal(404)
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/userToken`,
+                    cookies: {
+                        sid: TestObjects.tokens.bob
+                    }
+                })
+                response.statusCode.should.equal(201)
+                const result = response.json()
                 const user = `${app.bob.hashid}@${app.team.hashid}`
-                const result = await app.db.controllers.AccessToken.createTokenForNPM(app.bob, app.team, ['team:packages:manage'])
+                result.should.have.property('username', user)
+
+                testResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/userToken`,
+                    cookies: {
+                        sid: TestObjects.tokens.bob
+                    }
+                })
+                testResponse.statusCode.should.equal(200)
 
                 const token = await app.db.controllers.AccessToken.getOrExpire(result.token)
                 should.exist(token)
