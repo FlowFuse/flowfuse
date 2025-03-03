@@ -50,6 +50,7 @@
                         label="Download package.json"
                         @click="$emit('download-package-json', event.data.snapshot)"
                     />
+                    <!-- Only show this option for Application Snapshot, not at the Device Level -->
                     <ff-list-item
                         v-if="!isADeviceSnapshotEvent"
                         :disabled="!hasPermission('project:snapshot:set-target')"
