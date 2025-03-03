@@ -50,6 +50,7 @@
                         label="Download package.json"
                         @click="$emit('download-package-json', event.data.snapshot)"
                     />
+                    <!-- Only show this option for Application Snapshot, not at the Device Level -->
                     <ff-list-item
                         v-if="!isADeviceSnapshotEvent"
                         :disabled="!hasPermission('project:snapshot:set-target')"
@@ -249,9 +250,8 @@ export default {
                         previewSnapshot () { this.$emit('preview-snapshot') }
                     },
                     template: `<span>
-                                    <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i>
+                                    <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i> restored 
                                     <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
-                                    snapshot was manually deployed
                                 </span>`
                 })
             default:
