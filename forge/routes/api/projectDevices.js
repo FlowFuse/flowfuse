@@ -140,6 +140,18 @@ module.exports = async function (app) {
                 }
             })
             await app.auditLog.Project.project.snapshot.deviceTargetSet(request.session.User, null, request.project, targetSnapshot)
+
+            const affectedDevices = await app.db.models.Device.getAll({ }, {
+                ProjectId: request.project.id
+            })
+
+            if (affectedDevices.devices.length) {
+                for (const index in affectedDevices.devices) {
+                    const instance = request.project
+                    await app.auditLog.Device.device.project.deployed(request.session.User, null, affectedDevices.devices[index], instance, targetSnapshot)
+                }
+            }
+
             if (app.comms) {
                 app.comms.devices.sendCommandToProjectDevices(request.project.Team.hashid, request.project.id, 'update', {
                     snapshot: targetSnapshot.hashid
