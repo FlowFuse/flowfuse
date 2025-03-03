@@ -2,7 +2,7 @@
 navTitle: Quick Start
 navOrder: 2
 meta:
-   description: Learn how to add and connect remote instances to FlowFuse, and develop workflows using the web UI.
+   description: Learn how to add and connect Remote Instances to FlowFuse, and develop workflows using the web UI.
    tags:
       - remote instance management
       - flowfuse
@@ -82,7 +82,7 @@ There are two approaches to deploying flows to your Remote Instances.
 
 1. Navigate to **Applications** and select the application your device was added to.
 2. Go to the **Remote Instances** tab within the application.
-3. Locate your newly added device and **click** on your remote instance.
+3. Locate your newly added device and **click** on your Remote Instance.
 4. Then Click **Developer Mode** toggle button on upper right.
 
     ![The "Developer Mode" toggle button available on the Device screen](./images/developer.png){data-zoomable}
