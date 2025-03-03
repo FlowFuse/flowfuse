@@ -85,6 +85,9 @@
                     <FormRow v-if="billingEnabled" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
                     <FormRow v-if="billingEnabled" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                 </div>
+                <div v-if="billingEnabled" class="grid gap-3 grid-cols-1">
+                    <FormRow v-model="input.properties.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">Share free allocation with instance type:</FormRow>
+                </div>
 
                 <template v-if="teamBrokerEnabled">
                     <FormHeading>Team Broker</FormHeading>
@@ -94,10 +97,6 @@
                         </div>
                     </div>
                 </template>
-
-                <div v-if="billingEnabled" class="grid gap-3 grid-cols-1">
-                    <FormRow v-model="input.properties.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">Share free allocation with instance type:</FormRow>
-                </div>
 
                 <FormHeading>Features</FormHeading>
                 <div class="grid gap-3 grid-cols-2">

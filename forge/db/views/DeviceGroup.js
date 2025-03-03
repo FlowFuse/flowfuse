@@ -102,6 +102,15 @@ module.exports = function (app) {
             if (item.toJSON) {
                 item = item.toJSON()
             }
+            const settings = item.settings
+            if (settings.env && Array.isArray(settings.env)) {
+                settings.env = settings.env.map(setting => {
+                    if (setting.hidden) {
+                        setting.value = ''
+                    }
+                    return setting
+                })
+            }
             const filtered = {
                 id: item.hashid,
                 name: item.name,

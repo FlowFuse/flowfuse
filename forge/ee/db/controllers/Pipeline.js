@@ -409,10 +409,11 @@ module.exports = {
      * @param {Object} app - The application instance
      * @param {Object} sourceSnapshot - The source snapshot object
      * @param {Object} targetDevice - The target device object
+     * @param {Object} pipeline - The pipeline triggering the deployment
      * @param {Object} user - The user performing the deploy
      * @returns {Promise<Function>} - Resolves with the deploy is complete
      */
-    deploySnapshotToDevice: async function (app, sourceSnapshot, targetDevice, deployMeta = { user: null }) {
+    deploySnapshotToDevice: async function (app, sourceSnapshot, targetDevice, pipeline = null, deployMeta = { user: null }) {
         // Only used for reporting and logging, should not be used for any logic
         const { user } = deployMeta
 
@@ -424,6 +425,10 @@ module.exports = {
             await targetDevice.update({ targetSnapshotId: sourceSnapshot.id })
 
             await app.auditLog.Application.application.device.snapshot.deviceTargetSet(user, null, targetDevice.Application, targetDevice, sourceSnapshot)
+
+            if (pipeline) {
+                await app.auditLog.Device.device.pipeline.deployed(user, null, targetDevice, pipeline, targetDevice.Application, sourceSnapshot)
+            }
 
             const updates = new app.auditLog.formatters.UpdatesCollection()
             updates.push('targetSnapshotId', originalSnapshotId, targetDevice.targetSnapshotId)
