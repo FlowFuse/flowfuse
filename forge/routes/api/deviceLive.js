@@ -252,7 +252,6 @@ module.exports = async function (app) {
             requestTimeout: app.config.assistant?.requestTimeout || 60000
         }
 
-        // TODO remove $$ false from end of this
         const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)
         if (teamNPMEnabled) {
             const npmRegURL = new URL(app.config.npmRegistry.url)

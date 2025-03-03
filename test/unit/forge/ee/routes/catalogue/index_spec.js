@@ -30,10 +30,12 @@ describe('Team Catalogue', function () {
             await app.team.addUser(userBob, { through: { role: Roles.Owner } })
             // Run all the tests with bob - non-admin Team Owner
             await login('bob', 'bbPassword')
+            app.bob = userBob
 
             const userChris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
             await app.team.addUser(userChris, { through: { role: Roles.Member } })
             await login('chris', 'ccPassword')
+            app.chris = userChris
 
             const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const defaultTeamTypeProperties = defaultTeamType.properties
@@ -163,6 +165,65 @@ describe('Team Catalogue', function () {
                 cookies: { sid: TestObjects.tokens.chris }
             })
             response.statusCode.should.equal(200)
+        })
+        describe('NPM Authentication', function () {
+            it('generate Project token', async function () {
+                const user = `${app.project.id}@${app.team.hashid}`
+                const result = await app.db.controllers.AccessToken.createTokenForNPM(app.project, app.team)
+
+                const token = await app.db.controllers.AccessToken.getOrExpire(result.token)
+                should.exist(token)
+                token.should.have.property('scope', ['team:packages:read'])
+                token.should.have.property('ownerType', 'npm')
+                token.should.have.property('ownerId', user)
+                const authResult = await app.inject({
+                    method: 'GET',
+                    url: `/account/check/npm/${user}`,
+                    headers: {
+                        Authorization: `Bearer ${result.token}`
+                    }
+                })
+                authResult.statusCode.should.equal(200)
+            })
+            it('generate Device token', async function () {
+                const user = `${app.device.hashid}@${app.team.hashid}`
+                const result = await app.db.controllers.AccessToken.createTokenForNPM(app.device, app.team)
+
+                const token = await app.db.controllers.AccessToken.getOrExpire(result.token)
+                should.exist(token)
+                token.should.have.property('scope', ['team:packages:read'])
+                token.should.have.property('ownerType', 'npm')
+                token.should.have.property('ownerId', user)
+                const authResult = await app.inject({
+                    method: 'GET',
+                    url: `/account/check/npm/${user}`,
+                    headers: {
+                        Authorization: `Bearer ${result.token}`
+                    }
+                })
+                authResult.statusCode.should.equal(200)
+            })
+            it('generate User token', async function () {
+                const user = `${app.bob.hashid}@${app.team.hashid}`
+                const result = await app.db.controllers.AccessToken.createTokenForNPM(app.bob, app.team, ['team:packages:manage'])
+
+                const token = await app.db.controllers.AccessToken.getOrExpire(result.token)
+                should.exist(token)
+                token.should.have.property('scope', ['team:packages:manage'])
+                token.should.have.property('ownerType', 'npm')
+                token.should.have.property('ownerId', user)
+
+                const authResult = await app.inject({
+                    method: 'GET',
+                    url: `/account/check/npm/${user}`,
+                    headers: {
+                        Authorization: `Bearer ${result.token}`
+                    }
+                })
+                authResult.statusCode.should.equal(200)
+                const body = authResult.json()
+                body.should.have.property('write', true)
+            })
         })
     })
     describe('Not Enabled for Team', function () {
