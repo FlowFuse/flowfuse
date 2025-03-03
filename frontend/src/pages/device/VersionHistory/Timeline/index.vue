@@ -6,7 +6,7 @@
             v-if="isTimelineFeatureEnabled" id="visual-timeline" class="relative"
             :style="{height: listHeightCss}"
         >
-            <transition-group name="fade">
+            <transition name="fade" mode="out-in">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
                 <ul v-else-if="activeTimeline.length" ref="timeline" data-el="timeline-list" class="timeline" :style="{'max-height': listHeightCss}">
                     <li v-for="event in activeTimeline" :key="event.id">
@@ -38,7 +38,7 @@
                         <p>This compact view helps you quickly understand the history of your instance, offering clear insight into when and what changes have been made.</p>
                     </template>
                 </empty-state>
-            </transition-group>
+            </transition>
         </section>
         <section v-else>
             <empty-state>

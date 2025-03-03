@@ -428,6 +428,20 @@ module.exports = async function (app) {
                 acc[e.name] = e.value
                 return acc
             }, {})
+
+            if (bodySettings.env) {
+                bodySettings.env.map(env => {
+                    if (env.hidden === true && env.value === '') {
+                        // we need to re-map the hidden value so it won't get overwritten
+                        const existingVar = deviceGroup.settings.env.find(currentEnv => currentEnv.name === env.name)
+                        if (existingVar) {
+                            env.value = existingVar.value
+                        }
+                    }
+                    return env
+                })
+            }
+
             const newEnv = bodySettings.env.reduce((acc, e) => {
                 acc[e.name] = e.value
                 return acc

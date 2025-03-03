@@ -247,8 +247,7 @@ export default {
                 {
                     label: 'Version History',
                     to: { name: 'DeviceSnapshots', params: { id: this.$route.params.id } },
-                    tag: 'version-history',
-                    hidden: !(this.device?.ownerType !== 'instance')
+                    tag: 'version-history'
                 },
                 { label: 'Audit Log', to: { name: 'device-audit-log' }, tag: 'device-audit-log' },
                 {
