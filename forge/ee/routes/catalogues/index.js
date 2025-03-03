@@ -64,7 +64,7 @@ module.exports = async function (app) {
 
     /**
      * Test is user already has a npm password
-     * 
+     *
      * @name /api/v1/teams/:teamId/npm/userToken
      * @memberof forge.routes.api.team.npm
      */
@@ -108,7 +108,7 @@ module.exports = async function (app) {
 
     /**
      * Test is user already has a npm password
-     * 
+     *
      * @name /api/v1/teams/:teamId/npm/userToken
      * @memberof forge.routes.api.team.npm
      */
