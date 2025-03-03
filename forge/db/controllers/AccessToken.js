@@ -409,5 +409,32 @@ module.exports = {
             ownerType: 'broker'
         })
         return { token }
+    },
+
+    createTokenForNPM: async function (app, entity, team, scope = ['team:packages:read']) {
+        // might want to prefix the entityId with `p-`, `d-` and `u-` rather than relying on
+        // no hashid clashes?
+        // would need updates to all the clean up scripts and when token issued
+        let entityId = entity.hashid
+        if (entity instanceof app.db.models.Project) {
+            entityId = entity.id
+        }
+        const existingNPMToken = await app.db.models.AccessToken.findOne({
+            where: {
+                ownerId: `${entityId}@${team.hashid}`,
+                ownerType: 'npm'
+            }
+        })
+        if (existingNPMToken) {
+            await existingNPMToken.destroy()
+        }
+        const token = generateToken(32, 'ffnpm')
+        await app.db.models.AccessToken.create({
+            token,
+            ownerId: `${entityId}@${team.hashid}`,
+            ownerType: 'npm',
+            scope
+        })
+        return { token }
     }
 }

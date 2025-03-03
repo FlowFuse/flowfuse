@@ -848,26 +848,26 @@ module.exports = async function (app) {
         }
 
         // TODO remove && false from end of this
-        const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false) && false
+        const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)
         if (teamNPMEnabled) {
             const npmRegURL = new URL(app.config.npmRegistry.url)
-            const deviceNPMPassword = '' // TODO get this password
-            const token = Buffer.from(`${request.project.id}@${settings.teamID}:${deviceNPMPassword}`)
+            const deviceNPMPassword = await app.db.controllers.AccessToken.createTokenForNPM(request.project, request.project.Team)
+            const token = Buffer.from(`${request.project.id}@${settings.teamID}:${deviceNPMPassword.token}`).toString('base64')
             if (settings.settings?.palette?.npmrc) {
                 settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
                     `//@${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
-                    `//${npmRegURL.host}:+_authToken="${token}"\n`
+                    `//${npmRegURL.host}:_auth="${token}"\n`
             } else {
                 settings.settings.palette.npmrc =
                     `//@${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
-                    `//${npmRegURL.host}:+_authToken="${token}"\n`
+                    `//${npmRegURL.host}:_auth="${token}"\n`
             }
             if (settings.settings?.palette?.catalogue) {
                 settings.settings.palette.catalogue
-                    .push(`${app.config.baseURL}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`)
+                    .push(`${app.config.base_url}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`)
             } else {
                 settings.settings.palette.catalogue = [
-                    `${app.config.baseURL}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`
+                    `${app.config.base_url}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`
                 ]
             }
         }

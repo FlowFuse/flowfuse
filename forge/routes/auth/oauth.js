@@ -476,6 +476,13 @@ module.exports = async function (app) {
                     }
                 }
             }
+            // Check for npm registry user with publish scope
+            if (request.session.ownerType === 'npm' && request.session.scope.includes('team:packages:manage')) {
+                // check scope type to allow read/write access
+                response = {
+                    write: true
+                }
+            }
             reply.code(200).send(response)
         } else {
             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
