@@ -14,7 +14,13 @@
         <template v-if="segment">
             <payload-metadata :segment="localSegment" @segment-updated="onSegmentUpdated" />
 
-            <payload-schema :segment="localSegment" />
+            <payload-schema
+                :segment="localSegment"
+                @suggestion-accepted="onSuggestionAccepted"
+                @suggestion-rejected="onSuggestionRejected"
+                @clear-suggestion="onSuggestionCleared"
+                @preview-suggestion="onSuggestionPreview"
+            />
         </template>
 
         <EmptyState v-else>
@@ -105,6 +111,21 @@ export default {
         },
         onSegmentUpdated (segment) {
             this.localSegment = segment
+        },
+        onSuggestionAccepted () {
+            this.localSegment.metadata.schema = this.localSegment.inferredSchema
+            this.saveTopicMeta()
+        },
+        onSuggestionRejected () {
+            this.localSegment.metadata.schema = null
+            this.saveTopicMeta()
+        },
+        onSuggestionCleared () {
+            delete this.localSegment.metadata.schema
+            this.saveTopicMeta()
+        },
+        onSuggestionPreview (suggestion) {
+            console.log(123, suggestion)
         }
     }
 }
