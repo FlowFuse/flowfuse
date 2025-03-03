@@ -213,7 +213,7 @@ export default {
             case this.event.event === 'device.snapshot.deployed':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
-                    template: `<span><i>${data.user.name}</i> manually deployed the <i>${data.snapshot.name}</i> snapshot</span>`
+                    template: `<span><i>${data.user.name}</i> restored the <i>${data.snapshot.name}</i> snapshot</span>`
                 })
             default:
                 // eslint-disable-next-line vue/one-component-per-file
