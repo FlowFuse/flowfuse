@@ -8,7 +8,7 @@
             <div class="description-wrapper">
                 <p v-if="description" class="description opacity-50 text-xs leading-none">{{ description }}</p>
                 <p v-else class="description opacity-50 text-xs leading-none">
-                    FlowFuse has detected that the messages sent to this topic are {{ format.toUpperCase() }}. Would you like to enforce this on your Schema?
+                    FlowFuse has detected that the messages sent to this topic are {{ format.toUpperCase() }}. Would you like to save this to your Schema?
                 </p>
             </div>
         </div>
