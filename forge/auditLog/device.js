@@ -57,8 +57,7 @@ module.exports = {
                         device,
                         error,
                         snapshot,
-                        project,
-                        user: actionedBy
+                        project
                     }))
                 }
             },
@@ -87,12 +86,19 @@ module.exports = {
                 async updated (actionedBy, error, device, updates) {
                     await log('device.settings.updated', actionedBy, device?.id, generateBody({ error, device, updates }))
                 }
+            },
+            snapshot: {
+                async deployed (actionedBy, error, device, snapshot) {
+                    await log('device.snapshot.deployed', actionedBy, device?.id, generateBody({
+                        device,
+                        error,
+                        snapshot,
+                        user: actionedBy
+                    }))
+                }
             }
         }
 
-        // const snapshot = {
-        //     async
-        // }
         const log = async (event, actionedBy, deviceId, body) => {
             try {
                 const trigger = triggerObject(actionedBy)

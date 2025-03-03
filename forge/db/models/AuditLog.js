@@ -126,7 +126,8 @@ module.exports = {
                             'device.restarted',
                             'device.settings.updated',
                             'device.pipeline.deployed',
-                            'device.project.deployed'
+                            'device.project.deployed',
+                            'device.snapshot.deployed'
                             // 'device.assigned',
                             // 'device.credential.generated',
                             // 'device.developer-mode.disabled',
