@@ -184,6 +184,8 @@ describe('Team Catalogue', function () {
                     }
                 })
                 authResult.statusCode.should.equal(200)
+                const newToken = await app.db.controllers.AccessToken.createTokenForNPM(app.project, app.team)
+                newToken.token.should.not.equal(result.token)
             })
             it('generate Device token', async function () {
                 const user = `${app.device.hashid}@${app.team.hashid}`

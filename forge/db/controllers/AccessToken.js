@@ -435,6 +435,9 @@ module.exports = {
             ownerType: 'npm',
             scope
         })
-        return { token }
+        return {
+            username: `${entityId}@${team.hashid}`,
+            token
+        }
     }
 }
