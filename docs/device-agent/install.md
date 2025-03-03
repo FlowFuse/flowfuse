@@ -161,7 +161,7 @@ sudo systemctl start flowfuse-device
 
 ## Upgrading the agent
 
-To use the latest features on FlowFuse as well as on the edge device, it is advised to upgrade
+To use the latest features on FlowFuse as well as on the Remote Instance, it is advised to upgrade
 the device agent regularly. 
 
 With the 1.13 release of the Device Agent, it has moved to a new package on the npm repository

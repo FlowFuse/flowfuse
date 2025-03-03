@@ -195,7 +195,7 @@
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="entry.body?.device && entry.body?.snapshot && entry.body.user">
             <i>{{ entry.body.user.name }}</i>
-            deployed the
+            restored the
             <i>{{ entry.body.snapshot.name }}</i>
             snapshot
         </span>
