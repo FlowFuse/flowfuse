@@ -116,8 +116,9 @@
                     <FormRow v-model="input.properties.features.bom" type="checkbox">Bill of Materials / Dependencies</FormRow>
                     <FormRow v-model="input.properties.features.teamBroker" type="checkbox">Team Broker</FormRow>
                     <FormRow v-model="input.properties.features.projectHistory" type="checkbox">Version History Timeline</FormRow>
+                    <FormRow v-model="input.properties.features.npm" type="checkbox">NPM Packages</FormRow>
                     <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
-                    <!--                    <span />-->
+                    <span />
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
@@ -233,6 +234,9 @@ export default {
                     }
                     if (this.input.properties.features.projectHistory === undefined) {
                         this.input.properties.features.projectHistory = false
+                    }
+                    if (this.input.properties.features.npm === undefined) {
+                        this.input.properties.features.npm = false
                     }
                 } else {
                     this.editDisabled = false
