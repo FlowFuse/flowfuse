@@ -9,6 +9,5 @@
 <script>
 export default {
     name: 'TopicSuggestions'
-
 }
 </script>

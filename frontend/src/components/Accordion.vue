@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-accordion" data-el="accordion">
+    <div class="ff-accordion" :class="{open: isOpen}" data-el="accordion">
         <button class="ff-accordion--button" :disabled="disabled" @click="toggle()">
             <slot name="label">
                 <label>{{ label }}</label>
