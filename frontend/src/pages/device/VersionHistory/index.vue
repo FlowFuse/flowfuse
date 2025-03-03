@@ -40,7 +40,7 @@
                 <ff-button
                     kind="primary"
                     data-action="create-snapshot"
-                    :disabled="!developerMode || busy"
+                    :disabled="!canCreateSnapshot"
                     @click="showCreateSnapshotDialog"
                 >
                     <template #icon-left><PlusSmIcon /></template>Create Snapshot
@@ -139,8 +139,17 @@ export default {
         isOwnedByAnInstance () {
             return this.device?.ownerType === 'instance'
         },
+        isOwnedByAnApplication () {
+            return this.device?.ownerType === 'application'
+        },
         isUnassigned () {
             return this.device?.ownerType === ''
+        },
+        canCreateSnapshot () {
+            if (!this.developerMode || this.busy) {
+                return false
+            }
+            return this.isOwnedByAnInstance || this.isOwnedByAnApplication
         }
     },
     methods: {
