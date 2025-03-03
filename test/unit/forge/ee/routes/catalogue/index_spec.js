@@ -254,6 +254,45 @@ describe('Team Catalogue', function () {
                 body.should.have.property('write', true)
             })
         })
+        describe('Instance/Device settings', function () {
+            it('Instance', async function () {
+                const projectTokens = await app.project.refreshAuthTokens()
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${app.project.id}/settings`,
+                    headers: {
+                        Authorization: `Bearer ${projectTokens.token}`
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('settings')
+                result.settings.should.have.property('palette')
+                result.settings.palette.should.have.property('npmrc')
+                result.settings.palette.should.have.property('catalogue')
+                const palette = result.settings.palette
+                palette.npmrc.should.startWith(`//@${app.team.hashid}:registry=http://localhost:9752`)
+                palette.catalogue.should.containEql(`http://localhost:3000/api/v1/teams/${app.team.hashid}/npm/catalogue?instance=${app.project.id}`)
+            })
+            it('Device', async function () {
+                const deviceToken = await app.db.controllers.AccessToken.createTokenForDevice(app.device)
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${app.device.hashid}/live/settings`,
+                    headers: {
+                        Authorization: `Bearer ${deviceToken.token}`
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('palette')
+                result.palette.should.have.property('npmrc')
+                result.palette.should.have.property('catalogue')
+                const palette = result.palette
+                palette.npmrc.should.startWith(`//@${app.team.hashid}:registry=http://localhost:9752`)
+                palette.catalogue.should.containEql(`http://localhost:3000/api/v1/teams/${app.team.hashid}/npm/catalogue?device=${app.device.hashid}`)
+            })
+        })
     })
     describe('Not Enabled for Team', function () {
         let app

@@ -258,7 +258,10 @@ module.exports = async function (app) {
             const team = request.device.Team.hashid
             const deviceNPMPassword = await app.db.controllers.AccessToken.createTokenForNPM(request.device, request.device.Team)
             const token = Buffer.from(`${request.device.hashid}@${team}:${deviceNPMPassword.token}`).toString('base64')
-            if (response.palette?.npmrc) {
+            if (!response.palette) {
+                response.palette = {}
+            }
+            if (response.palette.npmrc) {
                 settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
                     `//@${team}:registry=${app.config.npmRegistry.url}\n` +
                     `//${npmRegURL.host}:_auth="${token}"\n`
@@ -268,7 +271,7 @@ module.exports = async function (app) {
                     `//${npmRegURL.host}:_auth="${token}"\n`
             }
 
-            if (response.palette?.catalogue) {
+            if (response.palette.catalogue) {
                 response.palette.catalogue
                     .push(`${app.config.base_url}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`)
             } else {
