@@ -158,6 +158,15 @@ module.exports = {
                         ownerId: '' + user.id
                     }
                 })
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: {
+                            [Op.like]: `${user.hashid}@%`
+                        }
+
+                    }
+                })
             }
         }
     },
