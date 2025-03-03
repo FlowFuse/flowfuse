@@ -13,6 +13,3 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-.topic-suggestions {}
-</style>
