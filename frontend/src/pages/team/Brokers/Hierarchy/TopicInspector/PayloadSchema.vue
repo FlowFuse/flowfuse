@@ -17,9 +17,11 @@
             <sub-title title="Suggestions" :icon="LightBulbIcon" />
             <topic-suggestions>
                 <topic-suggestion
+                    :suggestion="inferredSchema"
                     :format="inferredType"
                     @suggestion-accepted="$emit('suggestion-accepted')"
                     @suggestion-rejected="$emit('suggestion-rejected')"
+                    @preview-suggestion="$emit('preview-suggestion', $event)"
                 />
             </topic-suggestions>
         </section>
@@ -52,7 +54,7 @@ export default {
             type: Object
         }
     },
-    emits: ['suggestion-accepted', 'suggestion-rejected', 'clear-suggestion'],
+    emits: ['suggestion-accepted', 'suggestion-rejected', 'clear-suggestion', 'preview-suggestion'],
     setup () {
         return { CodeBracketSquareIcon, LightBulbIcon }
     },
