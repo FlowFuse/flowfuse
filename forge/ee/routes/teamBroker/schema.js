@@ -111,6 +111,9 @@ module.exports = async function (app) {
                 if (topicObj.metadata?.description) {
                     schema.channels[topicObj.topic].description = topicObj.metadata?.description
                 }
+                if (topicObj.metadata?.schema) {
+                    schema.channels[topicObj.topic].schema = topicObj.metadata?.schema
+                }
             })
         }
         return schema
