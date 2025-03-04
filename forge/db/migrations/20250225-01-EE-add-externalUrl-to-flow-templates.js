@@ -1,7 +1,9 @@
-/**
- * Add inferred Payload schema to topics
+/* eslint-disable no-unused-vars */
+
+/*
+ * Add `externalUrl` field to `FlowTemplates` table
  */
-const { DataTypes } = require('sequelize')
+const { DataTypes, QueryInterface } = require('sequelize')
 
 module.exports = {
     /**
