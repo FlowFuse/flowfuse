@@ -168,7 +168,7 @@ describe('Team Catalogue', function () {
         })
         describe('NPM Authentication', function () {
             it('generate Project token', async function () {
-                const user = `${app.project.id}@${app.team.hashid}`
+                const user = `p-${app.project.id}@${app.team.hashid}`
                 const result = await app.db.controllers.AccessToken.createTokenForNPM(app.project, app.team)
 
                 const token = await app.db.controllers.AccessToken.getOrExpire(result.token)
@@ -188,7 +188,7 @@ describe('Team Catalogue', function () {
                 newToken.token.should.not.equal(result.token)
             })
             it('generate Device token', async function () {
-                const user = `${app.device.hashid}@${app.team.hashid}`
+                const user = `d-${app.device.hashid}@${app.team.hashid}`
                 const result = await app.db.controllers.AccessToken.createTokenForNPM(app.device, app.team)
 
                 const token = await app.db.controllers.AccessToken.getOrExpire(result.token)
@@ -224,7 +224,7 @@ describe('Team Catalogue', function () {
                 })
                 response.statusCode.should.equal(201)
                 const result = response.json()
-                const user = `${app.bob.hashid}@${app.team.hashid}`
+                const user = `u-${app.bob.hashid}@${app.team.hashid}`
                 result.should.have.property('username', user)
 
                 testResponse = await app.inject({
