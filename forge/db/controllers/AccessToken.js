@@ -15,6 +15,7 @@ const DEFAULT_DEVICE_OTC_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
  * ffpat - personal access token
  * ffhttp - httpNode access token
  * fftpb - third party broker
+ * ffnpm - Team npm registry
  */
 
 module.exports = {
@@ -412,12 +413,15 @@ module.exports = {
     },
 
     createTokenForNPM: async function (app, entity, team, scope = ['team:packages:read']) {
-        // might want to prefix the entityId with `p-`, `d-` and `u-` rather than relying on
-        // no hashid clashes?
-        // would need updates to all the clean up scripts and when token issued
-        let entityId = entity.hashid
+        // Adding prefix to the entityId of `p-`, `d-` and `u-` rather than relying on
+        // no hashid collisions
+        let entityId
         if (entity instanceof app.db.models.Project) {
-            entityId = entity.id
+            entityId = `p-${entity.id}`
+        } else if (entity instanceof app.db.models.Device) {
+            entityId = `d-${entity.hashid}`
+        } else if (entity instanceof app.db.models.User) {
+            entityId = `u-${entity.hashid}`
         }
         const existingNPMToken = await app.db.models.AccessToken.findOne({
             where: {

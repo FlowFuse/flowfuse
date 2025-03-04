@@ -138,7 +138,7 @@ module.exports = {
                     where: {
                         ownerType: 'npm',
                         ownerId: {
-                            [Op.like]: `${device.hashid}@%`
+                            [Op.like]: `d-${device.hashid}@%`
                         }
                     }
                 })

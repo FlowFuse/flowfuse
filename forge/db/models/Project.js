@@ -168,7 +168,7 @@ module.exports = {
                     where: {
                         ownerType: 'npm',
                         ownerId: {
-                            [Op.like]: `${project.id}@%`
+                            [Op.like]: `p-${project.id}@%`
                         }
                     }
                 })

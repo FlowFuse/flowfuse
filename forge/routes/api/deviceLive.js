@@ -257,7 +257,7 @@ module.exports = async function (app) {
             const npmRegURL = new URL(app.config.npmRegistry.url)
             const team = request.device.Team.hashid
             const deviceNPMPassword = await app.db.controllers.AccessToken.createTokenForNPM(request.device, request.device.Team)
-            const token = Buffer.from(`${request.device.hashid}@${team}:${deviceNPMPassword.token}`).toString('base64')
+            const token = Buffer.from(`d-${request.device.hashid}@${team}:${deviceNPMPassword.token}`).toString('base64')
             if (!response.palette) {
                 response.palette = {}
             }

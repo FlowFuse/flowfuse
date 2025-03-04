@@ -96,7 +96,7 @@ module.exports = async function (app) {
         const token = await app.db.models.AccessToken.findOne({
             where: {
                 ownerType: 'npm',
-                ownerId: `${request.session.User.hashid}@${request.params.teamId}`
+                ownerId: `u-${request.session.User.hashid}@${request.params.teamId}`
             }
         })
         if (token) {
