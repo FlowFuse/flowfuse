@@ -20,7 +20,7 @@
             </template>
         </template>
         <template #tools>
-            <section class="flex gap-2 items-center self-center truncate">
+            <section class="flex gap-2 items-center self-center">
                 <ff-checkbox
                     v-model="showDeviceSnapshotsOnly"
                     v-ff-tooltip:left="'Untick this to show snapshots from other Instances within this application'"
@@ -38,6 +38,7 @@
                     <template #icon-left><UploadIcon /></template>Upload Snapshot
                 </ff-button>
                 <ff-button
+                    v-ff-tooltip:left="!canCreateSnapshot ? 'Instance must be in \'Developer Mode\' to create a Snapshot' : 'Capture a Snapshot of this Instance.'"
                     kind="primary"
                     data-action="create-snapshot"
                     :disabled="!canCreateSnapshot"
@@ -67,7 +68,7 @@
         ref="snapshotCreateDialog"
         title="Create Device Snapshot"
         data-el="dialog-create-device-snapshot"
-        :show-set-as-target="true"
+        :show-set-as-target="false"
         :device="device"
         @device-upload-success="onSnapshotCreated"
         @device-upload-failed="onSnapshotFailed"
