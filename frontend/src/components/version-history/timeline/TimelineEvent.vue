@@ -246,12 +246,15 @@ export default {
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     emits: ['preview-snapshot'],
+                    data () { return { data } },
                     methods: {
                         previewSnapshot () { this.$emit('preview-snapshot') }
                     },
                     template: `<span>
-                                    <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i> restored 
-                                    <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
+                                    <span v-if="${!data.info?.snapshotExists}"> <i>${data.snapshot.name}</i> restored</span>
+                                    <span v-else>
+                                        <a href="#" @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a> restored
+                                    </span>
                                 </span>`
                 })
             default:
