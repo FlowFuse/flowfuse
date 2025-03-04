@@ -164,6 +164,14 @@ module.exports = {
                         ownerId: project.id
                     }
                 })
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: {
+                            [Op.like]: `${project.id}@%`
+                        }
+                    }
+                })
                 await M.AuthClient.destroy({
                     where: {
                         ownerType: 'project',

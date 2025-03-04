@@ -76,6 +76,15 @@ module.exports = {
                         ownerId: team.id.toString()
                     }
                 })
+                // Remove all Team's npm tokens
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: {
+                            [Op.like]: `%@${team.hashid}`
+                        }
+                    }
+                })
             }
         }
     },
