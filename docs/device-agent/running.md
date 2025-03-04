@@ -23,21 +23,21 @@ If the default working directory and config file are being used, then the agent 
 flowfuse-device-agent
 ```
 
-By default Node-RED will listen to port `1880`, you can change there using the options
+By default, Node-RED will listen to port `1880`, you can change there using the options
 detailed [here](./install.md#listen-port).
 
-This will start the agent, set the device in the default of fleet mode, and connect to
-FlowForge, waiting until a Target Snapshot has been assigned to it or it is assigned
+This will start the agent, set the Remote Instance in the default of fleet mode, and connect to
+FlowFuse, waiting until a Target Snapshot has been assigned to it, or it is assigned
 to an Application.
 
 ### When assigned to an instance:
 Once the agent has been assigned a Target Snapshot, it will download the Snapshot and
-deploy it to the device.
+deploy it to the Remote Instance.
 
 ### When assigned to an application:
-Once the agent has been assigned to an application it start up. If the device is new, 
+Once the agent has been assigned to an application it starts up. If the device is new, 
 it will get a default set of flows which can be edited directly. 
-See [Editing the Node-RED flows on a device that is assigned to an application](./deploy.md#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-application) for details.
+See [Editing the Node-RED flows on a Remote Instance that is assigned to an application](./deploy.md#editing-the-node-red-flows-on-a-remote-instance-that-is-assigned-to-an-application) for details.
 
 ### Device Agent Command Line Options
 
@@ -89,7 +89,7 @@ flowfuse-device-agent -d /path/to/working/directory -w --ui-user admin --ui-pass
 
 ## Running behind a HTTP Proxy
 
-If the device is behind a HTTP proxy, the agent can be configured to use the proxy by setting the `http_proxy`, `https_proxy` or `all_proxy` environment variables.
+If the Remote Instance is behind a HTTP proxy, the agent can be configured to use the proxy by setting the `http_proxy`, `https_proxy` or `all_proxy` environment variables.
 
 If necessary, the `no_proxy` environment variable can be used to specify a list of hosts that should not be accessed via the proxy.
 
@@ -122,10 +122,10 @@ _To make these settings permanent, see the documentation for your version of Win
 
 ## Running with no access to npmjs.org
 
-By default the Device Agent will try and download the correct version of Node-RED and 
-any nodes required to run the Snapshot that is assigned to run on the device.
+By default, the Device Agent will try and download the correct version of Node-RED and 
+any nodes required to run the Snapshot that is assigned to run on the Remote Instance.
 
-If the device is being run on an offline network or security policies prevent the 
+If the Remote Instance is being run on an offline network or security policies prevent the 
 Device Agent from connecting to npmjs.org then it can be configured to use a pre-cached 
 set of modules.
 
@@ -136,12 +136,12 @@ with the `-d` option) (e.g. `/opt/flowfuse-device/module_cache`.).
 
 ### Creating a module cache
 
-To create a suitable module cache, the device must be assigned to an instance.  You will need to
+To create a suitable module cache, the device must be assigned to a Remote Instance.  You will need to
 install the modules on a local device with access to npmjs.org, ensuring you use the same
-OS and Architecture as your target device, and then copy the modules on to your device.
+OS and Architecture as your target device, and then copy the modules on to your Remote Instance.
 
 1. From the Snapshot page, select the snapshot you want to deploy and select the option to download its `package.json` file.
 2. Place this file in an empty directory on your local device.
 3. Run `npm install` to install the modules. This will create a `node_modules` directory.
-4. On your target device, create a directory called `module_cache` inside the Device Agent Configuration directory.
-5. Copy the `node_modules` directory from your local device to the target device so that it is under the `module_cache` directory.
+4. On your target Remote Instance, create a directory called `module_cache` inside the Device Agent Configuration directory.
+5. Copy the `node_modules` directory from your local instance to the target instance so that it is under the `module_cache` directory.

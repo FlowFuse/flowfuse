@@ -35,28 +35,50 @@ export default {
             required: true
         }
     },
+    data () {
+        return {
+            chainableEvents: [
+                'project.snapshot.rolled-back',
+                'flows.set',
+                'project.created',
+                'project.settings.updated',
+                'device.restarted',
+                'device.settings.updated',
+                'device.pipeline.deployed',
+                'device.project.deployed',
+                'device.snapshot.deployed',
+                'device.snapshot.created'
+            ]
+        }
+    },
     computed: {
         icon () {
-            switch (true) {
-            case this.event.event === 'project.snapshot.imported':
+            switch (this.event.event) {
+            case 'project.snapshot.imported':
                 // we can only differentiate between a plain snapshot import and a devops deployment history events
                 // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
                 if (Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')) {
                     return PipelinesIcon
                 } else return DownloadIcon
-            case this.event.event === 'project.snapshot.rolled-back':
+            case 'project.snapshot.rolled-back':
                 return UndoIcon
-            case this.event.event === 'flows.set':
+            case 'device.pipeline.deployed':
+                return PipelinesIcon
+            case 'flows.set':
+            case 'device.project.deployed':
+            case 'device.snapshot.deployed':
                 return ProjectsIcon
-            case this.event.event === 'project.snapshot.created':
+            case 'project.snapshot.created':
+            case 'device.snapshot.created':
                 return CameraIcon
-            case ['project.settings.updated', 'device.settings.updated'].includes(this.event.event):
+            case 'project.settings.updated':
+            case 'device.settings.updated':
                 return AdjustmentsIcon
-            case ['device.restarted'].includes(this.event.event):
+            case 'device.restarted':
                 return RefreshIcon
-            case this.event.event === 'project.created':
+            case 'project.created':
                 return PlusIcon
-            case this.event.event === 'load-more':
+            case 'load-more':
                 return DotsHorizontalIcon
             default:
                 return null
@@ -78,7 +100,7 @@ export default {
             const isPrecededByImportedSnapshot = this.isPrecededBy?.event === 'project.snapshot.imported' &&
                 !Object.prototype.hasOwnProperty.call(this.isPrecededBy?.data, 'sourceProject')
 
-            return this.isPrecededBy?.event === 'project.snapshot.created' || isPrecededByImportedSnapshot
+            return ['project.snapshot.created', 'device.snapshot.created'].includes(this.isPrecededBy?.event) || isPrecededByImportedSnapshot
         },
         isSucceededBy () {
             const currentIndex = this.timeline.findIndex(event => event.id === this.event.id)
@@ -90,7 +112,7 @@ export default {
             const isSucceededByImportedSnapshot = this.isSucceededBy?.event === 'project.snapshot.imported' &&
                 !Object.prototype.hasOwnProperty.call(this.isSucceededBy?.data, 'sourceProject')
 
-            return this.isSucceededBy?.event === 'project.snapshot.created' || isSucceededByImportedSnapshot
+            return ['project.snapshot.created', 'device.snapshot.created'].includes(this.isSucceededBy?.event) || isSucceededByImportedSnapshot
         },
         isSnapshot () {
             // we can only differentiate between a plain snapshot import and a devops deployment history events
@@ -98,23 +120,17 @@ export default {
             const isImportedSnapshot = this.event.event === 'project.snapshot.imported' &&
                 !Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')
 
-            return this.event.event === 'project.snapshot.created' || isImportedSnapshot
+            return ['project.snapshot.created', 'device.snapshot.created'].includes(this.event.event) || isImportedSnapshot
         },
         hasSomethingToChainTo () {
             const currentIndex = this.timeline.findIndex(event => event.id === this.event.id)
             for (const id in this.timeline.slice(0, currentIndex)) {
-                if ((this.timeline[id]?.event) === 'project.snapshot.imported') {
+                if (['project.snapshot.imported', 'device.snapshot.created'].includes(this.timeline[id]?.event)) {
                     // we can only differentiate between a plain snapshot import and a devops deployment history events
                     // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
                     const isPipelineDeployment = Object.prototype.hasOwnProperty.call(this.timeline[id]?.data, 'sourceProject')
                     if (isPipelineDeployment) return true
-                } else if ([
-                    'project.snapshot.rolled-back',
-                    'flows.set',
-                    'project.created',
-                    'project.settings.updated',
-                    'device.settings.updated'
-                ].includes(this.timeline[id]?.event)) return true
+                } else if (this.chainableEvents.includes(this.timeline[id]?.event)) return true
             }
 
             return false

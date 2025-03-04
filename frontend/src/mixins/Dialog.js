@@ -1,3 +1,5 @@
+import { markRaw } from 'vue'
+
 import dialog from '../services/dialog.js'
 
 export default {
@@ -8,6 +10,7 @@ export default {
                 text: null,
                 textLines: null,
                 html: null,
+                is: null,
                 confirmLabel: null,
                 kind: null,
                 canBeCanceled: true,
@@ -26,6 +29,7 @@ export default {
                 text: null,
                 textLines: null,
                 html: null,
+                is: null,
                 confirmLabel: null,
                 kind: null,
                 canBeCanceled: true,
@@ -42,6 +46,7 @@ export default {
                 this.dialog.text = msg.text
                 this.dialog.textLines = msg.text?.split('\n')
                 this.dialog.html = msg.html
+                this.dialog.is = markRaw(msg.is)
                 this.dialog.confirmLabel = msg.confirmLabel
                 this.dialog.kind = msg.kind
                 this.dialog.disablePrimary = msg.disablePrimary

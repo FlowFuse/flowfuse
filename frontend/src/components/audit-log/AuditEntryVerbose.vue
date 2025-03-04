@@ -172,6 +172,36 @@
         <span v-if="!error && entry.body?.device">Something went wrong, and we were unable to suspend Device '{{ entry.body.device.name }}'. Please check the logs to find out more.</span>
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
+    <template v-else-if="entry.event === 'device.pipeline.deployed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.device && entry.body?.snapshot">Pipeline Stage <i>{{ entry.body.pipeline.name }}</i> has deployed <i>{{ entry.body.snapshot.name }}</i> to <i>{{ entry.body.device.name }}</i></span>
+
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'device.project.deployed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project && entry.body?.device && entry.body?.snapshot && entry.body?.user">
+            <i>{{ entry.body.user.name }}</i>
+            updated
+            <i>{{ entry.body.project.name }}'s</i>
+            target snapshot to
+            <i>{{ entry.body.snapshot.name }}</i>
+            snapshot triggering a flow deployment
+        </span>
+
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'device.snapshot.deployed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="entry.body?.device && entry.body?.snapshot && entry.body.user">
+            <i>{{ entry.body.user.name }}</i>
+            restored the
+            <i>{{ entry.body.snapshot.name }}</i>
+            snapshot
+        </span>
+
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
 
     <!-- Account Scoped Events -->
     <template v-else-if="entry.event === 'account.register'">
