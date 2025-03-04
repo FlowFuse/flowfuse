@@ -57,7 +57,7 @@ export default {
     overflow: hidden;
 
     & > .ff-pipeline-header {
-        background: $ff-grey-100;
+        background: $ff-white;
         padding: 15px;
         border-bottom: 1px solid $ff-grey-300;
         transition: ease-in-out .3s;
