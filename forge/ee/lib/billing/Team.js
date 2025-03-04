@@ -106,6 +106,7 @@ module.exports = function (app) {
             return true
         }
 
+        await this.ensureTeamTypeExists()
         const teamTypeBillingDisabled = await this.TeamType.getProperty('billing.disabled', false)
         if (teamTypeBillingDisabled) {
             return
@@ -168,6 +169,7 @@ module.exports = function (app) {
         // First do base checks
         await this._checkInstanceStartAllowed()
 
+        await this.ensureTeamTypeExists()
         const teamTypeBillingDisabled = await this.TeamType.getProperty('billing.disabled', false)
         if (teamTypeBillingDisabled) {
             return
@@ -234,6 +236,7 @@ module.exports = function (app) {
         // has been reached
         await this._checkDeviceCreateAllowed()
 
+        await this.ensureTeamTypeExists()
         const teamTypeBillingDisabled = await this.TeamType.getProperty('billing.disabled', false)
         if (teamTypeBillingDisabled) {
             return
