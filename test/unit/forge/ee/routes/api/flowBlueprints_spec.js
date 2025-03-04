@@ -99,6 +99,7 @@ describe('Flow Blueprints API', function () {
             result.should.have.property('name', name)
             // Response is a summary object that doesn't include flows/modules
             result.should.have.property('flows')
+            result.should.not.have.property('externalUrl')
             result.should.not.have.property('modules')
         })
 
@@ -170,6 +171,27 @@ describe('Flow Blueprints API', function () {
             bp1.should.have.property('teamTypeScope').and.be.an.Array().and.have.length(1)
             bp1.teamTypeScope[0].should.equal(TestObjects.team.TeamType.id) // note id not hashid
         })
+
+        it('ExternalUrl is set on a new blueprint', async () => {
+            const name = generateName('flow blueprint')
+            const externalUrl = 'http://external-url.com/path/to/blueprint?id=id'
+            const [statusCode, result] = await createBlueprint({
+                name,
+                description: 'a flow',
+                active: true,
+                category: 'starter',
+                flows: { flows: [] },
+                modules: {},
+                externalUrl
+            }, TestObjects.tokens.alice)
+            statusCode.should.equal(200)
+            result.should.have.property('id')
+            result.should.have.property('name', name)
+            // Response is a summary object that doesn't include flows/modules
+            result.should.have.property('flows')
+            result.should.have.property('externalUrl', externalUrl)
+            result.should.not.have.property('modules')
+        })
     })
 
     describe('Get Flow Template', function () {
@@ -240,6 +262,7 @@ describe('Flow Blueprints API', function () {
 
             template.should.have.property('flows')
             template.should.have.property('modules')
+            template.should.have.property('externalUrl')
         })
     })
 
@@ -381,7 +404,8 @@ describe('Flow Blueprints API', function () {
                 active: false,
                 category: 'new cat',
                 flows: { flows: [1, 2, 3] },
-                modules: { a: '1' }
+                modules: { a: '1' },
+                externalUrl: 'updated-value'
             }, TestObjects.tokens.alice)
             updateStatusCode.should.equal(200)
 
@@ -390,8 +414,9 @@ describe('Flow Blueprints API', function () {
             template.should.have.property('description', 'new desc')
             template.should.have.property('active', false)
             template.should.have.property('category', 'new cat')
-            // Response is summary view without these properties
+            template.should.have.property('externalUrl', 'updated-value')
             template.should.have.property('flows')
+            // Response is summary view without these properties
             template.should.not.have.property('modules')
 
             const fullTemplate = (await app.inject({
@@ -402,6 +427,7 @@ describe('Flow Blueprints API', function () {
 
             fullTemplate.should.have.property('flows')
             fullTemplate.should.have.property('modules')
+            fullTemplate.should.have.property('externalUrl', 'updated-value')
         })
 
         it('Non-admin cannot update a flow blueprint', async function () {

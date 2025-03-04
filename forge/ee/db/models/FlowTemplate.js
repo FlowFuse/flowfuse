@@ -94,7 +94,8 @@ module.exports = {
                 const rawValue = this.getDataValue('teamTypeScope') || null
                 return JSON.parse(rawValue)
             }
-        }
+        },
+        externalUrl: { type: DataTypes.STRING, allowNull: true }
     },
     hooks: {
         afterValidate (flowTemplate, options) {
