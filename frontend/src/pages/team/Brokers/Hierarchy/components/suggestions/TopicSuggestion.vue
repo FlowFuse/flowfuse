@@ -89,9 +89,10 @@ export default {
                                 properties: suggestion.properties
                             }
                         },
-                        template: `<div class="p-4 border border-indigo-100 bg-indigo-50 rounded-md shadow-sm overflow-auto text-indigo-600" style="max-height: 70vh;">
-                                        <object-properties :properties="properties"/>
-                                    </div>`
+                        template: `
+                            <div class="p-4 border border-indigo-100 bg-indigo-50 rounded-md shadow-sm overflow-auto text-indigo-600" style="max-height: 70vh;">
+                                <object-properties :properties="properties"/>
+                            </div>`
                     })
                 },
                 confirmLabel: 'OK',

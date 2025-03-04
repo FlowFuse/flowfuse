@@ -21,7 +21,6 @@
                     :format="inferredType"
                     @suggestion-accepted="$emit('suggestion-accepted')"
                     @suggestion-rejected="$emit('suggestion-rejected')"
-                    @preview-suggestion="$emit('preview-suggestion', $event)"
                 />
             </topic-suggestions>
         </section>

@@ -19,7 +19,6 @@
                 @suggestion-accepted="onSuggestionAccepted"
                 @suggestion-rejected="onSuggestionRejected"
                 @clear-suggestion="onSuggestionCleared"
-                @preview-suggestion="onSuggestionPreview"
             />
         </template>
 
@@ -123,9 +122,6 @@ export default {
         onSuggestionCleared () {
             delete this.localSegment.metadata.schema
             this.saveTopicMeta()
-        },
-        onSuggestionPreview (suggestion) {
-            console.log(123, suggestion)
         }
     }
 }
