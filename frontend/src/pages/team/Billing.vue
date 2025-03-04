@@ -51,7 +51,32 @@
                     Something went wrong loading your subscription information, please try again.
                 </div>
             </div>
-            <EmptyState v-else-if="!isUnmanaged">
+            <EmptyState v-else-if="billingDisabledForTeam">
+                <template #img>
+                    <img src="../../images/empty-states/team-instances.png">
+                </template>
+                <template #header>Team Billing</template>
+                <template #message>
+                    <p>
+                        Your team does not require billing to be setup.
+                    </p>
+                </template>
+            </EmptyState>
+            <EmptyState v-else-if="isUnmanaged">
+                <template #img>
+                    <img src="../../images/empty-states/team-instances.png">
+                </template>
+                <template #header>Team Billing</template>
+                <template #message>
+                    <p>
+                        Your team billing cannot currently be managed from the dashboard.
+                    </p>
+                    <p>
+                        Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
+                    </p>
+                </template>
+            </EmptyState>
+            <EmptyState v-else>
                 <template #img>
                     <img src="../../images/empty-states/team-instances.png">
                 </template>
@@ -73,20 +98,6 @@
                 </template>
                 <template #actions>
                     <ff-button v-if="hasPermission('team:edit')" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
-                </template>
-            </EmptyState>
-            <EmptyState v-else>
-                <template #img>
-                    <img src="../../images/empty-states/team-instances.png">
-                </template>
-                <template #header>Team Billing</template>
-                <template #message>
-                    <p>
-                        Your team billing cannot currently be managed from the dashboard.
-                    </p>
-                    <p>
-                        Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
-                    </p>
                 </template>
             </EmptyState>
         </ff-page>
@@ -180,6 +191,10 @@ export default {
         },
         isUnmanaged () {
             return this.team.billing?.unmanaged
+        },
+        billingDisabledForTeam () {
+            // This team's type has billing disabled
+            return this.team.type?.properties?.billing?.disabled
         },
         trialMode () {
             return this.team.billing?.trial

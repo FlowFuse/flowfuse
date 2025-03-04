@@ -519,9 +519,12 @@ module.exports = async function (app) {
                         }
                     }
                 } else {
-                    const session = await app.billing.createSubscriptionSession(team, request.session.User)
-                    app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
-                    teamView.billingURL = session.url
+                    const teamBillingDisabled = await teamType.getProperty('billing.disabled', false)
+                    if (!teamBillingDisabled) {
+                        const session = await app.billing.createSubscriptionSession(team, request.session.User)
+                        app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
+                        teamView.billingURL = session.url
+                    }
                 }
             }
             // Haven't created an application yet, but settings say we should
