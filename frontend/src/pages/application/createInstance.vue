@@ -1,36 +1,34 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Instances">
-                <template #custom-breadcrumbs>
-                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
-                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Application', params: {id: application.id}}">
-                        {{ application.name }}
-                    </ff-nav-breadcrumb>
-                    <ff-nav-breadcrumb>
-                        Create Instance
-                    </ff-nav-breadcrumb>
+            <ff-page-header title="Add a new Instance">
+                <template #tools>
+                    <section class="flex gap-3">
+                        <ff-button kind="secondary">Back</ff-button>
+                        <ff-button>Next</ff-button>
+                    </section>
                 </template>
-                <template #context>
-                    Let's get your new Node-RED instance setup in no time.
+                <template #helptext>
+                    Help MEEEEE
                 </template>
             </ff-page-header>
         </template>
 
         <ff-loading v-if="isLoading" />
         <ff-loading v-else-if="sourceInstanceId && !sourceInstance" message="Loading instance to Copy From..." />
-        <InstanceForm
-            v-else
-            :has-header="false"
-            :instance="instanceDetails"
-            :source-instance="sourceInstance"
-            :team="team"
-            :applicationFieldsLocked="!!application?.id"
-            :billing-enabled="!!features.billing"
-            :flow-blueprints-enabled="!!features.flowBlueprints"
-            :submit-errors="errors"
-            @on-submit="handleFormSubmit"
-        />
+        <MultiStepInstanceForm v-else />
+        <!--        <InstanceForm-->
+        <!--            v-else-->
+        <!--            :has-header="false"-->
+        <!--            :instance="instanceDetails"-->
+        <!--            :source-instance="sourceInstance"-->
+        <!--            :team="team"-->
+        <!--            :applicationFieldsLocked="!!application?.id"-->
+        <!--            :billing-enabled="!!features.billing"-->
+        <!--            :flow-blueprints-enabled="!!features.flowBlueprints"-->
+        <!--            :submit-errors="errors"-->
+        <!--            @on-submit="handleFormSubmit"-->
+        <!--        />-->
     </ff-page>
 </template>
 
@@ -39,6 +37,7 @@ import { ChevronLeftIcon } from '@heroicons/vue/solid/index.js'
 import { mapState } from 'vuex'
 
 import instanceApi from '../../api/instances.js'
+import MultiStepInstanceForm from '../../components/multi-step-modals/instance-creation/MultiStepInstanceForm.vue'
 
 import applicationMixin from '../../mixins/Application.js'
 import Alerts from '../../services/alerts.js'
@@ -47,6 +46,7 @@ import InstanceForm from '../instance/components/InstanceForm.vue'
 export default {
     name: 'ApplicationCreateInstance',
     components: {
+        MultiStepInstanceForm,
         InstanceForm
     },
     mixins: [applicationMixin],
