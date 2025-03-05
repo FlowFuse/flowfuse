@@ -311,6 +311,13 @@ const getTeamRegistry = async (teamId, cursor, limit) => {
         data: res.data
     }
 }
+const generateRegistryUserToken = async (teamId) => {
+    const url = paginateUrl(`/api/v1/teams/${teamId}/npm/userToken`)
+    const res = await client.post(url)
+    return {
+        data: res.data
+    }
+}
 
 const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
     const url = paginateUrl(`/storage/library/${teamId}/${parentDir || ''}`, cursor, limit)
@@ -490,6 +497,7 @@ export default {
     getTeamUserMembership,
     getTeamDevices,
     getTeamRegistry,
+    generateRegistryUserToken,
     getTeamLibrary,
     deleteFromTeamLibrary,
     getTeamDeviceProvisioningTokens,

@@ -1,8 +1,9 @@
 <template>
     <ff-dialog
-        ref="dialog" :header="'Publish Custom Node Package'"
+        ref="dialog" :header="'Publish Custom Package'"
         :confirm-label="'Close'"
-        @confirm="confirm()"
+        :canBeCanceled="false"
+        @confirm="clear()"
     >
         <template #default>
             <div>
@@ -12,48 +13,53 @@
                 <p class="mt-2">
                     Publishing to this registry, will make your package available to all of your Node-RED instances in FlowFuse.
                 </p>
-                <label class="block font-bold mt-4 mb-2">Login to Registry</label>
-                <CodeSnippet>{{ commands.login }}</CodeSnippet>
-                <CopySnippet :snippet="commands.login" />
-                <label class="block font-bold mt-2 mb-2">Credentials</label>
-                <p class="mb-3">
-                    You will be prompted to insert a <b>username</b> and <b>password</b>.
-                    You can re-use the credentials you have previously used, or regenerate credentials now.
-                </p>
-                <label class="block font-bold mt-2 mb-2">Publish Package</label>
-                <CodeSnippet>{{ commands.publish }}</CodeSnippet>
-                <CopySnippet :snippet="commands.publish" />
+                <details class="mt-4" open="true">
+                    <summary class="mt-6 cursor-pointer mb-2 font-bold">Login to Registry</summary>
+                    <div>
+                        <CodeSnippet>{{ commands.login }}</CodeSnippet>
+                        <CopySnippet :snippet="commands.login" />
+                    </div>
+                </details>
+                <details class="mt-4" open="true">
+                    <summary class="mt-6 cursor-pointer mb-2 font-bold">Credentials</summary>
+                    <div>
+                        <p class="mb-3">
+                            You will be prompted to insert a <b>username</b> and <b>password</b>.
+                            You can re-use the credentials you have previously used, or regenerate credentials now.
+                        </p>
+                        <ff-button kind="secondary" @click="generateCreds">Generate New Credentials</ff-button>
+                        <div v-if="loading.credentials" class="text-center p-2 mt-2 bg-gray-100 rounded text-gray-400 border-gray-300">
+                            Generating New Credentials...
+                        </div>
+                        <div v-else-if="credentials.username && credentials.token" class="mt-2">
+                            <div>
+                                <label class="text-sm mb-1 font-bold">username:</label>
+                                <CodeSnippet>{{ credentials.username }}</CodeSnippet>
+                                <CopySnippet :snippet="credentials.username" />
+                            </div>
+                            <div>
+                                <label class="text-sm mb-1 font-bold">token:</label>
+                                <CodeSnippet>{{ credentials.token }}</CodeSnippet>
+                                <CopySnippet :snippet="credentials.token" />
+                            </div>
+                            <p class="text-gray-600 italic text-sm">
+                                Note: These credentials are only shown this one time. Make sure to store them securely for future use.
+                            </p>
+                        </div>
+                    </div>
+                </details>
+                <details class="mt-4" open="true">
+                    <summary class="mt-6 cursor-pointer mb-2 font-bold">Publish Package</summary>
+                    <div>
+                        <p class="mb-2">Make sure that the package name is scoped to your Team's ID:</p>
+                        <code class="text-sm block text-gray-500 p-2 bg-gray-50">"name": "@{{ team.id }}/my-package-name"</code>
+                        <p class="mt-2 mb-2">Then run this command to publish your package when it is ready:</p>
+                        <CodeSnippet>{{ commands.publish }}</CodeSnippet>
+                        <CopySnippet :snippet="commands.publish" />
+                    </div>
+                </details>
+                <p>For more detailed instructions you can view the documentation <a href="https://flowfuse.com/docs">here</a>.</p>
             </div>
-            <!-- <label class="block font-bold mb-2">Install Device Agent</label>
-            <p>Run this command on the hardware where you want your Remote Instance to run:</p>
-            <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">npm install -g @flowfuse/device-agent</pre>
-            <div class="flex flex-row justify-end space-x-2 -mt-1">
-                <ff-button kind="tertiary" size="small" @click="copy('npm install -g @flowfuse/device-agent')">
-                    <template #icon-right><ClipboardCopyIcon /></template>
-                    <span class="">Copy</span>
-                </ff-button>
-            </div>
-            <p class="text-gray-600 italic text-sm">
-                Note: For more detailed instructions on installing the Device Agent, checkout the documentation <a href="https://flowfuse.com/docs/device-agent/" target="_blank">here</a>.
-            </p>
-            <label class="block font-bold mt-4 mb-2">Connect Agent to FlowFuse</label>
-            <p class="mt-2">
-                Then, with the Device Agent installed, run the following command, on your hardware, to connect it to FlowFuse:
-            </p>
-            <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ otcCommand }}</pre>
-            <div class="flex flex-row justify-end space-x-2 -mt-1">
-                <ff-button kind="tertiary" size="small" @click="copy(otcCommand)">
-                    <template #icon-right><ClipboardCopyIcon /></template>
-                    <span class="">Copy</span>
-                </ff-button>
-            </div>
-            <p class="text-gray-600 italic text-sm">
-                <span>Notes:</span>
-                <ul class="list-disc list-inside ml-2">
-                    <li>this command is single use and expires in 24h.</li>
-                    <li>requires device-agent v2.1 or later (follow the manual setup below for older versions).</li>
-                </ul>
-            </p> -->
         </template>
     </ff-dialog>
 </template>
@@ -61,10 +67,10 @@
 <script>
 import { mapState } from 'vuex'
 
+import TeamAPI from '../../../../../api/team.js'
 import CodeSnippet from '../../../../../components/CodeSnippet.vue'
 import CopySnippet from '../../../../../components/CopySnippet.vue'
-
-// import TeamAPI from '../../../../api/team.js'
+import Alerts from '../../../../instance/Settings/Alerts.vue'
 
 export default {
     name: 'PublishNodeDialog',
@@ -81,6 +87,13 @@ export default {
     },
     data () {
         return {
+            credentials: {
+                username: '',
+                token: ''
+            },
+            loading: {
+                credentials: false
+            }
         }
     },
     computed: {
@@ -91,7 +104,7 @@ export default {
         commands () {
             return {
                 login: `npm login --registry ${this.registryHost}`,
-                publish: 'npm publish'
+                publish: `npm publish --registry ${this.registryHost}`
             }
         }
     },
@@ -99,7 +112,23 @@ export default {
 
     },
     methods: {
-        confirm () {
+        clear () {
+            this.credentials = {
+                username: '',
+                token: ''
+            }
+        },
+        async generateCreds () {
+            this.loading.credentials = true
+            try {
+                const creds = await TeamAPI.generateRegistryUserToken(this.team.id)
+                this.credentials.username = creds.data.username
+                this.credentials.token = creds.data.token
+            } catch (err) {
+                console.error(err)
+                Alerts.emit('Failed to generate credentials.', 'error')
+            }
+            this.loading.credentials = false
         }
     }
 }

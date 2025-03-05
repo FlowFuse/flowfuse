@@ -1,14 +1,16 @@
 <template>
-    <SectionTopMenu hero="Custom Node Catalog" info="Your Team's private Node catalog. Here you can publish private npm repositories for your team to use within your Node-RED Instances.">
-        <template #tools>
-            <ff-button v-if="canPublish" @click="publish">
-                <template #icon-left>
-                    <ArrowCircleUpIcon />
-                </template>
-                Publish
-            </ff-button>
-        </template>
-    </SectionTopMenu>
+    <div class="-mt-2">
+        <SectionTopMenu hero="Custom Node Catalog" info="Your Team's private Node catalog. Here you can publish private npm repositories for your team to use within your Node-RED Instances.">
+            <template #tools>
+                <ff-button v-if="canPublish" @click="publish">
+                    <template #icon-left>
+                        <ArrowCircleUpIcon />
+                    </template>
+                    Publish
+                </ff-button>
+            </template>
+        </SectionTopMenu>
+    </div>
     <div>
         <EmptyState v-if="!registry.length" data-el="team-no-devices">
             <template #img>
@@ -17,7 +19,11 @@
             <template #header>Publish Your First Custom Nodes</template>
             <template #message>
                 <p>
-                    Details about publishing your first Node package
+                    Store and manage your own private NodeJS and Node-RED packages.
+                </p>
+                <p>
+                    FlowFuse hosts a private NPM registry for your team. Anything you publish to this registry
+                    will then be made available to install within all of your Node-RED Instances via the Node-RED Palette Manager.
                 </p>
             </template>
             <template #actions>
@@ -35,7 +41,7 @@
             </template>
         </EmptyState>
         <div v-else>
-            List Registry
+            <RegistryEntry v-for="pkg in registry" :key="pkg.name" :pkg="pkg" />
         </div>
     </div>
 
@@ -51,6 +57,8 @@ import TeamAPI from '../../../../api/team.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../../components/SectionTopMenu.vue'
 
+import RegistryEntry from './components/RegistryEntry.vue'
+
 import PublishNodeDialog from './dialogs/PublishNode.vue'
 
 export default {
@@ -59,7 +67,8 @@ export default {
         ArrowCircleUpIcon,
         EmptyState,
         SectionTopMenu,
-        PublishNodeDialog
+        PublishNodeDialog,
+        RegistryEntry
     },
     data () {
         return {
