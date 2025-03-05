@@ -52,7 +52,7 @@ Running this command on hardware with the Device Agent installed will automatica
 #### Manual Setup
 
 For older versions of the device agent, you can expand the the **Manual Setup** section
-and use the configuration data with the [Device Agent Web UI](#device-agent-web-ui) or the [Manual Download](#manual-download) methods instead._
+and use the configuration data with the [Device Agent Web UI](#device-agent-web-ui) or the [Manual Download](#manual-download) methods instead.
 
 Repeat these steps for each Remote Instance you want to connect to the platform.
 

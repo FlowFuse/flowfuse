@@ -124,31 +124,11 @@ module.exports = {
                         events = [
                             'flows.set',
                             'device.restarted',
-                            'device.settings.updated'
-                            // 'device.assigned',
-                            // 'device.credential.generated',
-                            // 'device.developer-mode.disabled',
-                            // 'device.developer-mode.enabled',
-                            // 'device.remote-access.disabled',
-                            // 'device.remote-access.enabled',
-                            // 'team.device.assigned',
-                            // 'team.device.bulk-deleted',
-                            // 'team.device.created',
-                            // 'team.device.credentials-generated',
-                            // 'team.device.deleted',
-                            // 'team.device.developer-mode.disabled',
-                            // 'team.device.developer-mode.enabled',
-                            // 'team.device.provisioning.created',
-                            // 'team.device.remote-access.disabled',
-                            // 'team.device.remote-access.enabled',
-                            // 'team.device.unassigned',
-                            // 'team.device.updated',
-                            // 'application.device.assigned',
-                            // 'application.device.snapshot.created',
-                            // 'application.device.unassigned',
-                            // 'application.deviceGroup.created',
-                            // 'application.deviceGroup.deleted',
-                            // 'application.deviceGroup.members.changed'
+                            'device.settings.updated',
+                            'device.pipeline.deployed',
+                            'device.project.deployed',
+                            'device.snapshot.deployed',
+                            'device.snapshot.created'
                         ]
                     }
 
@@ -202,7 +182,6 @@ module.exports = {
                     for (const row of rows) {
                         try {
                             row.body = typeof row.body === 'string' ? JSON.parse(row.body) : JSON.parse('' + row.body)
-                            delete row.body.project // we don't need to include the project object in specific project history
                         } catch (_e) {
                             row.body = {}
                         }

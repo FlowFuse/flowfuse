@@ -68,7 +68,7 @@
             </template>
         </EmptyState>
 
-        <router-view v-else :brokerState="brokerState" />
+        <router-view v-else :brokerState="brokerState" :errorCode="errorCode" @broker-updated="loadingState = true; brokerState = ''" />
     </ff-page>
 </template>
 
@@ -106,7 +106,8 @@ export default {
             loading: true,
             loadingState: false,
             brokerStatusPollingInterval: null,
-            brokerState: ''
+            brokerState: '',
+            errorCode: ''
         }
     },
     computed: {
@@ -353,14 +354,21 @@ export default {
                             this.brokerState = 'starting'
                         } else {
                             this.brokerState = 'error'
+                            this.errorCode = response.status.error || 'ENOTFOUND'
                         }
                     } else {
                         this.brokerState = 'suspended'
+                    }
+                    if (this.brokerState !== 'error') {
+                        this.errorCode = ''
                     }
                 })
                 .catch(e => {
                     this.brokerState = 'error'
                     console.error(e)
+                })
+                .finally(() => {
+                    this.loadingState = false
                 })
         },
         clearBrokerStatusPollingInterval () {
