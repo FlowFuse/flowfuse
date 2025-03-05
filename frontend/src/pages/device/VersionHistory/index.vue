@@ -20,7 +20,7 @@
             </template>
         </template>
         <template #tools>
-            <section class="flex gap-2 items-center self-center truncate">
+            <section class="flex gap-2 items-center self-center">
                 <ff-checkbox
                     v-model="showDeviceSnapshotsOnly"
                     v-ff-tooltip:left="'Untick this to show snapshots from other Instances within this application'"
@@ -32,15 +32,16 @@
                     v-if="hasPermission('snapshot:import')"
                     kind="secondary"
                     data-action="import-snapshot"
-                    :disabled="busy"
+                    :disabled="busy || isOwnedByAnInstance || isUnassigned"
                     @click="showImportSnapshotDialog"
                 >
                     <template #icon-left><UploadIcon /></template>Upload Snapshot
                 </ff-button>
                 <ff-button
+                    v-ff-tooltip:left="!canCreateSnapshot ? 'Instance must be in \'Developer Mode\' to create a Snapshot' : 'Capture a Snapshot of this Instance.'"
                     kind="primary"
                     data-action="create-snapshot"
-                    :disabled="!developerMode || busy"
+                    :disabled="!canCreateSnapshot"
                     @click="showCreateSnapshotDialog"
                 >
                     <template #icon-left><PlusSmIcon /></template>Create Snapshot
@@ -67,7 +68,7 @@
         ref="snapshotCreateDialog"
         title="Create Device Snapshot"
         data-el="dialog-create-device-snapshot"
-        :show-set-as-target="true"
+        :show-set-as-target="false"
         :device="device"
         @device-upload-success="onSnapshotCreated"
         @device-upload-failed="onSnapshotFailed"
@@ -135,6 +136,21 @@ export default {
         },
         busy () {
             return this.busyMakingSnapshot || this.busyImportingSnapshot
+        },
+        isOwnedByAnInstance () {
+            return this.device?.ownerType === 'instance'
+        },
+        isOwnedByAnApplication () {
+            return this.device?.ownerType === 'application'
+        },
+        isUnassigned () {
+            return this.device?.ownerType === ''
+        },
+        canCreateSnapshot () {
+            if (!this.developerMode || this.busy) {
+                return false
+            }
+            return this.isOwnedByAnInstance || this.isOwnedByAnApplication
         }
     },
     methods: {

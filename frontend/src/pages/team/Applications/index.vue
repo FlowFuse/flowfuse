@@ -132,7 +132,8 @@ export default {
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
             ],
-            filterTerm: ''
+            filterTerm: '',
+            tour: null
         }
     },
     computed: {
@@ -226,7 +227,8 @@ export default {
         team: 'fetchData',
         tours: {
             handler (tours) {
-                if (tours.welcome) {
+                // handles the user manually re-requesting the tour
+                if (tours.welcome || tours['first-device']) {
                     this.dispatchTour()
                 }
             },
@@ -244,6 +246,11 @@ export default {
                 // allow the Alerts service to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
+        }
+
+        if (this.tours.welcome || this.tours['first-device']) {
+            // given we've loaded resources, check for tour status
+            this.dispatchTour()
         }
 
         this.setSearchQuery()
@@ -339,6 +346,10 @@ export default {
             return Object.prototype.hasOwnProperty.call(this.completeTours, tour)
         },
         dispatchTour () {
+            if (this.tour) {
+                // don't run two tours at once
+                return
+            }
             switch (true) {
             case this.isFreemiumTeamType && !this.hasTourBeenCompleted('first-device') && !!this.applicationsList[0]:
                 // freemium users must first undergo the first-device tour on the ApplicationDevices page
@@ -347,40 +358,31 @@ export default {
                         name: 'ApplicationDevices',
                         params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
                     }))
-                    .then(() => Tours.create(
-                        'first-device',
-                        TourFirstDevice,
-                        this.$store
-                    ))
-                    .then((tour) => tour.start())
+                    .then(() => {
+                        this.tour = Tours.create(
+                            'first-device',
+                            TourFirstDevice,
+                            this.$store
+                        )
+                        this.tour.start()
+                    })
                     .catch(e => e)
 
-            case this.isFreemiumTeamType && this.hasTourBeenCompleted('first-device'):
-                // we're starting the delayed free tour for freemium tiers (without any instances pre-created)
-                return (Tours.create('welcome',
-                    TourWelcomeFree,
-                    this.$store,
-                    () => {
-                        if (this.deviceCount === 0) {
-                            this.$store.dispatch('ux/activateTour', 'first-device')
-                        } else {
-                            this.$store.dispatch('ux/activateTour', 'education')
-                        }
-                    })).start()
-
             case !this.isFreemiumTeamType && this.instanceCount > 0:
-                // Running with an Instance pre-configured (Trial team types)
-                return (Tours.create('welcome', TourWelcome, this.$store, () => {
+                this.tour = Tours.create('welcome', TourWelcome, this.$store, () => {
                     this.$store.dispatch('ux/activateTour', 'education')
-                })).start()
+                })
+                // Running with an Instance pre-configured (Trial team types)
+                return this.tour.start()
 
             case !this.isFreemiumTeamType:
                 // any regular team type
-                return (Tours.create('welcome', TourWelcomeFree, this.$store, () => {
+                this.tour = Tours.create('welcome', TourWelcomeFree, this.$store, () => {
                     if (this.deviceCount === 0) {
                         this.$store.dispatch('ux/activateTour', 'first-device')
                     }
-                })).start()
+                })
+                return this.tour.start()
 
             default:
                 // no tours

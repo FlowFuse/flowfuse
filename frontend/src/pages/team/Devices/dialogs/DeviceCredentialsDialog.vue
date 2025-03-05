@@ -15,14 +15,14 @@
                     <template v-if="otc">
                         <label class="block font-bold mb-2">Install Device Agent</label>
                         <p>Run this command on the hardware where you want your Remote Instance to run:</p>
-                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">npm install @flowfuse/device-agent</pre>
+                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">npm install -g @flowfuse/device-agent</pre>
                         <div class="flex flex-row justify-end space-x-2 -mt-1">
-                            <ff-button kind="tertiary" size="small" @click="copy('npm install @flowfuse/device-agent')">
+                            <ff-button kind="tertiary" size="small" @click="copy('npm install -g @flowfuse/device-agent')">
                                 <template #icon-right><ClipboardCopyIcon /></template>
                                 <span class="">Copy</span>
                             </ff-button>
                         </div>
-                        <p class="text-gray-600 italic text-sm -mt-6">
+                        <p class="text-gray-600 italic text-sm">
                             Note: For more detailed instructions on installing the Device Agent, checkout the documentation <a href="https://flowfuse.com/docs/device-agent/" target="_blank">here</a>.
                         </p>
                         <label class="block font-bold mt-4 mb-2">Connect Agent to FlowFuse</label>
@@ -36,7 +36,7 @@
                                 <span class="">Copy</span>
                             </ff-button>
                         </div>
-                        <p class="text-gray-600 italic text-sm -mt-6">
+                        <p class="text-gray-600 italic text-sm">
                             <span>Notes:</span>
                             <ul class="list-disc list-inside ml-2">
                                 <li>this command is single use and expires in 24h.</li>
@@ -45,7 +45,7 @@
                         </p>
 
                         <details class="mt-4">
-                            <summary class="mt-6">Show manual setup instructions</summary>
+                            <summary class="mt-6 cursor-pointer">Show manual setup instructions</summary>
                             <p class="mt-4">
                                 Place the below configuration on your device.
                                 See the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">Device Agent documentation</a> for instructions on how to do this.

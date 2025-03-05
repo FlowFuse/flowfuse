@@ -50,7 +50,9 @@
                         label="Download package.json"
                         @click="$emit('download-package-json', event.data.snapshot)"
                     />
+                    <!-- Only show this option for Application Snapshot, not at the Device Level -->
                     <ff-list-item
+                        v-if="!isADeviceSnapshotEvent"
                         :disabled="!hasPermission('project:snapshot:set-target')"
                         label="Set as Device Target"
                         @click="$emit('set-device-target', event.data.snapshot)"
@@ -116,8 +118,8 @@ export default {
             let name
             const data = this.event.data
 
-            switch (true) {
-            case this.event.event === 'project.snapshot.imported':
+            switch (this.event.event) {
+            case 'project.snapshot.imported':
                 name = data.snapshot.name.split(' - Deploy')[0] ?? ''
 
                 if (Object.prototype.hasOwnProperty.call(data ?? {}, 'sourceProject')) {
@@ -158,8 +160,7 @@ export default {
                             snapshot
                         </span>`
                 })
-
-            case this.event.event === 'project.snapshot.rolled-back':
+            case 'project.snapshot.rolled-back':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     emits: ['preview-snapshot'],
@@ -172,7 +173,8 @@ export default {
                             <a href="#" @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
                         </span>`
                 })
-            case this.event.event === 'project.snapshot.created':
+            case 'project.snapshot.created':
+            case 'device.snapshot.created':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     emits: ['preview-snapshot'],
@@ -186,20 +188,74 @@ export default {
                             <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
                         </span>`
                 })
-            case this.event.event === 'flows.set':
+            case 'flows.set':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: '<span>Flows Deployed From Editor</span>'
                 })
-            case this.event.event === 'project.created':
+            case 'project.created':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: '<span>Instance Created</span>'
                 })
-            case ['project.settings.updated', 'device.settings.updated'].includes(this.event.event):
+            case 'project.settings.updated':
+            case 'device.settings.updated':
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
                     template: '<span>Settings Updated</span>'
+                })
+            case 'device.restarted':
+                // eslint-disable-next-line vue/one-component-per-file
+                return defineComponent({
+                    template: '<span>Remote Instance restarted</span>'
+                })
+            case 'device.pipeline.deployed':
+                // eslint-disable-next-line vue/one-component-per-file
+                return defineComponent({
+                    emits: ['preview-snapshot'],
+                    methods: {
+                        previewSnapshot () { this.$emit('preview-snapshot') }
+                    },
+                    template: `<span>
+                                    Flows deployed through the
+                                    <i>${data.pipeline.name}</i>
+                                    pipeline, applying the
+                                    <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i>
+                                    <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
+                                    snapshot
+                                </span>`
+                })
+            case 'device.project.deployed':
+                // eslint-disable-next-line vue/one-component-per-file
+                return defineComponent({
+                    emits: ['preview-snapshot'],
+                    data () { return { data } },
+                    methods: {
+                        previewSnapshot () { this.$emit('preview-snapshot') }
+                    },
+                    template: `<span>
+                                    Flows deployed through the
+                                    <router-link :to="{name: 'instance-devices', params: {id: this.data.project.id}}">${data.project.name}</router-link>
+                                    hosted instance, applying the
+                                    <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i>
+                                    <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
+                                    snapshot
+                                </span>`
+                })
+            case 'device.snapshot.deployed':
+                // eslint-disable-next-line vue/one-component-per-file
+                return defineComponent({
+                    emits: ['preview-snapshot'],
+                    data () { return { data } },
+                    methods: {
+                        previewSnapshot () { this.$emit('preview-snapshot') }
+                    },
+                    template: `<span>
+                                    <span v-if="${!data.info?.snapshotExists}"> <i>${data.snapshot.name}</i> restored</span>
+                                    <span v-else>
+                                        <a href="#" @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a> restored
+                                    </span>
+                                </span>`
                 })
             default:
                 // eslint-disable-next-line vue/one-component-per-file
@@ -209,23 +265,32 @@ export default {
             }
         },
         shortTitle () {
-            switch (true) {
-            case this.event.event === 'project.snapshot.imported':
+            switch (this.event.event) {
+            case 'project.snapshot.imported':
                 if (Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')) {
                     // we can only differentiate between a plain snapshot import and a devops deployment history events
                     // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
                     return 'Pipeline Stage Pushed'
                 } else return 'Snapshot Imported'
-            case this.event.event === 'project.snapshot.rolled-back':
+            case 'project.snapshot.rolled-back':
                 return 'Snapshot Restored'
-            case this.event.event === 'flows.set':
+            case 'flows.set':
                 return 'Flows Deployed'
-            case this.event.event === 'project.snapshot.created':
+            case 'project.snapshot.created':
+            case 'device.snapshot.created':
                 return 'Snapshot Created'
-            case this.event.event === 'project.created':
+            case 'project.created':
                 return 'Instance Created'
+            case 'device.restarted':
+                return 'Remote Instance Restarted'
             case ['project.settings.updated', 'device.settings.updated'].includes(this.event.event):
                 return 'Settings Updated'
+            case 'device.pipeline.deployed':
+                return 'Pipeline deployment'
+            case 'device.project.deployed':
+                return 'Hosted instance deployment'
+            case 'device.snapshot.deployed':
+                return 'Snapshot deployment'
             default:
                 return this.event.event
             }
@@ -236,13 +301,17 @@ export default {
             const isImportedSnapshot = this.event.event === 'project.snapshot.imported' &&
                 !Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')
 
-            return this.event.event === 'project.snapshot.created' || isImportedSnapshot
+            return ['project.snapshot.created', 'device.snapshot.created'].includes(this.event.event) || isImportedSnapshot
         },
         snapshotExists () {
             return this.isSnapshot && this.event.data?.info?.snapshotExists
         },
         isLoadMore () {
             return this.event.event === 'load-more'
+        },
+        isADeviceSnapshotEvent () {
+            return Object.prototype.hasOwnProperty.call(this.event.data, 'device') &&
+                Object.prototype.hasOwnProperty.call(this.event.data, 'snapshot')
         }
     },
     methods: {
@@ -271,6 +340,10 @@ export default {
             .title {
                 overflow: hidden;
                 text-overflow: ellipsis;
+
+                i {
+                    opacity: .5;
+                }
 
                 a {
                     color: $ff-blue-600;

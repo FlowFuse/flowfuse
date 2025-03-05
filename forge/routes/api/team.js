@@ -62,14 +62,7 @@ module.exports = async function (app) {
         }
     })
 
-    async function getTeamDetails (request, reply, team) {
-        if (!request.session.User?.admin && request.teamMembership.role < Roles.Viewer) {
-            // Return summary details for any role less than Viewer (eg dashboard)
-            reply.send(app.db.views.Team.teamSummary(team))
-            return
-        }
-        const result = app.db.views.Team.team(team)
-        result.instanceCountByType = await team.instanceCountByType()
+    async function appendBillingDetails (result, team, request) {
         if (app.license.active() && app.billing) {
             result.billing = {}
             const subscription = await team.getSubscription()
@@ -92,6 +85,19 @@ module.exports = async function (app) {
                 result.billing.active = false
             }
         }
+    }
+
+    async function getTeamDetails (request, reply, team) {
+        if (!request.session.User?.admin && request.teamMembership.role < Roles.Viewer) {
+            // Return summary details for any role less than Viewer (eg dashboard)
+            reply.send(app.db.views.Team.teamSummary(team))
+            return
+        }
+        const result = app.db.views.Team.team(team)
+        result.instanceCountByType = await team.instanceCountByType()
+
+        await appendBillingDetails(result, team, request)
+
         reply.send(result)
     }
 
@@ -522,6 +528,7 @@ module.exports = async function (app) {
             if (!defaultTeamCreated && app.settings.get('user:team:auto-create:application')) {
                 await createTeamApplication(request.session.User, team)
             }
+            await appendBillingDetails(teamView, team, request)
             reply.send(teamView)
         } catch (err) {
             // prepare response
