@@ -92,14 +92,15 @@ describe('Flow Blueprints API', function () {
                 active: true,
                 category: 'starter',
                 flows: { flows: [] },
-                modules: {}
+                modules: {},
+                externalUrl: 'url'
             }, TestObjects.tokens.alice)
             statusCode.should.equal(200)
             result.should.have.property('id')
             result.should.have.property('name', name)
-            // Response is a summary object that doesn't include flows/modules
             result.should.have.property('flows')
-            result.should.not.have.property('externalUrl')
+            result.should.have.property('externalUrl')
+            // Response is a summary object that doesn't include flows/modules
             result.should.not.have.property('modules')
         })
 
