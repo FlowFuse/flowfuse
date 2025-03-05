@@ -91,7 +91,7 @@ export default {
     name: 'TeamBrokers',
     components: { BrokerStatusBadge, FfLoading, EmptyState, PlusIcon },
     beforeRouteLeave (to, from, next) {
-        if (to.params?.team_slug !== from.params?.team_slug) {
+        if (to.params.team_slug && to.params.team_slug !== from.params?.team_slug) {
             this.clearUns()
         }
 
