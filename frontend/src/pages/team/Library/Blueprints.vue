@@ -9,6 +9,7 @@
                     class="blueprint-tile"
                     :blueprint="blueprint"
                     :data-el="blueprint.id"
+                    :display-external-url-button="true"
                     @selected="onBlueprintSelect"
                 />
             </div>
