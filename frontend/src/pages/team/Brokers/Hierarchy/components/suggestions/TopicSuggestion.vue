@@ -6,9 +6,11 @@
                 <span class="format">{{ capitalize(format) }}</span>
             </div>
             <div class="description-wrapper">
-                <p v-if="description" class="description opacity-50 text-xs leading-none">{{ description }}</p>
-                <p v-else class="description opacity-50 text-xs leading-none">
-                    FlowFuse has detected that the messages sent to this topic are {{ format.toUpperCase() }}. Would you like to save this to your Schema?
+                <p v-if="description" class="description opacity-50 text-sm">{{ description }}</p>
+                <p v-else class="description opacity-50 text-sm">
+                    FlowFuse has detected that the messages sent to this topic are {{ format.toUpperCase() }}.
+                    <template v-if="format === 'object'">FlowFuse has also established a full Schema for this Object, which you can inspect using the button to the right.</template>
+                    Would you like to apply this suggestion to your Schema?
                 </p>
             </div>
         </div>
