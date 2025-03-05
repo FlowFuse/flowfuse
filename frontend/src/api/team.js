@@ -304,6 +304,14 @@ const getTeamDevices = async (teamId, cursor, limit, query, extraParams = {}) =>
     return res.data
 }
 
+const getTeamRegistry = async (teamId, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/teams/${teamId}/npm/packages`, cursor, limit)
+    const res = await client.get(url)
+    return {
+        data: res.data
+    }
+}
+
 const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
     const url = paginateUrl(`/storage/library/${teamId}/${parentDir || ''}`, cursor, limit)
     const res = await client.get(url)
@@ -481,6 +489,7 @@ export default {
     getTeamAuditLog,
     getTeamUserMembership,
     getTeamDevices,
+    getTeamRegistry,
     getTeamLibrary,
     deleteFromTeamLibrary,
     getTeamDeviceProvisioningTokens,

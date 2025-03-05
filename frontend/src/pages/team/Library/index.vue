@@ -34,6 +34,13 @@ export default {
                     }
                 },
                 {
+                    label: 'Custom Nodes',
+                    to: {
+                        name: 'LibraryRegistry'
+
+                    }
+                },
+                {
                     label: 'Blueprints',
                     to: {
                         name: 'LibraryBlueprints'
