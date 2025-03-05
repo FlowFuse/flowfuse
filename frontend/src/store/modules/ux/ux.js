@@ -11,9 +11,6 @@ import ProjectsIcon from '../../../components/icons/Projects.js'
 import usePermissions from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
-import commonActions from '../../common/actions.js'
-import commonMutations from '../../common/mutations.js'
-
 const initialState = () => ({
     leftDrawer: {
         state: false,
@@ -437,7 +434,6 @@ const getters = {
 }
 
 const mutations = {
-    ...commonMutations,
     openRightDrawer (state, { component }) {
         state.rightDrawer.state = true
         state.rightDrawer.component = component
@@ -489,7 +485,6 @@ const mutations = {
 }
 
 const actions = {
-    ...commonActions(initialState, meta),
     openRightDrawer ({ commit }, { component }) {
         commit('openRightDrawer', { component })
     },
@@ -541,8 +536,74 @@ const actions = {
 export default {
     namespaced: true,
     state,
+    initialState: initialState(),
     getters,
     mutations,
     actions,
-    meta
+    meta,
+    modules: {
+        secondary: {
+            namespaced: true,
+            initialState: {
+                secondaryValue: 'initial-state secondary',
+                persistedValue: 'not persisting'
+            },
+            state: () => ({
+                secondaryValue: 'whatever-state secondary',
+                persistedValue: 'persisting'
+            }),
+            getters: {
+                value (state) {
+                    return state.secondaryValue
+                }
+            },
+            mutations: {
+                setSecondaryValue (state, payload) {
+                    state.secondaryValue = payload
+                }
+            },
+            actions: {
+                actionSecondary ({ commit }, payload) {
+                    commit('setSecondaryValue', payload)
+                }
+            },
+            meta: {
+                persistence: {
+                    persistedValue: {
+                        storage: 'localStorage',
+                        clearOnLogout: false
+                    }
+                }
+            },
+            modules: {
+                tertiary: {
+                    namespaced: true,
+                    initialState: {
+                        tertiaryValue: 'initial-state tertiary'
+                    },
+                    state: () => ({
+                        tertiaryValue: 'whatever-state tertiary'
+                    }),
+                    getters: {
+                        value (state) {
+                            return state.tertiaryValue
+                        }
+                    },
+                    mutations: {
+                        setTertiaryValue (state, payload) {
+                            state.qweqwe = payload
+                        }
+                    },
+                    actions: {
+                        actionTertiary ({ commit }, payload) {
+                            commit('setTertiaryValue', payload)
+                        }
+                    },
+                    meta: {
+                        persistence: {}
+                    }
+                }
+            }
+        }
+    }
 }
