@@ -1,7 +1,7 @@
-import brokerApi from '../api/broker.js'
+import brokerApi from '../../../api/broker.js'
 
-import commonActions from './common/actions.js'
-import commonMutations from './common/mutations.js'
+import commonActions from '../../common/actions.js'
+import commonMutations from '../../common/mutations.js'
 
 // initial state
 const initialState = () => ({

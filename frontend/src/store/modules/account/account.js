@@ -1,15 +1,15 @@
 import { nextTick } from 'vue'
 
-import flowBlueprintsApi from '../api/flowBlueprints.js'
+import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 
-import settingsApi from '../api/settings.js'
-import teamApi from '../api/team.js'
-import userApi from '../api/user.js'
-import router from '../routes.js'
-import product from '../services/product.js'
+import settingsApi from '../../../api/settings.js'
+import teamApi from '../../../api/team.js'
+import userApi from '../../../api/user.js'
+import router from '../../../routes.js'
+import product from '../../../services/product.js'
 
-import commonActions from './common/actions.js'
-import commonMutations from './common/mutations.js'
+import commonActions from '../../common/actions.js'
+import commonMutations from '../../common/mutations.js'
 
 // initial state
 const initialState = () => ({
