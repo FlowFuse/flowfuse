@@ -12,7 +12,10 @@
             </p>
             <p class="my-4">
                 This will
-                <template v-if="stage.action === StageAction.CREATE_SNAPSHOT">
+                <template v-if="stage.stageType === StageType.DEVICEGROUP">
+                    use the group's target snapshot from "{{ stage.name }}" and
+                </template>
+                <template v-else-if="stage.action === StageAction.CREATE_SNAPSHOT">
                     create a new snapshot in "{{ stage.name }}" and
                 </template>
                 <template v-else-if="stage.action === StageAction.USE_LATEST_SNAPSHOT">
