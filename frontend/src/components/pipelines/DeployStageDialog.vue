@@ -101,37 +101,45 @@
                 </form>
             </template>
             <template v-else-if="useLatestSnapshot">
-                <div v-if="!hasSnapshots" class="error-banner">
-                    No snapshots have been created for this stage's
-                    <template v-if="stage.stageType == StageType.INSTANCE">
-                        instance yet!<br><br>
+                <template v-if="stage.stageType == StageType.DEVICEGROUP">
+                    <div v-if="!hasSnapshots" class="error-banner">
+                        This stage's device group does not have a target snapshot
+                        set yet!
+                    </div>
+                </template>
+                <template v-else>
+                    <div v-if="!hasSnapshots" class="error-banner">
+                        No snapshots have been created for this stage's
+                        <template v-if="stage.stageType == StageType.INSTANCE">
+                            instance yet!<br><br>
 
-                        Snapshots can be managed on the
-                        <router-link
-                            :to="{
-                                name: 'instance-snapshots',
-                                params: { id: stage.instance.id },
-                            }"
-                        >
-                            Instance Snapshots
-                        </router-link>
-                        page.
-                    </template>
-                    <template v-else-if="stage.stageType === StageType.DEVICE">
-                        device yet!<br><br>
+                            Snapshots can be managed on the
+                            <router-link
+                                :to="{
+                                    name: 'instance-snapshots',
+                                    params: { id: stage.instance.id },
+                                }"
+                            >
+                                Instance Snapshots
+                            </router-link>
+                            page.
+                        </template>
+                        <template v-else-if="stage.stageType === StageType.DEVICE">
+                            device yet!<br><br>
 
-                        Device snapshots can be managed on the
-                        <router-link
-                            :to="{
-                                name: 'DeviceSnapshots',
-                                params: { id: stage.device.id },
-                            }"
-                        >
-                            Device Snapshots
-                        </router-link>
-                        page.
-                    </template>
-                </div>
+                            Device snapshots can be managed on the
+                            <router-link
+                                :to="{
+                                    name: 'DeviceSnapshots',
+                                    params: { id: stage.device.id },
+                                }"
+                            >
+                                Device Snapshots
+                            </router-link>
+                            page.
+                        </template>
+                    </div>
+                </template>
             </template>
         </template>
         <template #actions>
@@ -145,6 +153,7 @@
 import DeviceApi from '../../api/devices.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
 import SnapshotApi from '../../api/projectSnapshots.js'
+import SnapshotsApi from '../../api/snapshots.js'
 import FormRow from '../FormRow.vue'
 
 export default {
