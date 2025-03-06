@@ -51,7 +51,7 @@ module.exports = async function (app) {
                 if (package === '_updated') {
                     continue
                 }
-                if (package.startsWith(`@${request.params.teamId}/`)) {
+                if (package.startsWith(`@flowfuse-${request.params.teamId}/`)) {
                     packages[package] = packageList.data[package]
                 }
             }
@@ -189,7 +189,7 @@ module.exports = async function (app) {
                     if (package === '_updated') {
                         continue
                     }
-                    if (package.startsWith(`@${request.params.teamId}/`)) {
+                    if (package.startsWith(`@flowfuse-${request.params.teamId}/`)) {
                         modules.push({
                             id: package,
                             description: packageList.data[package].description,
