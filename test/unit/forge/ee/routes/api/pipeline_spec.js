@@ -943,7 +943,7 @@ describe('Pipelines API', function () {
                 const pipelineId = TestObjects.pipeline.hashid
                 const stage1Id = TestObjects.stageOne.hashid
                 const stage2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: TestObjects.deviceGroupOne.id, source: stage1Id, action: 'use_active_snapshot' }, TestObjects.pipeline)
-                const stage3 = await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceGroupId: TestObjects.deviceGroupTwo.id, source: stage2.id, action: 'use_active_snapshot' }, TestObjects.pipeline)
+                const stage3 = await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceGroupId: TestObjects.deviceGroupTwo.id, source: stage2.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
                 const newInstance = await TestObjects.factory.createInstance({ name: 'instance-c' }, app.application, app.stack, app.template, app.projectType, { start: false })
 
                 // Try to update stage3
@@ -951,7 +951,7 @@ describe('Pipelines API', function () {
                     method: 'PUT',
                     url: `/api/v1/pipelines/${pipelineId}/stages/${stage3.hashid}`,
                     payload: {
-                        deviceId: newInstance.id,
+                        instanceId: newInstance.id,
                         action: 'prompt'
                     },
                     cookies: { sid: TestObjects.tokens.alice }

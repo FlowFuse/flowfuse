@@ -56,7 +56,7 @@ module.exports = {
             const laterStages = []
             let foundStage = false
             for (let stageIndex = 0; stageIndex < orderedStages.length; stageIndex++) {
-                const s = stages[stageIndex]
+                const s = orderedStages[stageIndex]
                 if (s.id === stage.id) {
                     foundStage = true
                     continue
