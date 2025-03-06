@@ -41,7 +41,7 @@
             </p>
 
             <template v-if="(promptForSnapshot || useLatestSnapshot) && loadingSnapshots">
-                <ff-loading message="Loading Stage Snapshots..." />
+                <ff-loading message="Loading..." />
             </template>
             <template v-else-if="promptForSnapshot">
                 <form class="space-y-2" @submit.prevent="confirm">
