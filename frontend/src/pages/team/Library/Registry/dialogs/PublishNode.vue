@@ -51,8 +51,8 @@
                 <details class="mt-4" open="true">
                     <summary class="mt-6 cursor-pointer mb-2 font-bold">Publish Package</summary>
                     <div>
-                        <p class="mb-2">Make sure that the package name is scoped to your Team's ID:</p>
-                        <code class="text-sm block text-gray-500 p-2 bg-gray-50">"name": "@{{ team.id }}/my-package-name"</code>
+                        <p class="mb-2">Make sure that the package name is scoped to <code>flowfuse-</code> and your Team's ID:</p>
+                        <code class="text-sm block text-gray-500 p-2 bg-gray-50">"name": "@flowfuse-{{ team.id }}/my-package-name"</code>
                         <p class="mt-2 mb-2">Then run this command to publish your package when it is ready:</p>
                         <CodeSnippet>{{ commands.publish }}</CodeSnippet>
                         <CopySnippet :snippet="commands.publish" />
