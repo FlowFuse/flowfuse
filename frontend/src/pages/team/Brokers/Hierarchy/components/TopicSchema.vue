@@ -1,54 +1,40 @@
 <template>
-    <div class="topic-schema">
+    <div class="topic-schema" :class="{collapsed: isSchemaCollapsed}">
         <template v-if="schema === null">
             <p class="text-center opacity-50">
                 No schema defined
             </p>
         </template>
-        <template v-else>
-            <div v-if="schemaType === 'string'">
-                <b>Type</b>: String
-            </div>
-            <div v-else-if="schemaType === 'number'">
-                <b>Type</b>: Number
-            </div>
-            <div v-else-if="schemaType === 'boolean'">
-                <b>Type</b>: JSON Boolean
-            </div>
-            <div v-else-if="schemaType === 'object'">
-                <div class="mb-2"><b>Type</b>: JSON Object</div>
-                <div class="font-mono">
-                    <div>{</div>
-                    <div v-for="(property, name) in schema.properties" :key="name" class="ml-4">{{ name }} ({{ property.type }})</div>
-                    <div>}</div>
-                </div>
-            </div>
-            <div v-else-if="schemaType === 'array'">
-                <div class="mb-2"><b>Type</b>: JSON Array</div>
-                <div class="font-mono">
-                    <div>[</div>
-                    <div class="ml-4">...</div>
-                    <div v-if="schema.items?.type" class="ml-4">({{ schema.items.type }})</div>
-                    <div v-else class="ml-4">(unknown)</div>
-                    <div class="ml-4">...</div>
-                    <div>]</div>
-                </div>
-            </div>
-            <div v-else-if="schemaType === 'bin'">
-                <b>Type</b>: Binary Data
-            </div>
-            <div v-else class="topic-schema-unknown">
+        <template v-else-if="!isAllowedSchema">
+            <section class="topic-schema-unknown">
                 We haven't been able to determine the payload format
-            </div>
+            </section>
+        </template>
+        <template v-else>
+            <section class="type">
+                <span class="type"><b>Type</b>: {{ typeText }}</span>
+            </section>
+            <section v-if="!isPrimitiveSchema" ref="schemaContainer" class="schema-container mt-2">
+                <b>Schema</b>:
+                <object-properties v-if="schemaType === 'object'" :properties="schema.properties" />
+                <array-properties v-else-if="schemaType === 'array'" :items="schema.items" />
+                <button v-if="isSchemaCollapsible" class="show-more" @click="isSchemaExtended = !isSchemaExtended">
+                    <template v-if="isSchemaCollapsed">Show More</template>
+                    <template v-else>Show Less</template>
+                </button>
+            </section>
         </template>
     </div>
 </template>
 
 <script>
 
+import ArrayProperties from './schema/ArrayProperties.vue'
+import ObjectProperties from './schema/ObjectProperties.vue'
+
 export default {
     name: 'TopicSchema',
-    components: { },
+    components: { ArrayProperties, ObjectProperties },
     props: {
         schema: {
             required: true,
@@ -58,14 +44,97 @@ export default {
     emits: [],
     data () {
         return {
+            allowedSchemaTypes: [
+                'string',
+                'number',
+                'boolean',
+                'object',
+                'array',
+                'bin'
+            ],
+            schemaContainerMaxHeight: 400,
+            schemaContainerHeight: 0,
+            isSchemaExtended: false,
+            resizeObserver: null
         }
     },
     computed: {
+        isPrimitiveSchema () {
+            return ['string', 'number', 'boolean'].includes(this.schemaType)
+        },
+        isAllowedSchema () {
+            return this.allowedSchemaTypes.includes(this.schemaType)
+        },
         schemaType: function () {
             return this.schema?.type
+        },
+        typeText () {
+            switch (this.schemaType) {
+            case 'string':
+                return 'String'
+            case 'number':
+                return 'Number'
+            case 'boolean':
+                return 'JSON Boolean'
+            case 'object':
+                return 'JSON Object'
+            case 'array':
+                return ' SON Array'
+            case 'bin':
+                return 'Binary Data'
+            default:
+                return ''
+            }
+        },
+        isSchemaCollapsible () {
+            return this.schemaContainerHeight > this.schemaContainerMaxHeight
+        },
+        isSchemaCollapsed () {
+            if (this.isSchemaExtended === true) {
+                return false
+            }
+            return this.isSchemaCollapsible
         }
     },
+    mounted () {
+        this.updateResizeObserver()
+    },
+    updated () {
+        this.updateResizeObserver()
+    },
     methods: {
+        updateHeight () {
+            return new Promise(resolve => {
+                // we need to schedule the height request before the next repaint to avoid a ResizeObserver loop
+                requestAnimationFrame(() => {
+                    this.schemaContainerHeight = this.$refs.schemaContainer?.scrollHeight || 0
+                })
+                resolve()
+            })
+        },
+        observeHeightChanges () {
+            return new Promise(resolve => {
+                if (!this.$refs.schemaContainer) return
+
+                this.resizeObserver = new ResizeObserver(() => {
+                    this.updateHeight()
+                })
+
+                this.resizeObserver.observe(this.$refs.schemaContainer)
+                resolve()
+            })
+        },
+        updateResizeObserver () {
+            return new Promise((resolve) => {
+                if (this.resizeObserver) {
+                    this.resizeObserver.disconnect()
+                }
+                resolve()
+            })
+                .then(() => this.updateHeight())
+                .then(() => this.observeHeightChanges())
+                .catch(e => e)
+        }
     }
 }
 </script>
@@ -79,11 +148,37 @@ export default {
     padding: 10px 6px;
     font-size: 0.875rem;
     line-height: 1.25rem;
-}
+    overflow: hidden;
+    position: relative;
 
-.topic-schema-unknown {
-    color: $ff-grey-500;
-    text-align: center;
-    font-style: italic;
+    .topic-schema-unknown {
+        color: $ff-grey-500;
+        text-align: center;
+        font-style: italic;
+    }
+
+    .schema-container {
+        overflow: hidden;
+
+        .show-more {
+            position: absolute;
+            bottom: 0;
+            left: 45%;
+        }
+
+    }
+
+    &.collapsed {
+        box-shadow: inset 0 -30px 20px -20px rgba(49, 46, 129, 0.2);
+        padding-bottom: 35px;
+
+        .schema-container {
+            max-height: 400px;
+        }
+
+        .show-more {
+            padding: 10px;
+        }
+    }
 }
 </style>
