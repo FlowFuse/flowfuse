@@ -854,11 +854,11 @@ module.exports = async function (app) {
             const token = Buffer.from(`p-${request.project.id}@${settings.teamID}:${deviceNPMPassword.token}`).toString('base64')
             if (settings.settings?.palette?.npmrc) {
                 settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
-                    `//@${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
+                    `//@flowfuse-${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
                     `//${npmRegURL.host}:_auth="${token}"\n`
             } else {
                 settings.settings.palette.npmrc =
-                    `//@${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
+                    `//@flowfuse-${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
                     `//${npmRegURL.host}:_auth="${token}"\n`
             }
             if (settings.settings?.palette?.catalogue) {
