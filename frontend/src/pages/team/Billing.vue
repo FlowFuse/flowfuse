@@ -22,7 +22,7 @@
                     </template>
                     <template #tools>
                         <div class="flex flex-row gap-x-4">
-                            <ff-button v-if="subscription" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Upgrade Team</ff-button>
+                            <ff-button v-if="!isUnmanaged" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Upgrade Team</ff-button>
                             <ff-button v-if="subscription" @click="customerPortal()">
                                 <template #icon-right><ExternalLinkIcon /></template>
                                 Stripe Customer Portal
