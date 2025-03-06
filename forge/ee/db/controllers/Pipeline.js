@@ -350,6 +350,14 @@ module.exports = {
         throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action for devices: ${sourceStage.action}`, 400)
     },
 
+    getSnapshotForSourceDeviceGroup: async function (app, sourceDeviceGroup) {
+        const sourceSnapshot = await sourceDeviceGroup.getTargetSnapshot()
+        if (!sourceSnapshot) {
+            throw new PipelineControllerError('invalid_source_device_group', 'No snapshots found for source stages device group but deploy action is set to use latest snapshot', 400)
+        }
+        return sourceSnapshot
+    },
+
     /**
      * Deploy a snapshot to an instance
      * @param {Object} app - The application instance
