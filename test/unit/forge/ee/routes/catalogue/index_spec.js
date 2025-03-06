@@ -62,8 +62,8 @@ describe('Team Catalogue', function () {
                     const retVal = {
                         _updated: 99999
                     }
-                    retVal[`@${app.team.hashid}/one`] = {
-                        name: `@${app.team.hashid}/one`,
+                    retVal[`@flowfuse-${app.team.hashid}/one`] = {
+                        name: `@flowfuse-${app.team.hashid}/one`,
                         'dist-tags': {
                             latest: '1.0.0'
                         },
@@ -75,8 +75,8 @@ describe('Team Catalogue', function () {
                             '1.0.0': 'latest'
                         }
                     }
-                    retVal[`@${app.team.hashid}/two`] = {
-                        name: `@${app.team.hashid}/two`,
+                    retVal[`@flowfuse-${app.team.hashid}/two`] = {
+                        name: `@flowfuse-${app.team.hashid}/two`,
                         'dist-tags': {
                             latest: '1.0.0'
                         },
@@ -88,8 +88,8 @@ describe('Team Catalogue', function () {
                             '1.0.0': 'latest'
                         }
                     }
-                    retVal['@foo/two'] = {
-                        name: '@foo/two',
+                    retVal['@flowfuse-foo/two'] = {
+                        name: '@flowfuse-foo/two',
                         'dist-tags': {
                             latest: '1.0.0'
                         },
@@ -132,7 +132,7 @@ describe('Team Catalogue', function () {
             result.should.have.property('name', `FlowFuse Team ${app.team.name} catalogue`)
             result.should.have.property('modules')
             result.modules.should.have.a.lengthOf(2)
-            result.modules[0].should.have.property('id', `@${app.team.hashid}/one`)
+            result.modules[0].should.have.property('id', `@flowfuse-${app.team.hashid}/one`)
         })
         it('Get Team Catalogue (device)', async function () {
             const response = await app.inject({
@@ -144,7 +144,7 @@ describe('Team Catalogue', function () {
             result.should.have.property('name', `FlowFuse Team ${app.team.name} catalogue`)
             result.should.have.property('modules')
             result.modules.should.have.a.lengthOf(2)
-            result.modules[0].should.have.property('id', `@${app.team.hashid}/one`)
+            result.modules[0].should.have.property('id', `@flowfuse-${app.team.hashid}/one`)
         })
         it('Get Team Packages by Owner', async function () {
             const response = await app.inject({
@@ -154,9 +154,9 @@ describe('Team Catalogue', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.property(`@${app.team.hashid}/one`)
-            result[`@${app.team.hashid}/one`].should.have.property('name', `@${app.team.hashid}/one`)
-            result[`@${app.team.hashid}/one`].should.have.property('license', 'Apache-2.0')
+            result.should.have.property(`@flowfuse-${app.team.hashid}/one`)
+            result[`@flowfuse-${app.team.hashid}/one`].should.have.property('name', `@flowfuse-${app.team.hashid}/one`)
+            result[`@flowfuse-${app.team.hashid}/one`].should.have.property('license', 'Apache-2.0')
         })
         it('Get Team Packages by Member', async function () {
             const response = await app.inject({
