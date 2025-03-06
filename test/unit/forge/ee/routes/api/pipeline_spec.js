@@ -969,7 +969,7 @@ describe('Pipelines API', function () {
 
                 const pipelineId = TestObjects.pipeline.hashid
                 const stage1Id = TestObjects.stageOne.hashid
-                const instanceThree = await TestObjects.factory.createInstance({ name: 'instance-three' }, app.application, app.stack, app.template, app.projectType, { start: false })
+                const instanceThree = await TestObjects.factory.createInstance({ name: 'third-instance' }, app.application, app.stack, app.template, app.projectType, { start: false })
                 const stage2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: stage1Id, action: 'use_latest_snapshot' }, TestObjects.pipeline)
                 await TestObjects.factory.createPipelineStage({ name: 'stage-three', instanceId: instanceThree.id, source: stage2.hashid, action: 'use_latest_snapshot' }, TestObjects.pipeline)
 
