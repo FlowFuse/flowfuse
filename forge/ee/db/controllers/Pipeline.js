@@ -48,33 +48,59 @@ module.exports = {
                 throw new PipelineControllerError('invalid_input', 'Must provide only one instance, device or device group', 400)
             }
 
+            const stages = await pipeline.stages()
+            // stages are a linked list, so ensure we use the sorted stages
+            const orderedStages = app.db.models.PipelineStage.sortStages(stages)
+            const firstStage = orderedStages[0]
+
+            const priorStages = []
+            const laterStages = []
+            let foundStage = false
+            for (let stageIndex = 0; stageIndex < orderedStages.length; stageIndex++) {
+                const s = stages[stageIndex]
+                if (s.id === stage.id) {
+                    foundStage = true
+                    continue
+                }
+                if (foundStage) {
+                    laterStages.push(s)
+                } else {
+                    priorStages.push(s)
+                }
+            }
+
             // If this stage is being set as a device group, check all stages.
             // * A device group cannot be the first stage
-            // * There can be only one device group and it can only be the last stage
+            // * There can be multiple device groups but only a device group can follow a device group
             if (options.deviceGroupId) {
-                const stages = await pipeline.stages()
-                // stages are a linked list, so ensure we use the sorted stages
-                const orderedStages = app.db.models.PipelineStage.sortStages(stages)
                 if (orderedStages.length === 0) {
                     // this should never be reached but here for completeness
                     throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
                 }
-                const firstStage = orderedStages[0]
-                const lastStage = orderedStages[orderedStages.length - 1]
 
                 // if the first stage is the same as the stage being updated, then it's the first stage
                 if (firstStage && firstStage.id === stage.id) {
                     throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
                 }
 
-                // filter out the stage being updated and check if any other stages have a device group
-                const otherStages = stages.filter(s => s.id !== stage.id)
-                if (otherStages.filter(s => s.DeviceGroups?.length).length) {
-                    throw new PipelineControllerError('invalid_input', 'A Device Group can only set on the last stage', 400)
+                if (laterStages && laterStages.length) {
+                    const nonDeviceGroupStages = laterStages.filter(s => (s.DeviceGroups?.length ?? 0) === 0)
+                    if (nonDeviceGroupStages.length > 0) {
+                        throw new PipelineControllerError('invalid_input', 'This stage cannot be a Device Group as a later stage contains an instance', 400)
+                    }
                 }
-
-                if (lastStage && lastStage.id !== stage.id) {
-                    throw new PipelineControllerError('invalid_input', 'A Device Group can only set on the last stage', 400)
+            } else {
+                // hosted/remote instance
+                // If a device group is set before this stage, that is an error
+                const nonDeviceGroupStagesPrior = priorStages.filter(s => (s.DeviceGroups?.length ?? 0) > 0)
+                if (nonDeviceGroupStagesPrior.length > 0) {
+                    throw new PipelineControllerError('invalid_input', 'This stage cannot contain an instance as a Device Group is set in a prior stage', 400)
+                }
+                // If any device group exists after this stage, they must all be device groups
+                const deviceGroupStagesLater = laterStages.filter(s => (s.DeviceGroups?.length ?? 0) > 0)
+                const nonDeviceGroupStagesLater = laterStages.filter(s => (s.DeviceGroups?.length ?? 0) === 0)
+                if (deviceGroupStagesLater.length > 0 && nonDeviceGroupStagesLater.length > 0) {
+                    throw new PipelineControllerError('invalid_input', 'This stage can only contain Device Group stages', 400)
                 }
             }
 
