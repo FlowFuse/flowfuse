@@ -33,7 +33,7 @@
                     @stage-deploy-failed="stageDeployFailed(stage)"
                     @stage-deleted="stageDeleted($index)"
                 />
-                <Transition v-if="stage.stageType !== StageType.DEVICEGROUP" name="fade">
+                <Transition name="fade">
                     <ChevronRightIcon
                         v-if="$index <= pipeline.stages.length - 1"
                         class="ff-icon mt-4 flex-shrink-0"
@@ -44,7 +44,7 @@
                     />
                 </Transition>
             </template>
-            <Transition v-if="!lastStageIsDeviceGroup" name="fade">
+            <Transition name="fade">
                 <PipelineStage @click="addStage" />
             </Transition>
         </div>
