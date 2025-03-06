@@ -262,10 +262,14 @@ export default {
             if (!this.formValid) {
                 return
             }
-
-            const sourceSnapshot = this.snapshots.find(
-                (snapshot) => snapshot.id === this.input.selectedSnapshotId
-            )
+            let sourceSnapshot
+            if (this.stage.stageType === StageType.DEVICEGROUP) {
+                sourceSnapshot = this.snapshots[0]
+            } else {
+                sourceSnapshot = this.snapshots.find(
+                    (snapshot) => snapshot.id === this.input.selectedSnapshotId
+                )
+            }
 
             this.$emit('deploy-stage', this.target, sourceSnapshot)
 
