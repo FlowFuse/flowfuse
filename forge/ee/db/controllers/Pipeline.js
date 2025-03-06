@@ -217,7 +217,8 @@ module.exports = {
 
         const sourceInstances = await sourceStage.getInstances()
         const sourceDevices = await sourceStage.getDevices()
-        const totalSources = sourceInstances.length + sourceDevices.length
+        const sourceDeviceGroups = await sourceStage.getDeviceGroups()
+        const totalSources = sourceInstances.length + sourceDevices.length + sourceDeviceGroups.length
         if (totalSources === 0) {
             throw new PipelineControllerError('invalid_stage', 'Source stage must have at least one instance or device', 400)
         }
@@ -241,12 +242,16 @@ module.exports = {
 
         const sourceDevice = sourceDevices[0]
         const targetDevice = targetDevices[0]
-        const targetDeviceGroup = targetDeviceGroups[0]
 
-        const sourceObject = sourceInstance || sourceDevice
+        const sourceDeviceGroup = sourceDeviceGroups[0]
+        const targetDeviceGroup = targetDeviceGroups[0]
+        // const sourceDeviceGroup = sourceDeviceGroups[0] ? await app.db.models.DeviceGroup.byId(sourceDeviceGroups[0].id) : null
+        // const targetDeviceGroup = targetDeviceGroups[0] ? await app.db.models.DeviceGroup.byId(targetDeviceGroups[0].id) : null
+
+        const sourceObject = sourceInstance || sourceDevice || sourceDeviceGroup
         const targetObject = targetInstance || targetDevice || targetDeviceGroup
 
-        const sourceType = sourceInstance ? 'instance' : (sourceDevice ? 'device' : '')
+        const sourceType = sourceInstance ? 'instance' : (sourceDevice ? 'device' : (sourceDeviceGroup ? 'device group' : ''))
         const targetType = targetInstance ? 'instance' : (targetDevice ? 'device' : (targetDeviceGroup ? 'device group' : ''))
 
         const sourceApplication = await app.db.models.Application.byId(sourceObject.ApplicationId)
@@ -262,7 +267,7 @@ module.exports = {
             throw new PipelineControllerError('invalid_target_stage', 'Target device cannot not be in developer mode', 400)
         }
 
-        return { sourceInstance, targetInstance, sourceDevice, targetDevice, targetDeviceGroup, targetStage }
+        return { sourceInstance, targetInstance, sourceDevice, targetDevice, sourceDeviceGroup, targetDeviceGroup, targetStage }
     },
 
     getOrCreateSnapshotForSourceInstance: async function (app, sourceStage, sourceInstance, sourceSnapshotId, deployMeta = { pipeline: null, user: null, targetStage: null }) {
