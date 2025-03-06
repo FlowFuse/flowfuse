@@ -1,7 +1,4 @@
-import brokerApi from '../api/broker.js'
-
-import commonActions from './common/actions.js'
-import commonMutations from './common/mutations.js'
+import brokerApi from '../../../api/broker.js'
 
 // initial state
 const initialState = () => ({
@@ -49,7 +46,6 @@ const getters = {
 
 // mutations
 const mutations = {
-    ...commonMutations,
     setFlags (state, flags) {
         state.flags = flags
     },
@@ -124,7 +120,6 @@ const mutations = {
 
 // actions
 const actions = {
-    ...commonActions(initialState, meta),
     async checkFlags (state) {
         try {
             window.posthog?.onFeatureFlags((flags, values) => {
@@ -215,6 +210,7 @@ const actions = {
 export default {
     namespaced: true,
     state,
+    initialState: initialState(),
     getters,
     actions,
     mutations,

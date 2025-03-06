@@ -1,15 +1,23 @@
 import { createStore } from 'vuex'
 
-import account from './account.js'
+import commonActions from './common/actions.js'
+import commonMutations from './common/mutations.js'
+import account from './modules/account/account.js'
+import product from './modules/product/product.js'
+import ux from './modules/ux/ux.js'
 import storagePlugin from './plugins/storage.plugin.js'
-import product from './product.js'
-import ux from './ux.js'
 
 export default createStore({
     modules: {
         account,
         product,
         ux
+    },
+    actions: {
+        ...commonActions
+    },
+    mutations: {
+        ...commonMutations
     },
     plugins: [storagePlugin]
 })

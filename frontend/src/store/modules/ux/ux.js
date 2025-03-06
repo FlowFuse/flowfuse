@@ -5,14 +5,11 @@ import {
     TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
 } from '@heroicons/vue/outline'
 
-import DeviceGroupOutlineIcon from '../components/icons/DeviceGroupOutline.js'
-import PipelinesIcon from '../components/icons/Pipelines.js'
-import ProjectsIcon from '../components/icons/Projects.js'
-import usePermissions from '../composables/Permissions.js'
-import { Roles } from '../utils/roles.js'
-
-import commonActions from './common/actions.js'
-import commonMutations from './common/mutations.js'
+import DeviceGroupOutlineIcon from '../../../components/icons/DeviceGroupOutline.js'
+import PipelinesIcon from '../../../components/icons/Pipelines.js'
+import ProjectsIcon from '../../../components/icons/Projects.js'
+import usePermissions from '../../../composables/Permissions.js'
+import { Roles } from '../../../utils/roles.js'
 
 const initialState = () => ({
     leftDrawer: {
@@ -437,7 +434,6 @@ const getters = {
 }
 
 const mutations = {
-    ...commonMutations,
     openRightDrawer (state, { component }) {
         state.rightDrawer.state = true
         state.rightDrawer.component = component
@@ -489,7 +485,6 @@ const mutations = {
 }
 
 const actions = {
-    ...commonActions(initialState, meta),
     openRightDrawer ({ commit }, { component }) {
         commit('openRightDrawer', { component })
     },
@@ -541,6 +536,7 @@ const actions = {
 export default {
     namespaced: true,
     state,
+    initialState: initialState(),
     getters,
     mutations,
     actions,

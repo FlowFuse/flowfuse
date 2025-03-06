@@ -1,15 +1,12 @@
 import { nextTick } from 'vue'
 
-import flowBlueprintsApi from '../api/flowBlueprints.js'
+import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 
-import settingsApi from '../api/settings.js'
-import teamApi from '../api/team.js'
-import userApi from '../api/user.js'
-import router from '../routes.js'
-import product from '../services/product.js'
-
-import commonActions from './common/actions.js'
-import commonMutations from './common/mutations.js'
+import settingsApi from '../../../api/settings.js'
+import teamApi from '../../../api/team.js'
+import userApi from '../../../api/user.js'
+import router from '../../../routes.js'
+import product from '../../../services/product.js'
 
 // initial state
 const initialState = () => ({
@@ -102,7 +99,9 @@ const getters = {
         return state.offline
     },
     noBilling (state, getters) {
-        return !state.user.admin &&
+        const isNotAdmin = (state.user && !state.user.admin)
+
+        return isNotAdmin &&
         state.features.billing &&
         (!state.team?.billing?.unmanaged) &&
         (!getters.isTrialAccount || state.team?.billing?.trialEnded) &&
@@ -237,7 +236,6 @@ const getters = {
 
 // mutations
 const mutations = {
-    ...commonMutations,
     setSettings (state, settings) {
         state.settings = settings
         state.features = settings.features || {}
@@ -309,7 +307,6 @@ const mutations = {
 
 // actions
 const actions = {
-    ...commonActions(initialState, meta),
     async checkState ({ commit, dispatch }, redirectUrlAfterLogin) {
         try {
             const settings = await settingsApi.getSettings()
@@ -534,6 +531,7 @@ const actions = {
 export default {
     namespaced: true,
     state,
+    initialState: initialState(),
     getters,
     actions,
     mutations,
