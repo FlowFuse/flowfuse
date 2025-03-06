@@ -245,6 +245,13 @@ export default {
                     this.stage.instance.id
                 )
                 this.snapshots = data.snapshots
+            } else if (this.stage.stageType === StageType.DEVICEGROUP) {
+                if (!this.stage.deviceGroup.hasTargetSnapshot) {
+                    this.snapshots = []
+                } else {
+                    const data = await SnapshotsApi.getSummary(this.stage.deviceGroup.targetSnapshotId)
+                    this.snapshots = [data]
+                }
             } else {
                 throw Error(`Unknown stage type ${this.stage.stageType}`)
             }
