@@ -167,7 +167,7 @@
                     <slot name="pictogram"><img src="../../../images/pictograms/snapshot_red.png"></slot>
                     <div v-if="input.stageType === StageType.INSTANCE">
                         <p>
-                            When a instance Pipeline stage type is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
+                            When an instance Pipeline stage type is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
                         </p>
                         <p>
                             <b>Create New Snapshot:</b> Creates a new snapshot using the current flows and settings.
