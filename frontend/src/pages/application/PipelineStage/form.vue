@@ -511,6 +511,12 @@ export default {
     created () {
         this.StageType = StageType
     },
+    mounted () {
+        // set the stagetype to device group if the last stage is a device group itself (only permit device groups after a device group)
+        if (!this.allowInstanceSelection) {
+            this.input.stageType = StageType.DEVICEGROUP
+        }
+    },
     methods: {
         async submit () {
             this.loading.creating = !this.isEdit
