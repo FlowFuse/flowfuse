@@ -21,7 +21,19 @@ describe('Pipelines API', function () {
     const TestObjects = {
         tokens: {},
         /** @type {TestModelFactory} */
-        factory: null
+        factory: null,
+        instanceOne: null,
+        instanceTwo: null,
+        team: null,
+        application: null,
+        stack: null,
+        template: null,
+        projectType: null,
+        deviceOne: null,
+        deviceTwo: null,
+        deviceGroupOne: null,
+        deviceGroupTwo: null,
+        user: null
     }
 
     let app
