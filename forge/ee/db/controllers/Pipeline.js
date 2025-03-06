@@ -52,7 +52,6 @@ module.exports = {
             // stages are a linked list, so ensure we use the sorted stages
             const orderedStages = app.db.models.PipelineStage.sortStages(stages)
             const firstStage = orderedStages[0]
-
             const priorStages = []
             const laterStages = []
             let foundStage = false
@@ -284,8 +283,6 @@ module.exports = {
 
         const sourceDeviceGroup = sourceDeviceGroups[0]
         const targetDeviceGroup = targetDeviceGroups[0]
-        // const sourceDeviceGroup = sourceDeviceGroups[0] ? await app.db.models.DeviceGroup.byId(sourceDeviceGroups[0].id) : null
-        // const targetDeviceGroup = targetDeviceGroups[0] ? await app.db.models.DeviceGroup.byId(targetDeviceGroups[0].id) : null
 
         const sourceObject = sourceInstance || sourceDevice || sourceDeviceGroup
         const targetObject = targetInstance || targetDevice || targetDeviceGroup
