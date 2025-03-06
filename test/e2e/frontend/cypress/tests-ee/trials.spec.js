@@ -47,7 +47,7 @@ describe('FlowForge - Trial Users', () => {
         cy.url().should('include', 'team/tteam/billing')
     })
 
-    it.only('setup billing redirects to team type selection', () => {
+    it('setup billing redirects to team type selection', () => {
         let teamType
         cy.intercept('GET', '/api/*/team-types*').as('getTeamTypes')
         cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
