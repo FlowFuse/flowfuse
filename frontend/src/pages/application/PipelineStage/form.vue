@@ -33,6 +33,8 @@
                     :value="StageType.INSTANCE"
                     description=""
                     color="#8F0000"
+                    :disabled="!allowInstanceSelection"
+                    disabledTooltip="Cannot add Hosted Instance after a device group"
                 >
                     <template #icon><IconNodeRedSolid /></template>
                 </ff-tile-selection-option>
@@ -41,6 +43,8 @@
                     :value="StageType.DEVICE"
                     description=""
                     color="#31959A"
+                    :disabled="!allowInstanceSelection"
+                    disabledTooltip="Cannot add Remote Instance after a device group"
                 >
                     <template #icon><IconDeviceSolid /></template>
                 </ff-tile-selection-option>
@@ -50,8 +54,8 @@
                     :value="StageType.DEVICEGROUP"
                     description=""
                     color="#31959A"
-                    :disabled="isFirstStage"
-                    disabledTooltip="Device Groups are not available for the first stage in a pipeline"
+                    :disabled="isFirstStage || !allowDeviceGroupSelection"
+                    disabledTooltip="Device Groups cannot be the first stage or proceed non Device Group stages"
                 >
                     <template #icon><IconDeviceGroupSolid /></template>
                 </ff-tile-selection-option>
@@ -334,6 +338,39 @@ export default {
         },
         isLastStage () {
             return !this.isEdit || this.pipeline.stages[this.pipeline.stages.length - 1].id === this.stage.id
+        },
+        allowInstanceSelection () {
+            if (this.isFirstStage) {
+                return true
+            }
+            // if any prior stage is a device group, then we cannot add a hosted/remote instance
+            const priorStages = []
+            for (let stageIndex = 0; stageIndex < this.pipeline.stages.length; stageIndex++) {
+                const stage = this.pipeline.stages[stageIndex]
+                if (stage.id === this.stage.id) {
+                    break
+                }
+                priorStages.push(stage)
+            }
+            return priorStages.length === 0 || !priorStages.some((stage) => stage.stageType === StageType.DEVICEGROUP)
+        },
+        allowDeviceGroupSelection () {
+            if (this.isFirstStage) {
+                return false
+            }
+            if (this.isLastStage) {
+                return true
+            }
+            // if any later stage is NOT a device group, then we cannot set this as a device group
+            const laterStages = []
+            for (let stageIndex = this.pipeline.stages.length - 1; stageIndex >= 0; stageIndex--) {
+                const stage = this.pipeline.stages[stageIndex]
+                if (stage.id === this.stage.id) {
+                    break
+                }
+                laterStages.push(stage)
+            }
+            return laterStages.length === 0 || laterStages.every((stage) => stage.stageType === StageType.DEVICEGROUP)
         },
         formDirty () {
             return (
