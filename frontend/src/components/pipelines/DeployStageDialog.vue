@@ -182,11 +182,11 @@ export default {
     },
     computed: {
         promptForSnapshot () {
-            return this.stage.action === StageAction.PROMPT
+            return this.stage.stageType !== StageType.DEVICEGROUP && this.stage.action === StageAction.PROMPT
         },
 
         useLatestSnapshot () {
-            return this.stage.action === StageAction.USE_LATEST_SNAPSHOT
+            return this.stage.stageType === StageType.DEVICEGROUP || this.stage.action === StageAction.USE_LATEST_SNAPSHOT
         },
 
         formValid () {
