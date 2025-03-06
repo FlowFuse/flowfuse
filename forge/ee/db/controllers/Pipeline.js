@@ -158,17 +158,30 @@ module.exports = {
             delete options.source
         }
 
-        // before we create the stage, we need to check a few things
-        // if this is being added as a device group, check all stages.
-        // * A device group cannot be the first stage
-        // * There can be only one device group and it can only be the last stage
+        // Before we create the stage, we need to check a few things
+        // 1. When adding a device group
+        //   * A device group cannot be the first stage
+        //   * There can be multiple device groups but only a device group can follow a device group
+        // 2. When adding an instance/device
+        //   * A device group cannot be set before an instance or device
+
+        const stages = await pipeline.stages() // stages are a linked list
+        const orderedStages = app.db.models.PipelineStage.sortStages(stages) // sort the stages
+
+        // 1. When adding a device group
         if (options.deviceGroupId) {
-            const stages = await pipeline.stages()
             const stageCount = stages.length
             if (stageCount === 0) {
                 throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
-            } else if (stages.filter(s => s.DeviceGroups?.length).length) {
-                throw new PipelineControllerError('invalid_input', 'Only one Device Group can only set in a pipeline', 400)
+            }
+        }
+
+        // 2. When adding an instance/device
+        if (options.instanceId || options.deviceId) {
+            // ensure that we are not adding an instance or device after a device group
+            const deviceGroups = orderedStages.filter(s => s.DeviceGroups?.length)
+            if (deviceGroups.length) {
+                throw new PipelineControllerError('invalid_input', 'An instance or device cannot be added after a device group', 400)
             }
         }
 
