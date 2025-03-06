@@ -455,9 +455,22 @@ export default {
         deviceGroupsEnabled () {
             return this.features?.deviceGroups && this.team?.type.properties.features?.deviceGroups
         },
+        devicesGroupsNotInUse () {
+            const deviceGroupIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
+                stage.deviceGroups.forEach((deviceGroup) => {
+                    acc.add(deviceGroup.id)
+                })
+
+                return acc
+            }, new Set())
+
+            return this.deviceGroups.filter((deviceGroup) => {
+                return !deviceGroupIdsInUse.has(deviceGroup.id) || deviceGroup.id === this.input.deviceGroupId
+            })
+        },
         deviceGroupOptions () {
             return [
-                ...this.deviceGroups?.map((device) => {
+                ...this.devicesGroupsNotInUse?.map((device) => {
                     return {
                         label: device.name,
                         value: device.id
