@@ -507,6 +507,7 @@ module.exports = async function (app) {
                 targetInstance,
                 sourceDevice,
                 targetDevice,
+                sourceDeviceGroup,
                 targetDeviceGroup,
                 targetStage
             } = await app.db.controllers.Pipeline.validateSourceStageForDeploy(
@@ -546,6 +547,9 @@ module.exports = async function (app) {
                     request.body?.sourceSnapshotId
                 )
                 sourceDeployed = sourceDevice
+            } else if (sourceDeviceGroup) {
+                sourceSnapshot = await app.db.controllers.Pipeline.getSnapshotForSourceDeviceGroup(sourceDeviceGroup)
+                sourceDeployed = sourceDeviceGroup
             } else {
                 throw new Error('No source device or instance found.')
             }
