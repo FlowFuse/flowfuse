@@ -551,7 +551,7 @@ export default {
         })
 
         if (this.billingEnabled) {
-            if (!this.team.billing?.unmanaged) {
+            if (!this.team.billing?.unmanaged && !this.team.type.properties?.billing?.disabled) {
                 try {
                     this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
                 } catch (err) {

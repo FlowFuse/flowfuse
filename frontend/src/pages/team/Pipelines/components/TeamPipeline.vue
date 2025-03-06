@@ -4,16 +4,12 @@
             :to="{name: 'ApplicationPipelines', params: {id: pipeline.application.id}}"
             class="ff-pipeline-header flex gap-5 self-end items-center truncate"
         >
-            <span class="name">
-                {{ pipeline.name }}
-            </span>
-            <router-link
-                :to="{name: 'Application', params: {id: pipeline.application.id}}"
-                class="ff-pipeline-application-name truncate"
-                @click.stop
-            >
-                {{ pipeline.application.name }}
-            </router-link>
+            <div class="flex flex-col gap-0.5">
+                <span class="name">
+                    {{ pipeline.name }}
+                </span>
+                <span class="text-xs text-gray-500">{{ pipeline.application.name }}</span>
+            </div>
             <span class="to">
                 <ChevronRightIcon class="ff-icon " />
             </span>

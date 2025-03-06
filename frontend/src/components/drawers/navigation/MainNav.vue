@@ -42,7 +42,7 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'features', 'notifications']),
         ...mapState('ux', ['mainNav']),
-        ...mapGetters('account', ['noBilling']),
+        ...mapGetters('account', ['requiresBilling']),
         ...mapGetters('ux', ['mainNavContexts', 'mainNavContext']),
         nearestMetaMenu () {
             if (this.$route?.meta?.menu) {
