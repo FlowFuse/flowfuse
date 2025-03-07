@@ -6,13 +6,18 @@
                 <span class="format">{{ capitalize(format) }}</span>
             </div>
             <div class="description-wrapper">
-                <p v-if="description" class="description opacity-50 text-xs leading-none">{{ description }}</p>
-                <p v-else class="description opacity-50 text-xs leading-none">
-                    FlowFuse has detected that the messages sent to this topic are {{ format.toUpperCase() }}. Would you like to save this to your Schema?
+                <p v-if="description" class="description opacity-50 text-sm">{{ description }}</p>
+                <p v-else class="description opacity-50 text-sm">
+                    FlowFuse has detected that the messages sent to this topic are {{ format.toUpperCase() }}.
+                    <template v-if="format === 'object'">FlowFuse has also established a <span class="ff-link" @click="preview">full Schema for this Object</span>, which you can inspect using the button to the right.</template>
+                    Would you like to apply this suggestion to your Schema?
                 </p>
             </div>
         </div>
         <div class="actions flex gap-3 items-center">
+            <span v-if="inferredSuggestion" v-ff-tooltip:left="'Preview Suggestion'">
+                <EyeIcon class="preview ff-icon-md cursor-pointer" @click="preview" />
+            </span>
             <span v-ff-tooltip:left="'Accept'">
                 <CheckCircleIcon class="accept ff-icon-md cursor-pointer color:green" @click="accept" />
             </span>
@@ -24,15 +29,20 @@
 </template>
 
 <script>
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, EyeIcon, XCircleIcon } from '@heroicons/vue/outline'
+import { defineComponent } from 'vue'
 
 import { capitalize } from '../../../../../../composables/String.js'
+import Dialog from '../../../../../../services/dialog.js'
+
+import ObjectProperties from '../schema/ObjectProperties.vue'
 
 export default {
     name: 'TopicSuggestion',
     components: {
         CheckCircleIcon,
-        XCircleIcon
+        XCircleIcon,
+        EyeIcon
     },
     props: {
         format: {
@@ -43,9 +53,22 @@ export default {
             required: false,
             type: String,
             default: null
+        },
+        suggestion: {
+            required: false,
+            type: Object,
+            default: null
         }
     },
     emits: ['suggestion-accepted', 'suggestion-rejected'],
+    computed: {
+        inferredSuggestion () {
+            if (this.format === 'object' && this.suggestion) {
+                return this.suggestion
+            }
+            return null
+        }
+    },
     methods: {
         capitalize,
         accept () {
@@ -53,6 +76,31 @@ export default {
         },
         reject () {
             this.$emit('suggestion-rejected')
+        },
+        preview () {
+            const suggestion = this.inferredSuggestion
+            Dialog.show({
+                header: 'Inferred Schema',
+                kind: 'primary',
+                is: {
+                    // eslint-disable-next-line vue/one-component-per-file
+                    component: defineComponent({
+                        components: { ObjectProperties },
+                        data () {
+                            return {
+                                properties: suggestion.properties
+                            }
+                        },
+                        template: `
+                            <div class="p-4 border border-indigo-100 bg-indigo-50 rounded-md shadow-sm overflow-auto text-indigo-600" style="max-height: 70vh;">
+                                <object-properties :properties="properties"/>
+                            </div>`
+                    })
+                },
+                confirmLabel: 'OK',
+                canBeCanceled: false
+            }, async () => {
+            })
         }
     }
 }
@@ -67,6 +115,9 @@ export default {
     }
 
     .actions {
+        .preview {
+            color: $ff-grey-500
+        }
         .accept {
             color: $ff-green-500
         }

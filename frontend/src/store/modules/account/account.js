@@ -98,13 +98,14 @@ const getters = {
     offline (state) {
         return state.offline
     },
-    noBilling (state, getters) {
+    requiresBilling (state, getters) {
         const isNotAdmin = (state.user && !state.user.admin)
 
         return isNotAdmin &&
         state.features.billing &&
         (!state.team?.billing?.unmanaged) &&
         (!getters.isTrialAccount || state.team?.billing?.trialEnded) &&
+        !state.team?.type?.properties?.billing?.disabled &&
         !state.team?.billing?.active
     },
     isTrialAccount (state) {
