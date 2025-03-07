@@ -30,7 +30,6 @@
                     />
                 </span>
                 <span
-                    v-if="stage.stageType !== StageType.DEVICEGROUP"
                     v-ff-tooltip:right="'Run Pipeline Stage'"
                     data-action="stage-run"
                     :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying }"
@@ -120,7 +119,10 @@
             <div v-if="playEnabled" class="ff-pipeline-stage-row">
                 <label>Deploy Action:</label>
                 <span>
-                    <template v-if="stage.action === StageAction.CREATE_SNAPSHOT">
+                    <template v-if="stage.stageType === StageType.DEVICEGROUP">
+                        Use group snapshot
+                    </template>
+                    <template v-else-if="stage.action === StageAction.CREATE_SNAPSHOT">
                         Create new snapshot
                     </template>
                     <template v-else-if="stage.action === StageAction.USE_ACTIVE_SNAPSHOT">
