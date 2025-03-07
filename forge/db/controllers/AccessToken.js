@@ -415,17 +415,17 @@ module.exports = {
     createTokenForNPM: async function (app, entity, team, scope = ['team:packages:read']) {
         // Adding prefix to the entityId of `p-`, `d-` and `u-` rather than relying on
         // no hashid collisions
-        let entityId
+        let ownerId
         if (entity instanceof app.db.models.Project) {
-            entityId = `p-${entity.id}`
+            ownerId = `p-${entity.id}@${team.hashid}`
         } else if (entity instanceof app.db.models.Device) {
-            entityId = `d-${entity.hashid}`
+            ownerId = `d-${entity.hashid}@${team.hashid}`
         } else if (entity instanceof app.db.models.User) {
-            entityId = `u-${entity.hashid}`
+            ownerId = entity.username
         }
         const existingNPMToken = await app.db.models.AccessToken.findOne({
             where: {
-                ownerId: `${entityId}@${team.hashid}`,
+                ownerId,
                 ownerType: 'npm'
             }
         })
@@ -435,12 +435,12 @@ module.exports = {
         const token = generateToken(32, 'ffnpm')
         await app.db.models.AccessToken.create({
             token,
-            ownerId: `${entityId}@${team.hashid}`,
+            ownerId,
             ownerType: 'npm',
             scope
         })
         return {
-            username: `${entityId}@${team.hashid}`,
+            username: ownerId,
             token
         }
     }

@@ -162,7 +162,7 @@ module.exports = {
                     where: {
                         ownerType: 'npm',
                         ownerId: {
-                            [Op.like]: `u-${user.hashid}@%`
+                            [Op.like]: user.username
                         }
 
                     }
