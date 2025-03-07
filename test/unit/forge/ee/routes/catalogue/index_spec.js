@@ -224,7 +224,7 @@ describe('Team Catalogue', function () {
                 })
                 response.statusCode.should.equal(201)
                 const result = response.json()
-                const user = `u-${app.bob.hashid}@${app.team.hashid}`
+                const user = 'bob'
                 result.should.have.property('username', user)
 
                 testResponse = await app.inject({
@@ -251,7 +251,9 @@ describe('Team Catalogue', function () {
                 })
                 authResult.statusCode.should.equal(200)
                 const body = authResult.json()
-                body.should.have.property('write', true)
+                body.should.have.property('teams')
+                body.teams.should.have.length(1)
+                body.teams[0].should.equal(`${app.team.hashid}:50`)
             })
         })
         describe('Instance/Device settings', function () {
