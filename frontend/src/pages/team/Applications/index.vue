@@ -137,7 +137,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('ux', ['tours', 'completeTours']),
+        ...mapState('ux/tours', ['tours', 'completeTours']),
         ...mapGetters('account', ['featuresCheck', 'team']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
