@@ -17,7 +17,11 @@
                         </template>
                         Refresh
                     </ff-button>
-                    <ff-button v-if="canPublish" @click="publish">
+                    <ff-button
+                        v-if="canPublish"
+                        data-action="publish-package"
+                        @click="publish"
+                    >
                         <template #icon-left>
                             <ArrowCircleUpIcon />
                         </template>
@@ -70,7 +74,7 @@
             </template>
         </EmptyState>
         <div v-else class="mt-3 space-y-2">
-            <label class="block text-lg font-medium">{{ registry.length }} package<template v-if="registry.length > 1">s</template></label>
+            <label class="block text-lg font-medium" data-el="registry-count">{{ registry.length }} package<template v-if="registry.length > 1">s</template></label>
             <ul class="ff-registry-list">
                 <RegistryEntry v-for="pkg in registry" :key="pkg.name" :pkg="pkg" />
             </ul>
