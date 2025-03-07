@@ -279,7 +279,6 @@ module.exports = async function (app) {
                     `${app.config.base_url}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`
                 ]
             }
-            response.palette.catalogues.push('token')
         }
 
         if (settings.security?.httpNodeAuth?.type) {
