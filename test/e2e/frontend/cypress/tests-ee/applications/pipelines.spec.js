@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 describe('FlowForge - Application - DevOps Pipelines', () => {
     let application
     let team
