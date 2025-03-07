@@ -353,7 +353,7 @@ export default {
             switch (true) {
             case this.isFreemiumTeamType && !this.hasTourBeenCompleted('first-device') && !!this.applicationsList[0]:
                 // freemium users must first undergo the first-device tour on the ApplicationDevices page
-                return this.$store.dispatch('ux/activateTour', 'first-device')
+                return this.$store.dispatch('ux/tours/activateTour', 'first-device')
                     .then(() => this.$router.push({
                         name: 'ApplicationDevices',
                         params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
@@ -370,7 +370,7 @@ export default {
 
             case !this.isFreemiumTeamType && this.instanceCount > 0:
                 this.tour = Tours.create('welcome', TourWelcome, this.$store, () => {
-                    this.$store.dispatch('ux/activateTour', 'education')
+                    this.$store.dispatch('ux/tours/activateTour', 'education')
                 })
                 // Running with an Instance pre-configured (Trial team types)
                 return this.tour.start()
@@ -379,7 +379,7 @@ export default {
                 // any regular team type
                 this.tour = Tours.create('welcome', TourWelcomeFree, this.$store, () => {
                     if (this.deviceCount === 0) {
-                        this.$store.dispatch('ux/activateTour', 'first-device')
+                        this.$store.dispatch('ux/tours/activateTour', 'first-device')
                     }
                 })
                 return this.tour.start()
