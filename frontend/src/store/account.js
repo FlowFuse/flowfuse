@@ -192,6 +192,10 @@ const getters = {
                 return flag === undefined || flag
             })(state),
 
+            // Private NPM Registry (Custom Nodes)
+            isPrivateRegistryFeatureEnabledForPlatform: !!state.features?.npm,
+            isPrivateRegistryFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.npm,
+
             // Static Assets
             isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
             isStaticAssetsFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.staticAssets,

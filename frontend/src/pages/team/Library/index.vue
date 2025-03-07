@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Library" :tabs="navigation">
                 <template #context>
-                    Shared repository to store common flows and nodes.
+                    Common resources that are shared across all of your Team's Node-RED instances.
                 </template>
                 <template #pictogram>
                     <img src="../../../images/pictograms/library_red.png" alt="logo">
@@ -21,12 +21,14 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 
 export default {
     name: 'SharedLibrary',
-    data () {
-        return {
-            navigation: [
+    computed: {
+        ...mapGetters('account', ['featuresCheck']),
+        navigation () {
+            return [
                 {
                     label: 'Team Library',
                     to: {
@@ -34,10 +36,16 @@ export default {
                     }
                 },
                 {
+                    label: 'Custom Nodes',
+                    featureUnavailable: !this.featuresCheck?.isPrivateRegistryFeatureEnabledForPlatform || !this.featuresCheck?.isPrivateRegistryFeatureEnabledForTeam,
+                    to: {
+                        name: 'LibraryRegistry'
+                    }
+                },
+                {
                     label: 'Blueprints',
                     to: {
                         name: 'LibraryBlueprints'
-
                     }
                 }
             ]
