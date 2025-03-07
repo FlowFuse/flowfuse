@@ -1,8 +1,12 @@
 <template>
+    <div class="banner-wrapper">
+        <FeatureUnavailable v-if="!featuresCheck.isPrivateRegistryFeatureEnabledForPlatform" />
+        <FeatureUnavailableToTeam v-else-if="!featuresCheck.isPrivateRegistryFeatureEnabledForTeam" />
+    </div>
     <div class="-mt-2">
         <SectionTopMenu hero="Custom Node Catalog" info="Your Team's private Node catalog. Here you can publish private npm repositories for your team to use within your Node-RED Instances.">
             <template #tools>
-                <div class="flex gap-2">
+                <div v-if="enabled" class="flex gap-2">
                     <ff-button
                         kind="secondary"
                         data-action="refresh-registry"
@@ -41,7 +45,7 @@
                     will then be made available to install within all of your Node-RED Instances via the Node-RED Palette Manager.
                 </p>
             </template>
-            <template #actions>
+            <template v-if="enabled" #actions>
                 <ff-button
                     kind="secondary"
                     data-action="refresh-registry"
@@ -78,12 +82,14 @@
 
 <script>
 import { ArrowCircleUpIcon, RefreshIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import TeamAPI from '../../../../api/team.js'
 
 import EmptyState from '../../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../../components/SectionTopMenu.vue'
+import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
+import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 
 import RegistryEntry from './components/RegistryEntry.vue'
 
@@ -97,7 +103,9 @@ export default {
         SectionTopMenu,
         PublishNodeDialog,
         RegistryEntry,
-        RefreshIcon
+        RefreshIcon,
+        FeatureUnavailable,
+        FeatureUnavailableToTeam
     },
     data () {
         return {
@@ -107,12 +115,16 @@ export default {
     },
     computed: {
         ...mapState('account', ['settings', 'team']),
-        registry () {
-            return Object.values(this.registryByPackage)
+        ...mapGetters('account', ['featuresCheck']),
+        enabled () {
+            return this.featuresCheck?.isPrivateRegistryFeatureEnabledForPlatform && this.featuresCheck?.isPrivateRegistryFeatureEnabledForTeam
         },
         canPublish () {
-            // return this.hasPermission('team:publish')
+            // user has access to publish
             return true
+        },
+        registry () {
+            return Object.values(this.registryByPackage)
         }
     },
     mounted () {
@@ -121,8 +133,12 @@ export default {
     methods: {
         async loadRegistry () {
             this.loading = true
-            const registry = await TeamAPI.getTeamRegistry(this.team.id)
-            this.registryByPackage = registry.data
+            if (this.enabled) {
+                const registry = await TeamAPI.getTeamRegistry(this.team.id)
+                if (registry.data) {
+                    this.registryByPackage = registry.data
+                }
+            }
             this.loading = false
         },
         publish () {
