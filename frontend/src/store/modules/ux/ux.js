@@ -5,14 +5,13 @@ import {
     TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
 } from '@heroicons/vue/outline'
 
-import DeviceGroupOutlineIcon from '../components/icons/DeviceGroupOutline.js'
-import PipelinesIcon from '../components/icons/Pipelines.js'
-import ProjectsIcon from '../components/icons/Projects.js'
-import usePermissions from '../composables/Permissions.js'
-import { Roles } from '../utils/roles.js'
+import DeviceGroupOutlineIcon from '../../../components/icons/DeviceGroupOutline.js'
+import PipelinesIcon from '../../../components/icons/Pipelines.js'
+import ProjectsIcon from '../../../components/icons/Projects.js'
+import usePermissions from '../../../composables/Permissions.js'
+import { Roles } from '../../../utils/roles.js'
 
-import commonActions from './common/actions.js'
-import commonMutations from './common/mutations.js'
+import tours from './modules/tours.js'
 
 const initialState = () => ({
     leftDrawer: {
@@ -23,12 +22,6 @@ const initialState = () => ({
         state: false,
         component: null
     },
-    tours: {
-        welcome: false,
-        education: false,
-        'first-device': false
-    },
-    completeTours: {},
     mainNav: {
         context: 'team',
         backToButton: null
@@ -41,10 +34,6 @@ const initialState = () => ({
 
 const meta = {
     persistence: {
-        tours: {
-            storage: 'localStorage'
-            // clearOnLogout: true (cleared by default)
-        },
         isNewlyCreatedUser: {
             storage: 'localStorage'
         },
@@ -59,9 +48,6 @@ const state = initialState
 const getters = {
     hiddenLeftDrawer: (state, getters) => {
         return state.leftDrawer.component?.name === 'MainNav' && getters.mainNavContext.length === 0
-    },
-    shouldShowEducationModal: (state) => {
-        return state.tours.education
     },
     mainNavContexts: function (state, getters, rootState, rootGetters) {
         const { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } = usePermissions()
@@ -437,7 +423,6 @@ const getters = {
 }
 
 const mutations = {
-    ...commonMutations,
     openRightDrawer (state, { component }) {
         state.rightDrawer.state = true
         state.rightDrawer.component = component
@@ -464,22 +449,8 @@ const mutations = {
     setMainNavBackButton (state, button) {
         state.mainNav.backToButton = button
     },
-    activateTour (state, tour) {
-        state.tours[tour] = true
-    },
     setNewlyCreatedUser (state, payload) {
         state.isNewlyCreatedUser = payload
-    },
-    deactivateTour (state, tour) {
-        state.tours[tour] = false
-        state.completeTours[tour] = true
-    },
-    resetTours (state) {
-        Object.keys(state.tours)
-            .forEach(key => {
-                state.tours[key] = false
-            })
-        state.completeTours = {}
     },
     setUserAction (state, { action, payload }) {
         if (Object.prototype.hasOwnProperty.call(state.userActions, action)) {
@@ -489,7 +460,6 @@ const mutations = {
 }
 
 const actions = {
-    ...commonActions(initialState, meta),
     openRightDrawer ({ commit }, { component }) {
         commit('openRightDrawer', { component })
     },
@@ -517,15 +487,6 @@ const actions = {
     setNewlyCreatedUser ({ commit }) {
         commit('setNewlyCreatedUser', true)
     },
-    activateTour ({ commit }, tour) {
-        commit('activateTour', tour)
-    },
-    deactivateTour ({ commit, state }, tour) {
-        commit('deactivateTour', tour)
-    },
-    resetTours ({ commit }) {
-        commit('resetTours')
-    },
     validateUserAction ({ commit }, action) {
         commit('setUserAction', { action, payload: true })
     },
@@ -540,7 +501,9 @@ const actions = {
 
 export default {
     namespaced: true,
+    modules: { tours },
     state,
+    initialState: initialState(),
     getters,
     mutations,
     actions,
