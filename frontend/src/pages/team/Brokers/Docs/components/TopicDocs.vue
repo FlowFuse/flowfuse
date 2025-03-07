@@ -15,7 +15,7 @@
                                 <label>Type</label>
                                 <span class="capitalize">{{ topic.schema.type }}</span>
                             </div>
-                            <pre v-if="showRaw" class="p-2 border border-gray-200 bg-gray-50 rounded-md">{{ topic.schema }}</pre>
+                            <pre v-if="showRaw" class="p-2 border border-gray-200 bg-gray-50 rounded-md">{{ topic.schema.properties }}</pre>
                             <p v-if="!topic.schema" class="ff-empty-state">No schema available.</p>
                         </div>
                     </section>

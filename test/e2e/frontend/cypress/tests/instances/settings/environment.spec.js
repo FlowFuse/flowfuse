@@ -10,7 +10,7 @@ describe('FlowForge - Instance - Settings Environment', () => {
                 return cy.request('GET', `/api/v1/teams/${team.id}/projects`)
             })
             .then((response) => {
-                instanceId = response.body.projects[0].id
+                instanceId = response.body.projects[1].id
                 cy.visit(`/instance/${instanceId}/settings/environment`)
             })
     })
