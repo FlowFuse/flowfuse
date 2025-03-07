@@ -452,13 +452,7 @@ const actions = {
     },
     async logout ({ rootState, dispatch, commit }) {
         return userApi.logout()
-            .then(async () => {
-                // reset vuex stores to initial state
-                const modules = Object.keys(rootState).filter(m => m)
-                for (const module of modules) {
-                    await dispatch(`${module}/$resetState`, null, { root: true })
-                }
-            })
+            .then(() => dispatch('$resetState', null, { root: true }))
             .catch(_ => {})
             .finally(() => {
                 if (window._hsq) {
