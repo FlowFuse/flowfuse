@@ -137,7 +137,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('ux', ['tours', 'completeTours']),
+        ...mapState('ux/tours', ['tours', 'completed']),
+        ...mapGetters('ux/tours', ['hasTourBeenCompleted']),
         ...mapGetters('account', ['featuresCheck', 'team']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
@@ -228,7 +229,7 @@ export default {
         tours: {
             handler (tours) {
                 // handles the user manually re-requesting the tour
-                if (tours.welcome || tours['first-device']) {
+                if (tours.welcome || tours.firstDevice) {
                     this.dispatchTour()
                 }
             },
@@ -248,7 +249,7 @@ export default {
             })
         }
 
-        if (this.tours.welcome || this.tours['first-device']) {
+        if (this.tours.welcome || this.tours.firstDevice) {
             // given we've loaded resources, check for tour status
             this.dispatchTour()
         }
@@ -342,25 +343,23 @@ export default {
                 this.filterTerm = this.$route.query.searchQuery
             }
         },
-        hasTourBeenCompleted (tour) {
-            return Object.prototype.hasOwnProperty.call(this.completeTours, tour)
-        },
+
         dispatchTour () {
             if (this.tour) {
                 // don't run two tours at once
                 return
             }
             switch (true) {
-            case this.isFreemiumTeamType && !this.hasTourBeenCompleted('first-device') && !!this.applicationsList[0]:
+            case this.isFreemiumTeamType && !this.hasTourBeenCompleted('firstDevice') && !!this.applicationsList[0]:
                 // freemium users must first undergo the first-device tour on the ApplicationDevices page
-                return this.$store.dispatch('ux/activateTour', 'first-device')
+                return this.$store.dispatch('ux/tours/activateTour', 'firstDevice')
                     .then(() => this.$router.push({
                         name: 'ApplicationDevices',
                         params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
                     }))
                     .then(() => {
                         this.tour = Tours.create(
-                            'first-device',
+                            'firstDevice',
                             TourFirstDevice,
                             this.$store
                         )
@@ -370,7 +369,7 @@ export default {
 
             case !this.isFreemiumTeamType && this.instanceCount > 0:
                 this.tour = Tours.create('welcome', TourWelcome, this.$store, () => {
-                    this.$store.dispatch('ux/activateTour', 'education')
+                    this.$store.dispatch('ux/tours/activateTour', 'education')
                 })
                 // Running with an Instance pre-configured (Trial team types)
                 return this.tour.start()
@@ -379,7 +378,7 @@ export default {
                 // any regular team type
                 this.tour = Tours.create('welcome', TourWelcomeFree, this.$store, () => {
                     if (this.deviceCount === 0) {
-                        this.$store.dispatch('ux/activateTour', 'first-device')
+                        this.$store.dispatch('ux/tours/activateTour', 'firstDevice')
                     }
                 })
                 return this.tour.start()
