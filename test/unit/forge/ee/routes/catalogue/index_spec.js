@@ -289,10 +289,10 @@ describe('Team Catalogue', function () {
                 const result = response.json()
                 result.should.have.property('palette')
                 result.palette.should.have.property('npmrc')
-                result.palette.should.have.property('catalogue')
+                result.palette.should.have.property('catalogues')
                 const palette = result.palette
                 palette.npmrc.should.startWith(`@flowfuse-${app.team.hashid}:registry=http://localhost:9752`)
-                palette.catalogue.should.containEql(`http://localhost:3000/api/v1/teams/${app.team.hashid}/npm/catalogue?device=${app.device.hashid}`)
+                palette.catalogues.should.containEql(`http://localhost:3000/api/v1/teams/${app.team.hashid}/npm/catalogue?device=${app.device.hashid}`)
             })
         })
     })
