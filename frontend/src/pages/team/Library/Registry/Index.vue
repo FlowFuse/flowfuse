@@ -2,17 +2,32 @@
     <div class="-mt-2">
         <SectionTopMenu hero="Custom Node Catalog" info="Your Team's private Node catalog. Here you can publish private npm repositories for your team to use within your Node-RED Instances.">
             <template #tools>
-                <ff-button v-if="canPublish" @click="publish">
-                    <template #icon-left>
-                        <ArrowCircleUpIcon />
-                    </template>
-                    Publish
-                </ff-button>
+                <div class="flex gap-2">
+                    <ff-button
+                        kind="secondary"
+                        data-action="refresh-registry"
+                        @click="loadRegistry"
+                    >
+                        <template #icon-left>
+                            <RefreshIcon />
+                        </template>
+                        Refresh
+                    </ff-button>
+                    <ff-button v-if="canPublish" @click="publish">
+                        <template #icon-left>
+                            <ArrowCircleUpIcon />
+                        </template>
+                        Publish
+                    </ff-button>
+                </div>
             </template>
         </SectionTopMenu>
     </div>
     <div>
-        <EmptyState v-if="!registry.length" data-el="team-no-devices">
+        <div v-if="loading">
+            <ff-loading message="Loading Registry..." />
+        </div>
+        <EmptyState v-else-if="!registry.length" data-el="team-no-devices">
             <template #img>
                 <img src="../../../../images/empty-states/team-library.png" alt="placeholder-image">
             </template>
@@ -28,6 +43,16 @@
             </template>
             <template #actions>
                 <ff-button
+                    kind="secondary"
+                    data-action="refresh-registry"
+                    @click="loadRegistry"
+                >
+                    <template #icon-left>
+                        <RefreshIcon />
+                    </template>
+                    Refresh
+                </ff-button>
+                <ff-button
                     v-if="canPublish"
                     kind="primary"
                     data-action="publish-package"
@@ -40,8 +65,11 @@
                 </ff-button>
             </template>
         </EmptyState>
-        <div v-else>
-            <RegistryEntry v-for="pkg in registry" :key="pkg.name" :pkg="pkg" />
+        <div v-else class="mt-3 space-y-2">
+            <label class="block text-lg font-medium">{{ registry.length }} package<template v-if="registry.length > 1">s</template></label>
+            <ul class="ff-registry-list">
+                <RegistryEntry v-for="pkg in registry" :key="pkg.name" :pkg="pkg" />
+            </ul>
         </div>
     </div>
 
@@ -49,7 +77,7 @@
 </template>
 
 <script>
-import { ArrowCircleUpIcon } from '@heroicons/vue/outline'
+import { ArrowCircleUpIcon, RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import TeamAPI from '../../../../api/team.js'
@@ -68,10 +96,12 @@ export default {
         EmptyState,
         SectionTopMenu,
         PublishNodeDialog,
-        RegistryEntry
+        RegistryEntry,
+        RefreshIcon
     },
     data () {
         return {
+            loading: false,
             registryByPackage: []
         }
     },
@@ -90,8 +120,10 @@ export default {
     },
     methods: {
         async loadRegistry () {
+            this.loading = true
             const registry = await TeamAPI.getTeamRegistry(this.team.id)
             this.registryByPackage = registry.data
+            this.loading = false
         },
         publish () {
             this.$refs.publishNodeDialog.show()
@@ -99,3 +131,10 @@ export default {
     }
 }
 </script>
+
+<style lang="scss" scoped>
+.ff-registry-list {
+    display: grid;
+    gap: 6px;
+}
+</style>
