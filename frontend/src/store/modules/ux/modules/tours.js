@@ -1,10 +1,10 @@
 const initialState = () => ({
     tours: {
         welcome: false,
-        education: false,
-        'first-device': false
+        education: false, // Ceci n’est pas une tour
+        firstDevice: false
     },
-    completeTours: {}
+    completed: {}
 })
 
 const meta = {
@@ -21,6 +21,9 @@ const state = initialState
 const getters = {
     shouldShowEducationModal: (state) => {
         return state.tours.education
+    },
+    hasTourBeenCompleted: (state) => (tour) => {
+        return Object.prototype.hasOwnProperty.call(state.completed, tour)
     }
 }
 
@@ -30,14 +33,14 @@ const mutations = {
     },
     deactivateTour (state, tour) {
         state.tours[tour] = false
-        state.completeTours[tour] = true
+        state.completed[tour] = true
     },
     resetTours (state) {
         Object.keys(state.tours)
             .forEach(key => {
                 state.tours[key] = false
             })
-        state.completeTours = {}
+        state.completed = {}
     }
 }
 
