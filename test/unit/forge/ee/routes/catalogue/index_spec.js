@@ -273,7 +273,7 @@ describe('Team Catalogue', function () {
                 result.settings.palette.should.have.property('npmrc')
                 result.settings.palette.should.have.property('catalogue')
                 const palette = result.settings.palette
-                palette.npmrc.should.startWith(`//@flowfuse-${app.team.hashid}:registry=http://localhost:9752`)
+                palette.npmrc.should.startWith(`@flowfuse-${app.team.hashid}:registry=http://localhost:9752`)
                 palette.catalogue.should.containEql(`http://localhost:3000/api/v1/teams/${app.team.hashid}/npm/catalogue?instance=${app.project.id}`)
             })
             it('Device', async function () {
@@ -291,7 +291,7 @@ describe('Team Catalogue', function () {
                 result.palette.should.have.property('npmrc')
                 result.palette.should.have.property('catalogue')
                 const palette = result.palette
-                palette.npmrc.should.startWith(`//@flowfuse-${app.team.hashid}:registry=http://localhost:9752`)
+                palette.npmrc.should.startWith(`@flowfuse-${app.team.hashid}:registry=http://localhost:9752`)
                 palette.catalogue.should.containEql(`http://localhost:3000/api/v1/teams/${app.team.hashid}/npm/catalogue?device=${app.device.hashid}`)
             })
         })
