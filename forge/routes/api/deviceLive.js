@@ -271,14 +271,15 @@ module.exports = async function (app) {
                     `//${npmRegURL.host}:_auth="${token}"\n`
             }
 
-            if (response.palette.catalogue) {
-                response.palette.catalogue
+            if (response.palette.catalogues) {
+                response.palette.catalogues
                     .push(`${app.config.base_url}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`)
             } else {
-                response.palette.catalogue = [
+                response.palette.catalogues = [
                     `${app.config.base_url}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`
                 ]
             }
+            response.palette.catalogues.push('token')
         }
 
         if (settings.security?.httpNodeAuth?.type) {
