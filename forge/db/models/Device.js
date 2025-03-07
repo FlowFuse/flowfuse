@@ -134,6 +134,14 @@ module.exports = {
                         ownerId: '' + device.id
                     }
                 })
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: {
+                            [Op.like]: `d-${device.hashid}@%`
+                        }
+                    }
+                })
                 await M.DeviceSettings.destroy({
                     where: {
                         DeviceId: device.id
