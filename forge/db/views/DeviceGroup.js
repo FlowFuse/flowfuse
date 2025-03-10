@@ -49,7 +49,8 @@ module.exports = function (app) {
             developerModeCount: { type: 'number' },
             runningCount: { type: 'number' },
             isDeploying: { type: 'boolean' },
-            hasTargetSnapshot: { type: 'boolean' }
+            hasTargetSnapshot: { type: 'boolean' },
+            targetSnapshotId: { type: 'string' }
         }
     })
     function deviceGroupPipelineSummary (group) {
@@ -67,7 +68,11 @@ module.exports = function (app) {
             developerModeCount: 0,
             runningCount: 0,
             isDeploying: false,
-            hasTargetSnapshot: !!item.PipelineStageDeviceGroup?.targetSnapshotId
+            hasTargetSnapshot: !!item.PipelineStageDeviceGroup?.targetSnapshotId,
+            targetSnapshotId: null
+        }
+        if (result.hasTargetSnapshot) {
+            result.targetSnapshotId = app.db.models.ProjectSnapshot.encodeHashid(item.PipelineStageDeviceGroup.targetSnapshotId)
         }
         const pipelineTargetSnapshot = item.PipelineStageDeviceGroup?.targetSnapshotId ?? null
         if (item.Devices && item.Devices.length > 0) {
