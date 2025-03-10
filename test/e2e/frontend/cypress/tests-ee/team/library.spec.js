@@ -1,5 +1,6 @@
 import multipleBlueprints from '../../fixtures/blueprints/multiple-blueprints.json'
 import listingLibraryItems from '../../fixtures/libraries/listing-library-items.json'
+import npmPackages from '../../fixtures/libraries/npm-packages.json'
 import sharedLibrary from '../../fixtures/libraries/shared-library.json'
 
 function interceptBlueprints (blueprints = []) {
@@ -7,6 +8,13 @@ function interceptBlueprints (blueprints = []) {
         meta: {},
         ...blueprints
     }).as('getBlueprints')
+    cy.visit('team/ateam/library')
+}
+
+function interceptNPMPackages (packages = []) {
+    cy.intercept('/api/*/teams/*/npm/packages', {
+        ...packages
+    }).as('getNPMPackages')
     cy.visit('team/ateam/library')
 }
 
@@ -48,7 +56,7 @@ describe('FlowForge - Library', () => {
             cy.wait(['@getBlueprints'])
 
             cy.get('[data-cy="page-name"]').contains('Library')
-            cy.contains('Shared repository to store common flows and nodes.')
+            cy.contains('Common resources that are shared across all of your Team\'s Node-RED instances.')
 
             cy.contains('No Blueprints Available')
 
@@ -164,6 +172,18 @@ describe('FlowForge - Library', () => {
 
             cy.contains('Copy to Clipboard')
             cy.get('[data-el="ff-flow-previewer"]').should('exist')
+        })
+    })
+
+    describe('Custom Nodes Tab', () => {
+        it('provides a "RefresH" and "Publish" button when the feature is enabled', () => {
+            interceptNPMPackages(npmPackages)
+            cy.get('[data-el="ff-tab"]').contains('Custom Nodes').click()
+
+            cy.get('[data-el="page-banner-feature-unavailable-to-team"]').should('not.exist')
+            cy.get('[data-action="refresh-registry"]').should('exist')
+            cy.get('[data-action="publish-package"]').should('exist')
+            cy.get('[data-el="registry-count"]').contains('1 package')
         })
     })
 })
