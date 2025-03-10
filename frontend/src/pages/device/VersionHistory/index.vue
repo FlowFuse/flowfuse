@@ -68,7 +68,7 @@
         ref="snapshotCreateDialog"
         title="Create Device Snapshot"
         data-el="dialog-create-device-snapshot"
-        :show-set-as-target="false"
+        :show-set-as-target="true"
         :device="device"
         @device-upload-success="onSnapshotCreated"
         @device-upload-failed="onSnapshotFailed"
