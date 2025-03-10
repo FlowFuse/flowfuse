@@ -33,7 +33,8 @@ const BANNED_NAME_LIST = [
     'billing',
     'mqtt',
     'broker',
-    'egress'
+    'egress',
+    'npm'
 ]
 
 /** @type {FFModel} */
