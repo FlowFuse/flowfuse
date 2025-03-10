@@ -15,7 +15,10 @@
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
             <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-            <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
+            <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshotsFiltered" :show-search="true" search-placeholder="Search Snapshots...">
+                <template #actions>
+                    <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">Filter</DropdownMenu>
+                </template>
                 <template #context-menu="{row}">
                     <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
                     <ff-list-item :disabled="!canViewSnapshot(row)" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
@@ -56,6 +59,7 @@ import { mapState } from 'vuex'
 
 import ApplicationApi from '../../api/application.js'
 import SnapshotsApi from '../../api/snapshots.js'
+import DropdownMenu from '../../components/DropdownMenu.vue'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
@@ -68,6 +72,7 @@ import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import { applySystemUserDetails } from '../../transformers/snapshots.transformer.js'
+import { isAutoSnapshot } from '../../utils/snapshot.js'
 
 // Table Cells
 import DaysSince from './Snapshots/components/cells/DaysSince.vue'
@@ -78,6 +83,7 @@ import SnapshotExportDialog from './Snapshots/components/dialogs/SnapshotExportD
 export default {
     name: 'ApplicationSnapshots',
     components: {
+        DropdownMenu,
         SectionTopMenu,
         SnapshotEditDialog,
         SnapshotExportDialog,
@@ -97,6 +103,7 @@ export default {
         return {
             loading: false,
             snapshots: [],
+            snapshotFilter: null,
             columns: [
                 {
                     label: 'Snapshot',
@@ -143,6 +150,34 @@ export default {
                     value: s.id
                 }
             })
+        },
+        snapshotsFiltered () {
+            if (this.snapshotFilter) {
+                return this.snapshots.filter(this.snapshotFilter)
+            }
+            return this.snapshots
+        },
+        snapshotFilterOptions () {
+            return [
+                {
+                    name: 'All Snapshots',
+                    action: () => {
+                        this.snapshotFilter = null
+                    }
+                },
+                {
+                    name: 'User Snapshots',
+                    action: () => {
+                        this.snapshotFilter = (snapshot) => !isAutoSnapshot(snapshot)
+                    }
+                },
+                {
+                    name: 'Auto Snapshots',
+                    action: () => {
+                        this.snapshotFilter = (snapshot) => isAutoSnapshot(snapshot)
+                    }
+                }
+            ]
         }
     },
     mounted () {
