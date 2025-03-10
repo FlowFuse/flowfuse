@@ -3,7 +3,10 @@
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0 && !loading">
             <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-            <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
+            <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshotsFiltered" :show-search="true" search-placeholder="Search Snapshots...">
+                <template #actions>
+                    <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">Filter</DropdownMenu>
+                </template>
                 <template #context-menu="{row}">
                     <ff-list-item :disabled="!hasPermission('project:snapshot:rollback')" label="Restore Snapshot" @click="showRollbackDialog(row)" />
                     <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
@@ -48,6 +51,7 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../../../../api/instances.js'
 import SnapshotApi from '../../../../api/projectSnapshots.js'
+import DropdownMenu from '../../../../components/DropdownMenu.vue'
 
 import EmptyState from '../../../../components/EmptyState.vue'
 import AssetCompareDialog from '../../../../components/dialogs/AssetCompareDialog.vue'
@@ -57,6 +61,7 @@ import UserCell from '../../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../../mixins/Permissions.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
 import { applySystemUserDetails } from '../../../../transformers/snapshots.transformer.js'
+import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import DeviceCount from '../../../application/Snapshots/components/cells/DeviceCount.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
@@ -65,6 +70,7 @@ import SnapshotExportDialog from '../../../application/Snapshots/components/dial
 export default {
     name: 'InstanceSnapshots',
     components: {
+        DropdownMenu,
         EmptyState,
         SnapshotEditDialog,
         SnapshotExportDialog,
@@ -86,7 +92,8 @@ export default {
             deviceCounts: {},
             snapshots: [],
             busyMakingSnapshot: false,
-            busyImportingSnapshot: false
+            busyImportingSnapshot: false,
+            snapshotFilter: null
         }
     },
     computed: {
@@ -130,14 +137,33 @@ export default {
         busy () {
             return this.busyMakingSnapshot || this.busyImportingSnapshot
         },
-        snapshotList () {
-            return this.snapshots.map(s => {
-                return {
-                    label: s.name,
-                    description: s.description || '',
-                    value: s.id
+        snapshotsFiltered () {
+            if (this.snapshotFilter) {
+                return this.snapshots.filter(this.snapshotFilter)
+            }
+            return this.snapshots
+        },
+        snapshotFilterOptions () {
+            return [
+                {
+                    name: 'All Snapshots',
+                    action: () => {
+                        this.snapshotFilter = null
+                    }
+                },
+                {
+                    name: 'User Snapshots',
+                    action: () => {
+                        this.snapshotFilter = (snapshot) => !isAutoSnapshot(snapshot)
+                    }
+                },
+                {
+                    name: 'Auto Snapshots',
+                    action: () => {
+                        this.snapshotFilter = (snapshot) => isAutoSnapshot(snapshot)
+                    }
                 }
-            })
+            ]
         }
     },
     watch: {
