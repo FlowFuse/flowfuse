@@ -1,5 +1,6 @@
 const { getLoggers: getDeviceLogger } = require('../../auditLog/device')
 const { getLoggers: getProjectLogger } = require('../../auditLog/project')
+const { getLoggers: getTeamLogger } = require('../../auditLog/team')
 const { Roles } = require('../../lib/roles')
 
 /** Node-RED Audit Logging backend
@@ -13,6 +14,7 @@ const { Roles } = require('../../lib/roles')
 module.exports = async function (app) {
     const deviceAuditLogger = getDeviceLogger(app)
     const projectAuditLogger = getProjectLogger(app)
+    const teamAuditLogger = getTeamLogger(app)
     /** @type {import('../../db/controllers/AuditLog')} */
     const auditLogController = app.db.controllers.AuditLog
     /** @type {import('../../db/controllers/ProjectSnapshot')} */
@@ -247,5 +249,38 @@ module.exports = async function (app) {
                 }
             }
         }
+    })
+
+    /**
+     * Post route for team audit log events
+     * @method POST
+     * @name /logging/team/:teamId/audit
+     * @memberof forge.routes.logging
+     */
+    app.post('/team/:teamId/audit', {
+        preHandler: async (request, reply) => {
+            // check user is in the Team they are reporting for
+            // only npm is generating team audit log message
+            if (request.session.ownerType === 'npm') {
+                const user = await app.db.models.User.byUsername(request.session.ownerId)
+                if (user && await user.getTeamMembership(request.params.teamId)) {
+                    request.user = user
+                    request.team = await app.db.models.Team.byId(request.params.teamId)
+                    return
+                }
+            }
+            reply.status(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    }, async (request, reply) => {
+        if (request.body.action === 'publish') {
+            teamAuditLogger.team.package.published(request.user, null, request.team, { name: request.body.name, version: request.body.version })
+        } else if (request.body.action === 'unpublish') {
+            teamAuditLogger.team.package.unpublished(request.user, null, request.team, { name: request.body.name, version: request.body.version })
+        } else {
+            reply.status(404).send()
+            return
+        }
+
+        reply.status(200).send({})
     })
 }
