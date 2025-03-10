@@ -150,7 +150,7 @@ export default {
             if (!this.developerMode || this.busy) {
                 return false
             }
-            return this.isOwnedByAnInstance || this.isOwnedByAnApplication
+            return this.isOwnedByAnApplication
         }
     },
     methods: {
