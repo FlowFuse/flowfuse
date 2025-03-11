@@ -35,14 +35,14 @@ describe('FlowForge - Library', () => {
         })
     })
 
-    describe('Custom Nodes', () => {
-        it('do not load when the feature is disabled on the platform', () => {
-            cy.visit('team/ateam/library')
-            cy.get('[data-el="ff-tab"]').contains('Custom Nodes').click()
+    // describe('Custom Nodes', () => {
+    //     it('do not load when the feature is disabled on the platform', () => {
+    //         cy.visit('team/ateam/library')
+    //         cy.get('[data-el="ff-tab"]').contains('Custom Nodes').click()
 
-            cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')
-            cy.get('[data-action="refresh-registry"]').should('not.exist')
-            cy.get('[data-action="publish-package"]').should('not.exist')
-        })
-    })
+    //         cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')
+    //         cy.get('[data-action="refresh-registry"]').should('not.exist')
+    //         cy.get('[data-action="publish-package"]').should('not.exist')
+    //     })
+    // })
 })

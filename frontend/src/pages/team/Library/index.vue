@@ -28,18 +28,11 @@ export default {
     computed: {
         ...mapGetters('account', ['featuresCheck']),
         navigation () {
-            return [
+            const list = [
                 {
                     label: 'Team Library',
                     to: {
                         name: 'LibraryTeamLibrary'
-                    }
-                },
-                {
-                    label: 'Custom Nodes',
-                    featureUnavailable: !this.featuresCheck?.isPrivateRegistryFeatureEnabledForPlatform || !this.featuresCheck?.isPrivateRegistryFeatureEnabledForTeam,
-                    to: {
-                        name: 'LibraryRegistry'
                     }
                 },
                 {
@@ -49,6 +42,16 @@ export default {
                     }
                 }
             ]
+            if (this.featuresCheck?.isPrivateRegistryFeatureEnabledForPlatform) {
+                list.splice(1, 0, {
+                    label: 'Custom Nodes',
+                    featureUnavailable: !this.featuresCheck?.isPrivateRegistryFeatureEnabledForPlatform || !this.featuresCheck?.isPrivateRegistryFeatureEnabledForTeam,
+                    to: {
+                        name: 'LibraryRegistry'
+                    }
+                })
+            }
+            return list
         }
     }
 }
