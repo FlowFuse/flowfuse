@@ -15,6 +15,7 @@ const DEFAULT_DEVICE_OTC_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
  * ffpat - personal access token
  * ffhttp - httpNode access token
  * fftpb - third party broker
+ * ffnpm - Team npm registry
  */
 
 module.exports = {
@@ -409,5 +410,38 @@ module.exports = {
             ownerType: 'broker'
         })
         return { token }
+    },
+
+    createTokenForNPM: async function (app, entity, team, scope = ['team:packages:read']) {
+        // Adding prefix to the entityId of `p-`, `d-` and `u-` rather than relying on
+        // no hashid collisions
+        let ownerId
+        if (entity instanceof app.db.models.Project) {
+            ownerId = `p-${entity.id}@${team.hashid}`
+        } else if (entity instanceof app.db.models.Device) {
+            ownerId = `d-${entity.hashid}@${team.hashid}`
+        } else if (entity instanceof app.db.models.User) {
+            ownerId = entity.username
+        }
+        const existingNPMToken = await app.db.models.AccessToken.findOne({
+            where: {
+                ownerId,
+                ownerType: 'npm'
+            }
+        })
+        if (existingNPMToken) {
+            await existingNPMToken.destroy()
+        }
+        const token = generateToken(32, 'ffnpm')
+        await app.db.models.AccessToken.create({
+            token,
+            ownerId,
+            ownerType: 'npm',
+            scope
+        })
+        return {
+            username: ownerId,
+            token
+        }
     }
 }
