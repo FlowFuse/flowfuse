@@ -22,8 +22,10 @@ module.exports = fp(async function (app, opts) {
         app.config.features.register('projectHistory', true, true)
         // Set the Bill of Materials Feature Flag
         app.config.features.register('bom', true, true)
-        // Set npm Feature Flag
-        app.config.features.register('npm', true, true)
+        if (app.config.npmRegistry?.enabled) {
+            // Set npm Feature Flag
+            app.config.features.register('npm', true, true)
+        }
     }
 
     // Set the Team Library Feature Flag
