@@ -82,7 +82,7 @@
                         </ff-button>
                         <ff-button
                             kind="primary"
-                            :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'"
+                            :disabled="!canCreateSnapshot"
                             data-action="create-snapshot"
                             @click="$emit('show-create-snapshot-dialog')"
                         >
@@ -165,6 +165,12 @@ export default {
     },
     computed: {
         ...mapState('account', ['teamMembership', 'features']),
+        canCreateSnapshot () {
+            if (!this.developerMode || this.busy) {
+                return false
+            }
+            return this.isOwnedByAnInstance || this.isOwnedByAnApplication
+        },
         columns () {
             const cols = [
                 {
@@ -223,6 +229,9 @@ export default {
         },
         isOwnedByAnInstance () {
             return this.device?.ownerType === 'instance'
+        },
+        isOwnedByAnApplication () {
+            return this.device?.ownerType === 'application'
         },
         isUnassigned () {
             return this.device?.ownerType === ''

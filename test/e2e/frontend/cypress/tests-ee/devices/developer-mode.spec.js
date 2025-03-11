@@ -16,7 +16,7 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.visit('/team/bteam/devices')
     })
 
-    it('provides an option to enable "Developer Mode" when deviceEditor feature is enabled', () => {
+    it('provides an option to enable "Developer Mode" when deviceEditor feature is enabled and device is owned by an Application', () => {
         cy.contains('span', 'application-device-a').click()
         cy.get('[data-el="device-devmode-toggle"]').should('exist')
     })
@@ -50,6 +50,32 @@ describe('FlowForge - Devices - With Billing', () => {
         cy.get('[data-el="device-devmode-toggle"]').click()
         cy.get('[data-el=platform-dialog] > .ff-dialog-box [data-action="dialog-confirm"]').click() // click confirm
         cy.url().should('not.include', '/developer-mode')
+    })
+
+    it('has the option to "Create Snapshot" if owned by an Application', () => {
+        /// Assigned to nothing
+        cy.contains('span', 'application-device-a').click()
+        cy.get('[data-el="device-devmode-toggle"]').click() // enable
+        cy.get('[data-nav="version-history"]').click() // switch to Version History
+
+        cy.get('[data-action="create-snapshot"]').should('not.be.disabled')
+        // get first of these buttons
+        cy.get('[data-action="create-snapshot"]').first().click()
+        cy.get('[data-form="set-as-target"]').should('exist')
+
+        // close the dialog
+        cy.get('[data-el="dialog-create-device-snapshot"] [data-action="dialog-cancel"]').click() // click cancel
+
+        cy.get('[data-el="device-devmode-toggle"]').click() // rest to dev mode off
+        cy.get('[data-el=platform-dialog] > .ff-dialog-box [data-action="dialog-confirm"]').click() // click confirm
+    })
+
+    it('does not have the option to "Create Snapshot" if owned by an Hosted Instance', () => {
+        /// Assigned to nothing
+        cy.contains('span', 'assigned-device-a').click()
+        cy.get('[data-nav="version-history"]').click() // switch to Version History
+
+        cy.get('[data-action="create-snapshot"]').should('be.disabled')
     })
 
     it('has the create snapshot disabled if the snapshot is not assigned to an application or instance', () => {
