@@ -17,7 +17,11 @@
             <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
             <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshotsFiltered" :show-search="true" search-placeholder="Search Snapshots...">
                 <template #actions>
-                    <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">Filter</DropdownMenu>
+                    <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">
+                        <FilterIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
+                        {{ snapshotFilter?.name || 'All Snapshots' }}
+                        <span class="sr-only">Filter Snapshots</span>
+                    </DropdownMenu>
                 </template>
                 <template #context-menu="{row}">
                     <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
@@ -54,6 +58,7 @@
 </template>
 
 <script>
+import { FilterIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -83,13 +88,14 @@ import SnapshotExportDialog from './Snapshots/components/dialogs/SnapshotExportD
 export default {
     name: 'ApplicationSnapshots',
     components: {
-        DropdownMenu,
-        SectionTopMenu,
-        SnapshotEditDialog,
-        SnapshotExportDialog,
         AssetDetailDialog,
         AssetCompareDialog,
-        EmptyState
+        DropdownMenu,
+        EmptyState,
+        FilterIcon,
+        SectionTopMenu,
+        SnapshotEditDialog,
+        SnapshotExportDialog
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
@@ -104,6 +110,41 @@ export default {
             loading: false,
             snapshots: [],
             snapshotFilter: null,
+            snapshotFilters: {
+                All_Snapshots: {
+                    name: 'All Snapshots',
+                    selected: true,
+                    filter: null,
+                    action: () => {
+                        this.snapshotFilters.All_Snapshots.selected = true
+                        this.snapshotFilters.User_Snapshots.selected = false
+                        this.snapshotFilters.Auto_Snapshots.selected = false
+                        this.snapshotFilter = this.snapshotFilters.All_Snapshots
+                    }
+                },
+                User_Snapshots: {
+                    name: 'User Snapshots',
+                    selected: false,
+                    filter: (s) => !isAutoSnapshot(s),
+                    action: () => {
+                        this.snapshotFilters.All_Snapshots.selected = false
+                        this.snapshotFilters.User_Snapshots.selected = true
+                        this.snapshotFilters.Auto_Snapshots.selected = false
+                        this.snapshotFilter = this.snapshotFilters.User_Snapshots
+                    }
+                },
+                Auto_Snapshots: {
+                    name: 'Auto Snapshots',
+                    selected: false,
+                    filter: (s) => isAutoSnapshot(s),
+                    action: () => {
+                        this.snapshotFilters.All_Snapshots.selected = false
+                        this.snapshotFilters.User_Snapshots.selected = false
+                        this.snapshotFilters.Auto_Snapshots.selected = true
+                        this.snapshotFilter = this.snapshotFilters.Auto_Snapshots
+                    }
+                }
+            },
             columns: [
                 {
                     label: 'Snapshot',
@@ -152,32 +193,13 @@ export default {
             })
         },
         snapshotsFiltered () {
-            if (this.snapshotFilter) {
-                return this.snapshots.filter(this.snapshotFilter)
+            if (this.snapshotFilter?.filter) {
+                return this.snapshots.filter(this.snapshotFilter.filter)
             }
             return this.snapshots
         },
         snapshotFilterOptions () {
-            return [
-                {
-                    name: 'All Snapshots',
-                    action: () => {
-                        this.snapshotFilter = null
-                    }
-                },
-                {
-                    name: 'User Snapshots',
-                    action: () => {
-                        this.snapshotFilter = (snapshot) => !isAutoSnapshot(snapshot)
-                    }
-                },
-                {
-                    name: 'Auto Snapshots',
-                    action: () => {
-                        this.snapshotFilter = (snapshot) => isAutoSnapshot(snapshot)
-                    }
-                }
-            ]
+            return Object.values(this.snapshotFilters)
         }
     },
     mounted () {
