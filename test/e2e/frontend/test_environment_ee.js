@@ -55,6 +55,14 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
             teamBroker: {
                 enabled: true
             }
+        },
+        npmRegistry: {
+            enabled: true,
+            url: 'http://localhost:4873',
+            admin: {
+                username: 'admin',
+                password: 'secret'
+            }
         }
     })
 
