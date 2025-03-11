@@ -137,6 +137,16 @@ export default {
         busy () {
             return this.busyMakingSnapshot || this.busyImportingSnapshot
         },
+        snapshotList () {
+            // this list is used for the snapshot dropdown in the compare snapshot dialog (via the mixin frontend/src/mixins/Snapshots.js)
+            return this.snapshots.map(s => {
+                return {
+                    label: s.name,
+                    description: s.description || '',
+                    value: s.id
+                }
+            })
+        },
         snapshotsFiltered () {
             if (this.snapshotFilter) {
                 return this.snapshots.filter(this.snapshotFilter)
