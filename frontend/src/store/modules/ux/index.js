@@ -11,7 +11,7 @@ import ProjectsIcon from '../../../components/icons/Projects.js'
 import usePermissions from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
-import tours from './modules/tours.js'
+import tours from './tours/index.js'
 
 const initialState = () => ({
     leftDrawer: {

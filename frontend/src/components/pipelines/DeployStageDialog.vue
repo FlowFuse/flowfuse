@@ -12,7 +12,10 @@
             </p>
             <p class="my-4">
                 This will
-                <template v-if="stage.action === StageAction.CREATE_SNAPSHOT">
+                <template v-if="stage.stageType === StageType.DEVICEGROUP">
+                    use the group's target snapshot from "{{ stage.name }}" and
+                </template>
+                <template v-else-if="stage.action === StageAction.CREATE_SNAPSHOT">
                     create a new snapshot in "{{ stage.name }}" and
                 </template>
                 <template v-else-if="stage.action === StageAction.USE_LATEST_SNAPSHOT">
@@ -38,7 +41,7 @@
             </p>
 
             <template v-if="(promptForSnapshot || useLatestSnapshot) && loadingSnapshots">
-                <ff-loading message="Loading Stage Snapshots..." />
+                <ff-loading message="Loading..." />
             </template>
             <template v-else-if="promptForSnapshot">
                 <form class="space-y-2" @submit.prevent="confirm">
@@ -98,37 +101,45 @@
                 </form>
             </template>
             <template v-else-if="useLatestSnapshot">
-                <div v-if="!hasSnapshots" class="error-banner">
-                    No snapshots have been created for this stage's
-                    <template v-if="stage.stageType == StageType.INSTANCE">
-                        instance yet!<br><br>
+                <template v-if="stage.stageType == StageType.DEVICEGROUP">
+                    <div v-if="!hasSnapshots" class="error-banner">
+                        This stage's device group does not have a target snapshot
+                        set yet!
+                    </div>
+                </template>
+                <template v-else>
+                    <div v-if="!hasSnapshots" class="error-banner">
+                        No snapshots have been created for this stage's
+                        <template v-if="stage.stageType == StageType.INSTANCE">
+                            instance yet!<br><br>
 
-                        Snapshots can be managed on the
-                        <router-link
-                            :to="{
-                                name: 'instance-snapshots',
-                                params: { id: stage.instance.id },
-                            }"
-                        >
-                            Instance Snapshots
-                        </router-link>
-                        page.
-                    </template>
-                    <template v-else-if="stage.stageType === StageType.DEVICE">
-                        device yet!<br><br>
+                            Snapshots can be managed on the
+                            <router-link
+                                :to="{
+                                    name: 'instance-snapshots',
+                                    params: { id: stage.instance.id },
+                                }"
+                            >
+                                Instance Snapshots
+                            </router-link>
+                            page.
+                        </template>
+                        <template v-else-if="stage.stageType === StageType.DEVICE">
+                            device yet!<br><br>
 
-                        Device snapshots can be managed on the
-                        <router-link
-                            :to="{
-                                name: 'DeviceSnapshots',
-                                params: { id: stage.device.id },
-                            }"
-                        >
-                            Device Snapshots
-                        </router-link>
-                        page.
-                    </template>
-                </div>
+                            Device snapshots can be managed on the
+                            <router-link
+                                :to="{
+                                    name: 'DeviceSnapshots',
+                                    params: { id: stage.device.id },
+                                }"
+                            >
+                                Device Snapshots
+                            </router-link>
+                            page.
+                        </template>
+                    </div>
+                </template>
             </template>
         </template>
         <template #actions>
@@ -142,6 +153,7 @@
 import DeviceApi from '../../api/devices.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
 import SnapshotApi from '../../api/projectSnapshots.js'
+import SnapshotsApi from '../../api/snapshots.js'
 import FormRow from '../FormRow.vue'
 
 export default {
@@ -179,11 +191,11 @@ export default {
     },
     computed: {
         promptForSnapshot () {
-            return this.stage.action === StageAction.PROMPT
+            return this.stage.stageType !== StageType.DEVICEGROUP && this.stage.action === StageAction.PROMPT
         },
 
         useLatestSnapshot () {
-            return this.stage.action === StageAction.USE_LATEST_SNAPSHOT
+            return this.stage.stageType === StageType.DEVICEGROUP || this.stage.action === StageAction.USE_LATEST_SNAPSHOT
         },
 
         formValid () {
@@ -242,6 +254,13 @@ export default {
                     this.stage.instance.id
                 )
                 this.snapshots = data.snapshots
+            } else if (this.stage.stageType === StageType.DEVICEGROUP) {
+                if (!this.stage.deviceGroup.hasTargetSnapshot) {
+                    this.snapshots = []
+                } else {
+                    const data = await SnapshotsApi.getSummary(this.stage.deviceGroup.targetSnapshotId)
+                    this.snapshots = [data]
+                }
             } else {
                 throw Error(`Unknown stage type ${this.stage.stageType}`)
             }
@@ -252,10 +271,14 @@ export default {
             if (!this.formValid) {
                 return
             }
-
-            const sourceSnapshot = this.snapshots.find(
-                (snapshot) => snapshot.id === this.input.selectedSnapshotId
-            )
+            let sourceSnapshot
+            if (this.stage.stageType === StageType.DEVICEGROUP) {
+                sourceSnapshot = this.snapshots[0]
+            } else {
+                sourceSnapshot = this.snapshots.find(
+                    (snapshot) => snapshot.id === this.input.selectedSnapshotId
+                )
+            }
 
             this.$emit('deploy-stage', this.target, sourceSnapshot)
 

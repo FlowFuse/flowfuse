@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 describe('FlowForge - Application - DevOps Pipelines', () => {
     let application
     let team
@@ -599,7 +600,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-form="stage-type"]').find('.ff-tile-selection-option[data-form="tile-selection-option-device-group"]').should('have.class', 'disabled')
     })
 
-    it('cannot add any more stages after a device group', () => {
+    it('can only add a device group stage after a device group', () => {
         cy.intercept('GET', '/api/v1/applications/*/pipelines').as('getPipelines')
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
 
@@ -654,9 +655,13 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-action="add-stage"]').click()
 
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
-            // now there is a device group at the end stage, check to ensure add-stage is not be present
-            cy.get('[data-action="add-stage"]').should('not.exist')
+            // click on add stage and ensure only the device group option is available
+            cy.get('[data-action="add-stage"]').click()
         })
+        // ensure only device group is available
+        cy.get('[data-form="tile-selection-option-device-group"]').should('not.have.class', 'disabled')
+        cy.get('[data-form="tile-selection-option-instance"]').should('have.class', 'disabled')
+        cy.get('[data-form="tile-selection-option-device"]').should('have.class', 'disabled')
     })
 
     it('can create a new device group', () => {
