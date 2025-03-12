@@ -52,6 +52,9 @@ module.exports = async function (app) {
                 const defaultHost = app.config.domain ? `broker.${app.config.domain}` : app.config.host
                 response['team:broker:host'] = app.config.broker?.teamBroker?.host || defaultHost
             }
+            if (app.config.features.enabled('npm')) {
+                response['team:npm:registry'] = app.config.npmRegistry?.url
+            }
 
             if (request.session.User.admin) {
                 response['platform:licensed'] = isLicensed

@@ -1,7 +1,7 @@
 <template>
     <div class="ff-section-header flex border-b border-gray-400 mb-4 sm:mb-2 text-gray-500 justify-between min-h-12">
-        <div class="w-full flex flex-wrap justify-between mb-2 gap-2">
-            <div class="flex-grow max-w-full flex gap-2 items-center">
+        <div class="w-full flex flex-nowrap justify-between mb-2 items-center gap-2">
+            <div class="flex-shrink flex-grow flex-wrap max-w-full flex gap-x-2 items-baseline min-w-0">
                 <div class="flex gap-2 items-center">
                     <slot name="hero">
                         <div class="flex">
@@ -10,9 +10,9 @@
                     </slot>
                     <InformationCircleIcon v-if="hasInfoDialog" class="min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />
                 </div>
-                <div v-if="info" class="hidden sm:block text-gray-400 info truncate">{{ info }}</div>
+                <div v-if="info" class="hidden sm:block text-gray-400 info truncate text-sm">{{ info }}</div>
             </div>
-            <div class="actions">
+            <div class="actions flex-shrink-0">
                 <ul v-if="options.length > 0" class="flex">
                     <li v-for="item in options" :key="item.name" class="mr-8 pt-1 flex">
                         <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active" :data-nav="`section-${item.name.toLowerCase()}`">{{ item.name }}</router-link>

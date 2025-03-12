@@ -1,0 +1,30 @@
+{
+    "@flowfuse-KbQ8Wa7EdZ/node-red-example": {
+        "name": "@flowfuse-KbQ8Wa7EdZ/node-red-example",
+        "description": "Example repository to test custom nodes in the FlowFuse Registry",
+        "dist-tags": {
+            "latest": "0.0.2"
+        },
+        "maintainers": [
+            {
+                "name": "Joe Pavitt",
+                "url": "https://github.com/joepavitt"
+            }
+        ],
+        "author": {
+            "name": "Joe Pavitt",
+            "url": "https://github.com/joepavitt"
+        },
+        "readmeFilename": "",
+        "keywords": [
+            "node-red"
+        ],
+        "time": {
+            "modified": "2025-03-07T14:11:21.177Z"
+        },
+        "license": "MIT",
+        "versions": {
+            "0.0.2": "latest"
+        }
+    }
+}
