@@ -141,6 +141,16 @@
         <span v-else-if="!error">Provisioning data not found in audit entry.</span>
     </template>
 
+    <!-- Team NPM Package Events -->
+    <template v-else-if="entry.event === 'team.package.published'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error">New version of '{{ entry.body.pkg.name }}' published {{ entry.body.pkg.version }}</span>
+    </template>
+    <template v-else-if="entry.event === 'team.package.unpublished'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pkg">Version {{ entry.body.pkg.version }} of '{{ entry.body.pkg.name }}' unpublished</span>
+    </template>
+
     <!-- Device Actions Events -->
     <template v-else-if="entry.event === 'device.started'">
         <label>{{ AuditEvents[entry.event] }}</label>
