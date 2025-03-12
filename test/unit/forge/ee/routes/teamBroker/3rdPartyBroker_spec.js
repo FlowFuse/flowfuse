@@ -1,3 +1,4 @@
+const { Op } = require('sequelize')
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
@@ -101,7 +102,11 @@ describe('3rd Party Broker API', function () {
 
     describe('3rd Party Broker Credentials', function () {
         afterEach(async function () {
-            await app.db.models.BrokerCredentials.destroy({ where: {} })
+            await app.db.models.BrokerCredentials.destroy({
+                where: {
+                    name: { [Op.ne]: 'ff-team-broker' }
+                }
+            })
         })
 
         it('Create Credentials as Owner', async function () {
@@ -248,7 +253,7 @@ describe('3rd Party Broker API', function () {
                 url: `/api/v1/teams/${app.team.hashid}/brokers`,
                 cookies: { sid: TestObjects.tokens.bob },
                 body: {
-                    name: 'broker1',
+                    name: 'ff-team-broker',
                     host: 'localhost',
                     port: 1883,
                     protocol: 'mqtt:',
