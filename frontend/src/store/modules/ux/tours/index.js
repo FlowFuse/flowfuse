@@ -5,10 +5,12 @@ import TourWelcome, { id as WelcomeTourId } from '../../../../tours/tour-welcome
 
 const initialState = () => ({
     tours: {
-        education: false, // Ceci n’est pas une tour
         [WelcomeTourId]: false,
         [FirstDeviceTourId]: false,
         [TrialWelcomeTourId]: false
+    },
+    modals: {
+        education: false
     },
     completed: {},
     activeTour: null,
@@ -34,7 +36,7 @@ const state = initialState
 
 const getters = {
     shouldShowEducationModal: (state) => {
-        return state.tours.education
+        return state.modals.education
     },
     hasTourBeenCompleted: (state) => (tour) => {
         return Object.prototype.hasOwnProperty.call(state.completed, tour)
@@ -69,6 +71,12 @@ const mutations = {
     },
     withdrawTour (state) {
         state.shouldPresentTour = false
+    },
+    openModal (state, modal) {
+        state.modals[modal] = true
+    },
+    closeModal (state, modal) {
+        state.modals[modal] = false
     }
 }
 
@@ -109,6 +117,12 @@ const actions = {
     },
     withdrawTour ({ commit }) {
         commit('withdrawTour')
+    },
+    openModal ({ commit }, modal) {
+        commit('openModal', modal)
+    },
+    closeModal ({ commit }, modal) {
+        commit('closeModal', modal)
     }
 }
 

@@ -350,11 +350,8 @@ export default {
                 console.log('tour trial welcome')
                 return this.$store.dispatch(
                     'ux/tours/setTrialWelcomeTour',
-                    () => {
-                        // start education modal
-                        // todo other way of starting education modal
-                        this.$store.dispatch('ux/tours/activateTour', 'education')
-                    })
+                    () => this.$store.dispatch('ux/tours/openModal', 'education')
+                )
                     .catch(e => e)
 
             case !this.isFreeTeamType:
@@ -364,9 +361,8 @@ export default {
                     'ux/tours/setWelcomeTour',
                     () => {
                         if (this.deviceCount === 0) {
-                        // start first device tour when finished
+                            // start first device tour when finished
                             this.$store.dispatch('ux/tours/setFirstDeviceTour')
-                                .catch(e => e)
                         }
                     })
                     .catch(e => e)

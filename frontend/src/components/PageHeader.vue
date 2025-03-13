@@ -182,11 +182,10 @@ export default {
     },
     methods: {
         ...mapActions('ux', ['toggleLeftDrawer']),
-        ...mapActions('ux/tours', ['activateTour']),
         openEducationModal () {
-            // todo other way of starting education modal
-            this.activateTour('education')
-            product.capture('clicked-open-education-modal')
+            this.$store.dispatch('ux/tours/openModal', 'education')
+                .then(() => product.capture('clicked-open-education-modal'))
+                .catch(e => e)
         },
         startWelcomeTour () {
             return this.$store.dispatch('ux/tours/resetTours')
