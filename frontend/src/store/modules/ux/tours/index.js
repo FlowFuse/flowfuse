@@ -1,10 +1,18 @@
+import Tours from '../../../../tours/Tours.js'
+import TourFirstDevice, { id as FirstDeviceTourId } from '../../../../tours/tour-first-device.js'
+import TourWelcomeTrial, { id as TrialWelcomeTourId } from '../../../../tours/tour-welcome-trial.js'
+import TourWelcome, { id as WelcomeTourId } from '../../../../tours/tour-welcome.js'
+
 const initialState = () => ({
     tours: {
-        welcome: false,
         education: false, // Ceci n’est pas une tour
-        firstDevice: false
+        [WelcomeTourId]: false,
+        [FirstDeviceTourId]: false,
+        [TrialWelcomeTourId]: false
     },
-    completed: {}
+    completed: {},
+    activeTour: null,
+    shouldPresentTour: false
 })
 
 const meta = {
@@ -12,6 +20,12 @@ const meta = {
         tours: {
             storage: 'localStorage'
             // clearOnLogout: true (cleared by default)
+        },
+        completed: {
+            storage: 'localStorage'
+        },
+        shouldPresentTour: {
+            storage: 'localStorage'
         }
     }
 }
@@ -41,6 +55,20 @@ const mutations = {
                 state.tours[key] = false
             })
         state.completed = {}
+    },
+    setActiveTour (state, tour) {
+        if (!state.activeTour || !state.activeTour.isActive()) {
+            state.activeTour = tour
+        }
+    },
+    clearActiveTour (state) {
+        state.activeTour = null
+    },
+    presentTour (state) {
+        state.shouldPresentTour = true
+    },
+    withdrawTour (state) {
+        state.shouldPresentTour = false
     }
 }
 
@@ -53,6 +81,34 @@ const actions = {
     },
     resetTours ({ commit }) {
         commit('resetTours')
+    },
+    setFirstDeviceTour ({ commit, dispatch }, callback = () => { }) {
+        commit('setActiveTour', Tours.create(FirstDeviceTourId, TourFirstDevice, callback))
+        dispatch('startTour')
+    },
+    setTrialWelcomeTour ({ commit, dispatch }, callback = () => { }) {
+        commit('setActiveTour', Tours.create(TrialWelcomeTourId, TourWelcomeTrial, callback))
+        dispatch('startTour')
+    },
+    setWelcomeTour ({ commit, dispatch }, callback = () => { }) {
+        commit('setActiveTour', Tours.create(WelcomeTourId, TourWelcome, callback))
+        dispatch('startTour')
+    },
+    startTour ({ state }) {
+        setTimeout(() => {
+            if (state.activeTour && !state.activeTour.isActive()) {
+                state.activeTour.start()
+            }
+        }, 1000)
+    },
+    clearActiveTour ({ commit }) {
+        commit('clearActiveTour')
+    },
+    presentTour ({ commit }) {
+        commit('presentTour')
+    },
+    withdrawTour ({ commit }) {
+        commit('withdrawTour')
     }
 }
 

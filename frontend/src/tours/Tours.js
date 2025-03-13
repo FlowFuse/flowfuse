@@ -2,22 +2,21 @@
 import { offset } from '@floating-ui/dom'
 import { useShepherd } from 'vue-shepherd'
 
-import { useStore } from 'vuex'
-
 import Product from '../services/product.js'
 
 // eslint-disable-next-line n/no-extraneous-import
 import 'shepherd.js/dist/css/shepherd.css'
 import './tour-theme.scss'
 
-function create (id, tourJson, store, onCloseHook) {
-    if (!store) {
-        store = useStore()
-    }
+import store from '../store/index.js'
+
+function create (id, tourJson, onCloseHook) {
+    store.dispatch('ux/tours/activateTour', id)
     Product.capture('ff-tour-start', {
         tour_id: id
     })
     const tour = useShepherd({
+        id,
         useModalOverlay: true,
         defaultStepOptions: {
             arrow: true,
@@ -35,6 +34,8 @@ function create (id, tourJson, store, onCloseHook) {
     function onCancel () {
         const index = tour.steps.indexOf(tour.currentStep)
         store.dispatch('ux/tours/deactivateTour', id)
+        store.dispatch('ux/tours/clearActiveTour')
+        store.dispatch('ux/tours/withdrawTour')
         Product.capture('ff-tour-cancel', {
             tour_id: id,
             tour_step: index
@@ -46,6 +47,8 @@ function create (id, tourJson, store, onCloseHook) {
 
     function onComplete () {
         store.dispatch('ux/tours/deactivateTour', id)
+        store.dispatch('ux/tours/clearActiveTour')
+        store.dispatch('ux/tours/withdrawTour')
         Product.capture('ff-tour-complete', {
             tour_id: id
         })

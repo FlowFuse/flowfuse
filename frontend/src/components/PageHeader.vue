@@ -184,6 +184,7 @@ export default {
         ...mapActions('ux', ['toggleLeftDrawer']),
         ...mapActions('ux/tours', ['activateTour']),
         openEducationModal () {
+            // todo other way of starting education modal
             this.activateTour('education')
             product.capture('clicked-open-education-modal')
         },
@@ -194,9 +195,7 @@ export default {
                 .then(() => this.$router.push({ name: 'Applications' }))
                 .then(() => {
                     // breathing room for the page, instances and devices to load for the tour to work properly
-                    setTimeout(() => {
-                        this.$store.dispatch('ux/tours/activateTour', 'welcome')
-                    }, 1000)
+                    setTimeout(() => this.$store.dispatch('ux/tours/presentTour'), 1000)
                 })
         }
     }
