@@ -290,8 +290,8 @@ jobs:
                     "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
                   }${{ env.IS_PR == 'true' && ',
                   {
-                      "type": "mrkdwn",
-                      "text": "*Pull request*: <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.pull_request.number }}|${{ github.event.pull_request.number }}>"
+                    "type": "mrkdwn",
+                    "text": "*Pull request:* <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.pull_request.number }}|${{ github.event.pull_request.number }}>"
                   }' || '' }}
                 ]
               }
