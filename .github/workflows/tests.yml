@@ -291,8 +291,8 @@ jobs:
                   }${{ env.IS_PR == 'true' && ',
                   {
                       "type": "mrkdwn",
-                      "text": "*Pull request*: <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.number }}|${{ github.event.number }}"
-                    }
+                      "text": "*Pull request*: <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.number }}|${{ github.event.number }}>"
+                  }
                   }' || '' }}
                 ]
               }
