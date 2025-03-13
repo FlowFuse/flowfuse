@@ -201,8 +201,8 @@ jobs:
 
   notify-slack:
     name: Notify on failure
-    needs: [backend-tests, postgres-tests, ui-tests]
-    if: failure()
+    # needs: [backend-tests, postgres-tests, ui-tests]
+    if: always()
     runs-on: ubuntu-latest
 
     steps:
@@ -220,11 +220,13 @@ jobs:
           echo "SUMMARY_ICON=no_entry" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until this issue is resolved." >> $GITHUB_ENV
           echo "LAST_COMMIT_SHA=${{ github.sha}}" >> $GITHUB_ENV
+          echo "IS_PR=false" >> $GITHUB_ENV
         else
-          echo "HEADER_MESSAGE=Tests failed against ${{ github.event.number }} pull request" >> $GITHUB_ENV
+          echo "HEADER_MESSAGE=Tests failed against <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.number }}|${{ github.event.number }}> pull request" >> $GITHUB_ENV
           echo "SUMMARY_ICON=warning" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Please resolve the problem before merging your changes into the main branch." >> $GITHUB_ENV
           echo "LAST_COMMIT_SHA=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+          echo "IS_PR=true" >> $GITHUB_ENV
         fi
 
 
@@ -286,7 +288,12 @@ jobs:
                   {
                     "type": "mrkdwn",
                     "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
-                  }
+                  }${{ env.is_pr == 'true' && ',
+                  {
+                      "type": "mrkdwn",
+                      "text": "*Pull request*: <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.number }}|${{ github.event.number }}"
+                    }
+                  }' || '' }}
                 ]
               }
             ]
