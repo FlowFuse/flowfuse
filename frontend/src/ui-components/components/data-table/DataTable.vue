@@ -176,7 +176,7 @@ export default {
         },
         initialSortKey: {
             type: String,
-            default: undefined
+            default: ''
         },
         initialSortOrder: {
             type: String,
