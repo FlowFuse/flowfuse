@@ -174,6 +174,14 @@ export default {
             type: Array,
             default: () => []
         },
+        initialSortKey: {
+            type: String,
+            default: ''
+        },
+        initialSortOrder: {
+            type: String,
+            default: 'desc'
+        },
         showLoadMore: {
             type: Boolean,
             default: false
@@ -302,6 +310,8 @@ export default {
         if (this.$route?.query?.searchQuery) {
             this.internalSearch = this.$route.query.searchQuery
         }
+        this.sort.key = this.initialSortKey
+        this.sort.order = this.orders.includes(this.initialSortOrder) ? this.initialSortOrder : this.orders[0]
     },
     methods: {
         toggleAllChecks (pointerEvents) {
