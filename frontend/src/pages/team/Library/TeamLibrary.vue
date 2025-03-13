@@ -1,6 +1,7 @@
 <template>
     <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
     <div class="ff-team-library mb-14">
+        <SectionTopMenu hero="Team Library" info="Centralized management of common Javascript functions and Node-RED flows for your team." />
         <div v-if="isSharedLibraryFeatureEnabled" class="breadcrumbs-wrapper">
             <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
                 <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex items-center">
@@ -62,6 +63,7 @@ import teamApi from '../../../api/team.js'
 
 import CodePreviewer from '../../../components/CodePreviewer.vue'
 import EmptyState from '../../../components/EmptyState.vue'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FlowViewer from '../../../components/flow-viewer/FlowViewer.vue'
 import formatDateMixin from '../../../mixins/DateTime.js'
 import featuresMixin from '../../../mixins/Features.js'
@@ -77,7 +79,8 @@ export default {
         ChevronRightIcon,
         EmptyState,
         TypeIcon,
-        PlusIcon
+        PlusIcon,
+        SectionTopMenu
     },
     mixins: [formatDateMixin, featuresMixin],
     data () {

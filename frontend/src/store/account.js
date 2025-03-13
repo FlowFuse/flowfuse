@@ -101,11 +101,12 @@ const getters = {
     offline (state) {
         return state.offline
     },
-    noBilling (state, getters) {
+    requiresBilling (state, getters) {
         return !state.user.admin &&
         state.features.billing &&
         (!state.team?.billing?.unmanaged) &&
         (!getters.isTrialAccount || state.team?.billing?.trialEnded) &&
+        !state.team?.type?.properties?.billing?.disabled &&
         !state.team?.billing?.active
     },
     isTrialAccount (state) {
@@ -191,6 +192,10 @@ const getters = {
                 const flag = state.team?.type?.properties.features?.customCatalogs
                 return flag === undefined || flag
             })(state),
+
+            // Private NPM Registry (Custom Nodes)
+            isPrivateRegistryFeatureEnabledForPlatform: !!state.features?.npm,
+            isPrivateRegistryFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.npm,
 
             // Static Assets
             isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,

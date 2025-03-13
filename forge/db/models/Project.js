@@ -33,7 +33,9 @@ const BANNED_NAME_LIST = [
     'billing',
     'mqtt',
     'broker',
-    'egress'
+    'egress',
+    'npm',
+    'registry'
 ]
 
 /** @type {FFModel} */
@@ -162,6 +164,14 @@ module.exports = {
                     where: {
                         ownerType: 'project',
                         ownerId: project.id
+                    }
+                })
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: {
+                            [Op.like]: `p-${project.id}@%`
+                        }
                     }
                 })
                 await M.AuthClient.destroy({

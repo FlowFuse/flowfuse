@@ -30,10 +30,12 @@ describe('Team Catalogue', function () {
             await app.team.addUser(userBob, { through: { role: Roles.Owner } })
             // Run all the tests with bob - non-admin Team Owner
             await login('bob', 'bbPassword')
+            app.bob = userBob
 
             const userChris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
             await app.team.addUser(userChris, { through: { role: Roles.Member } })
             await login('chris', 'ccPassword')
+            app.chris = userChris
 
             const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const defaultTeamTypeProperties = defaultTeamType.properties
@@ -60,8 +62,8 @@ describe('Team Catalogue', function () {
                     const retVal = {
                         _updated: 99999
                     }
-                    retVal[`@${app.team.hashid}/one`] = {
-                        name: `@${app.team.hashid}/one`,
+                    retVal[`@flowfuse-${app.team.hashid}/one`] = {
+                        name: `@flowfuse-${app.team.hashid}/one`,
                         'dist-tags': {
                             latest: '1.0.0'
                         },
@@ -73,8 +75,8 @@ describe('Team Catalogue', function () {
                             '1.0.0': 'latest'
                         }
                     }
-                    retVal[`@${app.team.hashid}/two`] = {
-                        name: `@${app.team.hashid}/two`,
+                    retVal[`@flowfuse-${app.team.hashid}/two`] = {
+                        name: `@flowfuse-${app.team.hashid}/two`,
                         'dist-tags': {
                             latest: '1.0.0'
                         },
@@ -86,8 +88,8 @@ describe('Team Catalogue', function () {
                             '1.0.0': 'latest'
                         }
                     }
-                    retVal['@foo/two'] = {
-                        name: '@foo/two',
+                    retVal['@flowfuse-foo/two'] = {
+                        name: '@flowfuse-foo/two',
                         'dist-tags': {
                             latest: '1.0.0'
                         },
@@ -130,7 +132,7 @@ describe('Team Catalogue', function () {
             result.should.have.property('name', `FlowFuse Team ${app.team.name} catalogue`)
             result.should.have.property('modules')
             result.modules.should.have.a.lengthOf(2)
-            result.modules[0].should.have.property('id', `@${app.team.hashid}/one`)
+            result.modules[0].should.have.property('id', `@flowfuse-${app.team.hashid}/one`)
         })
         it('Get Team Catalogue (device)', async function () {
             const response = await app.inject({
@@ -142,7 +144,7 @@ describe('Team Catalogue', function () {
             result.should.have.property('name', `FlowFuse Team ${app.team.name} catalogue`)
             result.should.have.property('modules')
             result.modules.should.have.a.lengthOf(2)
-            result.modules[0].should.have.property('id', `@${app.team.hashid}/one`)
+            result.modules[0].should.have.property('id', `@flowfuse-${app.team.hashid}/one`)
         })
         it('Get Team Packages by Owner', async function () {
             const response = await app.inject({
@@ -152,9 +154,9 @@ describe('Team Catalogue', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.property(`@${app.team.hashid}/one`)
-            result[`@${app.team.hashid}/one`].should.have.property('name', `@${app.team.hashid}/one`)
-            result[`@${app.team.hashid}/one`].should.have.property('license', 'Apache-2.0')
+            result.should.have.property(`@flowfuse-${app.team.hashid}/one`)
+            result[`@flowfuse-${app.team.hashid}/one`].should.have.property('name', `@flowfuse-${app.team.hashid}/one`)
+            result[`@flowfuse-${app.team.hashid}/one`].should.have.property('license', 'Apache-2.0')
         })
         it('Get Team Packages by Member', async function () {
             const response = await app.inject({
@@ -163,6 +165,135 @@ describe('Team Catalogue', function () {
                 cookies: { sid: TestObjects.tokens.chris }
             })
             response.statusCode.should.equal(200)
+        })
+        describe('NPM Authentication', function () {
+            it('generate Project token', async function () {
+                const user = `p-${app.project.id}@${app.team.hashid}`
+                const result = await app.db.controllers.AccessToken.createTokenForNPM(app.project, app.team)
+
+                const token = await app.db.controllers.AccessToken.getOrExpire(result.token)
+                should.exist(token)
+                token.should.have.property('scope', ['team:packages:read'])
+                token.should.have.property('ownerType', 'npm')
+                token.should.have.property('ownerId', user)
+                const authResult = await app.inject({
+                    method: 'GET',
+                    url: `/account/check/npm/${user}`,
+                    headers: {
+                        Authorization: `Bearer ${result.token}`
+                    }
+                })
+                authResult.statusCode.should.equal(200)
+                const newToken = await app.db.controllers.AccessToken.createTokenForNPM(app.project, app.team)
+                newToken.token.should.not.equal(result.token)
+            })
+            it('generate Device token', async function () {
+                const user = `d-${app.device.hashid}@${app.team.hashid}`
+                const result = await app.db.controllers.AccessToken.createTokenForNPM(app.device, app.team)
+
+                const token = await app.db.controllers.AccessToken.getOrExpire(result.token)
+                should.exist(token)
+                token.should.have.property('scope', ['team:packages:read'])
+                token.should.have.property('ownerType', 'npm')
+                token.should.have.property('ownerId', user)
+                const authResult = await app.inject({
+                    method: 'GET',
+                    url: `/account/check/npm/${user}`,
+                    headers: {
+                        Authorization: `Bearer ${result.token}`
+                    }
+                })
+                authResult.statusCode.should.equal(200)
+            })
+            it('generate User token', async function () {
+                let testResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/userToken`,
+                    cookies: {
+                        sid: TestObjects.tokens.bob
+                    }
+                })
+                testResponse.statusCode.should.equal(404)
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/userToken`,
+                    cookies: {
+                        sid: TestObjects.tokens.bob
+                    }
+                })
+                response.statusCode.should.equal(201)
+                const result = response.json()
+                const user = 'bob'
+                result.should.have.property('username', user)
+
+                testResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/userToken`,
+                    cookies: {
+                        sid: TestObjects.tokens.bob
+                    }
+                })
+                testResponse.statusCode.should.equal(200)
+
+                const token = await app.db.controllers.AccessToken.getOrExpire(result.token)
+                should.exist(token)
+                token.should.have.property('scope', ['team:packages:manage'])
+                token.should.have.property('ownerType', 'npm')
+                token.should.have.property('ownerId', user)
+
+                const authResult = await app.inject({
+                    method: 'GET',
+                    url: `/account/check/npm/${user}`,
+                    headers: {
+                        Authorization: `Bearer ${result.token}`
+                    }
+                })
+                authResult.statusCode.should.equal(200)
+                const body = authResult.json()
+                body.should.have.property('teams')
+                body.teams.should.have.length(1)
+                body.teams[0].should.equal(`${app.team.hashid}:50`)
+            })
+        })
+        describe('Instance/Device settings', function () {
+            it('Instance', async function () {
+                const projectTokens = await app.project.refreshAuthTokens()
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${app.project.id}/settings`,
+                    headers: {
+                        Authorization: `Bearer ${projectTokens.token}`
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('settings')
+                result.settings.should.have.property('palette')
+                result.settings.palette.should.have.property('npmrc')
+                result.settings.palette.should.have.property('catalogue')
+                const palette = result.settings.palette
+                palette.npmrc.should.startWith(`@flowfuse-${app.team.hashid}:registry=http://localhost:9752`)
+                palette.catalogue.should.containEql(`http://localhost:3000/api/v1/teams/${app.team.hashid}/npm/catalogue?instance=${app.project.id}`)
+            })
+            it('Device', async function () {
+                const deviceToken = await app.db.controllers.AccessToken.createTokenForDevice(app.device)
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${app.device.hashid}/live/settings`,
+                    headers: {
+                        Authorization: `Bearer ${deviceToken.token}`
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('palette')
+                result.palette.should.have.property('npmrc')
+                result.palette.should.have.property('catalogues')
+                const palette = result.palette
+                palette.npmrc.should.startWith(`@flowfuse-${app.team.hashid}:registry=http://localhost:9752`)
+                palette.catalogues.should.containEql(`http://localhost:3000/api/v1/teams/${app.team.hashid}/npm/catalogue?device=${app.device.hashid}`)
+            })
         })
     })
     describe('Not Enabled for Team', function () {
