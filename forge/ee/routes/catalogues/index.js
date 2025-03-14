@@ -51,7 +51,7 @@ module.exports = async function (app) {
                 if (package === '_updated') {
                     continue
                 }
-                if (package.startsWith(`@${request.params.teamId}/`)) {
+                if (package.startsWith(`@flowfuse-${request.params.teamId}/`)) {
                     packages[package] = packageList.data[package]
                 }
             }
@@ -63,7 +63,87 @@ module.exports = async function (app) {
     })
 
     /**
-     * Get Team catlogue
+     * Test is user already has a npm password
+     *
+     * @name /api/v1/teams/:teamId/npm/userToken
+     * @memberof forge.routes.api.team.npm
+     */
+    app.get('/npm/userToken', {
+        preHandler: app.needsPermission('team:packages:manage'),
+        schema: {
+            summary: 'Check if user already has a NPM auth token',
+            tags: ['NPM packages'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    userId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object'
+                },
+                404: {
+                    type: 'object'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const token = await app.db.models.AccessToken.findOne({
+            where: {
+                ownerType: 'npm',
+                ownerId: `${request.session.User.username}`
+            }
+        })
+        if (token) {
+            reply.status(200).send({})
+        } else {
+            reply.status(404).send({})
+        }
+    })
+
+    /**
+     * Test is user already has a npm password
+     *
+     * @name /api/v1/teams/:teamId/npm/userToken
+     * @memberof forge.routes.api.team.npm
+     */
+    app.post('/npm/userToken', {
+        preHandler: app.needsPermission('team:packages:manage'),
+        schema: {
+            summary: 'Generate a new user password for NPM registry',
+            tags: ['NPM packages'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    userId: { type: 'string' }
+                }
+            },
+            response: {
+                201: {
+                    type: 'object',
+                    properties: {
+                        username: { type: 'string' },
+                        token: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const token = await app.db.controllers.AccessToken.createTokenForNPM(request.session.User, request.team, ['team:packages:manage'])
+        reply.status(201).send(token)
+    })
+
+    /**
+     * Get Team catalogue
      * @name /api/v1/teams/:teamId/npm/catalogue
      * @static
      * @memberof forge.routes.api.team.npm
@@ -109,7 +189,7 @@ module.exports = async function (app) {
                     if (package === '_updated') {
                         continue
                     }
-                    if (package.startsWith(`@${request.params.teamId}/`)) {
+                    if (package.startsWith(`@flowfuse-${request.params.teamId}/`)) {
                         modules.push({
                             id: package,
                             description: packageList.data[package].description,

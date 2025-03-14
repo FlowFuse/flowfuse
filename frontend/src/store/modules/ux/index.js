@@ -64,7 +64,7 @@ const getters = {
         const { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } = usePermissions()
         const team = rootState.account.team
         const accountFeatures = rootState.account.features
-        const noBilling = rootGetters['account/noBilling']
+        const requiresBilling = rootGetters['account/requiresBilling']
         const features = rootGetters['account/featuresCheck']
 
         const adminContext = [
@@ -212,7 +212,7 @@ const getters = {
                             },
                             tag: 'team-applications',
                             icon: TemplateIcon,
-                            disabled: noBilling
+                            disabled: requiresBilling
                         }
                     ]
                 },
@@ -229,7 +229,7 @@ const getters = {
                             tag: 'team-instances',
                             icon: ProjectsIcon,
                             featureUnavailable: !features.isHostedInstancesEnabledForTeam,
-                            disabled: noBilling
+                            disabled: requiresBilling
                         },
                         {
                             label: 'Remote Instances',
@@ -239,7 +239,7 @@ const getters = {
                             },
                             tag: 'team-devices',
                             icon: ChipIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             alert: state.isNewlyCreatedUser && !state.userActions.hasOpenedDeviceEditor
                                 ? {
                                     title: 'Connect to Device Agent',
@@ -261,7 +261,7 @@ const getters = {
                             },
                             tag: 'device-groups',
                             icon: DeviceGroupOutlineIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             featureUnavailable: !features.isDeviceGroupsFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member)
                         },
@@ -273,7 +273,7 @@ const getters = {
                             },
                             tag: 'team-pipelines',
                             icon: PipelinesIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             featureUnavailable: !features.devOpsPipelinesFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member)
                         },
@@ -285,7 +285,7 @@ const getters = {
                             },
                             tag: 'team-bom',
                             icon: TableIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             featureUnavailable: !features.isBOMFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner)
                         },
@@ -294,7 +294,7 @@ const getters = {
                             to: { name: 'team-brokers', params: { team_slug: team.slug } },
                             tag: 'team-brokers',
                             icon: RssIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             featureUnavailable: !features.isMqttBrokerFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
                         }
@@ -312,7 +312,7 @@ const getters = {
                             },
                             tag: 'shared-library',
                             icon: BookOpenIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             featureUnavailable: !features.isSharedLibraryFeatureEnabledForPlatform || !features.isSharedLibraryFeatureEnabledForTeam
                         },
                         {
@@ -323,7 +323,7 @@ const getters = {
                             },
                             tag: 'team-members',
                             icon: UsersIcon,
-                            disabled: noBilling
+                            disabled: requiresBilling
                         }
                     ]
                 },
@@ -340,7 +340,7 @@ const getters = {
                             },
                             tag: 'team-audit',
                             icon: DatabaseIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             permission: 'team:edit'
                         },
                         {
@@ -353,7 +353,7 @@ const getters = {
                             icon: CurrencyDollarIcon,
                             hidden: (() => {
                                 // hide menu entry for non-billing setups
-                                if (noBilling) {
+                                if (requiresBilling) {
                                     return true
                                 }
 

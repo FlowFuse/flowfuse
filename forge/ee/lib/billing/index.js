@@ -531,6 +531,11 @@ module.exports.init = async function (app) {
                     app.log.warn(`Problem updating team ${team.hashid} subscription: ${err.message}`)
                     throw err
                 }
+            } else if (subscription && subscription.isTrial() && targetTeamType.getProperty('billing.disabled', false)) {
+                // This team is a trial team that is changing to a disabled-billing team
+                // The cleanest approach here is to delete the subscription object to get
+                // things into the right state
+                await subscription.destroy()
             } else {
                 const err = new Error('Team subscription not active')
                 err.code = 'billing_required'

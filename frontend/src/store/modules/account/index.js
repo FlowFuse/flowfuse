@@ -98,13 +98,14 @@ const getters = {
     offline (state) {
         return state.offline
     },
-    noBilling (state, getters) {
+    requiresBilling (state, getters) {
         const isNotAdmin = (state.user && !state.user.admin)
 
         return isNotAdmin &&
         state.features.billing &&
         (!state.team?.billing?.unmanaged) &&
         (!getters.isTrialAccount || state.team?.billing?.trialEnded) &&
+        !state.team?.type?.properties?.billing?.disabled &&
         !state.team?.billing?.active
     },
     isTrialAccount (state) {
@@ -190,6 +191,10 @@ const getters = {
                 const flag = state.team?.type?.properties.features?.customCatalogs
                 return flag === undefined || flag
             })(state),
+
+            // Private NPM Registry (Custom Nodes)
+            isPrivateRegistryFeatureEnabledForPlatform: !!state.features?.npm,
+            isPrivateRegistryFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.npm,
 
             // Static Assets
             isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
@@ -451,13 +456,7 @@ const actions = {
     },
     async logout ({ rootState, dispatch, commit }) {
         return userApi.logout()
-            .then(async () => {
-                // reset vuex stores to initial state
-                const modules = Object.keys(rootState).filter(m => m)
-                for (const module of modules) {
-                    await dispatch(`${module}/$resetState`, null, { root: true })
-                }
-            })
+            .then(() => dispatch('$resetState', null, { root: true }))
             .catch(_ => {})
             .finally(() => {
                 if (window._hsq) {
