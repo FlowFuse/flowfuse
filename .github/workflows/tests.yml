@@ -220,7 +220,7 @@ jobs:
           echo "SUMMARY_ICON=no_entry" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until this issue is resolved." >> $GITHUB_ENV
           echo "LAST_COMMIT_SHA=${{ github.sha}}" >> $GITHUB_ENV
-          echo "PR_LINK=Branch: ${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "PR_LINK=*Branch*: ${{ github.ref_name }}" >> $GITHUB_ENV
         else
           echo "HEADER_MESSAGE=Tests failed against ${{ github.event.number }} pull request" >> $GITHUB_ENV
           echo "SUMMARY_ICON=warning" >> $GITHUB_ENV
@@ -283,11 +283,11 @@ jobs:
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "*Last commit:* <${{ github.server_url }}/${{ github.repository }}/commit/${{ env.LAST_COMMIT_SHA }}|${{ env.LAST_COMMIT_SHA }}>"
+                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
+                    "text": "*Last commit:* <${{ github.server_url }}/${{ github.repository }}/commit/${{ env.LAST_COMMIT_SHA }}|${{ env.LAST_COMMIT_SHA }}>"
                   },
                   {
                     "type": "mrkdwn",
