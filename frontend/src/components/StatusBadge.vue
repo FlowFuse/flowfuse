@@ -4,7 +4,8 @@
         v-else
         class="forge-badge"
         :data-el="`status-badge-${status}`"
-        :class="['forge-status-' + status, pendingChange ? 'opacity-40' : '']"
+        :class="['forge-status-' + status, pendingChange ? 'opacity-40' : '', to ? 'cursor-pointer' : '']"
+        @click="navigate"
     >
         <ExclamationCircleIcon v-if="status === 'error' || status === 'crashed'" class="w-4 h-4" />
         <ExclamationIcon v-if="status === 'suspended' || status === 'stopped' || status === 'warning'" class="w-4 h-4" />
@@ -68,6 +69,48 @@ export default {
         pendingChange: {
             type: Boolean,
             default: false
+        },
+        instanceType: {
+            type: String,
+            default: null
+        },
+        instanceId: {
+            type: String,
+            default: null
+        }
+    },
+    computed: {
+        to () {
+            let routeName = null
+            switch (this.instanceType) {
+            case 'device':
+                routeName = 'device-logs'
+                break
+            case 'instance':
+            case 'project':
+                routeName = 'instance-logs'
+                break
+            }
+            if (!this.instanceId || !routeName) {
+                return null
+            }
+            switch (this.status) {
+            case 'running':
+            case 'crashed':
+            case 'error':
+            case 'safe':
+                return { name: routeName, params: { id: this.instanceId } }
+            default:
+                return null
+            }
+        }
+    },
+    methods: {
+        navigate (event) {
+            if (this.to) {
+                event.stopPropagation()
+                this.$router.push(this.to)
+            }
         }
     }
 }
