@@ -220,13 +220,14 @@ jobs:
           echo "SUMMARY_ICON=no_entry" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until this issue is resolved." >> $GITHUB_ENV
           echo "LAST_COMMIT_SHA=${{ github.sha}}" >> $GITHUB_ENV
+          echo "PR_LINK=*Branch:* ${{ github.ref_name }}" >> $GITHUB_ENV
         else
           echo "HEADER_MESSAGE=Tests failed against ${{ github.event.number }} pull request" >> $GITHUB_ENV
           echo "SUMMARY_ICON=warning" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Please resolve the problem before merging your changes into the main branch." >> $GITHUB_ENV
           echo "LAST_COMMIT_SHA=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+          echo "PR_LINK=*Pull request:* <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.pull_request.number }}|${{ github.event.pull_request.number }}>" >> $GITHUB_ENV
         fi
-
 
     - name: Send notification
       uses: slackapi/slack-github-action@v2.0.0
@@ -281,11 +282,15 @@ jobs:
                   },
                   {
                     "type": "mrkdwn",
+                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View failed workflow>"
+                  },
+                  {
+                    "type": "mrkdwn",
                     "text": "*Last commit:* <${{ github.server_url }}/${{ github.repository }}/commit/${{ env.LAST_COMMIT_SHA }}|${{ env.LAST_COMMIT_SHA }}>"
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
+                    "text": "${{ env.PR_LINK }}"
                   }
                 ]
               }
