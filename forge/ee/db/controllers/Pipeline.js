@@ -48,33 +48,58 @@ module.exports = {
                 throw new PipelineControllerError('invalid_input', 'Must provide only one instance, device or device group', 400)
             }
 
+            const stages = await pipeline.stages()
+            // stages are a linked list, so ensure we use the sorted stages
+            const orderedStages = app.db.models.PipelineStage.sortStages(stages)
+            const firstStage = orderedStages[0]
+            const priorStages = []
+            const laterStages = []
+            let foundStage = false
+            for (let stageIndex = 0; stageIndex < orderedStages.length; stageIndex++) {
+                const s = orderedStages[stageIndex]
+                if (s.id === stage.id) {
+                    foundStage = true
+                    continue
+                }
+                if (foundStage) {
+                    laterStages.push(s)
+                } else {
+                    priorStages.push(s)
+                }
+            }
+
             // If this stage is being set as a device group, check all stages.
             // * A device group cannot be the first stage
-            // * There can be only one device group and it can only be the last stage
+            // * There can be multiple device groups but only a device group can follow a device group
             if (options.deviceGroupId) {
-                const stages = await pipeline.stages()
-                // stages are a linked list, so ensure we use the sorted stages
-                const orderedStages = app.db.models.PipelineStage.sortStages(stages)
                 if (orderedStages.length === 0) {
                     // this should never be reached but here for completeness
                     throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
                 }
-                const firstStage = orderedStages[0]
-                const lastStage = orderedStages[orderedStages.length - 1]
 
                 // if the first stage is the same as the stage being updated, then it's the first stage
                 if (firstStage && firstStage.id === stage.id) {
                     throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
                 }
 
-                // filter out the stage being updated and check if any other stages have a device group
-                const otherStages = stages.filter(s => s.id !== stage.id)
-                if (otherStages.filter(s => s.DeviceGroups?.length).length) {
-                    throw new PipelineControllerError('invalid_input', 'A Device Group can only set on the last stage', 400)
+                if (laterStages && laterStages.length) {
+                    const nonDeviceGroupStages = laterStages.filter(s => (s.DeviceGroups?.length ?? 0) === 0)
+                    if (nonDeviceGroupStages.length > 0) {
+                        throw new PipelineControllerError('invalid_input', 'This stage cannot be a Device Group as a later stage contains an instance', 400)
+                    }
                 }
-
-                if (lastStage && lastStage.id !== stage.id) {
-                    throw new PipelineControllerError('invalid_input', 'A Device Group can only set on the last stage', 400)
+            } else {
+                // hosted/remote instance
+                // If a device group is set before this stage, that is an error
+                const nonDeviceGroupStagesPrior = priorStages.filter(s => (s.DeviceGroups?.length ?? 0) > 0)
+                if (nonDeviceGroupStagesPrior.length > 0) {
+                    throw new PipelineControllerError('invalid_input', 'This stage cannot contain an instance as a Device Group is set in a prior stage', 400)
+                }
+                // If any device group exists after this stage, they must all be device groups
+                const deviceGroupStagesLater = laterStages.filter(s => (s.DeviceGroups?.length ?? 0) > 0)
+                const nonDeviceGroupStagesLater = laterStages.filter(s => (s.DeviceGroups?.length ?? 0) === 0)
+                if (deviceGroupStagesLater.length > 0 && nonDeviceGroupStagesLater.length > 0) {
+                    throw new PipelineControllerError('invalid_input', 'This stage can only contain Device Group stages', 400)
                 }
             }
 
@@ -158,17 +183,30 @@ module.exports = {
             delete options.source
         }
 
-        // before we create the stage, we need to check a few things
-        // if this is being added as a device group, check all stages.
-        // * A device group cannot be the first stage
-        // * There can be only one device group and it can only be the last stage
+        // Before we create the stage, we need to check a few things
+        // 1. When adding a device group
+        //   * A device group cannot be the first stage
+        //   * There can be multiple device groups but only a device group can follow a device group
+        // 2. When adding an instance/device
+        //   * A device group cannot be set before an instance or device
+
+        const stages = await pipeline.stages() // stages are a linked list
+        const orderedStages = app.db.models.PipelineStage.sortStages(stages) // sort the stages
+
+        // 1. When adding a device group
         if (options.deviceGroupId) {
-            const stages = await pipeline.stages()
             const stageCount = stages.length
             if (stageCount === 0) {
                 throw new PipelineControllerError('invalid_input', 'A Device Group cannot be the first stage', 400)
-            } else if (stages.filter(s => s.DeviceGroups?.length).length) {
-                throw new PipelineControllerError('invalid_input', 'Only one Device Group can only set in a pipeline', 400)
+            }
+        }
+
+        // 2. When adding an instance/device
+        if (options.instanceId || options.deviceId) {
+            // ensure that we are not adding an instance or device after a device group
+            const deviceGroups = orderedStages.filter(s => s.DeviceGroups?.length)
+            if (deviceGroups.length) {
+                throw new PipelineControllerError('invalid_input', 'An instance or device cannot be added after a device group', 400)
             }
         }
 
@@ -217,7 +255,8 @@ module.exports = {
 
         const sourceInstances = await sourceStage.getInstances()
         const sourceDevices = await sourceStage.getDevices()
-        const totalSources = sourceInstances.length + sourceDevices.length
+        const sourceDeviceGroups = await sourceStage.getDeviceGroups()
+        const totalSources = sourceInstances.length + sourceDevices.length + sourceDeviceGroups.length
         if (totalSources === 0) {
             throw new PipelineControllerError('invalid_stage', 'Source stage must have at least one instance or device', 400)
         }
@@ -241,12 +280,14 @@ module.exports = {
 
         const sourceDevice = sourceDevices[0]
         const targetDevice = targetDevices[0]
+
+        const sourceDeviceGroup = sourceDeviceGroups[0]
         const targetDeviceGroup = targetDeviceGroups[0]
 
-        const sourceObject = sourceInstance || sourceDevice
+        const sourceObject = sourceInstance || sourceDevice || sourceDeviceGroup
         const targetObject = targetInstance || targetDevice || targetDeviceGroup
 
-        const sourceType = sourceInstance ? 'instance' : (sourceDevice ? 'device' : '')
+        const sourceType = sourceInstance ? 'instance' : (sourceDevice ? 'device' : (sourceDeviceGroup ? 'device group' : ''))
         const targetType = targetInstance ? 'instance' : (targetDevice ? 'device' : (targetDeviceGroup ? 'device group' : ''))
 
         const sourceApplication = await app.db.models.Application.byId(sourceObject.ApplicationId)
@@ -262,7 +303,7 @@ module.exports = {
             throw new PipelineControllerError('invalid_target_stage', 'Target device cannot not be in developer mode', 400)
         }
 
-        return { sourceInstance, targetInstance, sourceDevice, targetDevice, targetDeviceGroup, targetStage }
+        return { sourceInstance, targetInstance, sourceDevice, targetDevice, sourceDeviceGroup, targetDeviceGroup, targetStage }
     },
 
     getOrCreateSnapshotForSourceInstance: async function (app, sourceStage, sourceInstance, sourceSnapshotId, deployMeta = { pipeline: null, user: null, targetStage: null }) {
@@ -348,6 +389,14 @@ module.exports = {
         }
 
         throw new PipelineControllerError('invalid_action', `Unsupported pipeline deploy action for devices: ${sourceStage.action}`, 400)
+    },
+
+    getSnapshotForSourceDeviceGroup: async function (app, sourceDeviceGroup) {
+        const sourceSnapshot = await sourceDeviceGroup.getTargetSnapshot()
+        if (!sourceSnapshot) {
+            throw new PipelineControllerError('invalid_source_device_group', 'No snapshots found for source stages device group but deploy action is set to use latest snapshot', 400)
+        }
+        return sourceSnapshot
     },
 
     /**

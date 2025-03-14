@@ -195,7 +195,11 @@ const Permissions = {
     'broker:credentials:list': { description: 'List 3rd Party Broker credentials', role: Roles.Owner },
     'broker:credentials:create': { description: 'Create new Broker credentials', role: Roles.Owner },
     'broker:credentials:edit': { description: 'Edit Broker Credentials', role: Roles.Owner },
-    'broker:credentials:delete': { description: 'Delete Broker Credentials', role: Roles.Owner }
+    'broker:credentials:delete': { description: 'Delete Broker Credentials', role: Roles.Owner },
+
+    // Team Packages
+    'team:packages:read': { description: 'List Teams Private Packages', role: Roles.Member },
+    'team:packages:manage': { description: 'Manage Teams Private Packages', role: Roles.Owner }
 }
 
 module.exports = {

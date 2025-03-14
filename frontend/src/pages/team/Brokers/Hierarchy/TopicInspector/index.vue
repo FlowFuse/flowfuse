@@ -2,6 +2,9 @@
     <div class="ff-topic-inspector">
         <main-title title="Topic Inspector">
             <template v-if="segment" #actions>
+                <ff-button kind="danger" :disabled="!hasId || hasChildren" @click="deleteTopic()">
+                    Delete
+                </ff-button>
                 <ff-button :disabled="!hasUnsavedChanges" kind="secondary" @click="clearTopicMetaChanges()">
                     Cancel
                 </ff-button>
@@ -14,7 +17,12 @@
         <template v-if="segment">
             <payload-metadata :segment="localSegment" @segment-updated="onSegmentUpdated" />
 
-            <payload-schema :segment="localSegment" />
+            <payload-schema
+                :segment="localSegment"
+                @suggestion-accepted="onSuggestionAccepted"
+                @suggestion-rejected="onSuggestionRejected"
+                @clear-suggestion="onSuggestionCleared"
+            />
         </template>
 
         <EmptyState v-else>
@@ -58,7 +66,7 @@ export default {
             required: true
         }
     },
-    emits: ['segment-updated'],
+    emits: ['segment-updated', 'segment-created', 'segment-deleted'],
     data () {
         return {
             localSegment: { ...this.segment }
@@ -71,6 +79,12 @@ export default {
         },
         hasUnsavedChanges () {
             return this.localSegment && JSON.stringify(this.localSegment.metadata) !== JSON.stringify(this.segment.metadata)
+        },
+        hasId () {
+            return !!this.localSegment?.id
+        },
+        hasChildren () {
+            return this.localSegment?.childrenCount > 0
         }
     },
     watch: {
@@ -93,6 +107,7 @@ export default {
                 await brokerApi.updateBrokerTopic(this.team.id, this.$route.params.brokerId, this.localSegment.id, {
                     metadata: this.localSegment.metadata
                 })
+                this.$emit('segment-updated', this.localSegment)
             } else {
                 // This is not a preexisting topic - so we need to create one
                 // This also works for updating an existing one based on 'topic' - as it does an upsert
@@ -100,11 +115,29 @@ export default {
                     topic: this.localSegment.topic,
                     metadata: this.localSegment.metadata
                 })
+                this.$emit('segment-created', this.localSegment)
             }
-            this.$emit('segment-updated', this.localSegment)
+        },
+        async deleteTopic () {
+            if (this.localSegment.id) {
+                await brokerApi.deleteBrokerTopic(this.team.id, this.$route.params.brokerId, this.localSegment.id)
+                this.$emit('segment-deleted', this.localSegment)
+            }
         },
         onSegmentUpdated (segment) {
             this.localSegment = segment
+        },
+        onSuggestionAccepted () {
+            this.localSegment.metadata.schema = this.localSegment.inferredSchema
+            this.saveTopicMeta()
+        },
+        onSuggestionRejected () {
+            this.localSegment.metadata.schema = null
+            this.saveTopicMeta()
+        },
+        onSuggestionCleared () {
+            delete this.localSegment.metadata.schema
+            this.saveTopicMeta()
         }
     }
 }

@@ -847,6 +847,30 @@ module.exports = async function (app) {
             delete settings.settings?.palette?.catalogue
         }
 
+        const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)
+        if (teamNPMEnabled) {
+            const npmRegURL = new URL(app.config.npmRegistry.url)
+            const deviceNPMPassword = await app.db.controllers.AccessToken.createTokenForNPM(request.project, request.project.Team)
+            const token = Buffer.from(`p-${request.project.id}@${settings.teamID}:${deviceNPMPassword.token}`).toString('base64')
+            if (settings.settings?.palette?.npmrc) {
+                settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
+                    `@flowfuse-${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:_auth="${token}"\n`
+            } else {
+                settings.settings.palette.npmrc =
+                    `@flowfuse-${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:_auth="${token}"\n`
+            }
+            if (settings.settings?.palette?.catalogue) {
+                settings.settings.palette.catalogue
+                    .push(`${app.config.base_url}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`)
+            } else {
+                settings.settings.palette.catalogue = [
+                    `${app.config.base_url}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`
+                ]
+            }
+        }
+
         if (app.config.features.enabled('staticAssets') && teamType.getFeatureProperty('staticAssets', false)) {
             const sharingConfig = await request.project.getSetting(KEY_SHARED_ASSETS) || {}
             // Stored as object with path->config. Need to transform to an array of settings

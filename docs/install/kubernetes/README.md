@@ -97,6 +97,16 @@ For a production-ready environment, we also recommend:
 * **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
 * **TLS Certificate:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#i-would-like-to-secure-the-platform-with-https%2C-how-can-i-do-that%3F)) 
 
+### Hardware requirements
+
+For a Kubernetes-based deployment, resource requirements depend on the number of FlowFuse and Node-RED instances running. As a baseline, we suggest:
+
+Control Plane: At least 2 vCPUs, 4 GB RAM
+Worker Nodes: Minimum 2 vCPUs, 4 GB RAM per node, 2 nodes for high availability
+Storage: 20Gb of host storage (for container images), StorageClass of your choice available for Hosted Node-RED instances (optional)
+
+Each Node-RED instance you host will uses 0.1 CPU cores and 256 MB of memory by default. This parameters can be adjusted in admin area of FlowFuse platform. Keep this in mind when sizing your hardware, especially if plan to create multiple hosted instances.
+
 ### DNS
 
 A [wildcard DNS entry](https://en.wikipedia.org/wiki/Wildcard_DNS_record) will be needed 

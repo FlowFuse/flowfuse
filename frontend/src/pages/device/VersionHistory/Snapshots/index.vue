@@ -41,7 +41,14 @@
         <div v-else class="space-y-6">
             <ff-loading v-if="loading" message="Loading Snapshots..." />
             <template v-else-if="features.deviceEditor && snapshots.length > 0">
-                <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
+                <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshotsFiltered" :show-search="true" search-placeholder="Search Snapshots...">
+                    <template #actions>
+                        <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">
+                            <FilterIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
+                            {{ snapshotFilter?.name || 'All Snapshots' }}
+                            <span class="sr-only">Filter Snapshots</span>
+                        </DropdownMenu>
+                    </template>
                     <template #context-menu="{row}">
                         <ff-list-item :disabled="!canDeploy(row)" label="Restore Snapshot" @click="showDeploySnapshotDialog(row)" />
                         <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
@@ -82,7 +89,7 @@
                         </ff-button>
                         <ff-button
                             kind="primary"
-                            :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'"
+                            :disabled="!canCreateSnapshot"
                             data-action="create-snapshot"
                             @click="$emit('show-create-snapshot-dialog')"
                         >
@@ -101,13 +108,14 @@
 </template>
 
 <script>
-import { PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
+import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../../api/application.js'
 import DeviceApi from '../../../../api/devices.js'
 import SnapshotApi from '../../../../api/snapshots.js'
+import DropdownMenu from '../../../../components/DropdownMenu.vue'
 
 import EmptyState from '../../../../components/EmptyState.vue'
 import AssetCompareDialog from '../../../../components/dialogs/AssetCompareDialog.vue'
@@ -119,6 +127,7 @@ import permissionsMixin from '../../../../mixins/Permissions.js'
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
 import { applySystemUserDetails } from '../../../../transformers/snapshots.transformer.js'
+import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from '../../../application/Snapshots/components/cells/SnapshotSource.vue'
@@ -127,12 +136,14 @@ import SnapshotExportDialog from '../../../application/Snapshots/components/dial
 export default {
     name: 'DeviceSnapshots',
     components: {
-        EmptyState,
-        SnapshotEditDialog,
-        SnapshotExportDialog,
         AssetDetailDialog,
         AssetCompareDialog,
+        DropdownMenu,
+        EmptyState,
+        FilterIcon,
         PlusSmIcon,
+        SnapshotEditDialog,
+        SnapshotExportDialog,
         UploadIcon
     },
     mixins: [permissionsMixin],
@@ -160,11 +171,53 @@ export default {
             deviceCounts: {},
             snapshots: [],
             busyMakingSnapshot: false,
-            busyImportingSnapshot: false
+            busyImportingSnapshot: false,
+            snapshotFilter: null,
+            snapshotFilters: {
+                All_Snapshots: {
+                    name: 'All Snapshots',
+                    selected: true,
+                    filter: null,
+                    action: () => {
+                        this.snapshotFilters.All_Snapshots.selected = true
+                        this.snapshotFilters.User_Snapshots.selected = false
+                        this.snapshotFilters.Auto_Snapshots.selected = false
+                        this.snapshotFilter = this.snapshotFilters.All_Snapshots
+                    }
+                },
+                User_Snapshots: {
+                    name: 'User Snapshots',
+                    selected: false,
+                    filter: (s) => !isAutoSnapshot(s),
+                    action: () => {
+                        this.snapshotFilters.All_Snapshots.selected = false
+                        this.snapshotFilters.User_Snapshots.selected = true
+                        this.snapshotFilters.Auto_Snapshots.selected = false
+                        this.snapshotFilter = this.snapshotFilters.User_Snapshots
+                    }
+                },
+                Auto_Snapshots: {
+                    name: 'Auto Snapshots',
+                    selected: false,
+                    filter: (s) => isAutoSnapshot(s),
+                    action: () => {
+                        this.snapshotFilters.All_Snapshots.selected = false
+                        this.snapshotFilters.User_Snapshots.selected = false
+                        this.snapshotFilters.Auto_Snapshots.selected = true
+                        this.snapshotFilter = this.snapshotFilters.Auto_Snapshots
+                    }
+                }
+            }
         }
     },
     computed: {
         ...mapState('account', ['teamMembership', 'features']),
+        canCreateSnapshot () {
+            if (!this.developerMode || this.busy) {
+                return false
+            }
+            return this.isOwnedByAnInstance || this.isOwnedByAnApplication
+        },
         columns () {
             const cols = [
                 {
@@ -215,6 +268,15 @@ export default {
                 }
             })
         },
+        snapshotsFiltered () {
+            if (this.snapshotFilter?.filter) {
+                return this.snapshots.filter(this.snapshotFilter.filter)
+            }
+            return this.snapshots
+        },
+        snapshotFilterOptions () {
+            return Object.values(this.snapshotFilters)
+        },
         busy () {
             return this.busyMakingSnapshot || this.busyImportingSnapshot
         },
@@ -223,6 +285,9 @@ export default {
         },
         isOwnedByAnInstance () {
             return this.device?.ownerType === 'instance'
+        },
+        isOwnedByAnApplication () {
+            return this.device?.ownerType === 'application'
         },
         isUnassigned () {
             return this.device?.ownerType === ''

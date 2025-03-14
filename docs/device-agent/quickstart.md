@@ -15,6 +15,10 @@ This guide will walk you through the process of adding a device to FlowFuse, con
 ![FlowFuse Device Agent Workflow](./images/device-agent-workflow.png){data-zoomable}
 _Workflow to onboard new Remote Instances through the FlowFuse Platform and Device Agent_
 
+## Video Walkthrough
+This video will walk you through every step from creating a remote instance, installing the Device Agent, and connecting the two. It is focused on the Free tier, but applies to all users.
+<iframe width="560" height="315" src="https://www.youtube.com/embed/JFY0s8X5RVo?si=MDgOaO8Iqzmc-KCk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 ## Setup & Installation
 
 ### Step 1: Install Device Agent (On Device)
@@ -44,7 +48,7 @@ npm install -g @flowfuse/device-agent
 3. Click **Add Remote Instance.**
 4. Fill in the **Name** & **Type** and select an **Application**
 
-    ![Screenshot of the dialog form to fill out when registering a Device](./images/add_remote_instance.png){data-zoomable}
+    ![Screenshot of the dialog form to fill out when registering a Device](./images/add_remote_instance.png){data-zoomable}{ style="max-width: 600px"; }
     _Screenshot of the dialog form to fill out when registering a Device_
     
 5. Click **Add**
