@@ -268,7 +268,7 @@ const changeTeamMemberRole = (teamId, userId, role) => {
 
 const removeTeamMember = (teamId, userId) => {
     return client.delete(`/api/v1/teams/${teamId}/members/${userId}`).then(() => {
-        product.capture('$ff-team-created', {
+        product.capture('$ff-team-member-removed', {
             'member-removed': userId,
             'removed-at': (new Date()).toISOString()
         }, {
