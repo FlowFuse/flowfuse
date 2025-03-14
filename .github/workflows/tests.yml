@@ -220,7 +220,7 @@ jobs:
           echo "SUMMARY_ICON=no_entry" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until this issue is resolved." >> $GITHUB_ENV
           echo "LAST_COMMIT_SHA=${{ github.sha}}" >> $GITHUB_ENV
-          echo "PR_LINK=*Branch*: ${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "PR_LINK=*Branch:* ${{ github.ref_name }}" >> $GITHUB_ENV
         else
           echo "HEADER_MESSAGE=Tests failed against ${{ github.event.number }} pull request" >> $GITHUB_ENV
           echo "SUMMARY_ICON=warning" >> $GITHUB_ENV
