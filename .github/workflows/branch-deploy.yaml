@@ -26,14 +26,14 @@ on:
         description: 'flowfuse/nr-assistant branch name'
         required: true
         default: 'main'
-  # pull_request:
-  #   types: 
-  #     - opened
-  #     - synchronize
-  #     - reopened
-  #     - closed
-  #   paths-ignore:
-  #     - 'docs/**'
+  pull_request:
+    types: 
+      - opened
+      - synchronize
+      - reopened
+      - closed
+    paths-ignore:
+      - 'docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number }}
