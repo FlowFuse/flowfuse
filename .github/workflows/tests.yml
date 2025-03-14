@@ -226,7 +226,7 @@ jobs:
           echo "SUMMARY_ICON=warning" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Please resolve the problem before merging your changes into the main branch." >> $GITHUB_ENV
           echo "LAST_COMMIT_SHA=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
-          echo "PR_LINK=*Pull request:* <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.pull_request.number }}|${{ github.event.pull_request.number }}>" >> $GITHUB_ENV"
+          echo "PR_LINK=*Pull request:* <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.pull_request.number }}|${{ github.event.pull_request.number }}>" >> $GITHUB_ENV
         fi
 
         
