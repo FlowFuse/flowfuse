@@ -229,7 +229,6 @@ jobs:
           echo "PR_LINK=*Pull request:* <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.pull_request.number }}|${{ github.event.pull_request.number }}>" >> $GITHUB_ENV
         fi
 
-        
     - name: Send notification
       uses: slackapi/slack-github-action@v2.0.0
       with:
