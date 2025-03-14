@@ -262,7 +262,8 @@ module.exports = async function (app) {
                 response.palette = {}
             }
             if (response.palette.npmrc) {
-                settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
+                settings.palette = settings.palette || {}
+                settings.palette.npmrc = `${settings.palette.npmrc || ''}\n` +
                     `@flowfuse-${team}:registry=${app.config.npmRegistry.url}\n` +
                     `//${npmRegURL.host}:_auth="${token}"\n`
             } else {
