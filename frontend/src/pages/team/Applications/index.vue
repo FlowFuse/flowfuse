@@ -133,7 +133,6 @@ export default {
     },
     computed: {
         ...mapState('ux/tours', ['tours', 'completed', 'shouldPresentTour']),
-        ...mapGetters('ux/tours', ['hasTourBeenCompleted']),
         ...mapGetters('account', ['featuresCheck', 'team', 'isFreeTeamType']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
@@ -337,7 +336,6 @@ export default {
             switch (true) {
             case this.isFreeTeamType && !!this.applicationsList[0]:
                 // freemium users must first undergo the first-device tour on the ApplicationDevices page
-                console.log('tour first device')
                 return this.$router.push({
                     name: 'ApplicationDevices',
                     params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
@@ -347,7 +345,6 @@ export default {
 
             case !this.isFreeTeamType && this.instanceCount > 0:
                 // Running with an Instance pre-configured (Trial team types)
-                console.log('tour trial welcome')
                 return this.$store.dispatch(
                     'ux/tours/setTrialWelcomeTour',
                     () => this.$store.dispatch('ux/tours/openModal', 'education')
@@ -355,7 +352,6 @@ export default {
                     .catch(e => e)
 
             case !this.isFreeTeamType:
-                console.log('tour welcome regular')
                 // any regular team type
                 return this.$store.dispatch(
                     'ux/tours/setWelcomeTour',

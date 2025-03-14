@@ -68,4 +68,5 @@ export default [
             element: 'div[data-el="application-instance-item"]',
             on: 'bottom'
         }
-    }]
+    }
+]

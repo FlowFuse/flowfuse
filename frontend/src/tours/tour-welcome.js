@@ -73,4 +73,5 @@ export default [
             selector: 'a[data-action="view-application"]',
             event: 'click'
         }
-    }]
+    }
+]
