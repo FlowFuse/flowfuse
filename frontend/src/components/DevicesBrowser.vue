@@ -153,12 +153,12 @@
                                 You can deploy <router-link class="ff-link" :to="{name: 'instance-snapshots', params: {id: instance.id}}">Snapshots</router-link> of this Instance to your connected Devices.
                             </p>
                             <p>
-                                A full list of your Team's Devices are available <router-link
+                                A full list of your Team's Devices are available <ff-team-link
                                     class="ff-link"
                                     :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
                                 >
                                     here
-                                </router-link>.
+                                </ff-team-link>.
                             </p>
                         </template>
                         <template #actions>
@@ -192,12 +192,12 @@
                                 You can deploy <router-link class="ff-link" :to="{name: 'ApplicationSnapshots'}">Snapshots</router-link> of this Application to your connected Devices.
                             </p>
                             <p>
-                                A full list of your Team's Devices are available <router-link
+                                A full list of your Team's Devices are available <ff-team-link
                                     class="ff-link"
                                     :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
                                 >
                                     here
-                                </router-link>.
+                                </ff-team-link>.
                             </p>
                         </template>
                         <template #actions>
@@ -236,7 +236,7 @@
     >
         <template #description>
             <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours['first-device']">
-                Describe your new Remote Instance here.
+                Describe your new Remote Instance here, e.g. "Raspberry Pi", "Allen-Bradley PLC", etc.
             </p>
             <p v-else>
                 Remote Instances are managed using the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.

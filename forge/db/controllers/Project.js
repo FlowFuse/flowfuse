@@ -143,8 +143,8 @@ module.exports = {
                 }
             }
         }
+        const settings = await app.db.controllers.Project.getRuntimeSettings(project)
         if (components.settings || components.envVars) {
-            const settings = await app.db.controllers.Project.getRuntimeSettings(project)
             const envVars = settings.env
             delete settings.env
             if (components.settings) {
@@ -162,6 +162,16 @@ module.exports = {
                 Object.entries(nodeList).forEach(([key, value]) => {
                     projectExport.modules[key] = value.version
                 })
+                // The list from StorageSettings will only include modules that
+                // include nodes. The instance settings may specify other modules
+                // to be installed. We need to include them in the list.
+                if (settings.palette?.modules) {
+                    Object.entries(settings.palette?.modules).forEach(([key, value]) => {
+                        if (!Object.hasOwn(projectExport.modules, key)) {
+                            projectExport.modules[key] = value
+                        }
+                    })
+                }
             } catch (err) {}
         }
 

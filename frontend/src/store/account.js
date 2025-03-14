@@ -8,8 +8,11 @@ import userApi from '../api/user.js'
 import router from '../routes.js'
 import product from '../services/product.js'
 
+import commonActions from './common/actions.js'
+import commonMutations from './common/mutations.js'
+
 // initial state
-const state = () => ({
+const initialState = () => ({
     // Runtime settings
     settings: null,
     // Feature flags
@@ -44,6 +47,31 @@ const state = () => ({
     teamBlueprints: {}
 })
 
+const meta = {
+    persistence: {
+        redirectUrlAfterLogin: {
+            storage: 'localStorage'
+            // clearOnLogout: true (cleared by default)
+        },
+        settings: {
+            storage: 'localStorage',
+            clearOnLogout: false
+        },
+        features: {
+            storage: 'localStorage',
+            clearOnLogout: false
+        },
+        teamMembership: {
+            storage: 'sessionStorage'
+        },
+        team: {
+            storage: 'sessionStorage'
+        }
+    }
+}
+
+const state = initialState
+
 // getters
 const getters = {
     settings (state) {
@@ -73,11 +101,12 @@ const getters = {
     offline (state) {
         return state.offline
     },
-    noBilling (state, getters) {
+    requiresBilling (state, getters) {
         return !state.user.admin &&
         state.features.billing &&
         (!state.team?.billing?.unmanaged) &&
         (!getters.isTrialAccount || state.team?.billing?.trialEnded) &&
+        !state.team?.type?.properties?.billing?.disabled &&
         !state.team?.billing?.active
     },
     isTrialAccount (state) {
@@ -164,6 +193,10 @@ const getters = {
                 return flag === undefined || flag
             })(state),
 
+            // Private NPM Registry (Custom Nodes)
+            isPrivateRegistryFeatureEnabledForPlatform: !!state.features?.npm,
+            isPrivateRegistryFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.npm,
+
             // Static Assets
             isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
             isStaticAssetsFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.staticAssets,
@@ -207,7 +240,9 @@ const getters = {
     }
 }
 
+// mutations
 const mutations = {
+    ...commonMutations,
     setSettings (state, settings) {
         state.settings = settings
         state.features = settings.features || {}
@@ -279,6 +314,7 @@ const mutations = {
 
 // actions
 const actions = {
+    ...commonActions(initialState, meta),
     async checkState ({ commit, dispatch }, redirectUrlAfterLogin) {
         try {
             const settings = await settingsApi.getSettings()
@@ -421,10 +457,15 @@ const actions = {
             }
         }
     },
-    async logout ({ commit, rootState }) {
-        commit('logout')
-        userApi.logout()
-            .then(() => commit('product/clearBrokers', null, { root: true }))
+    async logout ({ rootState, dispatch, commit }) {
+        return userApi.logout()
+            .then(async () => {
+                // reset vuex stores to initial state
+                const modules = Object.keys(rootState).filter(m => m)
+                for (const module of modules) {
+                    await dispatch(`${module}/$resetState`, null, { root: true })
+                }
+            })
             .catch(_ => {})
             .finally(() => {
                 if (window._hsq) {
@@ -501,20 +542,5 @@ export default {
     getters,
     actions,
     mutations,
-    meta: {
-        persistence: {
-            redirectUrlAfterLogin: {
-                storage: 'localStorage'
-            },
-            features: {
-                storage: 'localStorage'
-            },
-            teamMembership: {
-                storage: 'sessionStorage'
-            },
-            team: {
-                storage: 'sessionStorage'
-            }
-        }
-    }
+    meta
 }

@@ -13,6 +13,7 @@
             @input="$emit('update:modelValue', $event.target.value)"
             @blur="$emit('blur')" @keyup.enter="$emit('enter', $evt)"
         />
+        <slot name="icon-right" />
     </div>
 </template>
 

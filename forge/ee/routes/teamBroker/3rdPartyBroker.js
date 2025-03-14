@@ -277,6 +277,9 @@ module.exports = async function (app) {
 
     /**
      * Get details and status of a 3rd Party Broker
+     * @name /api/v1/teams/:teamId/brokers/:brokerId
+     * @static
+     * @memberof forge.routes.api.team.broker
      */
     app.get('/:brokerId', {
         preHandler: app.needsPermission('broker:credentials:list'),
@@ -313,7 +316,7 @@ module.exports = async function (app) {
                 reply.status(500).send({ error: 'unknown_error', message: err.toString() })
             }
         } else {
-            reply.status(40).send({ error: 'not_supported', message: 'not supported' })
+            reply.status(400).send({ error: 'not_supported', message: 'not supported' })
         }
     })
 
@@ -369,6 +372,9 @@ module.exports = async function (app) {
 
     /**
      * Start collection from a Broker
+     * @name /api/v1/teams/:teamId/brokers/:brokerId/start
+     * @static
+     * @memberof forge.routes.api.team.broker
      */
     app.post('/:brokerId/start', {
         preHandler: app.needsPermission('broker:credentials:edit'),
@@ -390,6 +396,9 @@ module.exports = async function (app) {
 
     /**
      * Stop collection from a Broker
+     * @name /api/v1/teams/:teamId/brokers/:brokerId/stop
+     * @static
+     * @memberof forge.routes.api.team.broker
      */
     app.post('/:brokerId/stop', {
         preHandler: app.needsPermission('broker:credentials:edit'),
@@ -404,7 +413,10 @@ module.exports = async function (app) {
     })
 
     /**
-     * Suspend Broker agnet
+     * Suspend Broker agent
+     * @name /api/v1/teams/:teamId/brokers/:brokerId/suspend
+     * @static
+     * @memberof forge.routes.api.team.broker
      */
     app.post('/:brokerId/suspend', {
         preHandler: app.needsPermission('broker:credentials:edit'),
@@ -422,7 +434,7 @@ module.exports = async function (app) {
 
     /**
      * Get used Topics from a MQTT Broker
-     * @name /api/v1/teams/:teamId/broker/:brokerId/topics
+     * @name /api/v1/teams/:teamId/brokers/:brokerId/topics
      * @static
      * @memberof forge.routes.api.team.broker
      */
@@ -468,7 +480,7 @@ module.exports = async function (app) {
 
     /**
      * Store Topics from a 3rd Party Broker
-     * @name /api/v1/teams/:teamId/broker/:brokerId/topics
+     * @name /api/v1/teams/:teamId/brokers/:brokerId/topics
      * @static
      * @memberof forge.routes.api.team.broker
      */
@@ -558,7 +570,7 @@ module.exports = async function (app) {
 
     /**
      * Modify Topic metadata from a 3rd Party Broker
-     * @name /api/v1/teams/:teamId/broker/:brokerId/topics/:topicId
+     * @name /api/v1/teams/:teamId/brokers/:brokerId/topics/:topicId
      * @static
      * @memberof forge.routes.api.team.broker
      */
@@ -610,7 +622,7 @@ module.exports = async function (app) {
 
     /**
      * Delete a topic entry
-     * @name /api/v1/teams/:teamId/broker/:brokerId/topics/*
+     * @name /api/v1/teams/:teamId/brokers/:brokerId/topics/*
      * @static
      * @memberof forge.routes.api.team.broker
      */

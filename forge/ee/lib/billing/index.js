@@ -397,11 +397,18 @@ module.exports.init = async function (app) {
         closeSubscription: async (subscription) => {
             if (subscription.subscription) {
                 app.log.info(`Canceling subscription ${subscription.subscription} for team ${subscription.Team.hashid}`)
-
-                await stripe.subscriptions.del(subscription.subscription, {
-                    invoice_now: true,
-                    prorate: true
-                })
+                try {
+                    await stripe.subscriptions.del(subscription.subscription, {
+                        invoice_now: true,
+                        prorate: true
+                    })
+                } catch (err) {
+                    // resource_missing error is okay - that means the subscription cannot be found
+                    // and we can ignore it
+                    if (err.code !== 'resource_missing') {
+                        throw err
+                    }
+                }
             }
             subscription.status = app.db.models.Subscription.STATUS.CANCELED
             await subscription.save()
@@ -524,6 +531,11 @@ module.exports.init = async function (app) {
                     app.log.warn(`Problem updating team ${team.hashid} subscription: ${err.message}`)
                     throw err
                 }
+            } else if (subscription && subscription.isTrial() && targetTeamType.getProperty('billing.disabled', false)) {
+                // This team is a trial team that is changing to a disabled-billing team
+                // The cleanest approach here is to delete the subscription object to get
+                // things into the right state
+                await subscription.destroy()
             } else {
                 const err = new Error('Team subscription not active')
                 err.code = 'billing_required'

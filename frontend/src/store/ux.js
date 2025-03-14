@@ -11,7 +11,10 @@ import ProjectsIcon from '../components/icons/Projects.js'
 import usePermissions from '../composables/Permissions.js'
 import { Roles } from '../utils/roles.js'
 
-const state = () => ({
+import commonActions from './common/actions.js'
+import commonMutations from './common/mutations.js'
+
+const initialState = () => ({
     leftDrawer: {
         state: false,
         component: null
@@ -25,7 +28,7 @@ const state = () => ({
         education: false,
         'first-device': false
     },
-    completeTours: [],
+    completeTours: {},
     mainNav: {
         context: 'team',
         backToButton: null
@@ -35,6 +38,23 @@ const state = () => ({
     },
     isNewlyCreatedUser: false
 })
+
+const meta = {
+    persistence: {
+        tours: {
+            storage: 'localStorage'
+            // clearOnLogout: true (cleared by default)
+        },
+        isNewlyCreatedUser: {
+            storage: 'localStorage'
+        },
+        userActions: {
+            storage: 'localStorage'
+        }
+    }
+}
+
+const state = initialState
 
 const getters = {
     hiddenLeftDrawer: (state, getters) => {
@@ -47,7 +67,7 @@ const getters = {
         const { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } = usePermissions()
         const team = rootState.account.team
         const accountFeatures = rootState.account.features
-        const noBilling = rootGetters['account/noBilling']
+        const requiresBilling = rootGetters['account/requiresBilling']
         const features = rootGetters['account/featuresCheck']
 
         const adminContext = [
@@ -195,7 +215,7 @@ const getters = {
                             },
                             tag: 'team-applications',
                             icon: TemplateIcon,
-                            disabled: noBilling
+                            disabled: requiresBilling
                         }
                     ]
                 },
@@ -212,7 +232,7 @@ const getters = {
                             tag: 'team-instances',
                             icon: ProjectsIcon,
                             featureUnavailable: !features.isHostedInstancesEnabledForTeam,
-                            disabled: noBilling
+                            disabled: requiresBilling
                         },
                         {
                             label: 'Remote Instances',
@@ -222,7 +242,7 @@ const getters = {
                             },
                             tag: 'team-devices',
                             icon: ChipIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             alert: state.isNewlyCreatedUser && !state.userActions.hasOpenedDeviceEditor
                                 ? {
                                     title: 'Connect to Device Agent',
@@ -244,7 +264,7 @@ const getters = {
                             },
                             tag: 'device-groups',
                             icon: DeviceGroupOutlineIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             featureUnavailable: !features.isDeviceGroupsFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member)
                         },
@@ -256,7 +276,7 @@ const getters = {
                             },
                             tag: 'team-pipelines',
                             icon: PipelinesIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             featureUnavailable: !features.devOpsPipelinesFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member)
                         },
@@ -268,7 +288,7 @@ const getters = {
                             },
                             tag: 'team-bom',
                             icon: TableIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             featureUnavailable: !features.isBOMFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner)
                         },
@@ -277,7 +297,7 @@ const getters = {
                             to: { name: 'team-brokers', params: { team_slug: team.slug } },
                             tag: 'team-brokers',
                             icon: RssIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             featureUnavailable: !features.isMqttBrokerFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
                         }
@@ -295,7 +315,7 @@ const getters = {
                             },
                             tag: 'shared-library',
                             icon: BookOpenIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             featureUnavailable: !features.isSharedLibraryFeatureEnabledForPlatform || !features.isSharedLibraryFeatureEnabledForTeam
                         },
                         {
@@ -306,7 +326,7 @@ const getters = {
                             },
                             tag: 'team-members',
                             icon: UsersIcon,
-                            disabled: noBilling
+                            disabled: requiresBilling
                         }
                     ]
                 },
@@ -323,7 +343,7 @@ const getters = {
                             },
                             tag: 'team-audit',
                             icon: DatabaseIcon,
-                            disabled: noBilling,
+                            disabled: requiresBilling,
                             permission: 'team:edit'
                         },
                         {
@@ -336,7 +356,7 @@ const getters = {
                             icon: CurrencyDollarIcon,
                             hidden: (() => {
                                 // hide menu entry for non-billing setups
-                                if (noBilling) {
+                                if (requiresBilling) {
                                     return true
                                 }
 
@@ -417,6 +437,7 @@ const getters = {
 }
 
 const mutations = {
+    ...commonMutations,
     openRightDrawer (state, { component }) {
         state.rightDrawer.state = true
         state.rightDrawer.component = component
@@ -451,7 +472,14 @@ const mutations = {
     },
     deactivateTour (state, tour) {
         state.tours[tour] = false
-        state.completeTours.push(tour)
+        state.completeTours[tour] = true
+    },
+    resetTours (state) {
+        Object.keys(state.tours)
+            .forEach(key => {
+                state.tours[key] = false
+            })
+        state.completeTours = {}
     },
     setUserAction (state, { action, payload }) {
         if (Object.prototype.hasOwnProperty.call(state.userActions, action)) {
@@ -461,6 +489,7 @@ const mutations = {
 }
 
 const actions = {
+    ...commonActions(initialState, meta),
     openRightDrawer ({ commit }, { component }) {
         commit('openRightDrawer', { component })
     },
@@ -494,6 +523,9 @@ const actions = {
     deactivateTour ({ commit, state }, tour) {
         commit('deactivateTour', tour)
     },
+    resetTours ({ commit }) {
+        commit('resetTours')
+    },
     validateUserAction ({ commit }, action) {
         commit('setUserAction', { action, payload: true })
     },
@@ -512,17 +544,5 @@ export default {
     getters,
     mutations,
     actions,
-    meta: {
-        persistence: {
-            tours: {
-                storage: 'localStorage'
-            },
-            isNewlyCreatedUser: {
-                storage: 'localStorage'
-            },
-            userActions: {
-                storage: 'localStorage'
-            }
-        }
-    }
+    meta
 }

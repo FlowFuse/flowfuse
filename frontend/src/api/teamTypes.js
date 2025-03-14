@@ -24,8 +24,9 @@ const getTeamTypes = async (cursor, limit, filter) => {
             pt.htmlDescription = marked.parse(pt.description || '')
             // TeamType is considered 'free' if:
             // - no billing settings
+            // - billing is explicitly disabled
             // - billing.description is blank or equal 'free'
-            pt.isFree = !pt.properties?.billing?.description || pt.properties?.billing?.description === 'free'
+            pt.isFree = pt.properties?.billing?.disabled || !pt.properties?.billing?.description || pt.properties?.billing?.description === 'free'
             if (!pt.isFree) {
                 const [price, interval] = pt.properties?.billing?.description.split('/')
                 pt.billingPrice = price

@@ -252,6 +252,36 @@ module.exports = async function (app) {
             requestTimeout: app.config.assistant?.requestTimeout || 60000
         }
 
+        const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)
+        if (teamNPMEnabled) {
+            const npmRegURL = new URL(app.config.npmRegistry.url)
+            const team = request.device.Team.hashid
+            const deviceNPMPassword = await app.db.controllers.AccessToken.createTokenForNPM(request.device, request.device.Team)
+            const token = Buffer.from(`d-${request.device.hashid}@${team}:${deviceNPMPassword.token}`).toString('base64')
+            if (!response.palette) {
+                response.palette = {}
+            }
+            if (response.palette.npmrc) {
+                settings.palette = settings.palette || {}
+                settings.palette.npmrc = `${settings.palette.npmrc || ''}\n` +
+                    `@flowfuse-${team}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:_auth="${token}"\n`
+            } else {
+                response.palette.npmrc =
+                    `@flowfuse-${team}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:_auth="${token}"\n`
+            }
+
+            if (response.palette.catalogues) {
+                response.palette.catalogues
+                    .push(`${app.config.base_url}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`)
+            } else {
+                response.palette.catalogues = [
+                    `${app.config.base_url}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`
+                ]
+            }
+        }
+
         if (settings.security?.httpNodeAuth?.type) {
             response.security = settings.security
             if (response.security.httpNodeAuth.type === 'flowforge-user') {

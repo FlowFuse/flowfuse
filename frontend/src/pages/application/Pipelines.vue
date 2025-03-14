@@ -191,20 +191,22 @@ export default {
             }
         },
         stageDeployFailed (stage, nextStage) {
-            if (this.instanceStatusMap.has(nextStage.instance.id)) {
-                clearInterval(this.polling.instances)
-                this.instanceStatusMap.get(nextStage.instance.id).isDeploying = false
-            }
-
-            if (this.deviceStatusMap.has(nextStage.device.id)) {
-                clearInterval(this.polling.devices)
-                this.deviceStatusMap.get(nextStage.device.id).isDeploying = false
-            }
-
-            const nextStageDeviceGroupMapId = `${nextStage.id}:${nextStage.deviceGroup?.id}`
-            if (this.deviceGroupStatusMap.has(nextStageDeviceGroupMapId)) {
-                clearInterval(this.polling.deviceGroups)
-                this.deviceGroupStatusMap.get(nextStageDeviceGroupMapId).isDeploying = false
+            if (nextStage.instance?.id) {
+                if (this.instanceStatusMap.has(nextStage.instance.id)) {
+                    clearInterval(this.polling.instances)
+                    this.instanceStatusMap.get(nextStage.instance.id).isDeploying = false
+                }
+            } else if (nextStage.device?.id) {
+                if (this.deviceStatusMap.has(nextStage.device.id)) {
+                    clearInterval(this.polling.devices)
+                    this.deviceStatusMap.get(nextStage.device.id).isDeploying = false
+                }
+            } else if (nextStage.deviceGroup?.id) {
+                const nextStageDeviceGroupMapId = `${nextStage.id}:${nextStage.deviceGroup?.id}`
+                if (this.deviceGroupStatusMap.has(nextStageDeviceGroupMapId)) {
+                    clearInterval(this.polling.deviceGroups)
+                    this.deviceGroupStatusMap.get(nextStageDeviceGroupMapId).isDeploying = false
+                }
             }
         },
         startPollingForDeployStatus (stage, nextStage) {

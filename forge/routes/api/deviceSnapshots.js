@@ -187,6 +187,7 @@ module.exports = async function (app) {
         )
         snapShot.User = request.session.User
         await app.auditLog.Application.application.device.snapshot.created(request.session.User, null, device.Application, device, snapShot)
+        await app.auditLog.Device.device.snapshot.created(request.session.User, null, device, snapShot)
         if (snapshotOptions.setAsTarget) {
             // Update the targetSnapshot of the device
             await app.db.models.Device.update({ targetSnapshotId: snapShot.id }, {
