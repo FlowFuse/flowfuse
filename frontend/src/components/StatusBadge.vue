@@ -95,7 +95,6 @@ export default {
                 return null
             }
             switch (this.status) {
-            case 'running':
             case 'crashed':
             case 'error':
             case 'safe':
