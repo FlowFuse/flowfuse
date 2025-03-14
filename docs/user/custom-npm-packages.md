@@ -39,7 +39,7 @@ the Team Library and clicking on the "Publish" button.
 _Screenshot fo the "Publish Custom Package" dialog shown in the FlowFuse UI_
 
 ```
-npm login --registry=https://registry.flowfuse.dev
+npm login --registry=https://registry.flowfuse.cloud
 ```
 
 #### Packaging
@@ -60,7 +60,7 @@ e.g. for a Team with ID `6Rag1kQj4k`
     "version": "0.0.1",
     "description": "...",
     "publishConfig": {
-        "registry": "https://registry.flowfuse.dev"
+        "registry": "https://registry.flowfuse.cloud"
     },
     ...
 }
