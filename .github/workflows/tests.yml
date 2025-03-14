@@ -201,7 +201,7 @@ jobs:
 
   notify-slack:
     name: Notify on failure
-    # needs: [backend-tests, postgres-tests, ui-tests]
+    needs: [backend-tests, postgres-tests, ui-tests]
     if: always()
     runs-on: ubuntu-latest
 
