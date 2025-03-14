@@ -237,7 +237,7 @@ jobs:
         token: ${{ secrets.SLACK_GHBOT_TOKEN }}
         payload: |
           {
-            "channel": "C03AP45RSFP",
+            "channel": "C067BD0377F",
             "blocks": [
               {
                 "type": "header",
