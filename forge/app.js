@@ -59,6 +59,7 @@ const forge = require('./forge')
             if (!server.settings.get('setup:initialised')) {
                 const setupURL = server.config.base_url.replace(/\/$/, '') + '/setup'
                 server.log.info('****************************************************')
+                server.log.info('****************************************************')
                 server.log.info('* To finish setting up FlowFuse, open this url:   *')
                 server.log.info(`*   ${setupURL.padEnd(47, ' ')}*`)
                 server.log.info('****************************************************')
