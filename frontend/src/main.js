@@ -20,6 +20,7 @@ import { setupSentry } from './services/error-tracking.js'
 import store from './store/index.js'
 
 import './index.css'
+import './assets/fake.js'
 
 import ForgeUIComponents from './ui-components/index.js'
 
