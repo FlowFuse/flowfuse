@@ -8,7 +8,7 @@ set -e
 changed_files=$(git diff --name-only "origin/$GITHUB_BASE_REF...HEAD")
 
 if [ -z "$changed_files" ]; then
-  echo "No files changed in this PR compared to main branch."
+  echo "No files changed in this PR compared to $GITHUB_BASE_REF branch."
   echo "backend_changed=false" >> $GITHUB_OUTPUT
   echo "postgres_changed=false" >> $GITHUB_OUTPUT
   echo "ui_changed=false" >> $GITHUB_OUTPUT
