@@ -5,7 +5,14 @@ set -e
 # Script to check if files from specific pattern groups have changed in a PR
 # Groups: backend, postgres, ui
 
-changed_files=$(git diff --name-only "origin/$GITHUB_BASE_REF...HEAD")
+if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+  echo "Running on main branch, comparing with previous commit"
+  changed_files=$(git diff --name-only HEAD^ HEAD)
+else
+  echo "Running on non-default branch, comparing with $GITHUB_BASE_REF branch"
+  changed_files=$(git diff --name-only origin/$GITHUB_BASE_REF...HEAD)
+fi
+
 
 if [ -z "$changed_files" ]; then
   echo "No files changed in this PR compared to $GITHUB_BASE_REF branch."
