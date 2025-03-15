@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Script to check if files from specific pattern groups have changed in a PR
 # Groups: backend, postgres, ui
 
