@@ -535,8 +535,8 @@ module.exports = async function (app) {
                         id: device.id
                     }
                 })
-                await app.auditLog.Application.application.device.snapshot.deviceTargetSet(request.session.User, null, device.Application, device, targetSnapshot)
                 await app.auditLog.Device.device.snapshot.deployed(request.session.User, null, device, targetSnapshot)
+                await app.auditLog.Device.device.snapshot.targetSet(request.session.User, null, device, targetSnapshot)
                 updates.push('targetSnapshotId', originalSnapshotId, device.targetSnapshotId)
                 sendDeviceUpdate = true
             }

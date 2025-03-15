@@ -190,12 +190,12 @@
     </template>
     <template v-else-if="entry.event === 'device.project.deployed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="!error && entry.body?.project && entry.body?.device && entry.body?.snapshot && entry.body?.user">
-            <i>{{ entry.body.user.name }}</i>
+        <span v-if="!error && entry.body?.project && entry.body?.device && entry.body?.snapshot">
+            <i>{{ entry.body?.user?.name || entry.trigger?.name || 'System' }}</i>
             updated
-            <i>{{ entry.body.project.name }}'s</i>
+            <i>'{{ entry.body.project.name }}'s'</i>
             target snapshot to
-            <i>{{ entry.body.snapshot.name }}</i>
+            <i>'{{ entry.body.snapshot.name || 'unnamed' }}'</i>
             snapshot triggering a flow deployment
         </span>
 
@@ -203,11 +203,21 @@
     </template>
     <template v-else-if="entry.event === 'device.snapshot.deployed'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span v-if="entry.body?.device && entry.body?.snapshot && entry.body.user">
-            <i>{{ entry.body.user.name }}</i>
-            restored the
-            <i>{{ entry.body.snapshot.name }}</i>
-            snapshot
+        <span v-if="entry.body?.device && entry.body?.snapshot">
+            <i>{{ entry.body?.user?.name || entry.trigger?.name || 'System' }}</i>
+            restored snapshot
+            <i>'{{ entry.body.snapshot.name || 'unnamed' }}'</i>
+        </span>
+
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'device.snapshot.target-set'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="entry.body?.device && entry.body?.snapshot">
+            <i>{{ entry.body?.user?.name || entry.trigger?.name || 'System' }}</i>
+            set snapshot
+            <i>'{{ entry.body.snapshot.name || 'unnamed' }}'</i>
+            as the target for the device
         </span>
 
         <span v-else-if="!error">Device data not found in audit entry.</span>

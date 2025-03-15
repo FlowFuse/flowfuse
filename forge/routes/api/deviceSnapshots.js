@@ -196,7 +196,7 @@ module.exports = async function (app) {
                 }
             })
             await device.save()
-            await app.auditLog.Application.application.device.snapshot.deviceTargetSet(request.session.User, null, device.Application, device, snapShot)
+            await app.auditLog.Device.device.snapshot.targetSet(request.session.User, null, device, snapShot)
             const updatedDevice = await app.db.models.Device.byId(device.id)
             if (app.comms) {
                 // save and send update

@@ -165,6 +165,7 @@
         "device.pipeline.deployed": "Flow Deployed through Pipeline",
         "device.project.deployed": "Flow Deployed through Hosted Instance",
         "device.snapshot.deployed": "Snapshot Restored",
+        "device.snapshot.target-set": "Snapshot Set as Target",
         "flows.reloaded": "Flows Reloaded",
         "flows.set": "Flow Deployed",
         "library.set": "Saved to Library",
