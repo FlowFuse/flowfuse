@@ -4,7 +4,6 @@ set -e
 
 # Script to check if files from specific pattern groups have changed in a PR
 # Groups: backend, postgres, ui
-echo "git diff --name-only origin/$GITHUB_BASE_REF...HEAD"
 
 changed_files=$(git diff --name-only "origin/$GITHUB_BASE_REF...HEAD")
 
@@ -59,9 +58,9 @@ for file in $changed_files; do
 done
 
 echo "Changed groups:"
-echo "Backend: $backend_changed"
-echo "Postgres: $postgres_changed"
-echo "UI: $ui_changed"
+echo "  Backend: $backend_changed"
+echo "  ostgres: $postgres_changed"
+echo "  UI: $ui_changed"
 
 echo "backend_changed=$backend_changed" >> $GITHUB_OUTPUT
 echo "postgres_changed=$postgres_changed" >> $GITHUB_OUTPUT
