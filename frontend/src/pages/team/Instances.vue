@@ -36,7 +36,7 @@
             <template v-else-if="instancesAvailable">
                 <ff-data-table
                     v-if="instances.length > 0"
-                    data-el="instances-table" :columns="columns" :rows="instances" :show-search="true" search-placeholder="Search Instances..."
+                    data-el="instances-table" :columns="columns" :rows="instances" :show-search="true" search-placeholder="Search Instances..." initialSortKey="flowLastUpdatedAt" initialSortOrder="desc"
                     :rows-selectable="!dashboardRoleOnly"
                     @row-selected="openInstance"
                 >

@@ -7,10 +7,10 @@ const isObject = (obj) => {
 /**
  * Generate a standard format body for the audit log display and database.
  * Any items null or missing must not generate a property in the body
- * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType?, info?, deviceGroup?, interval?, threshold? } == {}} objects objects to include in body
- * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType? info?, deviceGroup?, interval?, threshold? }}
+ * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType?, info?, deviceGroup?, interval?, threshold?, token?, pkg? } == {}} objects objects to include in body
+ * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType? info?, deviceGroup?, interval?, threshold?, token?, pkg? }}
  */
-const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, sourceDevice, targetDevice, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, pipelineStageTarget, role, projectType, info, deviceGroup, interval, threshold, token } = {}) => {
+const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, sourceDevice, targetDevice, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, pipelineStageTarget, role, projectType, info, deviceGroup, interval, threshold, token, pkg } = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -91,6 +91,10 @@ const generateBody = ({ error, team, application, project, sourceProject, target
         body.token = token
     }
 
+    if (isObject(pkg)) {
+        body.pkg = pkg
+    }
+
     if (interval) {
         body.interval = interval
     }
@@ -166,7 +170,8 @@ const formatLogEntry = (auditLogDbRow) => {
                 pipelineStageTarget: body?.pipelineStageTarget,
                 interval: body?.interval,
                 threshold: body?.threshold,
-                token: body?.token
+                token: body?.token,
+                pkg: body?.pkg
             })
 
             // if body has the keys:  `key`, `scope`, and `store` AND `store` === 'memory' or 'persistent'
