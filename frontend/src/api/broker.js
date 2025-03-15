@@ -93,6 +93,11 @@ const getJsonSchema = (teamId, brokerId) => {
         .then(res => res.data)
 }
 
+const deleteBrokerTopic = (teamId, brokerId, topicId) => {
+    return client.delete(`/api/v1/teams/${teamId}/brokers/${brokerId}/topics/${topicId}`)
+        .then(res => res.data)
+}
+
 export default {
     getClients,
     getClient,
@@ -110,5 +115,6 @@ export default {
     startBroker,
     stopBroker,
     suspendBroker,
-    getJsonSchema
+    getJsonSchema,
+    deleteBrokerTopic
 }
