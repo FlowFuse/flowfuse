@@ -59,7 +59,7 @@ done
 
 echo "Changed groups:"
 echo "  Backend: $backend_changed"
-echo "  ostgres: $postgres_changed"
+echo "  postgres: $postgres_changed"
 echo "  UI: $ui_changed"
 
 echo "backend_changed=$backend_changed" >> $GITHUB_OUTPUT
