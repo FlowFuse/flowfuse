@@ -3,7 +3,7 @@
 # Script to check if files from specific pattern groups have changed in a PR
 # Groups: backend, postgres, ui
 
-changed_files=$(git diff --name-only origin/main...HEAD)
+changed_files=$(git diff --name-only $GITHUB_BASE_REF...$GITHUB_HEAD_REF)
 
 if [ -z "$changed_files" ]; then
   echo "No files changed in this PR compared to main branch."
