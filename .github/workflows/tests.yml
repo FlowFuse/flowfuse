@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 0
       - name: Get changed files
         id: changed-files
-        uses: SkyHighGrowth/changed-files@v42
+        uses: SkyHighGrowth/gha-changed-files@v1.0.0
         with:
           files_yaml: |
             backend:
