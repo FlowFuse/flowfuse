@@ -9,7 +9,7 @@
                         <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto" />
                     </template>
                 </FormRow>
-                <FormRow v-if="showSetAsTarget" v-model="input.setAsTarget" type="checkbox" data-form="snapshot-name">
+                <FormRow v-if="showSetAsTarget" v-model="input.setAsTarget" type="checkbox" data-form="set-as-target">
                     <span v-ff-tooltip:right="setAsTargetToolTip" class="">
                         Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                     </span>

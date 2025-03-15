@@ -24,7 +24,8 @@ module.exports = {
         sentAt: { type: DataTypes.DATE, allowNull: true },
         role: {
             type: DataTypes.INTEGER
-        }
+        },
+        reminderSentAt: { type: DataTypes.DATE, allowNull: true }
         // invitorId
         // inviteeId
     },
@@ -134,6 +135,12 @@ module.exports = {
                             { model: M.User, as: 'invitee' }
                         ]
                     })
+                },
+                extendExpirationDate: async (id) => {
+                    return this.update(
+                        { expiresAt: Date.now() + DEFAULT_INVITATION_EXPIRY },
+                        { where: { id } }
+                    )
                 }
             }
         }

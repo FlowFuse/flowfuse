@@ -59,11 +59,18 @@ class CommsClient extends EventEmitter {
                         })
                     } else if (messageType === 'logs') {
                         if (topicParts[6] && topicParts[6] === 'heartbeat') {
-                            // track frontends
-                            this.emit('logs/heartbeat', {
-                                id: `${topicParts[2]}:${ownerId}`,
-                                timestamp: Date.now()
-                            })
+                            const payload = message.toString()
+                            if (payload === 'alive') {
+                                // track frontends
+                                this.emit('logs/heartbeat', {
+                                    id: `${topicParts[2]}:${ownerId}`,
+                                    timestamp: Date.now()
+                                })
+                            } else if (payload === 'leaving') {
+                                this.emit('logs/disconnect', {
+                                    id: `${topicParts[2]}:${ownerId}`
+                                })
+                            }
                         }
                     } else if (messageType === 'response') {
                         const response = {

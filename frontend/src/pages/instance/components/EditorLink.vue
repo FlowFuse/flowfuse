@@ -1,15 +1,13 @@
 <template>
-    <div :data-type="`${isImmersiveEditor ? 'immersive' : 'standard'}-editor`" @click.stop="openEditor()">
+    <div :data-type="`${isImmersiveEditor ? 'immersive' : 'standard'}-editor`" @mouseup.stop.prevent="openEditor">
         <slot name="default">
             <ff-button
                 v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
-                type="anchor"
-                :to="editorURL"
                 kind="secondary"
                 data-action="open-editor"
                 :disabled="buttonDisabled"
                 class="whitespace-nowrap"
-                @click.stop="openEditor"
+                :emit-instead-of-navigate="true"
             >
                 <template v-if="showText" #icon-left>
                     <ProjectIcon />
@@ -32,6 +30,7 @@ import SemVer from 'semver'
 import { mapState } from 'vuex'
 
 import ProjectIcon from '../../../components/icons/Projects.js'
+import { useNavigationHelper } from '../../../composables/NavigationHelper.js'
 
 export default {
     name: 'InstanceEditorLink',
@@ -57,6 +56,13 @@ export default {
         showText: {
             default: true,
             type: Boolean
+        }
+    },
+    setup () {
+        const { openInANewTab } = useNavigationHelper()
+
+        return {
+            openInANewTab
         }
     },
     computed: {
@@ -85,12 +91,16 @@ export default {
     },
     methods: {
         openEditor (evt) {
-            evt.preventDefault()
             if (this.disabled) {
                 return false
             }
-            window.open(this.url, !this.isImmersiveEditor ? '_blank' : '_self')
-            return false
+
+            const target = `_${this.instance.id}`
+            if (!this.isImmersiveEditor) {
+                return this.openInANewTab(this.editorURL, target)
+            } else {
+                return this.openInANewTab(this.url, target)
+            }
         }
     }
 }

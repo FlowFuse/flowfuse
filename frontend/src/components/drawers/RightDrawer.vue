@@ -26,7 +26,7 @@ export default {
   height: calc(100% - 60px);
   top: 60px;
   right: -1000px;
-  z-index: 500;
+  z-index: 110;
   width: 100%;
   max-width: 0;
   min-width: 0;

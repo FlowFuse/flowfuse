@@ -28,14 +28,17 @@ For a full installation guide, including how to setup FlowFuse in a production e
 
 ## Prerequisites
 
-Before you begin, ensure you have the following:
+Before you begin, ensure you have [Docker](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) (in `2.23.1` version or higher) installed on your system (either as a standalone binary or as docker plugin)
 
-1. A domain name that you own and can configure DNS settings for (explained in step 1)
-2. Docker and Docker Compose installed on your system (either as a standalone binary or as docker plugin)
+## Step 1: Configure Domain
 
-## Step 1: Configure DNS
+### No DNS Server
 
-Before running FlowFuse, you need to configure your fully qualified domain name settings:
+If you're just looking to test FlowFuse locally, and do not have a local DNS server, then we recommend [setting up an alternative to DNS](../install/dns-setup.md#no-local-dns-server). 
+
+### DNS Server
+
+Otherwise, before running FlowFuse, you need to configure your fully qualified domain name settings, and will need a domain name that you own and can configure DNS settings for:
 
 1. Set up an A record for your domain (e.g., `example.com`) to your server's IP address (this works with subdomain as well e.g. `flowfuse.example.com`). FlowFuse will run here.
 2. In the same manner, set up a wildcard DNS record (e.g., `*.example.com`, `*.flowfuse.example.com`) to point to your server's IP address. Any Node-RED instances setup by FlowFuse will run here.
@@ -45,7 +48,7 @@ This step is crucial for the proper functioning of the application. FlowFuse wil
 ## Step 2: Download Compose file
 
 ```bash
-curl -o docker-compose.yml https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/docker-compose-quick-start.yml
+curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose-quick-start.yml
 ```
 
 ## Step 3: Start the Application

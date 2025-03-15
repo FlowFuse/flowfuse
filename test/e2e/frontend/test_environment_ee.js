@@ -55,6 +55,14 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
             teamBroker: {
                 enabled: true
             }
+        },
+        npmRegistry: {
+            enabled: true,
+            url: 'http://localhost:4873',
+            admin: {
+                username: 'admin',
+                password: 'secret'
+            }
         }
     })
 
@@ -63,6 +71,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
     // Enable Device Group feature for default team type
     const defaultTeamType = await flowforge.db.models.TeamType.findOne({ where: { name: 'starter' } })
     const defaultTeamTypeProperties = defaultTeamType.properties
+    defaultTeamTypeProperties.features.npm = true
     defaultTeamTypeProperties.features.deviceGroups = true
     defaultTeamTypeProperties.features.protectedInstance = true
     defaultTeamTypeProperties.features.teamHttpSecurity = true
@@ -101,6 +110,27 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
             features: {}
         }
     })
+
+    // Mimic the FF Cloud "Free" Team Type
+    const userFreddie = await factory.createUser({ username: 'freddie', name: 'Freddie Fett', email: 'freddie@example.com', password: 'ffPassword', email_verified: true, password_expired: false })
+    const freeTeamType = await factory.createTeamType({
+        name: 'Free Team',
+        description: 'team type description',
+        active: true,
+        order: 4,
+        properties: {
+            instances: { [flowforge.projectTypes[0].hashid]: { active: false } },
+            devices: {},
+            users: {},
+            features: {}
+        }
+    })
+    const freeTeam = await factory.createTeam({
+        name: 'FFeam',
+        TeamTypeId: freeTeamType.id
+    })
+    await factory.createSubscription(freeTeam)
+    await freeTeam.addUser(userFreddie, { through: { role: Roles.Owner } })
 
     // create a snapshot on DeviceB
     const deviceB = flowforge.applicationDevices.find((device) => device.name === 'application-device-b')

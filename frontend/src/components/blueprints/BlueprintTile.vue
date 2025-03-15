@@ -7,27 +7,38 @@
             <label>{{ blueprint.name }}</label>
             <p>{{ blueprint.description }}</p>
         </div>
-        <div class="ff-blueprint-tile--actions" :class="{'justify-between': showDefault, 'justify-end': !showDefault}">
-            <div v-if="showDefault" v-ff-tooltip:bottom="'Default Blueprint'" class="text-green-600 flex items-center gap-1">
-                <CheckCircleIcon class="ff-icon-lg" />
-                <label class="text-green-800">Default</label>
+        <div class="ff-blueprint-tile--actions justify-between">
+            <div class="left flex gap-2">
+                <ff-button
+                    v-if="displayExternalUrlButton && blueprint.externalUrl"
+                    kind="secondary"
+                    @click.prevent="openInANewTab(blueprint.externalUrl)"
+                >
+                    More Info
+                </ff-button>
+                <div v-if="showDefault" v-ff-tooltip:bottom="'Default Blueprint'" class="text-green-600 flex items-center gap-1">
+                    <CheckCircleIcon class="ff-icon-lg" />
+                    <label class="text-green-800">Default</label>
+                </div>
             </div>
-            <ff-button
-                v-if="displayPreviewButton"
-                data-action="show-blueprint"
-                class="ff-btn--secondary"
-                @click="$refs.flowRendererDialog.show(blueprint)"
-            >
-                <template #icon>
-                    <ProjectIcon />
-                </template>
-            </ff-button>
-            <ff-button v-if="!editable" data-action="select-blueprint" @click="choose(blueprint)">
-                Select
-            </ff-button>
-            <ff-button v-else data-action="edit-blueprint" @click="$emit('selected', blueprint)">
-                Edit
-            </ff-button>
+            <div class="right flex gap-2">
+                <ff-button
+                    v-if="displayPreviewButton"
+                    data-action="show-blueprint"
+                    class="ff-btn--secondary"
+                    @click="$refs.flowRendererDialog.show(blueprint)"
+                >
+                    <template #icon>
+                        <ProjectIcon />
+                    </template>
+                </ff-button>
+                <ff-button v-if="!editable" data-action="select-blueprint" @click="choose(blueprint)">
+                    Select
+                </ff-button>
+                <ff-button v-else data-action="edit-blueprint" @click="$emit('selected', blueprint)">
+                    Edit
+                </ff-button>
+            </div>
         </div>
         <AssetDetailDialog v-if="displayPreviewButton" ref="flowRendererDialog" :title="blueprint.name" />
     </div>
@@ -39,6 +50,7 @@ import { defineAsyncComponent } from 'vue'
 import { mapState } from 'vuex'
 
 import ProjectIcon from '../../components/icons/Projects.js'
+import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import product from '../../services/product.js'
 import FfDialog from '../../ui-components/components/DialogBox.vue'
 import FormRow from '../FormRow.vue'
@@ -66,12 +78,22 @@ export default {
             type: Boolean,
             default: true
         },
+        displayExternalUrlButton: {
+            type: Boolean,
+            default: false
+        },
         active: {
             type: Boolean,
             default: false
         }
     },
     emits: ['selected'],
+    setup () {
+        const { openInANewTab } = useNavigationHelper()
+        return {
+            openInANewTab
+        }
+    },
     computed: {
         ...mapState('account', ['team']),
         categoryClass () {

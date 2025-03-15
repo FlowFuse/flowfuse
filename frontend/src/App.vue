@@ -27,6 +27,11 @@
                     <router-view />
                 </ff-layout-box>
             </template>
+            <template v-else-if="pageLayout === 'docs'">
+                <ff-layout-docs>
+                    <router-view />
+                </ff-layout-docs>
+            </template>
             <template v-else-if="pageLayout === 'plain'">
                 <ff-layout-plain>
                     <router-view />
@@ -64,6 +69,7 @@ import Offline from './components/Offline.vue'
 import LicenseBanner from './components/banners/LicenseBanner.vue'
 import EducationModal from './components/dialogs/EducationModal.vue'
 import FFLayoutBox from './layouts/Box.vue'
+import FFLayoutDocs from './layouts/Docs.vue'
 import FFLayoutPlain from './layouts/Plain.vue'
 import FFLayoutPlatform from './layouts/Platform.vue'
 import Login from './pages/Login.vue'
@@ -84,6 +90,7 @@ export default {
         Offline,
         'ff-layout-platform': FFLayoutPlatform,
         'ff-layout-box': FFLayoutBox,
+        'ff-layout-docs': FFLayoutDocs,
         'ff-layout-plain': FFLayoutPlain
     },
     computed: {
@@ -119,8 +126,7 @@ export default {
         },
         pageLayout () {
             const layout = this.$route.meta?.layout
-
-            return ['platform', 'modal', 'plain'].includes(layout) ? layout : 'platform'
+            return ['platform', 'modal', 'plain', 'docs'].includes(layout) ? layout : 'platform'
         }
     },
     mounted () {

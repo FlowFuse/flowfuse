@@ -3,7 +3,15 @@
         <div v-if="locked" v-ff-tooltip="tooltip">
             <LockClosedIcon class="w-4 mb-2" />
         </div>
-        <FormRow v-else-if="editTemplate" v-model="localValue" class="w-24" type="select" :options="[{label:'Editable', value:true},{label:'Locked', value:false}]">
+        <FormRow
+            v-else-if="editTemplate"
+            v-model="localValue"
+            class="w-24"
+            type="select"
+            wrapper-class="flex gap-15"
+            append-class="ml-2"
+            :options="[{label:'Editable', value:true},{label:'Locked', value:false}]"
+        >
             <template #append><ChangeIndicator class="mt-2" :value="changed" /></template>
         </FormRow>
     </div>

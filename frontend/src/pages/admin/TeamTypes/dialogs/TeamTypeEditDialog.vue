@@ -14,7 +14,7 @@
                     Order
                     <template #description>Set the sort order when listing the types</template>
                 </FormRow>
-                <FormRow v-model="input.description" :error="errors.description" data-form="description">
+                <FormRow v-model="input.description" :error="errors.description" data-form="description" containerClass="w-full">
                     Description
                     <template #description>Use markdown for formatting</template>
                     <template #input><textarea v-model="input.description" class="w-full" rows="6" /></template>
@@ -22,37 +22,41 @@
                 <template v-if="billingEnabled">
                     <FormHeading>Billing</FormHeading>
                     <div class="space-y-2">
-                        <FormRow v-model="input.properties.billing.requireContact" type="checkbox" class="mb-4">Require contact to upgrade</FormRow>
-                        <div v-if="input.properties.billing.requireContact" class="grid gap-2 grid-cols-2 pl-4">
-                            <FormRow v-model="input.properties.billing.contactHSPortalId" :type="editDisabled?'uneditable':''">HubSpot Portal Id</FormRow>
-                            <FormRow v-model="input.properties.billing.contactHSFormId" :type="editDisabled?'uneditable':''">HubSpot Form Id</FormRow>
+                        <FormRow v-model="input.properties.billing.disabled" type="checkbox" class="mb-4">Do not require billing</FormRow>
+                        <template v-if="!input.properties.billing.disabled">
+                            <FormRow v-model="input.properties.billing.requireContact" type="checkbox" class="mb-4">Require contact to upgrade</FormRow>
+                            <div v-if="input.properties.billing.requireContact" class="grid gap-2 grid-cols-2 pl-4">
+                                <FormRow v-model="input.properties.billing.contactHSPortalId" :type="editDisabled?'uneditable':''">HubSpot Portal Id</FormRow>
+                                <FormRow v-model="input.properties.billing.contactHSFormId" :type="editDisabled?'uneditable':''">HubSpot Form Id</FormRow>
+                            </div>
+                        </template>
+                    </div>
+                    <template v-if="!input.properties.billing.disabled">
+                        <div class="grid gap-2 grid-cols-3">
+                            <FormRow v-model="input.properties.billing.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
+                            <FormRow v-model="input.properties.billing.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
+                            <FormRow v-model="input.properties.billing.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                         </div>
-                    </div>
-
-                    <div class="grid gap-2 grid-cols-3">
-                        <FormRow v-model="input.properties.billing.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
-                        <FormRow v-model="input.properties.billing.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
-                        <FormRow v-model="input.properties.billing.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
-                    </div>
-                    <FormRow v-model="input.properties.billing.proration" :options="prorationOptions" class="mb-4">Invoicing</FormRow>
-                    <div class="space-y-2">
-                        <FormRow v-model="input.properties.trial.active" type="checkbox" class="mb-4">Enable trial mode for personal teams</FormRow>
-                        <FormRow v-if="input.properties.trial.active" v-model="input.properties.trial.sendEmail" type="checkbox" class="pl-4 mb-4">Send trial emails</FormRow>
-                        <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
-                            <FormRow v-model="input.properties.trial.duration" :type="editDisabled?'uneditable':''" placeholder="days">Duration</FormRow>
-                            <div class="col-span-2">
-                                <FormRow v-model="input.properties.trial.instanceType" :options="trialInstanceTypes">Trial Features</FormRow>
+                        <FormRow v-model="input.properties.billing.proration" :options="prorationOptions" class="mb-4">Invoicing</FormRow>
+                        <div class="space-y-2">
+                            <FormRow v-model="input.properties.trial.active" type="checkbox" class="mb-4">Enable trial mode for personal teams</FormRow>
+                            <FormRow v-if="input.properties.trial.active" v-model="input.properties.trial.sendEmail" type="checkbox" class="pl-4 mb-4">Send trial emails</FormRow>
+                            <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
+                                <FormRow v-model="input.properties.trial.duration" :type="editDisabled?'uneditable':''" placeholder="days">Duration</FormRow>
+                                <div class="col-span-2">
+                                    <FormRow v-model="input.properties.trial.instanceType" :options="trialInstanceTypes">Trial Features</FormRow>
+                                </div>
+                            </div>
+                            <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
+                                <FormRow v-model="input.properties.trial.usersLimit" :type="editDisabled?'uneditable':''">Limit # Users</FormRow>
+                                <FormRow v-model="input.properties.trial.runtimesLimit" :type="editDisabled?'uneditable':''">Limit # Instances + Devices</FormRow>
+                            </div>
+                            <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
+                                <FormRow v-model="input.properties.trial.productId" :type="editDisabled?'uneditable':''">Trial Product Id</FormRow>
+                                <FormRow v-model="input.properties.trial.priceId" :type="editDisabled?'uneditable':''">Trial Price Id</FormRow>
                             </div>
                         </div>
-                        <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
-                            <FormRow v-model="input.properties.trial.usersLimit" :type="editDisabled?'uneditable':''">Limit # Users</FormRow>
-                            <FormRow v-model="input.properties.trial.runtimesLimit" :type="editDisabled?'uneditable':''">Limit # Instances + Devices</FormRow>
-                        </div>
-                        <div v-if="input.properties.trial.active" class="grid gap-2 grid-cols-3 pl-4">
-                            <FormRow v-model="input.properties.trial.productId" :type="editDisabled?'uneditable':''">Trial Product Id</FormRow>
-                            <FormRow v-model="input.properties.trial.priceId" :type="editDisabled?'uneditable':''">Trial Price Id</FormRow>
-                        </div>
-                    </div>
+                    </template>
                 </template>
                 <FormHeading>Limits</FormHeading>
                 <div class="grid gap-3 grid-cols-3">
@@ -68,22 +72,25 @@
                     <div v-if="input.properties.instances[instanceType.id].active" class="grid gap-3 grid-cols-4 pl-4">
                         <div class="grid gap-3 grid-cols-2">
                             <FormRow v-model="input.properties.instances[instanceType.id].limit"># Limit</FormRow>
-                            <FormRow v-if="billingEnabled" v-model="input.properties.instances[instanceType.id].free"># Free</FormRow>
+                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].free"># Free</FormRow>
                         </div>
-                        <FormRow v-if="billingEnabled" v-model="input.properties.instances[instanceType.id].productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
-                        <FormRow v-if="billingEnabled" v-model="input.properties.instances[instanceType.id].priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
-                        <FormRow v-if="billingEnabled" v-model="input.properties.instances[instanceType.id].description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
                     </div>
                 </div>
                 <FormHeading>Devices</FormHeading>
                 <div class="grid gap-3 grid-cols-4">
                     <div class="grid gap-3 grid-cols-2">
                         <FormRow v-model="input.properties.devices.limit"># Limit</FormRow>
-                        <FormRow v-if="billingEnabled" v-model="input.properties.devices.free" :disabled="input.properties.devices.combinedFreeType !== '_'"># Free</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.free" :disabled="input.properties.devices.combinedFreeType !== '_'"># Free</FormRow>
                     </div>
-                    <FormRow v-if="billingEnabled" v-model="input.properties.devices.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
-                    <FormRow v-if="billingEnabled" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
-                    <FormRow v-if="billingEnabled" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                    <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
+                    <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
+                    <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                </div>
+                <div v-if="billingEnabled && !input.properties.billing.disabled" class="grid gap-3 grid-cols-1">
+                    <FormRow v-model="input.properties.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">Share free allocation with instance type:</FormRow>
                 </div>
 
                 <template v-if="teamBrokerEnabled">
@@ -94,10 +101,6 @@
                         </div>
                     </div>
                 </template>
-
-                <div v-if="billingEnabled" class="grid gap-3 grid-cols-1">
-                    <FormRow v-model="input.properties.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">Share free allocation with instance type:</FormRow>
-                </div>
 
                 <FormHeading>Features</FormHeading>
                 <div class="grid gap-3 grid-cols-2">
@@ -117,8 +120,9 @@
                     <FormRow v-model="input.properties.features.bom" type="checkbox">Bill of Materials / Dependencies</FormRow>
                     <FormRow v-model="input.properties.features.teamBroker" type="checkbox">Team Broker</FormRow>
                     <FormRow v-model="input.properties.features.projectHistory" type="checkbox">Version History Timeline</FormRow>
+                    <FormRow v-model="input.properties.features.npm" type="checkbox">NPM Packages</FormRow>
                     <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
-                    <!--                    <span />-->
+                    <span />
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
@@ -234,6 +238,9 @@ export default {
                     }
                     if (this.input.properties.features.projectHistory === undefined) {
                         this.input.properties.features.projectHistory = false
+                    }
+                    if (this.input.properties.features.npm === undefined) {
+                        this.input.properties.features.npm = false
                     }
                 } else {
                     this.editDisabled = false

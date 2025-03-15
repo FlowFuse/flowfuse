@@ -1,5 +1,13 @@
 <template>
-    <a v-if="type==='anchor'" ref="input" class="ff-btn transition-fade--color" :target="target" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" :href="(!to || disabled) ? null : to" :aria-disabled="disabled===true?'true':null" :disabled="disabled===true?'true':null">
+    <router-link v-if="type==='anchor'"
+                 ref="input"
+                 class="ff-btn transition-fade--color"
+                 :target="target"
+                 :class="computedClass"
+                 :to="to ?? '#'"
+                 :aria-disabled="htmlDisabled"
+                 :disabled="htmlDisabled"
+    >
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>
         </span>
@@ -10,8 +18,15 @@
         <span v-if="hasIconRight" class="ff-btn--icon ff-btn--icon-right">
             <slot name="icon-right"></slot>
         </span>
-    </a>
-    <button v-else ref="input" class="ff-btn transition-fade--color" :type="type" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" :disabled="disabled===true?'true':null" @click="go()">
+    </router-link>
+
+    <button v-else ref="input"
+            class="ff-btn transition-fade--color"
+            :type="type"
+            :class="computedClass"
+            :disabled="htmlDisabled"
+            @mouseup="go"
+    >
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>
         </span>
@@ -26,6 +41,8 @@
 </template>
 
 <script>
+import { useNavigationHelper } from '../../composables/NavigationHelper.js'
+
 export default {
     name: 'ff-button',
     props: {
@@ -61,6 +78,17 @@ export default {
         disabled: {
             default: null,
             type: Boolean
+        },
+        emitInsteadOfNavigate: {
+            default: false,
+            type: Boolean
+        }
+    },
+    emits: ['click'],
+    setup () {
+        const { navigateTo } = useNavigationHelper()
+        return {
+            navigateTo
         }
     },
     computed: {
@@ -75,12 +103,28 @@ export default {
         },
         isIconOnly: function () {
             return this.$slots.icon
+        },
+        computedClass () {
+            return {
+                ['ff-btn--' + this.kind]: true,
+                'ff-btn-icon': this.hasIcon,
+                'ff-btn-small': this.size === 'small',
+                'ff-btn-fwidth': this.size === 'full-width'
+            }
+        },
+        htmlDisabled () {
+            return this.disabled === true ? 'true' : null
         }
     },
     methods: {
-        go: function () {
-            if (!this.disabled && this.to) {
-                this.$router.push(this.to)
+        go (event) {
+            switch (true) {
+            case this.disabled:
+                return
+            case !!this.to:
+                return this.navigateTo(this.to, event)
+            default:
+                return this.$emit('click', event)
             }
         },
         focus () {

@@ -25,7 +25,7 @@ A Snapshot is a point-in-time backup of a Node-RED instance. It captures:
 - [Upload a snapshot](#upload-a-snapshot) - Upload a snapshot to a device or an instance
 - [Download a snapshot](#download-a-snapshot) - Download a snapshot to your local machine
 - [Delete a snapshot](#delete-a-snapshot) - Delete a snapshot
-- [Set Device Target (instance)](#Instance-owned-devices) - Set a snapshot as the target for all devices belonging to an instance
+- [Set Device Target (instance)](#instance-owned-devices) - Set a snapshot as the target for all devices belonging to an instance
 - [Creating a Snapshot from a device](#creating-a-snapshot-from-a-device) - Create a snapshot from the device overview page
 - [Creating a Snapshot from within a device](#creating-a-snapshot-locally) - Create a snapshot from within Node-RED
 - [Auto Snapshots](#auto-snapshots) - Automatically create snapshots when flows are deployed
@@ -41,7 +41,7 @@ All snapshots belonging to the instances and devices of an application are gathe
 
 - [Edit a snapshot](#edit-a-snapshot) - Edit the name and description of a snapshot
 - [View Snapshot](#previewing-snapshots) - Preview the flows of a snapshot
-- [Compare Snapshot](#compare-snapshots) - Compare the snapshot with another snapshot
+- [Compare Snapshot](#comparing-snapshots) - Compare the snapshot with another snapshot
 - [Download Snapshot](#download-a-snapshot) - Download the snapshot to your local machine
 - [Delete Snapshot](#delete-a-snapshot) - Delete the snapshot
 
@@ -60,7 +60,7 @@ Snapshots belonging to an instance are gathered and presented in a single list w
 - [Restore Snapshot](#setting-a-device-target-snapshot) - Restore the snapshot to the instance
 - [Edit Snapshot](#edit-a-snapshot) - Edit the snapshot name and description
 - [View Snapshot](#previewing-snapshots) - Preview the snapshot flows
-- [Compare Snapshot](#compare-snapshots) - Compare the snapshot with another snapshot
+- [Compare Snapshot](#comparing-snapshots) - Compare the snapshot with another snapshot
 - [Download Snapshot](#download-a-snapshot) - Download the snapshot to your local machine
 - [Set as Device Target](#setting-a-device-target-snapshot) - Set the snapshot as the device target snapshot
 - [Delete Snapshot](#delete-a-snapshot) - Delete the snapshot
@@ -87,7 +87,7 @@ Snapshots belonging to a device are presented in a single list where you can per
 - [Restore Snapshot](#setting-a-device-target-snapshot) - Set the snapshot as the devices target snapshot
 - [Edit Snapshot](#edit-a-snapshot) - Edit the snapshot name and description
 - [View Snapshot](#previewing-snapshots) - Preview the snapshot flows
-- [Compare Snapshot](#compare-snapshots) - Compare the snapshot with another snapshot
+- [Compare Snapshot](#comparing-snapshots) - Compare the snapshot with another snapshot
 - [Download Snapshot](#download-a-snapshot) - Download the snapshot to your local machine
 - [Delete Snapshot](#delete-a-snapshot) - Delete the snapshot
 

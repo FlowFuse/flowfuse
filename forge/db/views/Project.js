@@ -1,4 +1,4 @@
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL, KEY_CUSTOM_HOSTNAME } = require('../models/ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL, KEY_CUSTOM_HOSTNAME, KEY_DISABLE_AUTO_SAFE_MODE } = require('../models/ProjectSettings')
 
 module.exports = function (app) {
     app.addSchema({
@@ -37,7 +37,8 @@ module.exports = function (app) {
             launcherSettings: {
                 type: 'object',
                 properties: {
-                    healthCheckInterval: { type: 'number' }
+                    healthCheckInterval: { type: 'number' },
+                    disableAutoSafeMode: { type: 'boolean' }
                 },
                 additionalProperties: false
             }
@@ -75,8 +76,18 @@ module.exports = function (app) {
                 result.launcherSettings = {}
                 result.launcherSettings.healthCheckInterval = heathCheckIntervalRow?.value
             }
+            const disableAutoSafeMode = proj.ProjectSettings?.find((projectSettingsRow) => projectSettingsRow.key === KEY_DISABLE_AUTO_SAFE_MODE)
+            if (typeof disableAutoSafeMode?.value === 'boolean') {
+                result.launcherSettings = result.launcherSettings || {}
+                result.launcherSettings.disableAutoSafeMode = disableAutoSafeMode.value
+            }
             // Environment
-            result.settings.env = app.db.controllers.Project.insertPlatformSpecificEnvVars(proj, result.settings.env)
+            result.settings.env = app.db.controllers.Project.insertPlatformSpecificEnvVars(proj, result.settings.env).map((env) => {
+                if (Object.hasOwnProperty.call(env, 'hidden') && env.hidden === true) {
+                    env.value = ''
+                }
+                return env
+            })
             if (!result.settings.palette?.modules) {
                 // If there are no modules listed in settings, check the StorageSettings
                 // for the project to see what Node-RED may already think is installed

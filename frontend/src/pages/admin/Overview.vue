@@ -50,7 +50,7 @@
                 <template v-if="license">
                     <tr><td class="w-40 font-medium">Organisation</td><td>{{ license.organisation }}</td></tr>
                     <tr><td class="w-40 font-medium">Tier</td><td>{{ license.tier }}</td></tr>
-                    <tr><td>Expires</td><td>{{ license.expires }}<br><span class="text-xs">{{ license.expiresAt }}</span></td></tr>
+                    <tr><td>{{ expired ? 'Expired' : 'Expires' }}</td><td>{{ license.expires }}<br><span class="text-xs">{{ license.expiresAt }}</span></td></tr>
                 </template>
                 <tr>
                     <td class="w-40">Users</td>
@@ -112,13 +112,15 @@ export default {
         return {
             license: {},
             stats: {},
-            settings: {}
+            settings: {},
+            expired: false
         }
     },
     async mounted () {
         try {
             this.stats = await adminApi.getStats()
             this.license = await adminApi.getLicenseDetails()
+            this.expired = this.license?.expiresAt && (Date.parse(this.license.expiresAt) - Date.now()) < 0
         } catch (err) {
             if (err.response?.status === 403 || !err.response) {
                 this.$router.push('/')

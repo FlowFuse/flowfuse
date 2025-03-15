@@ -55,7 +55,11 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
-        const logEntries = await app.db.models.AuditLog.forProjectHistory(request.project.id, paginationOptions)
+        const logEntries = await app.db.models.AuditLog.forTimelineHistory(
+            request.project.id,
+            'project',
+            paginationOptions
+        )
         const timelineView = app.db.views.AuditLog.timelineList(logEntries?.timeline || [])
         reply.send({
             meta: logEntries.meta,

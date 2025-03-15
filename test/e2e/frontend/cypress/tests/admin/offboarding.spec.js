@@ -69,7 +69,7 @@ describe('FlowForge - Team Membership', () => {
                 ...res.body,
                 ...{
                     'user:offboarding-required': true,
-                    'user:offboarding-url': 'https://www.google.com/search?q=rick+astley'
+                    'user:offboarding-url': 'https://nodered.org/about/?search=rick'
                 }
             }
             return res
@@ -86,8 +86,8 @@ describe('FlowForge - Team Membership', () => {
         cy.get('[data-action="delete-account"]').click()
         cy.get('[data-action="dialog-confirm"]').click()
 
-        cy.origin('https://www.google.com', () => {
-            cy.url().should('eq', 'https://www.google.com/search?q=rick+astley')
+        cy.origin('https://nodered.org', () => {
+            cy.url().should('to.match', /^https:\/\/nodered\.org\/about\/\?search=rick/)
         })
     })
 })

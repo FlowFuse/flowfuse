@@ -23,6 +23,32 @@ module.exports = {
         return client
     },
 
+    createClientForDevice: async function (app, device) {
+        const existingAuthClient = await device.getAuthClient()
+        if (existingAuthClient) {
+            // TODO: are there sessions to expire as well?
+            await existingAuthClient.destroy()
+        }
+
+        const client = {
+            clientID: generateToken(32, 'ffd'),
+            clientSecret: generateToken(48)
+        }
+        await app.db.models.AuthClient.create({
+            ownerType: 'device',
+            ownerId: '' + device.id,
+            ...client
+        })
+        return client
+    },
+
+    removeClientForDevice: async function (app, device) {
+        const existingAuthClient = await device.getAuthClient()
+        if (existingAuthClient) {
+            await existingAuthClient.destroy()
+        }
+    },
+
     getAuthClient: async function (app, clientID, clientSecret) {
         const client = await app.db.models.AuthClient.findOne({
             where: { clientID }

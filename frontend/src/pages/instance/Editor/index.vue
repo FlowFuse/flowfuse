@@ -55,6 +55,8 @@
             </ff-page>
         </section>
 
+        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" :instance="instance" @confirm="onInstanceDelete" />
+
         <InstanceStatusPolling
             :instance="instance"
             @instance-updated="instanceUpdated"
@@ -72,6 +74,7 @@ import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
+import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../components/DashboardLink.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
@@ -82,6 +85,7 @@ import ResizeBar from './components/drawer/ResizeBar.vue'
 export default {
     name: 'InstanceEditor',
     components: {
+        ConfirmInstanceDeleteDialog,
         InstanceActionsButton,
         DashboardLink,
         MiddleCloseButton,

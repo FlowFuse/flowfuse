@@ -17,6 +17,7 @@
                                 :label="entry.label"
                                 :icon="entry.icon"
                                 :featureUnavailable="entry.featureUnavailable"
+                                :alert="entry.alert ?? null"
                             />
                         </router-link>
                     </li>
@@ -41,15 +42,21 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'features', 'notifications']),
         ...mapState('ux', ['mainNav']),
-        ...mapGetters('account', ['noBilling']),
+        ...mapGetters('account', ['requiresBilling']),
         ...mapGetters('ux', ['mainNavContexts', 'mainNavContext']),
         nearestMetaMenu () {
             if (this.$route?.meta?.menu) {
                 return this.$route.meta.menu
             }
 
+            // this.$route.matched includes all nested parent routes in the order they match, starting from the root parent
+            // down to the most specific child route. Reversing the order so we find the nearest top-level parent with a
+            // meta.menu attribute not the other way around
+            const matched = [...this.$route.matched]
+            matched.reverse()
+
             // find the nearest parent with the meta.menu entry
-            const parentRoute = this.$route.matched.find(route => route.meta && route.meta.menu)
+            const parentRoute = matched.find(route => route.meta && route.meta.menu)
             return parentRoute ? parentRoute.meta.menu : null
         },
         nearestContextualMenu () {
@@ -70,7 +77,7 @@ export default {
         backToButton () {
             const defaultBackToRoute = {
                 label: 'Back to Dashboard',
-                to: { name: 'Applications', params: { team_slug: this.team.slug } },
+                to: { name: 'Applications', params: { team_slug: this.team?.slug } },
                 tag: 'back',
                 icon: ChevronLeftIcon
             }
@@ -87,7 +94,14 @@ export default {
                 return { ...defaultBackToRoute, ...this.nearestMetaMenu.backTo }
 
             case isNearestMenuAnObject && hasBackToProp && typeof this.nearestMetaMenu.backTo === 'function':
-                return { ...defaultBackToRoute, ...this.nearestMetaMenu.backTo({ team_slug: this.team.slug }) }
+                return {
+                    ...defaultBackToRoute,
+                    ...this.nearestMetaMenu.backTo({
+                        params: this.$route.params,
+                        query: this.$route.query,
+                        team: this.team
+                    })
+                }
 
             case typeof this.nearestMetaMenu === 'string':
             default:
@@ -101,23 +115,25 @@ export default {
     watch: {
         nearestContextualMenu: {
             handler: function (menu) {
-                if (Object.keys(this.mainNavContexts).includes(menu)) {
-                    this.setMainNavContext(menu)
-                }
+                this.setMainNavContext(menu)
             },
             immediate: true
         },
         backToButton: {
-            handler: function (menu) {
-                this.setMainNavBackButton(menu)
-            },
+            handler: 'setBackButton',
             immediate: true
-        }
+        },
+        team: 'setBackButton'
     },
     methods: {
         ...mapActions('ux', ['setMainNavContext', 'setMainNavBackButton']),
         onMenuItemClick () {
             this.$store.dispatch('ux/closeLeftDrawer')
+        },
+        setBackButton () {
+            if (this.team) {
+                this.setMainNavBackButton(this.backToButton)
+            }
         }
     }
 }

@@ -8,7 +8,10 @@
             </transition>
         </i>
         <!-- FlowFuse Logo -->
-        <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()">
+        <router-link :to="homeLink">
+            <img class="ff-logo" src="/ff-logo--wordmark--dark.png">
+        </router-link>
+        <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
             <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
@@ -43,7 +46,7 @@
         <div class="hidden lg:flex ff-desktop-navigation-right" data-el="desktop-nav-right">
             <ff-team-selection data-action="team-selection" />
             <div class="px-4 flex flex-col justify-center" v-if="showInviteButton">
-                <ff-button kind="secondary" @click="inviteTeamMembers">
+                <ff-button kind="secondary" type="anchor" :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }">
                     <template #icon-left><UserAddIcon /></template>
                     Invite Members
                 </ff-button>
@@ -72,26 +75,31 @@
     </div>
 </template>
 <script>
-import { AcademicCapIcon, AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon, XIcon } from '@heroicons/vue/solid'
+import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon, XIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
 import navigationMixin from '../mixins/Navigation.js'
 import permissionsMixin from '../mixins/Permissions.js'
 import product from '../services/product.js'
+import { Roles } from '../utils/roles.js'
 
 import NavItem from './NavItem.vue'
 import NotificationsButton from './NotificationsButton.vue'
 
 import TeamSelection from './TeamSelection.vue'
+import GlobalSearch from './global-search/GlobalSearch.vue'
 
 export default {
-    name: 'NavBar',
+    name: 'PageHeader',
     mixins: [navigationMixin, permissionsMixin],
     computed: {
+        Roles () {
+            return Roles
+        },
         ...mapState('account', ['user', 'team', 'teams']),
         ...mapState('ux', ['leftDrawer']),
-        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount']),
+        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount', 'featuresCheck']),
         ...mapGetters('ux', ['hiddenLeftDrawer']),
         navigationOptions () {
             return [
@@ -100,39 +108,43 @@ export default {
                     icon: CogIcon,
                     tag: 'user-settings',
                     onclick: this.$router.push,
-                    onclickparams: { name: 'User Settings' }
+                    onclickparams: { name: 'User Settings' },
+                    hidden: false
                 },
-                this.user.admin
-                    ? {
-                        label: 'Admin Settings',
-                        icon: AdjustmentsIcon,
-                        tag: 'admin-settings',
-                        onclick: this.$router.push,
-                        onclickparams: { name: 'Admin Settings' }
-                    }
-                    : undefined,
+                {
+                    label: 'Admin Settings',
+                    icon: AdjustmentsIcon,
+                    tag: 'admin-settings',
+                    onclick: this.$router.push,
+                    onclickparams: { name: 'Admin Settings' },
+                    hidden: !this.user.admin
+                },
                 {
                     label: 'Documentation',
                     icon: QuestionMarkCircleIcon,
                     tag: 'documentation',
-                    onclick: this.to,
+                    onclick: (route) => window.open(route.url, '_blank'),
                     onclickparams: { url: 'https://flowfuse.com/docs/' }
                 },
-                this.isTrialAccount
-                    ? {
-                        label: 'Getting Started',
-                        icon: AcademicCapIcon,
-                        tag: 'getting-started',
-                        onclick: this.openEducationModal
-                    }
-                    : undefined,
+                {
+                    label: 'Getting Started',
+                    icon: AcademicCapIcon,
+                    tag: 'getting-started',
+                    onclick: this.openEducationModal
+                },
+                {
+                    label: 'Welcome Tour',
+                    icon: CursorClickIcon,
+                    tag: 'welcome-tour',
+                    onclick: this.startWelcomeTour
+                },
                 {
                     label: 'Sign Out',
                     icon: LogoutIcon,
                     tag: 'sign-out',
                     onclick: this.signOut
                 }
-            ].filter(option => option !== undefined)
+            ].filter(option => !option.hidden)
         },
         showInviteButton () {
             return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
@@ -147,6 +159,7 @@ export default {
         }
     },
     components: {
+        GlobalSearch,
         NavItem,
         'ff-team-selection': TeamSelection,
         MenuIcon,
@@ -168,25 +181,22 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux', ['toggleLeftDrawer']),
-        to (route) {
-            window.open(route.url, '_blank')
-        },
-        inviteTeamMembers () {
-            this.$router.push({
-                name: 'team-members',
-                params: {
-                    team_slug: this.team.slug
-                },
-                query: {
-                    action: 'invite'
-                }
-            })
-        },
-        ...mapActions('ux', ['activateTour']),
+        ...mapActions('ux', ['toggleLeftDrawer', 'activateTour']),
         openEducationModal () {
             this.activateTour('education')
             product.capture('clicked-open-education-modal')
+        },
+        startWelcomeTour () {
+            return this.$store.dispatch('ux/resetTours')
+                // it's unfortunate that we can't redirect premium users straight to the application device page, but we
+                // don't have available applications at this moment in time so they'll get redirected twice
+                .then(() => this.$router.push({ name: 'Applications' }))
+                .then(() => {
+                    // breathing room for the page, instances and devices to load for the tour to work properly
+                    setTimeout(() => {
+                        this.$store.dispatch('ux/activateTour', 'welcome')
+                    }, 1000)
+                })
         }
     }
 }

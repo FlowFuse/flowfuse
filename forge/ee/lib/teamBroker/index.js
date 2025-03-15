@@ -2,6 +2,7 @@ module.exports.init = function (app) {
     // enable Team Broker Feature
     if (app.config.broker?.teamBroker?.enabled) {
         app.config.features.register('teamBroker', true, true)
+        app.config.features.register('externalBroker', true, true)
     }
 
     /*
@@ -30,4 +31,26 @@ module.exports.init = function (app) {
             }
         }
     }
+
+    /**
+     * Used by the Team Broker ACL route to record a topic as being in use
+     * @param {String} topic the topic being published to
+     * @param {String} team the team hashid of the broker being published to
+     */
+    async function addUsedTopic (topic, team) {
+        const teamId = app.db.models.Team.decodeHashid(team)
+        await app.db.models.MQTTTopicSchema.upsert({
+            topic,
+            TeamId: teamId,
+            BrokerCredentialsId: app.settings.get('team:broker:creds') ?? null
+        }, {
+            topic,
+            TeamId: teamId,
+            BrokerCredentialsId: app.settings.get('team:broker:creds') ?? null
+        })
+    }
+
+    app.decorate('teamBroker', {
+        addUsedTopic
+    })
 }

@@ -1,6 +1,4 @@
 <template>
-    <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
-    <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
     <form class="space-y-6" @submit.prevent="onSubmit">
         <SectionTopMenu v-if="hasHeader" :hero="heroTitle" />
         <!-- Form title -->
@@ -59,14 +57,16 @@
             </FormRow>
         </div>
 
-        <FormRow v-if="creatingApplication" v-model="input.createInstance" type="checkbox" data-form="create-instance">
+        <FormRow v-if="creatingApplication && instancesAvailable" v-model="input.createInstance" type="checkbox" data-form="create-instance">
             Create Node-RED Instance
             <template #description>
                 This will create an instance of Node-RED that will be managed in your new Application.
             </template>
         </FormRow>
 
-        <div v-if="!creatingApplication || input.createInstance" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
+        <div v-if="instancesAvailable && (!creatingApplication || input.createInstance)" :class="creatingApplication ? 'ml-6' : ''" class="space-y-6">
+            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
+            <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
             <!-- Instance Name -->
             <div>
                 <FormRow
@@ -212,7 +212,7 @@
                 type="submit"
             >
                 <template v-if="creatingNew">
-                    <span v-if="applicationFieldsVisible">Create Application<span v-if="input.createInstance"> &amp; Instance</span></span>
+                    <span v-if="applicationFieldsVisible">Create Application<span v-if="input.createInstance && instancesAvailable"> &amp; Instance</span></span>
                     <span v-else>Create Instance</span>
                 </template>
                 <template v-else>
@@ -384,7 +384,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['settings']),
-        ...mapGetters('account', ['blueprints', 'defaultBlueprint']),
+        ...mapGetters('account', ['blueprints', 'defaultBlueprint', 'featuresCheck']),
         creatingApplication () {
             return (this.applicationSelection && !this.applications.length) || (this.creatingNew && this.applicationFieldsVisible)
         },
@@ -452,7 +452,14 @@ export default {
             return (teamTypeRuntimeLimit > 0 && currentRuntimeCount >= teamTypeRuntimeLimit)
         },
         teamInstanceLimitReached () {
+            // this.projectTypes.length > 0 : There are Instance Types defined
+            // this.activeProjectTypeCount : How instance types are available for the user to select
+            //                               taking into account their limits
+            // Hence, if activeProjectTypeCount === 0, then they are at their limit of usage
             return this.projectTypes.length > 0 && this.activeProjectTypeCount === 0
+        },
+        instancesAvailable () {
+            return this.featuresCheck?.isHostedInstancesEnabledForTeam
         },
         atLeastOneFlowBlueprint () {
             return this.blueprints.length > 0
@@ -544,7 +551,7 @@ export default {
         })
 
         if (this.billingEnabled) {
-            if (!this.team.billing?.unmanaged) {
+            if (!this.team.billing?.unmanaged && !this.team.type.properties?.billing?.disabled) {
                 try {
                     this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
                 } catch (err) {
@@ -647,6 +654,9 @@ export default {
                 ...this.input,
                 ...this.preDefinedInputs
             }
+        }
+        if (this.teamInstanceLimitReached || this.teamRuntimeLimitReached || !this.instancesAvailable) {
+            this.input.createInstance = false
         }
     },
     async beforeMount () {

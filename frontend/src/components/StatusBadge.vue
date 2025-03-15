@@ -8,7 +8,7 @@
     >
         <ExclamationCircleIcon v-if="status === 'error' || status === 'crashed'" class="w-4 h-4" />
         <ExclamationIcon v-if="status === 'suspended' || status === 'stopped' || status === 'warning'" class="w-4 h-4" />
-        <PlayIcon v-if="status === 'running'" class="w-4 h-4" />
+        <PlayIcon v-if="['running', 'connected'].includes(status)" class="w-4 h-4" />
         <InformationCircleIcon v-if="status === 'info'" class="w-4 h-4" />
         <CheckCircleIcon v-if="status === 'success'" class="w-4 h-4" />
         <StopIcon v-if="status === 'stopping' || status === 'suspending'" class="w-4 h-4" />

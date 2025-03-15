@@ -60,6 +60,18 @@ module.exports = function (app) {
                 updatedAt: result.updatedAt,
                 links: result.links
             }
+            if (team.Subscription) {
+                filtered.billing = {}
+                filtered.billing.active = team.Subscription.isActive()
+                filtered.billing.unmanaged = team.Subscription.isUnmanaged()
+                filtered.billing.canceled = team.Subscription.isCanceled()
+                filtered.billing.pastDue = team.Subscription.isPastDue()
+                if (team.Subscription.isTrial()) {
+                    filtered.billing.trial = true
+                    filtered.billing.trialEnded = team.Subscription.isTrialEnded()
+                    filtered.billing.trialEndsAt = team.Subscription.trialEndsAt
+                }
+            }
             return filtered
         } else {
             return null

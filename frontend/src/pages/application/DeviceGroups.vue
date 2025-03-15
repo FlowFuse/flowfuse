@@ -2,14 +2,14 @@
     <SectionTopMenu
         hero="Application Device Groups"
         help-header="FlowFuse - Application Device Groups"
-        info="Manage your Application's Device Groups."
+        info="Device Groups provide a way of managing multiple Remote instances together, for example deploying to multiple Remote Instances via a Pipeline."
     >
         <template #pictogram>
             <img src="../../images/pictograms/device_group_red.png">
         </template>
         <template #helptext>
-            <p>Application Device Groups permit the grouping of Application assigned Devices.</p>
-            <p>The device groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
+            <p>Application Device Groups permit the grouping of Application assigned Remote Instances.</p>
+            <p>The Groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
         </template>
     </SectionTopMenu>
     <ff-loading
@@ -32,8 +32,8 @@
             <img src="../../images/empty-states/application-device-groups.png">
         </template>
         <template #message>
-            <p>Application Device Groups permit the grouping of Application assigned Devices.</p>
-            <p>The device groups can then be set as the target in a DevOps Pipeline to update multiple devices in a single operation</p>
+            <p>Application Device Groups permit the grouping of Remote Instances, managed by this Application.</p>
+            <p>The device groups can then be set as the target in a Pipeline to update multiple Remote Instances in a single operation</p>
         </template>
         <template #actions>
             <ff-button data-action="create-device-group" :disabled="!featureEnabled" @click="showCreateDeviceGroupDialog">
@@ -72,6 +72,7 @@ import ApplicationAPI from '../../api/application.js'
 import EmptyState from '../../components/EmptyState.vue'
 import FormRow from '../../components/FormRow.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import usePermissions from '../../composables/Permissions.js'
 
 import Alerts from '../../services/alerts.js'
 
@@ -98,6 +99,10 @@ export default {
             type: Object,
             required: true
         }
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
     },
     data () {
         return {
@@ -138,7 +143,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team']),
+        ...mapState('account', ['features', 'team', 'teamMembership']),
         featureEnabledForTeam () {
             return !!this.team?.type?.properties?.features?.deviceGroups
         },
@@ -152,6 +157,14 @@ export default {
     watch: {
         featureEnabled: function (v) {
             this.loadDeviceGroups()
+        },
+        teamMembership: {
+            handler: function () {
+                if (!this.hasPermission('application:device-group:list')) {
+                    return this.$router.push({ name: 'Application', params: this.$route.params })
+                }
+            },
+            immediate: true
         }
     },
     mounted () {
@@ -191,22 +204,24 @@ export default {
             this.$router.push(route)
         },
         async loadDeviceGroups () {
-            this.loading = true
-            ApplicationAPI.getDeviceGroups(this.application.id)
-                .then((groups) => {
-                    this.deviceGroups = groups.groups
-                    if (this.deviceGroups?.length > 0) {
+            if (this.hasPermission('application:device-group:list')) {
+                this.loading = true
+                ApplicationAPI.getDeviceGroups(this.application.id)
+                    .then((groups) => {
+                        this.deviceGroups = groups.groups
+                        if (this.deviceGroups?.length > 0) {
                         // if there is no target snapshot set, set it to an empty object so that the `markRaw` function renders _something_ in the table cell
-                        this.deviceGroups.forEach((group) => {
-                            group.targetSnapshot = group.targetSnapshot || {}
-                        })
-                    }
-                })
-                .catch((err) => {
-                    console.error(err)
-                }).finally(() => {
-                    this.loading = false
-                })
+                            this.deviceGroups.forEach((group) => {
+                                group.targetSnapshot = group.targetSnapshot || {}
+                            })
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err)
+                    }).finally(() => {
+                        this.loading = false
+                    })
+            }
         }
     }
 }

@@ -19,6 +19,12 @@
   display: inline-block;
 }
 
+.ff-icon-md {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+
 .ff-icon-lg {
   width: 24px;
   height: 24px;
@@ -665,7 +671,7 @@ li.ff-list-item {
     }
     &.active {
       border: 2px solid var(--ff-tile-selection-color);
-      svg {
+      .ff-tile-selection-option--header svg {
         fill: var(--ff-tile-selection-color);
       }
     }
@@ -965,6 +971,7 @@ li.ff-list-item {
     cursor: pointer;
     position: relative;
     display: flex;
+    max-height: 20px;
     svg {
       position: relative;
       z-index: 2;

@@ -106,7 +106,7 @@
             </div>
             <div class="ff-instance-info">
                 <FormHeading><TrendingUpIcon />Recent Activity</FormHeading>
-                <AuditLog :entries="auditLog" :showLoadMore="false" :disableAccordion="true" />
+                <AuditLog :entries="auditLog" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
                 <div class="pb-4 text-center">
                     <router-link to="./audit-log" class="forge-button-inline">More...</router-link>
                 </div>

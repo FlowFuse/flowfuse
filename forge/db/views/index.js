@@ -27,7 +27,9 @@ const modelTypes = [
     'Team',
     'TeamType',
     'User',
-    'TeamBrokerClient'
+    'TeamBrokerClient',
+    'BrokerCredentials',
+    'MQTTTopicSchema'
 ]
 
 async function register (app, viewType, viewModule) {

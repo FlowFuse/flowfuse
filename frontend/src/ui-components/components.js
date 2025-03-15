@@ -2,6 +2,7 @@ import FFNavBreadcrumb from './components/Breadcrumb.vue'
 import FFButton from './components/Button.vue'
 import FFCheck from './components/Check.vue'
 import FFDialogBox from './components/DialogBox.vue'
+import FFDivider from './components/Divider.vue'
 import FFHelpTooltip from './components/Help.vue'
 import FFKebabMenu from './components/KebabMenu.vue'
 
@@ -39,6 +40,7 @@ export default {
     FFKebabMenu,
     FFNavBreadcrumb,
     FFDialogBox,
+    FFDivider,
     FFHelpTooltip,
     FFListItem,
     FFCheck,

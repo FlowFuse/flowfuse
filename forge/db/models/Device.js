@@ -6,7 +6,7 @@ const crypto = require('crypto')
 
 const SemVer = require('semver')
 
-const { DataTypes, Op } = require('sequelize')
+const { col, fn, DataTypes, Op, where } = require('sequelize')
 
 const Controllers = require('../controllers')
 const { buildPaginationSearchClause } = require('../utils')
@@ -15,7 +15,8 @@ const ALLOWED_SETTINGS = {
     autoSnapshot: 1,
     editor: 1,
     env: 1,
-    palette: 1
+    palette: 1,
+    security: 1
 }
 
 const DEFAULT_SETTINGS = {
@@ -35,6 +36,7 @@ module.exports = {
         lastSeenAt: { type: DataTypes.DATE, allowNull: true },
         settingsHash: { type: DataTypes.STRING, allowNull: true },
         agentVersion: { type: DataTypes.STRING, allowNull: true },
+        nodeRedVersion: { type: DataTypes.STRING, allowNull: true },
         mode: { type: DataTypes.STRING, allowNull: true, defaultValue: 'autonomous' },
         editorAffinity: { type: DataTypes.STRING, defaultValue: '' },
         editorToken: { type: DataTypes.STRING, defaultValue: '' },
@@ -69,6 +71,10 @@ module.exports = {
         this.hasMany(M.DeviceSettings)
         this.hasMany(M.ProjectSnapshot) // associate device at application level with snapshots
         this.belongsTo(M.DeviceGroup, { foreignKey: { allowNull: true } }) // SEE: forge/db/models/DeviceGroup.js for the other side of this relationship
+
+        // Also hasOne AuthClient (for ff-auth) - but not adding the association as we don't
+        // want the sequelize mixins to be added to the Device model - they don't
+        // handle the casting from int to string for the deviceId/ownerId
     },
     hooks: function (M, app) {
         return {
@@ -128,12 +134,26 @@ module.exports = {
                         ownerId: '' + device.id
                     }
                 })
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: {
+                            [Op.like]: `d-${device.hashid}@%`
+                        }
+                    }
+                })
                 await M.DeviceSettings.destroy({
                     where: {
                         DeviceId: device.id
                     }
                 })
                 await M.BrokerClient.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: '' + device.id
+                    }
+                })
+                await M.AuthClient.destroy({
                     where: {
                         ownerType: 'device',
                         ownerId: '' + device.id
@@ -167,6 +187,13 @@ module.exports = {
                 async getAccessToken () {
                     return M.AccessToken.findOne({
                         where: { ownerId: '' + this.id, ownerType: 'device', scope: 'device' }
+                    })
+                },
+                async getAuthClient () {
+                    // Cannot use a hasOne association as the resulting getAuthClient
+                    // mixin doesn't know to cast this.id to a string
+                    return M.AuthClient.findOne({
+                        where: { ownerId: '' + this.id, ownerType: 'device' }
                     })
                 },
                 async updateSettingsHash (settings) {
@@ -304,6 +331,26 @@ module.exports = {
                             { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
                         ]
                     })
+                },
+                byTeam: async (teamIdOrHash, { query = null, deviceId = null } = {}) => {
+                    let teamId = teamIdOrHash
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
+                    const queryObject = {
+                        where: { [Op.and]: [{ TeamId: teamId }] }
+                    }
+                    if (deviceId) {
+                        queryObject.where[Op.and].push({ id: deviceId })
+                    } else if (query) {
+                        queryObject.where[Op.and].push({
+                            [Op.or]: [
+                                where(fn('lower', col('Device.name')), { [Op.like]: `%${query.toLowerCase()}%` }),
+                                where(fn('lower', col('Device.type')), { [Op.like]: `%${query.toLowerCase()}%` })
+                            ]
+                        })
+                    }
+                    return this.getAll({}, queryObject.where)
                 },
                 getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false, includeDeviceGroup = false } = {}) => {
                     // Pagination

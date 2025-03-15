@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Device Logs" help-header="FlowFuse - Device Logs" info="Live logs from your FlowFuse instances of Node-RED" />
+    <SectionTopMenu hero="Node-RED Logs" help-header="FlowFuse - Node-RED Logs" info="Live logs from your Remote Node-RED Instance" />
     <LogsShared :device="device" />
 </template>
 

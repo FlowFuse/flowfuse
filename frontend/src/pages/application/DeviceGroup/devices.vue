@@ -3,18 +3,19 @@
         <ff-loading message="Loading Device Group..." />
     </main>
     <div v-else class="w-full">
-        <FormHeading class="mb-3">
-            <div class="flex justify-between items-center">
-                <div class="min-w-0 truncate mr-2">Device Group Membership</div>
-                <div v-if="!editMode && !hasChanges" class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
-                    <ff-button kind="primary" size="small" class="w-24 whitespace-nowrap" @click="editMode = true">Edit</ff-button>
-                </div>
-                <div v-else class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
-                    <ff-button kind="secondary" size="small" class="w-24 whitespace-nowrap" @click="cancelChanges">Cancel</ff-button>
-                    <ff-button kind="primary" size="small" :disabled="!hasChanges" class="w-24 whitespace-nowrap" @click="saveChanges">Save Changes</ff-button>
-                </div>
-            </div>
-        </FormHeading>
+        <div class="mb-3">
+            <SectionTopMenu hero="Device Group Membership" info="">
+                <template #tools>
+                    <div v-if="!editMode && !hasChanges" class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
+                        <ff-button kind="primary" size="small" class="w-24 whitespace-nowrap" @click="editMode = true">Edit</ff-button>
+                    </div>
+                    <div v-else class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
+                        <ff-button kind="secondary" size="small" class="w-24 whitespace-nowrap" @click="cancelChanges">Cancel</ff-button>
+                        <ff-button kind="primary" size="small" :disabled="!hasChanges" class="w-24 whitespace-nowrap" @click="saveChanges">Save Changes</ff-button>
+                    </div>
+                </template>
+            </SectionTopMenu>
+        </div>
 
         <div class="flex flex-col sm:flex-row">
             <div v-if="editMode" class="w-full sm:w-1/2 order-3 sm:order-1">
@@ -81,7 +82,8 @@
 import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
-import FormHeading from '../../../components/FormHeading.vue'
+import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -93,7 +95,7 @@ export default {
     name: 'DeviceGroupDevices',
     components: {
         ActiveSnapshotCell,
-        FormHeading
+        SectionTopMenu
     },
     inheritAttrs: false,
     props: {

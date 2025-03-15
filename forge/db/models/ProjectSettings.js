@@ -16,6 +16,7 @@ const KEY_PROTECTED = 'protected'
 const KEY_HEALTH_CHECK_INTERVAL = 'healthCheckInterval'
 const KEY_CUSTOM_HOSTNAME = 'customHostname'
 const KEY_SHARED_ASSETS = 'sharedAssets'
+const KEY_DISABLE_AUTO_SAFE_MODE = 'disableAutoSafeMode'
 
 module.exports = {
     KEY_SETTINGS,
@@ -25,6 +26,7 @@ module.exports = {
     KEY_HEALTH_CHECK_INTERVAL,
     KEY_CUSTOM_HOSTNAME,
     KEY_SHARED_ASSETS,
+    KEY_DISABLE_AUTO_SAFE_MODE,
     name: 'ProjectSettings',
     schema: {
         ProjectId: { type: DataTypes.UUID, unique: 'pk_settings' },

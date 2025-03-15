@@ -13,6 +13,9 @@ module.exports.init = async function (app) {
         const provider = await app.db.models.SAMLProvider.byId(id)
         if (provider) {
             const result = { ...provider.getOptions() }
+            // @node-saml@4 renamed `cert` to `idpCert`
+            result.idpCert = result.cert
+            delete result.cert
             return result
         }
         return null
@@ -310,9 +313,17 @@ module.exports.init = async function (app) {
             const desiredTeamMemberships = {}
             app.log.debug(`SAML Group Assertions for ${user.username} ${JSON.stringify(groupAssertions)}`)
             groupAssertions.forEach(ga => {
+                // Trim prefix/postfix from group name
+                let shortGA = ga
+                if (providerOpts.groupPrefixLength || providerOpts.groupSuffixLength) {
+                    const start = providerOpts.groupPrefixLength || 0
+                    const end = providerOpts.groupSuffixLength || 0
+                    shortGA = ga.slice(start, (end * -1))
+                    app.log.debug(`Converting Group name ${ga} to ${shortGA}`)
+                }
                 // Parse the group name - format: 'ff-SLUG-ROLE'
                 // Generate a slug->role object (desiredTeamMemberships)
-                const match = /^ff-(.+)-([^-]+)$/.exec(ga)
+                const match = /^ff-(.+)-([^-]+)$/.exec(shortGA)
                 if (match) {
                     const teamSlug = match[1]
                     const teamRoleName = match[2]
@@ -444,7 +455,14 @@ module.exports.init = async function (app) {
         const desiredTeamMemberships = {}
         const groupRegEx = /^ff-(.+)-([^-]+)$/
         for (const i in searchEntries) {
-            const match = groupRegEx.exec(searchEntries[i].cn)
+            let shortCN = searchEntries[i].cn
+            if (providerOpts.groupPrefixLength || providerOpts.groupSuffixLength) {
+                // Trim prefix and postfix
+                const start = providerOpts.groupPrefixLength || 0
+                const end = providerOpts.groupSuffixLength || 0
+                shortCN = searchEntries[i].cn.slice(start, (end * -1))
+            }
+            const match = groupRegEx.exec(shortCN)
             if (match) {
                 app.log.debug(`Found group ${searchEntries[i].cn} for user ${user.username}`)
                 const teamSlug = match[1]

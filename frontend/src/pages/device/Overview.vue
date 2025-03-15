@@ -32,9 +32,9 @@
             <template #content>
                 <InfoCardRow property="Application:">
                     <template #value>
-                        <router-link v-if="device?.application" :to="{name: 'Application', params: { id: device.application.id }}">
+                        <ff-team-link v-if="device?.application" :to="{name: 'Application', params: { id: device.application.id }}">
                             {{ device.application?.name }}
-                        </router-link>
+                        </ff-team-link>
                         <span v-else>None</span>
                     </template>
                 </InfoCardRow>
@@ -48,7 +48,7 @@
                 </InfoCardRow>
                 <InfoCardRow property="Active Snapshot:">
                     <template #value>
-                        <span class="flex gap-2 pr-2">
+                        <span v-ff-tooltip:left="'Set Active Snapshots via Pipelines'" class="flex gap-2 pr-2">
                             <span class="flex items-center space-x-2 text-gray-500 italic">
                                 <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.activeSnapshot || !targetSnapshotDeployed" />
                                 <CheckCircleIcon class="text-green-700 w-4" v-else />
@@ -69,7 +69,7 @@
 
                 <InfoCardRow property="Target Snapshot:">
                     <template #value>
-                        <span class="flex gap-2 pr-2">
+                        <span v-ff-tooltip:left="'Set Target Snapshots via Pipelines'" class="flex gap-2 pr-2">
                             <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
                                 <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.targetSnapshot" />
                                 <CheckCircleIcon class="text-green-700 w-4" v-else />
@@ -130,7 +130,7 @@ export default {
         StatusBadge
     },
     computed: {
-        ...mapState('account', ['settings', 'features']),
+        ...mapState('account', ['settings', 'features', 'team']),
         targetSnapshotDeployed: function () {
             return this.device.activeSnapshot?.id === this.device.targetSnapshot?.id
         },

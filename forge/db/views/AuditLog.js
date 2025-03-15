@@ -58,6 +58,17 @@ module.exports = function (app) {
                 body: e.body
             }
         })
+        if (logEntries.associations) {
+            if (logEntries.associations.applications) {
+                logEntries.associations.applications = logEntries.associations.applications.map(app.db.views.Application.applicationSummary)
+            }
+            if (logEntries.associations.devices) {
+                logEntries.associations.devices = logEntries.associations.devices.map(app.db.views.Device.deviceSummary)
+            }
+            if (logEntries.associations.instances) {
+                logEntries.associations.instances = logEntries.associations.instances.map(app.db.views.Project.projectSummary)
+            }
+        }
         return logEntries
     }
     app.addSchema({

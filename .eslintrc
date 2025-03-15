@@ -82,6 +82,7 @@
                 "vue/max-attributes-per-line": "off",
                 "vue/attribute-hyphenation": "off",
                 "vue/singleline-html-element-content-newline": "off",
+                "vue/component-definition-name-casing": "off",
 
                 // plugin:promise
                 "promise/always-return": "off" // common Vue.js pattern

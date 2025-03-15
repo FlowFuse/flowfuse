@@ -13,7 +13,8 @@ module.exports = function (app) {
             default: { type: 'boolean' },
             flows: { type: 'object', additionalProperties: true },
             createdAt: { type: 'string' },
-            updatedAt: { type: 'string' }
+            updatedAt: { type: 'string' },
+            externalUrl: { type: 'string' }
         }
     })
     function flowBlueprintSummary (blueprint) {
@@ -28,7 +29,8 @@ module.exports = function (app) {
             default: blueprint.default,
             flows: blueprint.flows,
             createdAt: blueprint.createdAt,
-            updatedAt: blueprint.updatedAt
+            updatedAt: blueprint.updatedAt,
+            externalUrl: blueprint.externalUrl
         }
     }
 

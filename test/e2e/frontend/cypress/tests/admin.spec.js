@@ -76,7 +76,7 @@ describe('FlowFuse platform admin users', () => {
         cy.wait('@getApplication')
         cy.wait('@getApplicationInstances')
 
-        cy.get('[data-el="banner-project-as-admin"]').should('exist')
+        cy.get('[data-el="banner-team-as-admin"]').should('exist')
         cy.get('[data-action="open-editor"]').should('have.attr', 'disabled')
 
         cy.get('[data-el="cloud-instances"] tr').contains('instance-2-1').click()

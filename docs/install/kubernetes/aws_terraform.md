@@ -191,7 +191,7 @@ Apply the SES module using the shared variables file:
 terraform -chdir=ses apply -var-file=../terraform.tfvars
 ```
 
-To get the IAM role ARN created by the SES module and required during [FlowFuse platform configuration](./README.md#configure-flowfuse), run the following command:
+To get the IAM role ARN created by the SES module and required during [FlowFuse platform configuration](/docs/install/configuration.md#aws-ses-email), run the following command:
 
 ```bash
 terraform -chdir=ses output flowfuse_ses_role_arn

@@ -1780,6 +1780,51 @@ describe('Billing routes', function () {
                 })
                 response.statusCode.should.equal(403)
             })
+            it('Admin can re-enable billing for a team', async function () {
+                // Create team
+                const team = await app.factory.createTeam({ name: generateName('unmanagedSubTeam') })
+                await team.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                await app.factory.createSubscription(team)
+
+                let response = await app.inject({
+                    method: 'POST',
+                    url: `/ee/billing/teams/${team.hashid}/manual`,
+                    payload: {
+                        teamTypeId: unmanagedSubTargetTeamType.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                // Check the team type has been updated to the target type
+                await team.reload()
+                team.TeamTypeId.should.equal(unmanagedSubTargetTeamType.id)
+
+                // Check the team subscription is flagged as unmanaged
+                let sub = await team.getSubscription()
+                sub.isActive().should.be.false()
+                sub.isUnmanaged().should.be.true()
+                sub.isCanceled().should.be.false()
+                sub.isPastDue().should.be.false()
+                sub.isTrial().should.be.false()
+                sub.isTrialEnded().should.be.true()
+
+                // Now put it back in billing mode
+                response = await app.inject({
+                    method: 'DELETE',
+                    url: `/ee/billing/teams/${team.hashid}/manual`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                await team.reload()
+                sub = await team.getSubscription()
+                sub.isActive().should.be.false()
+                sub.isUnmanaged().should.be.false()
+                sub.isCanceled().should.be.true()
+                sub.isPastDue().should.be.false()
+                sub.isTrial().should.be.false()
+                sub.isTrialEnded().should.be.true()
+            })
         })
     })
 

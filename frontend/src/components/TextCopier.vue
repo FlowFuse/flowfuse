@@ -1,12 +1,12 @@
 <template>
     <span class="ff-text-copier">
-        <span @click="copyPath">
+        <span v-if="showText" @click="copyPath">
             <slot name="default">
                 <span class="text">{{ text }}</span>
             </slot>
         </span>
         <DuplicateIcon v-if="text.length" class="ff-icon" @click="copyPath" @click.prevent.stop />
-        <span ref="copied" class="ff-copied">Copied!</span>
+        <span ref="copied" class="ff-copied" :class="{ 'ff-copied-left': promptPosition === 'left'}">Copied!</span>
     </span>
 </template>
 
@@ -29,6 +29,19 @@ export default {
             default: 'prompt',
             validator: (value) => {
                 return ['prompt', 'alert'].includes(value)
+            }
+        },
+        showText: {
+            required: false,
+            type: Boolean,
+            default: true
+        },
+        promptPosition: {
+            required: false,
+            type: String,
+            default: 'right',
+            validator: (value) => {
+                return ['left', 'right'].includes(value)
             }
         }
     },
@@ -73,6 +86,10 @@ export default {
     display: none;
     z-index: 100;
     left: 100%;
+  }
+  .ff-copied-left {
+    left: inherit;
+    right: 100%;
   }
 }
 </style>

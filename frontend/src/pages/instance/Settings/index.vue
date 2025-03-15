@@ -2,7 +2,7 @@
     <div class="mb-3">
         <SectionTopMenu hero="Settings" info="" />
     </div>
-    <div class="flex flex-col sm:flex-row ml-6">
+    <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
             <router-view

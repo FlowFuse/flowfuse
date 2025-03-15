@@ -3,7 +3,7 @@
         <div v-if="!pending" data-form="login">
             <ff-loading v-if="loggingIn" message="Logging in..." color="white" />
             <template v-else-if="!mfaRequired">
-                <label>username / email</label>
+                <label>Username / E-Mail</label>
                 <ff-text-input
                     ref="login-username"
                     v-model="input.username"
@@ -15,7 +15,7 @@
                 />
                 <span class="ff-error-inline" data-el="errors-username">{{ errors.username }}</span>
                 <div v-if="passwordRequired">
-                    <label>password</label>
+                    <label>Password</label>
                     <ff-text-input
                         ref="login-password"
                         v-model="input.password"
@@ -31,8 +31,8 @@
                 <div class="ff-actions">
                     <ff-button data-action="login" :disabled="loggingIn || tooManyRequests" @click="login()">
                         <span>Login</span>
-                        <span class="w-4">
-                            <SpinnerIcon v-if="loggingIn || tooManyRequests" class="ff-icon ml-3 !w-3.5" />
+                        <span v-if="loggingIn || tooManyRequests" class="w-4">
+                            <SpinnerIcon class="ff-icon ml-3 !w-3.5" />
                         </span>
                     </ff-button>
                     <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create" data-action="sign-up">Sign Up</ff-button>

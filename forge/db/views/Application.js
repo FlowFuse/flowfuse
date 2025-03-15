@@ -63,6 +63,8 @@ module.exports = function (app) {
         }
 
         if (detailed) {
+            summary.deviceCount = application.get('deviceCount')
+            summary.instanceCount = application.get('instanceCount')
             summary.deviceGroupCount = application.get('deviceGroupCount')
             summary.snapshotCount = application.get('snapshotCount')
             summary.pipelineCount = application.get('pipelineCount')

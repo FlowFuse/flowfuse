@@ -1,5 +1,5 @@
 <template>
-    <ff-dialog ref="dialog" header="Device Configuration" data-el="team-device-config-dialog">
+    <ff-dialog ref="dialog" :header="`Device Agent Configuration - ${device?.name}`" data-el="team-device-config-dialog">
         <template #default>
             <form class="text-gray-800">
                 <template v-if="!hasCredentials">
@@ -13,8 +13,21 @@
                 </template>
                 <template v-if="hasCredentials">
                     <template v-if="otc">
-                        <p>
-                            With the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">FlowFuse Device Agent</a> installed on your device, run the following command to setup its connection to the platform:
+                        <label class="block font-bold mb-2">Install Device Agent</label>
+                        <p>Run this command on the hardware where you want your Remote Instance to run:</p>
+                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">npm install -g @flowfuse/device-agent</pre>
+                        <div class="flex flex-row justify-end space-x-2 -mt-1">
+                            <ff-button kind="tertiary" size="small" @click="copy('npm install -g @flowfuse/device-agent')">
+                                <template #icon-right><ClipboardCopyIcon /></template>
+                                <span class="">Copy</span>
+                            </ff-button>
+                        </div>
+                        <p class="text-gray-600 italic text-sm">
+                            Note: For more detailed instructions on installing the Device Agent, checkout the documentation <a href="https://flowfuse.com/docs/device-agent/" target="_blank">here</a>.
+                        </p>
+                        <label class="block font-bold mt-4 mb-2">Connect Agent to FlowFuse</label>
+                        <p class="mt-2">
+                            Then, with the Device Agent installed, run the following command, on your hardware, to connect it to FlowFuse:
                         </p>
                         <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ otcCommand }}</pre>
                         <div class="flex flex-row justify-end space-x-2 -mt-1">
@@ -23,7 +36,7 @@
                                 <span class="">Copy</span>
                             </ff-button>
                         </div>
-                        <p class="text-gray-600 italic text-sm -mt-6">
+                        <p class="text-gray-600 italic text-sm">
                             <span>Notes:</span>
                             <ul class="list-disc list-inside ml-2">
                                 <li>this command is single use and expires in 24h.</li>
@@ -32,7 +45,7 @@
                         </p>
 
                         <details class="mt-4">
-                            <summary class="mt-6">Show manual setup instructions</summary>
+                            <summary class="mt-6 cursor-pointer">Show manual setup instructions</summary>
                             <p class="mt-4">
                                 Place the below configuration on your device.
                                 See the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">Device Agent documentation</a> for instructions on how to do this.
@@ -72,11 +85,11 @@
         </template>
         <template #actions>
             <template v-if="!hasCredentials">
-                <ff-button kind="secondary" @click="close()">Cancel</ff-button>
+                <ff-button kind="secondary" @click="close">Cancel</ff-button>
                 <ff-button kind="danger" class="ml-4" @click="regenerateCredentials()">Regenerate configuration</ff-button>
             </template>
             <template v-else>
-                <ff-button class="ml-4" @click="close()">Done</ff-button>
+                <ff-button class="ml-4" @click="close">Done</ff-button>
             </template>
         </template>
     </ff-dialog>
@@ -113,9 +126,16 @@ export default {
             const creds = await deviceApi.generateCredentials(this.device.id)
             this.device.credentials = creds
         },
-        close () {
+        close (event) {
+            if (event.custom) return // Ignore synthetic Shepherd events
+
             this.$refs.dialog.close()
             this.device.credentials = undefined
+
+            // Re-dispatch the click event for Shepherd
+            const newEvent = new Event('click', { bubbles: false, cancelable: true })
+            newEvent.custom = true
+            event.target.dispatchEvent(newEvent)
         },
         copy (text) {
             this.copyToClipboard(text).then(() => {
@@ -158,8 +178,8 @@ brokerPassword: ${this.device.credentials.broker.password}
     setup () {
         return {
             show (device) {
-                this.$refs.dialog.show()
                 this.device = device
+                this.$refs.dialog.show()
             }
         }
     }

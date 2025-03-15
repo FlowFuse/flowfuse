@@ -1,6 +1,12 @@
 <template>
     <form class="space-y-6">
-        <TemplateSettingsEnvironment v-model="editable" :readOnly="!hasPermission('device:edit-env')" :editTemplate="false" :helpHeader="'Device Group Environment Variables'">
+        <TemplateSettingsEnvironment
+            v-model="editable"
+            :readOnly="!hasPermission('device:edit-env')"
+            :editTemplate="false"
+            :helpHeader="'Device Group Environment Variables'"
+            :originalEnvVars="original.settings.env"
+        >
             <template #helptext>
                 <p>Environment variables entered here will be merged with the environment variables defined in the member devices.</p>
                 <p>
@@ -19,8 +25,6 @@
                 <ExclamationCircleIcon class="ff-icon mr-2" />
                 <span class="relative top-0.5">Note: Updating environment variables can cause devices in the group to be restarted.</span>
             </span>
-
-            <ChevronRightIcon class="ff-icon align-self-right" />
         </div>
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
             <ff-button :disabled="!unsavedChanges || hasError" @click="saveSettings()">Save Settings</ff-button>
@@ -102,7 +106,8 @@ export default {
             },
             original: {
                 settings: {
-                    /** @type {EnvVar[]} */ envMap: {}
+                    /** @type {EnvVar[]} */ envMap: {},
+                    env: []
                 }
             },
             templateEnvValues: {}
@@ -126,6 +131,8 @@ export default {
                     // if we do not recognise the env var name from our original settings,
                     // or if we do recognise it, but the value is different
                     if (!this.original.settings.envMap[field.name] || field.value !== this.original.settings.envMap[field.name].value) {
+                        changed = true
+                    } else if (field.hidden !== this.original.settings.envMap[field.name].hidden) {
                         changed = true
                     }
                     // there is an issue with he key/value
@@ -153,10 +160,23 @@ export default {
                 this.original.settings.envMap = {}
                 this.editable.settings.env = []
                 const settings = this.deviceGroup.settings
-                settings.env?.forEach(envVar => {
-                    this.editable.settings.env.push(Object.assign({}, envVar))
+                settings.env?.forEach((envVar, i) => {
+                    this.editable.settings.env.push(Object.assign({}, {
+                        index: i,
+                        hidden: false,
+                        ...envVar
+                    }))
                     // make a map of the key:value so it's easier to check for changes
-                    this.original.settings.envMap[envVar.name] = envVar
+                    this.original.settings.envMap[envVar.name] = {
+                        index: i,
+                        hidden: false,
+                        ...envVar
+                    }
+                    this.original.settings.env.push({
+                        index: i,
+                        hidden: false,
+                        ...envVar
+                    })
                 })
             }
         },
@@ -167,7 +187,8 @@ export default {
             this.editable.settings.env.forEach(field => {
                 settings.env.push({
                     name: field.name,
-                    value: field.value
+                    value: field.value,
+                    hidden: field.hidden ?? false
                 })
             })
             await applicationApi.updateDeviceGroupSettings(this.application.id, this.deviceGroup.id, settings)

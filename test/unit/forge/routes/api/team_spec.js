@@ -31,7 +31,15 @@ describe('Team API', function () {
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
         TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', slug: 'bteam', TeamTypeId: app.defaultTeamType.id })
         TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam abc', TeamTypeId: app.defaultTeamType.id })
-        TestObjects.DTeam = await app.db.models.Team.create({ name: 'DTeAbCam', TeamTypeId: app.defaultTeamType.id })
+
+        TestObjects.secondTeamType = await app.db.models.TeamType.create({
+            name: 'second team type',
+            active: false,
+            order: 1,
+            description: '',
+            properties: {}
+        })
+        TestObjects.DTeam = await app.db.models.Team.create({ name: 'DTeAbCam', TeamTypeId: TestObjects.secondTeamType.id, suspended: true })
 
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
@@ -159,19 +167,7 @@ describe('Team API', function () {
     describe('Get list of teams', async function () {
         // GET /api/v1/teams/:teamId
 
-        const getTeams = async (limit, cursor, search) => {
-            const query = {}
-            // app.inject will inject undefined values as the string 'undefined' rather
-            // than ignore them. So need to build-up the query object the long way
-            if (limit !== undefined) {
-                query.limit = limit
-            }
-            if (cursor !== undefined) {
-                query.cursor = cursor
-            }
-            if (search !== undefined) {
-                query.query = search
-            }
+        const getTeams = async (query = {}) => {
             const response = await app.inject({
                 method: 'GET',
                 url: '/api/v1/teams',
@@ -184,28 +180,47 @@ describe('Team API', function () {
         it('returns a list of all teams', async function () {
             const result = await getTeams()
             result.teams.should.have.length(4)
+            result.teams[0].should.have.property('name', 'ATeam')
+            result.teams[3].should.have.property('name', 'DTeAbCam')
         })
 
+        it('returns list in reverse order', async function () {
+            const result = await getTeams({ sort: 'createdAt-desc' })
+            result.teams.should.have.length(4)
+            result.teams[0].should.have.property('name', 'DTeAbCam')
+            result.teams[3].should.have.property('name', 'ATeam')
+        })
+        it('filters by team type', async function () {
+            let result = await getTeams({ teamType: TestObjects.secondTeamType.hashid })
+            result.teams.should.have.length(1)
+            result.teams[0].should.have.property('name', 'DTeAbCam')
+
+            result = await getTeams({ teamType: `${TestObjects.secondTeamType.hashid},${app.defaultTeamType.hashid}` })
+            result.teams.should.have.length(4)
+
+            result = await getTeams({ teamType: `not-a-valid-team,${app.defaultTeamType.hashid}` })
+            result.teams.should.have.length(3)
+        })
         it('can page through list', async function () {
-            const firstPage = await getTeams(2)
+            const firstPage = await getTeams({ limit: 2 })
             firstPage.should.have.property('meta')
             firstPage.meta.should.have.property('next_cursor', TestObjects.BTeam.hashid)
             firstPage.teams.should.have.length(2)
             firstPage.teams[0].should.have.property('name', 'ATeam')
             firstPage.teams[1].should.have.property('name', 'BTeam')
 
-            const secondPage = await getTeams(2, firstPage.meta.next_cursor)
+            const secondPage = await getTeams({ limit: 2, cursor: firstPage.meta.next_cursor })
             secondPage.meta.should.have.property('next_cursor', TestObjects.DTeam.hashid)
             secondPage.teams.should.have.length(2)
             secondPage.teams[0].should.have.property('name', 'CTeam abc')
             secondPage.teams[1].should.have.property('name', 'DTeAbCam')
 
-            const thirdPage = await getTeams(2, secondPage.meta.next_cursor)
+            const thirdPage = await getTeams({ limit: 2, cursor: secondPage.meta.next_cursor })
             thirdPage.meta.should.not.have.property('next_cursor')
             thirdPage.teams.should.have.length(0)
         })
         it('can search for teams - name', async function () {
-            const firstPage = await getTeams(undefined, undefined, 'aBC')
+            const firstPage = await getTeams({ query: 'aBC' })
             firstPage.meta.should.not.have.property('next_cursor')
             firstPage.teams.should.have.length(2)
             firstPage.teams[0].should.have.property('name', 'CTeam abc')

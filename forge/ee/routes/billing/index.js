@@ -446,6 +446,33 @@ module.exports = async function (app) {
     })
 
     /**
+     * Disables manual billing for a team
+     * Admin only
+     * @name /ee/billing/teams/:team/manual
+     * @static
+     * @memberof forge.ee.billing
+     */
+    app.delete('/teams/:teamId/manual', {
+        preHandler: app.needsPermission('team:billing:manual')
+    }, async (request, response) => {
+        const team = request.team
+        try {
+            await app.billing.disableManualBilling(team)
+            response.code(200).send({})
+        } catch (err) {
+            // Standard errors
+            let responseMessage
+            if (err.errors) {
+                responseMessage = err.errors.map(err => err.message).join(',')
+            } else {
+                responseMessage = err.toString()
+            }
+            // Catch all
+            response.code(500).type('application/json').send({ code: err.code || 'unexpected_error', error: responseMessage })
+        }
+    })
+
+    /**
      * Update team trial settings
      * Admin only
      * @name /ee/billing/teams/:team/trial

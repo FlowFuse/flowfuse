@@ -1,5 +1,5 @@
 <template>
-    <main class="not-found-wrapper">
+    <main class="not-found-wrapper" data-page="not-found">
         <div class="text-center not-found-container">
             <div class="image-wrapper">
                 <img src="../images/icons/not-found.svg" alt="404-icon">

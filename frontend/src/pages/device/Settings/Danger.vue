@@ -1,14 +1,14 @@
 <template>
     <ff-loading v-if="loading.deleting" message="Deleting Device..." />
-    <FormHeading v-if="!loading.deleting" class="text-red-700">Delete Device</FormHeading>
+    <FormHeading v-if="!loading.deleting" class="text-red-700">Delete Remote Instance</FormHeading>
     <div v-if="!loading.deleting" class="flex flex-col lg:flex-row max-w-2xl space-y-4">
         <div class="flex-grow">
             <div class="max-w-sm pt-2">
-                Once deleted, your device is removed. This cannot be undone.
+                Once deleted, your Remote Instance is removed. This cannot be undone.
             </div>
         </div>
         <div class="min-w-fit flex-shrink-0">
-            <ff-button kind="danger" @click="showConfirmDeleteDialog()">Delete Device</ff-button>
+            <ff-button kind="danger" @click="showConfirmDeleteDialog()">Delete Remote Instance</ff-button>
             <ConfirmDeviceDeleteDialog @delete-device="deleteDevice()" ref="confirmDeviceDeleteDialog" />
         </div>
     </div>

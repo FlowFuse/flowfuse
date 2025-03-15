@@ -44,6 +44,9 @@
             }
         }
     }
+    &.shepherd-hidden {
+        display: none
+    }
 }
 
 .shepherd-modal-overlay-container.shepherd-modal-is-visible path {

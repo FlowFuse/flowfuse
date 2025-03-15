@@ -68,6 +68,11 @@
                     <template #description>JSON representation of the npm modules required for this template</template>
                     <template #input><textarea v-model="input.modules" class="w-full" rows="4" /></template>
                 </FormRow>
+
+                <FormRow v-model="input.externalUrl" :error="errors.externalUrl" data-form="modules">
+                    External URL
+                    <template #description>External URL</template>
+                </FormRow>
             </form>
         </template>
         <template #actions>
@@ -118,6 +123,7 @@ export default {
                     icon: flowBlueprint?.icon ?? '',
                     order: flowBlueprint?.order ?? '',
                     default: flowBlueprint?.default ?? false,
+                    externalUrl: flowBlueprint?.externalUrl ?? '',
 
                     flows: flowBlueprint?.flows ? JSON.stringify(flowBlueprint.flows) : '',
                     modules: flowBlueprint?.modules ? JSON.stringify(flowBlueprint.modules) : '',
@@ -141,6 +147,7 @@ export default {
                 defaultStack: '',
                 icon: '',
                 default: false,
+                externalUrl: 'false',
                 teamTypeScope: [],
                 order: 0
             },

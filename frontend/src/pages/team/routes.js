@@ -1,9 +1,12 @@
 import ensurePermission from '../../utils/ensurePermission.js'
+import ApplicationRoutes from '../application/routes.js'
 
 import TeamApplications from './Applications/index.vue'
 import TeamAuditLog from './AuditLog.vue'
+import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing.vue'
-import Broker from './Broker/index.vue'
+import BrokersRoutes from './Brokers/routes.js'
+import DeviceGroups from './DeviceGroups/index.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamInstances from './Instances.vue'
 import Library from './Library/index.vue'
@@ -11,6 +14,7 @@ import LibraryRoutes from './Library/routes.js'
 import TeamMembersMembers from './Members/General.vue'
 import TeamMembersInvitations from './Members/Invitations.vue'
 import TeamMembers from './Members/index.vue'
+import TeamPipelines from './Pipelines/index.vue'
 import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
@@ -35,6 +39,7 @@ export default [
                     title: 'Team - Overview'
                 },
                 children: [
+                    ...BrokersRoutes,
                     {
                         path: 'applications',
                         children: [
@@ -54,7 +59,8 @@ export default [
                                     title: 'Team - Create Application',
                                     menu: 'back'
                                 }
-                            }
+                            },
+                            ...ApplicationRoutes
                         ]
                     },
                     {
@@ -87,7 +93,6 @@ export default [
                             }
                         ]
                     },
-
                     {
                         name: 'TeamDevices',
                         path: 'devices',
@@ -105,14 +110,6 @@ export default [
                         },
                         redirect: { name: 'LibraryTeamLibrary' },
                         children: [...LibraryRoutes]
-                    },
-                    {
-                        name: 'TeamBroker',
-                        path: 'broker',
-                        component: Broker,
-                        meta: {
-                            title: 'Team - Broker'
-                        }
                     },
                     {
                         name: 'team-members',
@@ -175,6 +172,30 @@ export default [
                         name: 'team-overview',
                         path: 'overview',
                         redirect: { name: 'Applications' }
+                    },
+                    {
+                        name: 'team-pipelines',
+                        path: 'pipelines',
+                        component: TeamPipelines,
+                        meta: {
+                            title: 'Team - DevOps Pipelines'
+                        }
+                    },
+                    {
+                        name: 'team-bom',
+                        path: 'bill-of-materials',
+                        component: TeamBillOfMaterials,
+                        meta: {
+                            title: 'Team - Bill of Materials'
+                        }
+                    },
+                    {
+                        name: 'device-groups',
+                        path: 'groups',
+                        component: DeviceGroups,
+                        meta: {
+                            title: 'Team - Groups'
+                        }
                     }
                 ]
             },
@@ -187,10 +208,10 @@ export default [
                     title: 'Create Team',
                     menu: {
                         type: 'back',
-                        backTo: (params) => {
+                        backTo: ({ team }) => {
                             return {
                                 label: 'Back to Dashboard',
-                                to: { name: 'Team', params }
+                                to: { name: 'Team', params: { team_slug: team?.slug } }
                             }
                         }
                     }

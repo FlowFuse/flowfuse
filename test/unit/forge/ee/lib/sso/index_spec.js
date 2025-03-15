@@ -97,10 +97,10 @@ d
     describe('getProviderOptions', async function () {
         it('gets provider options for known provider', async function () {
             const result = await app.sso.getProviderOptions(app.samlProviders.provider1.hashid)
-            result.should.have.only.keys('issuer', 'callbackUrl', 'cert', 'entryPoint')
+            result.should.have.only.keys('issuer', 'callbackUrl', 'idpCert', 'entryPoint')
             result.issuer.should.equal(`http://localhost:3000/ee/sso/entity/${app.samlProviders.provider1.hashid}`)
             result.callbackUrl.should.equal('http://localhost:3000/ee/sso/login/callback')
-            result.cert.should.equal('abcde')
+            result.idpCert.should.equal('abcde')
             result.entryPoint.should.equal('https://sso.example.com/entry')
         })
         it('returns null for unknown provider', async function () {
@@ -109,11 +109,11 @@ d
         })
         it('handles multi-line cert', async function () {
             const result = await app.sso.getProviderOptions(app.samlProviders.provider3.hashid)
-            result.cert.should.equal('abcde')
+            result.idpCert.should.equal('abcde')
         })
         it('handles multi-line cert without header/footer', async function () {
             const result = await app.sso.getProviderOptions(app.samlProviders.provider4.hashid)
-            result.cert.should.equal('abcde')
+            result.idpCert.should.equal('abcde')
         })
     })
 
@@ -364,6 +364,30 @@ d
                 groupAllTeams: true
             })
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Owner)
+        })
+        it('strip prefix and suffix from SAML groups', async function () {
+            // This should remove ownership from Alice in Team A
+
+            // Starting state:
+            // Alice owner ATeam
+
+            // Expected result:
+            // Alice owner ATeam - unchanged
+            await app.sso.updateTeamMembership({
+                'ff-roles': [
+                    'test_ff-ateam-magician_err',
+                    'test_ff-ateam-member_test2',
+                    'test_ff-bteam-owner_test2',
+                    'ff-ateam-admin_test2'
+                ]
+            }, app.user, {
+                groupAssertionName: 'ff-roles',
+                groupAllTeams: true,
+                groupPrefixLength: 5,
+                groupSuffixLength: 6
+            })
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
+            ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id)).should.have.property('role', Roles.Owner)
         })
     })
 })

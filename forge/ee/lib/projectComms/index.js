@@ -110,5 +110,11 @@ module.exports.init = function (app) {
             'pub',
             { topic: /^ff\/v1\/([^/]+)\/p\/(?!dev:)([^/]+)\/res\/[^/]+($|\/.*$)/, verify: 'checkDeviceCanAccessProject', deviceOwnerType: 'instance' }
         )
+
+        // Team Broker ACLS - pub/sub to common topic space
+        app.comms.aclManager.addACL('project', 'pub', { topic: /^ff\/v1\/([^/]+)\/c\/[^/]+($|\/.*$)/, verify: 'checkTeamId' })
+        app.comms.aclManager.addACL('project', 'sub', { topic: /^ff\/v1\/([^/]+)\/c\/[^/]+($|\/.*$)/, verify: 'checkTeamId' })
+        app.comms.aclManager.addACL('device', 'pub', { topic: /^ff\/v1\/([^/]+)\/c\/[^/]+($|\/.*$)/, verify: 'checkTeamId' })
+        app.comms.aclManager.addACL('device', 'sub', { topic: /^ff\/v1\/([^/]+)\/c\/[^/]+($|\/.*$)/, verify: 'checkTeamId' })
     }
 }

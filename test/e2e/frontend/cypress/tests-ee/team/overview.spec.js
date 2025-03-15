@@ -48,6 +48,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         const deviceOne = res.body.applications[0].devices.find((device) => device.id === deviceOneId)
 
                         deviceOne.status = 'running'
+                        deviceOne.lastSeenAt = new Date()
                         deviceOne.editor = {
                             url: 'http://editor.example.com',
                             enabled: true,
@@ -126,7 +127,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
 
                         cy.contains('Last seen: never')
 
-                        cy.get('[data-el="kebab-menu"]').should('exist')
+                        cy.get('[data-action="finish-setup"]').should('exist')
                     })
                 })
             })

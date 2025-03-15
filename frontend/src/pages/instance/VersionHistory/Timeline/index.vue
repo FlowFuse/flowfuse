@@ -49,18 +49,18 @@
 </template>
 
 <script>
-import projectHistoryAPI from '../../../../api/projectHistory.js'
+import versionHistoryAPI from '../../../../api/versionHistory.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
 import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
+import TimelineEvent from '../../../../components/version-history/timeline/TimelineEvent.vue'
 import { scrollTo } from '../../../../composables/Ux.js'
 import featuresMixin from '../../../../mixins/Features.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
 import SnapshotExportDialog from '../../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
-import TimelineEvent from './components/TimelineEvent.vue'
 export default {
     name: 'HistoryTimeline',
     components: {
@@ -137,7 +137,7 @@ export default {
                 // we retrieve the timeline for that instance and display it for a short period of time
                 if (this.instance.id && this.instance.id === this.$route.params.id) {
                     const nextCursor = loadMore ? this.next_cursor : undefined
-                    projectHistoryAPI.getHistory(this.instance.id, nextCursor, 10)
+                    versionHistoryAPI.getInstanceHistory(this.instance.id, nextCursor, 10)
                         .then((response) => {
                             this.loading = false
                             if (loadMore) {

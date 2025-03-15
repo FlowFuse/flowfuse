@@ -11,7 +11,7 @@
         </div>
         <div class="text-right space-x-4 flex h-8">
             <template v-if="!isNew">
-                <ff-button v-if="unsavedChanges" kind="secondary" class="ml-4" @click="cancelEdit">Discard changes</ff-button>
+                <ff-button v-if="unsavedChanges" kind="secondary" class="ml-4" data-el="discard-changes" @click="cancelEdit">Discard changes</ff-button>
                 <ff-button class="ml-4" :disabled="hasErrors || !unsavedChanges" @click="showSaveTemplateDialog">Save changes</ff-button>
             </template>
             <template v-else-if="isNew">

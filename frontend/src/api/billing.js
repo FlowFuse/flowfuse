@@ -30,7 +30,11 @@ const setupManualBilling = async (teamId, teamTypeId) => {
         return res.data
     })
 }
-
+const disableManualBilling = async (teamId, teamTypeId) => {
+    return client.delete('/ee/billing/teams/' + teamId + '/manual').then(res => {
+        return res.data
+    })
+}
 const setTrialExpiry = async (teamId, trialEndsAt) => {
     return client.post('/ee/billing/teams/' + teamId + '/trial', {
         trialEndsAt
@@ -82,6 +86,7 @@ export default {
     getSubscriptionInfo,
     createSubscription,
     setupManualBilling,
+    disableManualBilling,
     setTrialExpiry,
     sendTeamTypeContact
 }

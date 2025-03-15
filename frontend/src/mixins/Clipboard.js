@@ -30,9 +30,12 @@ const Clipboard = {
     },
 
     async requestPermission () {
-        return navigator.permissions.query({
-            name: 'clipboard-write'
-        })
+        try {
+            return await navigator.permissions.query({ name: 'clipboard-write' })
+        } catch (error) {
+            // Firefox does not support 'clipboard-write', assume permission granted
+            return { state: 'granted' }
+        }
     },
 
     /** @param {string} value */

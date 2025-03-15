@@ -40,14 +40,16 @@ export default {
     },
     emits: ['delete-device'],
     methods: {
-        deviceAction (action, deviceId) {
-            let device
-            if (this.devices instanceof Map) {
-                // working with DevicesBrowser component
-                device = this.devices.get(deviceId)
-            } else {
-                // working with compact application views
-                device = this.devices.find(e => e.id === deviceId)
+        deviceAction (action, deviceId, d) {
+            let device = d
+            if (!device) {
+                if (!device && this.devices instanceof Map) {
+                    // working with DevicesBrowser component
+                    device = this.devices.get(deviceId)
+                } else {
+                    // working with compact application views
+                    device = this.devices.find(e => e.id === deviceId)
+                }
             }
             if (action === 'edit') {
                 this.showEditDeviceDialog(device)

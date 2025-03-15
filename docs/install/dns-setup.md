@@ -172,6 +172,6 @@ If you really can't run dnsmasq then there is a possible alternative.
 
 A really useful service called sslip.io allows you to test FlowFuse even when you cannot use dnsmasq. You can read more about [sslip.io on their web site](https://sslip.io).
 
-You will need to set the `domain` entry in the `flowforge.yml` configuration file to the following pattern `172.17.0.1.sslip.io`. Don't forget to replace the IP address with the correct one for your configuration.
+You will need to set the `domain` entry in the `flowforge.yml` configuration file to the following pattern `172.17.0.1.sslip.io`. Don't forget to replace the IP address with the correct one for your the machine FlowFuse is running on.
 
 This will work because the `sslip.io` domain is set up to always return the IP address embedded in the hostname queried. 

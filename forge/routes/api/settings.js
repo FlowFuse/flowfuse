@@ -47,6 +47,14 @@ module.exports = async function (app) {
             if (app.config.features.enabled('customHostnames')) {
                 response.cnameTarget = app.config.driver.options?.customHostname?.cnameTarget
             }
+            if (app.config.features.enabled('teamBroker')) {
+                // use IP address if on localfs and no domain configured
+                const defaultHost = app.config.domain ? `broker.${app.config.domain}` : app.config.host
+                response['team:broker:host'] = app.config.broker?.teamBroker?.host || defaultHost
+            }
+            if (app.config.features.enabled('npm')) {
+                response['team:npm:registry'] = app.config.npmRegistry?.url
+            }
 
             if (request.session.User.admin) {
                 response['platform:licensed'] = isLicensed
@@ -56,6 +64,7 @@ module.exports = async function (app) {
                 response['user:team:auto-create'] = app.settings.get('user:team:auto-create')
                 response['user:team:auto-create:teamType'] = app.settings.get('user:team:auto-create:teamType')
                 response['user:team:auto-create:instanceType'] = app.settings.get('user:team:auto-create:instanceType')
+                response['user:team:auto-create:application'] = app.settings.get('user:team:auto-create:application')
                 response.email = app.postoffice.exportSettings(true)
                 response['version:forge'] = app.settings.get('version:forge')
                 response['version:node'] = app.settings.get('version:node')
@@ -75,7 +84,7 @@ module.exports = async function (app) {
                     'branding:account:signUpLeftBanner'
                 ].forEach(prop => {
                     const value = app.settings.get(prop)
-                    if (value) {
+                    if (value !== null) {
                         response[prop] = value
                     }
                 })
@@ -109,7 +118,7 @@ module.exports = async function (app) {
                 'branding:account:signUpLeftBanner'
             ].forEach(prop => {
                 const value = app.settings.get(prop)
-                if (value) {
+                if (value != null) {
                     publicSettings[prop] = value
                 }
             })
@@ -121,7 +130,6 @@ module.exports = async function (app) {
                 }
                 publicSettings.adwords = adwords
             }
-
             reply.send(publicSettings)
         }
     })
@@ -129,7 +137,7 @@ module.exports = async function (app) {
     app.put('/', {
         preHandler: app.needsPermission('settings:edit'),
         schema: {
-            summary: 'Get platform settings',
+            summary: 'Update platform settings',
             tags: ['Platform'],
             body: { type: 'object' },
             response: {

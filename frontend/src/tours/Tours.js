@@ -10,8 +10,10 @@ import Product from '../services/product.js'
 import 'shepherd.js/dist/css/shepherd.css'
 import './tour-theme.scss'
 
-function create (id, tourJson) {
-    const store = useStore()
+function create (id, tourJson, store, onCloseHook) {
+    if (!store) {
+        store = useStore()
+    }
     Product.capture('ff-tour-start', {
         tour_id: id
     })
@@ -37,6 +39,9 @@ function create (id, tourJson) {
             tour_id: id,
             tour_step: index
         })
+        if (onCloseHook) {
+            onCloseHook()
+        }
     }
 
     function onComplete () {
@@ -44,6 +49,9 @@ function create (id, tourJson) {
         Product.capture('ff-tour-complete', {
             tour_id: id
         })
+        if (onCloseHook) {
+            onCloseHook()
+        }
     }
 
     function onBack () {
@@ -73,32 +81,35 @@ function create (id, tourJson) {
     tourJson.forEach((step, i) => {
         const buttons = []
 
-        // which secondary button do we need?
-        if (i === 0) {
-            buttons.push({
-                text: 'Exit',
-                action: tour.cancel,
-                secondary: true
-            })
-        } else {
-            buttons.push({
-                text: 'Back',
-                action: onBack,
-                secondary: true
-            })
-        }
+        // if the step requires an interaction with the UI, don't add our own buttons
+        if (!step.advanceOn) {
+            // which secondary button do we need?
+            if (i === 0) {
+                buttons.push({
+                    text: 'Exit',
+                    action: tour.cancel,
+                    secondary: true
+                })
+            } else {
+                buttons.push({
+                    text: 'Back',
+                    action: onBack,
+                    secondary: true
+                })
+            }
 
-        // which primary button do we need?
-        if (i !== steps - 1) {
-            buttons.push({
-                text: 'Next',
-                action: onNext
-            })
-        } else {
-            buttons.push({
-                text: 'Finish',
-                action: tour.complete
-            })
+            // which primary button do we need?
+            if (i !== steps - 1) {
+                buttons.push({
+                    text: 'Next',
+                    action: onNext
+                })
+            } else {
+                buttons.push({
+                    text: 'Finish',
+                    action: tour.complete
+                })
+            }
         }
 
         tour.addStep({

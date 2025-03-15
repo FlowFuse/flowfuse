@@ -80,3 +80,10 @@ FlowFuse supports reading and writing persistent files and persistent context.
  - [High Availability mode](/docs/user/high-availability.md) - Run multiple copies of your instance for scaling and availability.
  - [FlowFuse Assistant](/docs/user/assistant.md) - A plugin for Node-RED that helps you code faster.
  
+ ## Working with MQTT
+
+ - [Team Broker](/docs/user/teambroker.md) - Working with the FlowFuse bundled MQTT Broker
+
+## Working with Custom Nodes
+
+ - [Custom Nodes](/docs/user/custom-npm-packages.md) - Publishing Custom Node-RED Nodes

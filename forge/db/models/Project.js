@@ -13,11 +13,11 @@
 
 const crypto = require('crypto')
 
-const { DataTypes, Op } = require('sequelize')
+const { col, fn, DataTypes, Op, where } = require('sequelize')
 
 const Controllers = require('../controllers')
 
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL, KEY_CUSTOM_HOSTNAME } = require('./ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL, KEY_CUSTOM_HOSTNAME, KEY_DISABLE_AUTO_SAFE_MODE } = require('./ProjectSettings')
 
 const BANNED_NAME_LIST = [
     'app',
@@ -33,7 +33,9 @@ const BANNED_NAME_LIST = [
     'billing',
     'mqtt',
     'broker',
-    'egress'
+    'egress',
+    'npm',
+    'registry'
 ]
 
 /** @type {FFModel} */
@@ -164,6 +166,14 @@ module.exports = {
                         ownerId: project.id
                     }
                 })
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: {
+                            [Op.like]: `p-${project.id}@%`
+                        }
+                    }
+                })
                 await M.AuthClient.destroy({
                     where: {
                         ownerType: 'project',
@@ -204,6 +214,16 @@ module.exports = {
                 await M.StorageFlow.destroy({
                     where: {
                         ProjectId: project.id
+                    }
+                })
+                await M.Notification.destroy({
+                    where: {
+                        type: {
+                            [Op.in]: ['instance-crashed', 'instance-safe-mode']
+                        },
+                        reference: {
+                            [Op.in]: [`instance-crashed:${project.id}`, `instance-safe-mode:${project.id}`]
+                        }
                     }
                 })
             }
@@ -398,7 +418,8 @@ module.exports = {
                                     { key: KEY_HA },
                                     { key: KEY_PROTECTED },
                                     { key: KEY_CUSTOM_HOSTNAME },
-                                    { key: KEY_HEALTH_CHECK_INTERVAL }
+                                    { key: KEY_HEALTH_CHECK_INTERVAL },
+                                    { key: KEY_DISABLE_AUTO_SAFE_MODE }
                                 ]
                             },
                             required: false
@@ -469,15 +490,20 @@ module.exports = {
                         include
                     })
                 },
-                byTeam: async (teamHashId, { includeSettings = false } = {}) => {
-                    const teamId = M.Team.decodeHashid(teamHashId)
+                byTeam: async (teamIdOrHash, { query = null, instanceId = null, includeAssociations = true, includeSettings = false } = {}) => {
+                    let teamId = teamIdOrHash
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
                     const include = [
                         {
                             model: M.Team,
                             where: { id: teamId },
                             attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
-                        },
-                        {
+                        }
+                    ]
+                    if (includeAssociations) {
+                        include.push({
                             model: M.Application,
                             attributes: ['hashid', 'id', 'name', 'links']
                         },
@@ -492,7 +518,8 @@ module.exports = {
                             model: M.ProjectTemplate,
                             attributes: ['hashid', 'id', 'name', 'links']
                         }
-                    ]
+                        )
+                    }
 
                     if (includeSettings) {
                         include.push({
@@ -502,7 +529,19 @@ module.exports = {
                         })
                     }
 
-                    return this.findAll({ include })
+                    const queryObject = {
+                        include
+                    }
+
+                    if (instanceId) {
+                        queryObject.where = { id: instanceId }
+                    } else if (query) {
+                        queryObject.where = where(
+                            fn('lower', col('Project.name')),
+                            { [Op.like]: `%${query.toLowerCase()}%` }
+                        )
+                    }
+                    return this.findAll(queryObject)
                 },
                 getProjectTeamId: async (id) => {
                     const project = await this.findOne({

@@ -141,6 +141,16 @@
         <span v-else-if="!error">Provisioning data not found in audit entry.</span>
     </template>
 
+    <!-- Team NPM Package Events -->
+    <template v-else-if="entry.event === 'team.package.published'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error">New version of '{{ entry.body.pkg.name }}' published {{ entry.body.pkg.version }}</span>
+    </template>
+    <template v-else-if="entry.event === 'team.package.unpublished'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pkg">Version {{ entry.body.pkg.version }} of '{{ entry.body.pkg.name }}' unpublished</span>
+    </template>
+
     <!-- Device Actions Events -->
     <template v-else-if="entry.event === 'device.started'">
         <label>{{ AuditEvents[entry.event] }}</label>
@@ -170,6 +180,36 @@
     <template v-else-if="entry.event === 'device.suspend-failed'">
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.body?.device">Something went wrong, and we were unable to suspend Device '{{ entry.body.device.name }}'. Please check the logs to find out more.</span>
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'device.pipeline.deployed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.pipeline && entry.body?.device && entry.body?.snapshot">Pipeline Stage <i>{{ entry.body.pipeline.name }}</i> has deployed <i>{{ entry.body.snapshot.name }}</i> to <i>{{ entry.body.device.name }}</i></span>
+
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'device.project.deployed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="!error && entry.body?.project && entry.body?.device && entry.body?.snapshot && entry.body?.user">
+            <i>{{ entry.body.user.name }}</i>
+            updated
+            <i>{{ entry.body.project.name }}'s</i>
+            target snapshot to
+            <i>{{ entry.body.snapshot.name }}</i>
+            snapshot triggering a flow deployment
+        </span>
+
+        <span v-else-if="!error">Device data not found in audit entry.</span>
+    </template>
+    <template v-else-if="entry.event === 'device.snapshot.deployed'">
+        <label>{{ AuditEvents[entry.event] }}</label>
+        <span v-if="entry.body?.device && entry.body?.snapshot && entry.body.user">
+            <i>{{ entry.body.user.name }}</i>
+            restored the
+            <i>{{ entry.body.snapshot.name }}</i>
+            snapshot
+        </span>
+
         <span v-else-if="!error">Device data not found in audit entry.</span>
     </template>
 
@@ -223,13 +263,13 @@
         <span v-if="!error && entry.body?.user">User '{{ entry.body.user?.name }}' has updated their password</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'user.invite.accepted' || entry.event === 'user.invite.accept' || entry.event === 'user.invitations.accept-invite'">
+    <template v-else-if="entry.event === 'user.invitation.accepted' || entry.event === 'user.invite.accept' || entry.event === 'user.invitations.accept-invite'">
         <!-- TODO: Add team/invite data to this event -->
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.trigger.user">User '{{ entry.trigger.user?.name }}' has accepted the invite.</span>
         <span v-else-if="!error">User data not found in audit entry.</span>
     </template>
-    <template v-else-if="entry.event === 'user.invite.deleted' || entry.event === 'user.invite.delete' || entry.event === 'user.invitations.delete-invite'">
+    <template v-else-if="entry.event === 'user.invitation.deleted' || entry.event === 'user.invite.delete' || entry.event === 'user.invitations.delete-invite'">
         <!-- TODO: Add team/invite data to this event -->
         <label>{{ AuditEvents[entry.event] }}</label>
         <span v-if="!error && entry.trigger.user">User '{{ entry.trigger.user?.name }}' has deleted the invite.</span>

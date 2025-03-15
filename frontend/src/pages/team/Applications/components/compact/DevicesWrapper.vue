@@ -2,12 +2,11 @@
     <section v-if="hasNoDevices" class="ff-no-data--boxed" data-el="application-devices-none">
         <label class="delimiter">
             <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
-            Devices
+            Remote Instances
         </label>
         <span v-if="!isSearching" class="message">
             This Application currently has no
-            <router-link :to="`/application/${application.id}/devices`" class="ff-link">attached devices</router-link>
-            .
+            <router-link :to="{name: 'ApplicationDevices', params: {team_slug: team.slug, id: application.id}}" class="ff-link">attached Remote Instances</router-link>.
         </span>
         <span v-else class="message">
             No device matches your criteria.
@@ -16,7 +15,7 @@
     <section v-else class="ff-applications-list-instances--compact" data-el="application-devices">
         <label class="delimiter">
             <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
-            Devices
+            Remote Instances
         </label>
         <div class="items-wrapper" :class="{one: singleDevice, two: twoDevices, three: threeDevices}">
             <div
@@ -54,7 +53,7 @@
                 </p>
                 <p class="my-4">
                     If you want your device to be automatically registered to an instance, in order to remotely deploy flows, you can use provisioning tokens
-                    in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link>
+                    in your <ff-team-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</ff-team-link>
                 </p>
                 <p class="my-4">
                     Further info on Devices can be found
@@ -68,6 +67,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import IconDeviceSolid from '../../../../../components/icons/DeviceSolid.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
 import DeviceCredentialsDialog from '../../../Devices/dialogs/DeviceCredentialsDialog.vue'
@@ -99,6 +100,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         hasMoreDevices () {
             return this.application.deviceCount > this.visibleDevices.length
         },

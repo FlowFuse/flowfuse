@@ -22,21 +22,53 @@
                         </FormRow>
                     </section>
                     <section>
-                        <label class="block text-sm font-medium mb-1">Audience</label>
+                        <FormHeading>Audience</FormHeading>
                         <div class="ff-description mb-2 space-y-1">Select the audience of your announcement.</div>
-
-                        <label class="block text-sm font-medium mb-2">By User Roles</label>
-                        <label
-                            v-for="(role, $key) in roleIds"
-                            :key="$key"
-                            class="ff-checkbox mb-2"
-                            :data-el="`audience-role-${role}`"
-                            @keydown.space.prevent="toggleRole(role)"
-                        >
-                            <span ref="input" class="checkbox" :checked="form.roles.includes(role)" tabindex="0" @keydown.space.prevent />
-                            <input v-model="form.roles" type="checkbox" :value="role" @keydown.space.prevent>
-                            {{ role }}
-                        </label>
+                        <FormHeading class="mt-4">User Roles:</FormHeading>
+                        <div class="grid gap-1 grid-cols-2 items-middle">
+                            <label
+                                v-for="(role, $key) in roleIds"
+                                :key="$key"
+                                class="ff-checkbox text-sm"
+                                :data-el="`audience-role-${role}`"
+                                @keydown.space.prevent="toggleRole(role)"
+                            >
+                                <span ref="input" class="checkbox" :checked="form.roles.includes(role)" tabindex="0" @keydown.space.prevent />
+                                <input v-model="form.roles" type="checkbox" :value="role" @keydown.space.prevent>
+                                {{ role }}
+                            </label>
+                        </div>
+                        <FormHeading class="mt-4">Team Types:</FormHeading>
+                        <div class="grid gap-1 grid-cols-2 items-middle">
+                            <label
+                                v-for="teamType in teamTypes"
+                                :key="teamType.id"
+                                class="ff-checkbox text-sm"
+                                :class="!teamType.active ? ['inactive-team'] : []"
+                                :data-el="`audience-teamType-${teamType.id}`"
+                                @keydown.space.prevent="toggleTeamType(teamType.id)"
+                            >
+                                <span ref="input" class="checkbox" :checked="form.teamTypes.includes(teamType.id)" tabindex="0" @keydown.space.prevent />
+                                <input v-model="form.teamTypes" type="checkbox" :value="teamType.id" @keydown.space.prevent>
+                                {{ teamType.name }}
+                            </label>
+                        </div>
+                        <template v-if="features.billing">
+                            <FormHeading class="mt-4">Billing State:</FormHeading>
+                            <div class="grid gap-1 grid-cols-2 items-middle">
+                                <label
+                                    v-for="(billingState, $key) in billingStates"
+                                    :key="$key"
+                                    class="ff-checkbox text-sm"
+                                    :data-el="`audience-billing-${billingState}`"
+                                    @keydown.space.prevent="toggleBillingState(billingState)"
+                                >
+                                    <span ref="input" class="checkbox" :checked="form.billing.includes(billingState)" tabindex="0" @keydown.space.prevent />
+                                    <input v-model="form.billing" type="checkbox" :value="billingState" @keydown.space.prevent>
+                                    {{ billingState }}
+                                </label>
+                            </div>
+                        </template>
                     </section>
                 </section>
                 <section class="actions">
@@ -50,16 +82,21 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import adminApi from '../../api/admin.js'
+import teamTypesApi from '../../api/teamTypes.js'
+
+import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
+import { pluralize } from '../../composables/String.js'
 import alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import FfButton from '../../ui-components/components/Button.vue'
 import { RoleNames, Roles } from '../../utils/roles.js'
-
 export default {
     name: 'NotificationsHub',
-    components: { FfButton, FormRow },
+    components: { FfButton, FormRow, FormHeading },
     data () {
         return {
             form: {
@@ -67,25 +104,57 @@ export default {
                 message: '',
                 url: '',
                 roles: [],
+                teamTypes: [],
+                billing: [],
                 externalUrl: true
             },
+            teamTypes: [],
+            billingStates: [
+                'Active',
+                'Trial',
+                'Unmanaged',
+                'Canceled'
+            ],
             errors: {
 
             }
         }
     },
     computed: {
+        ...mapState('account', ['features']),
         roleIds () {
             return Object.values(RoleNames).filter(r => r !== 'none').reverse().map(r => r[0].toUpperCase() + r.substring(1))
         },
         canSubmit () {
             return this.form.title.length > 0 &&
                 this.form.message.length > 0 &&
-                this.form.roles.length > 0
+                this.form.roles.length > 0 &&
+                this.form.teamTypes.length > 0 &&
+                (!this.features.billing || this.form.billing.length > 0)
         },
         urlPlaceholder () {
             return this.form.externalUrl ? 'https://flowfuse.com' : '{ name: "<component-name>", params: {id: "<id>"} }'
         }
+    },
+    async created () {
+        const teamTypes = (await teamTypesApi.getTeamTypes(null, null, 'all')).types
+        this.teamTypes = teamTypes.map(tt => {
+            return {
+                order: tt.order,
+                id: tt.id,
+                name: tt.name,
+                active: tt.active
+            }
+        })
+        this.teamTypes.sort((A, B) => {
+            if (A.active === B.active) {
+                return A.order - B.order
+            } else if (A.active) {
+                return -1
+            } else {
+                return 1
+            }
+        })
     },
     methods: {
         getAnnouncements () {
@@ -94,12 +163,24 @@ export default {
         },
         submitForm () {
             return this.sendAnnouncementNotification({ mock: true })
-                .then(mockRes => Dialog.show({
-                    header: 'Platform Wide Announcement',
-                    kind: 'danger',
-                    text: `You are about to send an announcement to ${mockRes.recipientCount} recipients.`,
-                    confirmLabel: 'Continue'
-                }, async () => this.sendAnnouncementNotification({ mock: false })))
+                .then(mockRes => {
+                    if (mockRes.recipientCount === 0) {
+                        Dialog.show({
+                            header: 'Platform Wide Announcement',
+                            text: 'Your filters matched no users.',
+                            confirmLabel: 'Cancel',
+                            canBeCanceled: false
+                        })
+                    } else {
+                        Dialog.show({
+                            header: 'Platform Wide Announcement',
+                            kind: 'danger',
+                            text: `You are about to send an announcement to ${mockRes.recipientCount} ${pluralize('user', mockRes.recipientCount)}.`,
+                            confirmLabel: 'Continue',
+                            canBeCanceled: true
+                        }, async () => this.sendAnnouncementNotification({ mock: false }))
+                    }
+                })
         },
         sendAnnouncementNotification ({ mock = true }) {
             const form = { ...this.form }
@@ -107,21 +188,28 @@ export default {
 
             const payload = {
                 mock,
-                ...form,
+                title: form.title,
+                message: form.message,
+                url: form.url,
                 filter: {
-                    roles: this.form.roles.map(r => Roles[r])
+                    roles: this.form.roles.map(r => Roles[r]),
+                    teamTypes: [...this.form.teamTypes]
                 },
                 ...(this.form.externalUrl ? { url: this.form.url } : { to: JSON.parse(this.form.url) })
             }
-
+            if (this.features.billing) {
+                payload.filter.billing = [...this.form.billing]
+            }
             return adminApi.sendAnnouncementNotification(payload)
                 .then(res => {
                     if (!mock) {
-                        alerts.emit(`Announcement sent to ${res.recipientCount} recipients.`, 'confirmation')
+                        alerts.emit(`Announcement sent to ${res.recipientCount} ${pluralize('user', res.recipientCount)}.`, 'confirmation')
                         this.form.title = ''
                         this.form.message = ''
                         this.form.url = ''
                         this.form.roles = []
+                        this.form.teamTypes = []
+                        this.form.billing = []
                     }
                     return res
                 })
@@ -134,6 +222,16 @@ export default {
             if (this.form.roles.includes(role)) {
                 this.form.roles = this.form.roles.filter(r => r !== role)
             } else this.form.roles.push(role)
+        },
+        toggleTeamType (teamTypeId) {
+            if (this.form.teamTypes.includes(teamTypeId)) {
+                this.form.teamTypes = this.form.teamTypes.filter(r => r !== teamTypeId)
+            } else this.form.teamTypes.push(teamTypeId)
+        },
+        toggleBillingState (billingState) {
+            if (this.form.billing.includes(billingState)) {
+                this.form.billing = this.form.billing.filter(r => r !== billingState)
+            } else this.form.billing.push(billingState)
         }
 
     }
@@ -141,6 +239,9 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.inactive-team {
+    color: $ff-grey-400;
+}
 .clear-page-gutters {
     margin: -1.75rem
 }

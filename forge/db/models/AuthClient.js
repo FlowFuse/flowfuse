@@ -22,6 +22,9 @@ module.exports = {
     },
     associations: function (M) {
         this.belongsTo(M.Project, { foreignKey: 'ownerId', constraints: false })
+        // Also belongsTo Device - but not adding the association as we don't
+        // want the sequelize mixins to be added to the Device model - they don't
+        // handle the casting from int to string for the deviceId/ownerId
     },
     finders: function (M) {
         return {
