@@ -15,7 +15,14 @@
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0">
             <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-            <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshots" :show-search="true" search-placeholder="Search Snapshots...">
+            <ff-data-table data-el="snapshots" class="space-y-4 mb-14" :columns="columns" :rows="snapshotsFiltered" :show-search="true" search-placeholder="Search Snapshots...">
+                <template #actions>
+                    <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">
+                        <FilterIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
+                        {{ snapshotFilter?.name || 'All Snapshots' }}
+                        <span class="sr-only">Filter Snapshots</span>
+                    </DropdownMenu>
+                </template>
                 <template #context-menu="{row}">
                     <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
                     <ff-list-item :disabled="!canViewSnapshot(row)" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
@@ -51,11 +58,13 @@
 </template>
 
 <script>
+import { FilterIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import ApplicationApi from '../../api/application.js'
 import SnapshotsApi from '../../api/snapshots.js'
+import DropdownMenu from '../../components/DropdownMenu.vue'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
@@ -68,6 +77,7 @@ import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import { applySystemUserDetails } from '../../transformers/snapshots.transformer.js'
+import { isAutoSnapshot } from '../../utils/snapshot.js'
 
 // Table Cells
 import DaysSince from './Snapshots/components/cells/DaysSince.vue'
@@ -78,12 +88,14 @@ import SnapshotExportDialog from './Snapshots/components/dialogs/SnapshotExportD
 export default {
     name: 'ApplicationSnapshots',
     components: {
-        SectionTopMenu,
-        SnapshotEditDialog,
-        SnapshotExportDialog,
         AssetDetailDialog,
         AssetCompareDialog,
-        EmptyState
+        DropdownMenu,
+        EmptyState,
+        FilterIcon,
+        SectionTopMenu,
+        SnapshotEditDialog,
+        SnapshotExportDialog
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
@@ -97,6 +109,42 @@ export default {
         return {
             loading: false,
             snapshots: [],
+            snapshotFilter: null,
+            snapshotFilters: {
+                All_Snapshots: {
+                    name: 'All Snapshots',
+                    selected: true,
+                    filter: null,
+                    action: () => {
+                        this.snapshotFilters.All_Snapshots.selected = true
+                        this.snapshotFilters.User_Snapshots.selected = false
+                        this.snapshotFilters.Auto_Snapshots.selected = false
+                        this.snapshotFilter = this.snapshotFilters.All_Snapshots
+                    }
+                },
+                User_Snapshots: {
+                    name: 'User Snapshots',
+                    selected: false,
+                    filter: (s) => !isAutoSnapshot(s),
+                    action: () => {
+                        this.snapshotFilters.All_Snapshots.selected = false
+                        this.snapshotFilters.User_Snapshots.selected = true
+                        this.snapshotFilters.Auto_Snapshots.selected = false
+                        this.snapshotFilter = this.snapshotFilters.User_Snapshots
+                    }
+                },
+                Auto_Snapshots: {
+                    name: 'Auto Snapshots',
+                    selected: false,
+                    filter: (s) => isAutoSnapshot(s),
+                    action: () => {
+                        this.snapshotFilters.All_Snapshots.selected = false
+                        this.snapshotFilters.User_Snapshots.selected = false
+                        this.snapshotFilters.Auto_Snapshots.selected = true
+                        this.snapshotFilter = this.snapshotFilters.Auto_Snapshots
+                    }
+                }
+            },
             columns: [
                 {
                     label: 'Snapshot',
@@ -143,6 +191,15 @@ export default {
                     value: s.id
                 }
             })
+        },
+        snapshotsFiltered () {
+            if (this.snapshotFilter?.filter) {
+                return this.snapshots.filter(this.snapshotFilter.filter)
+            }
+            return this.snapshots
+        },
+        snapshotFilterOptions () {
+            return Object.values(this.snapshotFilters)
         }
     },
     mounted () {

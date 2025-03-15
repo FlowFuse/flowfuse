@@ -124,6 +124,14 @@ module.exports = {
                         await log('team.device.remote-access.disabled', actionedBy, team?.id, generateBody({ error, device }))
                     }
                 }
+            },
+            package: {
+                async published (actionedBy, error, team, pkg) {
+                    await log('team.package.published', actionedBy, team?.id, generateBody({ error, pkg }))
+                },
+                async unpublished (actionedBy, error, team, pkg) {
+                    await log('team.package.unpublished', actionedBy, team?.id, generateBody({ error, pkg }))
+                }
             }
         }
 

@@ -91,11 +91,9 @@ export default {
     name: 'TeamBrokers',
     components: { BrokerStatusBadge, FfLoading, EmptyState, PlusIcon },
     beforeRouteLeave (to, from, next) {
-        if (to.params?.team_slug !== from.params?.team_slug) {
-            this.clearUns()
-        }
-
-        return next()
+        next()
+        // clears uns data with a delay to avoid redirection to creation page
+        setTimeout(() => this.clearUns(), 500)
     },
     setup () {
         const { hasAMinimumTeamRoleOf } = usePermissions()

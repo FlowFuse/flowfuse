@@ -101,6 +101,11 @@ function isSnapshot (snapshot) {
     return true
 }
 
+const AUTO_SNAPSHOT_PREFIX = 'Auto Snapshot' // Any changes to the format should be reflected in forge/db/controllers/ProjectSnapshot.js
+const nameRegex = (prefix) => new RegExp(`^${prefix} - \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$`)
+const isAutoSnapshot = (snapshot) => nameRegex(AUTO_SNAPSHOT_PREFIX).test(snapshot.name)
+
 export {
-    isSnapshot
+    isSnapshot,
+    isAutoSnapshot
 }

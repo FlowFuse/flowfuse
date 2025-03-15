@@ -8,6 +8,7 @@ module.exports = function (app) {
             host: { type: 'string' },
             port: { type: 'number' },
             protocol: { type: 'string' },
+            protocolVersion: { type: 'number' },
             ssl: { type: 'boolean' },
             verifySSL: { type: 'boolean' },
             clientId: { type: 'string' }
@@ -23,6 +24,7 @@ module.exports = function (app) {
                 host: result.host,
                 port: result.port,
                 protocol: result.protocol,
+                protocolVersion: result.protocolVersion,
                 ssl: result.ssl,
                 verifySSL: result.verifySSL,
                 clientId: result.clientId,

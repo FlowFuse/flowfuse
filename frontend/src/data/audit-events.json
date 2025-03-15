@@ -26,6 +26,8 @@
         "team.device.developer-mode.disabled": "Developer Mode Disabled",
         "team.device.remote-access.enabled": "Remote Access Enabled",
         "team.device.remote-access.disabled": "Remote Access Disabled",
+        "team.package.published": "Team NPM Package Published",
+        "team.package.unpublished": "Team NPM Package Unpublished",
         "application.created": "Application Created",
         "application.updated": "Application Modified",
         "application.deleted": "Application Deleted",

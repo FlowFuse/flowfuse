@@ -15,6 +15,8 @@
             :topics="topics"
             :segment="selectedSegment"
             @segment-updated="onSegmentUpdate"
+            @segment-created="getTopics"
+            @segment-deleted="onDelete"
         />
     </div>
 </template>
@@ -64,15 +66,29 @@ export default {
     methods: {
         async getTopics () {
             this.loading = true
-            return brokerApi.getBrokerTopics(this.team.id, this.$route.params.brokerId)
-                .then(res => {
-                    this.topics = res.topics || []
-                    this.topics.sort((A, B) => A.topic.localeCompare(B.topic))
-                })
-                .catch(err => err)
-                .finally(() => {
-                    this.loading = false
-                })
+            try {
+                const res = await brokerApi.getBrokerTopics(this.team.id, this.$route.params.brokerId)
+                const topics = res.topics || []
+                topics.sort((A, B) => A.topic.localeCompare(B.topic))
+
+                // find selected segment this.selectedSegment in topics
+                if (this.selectedSegment) {
+                    const idx = topics.findIndex(topic => topic.topic === this.selectedSegment.topic)
+                    if (idx !== -1) {
+                        this.selectedSegment.id = topics[idx].id
+                        this.selectedSegment.metadata = topics[idx].metadata
+                    } else {
+                        this.selectedSegment = null
+                    }
+                }
+                this.topics = topics
+            } catch (error) {
+                console.error('Error fetching topics', error)
+            } finally {
+                this.loading = false
+            }
+
+            return this.topics
         },
         segmentSelected (segment) {
             this.selectedSegment = segment
@@ -82,6 +98,24 @@ export default {
             this.selectedSegment = segment
             if (idx !== -1) {
                 this.topics[idx] = segment
+            }
+        },
+        onDelete (segment) {
+            const idx = this.topics.findIndex(topic => topic.id === segment.id)
+            if (idx !== -1) {
+                const childrenCount = segment.childrenCount
+                if (childrenCount > 0) {
+                    // since this topic has children and currently the API does not support deleting a topic with children
+                    // we will just reset the metadata & id from the topic
+                    segment.metadata = {}
+                    segment.id = null
+                    this.selectedSegment = segment
+                } else {
+                    this.topics.splice(idx, 1)
+                    this.selectedSegment = null
+                }
+            } else {
+                this.selectedSegment = null
             }
         }
     }
