@@ -6,7 +6,7 @@ meta:
 
 # Configuring SAML based Single Sign-On
 
-_This feature is only available on self-hosted Enterprise licensed instances of FlowFuse._
+_This feature is only available on FlowFuse Cloud and self-hosted Enterprise licensed instances of FlowFuse._
 
 The SSO Configurations are managed by the platform Administrator under the
 `Admin Settings > Settings > SSO` section.
@@ -14,6 +14,41 @@ The SSO Configurations are managed by the platform Administrator under the
 To fully configure SAML SSO, you will need to generate a configuration in FlowFuse,
 provide some of the generated values to your Identity Provider, and copy back some
 values they provide.
+
+## Configuring SSO on FlowFuse Cloud
+
+Configuring SSO on FlowFuse Cloud requires co-ordinating tasks between the customer and
+FlowFuse Cloud administrators.
+
+When a customer requests SSO to be setup for their users, we require the following information:
+
+1. The email domain that will be covered by the configuration. Note that each SSO configuration can only be applied to a single domain. If a customer has multiple domains, each one will require its own SSO configuration. [Issue #5011](https://github.com/FlowFuse/flowfuse/issues/5011) has been raised to make this more flexible in the future.
+2. Whether it is SAML or LDAP based SSO
+3. What Identify Provider they are using for their SSO.
+
+Once this information has been provided, we can then create a draft SSO configuration in the Admin/Settings/SSO section. The configuration should not be marked as active yet.
+
+From the draft configuration, the values of `ACS URL` and `Entity ID / Issuer` can be given to the customer. These values will be required by their Identify Provider. Refer to the provider-specific documentation for how those values get applied.
+
+In return, the customer then needs to provide:
+
+1. `Identity Provider Single Sign-On URL`
+2. `Identity Provider Issuer ID / URL`
+3. `X.509 Certificate Public Key`
+
+Again, refer to the provider-specific documentation for where to find these values as each provider has its own terminology.
+
+These values should be applied to the draft SSO configuration in FlowFuse Cloud. The configuration can then be marked as active.
+
+It is recommended to do this final step whilst on a call with the customer so they can test the setup in real time.
+
+### Common Issues
+
+Aside from navigating the mismatched terminology between services providers, the most common issue we hit is where a login attempt fails and 'Invalid Document Signature' is shown in FlowFuse logs. This is because we expect both the SAML Assertions and Responses to be signed by the public certificate. The default configuration for many providers is to only sign the assertions - check the provider-specific documentation for the appropriate option to enable to address this.
+
+## Configuring SSO
+
+The following instructions give more details information on how to setup SSO.
 
 ### Create a SSO Configuration
 
@@ -128,6 +163,9 @@ the groups in the SAML Provider - rather than using the team's id. However, a te
 by a team owner. Doing so will break the link between the group and the team membership - so should only
 be done with care.
 
+An optional prefix and suffix can be include in the group name to support SAML providers that have existing naming policies. The SSO configuration can be configured with the lengths of these values so they will be stripped off before the group name is validated.
+
+For example, if an organisation requires all groups to begin with `acme-org-`, a prefix length of `9` can be set and the group `acme-org-ff-development-owner` will be handled as `ff-development-owner`.
 ## Managing Admin users
 
 The SSO Configuration can be configured to managed the admin users of the platform by enabling the

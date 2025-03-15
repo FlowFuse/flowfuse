@@ -1,5 +1,5 @@
 <template>
-    <ff-layout-box>
+    <ff-layout-box class="ff-unverified-email ff--center-box">
         <form class="px-4 sm:px-6 lg:px-8 mt-8 mx-auto space-y-6 max-w-md" @submit.prevent>
             <p>
                 Before you can access the platform, we need to verify your email
@@ -56,6 +56,7 @@ export default {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
                 this.$store.dispatch('ux/activateTour', 'welcome')
+                this.$store.dispatch('ux/setNewlyCreatedUser', true)
                 this.$router.go()
             } catch (err) {
                 console.error(err)

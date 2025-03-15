@@ -3,24 +3,24 @@
     "text": "<p>Welcome to FlowFuse, the complete platform for building, managing and deploying your Node-RED applications.</p><p><b>Let's take a quick tour to get you started.</b></p>"
 }, {
     "title": "Concept: Applications",
-    "text": "<p><b>This is your first Application in FlowFuse.</b></p><p>Applications are the top level container for your Node-RED Instances, Edge Devices and other resources.</p>",
+    "text": "<p><b>This is your first Application in FlowFuse.</b></p><p>Applications help to organize your Node-RED Instances and other resources.</p>",
     "attachTo": {
         "element": "li[data-el=\"application-item\"]",
         "on": "bottom"
     },
     "modalOverlayOpeningXOffset": 12
 }, {
-    "title": "Concept: Instances",
-    "text": "<p><b>Instances</b> refer to instances of Node-RED running at the <i>same</i> host as FlowFuse.</p>",
+    "title": "Concept: Hosted Instances",
+    "text": "<p><b>Hosted Instances</b> refer to instances of Node-RED running at the <i>same</i> host as FlowFuse.</p>",
     "attachTo": {
-        "element": "div[data-el=\"application-instance-item\"]",
+        "element": "[data-el=\"application-instance-item\"]",
         "on": "bottom"
     }
 }, {
-    "title": "Concept: Devices",
-    "text": "<p><b>Devices</b> are Node-RED instances that are managed and deployed <i>remotely</i>.</p><p>Whether hardware in factories or a Raspberry Pi on your desk, FlowFuse helps you manage hundreds of remote deployments.</p>",
+    "title": "Concept: Remote Instances",
+    "text": "<p><b>Remote Instances</b> are Node-RED instances that are managed and deployed <i>remotely</i>.</p><p>Whether hardware in factories or a Raspberry Pi on your desk, FlowFuse helps you manage hundreds of remote deployments.</p>",
     "attachTo": {
-        "element": "section[data-el=\"application-devices-none\"]",
+        "element": "section[data-el=\"application-devices-none\"], section[data-el=\"application-devices\"]",
         "on": "bottom"
     }
 }, {
@@ -46,7 +46,7 @@
     }
 }, {
     "title": "Concept: Device Groups",
-    "text": "<p><b>Device Groups</b> are collections of <b>Devices</b> that can be used in <b>Pipelines</b> in order to deploy the same Node-RED flows out to multiple pieces of hardware in one-click.</p>",
+    "text": "<p><b>Device Groups</b> are collections of <b>Remote Instances</b> that can be used in <b>Pipelines</b> in order to deploy the same Node-RED flows out to multiple pieces of hardware in one-click.</p>",
     "attachTo": {
         "element": "a[data-nav=\"application-device-groups\"] ",
         "on": "left"

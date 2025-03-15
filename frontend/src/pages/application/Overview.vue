@@ -1,6 +1,6 @@
 <template>
     <div>
-        <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Instances of Node-RED belonging to this application.">
+        <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Hosted instances of Node-RED, owned by this application.">
             <template #pictogram>
                 <img src="../../images/pictograms/instance_red.png">
             </template>
@@ -9,17 +9,19 @@
                 <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
                 <p>To edit an Application's flow, open the editor of the Instance.</p>
             </template>
-            <template #tools>
+            <template v-if="instancesAvailable" #tools>
                 <ff-button
                     v-if="hasPermission('project:create')"
                     data-action="create-instance"
                     :to="{ name: 'ApplicationCreateInstance' }"
+                    type="anchor"
                 >
                     <template #icon-left><PlusSmIcon /></template>
                     Add Instance
                 </ff-button>
             </template>
         </SectionTopMenu>
+        <FeatureUnavailableToTeam v-if="!instancesAvailable" />
         <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
         <div class="space-y-6 mb-14">
             <ff-data-table
@@ -65,7 +67,7 @@
                     />
                 </template>
             </ff-data-table>
-            <EmptyState v-else>
+            <EmptyState v-else-if="instancesAvailable">
                 <template #img>
                     <img src="../../images/empty-states/application-instances.png">
                 </template>
@@ -79,6 +81,7 @@
                     <ff-button
                         v-if="hasPermission('project:create')"
                         :to="{ name: 'ApplicationCreateInstance' }"
+                        type="anchor"
                     >
                         <template #icon-left><PlusSmIcon /></template>
                         Add Instance
@@ -92,6 +95,17 @@
                     </p>
                 </template>
             </EmptyState>
+            <EmptyState v-else>
+                <template #img>
+                    <img src="../../images/empty-states/application-instances.png">
+                </template>
+                <template #header>Hosted Instances Not Available</template>
+                <template #message>
+                    <p>
+                        Hosted Instances are not available for this team tier. Please consider upgrading if you would like to enable this feature.
+                    </p>
+                </template>
+            </EmptyState>
         </div>
     </div>
 </template>
@@ -100,10 +114,12 @@
 
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
+import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 
 import permissionsMixin from '../../mixins/Permissions.js'
 import { Roles } from '../../utils/roles.js'
@@ -119,7 +135,8 @@ export default {
     components: {
         PlusSmIcon,
         SectionTopMenu,
-        EmptyState
+        EmptyState,
+        FeatureUnavailableToTeam
     },
     mixins: [permissionsMixin],
     inheritAttrs: false,
@@ -134,6 +151,13 @@ export default {
         }
     },
     emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start'],
+    setup () {
+        const { navigateTo } = useNavigationHelper()
+
+        return {
+            navigateTo
+        }
+    },
     data () {
         return {
             searchTerm: ''
@@ -141,6 +165,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
+        ...mapGetters('account', ['featuresCheck']),
         cloudColumns () {
             return [
                 { label: 'Name', class: ['w-1/2'], component: { is: markRaw(DeploymentName) } },
@@ -172,6 +197,9 @@ export default {
         },
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
+        },
+        instancesAvailable () {
+            return this.featuresCheck?.isHostedInstancesEnabledForTeam
         }
     },
     mounted () {
@@ -180,13 +208,13 @@ export default {
         }
     },
     methods: {
-        selectedCloudRow (cloudInstance) {
-            this.$router.push({
+        selectedCloudRow (cloudInstance, event) {
+            this.navigateTo({
                 name: 'Instance',
                 params: {
                     id: cloudInstance.id
                 }
-            })
+            }, event)
         },
         updateSearch (searchTerm) {
             this.searchTerm = searchTerm

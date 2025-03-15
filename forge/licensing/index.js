@@ -34,7 +34,8 @@ module.exports = fp(async function (app, opts) {
     const defaultLimits = {
         users: 5,
         teams: 5,
-        instances: 5
+        instances: 5,
+        mqttClients: 0
     }
 
     let userLicense = await app.settings.get('license')
@@ -67,6 +68,9 @@ module.exports = fp(async function (app, opts) {
             }
             if (activeLicense) {
                 if (Object.hasOwn(activeLicense, key)) {
+                    if (key === 'tier') {
+                        return activeLicense[key]?.toLowerCase()
+                    }
                     return activeLicense[key]
                 }
                 return undefined
@@ -158,21 +162,31 @@ module.exports = fp(async function (app, opts) {
                 }
             }
         }
+        if (!resource || resource === 'mqttClients') {
+            usage.mqttClients = {
+                resource: 'mqttClients',
+                count: await app.db.models.TeamBrokerClient.count(),
+                limit: licenseApi.get('mqttClients')
+            }
+        }
         return usage
     }
 
     async function reportUsage () {
-        const { users, teams, devices, instances } = await usage()
+        const { users, teams, devices, instances, mqttClients } = await usage()
         const logUse = (name, count, limit) => {
             const logger = (count > limit ? app.log.warn : app.log.info).bind(app.log)
-            logger(`${name}: ${count}/${limit}`)
+            logger(` ${name.padEnd(13, ' ')}: ${count}/${limit}`)
         }
         app.log.info('Usage       : count/limit')
-        logUse(' Users      ', users.count, users.limit)
-        logUse(' Teams      ', teams.count, teams.limit)
-        logUse(' Instances  ', instances.count, instances.limit)
+        logUse('Users', users.count, users.limit)
+        logUse('Teams', teams.count, teams.limit)
+        logUse('Instances', instances.count, instances.limit)
         if (!licenseModeCombinedInstances) {
-            logUse(' Devices    ', devices.count, devices.limit)
+            logUse('Devices', devices.count, devices.limit)
+        }
+        if (mqttClients.limit > 0 || mqttClients.count > 0) {
+            logUse('MQTT Clients', mqttClients.count, mqttClients.limit)
         }
     }
 

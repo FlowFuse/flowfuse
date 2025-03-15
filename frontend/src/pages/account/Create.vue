@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/no-v-html -->
 
 <template>
-    <ff-layout-box class="ff-signup">
+    <ff-layout-box class="ff-signup ff--center-box">
         <template v-if="splash" #splash-content>
             <div data-el="splash" v-html="splash" />
         </template>

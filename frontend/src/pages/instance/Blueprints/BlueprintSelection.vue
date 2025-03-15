@@ -13,6 +13,7 @@
                 :key="print.id"
                 :blueprint="print"
                 :display-preview-button="previewTiles"
+                :display-external-url-button="true"
                 :active="activeBlueprint && activeBlueprint.id === print.id"
                 @selected="$emit('selected', print)"
             />

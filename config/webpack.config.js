@@ -17,6 +17,7 @@ function getPath (file) {
 
 module.exports = function (env, argv) {
     const config = {
+        devtool: process.env.mode === 'production' ? 'hidden-source-map' : 'source-map',
         entry: {
             main: getPath('frontend/src/main.js'),
             setup: getPath('frontend/src/setup.js')

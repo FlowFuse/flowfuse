@@ -1,4 +1,4 @@
-const { KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
+const { KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_DISABLE_AUTO_SAFE_MODE, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
 const { Roles } = require('../../lib/roles')
 
 const ProjectActions = require('./projectActions')
@@ -411,6 +411,17 @@ module.exports = async function (app) {
 
             // Merge the settings into the existing values
             const currentProjectSettings = await request.project.getSetting(KEY_SETTINGS) || {}
+            if (newSettings.env && Array.isArray(newSettings.env)) {
+                newSettings.env = newSettings.env.map(env => {
+                    // hidden env vars are received as empty strings so we'll replace the empty string with the previous value,
+                    // allowing them to be overwritten when needed
+                    if (Object.prototype.hasOwnProperty.call(env, 'hidden') && env.hidden && !env.value.length) {
+                        const previousValue = currentProjectSettings.env.find(e => e.name === env.name)
+                        env.value = previousValue.value
+                    }
+                    return env
+                })
+            }
             const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
 
             changesToPersist.settings = { from: currentProjectSettings, to: updatedSettings }
@@ -456,15 +467,24 @@ module.exports = async function (app) {
         }
 
         // Launcher settings
-        if (request.body?.launcherSettings?.healthCheckInterval) {
-            const oldInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
-            const newInterval = parseInt(request.body.launcherSettings.healthCheckInterval, 10)
-            if (isNaN(newInterval) || newInterval < 5000) {
-                reply.code(400).send({ code: 'invalid_heathCheckInterval', error: 'Invalid heath check interval' })
-                return
+        if (request.body?.launcherSettings) {
+            if (request.body.launcherSettings.healthCheckInterval) {
+                const oldInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
+                const newInterval = parseInt(request.body.launcherSettings.healthCheckInterval, 10)
+                if (isNaN(newInterval) || newInterval < 5000) {
+                    reply.code(400).send({ code: 'invalid_heathCheckInterval', error: 'Invalid heath check interval' })
+                    return
+                }
+                if (oldInterval !== newInterval) {
+                    changesToPersist.healthCheckInterval = { from: oldInterval, to: newInterval }
+                }
             }
-            if (oldInterval !== newInterval) {
-                changesToPersist.healthCheckInterval = { from: oldInterval, to: newInterval }
+            if (typeof request.body.launcherSettings.disableAutoSafeMode === 'boolean') {
+                const oldInterval = await request.project.getSetting(KEY_DISABLE_AUTO_SAFE_MODE)
+                const newInterval = request.body.launcherSettings.disableAutoSafeMode
+                if (oldInterval !== newInterval) {
+                    changesToPersist.disableAutoSafeMode = { from: oldInterval, to: newInterval }
+                }
             }
         }
 
@@ -528,6 +548,10 @@ module.exports = async function (app) {
             if (changesToPersist.healthCheckInterval) {
                 await request.project.updateSetting(KEY_HEALTH_CHECK_INTERVAL, changesToPersist.healthCheckInterval.to, { transaction })
                 updates.pushDifferences({ healthCheckInterval: changesToPersist.healthCheckInterval.from }, { healthCheckInterval: changesToPersist.healthCheckInterval.to })
+            }
+            if (changesToPersist.disableAutoSafeMode) {
+                await request.project.updateSetting(KEY_DISABLE_AUTO_SAFE_MODE, changesToPersist.disableAutoSafeMode.to, { transaction })
+                updates.pushDifferences({ disableAutoSafeMode: changesToPersist.disableAutoSafeMode.from }, { disableAutoSafeMode: changesToPersist.disableAutoSafeMode.to })
             }
 
             await transaction.commit() // all good, commit the transaction
@@ -802,6 +826,7 @@ module.exports = async function (app) {
         settings.state = request.project.state
         settings.stack = request.project.ProjectStack?.properties || {}
         settings.healthCheckInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
+        settings.disableAutoSafeMode = await request.project.getSetting(KEY_DISABLE_AUTO_SAFE_MODE)
         settings.settings = await app.db.controllers.Project.getRuntimeSettings(request.project)
         if (settings.settings.env) {
             settings.env = Object.assign({}, settings.settings.env, settings.env)
@@ -822,6 +847,30 @@ module.exports = async function (app) {
             delete settings.settings?.palette?.catalogue
         }
 
+        const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)
+        if (teamNPMEnabled) {
+            const npmRegURL = new URL(app.config.npmRegistry.url)
+            const deviceNPMPassword = await app.db.controllers.AccessToken.createTokenForNPM(request.project, request.project.Team)
+            const token = Buffer.from(`p-${request.project.id}@${settings.teamID}:${deviceNPMPassword.token}`).toString('base64')
+            if (settings.settings?.palette?.npmrc) {
+                settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
+                    `@flowfuse-${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:_auth="${token}"\n`
+            } else {
+                settings.settings.palette.npmrc =
+                    `@flowfuse-${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:_auth="${token}"\n`
+            }
+            if (settings.settings?.palette?.catalogue) {
+                settings.settings.palette.catalogue
+                    .push(`${app.config.base_url}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`)
+            } else {
+                settings.settings.palette.catalogue = [
+                    `${app.config.base_url}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`
+                ]
+            }
+        }
+
         if (app.config.features.enabled('staticAssets') && teamType.getFeatureProperty('staticAssets', false)) {
             const sharingConfig = await request.project.getSetting(KEY_SHARED_ASSETS) || {}
             // Stored as object with path->config. Need to transform to an array of settings
@@ -840,7 +889,8 @@ module.exports = async function (app) {
 
         settings.features = {
             'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true),
-            projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)
+            projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true),
+            teamBroker: app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true)
         }
         reply.send(settings)
     })
@@ -982,7 +1032,18 @@ module.exports = async function (app) {
                     properties: {
                         meta: { $ref: 'PaginationMeta' },
                         count: { type: 'number' },
-                        log: { $ref: 'AuditLogEntryList' }
+                        log: { $ref: 'AuditLogEntryList' },
+                        associations: {
+                            type: 'object',
+                            properties: {
+                                applications: {
+                                    type: 'array',
+                                    items: { $ref: 'ApplicationSummary' }
+                                },
+                                instances: { $ref: 'InstanceSummaryList' },
+                                devices: { $ref: 'DeviceSummaryList' }
+                            }
+                        }
                     }
                 },
                 '4xx': {

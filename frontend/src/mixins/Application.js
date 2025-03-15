@@ -5,8 +5,6 @@ export default {
     data () {
         return {
             application: {},
-            applicationDevices: [],
-            deviceGroups: [],
             applicationInstances: new Map(),
             loading: {
                 deleting: false,
@@ -23,12 +21,6 @@ export default {
                 return []
             }
             return Array.from(this.applicationInstances.values()).filter(el => el)
-        },
-        devicesArray () {
-            return this.applicationDevices
-        },
-        deviceGroupsArray () {
-            return this.deviceGroups || []
         }
     },
     watch: {
@@ -47,20 +39,10 @@ export default {
                 this.application = await ApplicationApi.getApplication(applicationId)
                 // Check to see if we have the right team loaded
                 if (this.team?.slug !== this.application.team.slug) {
-                    // Load the team for this application
-                    await this.$store.dispatch('account/setTeam', this.application.team.slug)
+                    return
                 }
                 const instancesPromise = ApplicationApi.getApplicationInstances(applicationId) // To-do needs to be enriched with instance state
-                const devicesPromise = ApplicationApi.getApplicationDevices(applicationId)
-                const deviceData = await devicesPromise
-                this.applicationDevices = deviceData?.devices
                 const applicationInstances = await instancesPromise
-                if (this.features?.deviceGroups && this.team.type.properties.features?.deviceGroups) {
-                    const deviceGroupsData = await ApplicationApi.getDeviceGroups(applicationId)
-                    this.deviceGroups = deviceGroupsData?.groups || []
-                } else {
-                    this.deviceGroups = []
-                }
 
                 this.applicationInstances = new Map()
                 applicationInstances.forEach(instance => {
@@ -83,7 +65,7 @@ export default {
                     })
             } catch (err) {
                 this.$router.push({
-                    name: 'PageNotFound',
+                    name: 'page-not-found',
                     params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
                     // preserve existing query and hash if any
                     query: this.$router.currentRoute.value.query,

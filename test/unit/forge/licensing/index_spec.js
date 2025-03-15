@@ -155,7 +155,7 @@ describe('License API', async function () {
         it('Gets all usage count and limits (unlicensed)', async function () {
             const usage = await app.license.usage()
             // check usage contains the correct keys
-            usage.should.only.have.keys('users', 'teams', 'instances')
+            usage.should.only.have.keys('users', 'teams', 'instances', 'mqttClients')
             // check each item has the correct keys
             usage.users.should.only.have.keys('resource', 'count', 'limit')
             usage.teams.should.only.have.keys('resource', 'count', 'limit')
@@ -226,7 +226,7 @@ describe('License API', async function () {
         it('Gets all usage count and limits (licensed)', async function () {
             const usage = await app.license.usage()
             // check usage contains the correct keys
-            usage.should.only.have.keys('users', 'teams', 'instances', 'devices')
+            usage.should.only.have.keys('users', 'teams', 'instances', 'devices', 'mqttClients')
             // check each item has the correct keys
             usage.users.should.only.have.keys('resource', 'count', 'limit')
             usage.teams.should.only.have.keys('resource', 'count', 'limit')
@@ -309,7 +309,7 @@ describe('License API', async function () {
         it('Gets all usage count and limits (licensed)', async function () {
             const usage = await app.license.usage()
             // check usage contains the correct keys
-            usage.should.only.have.keys('users', 'teams', 'instances')
+            usage.should.only.have.keys('users', 'teams', 'instances', 'mqttClients')
             // check each item has the correct keys
             usage.users.should.only.have.keys('resource', 'count', 'limit')
             usage.teams.should.only.have.keys('resource', 'count', 'limit')
@@ -390,7 +390,7 @@ describe('License API', async function () {
         it('Returns 0 as the limit property when querying usage data for a license without claims', async function () {
             app.license.get('organisation').should.equal('FlowForge Inc.')
             const usage = await app.license.usage()
-            usage.should.only.have.keys('users', 'teams', 'instances', 'devices')
+            usage.should.only.have.keys('users', 'teams', 'instances', 'devices', 'mqttClients')
             usage.users.limit.should.equal(0)
             usage.teams.limit.should.equal(0)
             usage.instances.limit.should.equal(0)
@@ -490,10 +490,11 @@ describe('License API', async function () {
         afterEach(async function () {
             await app.close()
         })
-        async function getLog () {
+        async function getLogs () {
             const logs = await app.db.models.AuditLog.forEntity()
-            logs.log.should.have.length(1)
-            return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
+            const formatted = await app.db.views.AuditLog.auditLog({ log: logs.log })
+            formatted.log.should.have.length(2)
+            return formatted
         }
         it('should suspend all instances', async function () {
             instance.state.should.equal('running')
@@ -502,8 +503,9 @@ describe('License API', async function () {
             await licenseCheck.run(app)
 
             // check logs
-            const log = await getLog()
-            log.event.should.equal('platform.license.expired')
+            const log = await getLogs()
+            log.log[0].event.should.equal('project.suspended')
+            log.log[1].event.should.equal('platform.license.expired')
 
             // check instance suspended
             await instance.reload()

@@ -29,18 +29,22 @@
             <label class="w-full block text-sm font-medium text-gray-700 mb-2">Stage Type</label>
             <ff-tile-selection v-model="input.stageType" data-form="stage-type">
                 <ff-tile-selection-option
-                    label="Instance"
+                    label="Hosted Instance"
                     :value="StageType.INSTANCE"
                     description=""
                     color="#8F0000"
+                    :disabled="!allowInstanceSelection"
+                    disabledTooltip="Cannot add Hosted Instance after a device group"
                 >
                     <template #icon><IconNodeRedSolid /></template>
                 </ff-tile-selection-option>
                 <ff-tile-selection-option
-                    label="Device"
+                    label="Remote Instance"
                     :value="StageType.DEVICE"
                     description=""
                     color="#31959A"
+                    :disabled="!allowInstanceSelection"
+                    disabledTooltip="Cannot add Remote Instance after a device group"
                 >
                     <template #icon><IconDeviceSolid /></template>
                 </ff-tile-selection-option>
@@ -50,8 +54,8 @@
                     :value="StageType.DEVICEGROUP"
                     description=""
                     color="#31959A"
-                    :disabled="isFirstStage"
-                    disabledTooltip="Device Groups are not available for the first stage in a pipeline"
+                    :disabled="isFirstStage || !allowDeviceGroupSelection"
+                    disabledTooltip="Device Groups cannot be the first stage or proceed non Device Group stages"
                 >
                     <template #icon><IconDeviceGroupSolid /></template>
                 </ff-tile-selection-option>
@@ -82,7 +86,7 @@
                 class="flex-grow"
             >
                 <template #default>
-                    Choose Instance
+                    Choose Hosted Instance
                 </template>
             </FormRow>
 
@@ -96,7 +100,7 @@
                 class="flex-grow"
             >
                 <template #default>
-                    Choose Device
+                    Choose Remote Instance
                 </template>
             </FormRow>
 
@@ -163,7 +167,7 @@
                     <slot name="pictogram"><img src="../../../images/pictograms/snapshot_red.png"></slot>
                     <div v-if="input.stageType === StageType.INSTANCE">
                         <p>
-                            When a instance Pipeline stage type is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
+                            When an instance Pipeline stage type is triggered an Instance Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
                         </p>
                         <p>
                             <b>Create New Snapshot:</b> Creates a new snapshot using the current flows and settings.
@@ -335,6 +339,39 @@ export default {
         isLastStage () {
             return !this.isEdit || this.pipeline.stages[this.pipeline.stages.length - 1].id === this.stage.id
         },
+        allowInstanceSelection () {
+            if (this.isFirstStage) {
+                return true
+            }
+            // if any prior stage is a device group, then we cannot add a hosted/remote instance
+            const priorStages = []
+            for (let stageIndex = 0; stageIndex < this.pipeline.stages.length; stageIndex++) {
+                const stage = this.pipeline.stages[stageIndex]
+                if (stage.id === this.stage.id) {
+                    break
+                }
+                priorStages.push(stage)
+            }
+            return priorStages.length === 0 || !priorStages.some((stage) => stage.stageType === StageType.DEVICEGROUP)
+        },
+        allowDeviceGroupSelection () {
+            if (this.isFirstStage) {
+                return false
+            }
+            if (this.isLastStage) {
+                return true
+            }
+            // if any later stage is NOT a device group, then we cannot set this as a device group
+            const laterStages = []
+            for (let stageIndex = this.pipeline.stages.length - 1; stageIndex >= 0; stageIndex--) {
+                const stage = this.pipeline.stages[stageIndex]
+                if (stage.id === this.stage.id) {
+                    break
+                }
+                laterStages.push(stage)
+            }
+            return laterStages.length === 0 || laterStages.every((stage) => stage.stageType === StageType.DEVICEGROUP)
+        },
         formDirty () {
             return (
                 this.input.name !== this.stage.name ||
@@ -410,17 +447,30 @@ export default {
         },
         deviceDropdownPlaceholder () {
             if (this.devicesNotInUse.length === 0) {
-                return 'No application level devices available'
+                return 'No Remote Instances available in Application'
             }
 
-            return 'Choose Application Level Device'
+            return 'Choose Remote Instance'
         },
         deviceGroupsEnabled () {
             return this.features?.deviceGroups && this.team?.type.properties.features?.deviceGroups
         },
+        devicesGroupsNotInUse () {
+            const deviceGroupIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
+                stage.deviceGroups.forEach((deviceGroup) => {
+                    acc.add(deviceGroup.id)
+                })
+
+                return acc
+            }, new Set())
+
+            return this.deviceGroups.filter((deviceGroup) => {
+                return !deviceGroupIdsInUse.has(deviceGroup.id) || deviceGroup.id === this.input.deviceGroupId
+            })
+        },
         deviceGroupOptions () {
             return [
-                ...this.deviceGroups?.map((device) => {
+                ...this.devicesGroupsNotInUse?.map((device) => {
                     return {
                         label: device.name,
                         value: device.id
@@ -473,6 +523,12 @@ export default {
     },
     created () {
         this.StageType = StageType
+    },
+    mounted () {
+        // set the stagetype to device group if the last stage is a device group itself (only permit device groups after a device group)
+        if (!this.allowInstanceSelection) {
+            this.input.stageType = StageType.DEVICEGROUP
+        }
     },
     methods: {
         async submit () {

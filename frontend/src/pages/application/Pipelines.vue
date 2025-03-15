@@ -102,6 +102,7 @@ import PipelineAPI from '../../api/pipeline.js'
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import PipelineRow from '../../components/pipelines/PipelineRow.vue'
+import usePermissions from '../../composables/Permissions.js'
 
 import Alerts from '../../services/alerts.js'
 
@@ -127,6 +128,10 @@ export default {
             required: true
         }
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             loading: false,
@@ -142,9 +147,19 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'teamMembership']),
         featureEnabled () {
             return this.features['devops-pipelines']
+        }
+    },
+    watch: {
+        teamMembership: {
+            handler: function () {
+                if (!this.hasPermission('application:pipeline:list')) {
+                    return this.$router.push({ name: 'Application', params: this.$route.params })
+                }
+            },
+            immediate: true
         }
     },
     mounted () {
@@ -176,20 +191,22 @@ export default {
             }
         },
         stageDeployFailed (stage, nextStage) {
-            if (this.instanceStatusMap.has(nextStage.instance.id)) {
-                clearInterval(this.polling.instances)
-                this.instanceStatusMap.get(nextStage.instance.id).isDeploying = false
-            }
-
-            if (this.deviceStatusMap.has(nextStage.device.id)) {
-                clearInterval(this.polling.devices)
-                this.deviceStatusMap.get(nextStage.device.id).isDeploying = false
-            }
-
-            const nextStageDeviceGroupMapId = `${nextStage.id}:${nextStage.deviceGroup?.id}`
-            if (this.deviceGroupStatusMap.has(nextStageDeviceGroupMapId)) {
-                clearInterval(this.polling.deviceGroups)
-                this.deviceGroupStatusMap.get(nextStageDeviceGroupMapId).isDeploying = false
+            if (nextStage.instance?.id) {
+                if (this.instanceStatusMap.has(nextStage.instance.id)) {
+                    clearInterval(this.polling.instances)
+                    this.instanceStatusMap.get(nextStage.instance.id).isDeploying = false
+                }
+            } else if (nextStage.device?.id) {
+                if (this.deviceStatusMap.has(nextStage.device.id)) {
+                    clearInterval(this.polling.devices)
+                    this.deviceStatusMap.get(nextStage.device.id).isDeploying = false
+                }
+            } else if (nextStage.deviceGroup?.id) {
+                const nextStageDeviceGroupMapId = `${nextStage.id}:${nextStage.deviceGroup?.id}`
+                if (this.deviceGroupStatusMap.has(nextStageDeviceGroupMapId)) {
+                    clearInterval(this.polling.deviceGroups)
+                    this.deviceGroupStatusMap.get(nextStageDeviceGroupMapId).isDeploying = false
+                }
             }
         },
         startPollingForDeployStatus (stage, nextStage) {
@@ -245,22 +262,24 @@ export default {
             }
         },
         async loadPipelines () {
-            this.loading = true
+            if (this.hasPermission('application:pipeline:list')) {
+                this.loading = true
 
-            // getPipelines doesn't include full instance status information, kick this off async
-            // Not needed for devices as device status is returned as part of pipelines API
-            this.loadInstanceStatus()
+                // getPipelines doesn't include full instance status information, kick this off async
+                // Not needed for devices as device status is returned as part of pipelines API
+                this.loadInstanceStatus()
 
-            ApplicationAPI.getPipelines(this.application.id)
-                .then((pipelines) => {
-                    this.pipelines = pipelines
-                    this.loadDeviceGroupStatus(this.pipelines)
-                    this.loading = false
-                })
-                .catch((err) => {
-                    console.error(err)
-                    this.loading = false
-                })
+                ApplicationAPI.getPipelines(this.application.id)
+                    .then((pipelines) => {
+                        this.pipelines = pipelines
+                        this.loadDeviceGroupStatus(this.pipelines)
+                        this.loading = false
+                    })
+                    .catch((err) => {
+                        console.error(err)
+                        this.loading = false
+                    })
+            }
         },
         async loadInstanceStatus () {
             ApplicationAPI.getApplicationInstancesStatuses(this.application.id)

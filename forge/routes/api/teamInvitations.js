@@ -163,29 +163,7 @@ module.exports = async function (app) {
                 try {
                     // controllers.Invitation.createInvitations will have already
                     // rejected external requests if team:user:invite:external set to false
-                    if (invite.external) {
-                        await app.postoffice.send(
-                            invite,
-                            'UnknownUserInvitation',
-                            {
-                                invite,
-                                signupLink: `${app.config.base_url}/account/create?email=${encodeURIComponent(invite.email)}`
-                            }
-                        )
-                        await app.auditLog.Team.team.user.invited(request.session.User, null, request.team, invite, role)
-                    } else {
-                        if (app.postoffice.enabled()) {
-                            await app.postoffice.send(
-                                invite.invitee,
-                                'TeamInvitation',
-                                {
-                                    teamName: invite.team.name,
-                                    signupLink: `${app.config.base_url}/account/teams/invitations`
-                                }
-                            )
-                        }
-                        await app.auditLog.Team.team.user.invited(request.session.User, null, request.team, invite.invitee, role)
-                    }
+                    await app.db.controllers.Invitation.sendNotification(invite, user, request.team, role)
                 } catch (err) {
                     errorCount++
                     result.message[user] = 'Error sending invitation email'
@@ -238,6 +216,48 @@ module.exports = async function (app) {
             await invitation.destroy()
             await app.auditLog.Team.team.user.uninvited(request.session.User, null, request.team, invitedUser, role)
             reply.send({ status: 'okay' })
+        } else {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
+
+    /**
+     * Resend an invitation
+     * POST [/api/v1/teams/:teamId/invitations]/:invitationId
+     */
+    app.post('/:invitationId', {
+        schema: {
+            summary: 'Resend an invitation',
+            tags: ['Team Invitations'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    invitationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Invitation'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const invitation = await app.db.models.Invitation.byId(request.params.invitationId)
+
+        if (invitation && invitation.teamId === request.team.id) {
+            const role = invitation.role || Roles.Member
+            const invitedUser = app.auditLog.formatters.userObject(invitation.external ? invitation : invitation.invitee)
+
+            await app.db.models.Invitation.extendExpirationDate(invitation.id)
+            await invitation.reload()
+
+            await app.db.controllers.Invitation.sendNotification(invitation, invitedUser, request.team, role, true)
+
+            reply.send(app.db.views.Invitation.invitation(invitation))
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }

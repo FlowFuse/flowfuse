@@ -106,6 +106,12 @@ module.exports = function (app) {
             return true
         }
 
+        await this.ensureTeamTypeExists()
+        const teamTypeBillingDisabled = await this.TeamType.getProperty('billing.disabled', false)
+        if (teamTypeBillingDisabled) {
+            return
+        }
+
         // Next, check if we're in trial mode and this instanceType is valid
         // for trial mode.
         const subscription = await this.getSubscription()
@@ -162,6 +168,12 @@ module.exports = function (app) {
     app.db.models.Team.prototype.checkInstanceStartAllowed = async function (instance) {
         // First do base checks
         await this._checkInstanceStartAllowed()
+
+        await this.ensureTeamTypeExists()
+        const teamTypeBillingDisabled = await this.TeamType.getProperty('billing.disabled', false)
+        if (teamTypeBillingDisabled) {
+            return
+        }
 
         const subscription = await this.getSubscription()
         if (subscription) {
@@ -224,6 +236,11 @@ module.exports = function (app) {
         // has been reached
         await this._checkDeviceCreateAllowed()
 
+        await this.ensureTeamTypeExists()
+        const teamTypeBillingDisabled = await this.TeamType.getProperty('billing.disabled', false)
+        if (teamTypeBillingDisabled) {
+            return
+        }
         const subscription = await this.getSubscription()
         if (subscription) {
             if (subscription.isActive() || subscription.isUnmanaged()) {

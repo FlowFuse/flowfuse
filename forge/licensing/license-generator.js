@@ -61,6 +61,7 @@ const { v4: uuidv4 } = require('uuid')
         const maxUsers = parseInt(await promptly.prompt('Max allowed users: ', { default: '5' }))
         const maxTeams = parseInt(await promptly.prompt('Max allowed teams: ', { default: '5' }))
         const maxInstances = parseInt(await promptly.prompt('Max allowed instances (hosted + devices): ', { default: '5' }))
+        const maxMQTTClients = parseInt(await promptly.prompt('Max allowed MQTT Clients: ', { default: '20' }))
 
         const licenseNotes = devLicense
             ? 'Development-mode Only. Not for production'
@@ -104,6 +105,7 @@ const { v4: uuidv4 } = require('uuid')
             users: maxUsers,
             teams: maxTeams,
             instances: maxInstances,
+            mqttClients: maxMQTTClients,
             tier: licenseTier
         }
 

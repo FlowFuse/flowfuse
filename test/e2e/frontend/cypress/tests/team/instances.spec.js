@@ -9,16 +9,14 @@ describe('Team - Instances', () => {
             .parent()
             .parent()
             .within(() => {
-                // checking for ara-disabled because somehow should.be.enabled always returns true no matter the btn state
-                cy.get('[data-action="open-editor"]').should('not.have.attr', 'aria-disabled')
+                cy.get('[data-action="open-editor"]').should('not.be.disabled')
             })
         cy.contains('instance-1-2')
             .parent()
             .parent()
             .parent()
             .within(() => {
-                // checking for ara-disabled because somehow should.be.enabled always returns true no matter the btn state
-                cy.get('[data-action="open-editor"]').should('have.attr', 'aria-disabled', 'true')
+                cy.get('[data-action="open-editor"]').should('be.disabled')
             })
     })
 
@@ -45,20 +43,26 @@ describe('Team - Instances', () => {
             .parent()
             .parent()
             .within(() => {
-                // checking for ara-disabled because somehow should.be.enabled always returns true no matter the btn state
-                cy.get('[data-action="open-dashboard"]').should('not.have.attr', 'aria-disabled')
+                cy.get('[data-action="open-dashboard"]').should('not.be.disabled')
             })
         cy.contains('instance-1-2')
             .parent()
             .parent()
             .parent()
             .within(() => {
-                // checking for ara-disabled because somehow should.be.enabled always returns true no matter the btn state
-                cy.get('[data-action="open-dashboard"]').should('have.attr', 'aria-disabled', 'true')
+                cy.get('[data-action="open-dashboard"]').should('be.disabled')
             })
     })
 
     describe('Users with dashboard only permissions', () => {
+        beforeEach(() => {
+            // viewer roled users don't receive the teamType in the team payload
+            cy.intercept('get', '/api/*/teams/slug/bteam', req => req.reply(res => {
+                const { type, ...response } = res.body
+                res.send(response)
+            })).as('getTeam')
+        })
+
         it('are shown a static message if no dashboard instances are found', () => {
             cy.intercept('GET', '/api/*/teams/*/user',
                 req => req.reply(res => {
@@ -77,8 +81,9 @@ describe('Team - Instances', () => {
                 }).as('getDashboardInstances')
 
             cy.login('bob', 'bbPassword')
-            cy.visit('/')
+            cy.visit('/team/bteam')
 
+            cy.wait('@getTeam')
             cy.wait('@getUser')
             cy.wait('@getDashboardInstances')
 
@@ -134,8 +139,9 @@ describe('Team - Instances', () => {
                 }).as('getDashboardInstances')
 
             cy.login('bob', 'bbPassword')
-            cy.visit('/')
+            cy.visit('/team/bteam')
 
+            cy.wait('@getTeam')
             cy.wait('@getUser')
             cy.wait('@getDashboardInstances')
 
@@ -144,7 +150,7 @@ describe('Team - Instances', () => {
                 .parent()
                 .parent()
                 .within(() => {
-                    cy.get('[data-action="open-dashboard"]').should('have.attr', 'aria-disabled', 'true')
+                    cy.get('[data-action="open-dashboard"]').should('be.disabled')
                 })
 
             cy.contains('death-start-ac')
@@ -152,7 +158,7 @@ describe('Team - Instances', () => {
                 .parent()
                 .parent()
                 .within(() => {
-                    cy.get('[data-action="open-dashboard"]').should('not.have.attr', 'aria-disabled')
+                    cy.get('[data-action="open-dashboard"]').should('not.be.disabled')
                 })
         })
     })

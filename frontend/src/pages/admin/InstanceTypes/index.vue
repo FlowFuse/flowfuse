@@ -13,7 +13,7 @@
         </SectionTopMenu>
         <ff-tile-selection data-el="active-types">
             <ff-tile-selection-option
-                v-for="(instanceType, index) in activeInstanceTypes" :key="index"
+                v-for="(instanceType, index) in activeInstanceTypes" :key="index" value=""
                 :editable="true" :price="instanceType.properties?.billingDescription?.split('/')[0]"
                 :price-interval="instanceType.properties?.billingDescription?.split('/')[1]"
                 :label="instanceType.name"

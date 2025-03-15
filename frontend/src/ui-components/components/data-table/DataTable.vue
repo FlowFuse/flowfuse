@@ -50,7 +50,7 @@
                         <template v-if="!loading">
                             <ff-data-table-row
                                 v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
-                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r)"
+                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r, $event)"
                             >
                                 <template v-if="showRowCheckboxes" #row-prepend="{row}">
                                     <ff-checkbox v-model="checks[row[checkKeyProp]]" />
@@ -173,6 +173,14 @@ export default {
         searchFields: {
             type: Array,
             default: () => []
+        },
+        initialSortKey: {
+            type: String,
+            default: ''
+        },
+        initialSortOrder: {
+            type: String,
+            default: 'desc'
         },
         showLoadMore: {
             type: Boolean,
@@ -302,6 +310,8 @@ export default {
         if (this.$route?.query?.searchQuery) {
             this.internalSearch = this.$route.query.searchQuery
         }
+        this.sort.key = this.initialSortKey
+        this.sort.order = this.orders.includes(this.initialSortOrder) ? this.initialSortOrder : this.orders[0]
     },
     methods: {
         toggleAllChecks (pointerEvents) {
@@ -326,9 +336,9 @@ export default {
                 return searchObjectProps(row, search.toLowerCase(), this.searchFields)
             })
         },
-        rowClick (row) {
+        rowClick (row, $event) {
             if (this.rowsSelectable) {
-                this.$emit('row-selected', row)
+                this.$emit('row-selected', row, $event._event)
             }
         },
         sortBy (col, colIndex) {

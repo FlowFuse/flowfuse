@@ -17,7 +17,7 @@ describe('FlowForge - Team Devices', () => {
         })
 
         it('shows a placeholder message when no devices have been created', () => {
-            cy.get('main').contains('Connect your First Device')
+            cy.get('main').contains('Connect your First Remote Instance')
         })
 
         it('provides functionality to register a device', () => {
@@ -26,7 +26,7 @@ describe('FlowForge - Team Devices', () => {
             cy.get('button[data-action="register-device"]').click()
 
             cy.get('.ff-dialog-box').should('be.visible')
-            cy.get('.ff-dialog-header').contains('Add Device')
+            cy.get('.ff-dialog-header').contains('Add Remote Instance')
             // disabled primary button by default
             cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').contains('Add').should('be.disabled')
 
@@ -42,7 +42,7 @@ describe('FlowForge - Team Devices', () => {
 
             // show user the device config
             cy.get('.ff-dialog-box').should('be.visible')
-            cy.get('.ff-dialog-header').contains('Device Configuration')
+            cy.get('.ff-dialog-header').contains('Device Agent Configuration')
 
             cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 1)
             cy.get('[data-el="devices-browser"] tbody').find('tr').contains('device1')
@@ -64,7 +64,7 @@ describe('FlowForge - Team Devices', () => {
 
             cy.wait('@deleteDevice')
 
-            cy.get('main').contains('Connect your First Device')
+            cy.get('main').contains('Connect your First Remote Instance')
         })
 
         it('can load multiple pages of devices when the API paginates', function () {
@@ -298,27 +298,31 @@ describe('FlowForge - Team Devices', () => {
             // Dialog
             cy.get('[data-el="assign-device-to-instance-dialog"]')
                 .should('be.visible')
+
+            cy.get('[data-el="assign-device-to-instance-dialog"]')
                 .within(() => {
                     // Application dropdown
                     cy.get('[data-form="application"]').within(() => {
-                        cy.get('.ff-dropdown[disabled=false]').click()
+                        cy.get('[data-el="dropdown"]').should('not.be.disabled')
+                        cy.get('.ff-listbox').click()
 
                         // Click first Application
-                        cy.get('.ff-dropdown-options > .ff-dropdown-option:first').click()
+                        cy.get('.ff-options > .ff-option:first').click()
                     })
 
                     // Instance dropdown
                     cy.get('[data-form="instance"]').within(() => {
-                        cy.get('.ff-dropdown[disabled=false]').click()
+                        cy.get('.ff-listbox').should('not.be.disabled')
+                        cy.get('.ff-listbox').click()
 
                         // Grab name of first instance
-                        cy.get('.ff-dropdown-options').should('be.visible')
-                        cy.get('.ff-dropdown-options > .ff-dropdown-option:first').invoke('text').then((text) => {
+                        cy.get('.ff-options').should('be.visible')
+                        cy.get('.ff-options > .ff-option:first').invoke('text').then((text) => {
                             selectedInstance = text
                         })
 
                         // Click first instance
-                        cy.get('.ff-dropdown-options > .ff-dropdown-option:first').click()
+                        cy.get('.ff-options > .ff-option:first').click()
                     })
 
                     cy.get('.ff-btn--primary').click()
@@ -340,6 +344,8 @@ describe('FlowForge - Team Devices', () => {
             // Remove dialog
             cy.get('[data-el="platform-dialog"]')
                 .should('be.visible')
+
+            cy.get('[data-el="platform-dialog"]')
                 .within(() => {
                     cy.get('.ff-btn--danger').click()
                 })
@@ -379,17 +385,20 @@ describe('FlowForge - Team Devices', () => {
             // Dialog
             cy.get('[data-el="assign-device-to-application-dialog"]')
                 .should('be.visible')
+
+            cy.get('[data-el="assign-device-to-application-dialog"]')
                 .within(() => {
                     // Instance dropdown
                     cy.get('[data-form="application"]').within(() => {
-                        cy.get('.ff-dropdown[disabled=false]').click()
+                        cy.get('.ff-listbox').should('not.be.disabled')
+                        cy.get('.ff-listbox').click()
 
                         // Grab name of first application
-                        cy.get('.ff-dropdown-options').should('be.visible')
-                        cy.get('.ff-dropdown-options > .ff-dropdown-option:first').invoke('text').then((text) => {
+                        cy.get('.ff-options').should('be.visible')
+                        cy.get('.ff-options > .ff-option:first').invoke('text').then((text) => {
                             selectedApplication = text
                         })
-                        cy.get('.ff-dropdown-options > .ff-dropdown-option:first').click()
+                        cy.get('.ff-options > .ff-option:first').click()
                     })
                     // chose the first application by clicking the primary button within the dialog
                     cy.get('.ff-btn--primary').click()
@@ -411,6 +420,8 @@ describe('FlowForge - Team Devices', () => {
             // Remove dialog
             cy.get('[data-el="platform-dialog"]')
                 .should('be.visible')
+
+            cy.get('[data-el="platform-dialog"]')
                 .within(() => {
                     cy.get('.ff-btn--danger').click()
                 })

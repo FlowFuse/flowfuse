@@ -1,5 +1,5 @@
 <template>
-    <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox">
+    <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox" :by="compareOptions">
         <div class="relative">
             <ListboxButton
                 class="w-full rounded-md bg-white flex justify-between ff-button"
@@ -24,16 +24,16 @@
                         <ListboxOption
                             v-for="option in options"
                             v-slot="{ active, selected }"
-                            :key="labelKey === 'label' ? option.label : option[labelKey]"
+                            :key="option[labelKey]"
                             :value="option"
                             as="template"
                             class="ff-option"
-                            :data-option="labelKey === 'label' ? option.label : option[labelKey]"
+                            :data-option="option[labelKey]"
                             :title="optionTitleKey ? option[optionTitleKey] : null"
                         >
                             <li>
                                 <div class="ff-option-content" :class="{selected, active}">
-                                    {{ labelKey === 'label' ? option.label : option[labelKey] }}
+                                    {{ option[labelKey] }}
                                 </div>
                             </li>
                         </ListboxOption>
@@ -119,7 +119,7 @@ export default {
             }
         },
         selectedOption () {
-            if (!this.value) {
+            if (this.value === undefined || this.value === null) {
                 return null
             }
 
@@ -129,6 +129,11 @@ export default {
         },
         selectedLabel () {
             return this.selectedOption ? this.selectedOption[this.labelKey] : this.placeholder
+        }
+    },
+    methods: {
+        compareOptions (modelValue, optionValue) {
+            return modelValue === optionValue[this.valueKey]
         }
     }
 
@@ -190,14 +195,24 @@ export default {
 
       .ff-option-content {
         padding: $ff-unit-sm $ff-unit-md;
+        border: 1px solid transparent;
 
-        &.selected, &.active {
+        &.selected {
           background-color: $ff-grey-200;
+        }
+        &.active {
+          border: 1px solid $ff-indigo-300;
+        }
+        &.selected.active {
+          border-color: transparent;
         }
       }
 
       &:hover {
         background-color: $ff-grey-200;
+          .ff-option-content.active {
+              border-color: transparent
+          }
       }
     }
   }

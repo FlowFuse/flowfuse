@@ -2,8 +2,7 @@ const modelTypes = [
     'SAMLProvider',
     'Pipeline',
     'PipelineStage',
-    'FlowTemplate',
-    'TeamBrokerClient'
+    'FlowTemplate'
 ]
 
 async function init (app) {

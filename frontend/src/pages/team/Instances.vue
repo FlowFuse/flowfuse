@@ -1,7 +1,7 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header :title="dashboardRoleOnly ? 'Dashboards' : 'Instances'">
+            <ff-page-header :title="dashboardRoleOnly ? 'Dashboards' : 'Hosted Instances'">
                 <template #context>
                     <span v-if="!dashboardRoleOnly">A list of all dashboards belonging to this Team.</span>
                     <span v-else>A list of Node-RED instances with Dashboards belonging to this Team.</span>
@@ -29,11 +29,14 @@
             </ff-page-header>
         </template>
         <div class="space-y-6">
+            <div class="banner-wrapper">
+                <FeatureUnavailableToTeam v-if="!instancesAvailable" />
+            </div>
             <ff-loading v-if="loading" message="Loading Instances..." />
-            <template v-else>
+            <template v-else-if="instancesAvailable">
                 <ff-data-table
                     v-if="instances.length > 0"
-                    data-el="instances-table" :columns="columns" :rows="instances" :show-search="true" search-placeholder="Search Instances..."
+                    data-el="instances-table" :columns="columns" :rows="instances" :show-search="true" search-placeholder="Search Instances..." initialSortKey="flowLastUpdatedAt" initialSortOrder="desc"
                     :rows-selectable="!dashboardRoleOnly"
                     @row-selected="openInstance"
                 >
@@ -67,12 +70,12 @@
                     <template #header>Get Started with your First Node-RED Instance</template>
                     <template #message>
                         <p>
-                            Instances are managed in FlowFuse via <router-link
+                            Instances are managed in FlowFuse via <ff-team-link
                                 class="ff-link"
                                 :to="{name:'Applications', params: {team_slug: team.slug}}"
                             >
                                 Applications
-                            </router-link>.
+                            </ff-team-link>.
                         </p>
                         <p>
                             You can create your first Instance when creating your first Application, or add an Instance to an existing Application if you have one.
@@ -98,6 +101,19 @@
                     <template #header>There are no dashboards in this team.</template>
                 </EmptyState>
             </template>
+            <template v-else>
+                <EmptyState>
+                    <template #img>
+                        <img src="../../images/empty-states/team-instances.png">
+                    </template>
+                    <template #header>Hosted Instances Not Available</template>
+                    <template #message>
+                        <p>
+                            Hosted Node-RED Instances are not available on your Team Tier. Please explore upgrade options to enable it.
+                        </p>
+                    </template>
+                </EmptyState>
+            </template>
         </div>
     </ff-page>
 </template>
@@ -105,9 +121,11 @@
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
+import { mapGetters } from 'vuex'
 
 import teamApi from '../../api/team.js'
 import EmptyState from '../../components/EmptyState.vue'
+import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
 import permissionsMixin from '../../mixins/Permissions.js'
 import DeploymentName from '../application/components/cells/DeploymentName.vue'
 import SimpleTextCell from '../application/components/cells/SimpleTextCell.vue'
@@ -121,7 +139,8 @@ export default {
         InstanceEditorLink,
         DashboardLink,
         PlusSmIcon,
-        EmptyState
+        EmptyState,
+        FeatureUnavailableToTeam
     },
     mixins: [permissionsMixin],
     props: {
@@ -152,6 +171,12 @@ export default {
             ]
         }
     },
+    computed: {
+        ...mapGetters('account', ['featuresCheck']),
+        instancesAvailable () {
+            return this.featuresCheck?.isHostedInstancesEnabledForTeam
+        }
+    },
     watch: {
         team: 'fetchData'
     },
@@ -159,9 +184,9 @@ export default {
         this.fetchData()
     },
     methods: {
-        fetchData: async function (newVal) {
+        fetchData: async function () {
             this.loading = true
-            if (this.team.id) {
+            if (this.team.id && this.instancesAvailable) {
                 if (this.hasPermission('team:projects:list')) {
                     this.instances = (await teamApi.getTeamInstances(this.team.id)).projects
                 } else if (this.hasPermission('team:read')) {

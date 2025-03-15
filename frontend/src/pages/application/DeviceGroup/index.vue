@@ -1,12 +1,8 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions />
-    </Teleport>
-
     <main v-if="!application?.id">
         <ff-loading message="Loading Application..." />
     </main>
-    <main v-else class="ff-with-status-header">
+    <main v-else class="ff-with-status-header device-group">
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">
                 You are viewing this device group as an Administrator
@@ -17,28 +13,31 @@
         <div class="ff-instance-header">
             <ff-page-header :title="deviceGroup?.name" :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'ApplicationDeviceGroups', params: {id: application?.id}}">Device Groups</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Applications', params: {team_slug: team.slug}}">
+                        Applications
+                    </ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Application', params: {team_slug: team.slug, id: application.id}}">
+                        {{ application.name }}
+                    </ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'ApplicationDeviceGroups', params: {id: application?.id}}">
+                        Device Groups
+                    </ff-nav-breadcrumb>
                 </template>
                 <template #tools>
-                    <InfoCard header="">
-                        <template #content>
-                            <InfoCardRow property="Target Snapshot:">
-                                <template #value>
-                                    <span class="flex gap-2 pr-2" data-el="device-group-target-snapshot">
-                                        <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
-                                            <ExclamationIcon v-if="!targetSnapshot" class="text-yellow-600 w-4" />
-                                            <CheckCircleIcon v-else class="text-green-700 w-4" />
-                                        </span>
-                                        <div class="flex flex-col">
-                                            <span v-if="targetSnapshot" data-el="snapshot-name">{{ targetSnapshot.name }}</span>
-                                            <span v-else data-el="snapshot-name">No Target Snapshot Set</span>
-                                            <span v-if="targetSnapshot" class="text-xs text-gray-500" data-el="snapshot-id">{{ targetSnapshot.id }}</span>
-                                        </div>
-                                    </span>
-                                </template>
-                            </InfoCardRow>
-                        </template>
-                    </InfoCard>
+                    <div class="ff-target-snapshot-info">
+                        <p class="ff-title">Target Snapshot: </p>
+                        <div class="flex gap-2 pr-2" data-el="device-group-target-snapshot">
+                            <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
+                                <ExclamationIcon v-if="!targetSnapshot" class="text-yellow-600 w-4" />
+                                <CheckCircleIcon v-else class="text-green-700 w-4" />
+                            </span>
+                            <div class="flex flex-col">
+                                <span v-if="targetSnapshot" data-el="snapshot-name">{{ targetSnapshot.name }}</span>
+                                <span v-else data-el="snapshot-name">No Target Snapshot Set</span>
+                                <span v-if="targetSnapshot" class="text-xs text-gray-500" data-el="snapshot-id">{{ targetSnapshot.id }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </template>
                 <template #context>
                     <div>
@@ -68,9 +67,6 @@ import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
 
-import InfoCard from '../../../components/InfoCard.vue'
-import InfoCardRow from '../../../components/InfoCardRow.vue'
-import SideNavigationTeamOptions from '../../../components/SideNavigationTeamOptions.vue'
 import SubscriptionExpiredBanner from '../../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../../components/banners/TeamTrial.vue'
 import DeviceSolidIcon from '../../../components/icons/DeviceSolid.js'
@@ -82,9 +78,6 @@ export default {
     components: {
         CheckCircleIcon,
         ExclamationIcon,
-        InfoCard,
-        InfoCardRow,
-        SideNavigationTeamOptions,
         SubscriptionExpiredBanner,
         TeamTrialBanner
     },
@@ -116,7 +109,7 @@ export default {
                 {
                     label: 'Settings',
                     to: {
-                        name: 'ApplicationDeviceGroupSettingsGeneral',
+                        name: 'ApplicationDeviceGroupSettings',
                         params: {
                             applicationId: this.application?.id,
                             deviceGroupId: this.deviceGroup?.id
@@ -169,7 +162,7 @@ export default {
                 this.$store.dispatch('account/setTeam', this.application.team.slug)
             } catch (err) {
                 this.$router.push({
-                    name: 'PageNotFound',
+                    name: 'page-not-found',
                     params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
                     // preserve existing query and hash if any
                     query: this.$router.currentRoute.value.query,
@@ -180,3 +173,19 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+.device-group {
+    .ff-target-snapshot-info{
+        border: 1px solid $ff-grey-300;
+        padding: 10px 15px;
+        display: flex;
+        gap: 20px;
+
+        .ff-title {
+            font-weight: 500;
+        }
+    }
+
+}
+</style>

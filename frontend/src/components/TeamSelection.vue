@@ -51,12 +51,14 @@ export default {
     methods: {
         selectTeam (team) {
             if (team) {
-                this.$router.push({
-                    name: 'Team',
-                    params: {
-                        team_slug: team.slug
-                    }
-                })
+                this.$store.dispatch('account/setTeam', team.slug)
+                    .then(() => this.$router.push({
+                        name: 'Team',
+                        params: {
+                            team_slug: team.slug
+                        }
+                    }))
+                    .catch(e => console.warn(e))
             }
         },
         createTeam () {

@@ -83,7 +83,11 @@ $ff-yellow-900: #78350F;
 
 // Theme Colors
 
-$ff-color--action: $ff-blue-900;
-$ff-color--highlight: $ff-indigo-700;
+$ff-color--action: $ff-indigo-800;
+$ff-color--highlight: $ff-indigo-600;
+$ff-color--highlight--light: $ff-grey-100;
 $ff-color--danger: $ff-red-500;
 $ff-color--danger--dark: $ff-red-600;
+$ff-color--disabled: $ff-grey-400;
+$ff-color--border: $ff-grey-300;
+$ff-color--context-menu: $ff-white;

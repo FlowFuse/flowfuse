@@ -15,6 +15,7 @@
 
 <script>
 import ApplicationApi from '../../../api/application.js'
+import Alerts from '../../../services/alerts.js'
 
 export default {
     name: 'PipelineIndex',
@@ -27,55 +28,65 @@ export default {
         instances: {
             type: Object,
             required: true
-        },
-        devices: {
-            type: Array,
-            required: true
-        },
-        deviceGroups: {
-            type: Array,
-            required: true
         }
     },
     data: function () {
         return {
-            pipeline: null
+            pipeline: null,
+            devices: [],
+            deviceGroups: []
         }
     },
     watch: {
-        'application.id': 'loadPipeline'
+        'application.id': 'fetchData',
+        '$route.params.pipelineId': 'fetchData'
     },
-    created () {
-        this.loadPipeline()
-
-        this.$watch(
-            () => this.$route.params.pipelineId,
-            () => {
-                if (!this.$route.params.pipelineId) {
-                    return
-                }
-
-                this.loadPipeline()
-            }
-        )
+    async created () {
+        await this.fetchData()
     },
     methods: {
         async loadPipeline () {
             if (!this.application.id) {
-                return
+                return Promise.resolve()
+            }
+
+            return ApplicationApi.getPipeline(this.application.id, this.$route.params.pipelineId)
+                .then(res => {
+                    this.pipeline = res
+                })
+        },
+        async fetchData () {
+            try {
+                await this.loadPipeline()
+            } catch (err) {
+                this.notFound()
             }
 
             try {
-                this.pipeline = await ApplicationApi.getPipeline(this.application.id, this.$route.params.pipelineId)
+                this.devices = (await ApplicationApi.getApplicationDevices(this.application.id)).devices
             } catch (err) {
-                this.$router.push({
-                    name: 'PageNotFound',
-                    params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
-                    // preserve existing query and hash if any
-                    query: this.$router.currentRoute.value.query,
-                    hash: this.$router.currentRoute.value.hash
-                })
+                this.devices = []
+                Alerts.emit('Failed to load Remote Instances', 'warning')
             }
+            try {
+                this.deviceGroups = (await ApplicationApi.getDeviceGroups(this.application.id)).groups
+            } catch (err) {
+                if (err.request.status === 404) {
+                    // if feature is unavailable for this Team Type, this returns a 404, but we need to handle cleanly
+                    this.deviceGroups = []
+                } else {
+                    Alerts.emit('Failed to load Device Groups', 'warning')
+                }
+            }
+        },
+        notFound () {
+            this.$router.push({
+                name: 'page-not-found',
+                params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
+                // preserve existing query and hash if any
+                query: this.$router.currentRoute.value.query,
+                hash: this.$router.currentRoute.value.hash
+            })
         }
     }
 }
