@@ -268,7 +268,7 @@ const changeTeamMemberRole = (teamId, userId, role) => {
 
 const removeTeamMember = (teamId, userId) => {
     return client.delete(`/api/v1/teams/${teamId}/members/${userId}`).then(() => {
-        product.capture('$ff-team-created', {
+        product.capture('$ff-team-member-removed', {
             'member-removed': userId,
             'removed-at': (new Date()).toISOString()
         }, {
@@ -302,6 +302,21 @@ const getTeamDevices = async (teamId, cursor, limit, query, extraParams = {}) =>
         }
     })
     return res.data
+}
+
+const getTeamRegistry = async (teamId, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/teams/${teamId}/npm/packages`, cursor, limit)
+    const res = await client.get(url)
+    return {
+        data: res.data
+    }
+}
+const generateRegistryUserToken = async (teamId) => {
+    const url = paginateUrl(`/api/v1/teams/${teamId}/npm/userToken`)
+    const res = await client.post(url)
+    return {
+        data: res.data
+    }
 }
 
 const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
@@ -481,6 +496,8 @@ export default {
     getTeamAuditLog,
     getTeamUserMembership,
     getTeamDevices,
+    getTeamRegistry,
+    generateRegistryUserToken,
     getTeamLibrary,
     deleteFromTeamLibrary,
     getTeamDeviceProvisioningTokens,

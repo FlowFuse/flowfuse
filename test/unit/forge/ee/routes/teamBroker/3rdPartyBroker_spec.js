@@ -1,3 +1,4 @@
+const { Op } = require('sequelize')
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
@@ -9,6 +10,19 @@ const MAX_BROKER_USERS_PER_TEAM = 5
 describe('3rd Party Broker API', function () {
     let app
     const TestObjects = { tokens: {} }
+    const defaultBrokerCredentials = {
+        name: 'broker-name',
+        host: 'localhost',
+        port: 1883,
+        protocol: 'mqtt:',
+        protocolVersion: 4,
+        ssl: false,
+        verifySSL: false,
+        clientId: 'broker-client',
+        credentials: {
+            username: 'foo', password: 'bar'
+        }
+    }
 
     before(async function () {
         // Dev-only Enterprise license that allows 6 MQTT Clients
@@ -64,41 +78,55 @@ describe('3rd Party Broker API', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
+    async function create3rdPartyBroker (options = defaultBrokerCredentials, sid = TestObjects.tokens.bob) {
+        const opts = { ...defaultBrokerCredentials, ...options }
+        opts.credentials = { ...defaultBrokerCredentials.credentials, ...options?.credentials }
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/brokers`,
+            cookies: { sid },
+            body: opts
+        })
+        const statusCode = response.statusCode
+        if (statusCode > 299) {
+            return { response, statusCode, broker: null, credentialId: null, agentToken: null }
+        }
+        const broker = response.json()
+        const credentialId = broker.id
+        const creds = await app.db.models.BrokerCredentials.byId(credentialId)
+        const authTokensRes = await creds.refreshAuthTokens()
+        const agentToken = authTokensRes.token
+
+        return { response, statusCode, broker, credentialId, agentToken }
+    }
+
     describe('3rd Party Broker Credentials', function () {
-        let brokerCredentialId = ''
-        let agentToken = ''
-        it('Create Credentials as Owner', async function () {
-            const response = await app.inject({
-                method: 'POST',
-                url: `/api/v1/teams/${app.team.hashid}/brokers`,
-                cookies: { sid: TestObjects.tokens.bob },
-                body: {
-                    name: 'broker1',
-                    host: 'localhost',
-                    port: 1883,
-                    protocol: 'mqtt:',
-                    protocolVersion: 4,
-                    ssl: false,
-                    verifySSL: false,
-                    clientId: 'broker1-client',
-                    credentials: {
-                        username: 'foo', password: 'bar'
-                    }
+        afterEach(async function () {
+            await app.db.models.BrokerCredentials.destroy({
+                where: {
+                    name: { [Op.ne]: 'ff-team-broker' }
                 }
             })
-            response.statusCode.should.equal(201)
-            const result = response.json()
-            brokerCredentialId = result.id
-            result.should.have.property('name', 'broker1')
-            result.should.have.property('host', 'localhost')
-            result.should.have.property('port', 1883)
-            result.should.have.property('protocol', 'mqtt:')
+        })
 
-            const creds = await app.db.models.BrokerCredentials.byId(brokerCredentialId)
-            const res = await creds.refreshAuthTokens()
-            agentToken = res.token
+        it('Create Credentials as Owner', async function () {
+            const { statusCode, broker } = await create3rdPartyBroker()
+            statusCode.should.equal(201)
+            // by hard coding the check values below, we can ensure defaults are set
+            //  and returned correctly (ensuring the integrity of the following tests)
+            broker.should.have.property('name', 'broker-name')
+            broker.should.have.property('host', 'localhost')
+            broker.should.have.property('port', 1883)
+            broker.should.have.property('protocol', 'mqtt:')
+            broker.should.have.property('protocolVersion', 4)
+            broker.should.have.property('ssl', false)
+            broker.should.have.property('verifySSL', false)
+            broker.should.have.property('clientId', 'broker-client')
         })
         it('List Credentials as Owner', async function () {
+            // create 2 brokers and ensure they are both listed
+            const b1 = await create3rdPartyBroker({ name: 'broker1' })
+            const b2 = await create3rdPartyBroker({ name: 'broker2' })
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${app.team.hashid}/brokers`,
@@ -106,64 +134,67 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.brokers.should.have.a.lengthOf(1)
-            result.brokers[0].should.have.property('id', brokerCredentialId)
+            result.brokers.should.have.a.lengthOf(2)
+            const b1found = result.brokers.find(b => b.id === b1.credentialId)
+            should.exist(b1found)
+            b1found.should.have.property('name', 'broker1')
+            const b2found = result.brokers.find(b => b.id === b2.credentialId)
+            should.exist(b2found)
+            b2found.should.have.property('name', 'broker2')
         })
         it('Get Credentials as Agent', async function () {
+            const b1 = await create3rdPartyBroker({ name: 'my-broker', host: 'broker-host' })
             const response = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/credentials`,
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${b1.credentialId}/credentials`,
                 headers: {
-                    Authorization: `Bearer ${agentToken}`
+                    Authorization: `Bearer ${b1.agentToken}`
                 }
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.property('name', 'broker1')
-            result.should.have.property('host', 'localhost')
+            result.should.have.property('name', 'my-broker')
+            result.should.have.property('host', 'broker-host')
             result.should.have.property('credentials')
             result.credentials.should.have.property('username')
             result.credentials.should.have.property('password')
         })
-        it('Edit Crententials as Owner', async function () {
+        it('Edit Credentials as Owner', async function () {
+            const b1 = await create3rdPartyBroker()
             const response = await app.inject({
                 method: 'PUT',
-                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}`,
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${b1.credentialId}`,
                 cookies: { sid: TestObjects.tokens.bob },
                 body: {
+                    name: 'broker-rename',
                     host: '127.0.0.1',
                     port: 8883,
-                    ssl: true
+                    protocol: 'wss:',
+                    protocolVersion: 5,
+                    ssl: true,
+                    verifySSL: true,
+                    clientId: 'broker-client-rename'
                 }
             })
+
             response.statusCode.should.equal(200)
             const result = response.json()
+            result.should.have.property('name', 'broker-rename')
             result.should.have.property('host', '127.0.0.1')
             result.should.have.property('port', 8883)
+            result.should.have.property('protocol', 'wss:')
+            result.should.have.property('protocolVersion', 5)
             result.should.have.property('ssl', true)
+            result.should.have.property('verifySSL', true)
+            result.should.have.property('clientId', 'broker-client-rename')
         })
+
         it('Fail to Create Credentials as Member', async function () {
-            const response = await app.inject({
-                method: 'POST',
-                url: `/api/v1/teams/${app.team.hashid}/brokers`,
-                cookies: { sid: TestObjects.tokens.chris },
-                body: {
-                    name: 'broker1',
-                    host: 'localhost',
-                    port: 1883,
-                    protocol: 'mqtt:',
-                    protocolVersion: 4,
-                    ssl: false,
-                    verifySSL: false,
-                    clientId: 'broker1-client',
-                    credentials: {
-                        username: 'foo', password: 'bar'
-                    }
-                }
-            })
-            response.statusCode.should.equal(403)
+            const { statusCode } = await create3rdPartyBroker(defaultBrokerCredentials, TestObjects.tokens.chris)
+            statusCode.should.equal(403)
         })
         it('Fail to List Credentials as Member', async function () {
+            await create3rdPartyBroker(defaultBrokerCredentials, TestObjects.tokens.bob)
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${app.team.hashid}/brokers`,
@@ -172,9 +203,10 @@ describe('3rd Party Broker API', function () {
             response.statusCode.should.equal(403)
         })
         it('Fail to Edit Crententials as Member', async function () {
+            const b1 = await create3rdPartyBroker(defaultBrokerCredentials, TestObjects.tokens.bob)
             const response = await app.inject({
                 method: 'PUT',
-                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}`,
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${b1.credentialId}`,
                 cookies: { sid: TestObjects.tokens.chris },
                 body: {
                     host: '127.0.0.1',
@@ -185,17 +217,19 @@ describe('3rd Party Broker API', function () {
             response.statusCode.should.equal(403)
         })
         it('Fail to Delete Specific Credentials as Member', async function () {
+            const b1 = await create3rdPartyBroker(defaultBrokerCredentials, TestObjects.tokens.bob)
             const response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}`,
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${b1.credentialId}`,
                 cookies: { sid: TestObjects.tokens.chris }
             })
             response.statusCode.should.equal(403)
         })
         it('Delete Specific Credentials as Owner', async function () {
+            const b1 = await create3rdPartyBroker(defaultBrokerCredentials, TestObjects.tokens.bob)
             let response = await app.inject({
                 method: 'DELETE',
-                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}`,
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${b1.credentialId}`,
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
@@ -219,7 +253,7 @@ describe('3rd Party Broker API', function () {
                 url: `/api/v1/teams/${app.team.hashid}/brokers`,
                 cookies: { sid: TestObjects.tokens.bob },
                 body: {
-                    name: 'broker1',
+                    name: 'ff-team-broker',
                     host: 'localhost',
                     port: 1883,
                     protocol: 'mqtt:',

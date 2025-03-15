@@ -49,6 +49,17 @@ module.exports = {
             if (ownerCount === 1) {
                 throw new Error('Cannot remove last owner')
             }
+            if (role < Roles.Member) {
+                const token = await app.db.models.AccessToken.findOne({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: `${userHashId}@${teamHashId}`
+                    }
+                })
+                if (token) {
+                    await token.destroy()
+                }
+            }
         }
         existingRole.role = role
         await existingRole.save()

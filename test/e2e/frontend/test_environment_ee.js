@@ -55,6 +55,14 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
             teamBroker: {
                 enabled: true
             }
+        },
+        npmRegistry: {
+            enabled: true,
+            url: 'http://localhost:4873',
+            admin: {
+                username: 'admin',
+                password: 'secret'
+            }
         }
     })
 
@@ -63,6 +71,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
     // Enable Device Group feature for default team type
     const defaultTeamType = await flowforge.db.models.TeamType.findOne({ where: { name: 'starter' } })
     const defaultTeamTypeProperties = defaultTeamType.properties
+    defaultTeamTypeProperties.features.npm = true
     defaultTeamTypeProperties.features.deviceGroups = true
     defaultTeamTypeProperties.features.protectedInstance = true
     defaultTeamTypeProperties.features.teamHttpSecurity = true
