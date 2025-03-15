@@ -183,8 +183,13 @@ module.exports = async function (app) {
                     if (!authClient) {
                         return badRequest(reply, 'invalid_request', 'Invalid client_id')
                     }
-                    const project = await app.db.models.Project.byId(authClient.ownerId)
-                    const teamMembership = await request.session.User.getTeamMembership(project.TeamId)
+                    let owner = null
+                    if (authClient.ownerType === 'project') {
+                        owner = await app.db.models.Project.byId(authClient.ownerId)
+                    } else if (authClient.ownerType === 'device') {
+                        owner = await app.db.models.Device.byId(parseInt(authClient.ownerId))
+                    }
+                    const teamMembership = await request.session.User.getTeamMembership(owner.TeamId)
                     if (!teamMembership && !request.session.User.admin) {
                         // This user is neither a team member, nor an admin - reject
                         return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
@@ -192,7 +197,7 @@ module.exports = async function (app) {
                     const isEditor = /^editor($|-)/.test(requestObject.scope)
                     if (isEditor) {
                         // Allow admin users to have read-access to flows
-                        const protectedInstance = await project.getSetting(KEY_PROTECTED)
+                        const protectedInstance = await owner.getSetting(KEY_PROTECTED)
                         const canReadFlows = request.session.User.admin || app.hasPermission(teamMembership, 'project:flows:view')
                         const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit') && !protectedInstance?.enabled
                         const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http')
@@ -332,11 +337,20 @@ module.exports = async function (app) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
 
-                const project = await app.db.models.Project.byId(authClient.ownerId)
-                const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: requestObject.userId } })
+                let owner = null
+                if (authClient.ownerType === 'project') {
+                    owner = await app.db.models.Project.byId(authClient.ownerId)
+                } else if (authClient.ownerType === 'device') {
+                    owner = await app.db.models.Device.byId(parseInt(authClient.ownerId))
+                }
+
+                const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: owner.TeamId, UserId: requestObject.userId } })
                 const user = await app.db.models.User.findOne({ where: { id: requestObject.userId }, attributes: ['admin'] })
                 const canReadFlows = user.admin || app.hasPermission(teamMembership, 'project:flows:view')
-                const protectedInstance = await project.getSetting(KEY_PROTECTED)
+                let protectedInstance = null
+                if (authClient.ownerType === 'project') {
+                    protectedInstance = await owner.getSetting(KEY_PROTECTED)
+                }
                 const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit') && !protectedInstance?.enabled
                 const canReadHTTP = app.hasPermission(teamMembership, 'project:flows:http')
                 const isEditor = /^editor($|-)/.test(requestObject.scope)
@@ -408,9 +422,14 @@ module.exports = async function (app) {
 
                 // Check the owner of the existing session still has access to the project
                 // this client is owned by
-                const project = await app.db.models.Project.byId(authClient.ownerId)
+                let owner = null
+                if (authClient.ownerType === 'project') {
+                    owner = await app.db.models.Project.byId(authClient.ownerId)
+                } else if (authClient.ownerType === 'device') {
+                    owner = await app.db.models.Device.byId(parseInt(authClient.ownerId))
+                }
                 const user = await app.db.models.User.findOne({ where: { id: parseInt(existingToken.ownerId) }, attributes: ['admin'] })
-                const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: project.TeamId, UserId: parseInt(existingToken.ownerId) } })
+                const teamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: owner.TeamId, UserId: parseInt(existingToken.ownerId) } })
                 const canReadFlows = user.admin || app.hasPermission(teamMembership, 'project:flows:view')
                 const canWriteFlows = app.hasPermission(teamMembership, 'project:flows:edit')
 
@@ -454,6 +473,22 @@ module.exports = async function (app) {
                     quota: {
                         file: fileStorageLimit * 1024 * 1024,
                         context: contextLimit * 1024 * 1024
+                    }
+                }
+            }
+            // Check for npm registry user with publish scope
+            if (request.session.ownerType === 'npm') {
+                if (!/[pd]-(.+)@(.+)/.test(request.params.ownerId)) {
+                    const user = await app.db.models.User.byUsername(request.params.ownerId)
+                    const userTeamList = await user.getTeamMemberships(true)
+                    const teams = userTeamList.map(t => `${t.Team.hashid}:${t.role}`)
+                    response = {
+                        teams
+                    }
+                } else {
+                    const team = request.params.ownerId.split('@')[1]
+                    response = {
+                        teams: [`${team}:0`]
                     }
                 }
             }

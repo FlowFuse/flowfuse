@@ -21,7 +21,19 @@ describe('Pipelines API', function () {
     const TestObjects = {
         tokens: {},
         /** @type {TestModelFactory} */
-        factory: null
+        factory: null,
+        instanceOne: null,
+        instanceTwo: null,
+        team: null,
+        application: null,
+        stack: null,
+        template: null,
+        projectType: null,
+        deviceOne: null,
+        deviceTwo: null,
+        deviceGroupOne: null,
+        deviceGroupTwo: null,
+        user: null
     }
 
     let app
@@ -408,8 +420,8 @@ describe('Pipelines API', function () {
                 })
             })
 
-            describe('Validates that a stage cannot be added after device group', function () {
-                it('Rejects a pipeline stage if the device group is added where a device group already exists', async function () {
+            describe('Validates that only a device group stage can be added after device group', function () {
+                it('Allows a device group pipeline stage to be added after a device group', async function () {
                     const newPipeline = await TestObjects.factory.createPipeline({ name: 'new-pipeline' }, app.application)
                     const pipelineId = newPipeline.hashid
                     // add an instance stage
@@ -431,10 +443,59 @@ describe('Pipelines API', function () {
                         cookies: { sid: TestObjects.tokens.alice }
                     })
 
+                    response.statusCode.should.equal(200)
+                })
+                it('Rejects an instance pipeline stage being added after a device group', async function () {
+                    const newPipeline = await TestObjects.factory.createPipeline({ name: 'new-pipeline' }, app.application)
+                    const pipelineId = newPipeline.hashid
+                    // add an instance stage
+                    const s1 = await TestObjects.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, newPipeline)
+                    // add a device group stage
+                    const s2DeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, app.application)
+                    await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
+
+                    // try to add an instance stage
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-three',
+                            instanceId: TestObjects.instanceTwo.id,
+                            action: 'prompt'
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
                     response.statusCode.should.equal(400)
                     const body = await response.json()
                     body.should.have.property('code', 'invalid_input')
-                    body.should.have.property('error').match(/only one device group/i)
+                    body.should.have.property('error').match(/cannot be added after a device group/i)
+                })
+                it('Rejects a device pipeline stage being added after a device group', async function () {
+                    const newPipeline = await TestObjects.factory.createPipeline({ name: 'new-pipeline' }, app.application)
+                    const pipelineId = newPipeline.hashid
+                    // add an instance stage
+                    const s1 = await TestObjects.factory.createPipelineStage({ name: 'stage-one', instanceId: app.instance.id }, newPipeline)
+                    // add a device group stage
+                    const s2DeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-c' }, app.application)
+                    await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: s2DeviceGroup.hashid, source: s1.hashid, action: 'use_latest_snapshot' }, newPipeline)
+
+                    // try to add an instance stage
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/pipelines/${pipelineId}/stages`,
+                        payload: {
+                            name: 'stage-three',
+                            deviceId: TestObjects.deviceTwo.hashid,
+                            action: 'prompt'
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+
+                    response.statusCode.should.equal(400)
+                    const body = await response.json()
+                    body.should.have.property('code', 'invalid_input')
+                    body.should.have.property('error').match(/cannot be added after a device group/i)
                 })
             })
         })
@@ -875,6 +936,59 @@ describe('Pipelines API', function () {
 
                 response.statusCode.should.equal(200)
             })
+            it('Should not be allowed if there are any "Device Group" stages before it', async function () {
+                // Construct pipeline with 3 stages:        instance -> device group -> device group
+                // Try to change the 3rd stage to a device: instance -> device group -> instance        (invalid)
+
+                const pipelineId = TestObjects.pipeline.hashid
+                const stage1Id = TestObjects.stageOne.hashid
+                const stage2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: TestObjects.deviceGroupOne.id, source: stage1Id, action: 'use_active_snapshot' }, TestObjects.pipeline)
+                const stage3 = await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceGroupId: TestObjects.deviceGroupTwo.id, source: stage2.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
+                const newInstance = await TestObjects.factory.createInstance({ name: 'instance-c' }, app.application, app.stack, app.template, app.projectType, { start: false })
+
+                // Try to update stage3
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stage3.hashid}`,
+                    payload: {
+                        instanceId: newInstance.id,
+                        action: 'prompt'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(400)
+
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_input')
+                body.should.have.property('error').match(/stage cannot contain an instance as a Device Group is set in a prior stage/i)
+            })
+            it('Should not be allowed if the updated pipeline would result in "Device Group" followed by instance', async function () {
+                // Construct pipeline with 3 stages:              instance -> instance -> instance
+                // Try to change the 2nd stage to a device group: instance -> device group -> instance (invalid)
+
+                const pipelineId = TestObjects.pipeline.hashid
+                const stage1Id = TestObjects.stageOne.hashid
+                const instanceThree = await TestObjects.factory.createInstance({ name: 'third-instance' }, app.application, app.stack, app.template, app.projectType, { start: false })
+                const stage2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', instanceId: TestObjects.instanceTwo.id, source: stage1Id, action: 'use_latest_snapshot' }, TestObjects.pipeline)
+                await TestObjects.factory.createPipelineStage({ name: 'stage-three', instanceId: instanceThree.id, source: stage2.hashid, action: 'use_latest_snapshot' }, TestObjects.pipeline)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stage2.hashid}`,
+                    payload: {
+                        deviceGroupId: TestObjects.deviceGroupTwo.hashid,
+                        action: 'use_latest_snapshot'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(400)
+
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_input')
+                body.should.have.property('error').match(/stage cannot be a Device Group as a later stage contains an instance/i)
+            })
         })
 
         describe('With a new device', function () {
@@ -956,6 +1070,60 @@ describe('Pipelines API', function () {
 
                 response.statusCode.should.equal(200)
             })
+            it('Should not be allowed if there are any "Device Group" stages before it', async function () {
+                // Construct pipeline with 3 stages:        instance -> device group -> device group
+                // Try to change the 3rd stage to a device: instance -> device group -> device        (invalid)
+
+                const pipelineId = TestObjects.pipeline.hashid
+                const stage1Id = TestObjects.stageOne.hashid
+                const stage2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: TestObjects.deviceGroupOne.id, source: stage1Id, action: 'use_active_snapshot' }, TestObjects.pipeline)
+                const stage3 = await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceGroupId: TestObjects.deviceGroupTwo.id, source: stage2.id, action: 'use_active_snapshot' }, TestObjects.pipeline)
+                const newDevice = await TestObjects.factory.createDevice({ name: 'device-c', type: 'robot' }, TestObjects.team, null, TestObjects.application)
+
+                // Try to update stage3
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stage3.hashid}`,
+                    payload: {
+                        deviceId: newDevice.hashid,
+                        action: 'prompt'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+
+                })
+
+                response.statusCode.should.equal(400)
+
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_input')
+                body.should.have.property('error').match(/stage cannot contain an instance as a Device Group is set in a prior stage/i)
+            })
+            it('Should not be allowed if the updated pipeline would result in "Device Group" followed by instance', async function () {
+                // Construct pipeline with 3 stages:              instance -> device -> device
+                // Try to change the 2nd stage to a device group: instance -> device group -> device (invalid)
+
+                const pipelineId = TestObjects.pipeline.hashid
+                const stage1Id = TestObjects.stageOne.hashid
+                const stage2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceOne.id, source: stage1Id, action: 'use_active_snapshot' }, TestObjects.pipeline)
+                await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceId: TestObjects.deviceTwo.id, source: stage2.id, action: 'use_active_snapshot' }, TestObjects.pipeline)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stage2.hashid}`,
+                    payload: {
+                        deviceGroupId: TestObjects.deviceGroupOne.hashid,
+                        action: 'prompt'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+
+                })
+
+                response.statusCode.should.equal(400)
+
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_input')
+                body.should.have.property('error').match(/stage cannot be a Device Group as a later stage contains an instance/i)
+            })
         })
 
         describe('With a new device group', function () {
@@ -1030,20 +1198,46 @@ describe('Pipelines API', function () {
                 body.should.have.property('error').match(/A Device Group cannot be the first stage/i)
             })
 
-            it('Should not be allowed set a center stage as a device group', async function () {
+            it('Should be allowed set a center stage as a device group if following stages are device groups', async function () {
+                // Construct pipeline with 3 stages:              instance -> device -> device group
+                // Try to change the 2nd stage to a device group: instance -> device group -> device group
                 const pipelineId = TestObjects.pipeline.hashid
-                const stageId = TestObjects.stageOne.hashid
+                const stage1Id = TestObjects.stageOne.hashid
+                const stage2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceOne.id, source: stage1Id, action: 'use_active_snapshot' }, TestObjects.pipeline)
+                await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceGroupId: TestObjects.deviceGroupTwo.id, source: stage2.id, action: 'use_active_snapshot' }, TestObjects.pipeline)
 
-                // add a device as the 2nd stage - this will be the center stage
-                await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceOne.id, source: TestObjects.stageOne.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
-
-                // add a device group as the 3rd stage - this will be the last stage
-                await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceGroupId: TestObjects.deviceGroupOne.id, source: TestObjects.stageOne.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
-
-                // now attempt to update the center stage as a device group
                 const response = await app.inject({
                     method: 'PUT',
-                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stage2.hashid}`,
+                    payload: {
+                        deviceGroupId: TestObjects.deviceGroupOne.hashid,
+                        action: 'use_active_snapshot'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                response.statusCode.should.equal(200)
+
+                // get pipeline stages and check they are in order
+                const foundPipeline = await app.db.models.Pipeline.byId(TestObjects.pipeline.id)
+                const stages = await foundPipeline.stages() // stages are a linked list
+                const orderedStages = app.db.models.PipelineStage.sortStages(stages) // ensure we use the sorted stages
+                orderedStages.should.have.length(3)
+                orderedStages[1].should.have.property('DeviceGroups').and.be.an.Array().and.have.length(1)
+                orderedStages[1].DeviceGroups[0].should.have.property('id', TestObjects.deviceGroupOne.id)
+            })
+            it('Should not be allowed set a center stage as a device group if following stages are not all device groups', async function () {
+                // Construct pipeline with 3 stages:              instance -> device -> device
+                // Try to change the 2nd stage to a device group: instance -> device group -> device
+
+                const pipelineId = TestObjects.pipeline.hashid
+                const stage1Id = TestObjects.stageOne.hashid
+                const stage2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceOne.id, source: stage1Id, action: 'use_active_snapshot' }, TestObjects.pipeline)
+                await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceId: TestObjects.deviceTwo.id, source: stage2.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stage2.hashid}`,
                     payload: {
                         deviceGroupId: TestObjects.deviceGroupTwo.hashid,
                         action: 'prompt'
@@ -1055,6 +1249,7 @@ describe('Pipelines API', function () {
 
                 const body = await response.json()
                 body.should.have.property('code', 'invalid_input')
+                body.should.have.property('error').match(/stage cannot be a device group/i)
             })
         })
     })

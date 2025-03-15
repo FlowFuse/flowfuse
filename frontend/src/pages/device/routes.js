@@ -1,3 +1,6 @@
+// import { useStore } from 'vuex'
+import store from '../../store/index.js'
+
 import DeviceAuditLog from './AuditLog.vue'
 import DeviceDeveloperMode from './DeveloperMode/index.vue'
 import DeviceLogs from './Logs.vue'
@@ -7,8 +10,10 @@ import DeviceSettingsEditor from './Settings/Editor.vue'
 import DeviceSettingsEnvironment from './Settings/Environment.vue'
 import DeviceSettingsGeneral from './Settings/General.vue'
 import DeviceSettingsPalette from './Settings/Palette.vue'
+import DeviceSettingsSecurity from './Settings/Security.vue'
 import DeviceSettings from './Settings/index.vue'
-import DeviceSnapshots from './Snapshots/index.vue'
+import VersionHistory from './VersionHistory/index.vue'
+import VersionHistoryRoutes from './VersionHistory/routes.js'
 
 import Device from './index.vue'
 
@@ -16,7 +21,7 @@ export default [
     {
         path: '/device/:id',
         redirect: to => {
-            return `/device/${to.params.id}/overview`
+            return { name: 'DeviceOverview', params: to.params }
         },
         name: 'Device',
         component: Device,
@@ -27,6 +32,7 @@ export default [
             { path: 'overview', component: DeviceOverview, name: 'DeviceOverview' },
             {
                 path: 'settings',
+                name: 'device-settings',
                 component: DeviceSettings,
                 meta: {
                     title: 'Device - Settings'
@@ -38,12 +44,14 @@ export default [
                     { path: 'general', component: DeviceSettingsGeneral },
                     { path: 'environment', component: DeviceSettingsEnvironment },
                     { path: 'editor', component: DeviceSettingsEditor },
+                    { path: 'security', component: DeviceSettingsSecurity },
                     { path: 'palette', component: DeviceSettingsPalette },
                     { path: 'danger', component: DeviceSettingsDanger }
                 ]
             },
             {
                 path: 'audit-log',
+                name: 'device-audit-log',
                 component: DeviceAuditLog,
                 meta: {
                     title: 'Device - Audit Log'
@@ -51,18 +59,28 @@ export default [
             },
             {
                 path: 'logs',
+                name: 'device-logs',
                 component: DeviceLogs,
                 meta: {
                     title: 'Device - Logs'
                 }
             },
             {
-                path: 'snapshots',
+                path: 'version-history',
                 name: 'DeviceSnapshots',
-                component: DeviceSnapshots,
+                component: VersionHistory,
                 meta: {
-                    title: 'Device - Snapshots'
-                }
+                    title: 'Device - Version History'
+                },
+                redirect: to => {
+                    const features = store.getters['account/featuresCheck']
+                    const name = features.isTimelineFeatureEnabled ? 'device-version-history-timeline' : 'device-snapshots'
+                    return {
+                        name,
+                        params: to.params
+                    }
+                },
+                children: [...VersionHistoryRoutes]
             },
             {
                 path: 'developer-mode',

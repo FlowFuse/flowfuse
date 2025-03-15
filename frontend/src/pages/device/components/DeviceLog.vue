@@ -126,7 +126,7 @@ export default {
             })
         },
         disconnectMQTT: async function () {
-            if (this.client.connected) {
+            if (this.client?.connected) {
                 this.client.end()
             }
             this.client = null

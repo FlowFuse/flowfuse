@@ -126,7 +126,7 @@ const Permissions = {
      */
 
     // Projects
-    'project:history': { description: 'View project history', role: Roles.Member },
+    'project:history': { description: 'View Hosted Instances project history', role: Roles.Member },
 
     // Application
     'application:bom': { description: 'Get the Application Bill of Materials', role: Roles.Owner },
@@ -188,7 +188,18 @@ const Permissions = {
     'broker:clients:create': { description: 'Create Team Broker clients', role: Roles.Owner },
     'broker:clients:edit': { description: 'Edit Team Broker clients', role: Roles.Owner },
     'broker:clients:delete': { description: 'Delete Team Broker clients', role: Roles.Owner },
-    'broker:topics:list': { description: 'List active Team Broker topics', role: Roles.Member }
+    'broker:topics:list': { description: 'List active Team Broker topics', role: Roles.Member },
+    'broker:topics:write': { description: 'Edit Topic metadata', role: Roles.Owner },
+
+    // 3rd Party Broker
+    'broker:credentials:list': { description: 'List 3rd Party Broker credentials', role: Roles.Owner },
+    'broker:credentials:create': { description: 'Create new Broker credentials', role: Roles.Owner },
+    'broker:credentials:edit': { description: 'Edit Broker Credentials', role: Roles.Owner },
+    'broker:credentials:delete': { description: 'Delete Broker Credentials', role: Roles.Owner },
+
+    // Team Packages
+    'team:packages:read': { description: 'List Teams Private Packages', role: Roles.Member },
+    'team:packages:manage': { description: 'Manage Teams Private Packages', role: Roles.Owner }
 }
 
 module.exports = {

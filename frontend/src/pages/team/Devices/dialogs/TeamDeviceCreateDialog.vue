@@ -191,6 +191,7 @@ export default {
             } else {
                 opts.team = this.team.id
                 this.$emit('deviceCreating')
+                this.team.deviceCount++
                 devicesApi.create(opts).then((response) => {
                     if (!this.instance && !this.application && !this.input.application) {
                         this.$emit('deviceCreated', response)
@@ -223,6 +224,7 @@ export default {
                         })
                     }
                 }).catch(err => {
+                    this.team.deviceCount--
                     this.$emit('deviceCreated', null)
                     console.error(err.response.data)
                     if (err.response.data) {

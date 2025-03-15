@@ -119,7 +119,7 @@ export default {
             }
         },
         selectedOption () {
-            if (!this.value) {
+            if (this.value === undefined || this.value === null) {
                 return null
             }
 

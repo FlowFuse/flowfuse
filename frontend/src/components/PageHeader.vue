@@ -75,7 +75,7 @@
     </div>
 </template>
 <script>
-import { AcademicCapIcon, AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon, XIcon } from '@heroicons/vue/solid'
+import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon, XIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
@@ -99,7 +99,7 @@ export default {
         },
         ...mapState('account', ['user', 'team', 'teams']),
         ...mapState('ux', ['leftDrawer']),
-        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount']),
+        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount', 'featuresCheck']),
         ...mapGetters('ux', ['hiddenLeftDrawer']),
         navigationOptions () {
             return [
@@ -108,17 +108,17 @@ export default {
                     icon: CogIcon,
                     tag: 'user-settings',
                     onclick: this.$router.push,
-                    onclickparams: { name: 'User Settings' }
+                    onclickparams: { name: 'User Settings' },
+                    hidden: false
                 },
-                this.user.admin
-                    ? {
-                        label: 'Admin Settings',
-                        icon: AdjustmentsIcon,
-                        tag: 'admin-settings',
-                        onclick: this.$router.push,
-                        onclickparams: { name: 'Admin Settings' }
-                    }
-                    : undefined,
+                {
+                    label: 'Admin Settings',
+                    icon: AdjustmentsIcon,
+                    tag: 'admin-settings',
+                    onclick: this.$router.push,
+                    onclickparams: { name: 'Admin Settings' },
+                    hidden: !this.user.admin
+                },
                 {
                     label: 'Documentation',
                     icon: QuestionMarkCircleIcon,
@@ -126,21 +126,25 @@ export default {
                     onclick: (route) => window.open(route.url, '_blank'),
                     onclickparams: { url: 'https://flowfuse.com/docs/' }
                 },
-                this.isTrialAccount
-                    ? {
-                        label: 'Getting Started',
-                        icon: AcademicCapIcon,
-                        tag: 'getting-started',
-                        onclick: this.openEducationModal
-                    }
-                    : undefined,
+                {
+                    label: 'Getting Started',
+                    icon: AcademicCapIcon,
+                    tag: 'getting-started',
+                    onclick: this.openEducationModal
+                },
+                {
+                    label: 'Welcome Tour',
+                    icon: CursorClickIcon,
+                    tag: 'welcome-tour',
+                    onclick: this.startWelcomeTour
+                },
                 {
                     label: 'Sign Out',
                     icon: LogoutIcon,
                     tag: 'sign-out',
                     onclick: this.signOut
                 }
-            ].filter(option => option !== undefined)
+            ].filter(option => !option.hidden)
         },
         showInviteButton () {
             return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
@@ -177,11 +181,22 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux', ['toggleLeftDrawer']),
-        ...mapActions('ux', ['activateTour']),
+        ...mapActions('ux', ['toggleLeftDrawer', 'activateTour']),
         openEducationModal () {
             this.activateTour('education')
             product.capture('clicked-open-education-modal')
+        },
+        startWelcomeTour () {
+            return this.$store.dispatch('ux/resetTours')
+                // it's unfortunate that we can't redirect premium users straight to the application device page, but we
+                // don't have available applications at this moment in time so they'll get redirected twice
+                .then(() => this.$router.push({ name: 'Applications' }))
+                .then(() => {
+                    // breathing room for the page, instances and devices to load for the tour to work properly
+                    setTimeout(() => {
+                        this.$store.dispatch('ux/activateTour', 'welcome')
+                    }, 1000)
+                })
         }
     }
 }

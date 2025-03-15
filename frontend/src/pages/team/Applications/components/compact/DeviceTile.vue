@@ -18,7 +18,8 @@
             </div>
         </div>
         <div class="actions">
-            <ff-kebab-menu>
+            <FinishSetupButton v-if="neverConnected" :device="device" />
+            <ff-kebab-menu v-else>
                 <ff-list-item
                     label="Edit Details"
                     @click.stop="$emit('device-action',{action: 'edit', id: device.id})"
@@ -46,6 +47,7 @@
 </template>
 
 <script>
+import FinishSetupButton from '../../../../../components/FinishSetup.vue'
 import StatusBadge from '../../../../../components/StatusBadge.vue'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
@@ -58,7 +60,8 @@ export default {
     components: {
         StatusBadge,
         FfKebabMenu,
-        DaysSince
+        DaysSince,
+        FinishSetupButton
     },
     mixins: [AuditMixin, permissionsMixin, deviceActionsMixin],
     props: {
@@ -71,7 +74,17 @@ export default {
             type: Object
         }
     },
-    emits: ['device-action']
+    emits: ['device-action'],
+    computed: {
+        neverConnected () {
+            return !this.device.lastSeenAt
+        }
+    },
+    methods: {
+        finishSetup () {
+            this.deviceAction('updateCredentials')
+        }
+    }
 }
 </script>
 

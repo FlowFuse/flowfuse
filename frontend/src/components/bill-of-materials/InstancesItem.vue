@@ -9,7 +9,7 @@
             </h6>
             <h6 v-else>
                 <IconNodeRedSolid class="ff-icon text-red-700" />
-                <router-link :to="{name: 'instance-overview', params: {id: instance.id}}" class="ff-link truncate">
+                <router-link :to="{name: 'instance-settings-palette', params: {id: instance.id}}" class="ff-link truncate">
                     {{ instance.name }}
                 </router-link>
             </h6>
