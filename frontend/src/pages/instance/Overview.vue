@@ -31,7 +31,13 @@
                         <tr class="border-b">
                             <td class="font-medium">Status</td>
                             <td class="py-2">
-                                <InstanceStatusBadge :status="instance.meta.state" :pendingStateChange="instance.pendingStateChange" :optimisticStateChange="instance.optimisticStateChange" />
+                                <InstanceStatusBadge
+                                    :status="instance.meta.state"
+                                    :pendingStateChange="instance.pendingStateChange"
+                                    :optimisticStateChange="instance.optimisticStateChange"
+                                    :instanceId="instance.id"
+                                    instanceType="instance"
+                                />
                             </td>
                         </tr>
                         <tr class="border-b">

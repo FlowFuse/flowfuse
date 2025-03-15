@@ -13,7 +13,7 @@
                 <template #status>
                     <div class="flex flex-wrap gap-2">
                         <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
-                        <StatusBadge :status="device.status" />
+                        <StatusBadge :status="device.status" :instanceId="device.id" instanceType="device" />
                         <DeviceModeBadge v-if="isDevModeAvailable " :mode="device.mode" />
                     </div>
                 </template>

@@ -4,7 +4,7 @@
         <label>{{ device.name }}</label>
         <span>{{ device.editor?.url }}</span>
     </div>
-    <div><StatusBadge :status="device.status" /></div>
+    <div><StatusBadge :status="device.status" :instanceId="device.id" instanceType="device" /></div>
     <div class="text-sm">
         <span v-if="device.mostRecentAuditLogCreatedAt" class="flex flex-col">
             {{ labelForAuditLogEntry(device.mostRecentAuditLogEvent) }}

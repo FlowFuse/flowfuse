@@ -6,6 +6,8 @@
                 text=""
                 :pendingStateChange="localInstance.pendingStateChange"
                 :optimisticStateChange="localInstance.optimisticStateChange"
+                :instanceId="localInstance.id"
+                instanceType="instance"
             />
         </div>
         <div class="details">

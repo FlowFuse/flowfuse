@@ -11,6 +11,8 @@
             :status="localInstance.meta?.state"
             :optimisticStateChange="localInstance.optimisticStateChange"
             :pendingStateChange="localInstance.pendingStateChange"
+            :instanceId="localInstance.id"
+            instanceType="instance"
         />
     </div>
     <div class="text-sm">
