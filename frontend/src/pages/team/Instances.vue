@@ -36,7 +36,7 @@
             <template v-else-if="instancesAvailable">
                 <ff-data-table
                     v-if="instances.length > 0"
-                    data-el="instances-table" :columns="columns" :rows="instances" :show-search="true" search-placeholder="Search Instances..."
+                    data-el="instances-table" :columns="columns" :rows="instances" :show-search="true" search-placeholder="Search Instances..." initialSortKey="flowLastUpdatedAt" initialSortOrder="desc"
                     :rows-selectable="!dashboardRoleOnly"
                     @row-selected="openInstance"
                 >
@@ -70,12 +70,12 @@
                     <template #header>Get Started with your First Node-RED Instance</template>
                     <template #message>
                         <p>
-                            Instances are managed in FlowFuse via <router-link
+                            Instances are managed in FlowFuse via <ff-team-link
                                 class="ff-link"
                                 :to="{name:'Applications', params: {team_slug: team.slug}}"
                             >
                                 Applications
-                            </router-link>.
+                            </ff-team-link>.
                         </p>
                         <p>
                             You can create your first Instance when creating your first Application, or add an Instance to an existing Application if you have one.
