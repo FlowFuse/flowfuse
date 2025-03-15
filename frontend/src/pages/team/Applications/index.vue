@@ -108,11 +108,6 @@ import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
-import Tours from '../../../tours/Tours.js'
-
-import TourFirstDevice from '../../../tours/tour-first-device.js'
-import TourWelcomeFree from '../../../tours/tour-welcome-free.json'
-import TourWelcome from '../../../tours/tour-welcome.json'
 
 import ApplicationListItem from './components/Application.vue'
 
@@ -137,9 +132,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('ux/tours', ['tours', 'completed']),
-        ...mapGetters('ux/tours', ['hasTourBeenCompleted']),
-        ...mapGetters('account', ['featuresCheck', 'team']),
+        ...mapState('ux/tours', ['tours', 'completed', 'shouldPresentTour']),
+        ...mapGetters('account', ['featuresCheck', 'team', 'isFreeTeamType']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
                 return {
@@ -219,22 +213,16 @@ export default {
                 count += app.instances.length
                 return count
             }, 0)
-        },
-        isFreemiumTeamType () {
-            return !this.featuresCheck?.isHostedInstancesEnabledForTeam
         }
     },
     watch: {
         team: 'fetchData',
-        tours: {
-            handler (tours) {
-                // handles the user manually re-requesting the tour
-                if (tours.welcome || tours.firstDevice) {
+        shouldPresentTour: {
+            handler (should) {
+                if (should) {
                     this.dispatchTour()
                 }
-            },
-            deep: true,
-            immediate: true
+            }
         }
     },
     async mounted () {
@@ -249,7 +237,7 @@ export default {
             })
         }
 
-        if (this.tours.welcome || this.tours.firstDevice) {
+        if (this.shouldPresentTour) {
             // given we've loaded resources, check for tour status
             this.dispatchTour()
         }
@@ -345,43 +333,35 @@ export default {
         },
 
         dispatchTour () {
-            if (this.tour) {
-                // don't run two tours at once
-                return
-            }
             switch (true) {
-            case this.isFreemiumTeamType && !this.hasTourBeenCompleted('firstDevice') && !!this.applicationsList[0]:
+            case this.isFreeTeamType && !!this.applicationsList[0]:
                 // freemium users must first undergo the first-device tour on the ApplicationDevices page
-                return this.$store.dispatch('ux/tours/activateTour', 'firstDevice')
-                    .then(() => this.$router.push({
-                        name: 'ApplicationDevices',
-                        params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
-                    }))
-                    .then(() => {
-                        this.tour = Tours.create(
-                            'firstDevice',
-                            TourFirstDevice,
-                            this.$store
-                        )
-                        this.tour.start()
-                    })
+                return this.$router.push({
+                    name: 'ApplicationDevices',
+                    params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
+                })
+                    .then(() => this.$store.dispatch('ux/tours/setFirstDeviceTour'))
                     .catch(e => e)
 
-            case !this.isFreemiumTeamType && this.instanceCount > 0:
-                this.tour = Tours.create('welcome', TourWelcome, this.$store, () => {
-                    this.$store.dispatch('ux/tours/activateTour', 'education')
-                })
+            case !this.isFreeTeamType && this.instanceCount > 0:
                 // Running with an Instance pre-configured (Trial team types)
-                return this.tour.start()
+                return this.$store.dispatch(
+                    'ux/tours/setTrialWelcomeTour',
+                    () => this.$store.dispatch('ux/tours/openModal', 'education')
+                )
+                    .catch(e => e)
 
-            case !this.isFreemiumTeamType:
+            case !this.isFreeTeamType:
                 // any regular team type
-                this.tour = Tours.create('welcome', TourWelcomeFree, this.$store, () => {
-                    if (this.deviceCount === 0) {
-                        this.$store.dispatch('ux/tours/activateTour', 'firstDevice')
-                    }
-                })
-                return this.tour.start()
+                return this.$store.dispatch(
+                    'ux/tours/setWelcomeTour',
+                    () => {
+                        if (this.deviceCount === 0) {
+                            // start first device tour when finished
+                            this.$store.dispatch('ux/tours/setFirstDeviceTour')
+                        }
+                    })
+                    .catch(e => e)
 
             default:
                 // no tours
