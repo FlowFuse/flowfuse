@@ -34,7 +34,7 @@ function create (id, tourJson, store, onCloseHook) {
 
     function onCancel () {
         const index = tour.steps.indexOf(tour.currentStep)
-        store.dispatch('ux/deactivateTour', id)
+        store.dispatch('ux/tours/deactivateTour', id)
         Product.capture('ff-tour-cancel', {
             tour_id: id,
             tour_step: index
@@ -45,7 +45,7 @@ function create (id, tourJson, store, onCloseHook) {
     }
 
     function onComplete () {
-        store.dispatch('ux/deactivateTour', id)
+        store.dispatch('ux/tours/deactivateTour', id)
         Product.capture('ff-tour-complete', {
             tour_id: id
         })

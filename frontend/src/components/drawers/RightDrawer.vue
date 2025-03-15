@@ -1,5 +1,5 @@
 <template>
-    <section id="right-drawer" v-click-outside="{handler: closeRightDrawer, exclude: ['right-drawer']}" :class="{open: rightDrawer.state}" data-el="right-drawer">
+    <section id="right-drawer" v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}" :class="{open: rightDrawer.state}" data-el="right-drawer">
         <component :is="rightDrawer.component" v-if="rightDrawer.component" />
     </section>
 </template>
@@ -13,8 +13,14 @@ export default {
         ...mapState('ux', ['rightDrawer'])
     },
     methods: {
-        ...mapActions('ux', ['closeRightDrawer'])
+        ...mapActions('ux', ['closeRightDrawer']),
+        closeDrawer () {
+            if (this.rightDrawer.state) {
+                this.closeRightDrawer()
+            }
+        }
     }
+
 }
 </script>
 

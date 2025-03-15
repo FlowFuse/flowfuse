@@ -54,7 +54,7 @@ export default {
     },
     computed: {
         ...mapGetters({
-            isOpen: 'ux/shouldShowEducationModal'
+            isOpen: 'ux/tours/shouldShowEducationModal'
         }),
         helpOptions () {
             return [
@@ -79,7 +79,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux', ['deactivateTour']),
+        ...mapActions('ux/tours', ['deactivateTour']),
         triggerClose () {
             if (this.isClosing) {
                 this.closeModal()
