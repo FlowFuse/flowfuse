@@ -12,7 +12,7 @@
                 </InfoCardRow>
                 <InfoCardRow property="Status:">
                     <template #value>
-                        <StatusBadge :status="device.status" />
+                        <StatusBadge :status="device.status" :instanceId="device.id" instanceType="device" />
                     </template>
                 </InfoCardRow>
                 <InfoCardRow property="Agent Version:">

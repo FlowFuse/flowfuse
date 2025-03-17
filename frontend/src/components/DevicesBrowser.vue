@@ -412,7 +412,7 @@ export default {
                 { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenCell) } },
-                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
+                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge), map: { instanceId: 'id' }, extraProps: { instanceType: 'device' } } }
             ]
 
             if (this.displayingTeam) {
