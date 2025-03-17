@@ -219,7 +219,16 @@ const getters = {
             isExternalMqttBrokerFeatureEnabledForPlatform: !!state.features?.externalBroker,
 
             // DevOps Pipelines
-            devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines']
+            devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines'],
+
+            // Protected Instance
+            isProtectedInstanceFeatureEnabledForPlatform: !!state.features?.protectedInstance,
+            isProtectedInstanceFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.protectedInstance,
+
+            // Email Alerts
+            isEmailAlertsFeatureEnabledForPlatform: !!state.features?.emailAlerts,
+            isEmailAlertsFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.emailAlerts
+
         }
         return {
             ...preCheck,
@@ -234,7 +243,9 @@ const getters = {
             // external broker must be enabled for platform, and share the same team-level feature flag as the team broker
             isExternalMqttBrokerFeatureEnabled: preCheck.isExternalMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
             devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
-            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups
+            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups,
+            isProtectedInstanceFeatureEnabled: preCheck.isProtectedInstanceFeatureEnabledForPlatform && preCheck.isProtectedInstanceFeatureEnabledForTeam,
+            isEmailAlertsFeatureEnabled: preCheck.isEmailAlertsFeatureEnabledForPlatform && preCheck.isEmailAlertsFeatureEnabledForTeam
         }
     }
 }

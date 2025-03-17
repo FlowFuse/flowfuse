@@ -43,11 +43,6 @@
             </ff-page-header>
         </template>
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" :instance="instance" @confirm="onInstanceDelete" />
-        <Teleport v-if="mounted" to="#platform-banner">
-            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">You are viewing this instance as an Administrator</div>
-            <SubscriptionExpiredBanner :team="team" />
-            <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
-        </Teleport>
         <div>
             <router-view
                 :instance="instance"
@@ -107,26 +102,15 @@ export default {
         ...mapState('account', ['teamMembership', 'team']),
         navigation () {
             if (!this.instance.id) return []
-            let versionHistoryRoute
-            if (!this.isTimelineFeatureEnabled) {
-                versionHistoryRoute = {
-                    name: 'instance-snapshots',
-                    params: { id: this.instance.id }
-                }
-            } else {
-                versionHistoryRoute = {
-                    name: 'instance-version-history',
-                    params: { id: this.instance.id }
-                }
-            }
+
             return [
-                { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
-                { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
-                { label: 'Version History', to: versionHistoryRoute, tag: 'instance-version-history' },
-                { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasAMinimumTeamRoleOf(Roles.Member) },
-                { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
-                { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
-                { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
+                { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-overview' },
+                { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-remote' },
+                { label: 'Version History', to: { name: 'instance-version-history', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-version-history' },
+                { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-assets', hidden: !this.hasAMinimumTeamRoleOf(Roles.Member) },
+                { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-activity' },
+                { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-logs' },
+                { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id, team_slug: this.team.slug } }, tag: 'instance-settings' }
             ]
         },
         isLoading: function () {
