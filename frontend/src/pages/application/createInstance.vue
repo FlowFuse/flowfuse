@@ -2,12 +2,6 @@
     <ff-page>
         <template #header>
             <ff-page-header title="Add a new Instance">
-                <template #tools>
-                    <section class="flex gap-3">
-                        <ff-button kind="secondary">Back</ff-button>
-                        <ff-button>Next</ff-button>
-                    </section>
-                </template>
                 <template #helptext>
                     Help MEEEEE
                 </template>
@@ -15,20 +9,10 @@
         </template>
 
         <ff-loading v-if="isLoading" />
+
         <ff-loading v-else-if="sourceInstanceId && !sourceInstance" message="Loading instance to Copy From..." />
+
         <MultiStepInstanceForm v-else />
-        <!--        <InstanceForm-->
-        <!--            v-else-->
-        <!--            :has-header="false"-->
-        <!--            :instance="instanceDetails"-->
-        <!--            :source-instance="sourceInstance"-->
-        <!--            :team="team"-->
-        <!--            :applicationFieldsLocked="!!application?.id"-->
-        <!--            :billing-enabled="!!features.billing"-->
-        <!--            :flow-blueprints-enabled="!!features.flowBlueprints"-->
-        <!--            :submit-errors="errors"-->
-        <!--            @on-submit="handleFormSubmit"-->
-        <!--        />-->
     </ff-page>
 </template>
 
@@ -41,13 +25,11 @@ import MultiStepInstanceForm from '../../components/multi-step-modals/instance-c
 
 import applicationMixin from '../../mixins/Application.js'
 import Alerts from '../../services/alerts.js'
-import InstanceForm from '../instance/components/InstanceForm.vue'
 
 export default {
     name: 'ApplicationCreateInstance',
     components: {
-        MultiStepInstanceForm,
-        InstanceForm
+        MultiStepInstanceForm
     },
     mixins: [applicationMixin],
     inheritAttrs: false,
