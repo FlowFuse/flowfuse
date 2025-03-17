@@ -2,20 +2,20 @@
     <div class="step-slider">
         <div class="wrapper">
             <ul class="progress">
-                <li v-for="(title, $key) in entries" :key="$key" class="st" :class="{completed: $key <= currentEntry}">
+                <li v-for="(entry, $key) in entries" :key="$key" class="st" :class="{completed: $key <= currentEntry, disabled: entry.disabled}">
                     <span />
                 </li>
             </ul>
             <ul class="steps">
                 <li
-                    v-for="(title, $key) in entries"
+                    v-for="(entry, $key) in entries"
                     :key="$key"
                     class="step cursor-pointer"
-                    :class="{active: $key === currentEntry, completed: $key <= currentEntry}"
-                    @click="$emit('step-selected', $key)"
+                    :class="{active: $key === currentEntry, completed: $key <= currentEntry, disabled: entry.disabled}"
+                    @click="select($key, entry.disabled)"
                 >
                     <span class="label">
-                        {{ title }}
+                        {{ entry.title }}
                     </span>
                 </li>
             </ul>
@@ -36,7 +36,14 @@ export default {
             required: true
         }
     },
-    emits: ['step-selected']
+    emits: ['step-selected'],
+    methods: {
+        select (key, disabled) {
+            if (disabled !== true) {
+                this.$emit('step-selected', key)
+            }
+        }
+    }
 }
 </script>
 
@@ -119,6 +126,10 @@ export default {
                     .label {
                         color: $ff-indigo-700;
                     }
+                }
+
+                &.disabled {
+                    cursor: default;
                 }
 
                 .label {
