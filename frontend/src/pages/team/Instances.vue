@@ -156,7 +156,17 @@ export default {
             instances: [],
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName) } },
-                { label: 'Status', class: ['w-44'], key: 'status', sortable: true, component: { is: markRaw(InstanceStatusBadge) } },
+                {
+                    label: 'Status',
+                    class: ['w-44'],
+                    key: 'status',
+                    sortable: true,
+                    component: {
+                        is: markRaw(InstanceStatusBadge),
+                        map: { instanceId: 'id' },
+                        extraProps: { instanceType: 'instance' }
+                    }
+                },
                 { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true },
                 {
                     label: 'Last Updated',
