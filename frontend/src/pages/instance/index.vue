@@ -10,7 +10,13 @@
                     <ff-nav-breadcrumb :to="{name: 'Instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
                 </template>
                 <template #status>
-                    <InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" />
+                    <InstanceStatusBadge
+                        :status="instance.meta?.state"
+                        :optimisticStateChange="instance.optimisticStateChange"
+                        :pendingStateChange="instance.pendingStateChange"
+                        :instanceId="instance.id"
+                        instanceType="instance"
+                    />
                     <router-link v-if="instance.ha?.replicas !== undefined" :to="{name: 'instance-settings-ha', params: { id: instance.id }}" @click.stop>
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="high-availability" />
                     </router-link>
