@@ -4,6 +4,7 @@
             <step-slider
                 :entries="sliderTitles"
                 :current-entry="currentStepKey"
+                :disableNextStep="disableNextStep"
                 @step-selected="selectStep"
             />
         </section>
@@ -19,7 +20,7 @@
         <section class="footer my-10">
             <section class="flex gap-3">
                 <ff-button class="flex-1" kind="secondary" :disabled="!canGoToPreviousStep" @click="previousStep">Back</ff-button>
-                <ff-button class="flex-1" @click="nextStep">{{ nextStepLabel }}</ff-button>
+                <ff-button class="flex-1" :disabled="disableNextStep" @click="nextStep">{{ nextStepLabel }}</ff-button>
             </section>
         </section>
     </div>
@@ -41,6 +42,11 @@ export default {
             type: Number,
             required: false,
             default: 0
+        },
+        disableNextStep: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['step-updated'],

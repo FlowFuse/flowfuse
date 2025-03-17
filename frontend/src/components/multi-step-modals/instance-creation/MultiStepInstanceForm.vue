@@ -1,5 +1,10 @@
 <template>
-    <MultiStepForm :steps="formSteps" :starting-step="1" @step-updated="updateForm" />
+    <MultiStepForm
+        :steps="formSteps"
+        :starting-step="1"
+        :disable-next-step="shouldDisableNextStep"
+        @step-updated="updateForm"
+    />
 </template>
 
 <script>
@@ -45,6 +50,15 @@ export default {
                     component: BlueprintStep
                 }
             ]
+        },
+        shouldDisableNextStep () {
+            let flag = false
+            Object.keys(this.form).forEach(key => {
+                if (this.form[key].hasErrors) {
+                    flag = true
+                }
+            })
+            return flag
         }
     },
     methods: {

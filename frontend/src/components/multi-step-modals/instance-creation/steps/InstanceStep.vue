@@ -119,8 +119,8 @@ export default {
         return {
             input: {
                 name: this.initialState.name ?? NameGenerator(),
-                instanceType: this.initialState.instanceType,
-                nodeREDVersion: this.initialState.nodeREDVersion
+                instanceType: this.initialState.instanceType ?? null,
+                nodeREDVersion: this.initialState.nodeREDVersion ?? null
             },
             errors: {
                 name: null,
