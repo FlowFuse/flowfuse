@@ -35,6 +35,7 @@
             </div>
 
             <Loading v-if="loading" size="small" />
+
             <template v-else>
                 <div class="instance-types input-wrapper flex flex-wrap items-stretch">
                     <label class="mb-1">Choose your Instance Type</label>
@@ -101,15 +102,25 @@ export default {
         slug: {
             required: true,
             type: String
+        },
+        state: {
+            required: false,
+            type: Object,
+            default: () => ({})
         }
     },
     emits: ['step-updated'],
+    setup (props) {
+        return {
+            initialState: props.state
+        }
+    },
     data () {
         return {
             input: {
-                name: NameGenerator(),
-                instanceType: null,
-                nodeREDVersion: null
+                name: this.initialState.name ?? NameGenerator(),
+                instanceType: this.initialState.instanceType,
+                nodeREDVersion: this.initialState.nodeREDVersion
             },
             errors: {
                 name: null,
@@ -344,13 +355,6 @@ export default {
                     padding: 5px 10px;
                 }
             }
-
-            //.instance-name-confirmation {
-            //    margin: 5px 0 5px 10px;
-            //    display: flex;
-            //    gap: 5px;
-            //    color: $ff-green-600;
-            //}
         }
     }
 }
