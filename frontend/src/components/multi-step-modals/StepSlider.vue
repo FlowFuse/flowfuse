@@ -34,11 +34,19 @@ export default {
         currentEntry: {
             type: Number,
             required: true
+        },
+        disableNextStep: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['step-selected'],
     methods: {
         select (key, disabled) {
+            if (this.disableNextStep) {
+                return
+            }
             if (disabled !== true) {
                 this.$emit('step-selected', key)
             }
