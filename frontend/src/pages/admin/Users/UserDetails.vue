@@ -2,7 +2,7 @@
     <div class="flex flex-col sm:flex-row mb-8">
         <div class="flex-grow">
             <div class="text-gray-800 text-xl">
-                <router-link class="ff-link font-bold" :to="{path: '/admin/users'}">Users</router-link>
+                <router-link class="ff-link font-bold" :to="{name: 'admin-users'}">Users</router-link>
                 <!-- <nav-item :icon="icons.breadcrumbSeparator" label="sss"></nav-item> -->
                 <ChevronRightIcon class="ff-icon" />
                 <span>{{ user.username }}</span>
@@ -93,7 +93,8 @@ export default {
                 { label: 'Role', component: { is: markRaw(UserRoleCell) }, sortable: true },
                 { label: 'Type', key: 'type', component: { is: markRaw(TeamTypeCell) }, sortable: true },
                 { label: 'Members', class: ['w-54', 'text-center'], key: 'memberCount', sortable: true },
-                { label: 'Application Instances', class: ['w-54', 'text-center'], key: 'instanceCount', sortable: true }
+                { label: 'Instances', class: ['w-54', 'text-center'], key: 'instanceCount', sortable: true },
+                { label: 'Devices', class: ['w-54', 'text-center'], key: 'deviceCount', sortable: true }
             ]
         }
     },
@@ -121,7 +122,7 @@ export default {
                 })
             } catch (err) {
                 this.$router.push({
-                    name: 'PageNotFound',
+                    name: 'page-not-found',
                     params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
                     // preserve existing query and hash if any
                     query: this.$router.currentRoute.value.query,

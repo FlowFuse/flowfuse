@@ -1,66 +1,117 @@
 ---
 navTitle: Quick Start
 navOrder: 2
+meta:
+   description: Learn how to add and connect Remote Instances to FlowFuse, and develop workflows using the web UI.
+   tags:
+      - remote instance management
+      - flowfuse
 ---
 
-# Developing Flows on Your Device
+# Quick Start Guide: Device Agent
 
-## Add Device to FlowFuse
+This guide will walk you through the process of adding a device to FlowFuse, connecting it to the platform, and deploying your Node-RED flows remotely. FlowFuse's Device Agent helps unlock the power of your devices by allowing you to manage and deploy Node-RED flows running on those devices securely and remotely.
 
-### Prerequisites
+![FlowFuse Device Agent Workflow](./images/device-agent-workflow.png){data-zoomable}
+_Workflow to onboard new Remote Instances through the FlowFuse Platform and Device Agent_
 
-If you do not already have the device agent installed, follow the [install instructions](./install.md), otherwise, proceed to the next step.
+## Video Walkthrough
+This video will walk you through every step from creating a remote instance, installing the Device Agent, and connecting the two. It is focused on the Free tier, but applies to all users.
+<iframe width="560" height="315" src="https://www.youtube.com/embed/JFY0s8X5RVo?si=MDgOaO8Iqzmc-KCk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
-_NOTE: It is good practice to keep your Device Agent up to date. Update instructions are also provided in the link above._
+## Setup & Installation
 
-_NOTE: If you prefer to use the Device Agent WEB UI, follow the [Quick Start with Web UI](./quickstart-web-ui.md) guide._
+### Step 1: Install Device Agent (On Device)
 
-### Step 1: Add a new Device
+NodeJS version 18 is supported but version 20 or later is recommended. However, if necessary, device agent version 2.8 does support NodeJS versions 14 and 16.
+
+For full install instructions, follow the [install instructions here](/docs/device-agent/install.md).
+
+#### Linux/MacOS
+
+```bash
+sudo npm install -g @flowfuse/device-agent
+```
+
+#### Windows
+
+Issue the below command in an elevated command prompt:
+
+```bash
+npm install -g @flowfuse/device-agent
+```
+
+### Step 2: Register a Remote Instance (On FlowFuse)
+
 1. Open your web browser and go to your FlowFuse application page.
-2. Navigate to the **Devices** section.
-3. Click **Add Device.**
-4. Fill in the **Device Name** & **Device Type** and select an **Application**
+2. Navigate to the **Remote Instances** section.
+3. Click **Add Remote Instance.**
+4. Fill in the **Name** & **Type** and select an **Application**
 
-    <img src="images/add_device.png" />
+    ![Screenshot of the dialog form to fill out when registering a Device](./images/add_remote_instance.png){data-zoomable}{ style="max-width: 600px"; }
+    _Screenshot of the dialog form to fill out when registering a Device_
+    
 5. Click **Add**
 6. You will be presented with a **Device Configuration** that you will need in the next step. _(Do not close this window just yet.)_
 
-    <img src="images/config_yml2a.png"/>
+    ![Screenshot of the dialog shown to a suer when a Device is registered](./images/config_yml2a.png){data-zoomable}
+    _Screenshot of the dialog shown to a suer when a Device is registered_
 
-### Step 2: Connect the Device
-1. Open a Terminal/Command Prompt.
-2. Paste the command copied from the previous step and run it.
+### Step 3: Connect the Device (On Device)
 
-    <img src="images/device_cli.png" />
-3. Start the Device Agent using the command instructed by the device agent output e.g:
+1. Open a Terminal/Command Prompt on the Device.
+2. Paste the command presented when you registered your Device, and run it.
+
+    ![Example output in a Terminal showing a device agent successfully connecting to the FlowFuse Platform](./images/device_cli.png){data-zoomable}
+    _Example output in a Terminal showing a device agent successfully connecting to the FlowFuse Platform_
+
+### Step 4: Start the Device Agent (On Device)
+
+1. Start the Device Agent using the command instructed by the device agent output e.g:
+
    ```bash
    flowfuse-device-agent
    ```
 
 Your device is now connected to FlowFuse and ready to be used.
 
+## Deploy Flows to Remote Instances
 
-## Develop on Device
-### Enable Developer Mode
+There are two approaches to deploying flows to your Remote Instances.
+
+- **Developer Mode**: This mode allows you to edit and deploy flows directly from the FlowFuse platform.
+- **DevOps Pipelines**: FlowFuse provides [DevOps Pipelines](/docs/user/devops-pipelines.md) as a way of pushing flows from one Hosted Instance/Remote Instance to another (or several in the case of [Device Groups](/docs/user/device-groups.md)). This is the recommended approach if you're pushing from development environments (e.g. remote test instances) out to remote production instances.
+
+### Developer Mode
+
 1. Navigate to **Applications** and select the application your device was added to.
-2. Go to the **Devices** tab within the application.
-3. Locate your newly added device and **click** on your device.
+2. Go to the **Remote Instances** tab within the application.
+3. Locate your newly added device and **click** on your Remote Instance.
 4. Then Click **Developer Mode** toggle button on upper right.
 
-    <img src="images/developer.png" />
+    ![The "Developer Mode" toggle button available on the Device screen](./images/developer.png){data-zoomable}
+    _The "Developer Mode" toggle button available on the Device screen_
 
 5. This will enable editor access for your device.
 
-    <img src="images/editorEnabled.png"/>
+    ![The "Device Editor" button available on the Device screen](./images/editorEnabled.png){data-zoomable}
+    _The "Device Editor" button available on the Device screen_
 
 6. Clicking **Device Editor** will launch the editor.
 
-    <img src="images/nr_editor.png" />
+    ![Screenshot of a Node-RED Editor for a Device](./images/nr_editor.png){data-zoomable}
+    _Screenshot of a Node-RED Editor for a Device_
 
+### DevOps Pipelines
+
+![Screenshot showing the user interface for creating and running DevOps Pipelines in FlowFuse](./images/ui-devops-pipelines.png){width=750}{data-zoomable}
+_Screenshot showing the user interface for creating and running DevOps Pipelines in FlowFuse_
+
+To work with Pipelines, you need at least one other Hosted Instance or Remote Device to push _from_/_to_. You can follow the instructions on setting up a Pipeline and deploying your flows between Hosted Instances/Remote Instances [DevOps Pipelines](/docs/user/devops-pipelines.md).
 
 ## Next Steps
 
-Now you have a device connected to the platform, there are many features you can use to manage and monitor your devices.
+Now you have a device connected to the platform, there are many features you can use to manage and monitor your Remote Instances.
 Here are a few to get you started:
 
 * [Snapshots](../user/snapshots.md)

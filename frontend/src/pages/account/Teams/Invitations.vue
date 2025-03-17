@@ -1,6 +1,6 @@
 <template>
     <div class="space-y-6">
-        <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations">
+        <ff-data-table data-el="table" :columns="inviteColumns" :rows="invitations" noDataMessage="No Invitations">
             <template #row-actions="{row}">
                 <ff-button data-action="invite-reject" kind="secondary-danger" @click="rejectInvite(row)">Reject</ff-button>
                 <ff-button data-action="invite-accept" @click="acceptInvite(row)">Accept</ff-button>
@@ -11,6 +11,7 @@
 
 <script>
 import { markRaw } from 'vue'
+import { mapGetters } from 'vuex'
 
 import userApi from '../../../api/user.js'
 import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
@@ -28,7 +29,6 @@ export default {
     emits: ['invites-updated'],
     data () {
         return {
-            invitations: [],
             inviteColumns: [
                 { label: 'Team', key: 'team', class: ['w-auto'], component: { is: markRaw(TeamCell), map: { id: 'team.id', avatar: 'team.avatar', name: 'team.name' } } },
                 { label: 'Role', class: ['w-40'], key: 'roleName' },
@@ -37,32 +37,36 @@ export default {
             ]
         }
     },
+    computed: {
+        ...mapGetters('account', {
+            invitations: 'teamInvitations'
+        })
+    },
     mounted () {
-        this.fetchData()
+        this.$store.dispatch('account/getInvitations')
     },
     methods: {
         async acceptInvite (invite) {
             await userApi.acceptTeamInvitation(invite.id, invite.team.id)
-            await this.fetchData()
+            await this.$store.dispatch('account/getNotifications')
+            await this.$store.dispatch('account/getInvitations')
             await this.$store.dispatch('account/refreshTeams')
             Alerts.emit(`Invite to "${invite.team.name}" has been accepted.`, 'confirmation')
             // navigate to team dashboad once invite accepted
-            this.$router.push({
-                name: 'Team',
-                params: {
-                    team_slug: invite.team.slug
-                }
-            })
+            this.$store.dispatch('account/setTeam', invite.team.slug)
+                .then(() => this.$router.push({
+                    name: 'Team',
+                    params: {
+                        team_slug: invite.team.slug
+                    }
+                }))
+                .catch(e => console.warn(e))
         },
         async rejectInvite (invite) {
             await userApi.rejectTeamInvitation(invite.id, invite.team.id)
-            await this.fetchData()
+            await this.$store.dispatch('account/getNotifications')
+            await this.$store.dispatch('account/getInvitations')
             Alerts.emit(`Invite to "${invite.team.name}" has been rejected.`, 'confirmation')
-        },
-        async fetchData () {
-            const invitations = await userApi.getTeamInvitations()
-            await this.$store.dispatch('account/countNotifications')
-            this.invitations = invitations.invitations
         }
     }
 }

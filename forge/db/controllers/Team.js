@@ -12,6 +12,14 @@ module.exports = {
         // Reinflate the object now the user has been added
         const team = await app.db.models.Team.bySlug(newTeam.slug)
 
+        // Record in our Product tracking
+        app.product.capture(user.username, '$ff-team-created', {
+            'team-name': team.name,
+            'created-at': team.createdAt
+        }, {
+            team: team.id
+        })
+
         return team
     },
 
@@ -40,6 +48,17 @@ module.exports = {
             const ownerCount = await team.ownerCount()
             if (ownerCount === 1) {
                 throw new Error('Cannot remove last owner')
+            }
+            if (role < Roles.Member) {
+                const token = await app.db.models.AccessToken.findOne({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: `${userHashId}@${teamHashId}`
+                    }
+                })
+                if (token) {
+                    await token.destroy()
+                }
             }
         }
         existingRole.role = role

@@ -63,6 +63,7 @@ module.exports = {
     },
     associations: function (M) {
         this.belongsTo(M.Team)
+        M.Team.hasOne(this)
     },
     finders: function (M) {
         const self = this

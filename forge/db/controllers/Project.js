@@ -143,8 +143,8 @@ module.exports = {
                 }
             }
         }
+        const settings = await app.db.controllers.Project.getRuntimeSettings(project)
         if (components.settings || components.envVars) {
-            const settings = await app.db.controllers.Project.getRuntimeSettings(project)
             const envVars = settings.env
             delete settings.env
             if (components.settings) {
@@ -162,6 +162,16 @@ module.exports = {
                 Object.entries(nodeList).forEach(([key, value]) => {
                     projectExport.modules[key] = value.version
                 })
+                // The list from StorageSettings will only include modules that
+                // include nodes. The instance settings may specify other modules
+                // to be installed. We need to include them in the list.
+                if (settings.palette?.modules) {
+                    Object.entries(settings.palette?.modules).forEach(([key, value]) => {
+                        if (!Object.hasOwn(projectExport.modules, key)) {
+                            projectExport.modules[key] = value
+                        }
+                    })
+                }
             } catch (err) {}
         }
 
@@ -201,9 +211,12 @@ module.exports = {
                     snapshotSettings.palette = snapshotSettings.palette || {}
                     snapshotSettings.palette.modules = []
                 }
-                const newSettings = app.db.controllers.ProjectTemplate.validateSettings(snapshotSettings, project.ProjectTemplate)
+                if (!project.ProjectTemplate) {
+                    project = await app.db.models.Project.byId(project.id)
+                }
+                const newSettings = app.db.controllers.ProjectTemplate.validateSettings(snapshotSettings, project.ProjectTemplate, true)
                 const currentProjectSettings = await project.getSetting('settings') || {} // necessary?
-                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings, { mergeEnvVars, mergeEditorSettings })
+                const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings, { mergeEnvVars, mergeEditorSettings, targetTemplate: project.ProjectTemplate })
                 await project.updateSetting('settings', updatedSettings, { transaction: t }) // necessary?
             }
             await t.commit() // all good, commit the transaction
@@ -267,6 +280,7 @@ module.exports = {
         result.push(makeVar('FF_PROJECT_ID', project.id || '', true)) // deprecated as of V1.6.0
         result.push(makeVar('FF_PROJECT_NAME', project.name || '', true)) // deprecated as of V1.6.0
         result.push(...app.db.controllers.Project.removePlatformSpecificEnvVars(envVars))
+
         return result
     },
 
@@ -482,7 +496,8 @@ module.exports = {
             sourceProjectEnvVars.forEach(envVar => {
                 newProjectSettings.env.push({
                     name: envVar.name,
-                    value: options.envVars === 'keys' ? '' : envVar.value
+                    value: options.envVars === 'keys' ? '' : envVar.value,
+                    hidden: envVar.hidden ?? false
                 })
             })
         }

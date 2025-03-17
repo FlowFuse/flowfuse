@@ -17,6 +17,11 @@ Furthermore:
 * Devices added to an active Device Group will automatically be updated to the active pipeline snapshot
 * Devices removed from an active Device Group will have their active pipeline snapshot cleared
 More details are provided below in [Adding a Device to a group](#adding-a-device-to-a-group-which-has-an-active-pipeline-snapshot) and [Removing a Device from a group](#removing-a-device-from-a-group-which-has-an-active-pipeline-snapshot)
+* Device Groups can have Environment Variables set at the group level. These are merged with the Environment Variables set in each member device. The following rules apply:
+  * Values set in the Device take precedence over values set in the Device Group.
+  * Removing a device from the group will remove these variables from the device.
+  * The devices environment variables are never modified, they are only merged at runtime.
+  * Updating these environment variables will cause devices in the group to be restarted when a change is detected
 
 This greatly simplifies deployments of the same configuration to one or even hundreds of devices with a single click.
 
@@ -24,6 +29,7 @@ The following requirements apply:
 
 - FlowFuse 1.15+ Enterprise Tier
 - FlowFuse Cloud teams on the Enterprise tier
+- FlowFuse 2.10+ is require for Group Environment Variables
 
 ## Creating a Device Group
 
@@ -67,3 +73,7 @@ When a pipeline stage is operated and it deploys to a device group, that device 
 
 Subsequently, if you remove a device from a group and the device is running the active pipeline snapshot,
 the device snapshot will be cleared, effectively resetting the device to a blank state.
+
+### Removing the snapshot from a device group
+
+Under the settings of a device group, you can remove the target snapshot. This will also clear the snapshot of all devices in the group.

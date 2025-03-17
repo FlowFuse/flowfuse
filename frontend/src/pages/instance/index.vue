@@ -1,7 +1,4 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions />
-    </Teleport>
     <ff-loading v-if="loading.deleting" message="Deleting Instance..." />
     <main v-else-if="!instance?.id">
         <ff-loading message="Loading Instance..." />
@@ -23,7 +20,9 @@
                 </template>
                 <template #context>
                     Application:
-                    <router-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ instance.application.name }}</router-link>
+                    <ff-team-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">
+                        {{ instance.application.name }}
+                    </ff-team-link>
                 </template>
                 <template #tools>
                     <div class="space-x-2 flex align-center">
@@ -68,14 +67,15 @@ import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
-import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import InstanceActionsButton from '../../components/instance/ActionButton.vue'
 
+import featuresMixin from '../../mixins/Features.js'
 import instanceMixin from '../../mixins/Instance.js'
 import permissionsMixin from '../../mixins/Permissions.js'
+import { Roles } from '../../utils/roles.js'
 
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from './components/DashboardLink.vue'
@@ -89,13 +89,12 @@ export default {
         DashboardLink,
         InstanceStatusPolling,
         InstanceStatusBadge,
-        SideNavigationTeamOptions,
         StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner,
         InstanceEditorLink
     },
-    mixins: [permissionsMixin, instanceMixin],
+    mixins: [permissionsMixin, instanceMixin, featuresMixin],
     data: function () {
         return {
             mounted: false,
@@ -108,11 +107,23 @@ export default {
         ...mapState('account', ['teamMembership', 'team']),
         navigation () {
             if (!this.instance.id) return []
-
+            let versionHistoryRoute
+            if (!this.isTimelineFeatureEnabled) {
+                versionHistoryRoute = {
+                    name: 'instance-snapshots',
+                    params: { id: this.instance.id }
+                }
+            } else {
+                versionHistoryRoute = {
+                    name: 'instance-version-history',
+                    params: { id: this.instance.id }
+                }
+            }
             return [
                 { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
                 { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
-                { label: 'Snapshots', to: { name: 'instance-snapshots', params: { id: this.instance.id } }, tag: 'instance-snapshots' },
+                { label: 'Version History', to: versionHistoryRoute, tag: 'instance-version-history' },
+                { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasAMinimumTeamRoleOf(Roles.Member) },
                 { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
                 { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
                 { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }

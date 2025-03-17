@@ -1,6 +1,12 @@
 ---
 navTitle: Introduction
 navOrder: 1
+meta:
+   description: This guide provides detailed instructions on how to contribute to the FlowFuse project, including setup, development, and testing processes.
+   tags:
+       - flowfuse
+       - development
+       - contributing     
 ---
 
 # Contributing to FlowFuse
@@ -48,7 +54,7 @@ The following steps will get your development environment setup in no time:
 
 ```bash
 git clone https://github.com/FlowFuse/dev-env.git
-cd flowforge-dev-env
+cd dev-env
 npm install
 npm run init
 ```
@@ -121,6 +127,7 @@ likely want to begin.
 1. [Mocking email](#mocking-email)
 1. [Testing](#testing)
 1. [VSCode Tips](#vscode-tips)
+1. [Team Broker](./team-broker.md)
 
 
 ### Create a Stack

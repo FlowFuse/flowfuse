@@ -9,12 +9,13 @@
                     class="blueprint-tile"
                     :blueprint="blueprint"
                     :data-el="blueprint.id"
+                    :display-external-url-button="true"
                     @selected="onBlueprintSelect"
                 />
             </div>
         </li>
     </ul>
-    <EmptyState v-else>
+    <EmptyState v-else :featureUnavailable="!isBlueprintsFeatureEnabled" :featureUnavailableToTeam="!isBlueprintsFeatureEnabledForTeam">
         <template #img>
             <img src="../../../images/empty-states/team-library.png" alt="team-logo">
         </template>
@@ -30,10 +31,10 @@
             </p>
         </template>
         <template v-if="isAdminUser" #actions>
-            <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'AdminFlowBlueprints'}" data-el="go-to-blueprints">
+            <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'admin-flow-blueprints'}" data-el="go-to-blueprints">
                 Go To Blueprints
             </ff-button>
-            <ff-button v-else :to="{name: 'AdminFlowBlueprints'}" :disabled="true">
+            <ff-button v-else :to="{name: 'admin-templates-template'}" :disabled="true">
                 Add To Library
                 <template #icon-right><PlusIcon /></template>
             </ff-button>
@@ -81,9 +82,11 @@ export default {
     },
     methods: {
         async loadBlueprints () {
-            const res = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
-            if (Object.hasOwnProperty.call(res, 'blueprints')) {
-                this.blueprints = res.blueprints
+            if (this.isBlueprintsFeatureEnabled && this.isBlueprintsFeatureEnabledForTeam) {
+                const res = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
+                if (Object.hasOwnProperty.call(res, 'blueprints')) {
+                    this.blueprints = res.blueprints
+                }
             }
         },
         onBlueprintSelect (blueprint) {

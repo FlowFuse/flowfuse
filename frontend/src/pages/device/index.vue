@@ -1,7 +1,4 @@
 <template>
-    <Teleport v-if="mounted" to="#platform-sidenav">
-        <SideNavigationTeamOptions />
-    </Teleport>
     <main v-if="device" class="ff-with-status-header">
         <Teleport v-if="mounted" to="#platform-banner">
             <SubscriptionExpiredBanner :team="team" />
@@ -10,7 +7,7 @@
         <div class="ff-instance-header">
             <SectionNavigationHeader :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Devices</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Remote Instances</ff-nav-breadcrumb>
                     <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
                 </template>
                 <template #status>
@@ -23,36 +20,39 @@
                 <template #context>
                     <div v-if="device?.ownerType === 'application' && device.application" data-el="device-assigned-application">
                         Application:
-                        <router-link :to="{name: 'Application', params: {id: device.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application.name }}</router-link>
+                        <ff-team-link :to="{name: 'Application', params: {id: device.application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application?.name }}</ff-team-link>
                     </div>
                     <div v-else-if="device?.ownerType === 'instance' && device.instance" data-el="device-assigned-instance">
                         Instance:
-                        <router-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</router-link>
+                        <ff-team-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</ff-team-link>
                     </div>
                     <div v-else data-el="device-assigned-none">
                         <span class="italic">No Application or Instance Assigned</span> - <a class="ff-link" data-action="assign-device" @click="openAssignmentDialog">Assign</a>
                     </div>
                 </template>
-                <template v-if="isDevModeAvailable" #tools>
+                <template #tools>
                     <!--
                         div style 34px is a workaround to prevent the Device Editor button growing taller than adjacent
                         button (size difference is caused by odd padding in the toggle button, which though not visible
                         is still there and affects the button height in this div group)
                     -->
                     <div class="space-x-2 flex align-center" style="height: 34px;">
-                        <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" @mode-change="setDeviceMode" />
-                        <button v-if="!isVisitingAdmin" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
-                            Device Editor
-                            <span class="ff-btn--icon ff-btn--icon-right">
-                                <ExternalLinkIcon />
-                            </span>
-                        </button>
-                        <DropdownMenu v-if="hasPermission('device:change-status')" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
+                        <template v-if="isDevModeAvailable">
+                            <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
+                            <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
+                                Open Editor
+                                <span class="ff-btn--icon ff-btn--icon-right">
+                                    <ExternalLinkIcon />
+                                </span>
+                            </button>
+                        </template>
+                        <FinishSetupButton v-if="neverConnected" :device="device" />
+                        <DropdownMenu v-if="hasPermission('device:change-status') && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                     </div>
                 </template>
             </SectionNavigationHeader>
         </div>
-        <div class="sm:px-6 mt-4 sm:mt-8">
+        <div class="mt-4 sm:mt-8">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
@@ -117,20 +117,22 @@ import { TerminalIcon } from '@heroicons/vue/solid'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../forge/lib/roles.js'
 import deviceApi from '../../api/devices.js'
 import DropdownMenu from '../../components/DropdownMenu.vue'
+import FinishSetupButton from '../../components/FinishSetup.vue'
 import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
-import SideNavigationTeamOptions from '../../components/SideNavigationTeamOptions.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import deviceActionsMixin from '../../mixins/DeviceActions.js'
 import permissionsMixin from '../../mixins/Permissions.js'
+
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import { DeviceStateMutator } from '../../utils/DeviceStateMutator.js'
-
+import { Roles } from '../../utils/roles.js'
 import { createPollTimer } from '../../utils/timers.js'
+
 import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
 import DeviceAssignInstanceDialog from '../team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
 
@@ -156,13 +158,13 @@ const deviceTransitionStates = [
 export default {
     name: 'DevicePage',
     components: {
+        FinishSetupButton,
         ExternalLinkIcon,
         DeveloperModeToggle,
         DeviceModeBadge,
         DeviceLastSeenBadge,
         DropdownMenu,
         SectionNavigationHeader,
-        SideNavigationTeamOptions,
         StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner,
@@ -170,7 +172,7 @@ export default {
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, deviceActionsMixin],
     data: function () {
         return {
             mounted: false,
@@ -188,8 +190,10 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership', 'team', 'features', 'settings']),
         isVisitingAdmin: function () {
-            // return true
             return this.teamMembership.role === Roles.Admin
+        },
+        isMember: function () {
+            return this.teamMembership.role === Roles.Member || this.teamMembership.role === Roles.Owner
         },
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor
@@ -199,6 +203,24 @@ export default {
         },
         deviceRunning () {
             return this.device?.status === 'running'
+        },
+        disableModeToggle: function () {
+            return !this.isDevModeAvailable ||
+                !this.device ||
+                !this.agentSupportsDeviceAccess ||
+                !this.isMember
+        },
+        disableModeToggleReason: function () {
+            if (!this.device) {
+                return 'No Device selected'
+            }
+            if (!this.agentSupportsDeviceAccess) {
+                return 'Device Agent V0.8 or greater is required'
+            }
+            if (!this.isMember) {
+                return 'Only an Owner or Member can change the Device Mode'
+            }
+            return undefined
         },
         editorAvailable: function () {
             return this.isDevModeAvailable &&
@@ -210,6 +232,9 @@ export default {
         deviceEditorURL: function () {
             return this.device.editor?.url || ''
         },
+        neverConnected () {
+            return !this.device.lastSeenAt
+        },
         notAssigned () {
             const device = this.device
             const hasApplication = device?.ownerType === 'application' && device.application
@@ -217,46 +242,28 @@ export default {
             return !hasApplication && !hasInstance
         },
         navigation () {
-            const navigation = [
-                { label: 'Overview', to: `/device/${this.$route.params.id}/overview`, tag: 'device-overview' }
-            ]
-
-            // snapshots - if device is owned by an application,
-            if (this.device?.ownerType !== 'instance') {
-                navigation.push({
-                    label: 'Snapshots',
-                    to: `/device/${this.$route.params.id}/snapshots`,
-                    tag: 'device-snapshots'
-                })
-            }
-
-            navigation.push(
-                { label: 'Audit Log', to: `/device/${this.$route.params.id}/audit-log`, tag: 'device-audit-log' }
-            )
-
-            // device logs - if project comms is enabled,
-            if (this.features.projectComms) {
-                navigation.push({
-                    label: 'Device Logs',
-                    to: `/device/${this.$route.params.id}/logs`,
+            return [
+                { label: 'Overview', to: { name: 'DeviceOverview' }, tag: 'device-overview' },
+                {
+                    label: 'Version History',
+                    to: { name: 'DeviceSnapshots', params: { id: this.$route.params.id } },
+                    tag: 'version-history'
+                },
+                { label: 'Audit Log', to: { name: 'device-audit-log' }, tag: 'device-audit-log' },
+                {
+                    label: 'Node-RED Logs',
+                    to: { name: 'device-logs' },
                     tag: 'device-logs',
                     icon: TerminalIcon
-                })
-            }
-
-            // settings - always
-            navigation.push({ label: 'Settings', to: `/device/${this.$route.params.id}/settings`, tag: 'device-settings' })
-
-            // developer mode - if available and device is in developer mode
-            if (this.isDevModeAvailable && this.device.mode === 'developer') {
-                navigation.push({
+                },
+                { label: 'Settings', to: { name: 'device-settings' }, tag: 'device-settings' },
+                {
                     label: 'Developer Mode',
-                    to: `/device/${this.$route.params.id}/developer-mode`,
-                    tag: 'device-devmode'
-                })
-            }
-
-            return navigation
+                    to: { name: 'DeviceDeveloperMode' },
+                    tag: 'device-devmode',
+                    hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
+                }
+            ]
         },
         actionsDropdownOptions () {
             const flowActionsDisabled = !(this.device.status !== 'suspended')
@@ -271,9 +278,13 @@ export default {
                 //     action: this.startDevice,
                 //     disabled: deviceStateChanging || this.deviceRunning
                 // },
-                { name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled }
                 // { name: 'Suspend', class: ['text-red-700'], action: this.showConfirmSuspendDialog, disabled: deviceStateChanging || flowActionsDisabled }
             ]
+
+            if (!this.neverConnected) {
+                // if we've never connected, we know we can't restart
+                result.push({ name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled })
+            }
 
             if (this.hasPermission('device:delete')) {
                 result.push(null)
@@ -382,6 +393,7 @@ export default {
             Alerts.emit('Device successfully assigned to application.', 'confirmation')
         },
         openEditor () {
+            this.$store.dispatch('ux/validateUserAction', 'hasOpenedDeviceEditor')
             window.open(this.deviceEditorURL, `device-editor-${this.device.id}`)
         },
         async openTunnel (launchEditor = false) {

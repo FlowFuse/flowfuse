@@ -14,8 +14,11 @@ describe('FlowFuse platform admin users', () => {
         cy.get('[data-cy="user-options"]').get('.ff-dropdown-options').should('not.be.visible')
         cy.get('[data-cy="user-options"]').click()
         cy.get('[data-cy="user-options"] .ff-dropdown-options').should('be.visible')
-        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(2).contains('Admin Settings').should('be.visible')
-        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(2).click()
+        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option')
+            .contains('Admin Settings')
+            .should('be.visible')
+        cy.get('[data-cy="user-options"] .ff-dropdown-options > .ff-dropdown-option').eq(1)
+            .click()
 
         // wait for APIs to return
         cy.wait('@getSettings')
@@ -34,9 +37,9 @@ describe('FlowFuse platform admin users', () => {
         cy.visit('/admin/overview')
         cy.url().should('include', '/admin/overview')
 
-        cy.get('#platform-sidenav [data-nav="admin-settings"]').click()
+        cy.get('[data-el="left-drawer"] [data-nav="admin-settings"]').click()
 
-        cy.get('[data-nav="section-license"]').click()
+        cy.get('[data-nav="license"]').click()
 
         cy.get('[data-form="update-licence"]').click()
 
@@ -49,7 +52,7 @@ describe('FlowFuse platform admin users', () => {
         cy.get('[data-form="submit"]').click()
 
         // Back to license screen
-        cy.get('[data-el="license-details"]').should('exist')
+        cy.get('[data-nav="license"]').should('exist')
     })
 
     it("can view applications and instances from teams they're not a member of", () => {
@@ -73,8 +76,8 @@ describe('FlowFuse platform admin users', () => {
         cy.wait('@getApplication')
         cy.wait('@getApplicationInstances')
 
-        cy.get('[data-el="banner-project-as-admin"]').should('exist')
-        cy.get('[data-action="open-editor"]').should('be.disabled')
+        cy.get('[data-el="banner-team-as-admin"]').should('exist')
+        cy.get('[data-action="open-editor"]').should('have.attr', 'disabled')
 
         cy.get('[data-el="cloud-instances"] tr').contains('instance-2-1').click()
 

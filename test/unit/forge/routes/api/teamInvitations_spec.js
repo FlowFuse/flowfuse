@@ -59,6 +59,9 @@ describe('Team Invitations API', function () {
         // POST /api/v1/teams/:teamId/invitations
 
         it('team owner can invite user to team', async () => {
+            let chrisNotifications = await app.db.models.Notification.forUser(TestObjects.chris)
+            chrisNotifications.should.have.property('count', 0)
+
             // Alice invite Chris to ATeam
             const response = await app.inject({
                 method: 'POST',
@@ -76,6 +79,9 @@ describe('Team Invitations API', function () {
             const invites = await app.db.models.Invitation.findAll()
             invites.should.have.lengthOf(1)
             invites[0].should.have.property('role', Roles.Viewer)
+
+            chrisNotifications = await app.db.models.Notification.forUser(TestObjects.chris)
+            chrisNotifications.should.have.property('count', 1)
         })
 
         it('team member cannot invite user to team', async () => {
@@ -310,6 +316,8 @@ describe('Team Invitations API', function () {
             invites = await app.db.controllers.Invitation.createInvitations(TestObjects.bob, TestObjects.BTeam, ['alice', 'chris'], Roles.Member)
         })
         it('team owner can delete an invitation', async () => {
+            let aliceNotifications = await app.db.models.Notification.forUser(TestObjects.alice)
+            const startNotificationCount = aliceNotifications.count
             const response = await app.inject({
                 method: 'DELETE',
                 url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations/${invites.alice.hashid}`,
@@ -317,6 +325,9 @@ describe('Team Invitations API', function () {
             })
             response.statusCode.should.equal(200)
             ;(await app.db.models.Invitation.count()).should.equal(1)
+
+            aliceNotifications = await app.db.models.Notification.forUser(TestObjects.alice)
+            aliceNotifications.should.have.property('count', startNotificationCount - 1)
         })
         it('non-team member cannot delete an invitation', async () => {
             const response = await app.inject({
@@ -333,6 +344,171 @@ describe('Team Invitations API', function () {
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(404)
+        })
+    })
+
+    describe('Send invite reminders', async function () {
+        before(function () {
+            app.settings.set('team:user:invite:external', true)
+        })
+        after(function () {
+            app.settings.set('team:user:invite:external', false)
+        })
+        it('Reminder should be sent after 2 days (internal)', async () => {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: {
+                    user: 'chris'
+                }
+            })
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+            const invites = await app.db.models.Invitation.findAll({
+                where: {
+                    inviteeId: TestObjects.chris.id
+                }
+            })
+            const origTime = invites[0].createdAt
+            origTime.setDate(origTime.getDate() - 2)
+            origTime.setHours(origTime.getHours() - 2)
+            invites[0].createdAt = origTime
+            invites[0].changed('createdAt', true)
+            await invites[0].save()
+
+            const houseKeepingJob = require('../../../../../forge/housekeeper/tasks/inviteReminder')
+            await houseKeepingJob.run(app)
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(3)
+            app.config.email.transport.getMessageQueue()[1].to.should.equal(TestObjects.chris.email)
+            app.config.email.transport.getMessageQueue()[1].subject.should.equal('Invitation to join team BTeam on FlowFuse')
+            app.config.email.transport.getMessageQueue()[2].to.should.equal(TestObjects.bob.email)
+            app.config.email.transport.getMessageQueue()[2].subject.should.equal('Invitation for Chris Kenobi to BTeam not accepted yet')
+        })
+        it('Reminder should be sent after 2 days (external)', async () => {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: {
+                    user: 'evans@example.com'
+                }
+            })
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+            const invites = await app.db.models.Invitation.findAll({
+                where: {
+                    email: 'evans@example.com'
+                }
+            })
+            const origTime = invites[0].createdAt
+            origTime.setDate(origTime.getDate() - 2)
+            origTime.setHours(origTime.getHours() - 2)
+            invites[0].createdAt = origTime
+            invites[0].changed('createdAt', true)
+            await invites[0].save()
+
+            const houseKeepingJob = require('../../../../../forge/housekeeper/tasks/inviteReminder')
+            await houseKeepingJob.run(app)
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(3)
+            app.config.email.transport.getMessageQueue()[1].to.should.equal('evans@example.com')
+            app.config.email.transport.getMessageQueue()[1].subject.should.equal('Invitation to collaborate on FlowFuse')
+            app.config.email.transport.getMessageQueue()[2].to.should.equal(TestObjects.bob.email)
+            app.config.email.transport.getMessageQueue()[2].subject.should.equal('Invitation for evans@example com to BTeam not accepted yet')
+        })
+    })
+
+    describe('Resending user invites', async function () {
+        before(function () {
+            app.settings.set('team:user:invite:external', true)
+        })
+        after(function () {
+            app.settings.set('team:user:invite:external', false)
+        })
+        it('Queues an email when a valid invitation id is provided', async () => {
+            const invitation = await app.db.controllers.Invitation.createInvitations(
+                TestObjects.bob,
+                TestObjects.BTeam,
+                [
+                    TestObjects.chris.email
+                ],
+                Roles.Member)
+
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
+
+            const slug = invitation[TestObjects.chris.email].slug
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations/${slug}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            const result = response.json()
+            result.should.have.property('id')
+            result.should.have.property('role')
+            result.should.have.property('createdAt')
+            result.should.have.property('expiresAt')
+            result.should.have.property('sentAt')
+            result.should.have.property('team')
+            result.should.have.property('invitor')
+            result.should.have.property('invitee')
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
+        })
+        it('Returns a 404 when an invitation is not found', async () => {
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations/invalid-id`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
+
+            const result = response.json()
+            result.should.have.property('code', 'not_found')
+            result.should.have.property('error', 'Not Found')
+
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(0)
+        })
+    })
+
+    describe('Delete expired invites', async function () {
+        before(function () {
+            app.settings.set('team:user:invite:external', true)
+        })
+        after(function () {
+            app.settings.set('team:user:invite:external', false)
+        })
+        it('Delete invites after 7 days', async () => {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.BTeam.hashid}/invitations`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: {
+                    user: 'evans@example.com'
+                }
+            })
+            const result = response.json()
+            result.should.have.property('status', 'okay')
+            const invites = await app.db.models.Invitation.findAll({
+                where: {
+                    email: 'evans@example.com'
+                }
+            })
+            const origTime = invites[0].expiresAt
+            origTime.setDate(origTime.getDate() - 8)
+            invites[0].expiresAt = origTime
+            invites[0].changed('expiresAt', true)
+            await invites[0].save()
+
+            const houseKeepingJob = require('../../../../../forge/housekeeper/tasks/expireInvites')
+            await houseKeepingJob.run(app)
+
+            const noInvites = await app.db.models.Invitation.findAll({
+                where: {
+                    email: 'evans@example.com'
+                }
+            })
+            noInvites.should.have.lengthOf(0)
         })
     })
 })

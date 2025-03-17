@@ -9,8 +9,14 @@
  * @memberof forge.containers.drivers
  *
  */
-const list = {}
+const { normalize } = require('path')
+
+const nrUtil = require('@node-red/util') // eslint-disable-line
+
 const forgeUtils = require('../../db/utils')
+
+const list = {}
+const files = {}
 
 module.exports = {
     START_DELAY: 500,
@@ -267,5 +273,161 @@ module.exports = {
             ...this._app.config.driver.options?.default_stack
         }
     },
-    revokeUserToken: async (project, token) => { }
+    revokeUserToken: async (project, token) => { },
+
+    // File API
+    // Static Assets API
+    listFiles: async (instance, filePath) => {
+        if (!list[instance.id] || list[instance.id].state === 'suspended') {
+            throw new Error('Cannot access instance files')
+        }
+        if (!files[instance.id]) {
+            files[instance.id] = {}
+        }
+        const pathDots = filePath.replace('/', '.')
+        const response = {
+            meta: {},
+            files: [],
+            count: 0
+        }
+        try {
+            const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+            Object.keys(dir).forEach(entry => {
+                if (typeof dir[entry] === 'object') {
+                    response.files.push({
+                        name: entry,
+                        type: 'directory',
+                        lastModified: new Date().toISOString()
+                    })
+                } else {
+                    response.files.push({
+                        name: entry,
+                        type: 'file',
+                        size: dir[entry].length,
+                        lastModified: new Date().toISOString()
+                    })
+                }
+                response.count++
+            })
+            return response
+        } catch (err) {
+            if (err.message === 'Cannot convert undefined or null to object' || err.message.startsWith('Cannot read properties of undefined')) {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                throw err
+            }
+        }
+    },
+
+    updateFile: async (instance, filePath, update) => {
+        if (!list[instance.id] || list[instance.id].state === 'suspended') {
+            throw new Error('Cannot access instance files')
+        }
+        if (!files[instance.id]) {
+            files[instance.id] = {}
+        }
+        // const pathDots = filePath.replace('/','.')
+        // const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+    },
+
+    deleteFile: async (instance, filePath) => {
+        if (!list[instance.id] || list[instance.id].state === 'suspended') {
+            throw new Error('Cannot access instance files')
+        }
+        if (!files[instance.id]) {
+            files[instance.id] = {}
+        }
+        const parts = normalize(filePath).split('/')
+        const filename = parts.pop()
+        if (parts.indexOf('..') !== -1) {
+            if (parts.indexOf('..') === 0) {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                while (parts.indexOf('..') !== -1) {
+                    parts.splice(parts.indexOf('..') - 1, 2)
+                }
+            }
+        }
+        const pathDots = parts.join('.')
+        try {
+            const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+            delete dir[filename]
+        } catch (err) {
+            if (err.message === 'Cannot convert undefined or null to object' || err.message.startsWith('Cannot read properties of undefined')) {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                throw err
+            }
+        }
+    },
+    createDirectory: async (instance, filePath, directoryName) => {
+        if (!list[instance.id] || list[instance.id].state === 'suspended') {
+            throw new Error('Cannot access instance files')
+        }
+        if (!files[instance.id]) {
+            files[instance.id] = {}
+        }
+        const pathDots = filePath.replace('/', '.')
+        const nameDots = directoryName.replace('/', '.')
+        try {
+            const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+            nrUtil.util.setObjectProperty(dir, nameDots, {}, true)
+        } catch (err) {
+            if (err.message === 'Cannot convert undefined or null to object' || err.message.startsWith('Cannot read properties of undefined')) {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                throw err
+            }
+        }
+    },
+    uploadFile: async (instance, filePath, readableStream) => {
+        if (!list[instance.id] || list[instance.id].state === 'suspended') {
+            throw new Error('Cannot access instance files')
+        }
+        if (!files[instance.id]) {
+            files[instance.id] = {}
+        }
+        const parts = normalize(filePath).split('/')
+        const filename = parts.pop()
+        if (parts.indexOf('..') !== -1) {
+            if (parts.indexOf('..') === 0) {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                while (parts.indexOf('..') !== -1) {
+                    parts.splice(parts.indexOf('..') - 1, 2)
+                }
+            }
+        }
+        const pathDots = parts.join('.')
+        try {
+            const dir = pathDots ? nrUtil.util.getObjectProperty(files[instance.id], pathDots) : files[instance.id]
+            dir[filename] = readableStream.toString('utf-8')
+        } catch (err) {
+            if (err.message === 'Cannot convert undefined or null to object' || err.message.startsWith('Cannot read properties of undefined')) {
+                const newErr = new Error('not found')
+                newErr.statusCode = 404
+                throw newErr
+            } else {
+                throw err
+            }
+        }
+    },
+
+    // 3rd party broker
+    startBrokerAgent: async (broker) => {},
+    stopBrokerAgent: async (broker) => {},
+    getBrokerAgentState: async (broker) => {
+        return { connected: true, error: '' }
+    },
+    sendBrokerAgentCommand: async (broker, command) => {}
 }

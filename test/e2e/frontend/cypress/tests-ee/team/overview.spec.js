@@ -48,6 +48,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         const deviceOne = res.body.applications[0].devices.find((device) => device.id === deviceOneId)
 
                         deviceOne.status = 'running'
+                        deviceOne.lastSeenAt = new Date()
                         deviceOne.editor = {
                             url: 'http://editor.example.com',
                             enabled: true,
@@ -97,13 +98,13 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         const text = labels.toArray().join(', ')
 
                         // Test should pass for single test of full suite (objects persist between tests)
-                        expect(text).to.match(/2 x Instances, 2 x Devices, 2 x Device Groups, (9|[1-9]\d+) x Snapshots, 4 x Pipelines|2 x Instances, 2 x Devices, 1 x Device Group, (4|[1-9]\d+) x Snapshots/)
+                        expect(text).to.match(/2 x Instances, 3 x Devices, 2 x Device Groups, (9|[1-9]\d+) x Snapshots, 4 x Pipelines|2 x Instances, 3 x Devices, 1 x Device Group, (4|[1-9]\d+) x Snapshots/)
                     })
 
                     cy.get('[data-el="application-instances"]').find('.item-wrapper').should('have.length', 2)
                     cy.get('[data-el="application-instances"] .item-wrapper:contains("instance-2-with-devices")').within(() => {
                         cy.get('[data-el="status-badge-stopped"]').should('exist')
-                        cy.get('[data-action="open-editor"]').should('be.disabled')
+                        cy.get('[data-action="open-editor"]').should('have.attr', 'disabled')
                         cy.get('[data-el="kebab-menu"]').should('exist')
                     })
 
@@ -111,11 +112,11 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         cy.contains('instance-2-1')
                         cy.get('[data-el="status-badge-running"]').should('exist')
                         cy.contains('http://instance-2-1.example.com')
-                        cy.get('[data-action="open-editor"]').should('be.enabled')
+                        cy.get('[data-action="open-editor"]').should('not.have.attr', 'disabled')
                         cy.get('[data-el="kebab-menu"]').should('exist')
                     })
 
-                    cy.get('[data-el="application-devices"]').find('.item-wrapper').should('have.length', 2)
+                    cy.get('[data-el="application-devices"]').find('.item-wrapper').should('have.length', 3)
                     cy.get('[data-el="application-devices"] .item-wrapper:contains("application-device-a")').within(() => {
                         cy.get('[data-el="status-badge-running"]').should('exist')
                         cy.get('[data-el="kebab-menu"]').should('exist')
@@ -126,7 +127,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
 
                         cy.contains('Last seen: never')
 
-                        cy.get('[data-el="kebab-menu"]').should('exist')
+                        cy.get('[data-action="finish-setup"]').should('exist')
                     })
                 })
             })

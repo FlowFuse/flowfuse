@@ -1,5 +1,7 @@
 ---
 navTitle: Device Editor
+meta:
+   description: Explore how to enable and use the device editor in FlowFuse Cloud with detailed sequence diagrams and instructions.
 ---
 
 # Enabling the device editor

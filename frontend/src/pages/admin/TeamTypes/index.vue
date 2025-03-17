@@ -1,5 +1,6 @@
 <template>
-    <div class="space-y-6">
+    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+    <div class="space-y-6 mb-14">
         <SectionTopMenu hero="Team Types">
             <template #tools>
                 <ff-button data-action="create-type" @click="showEditTeamTypeDialog()">
@@ -14,6 +15,7 @@
             <ff-tile-selection-option
                 v-for="(teamType, index) in activeTeamTypes"
                 :key="index"
+                value=""
                 :price="teamType.properties?.billingDescription?.split('/')[0] || ''"
                 :price-interval="teamType.properties?.billingDescription?.split('/')[1] || ''"
                 :label="teamType.name" :description="teamType.description"
@@ -77,7 +79,7 @@ export default {
     },
     computed: {
         activeTeamTypes () {
-            const types = this.teamTypes.filter(pt => pt.active)
+            const types = this.teamTypes.filter(pt => pt.active).sort((a, b) => a.order - b.order)
             return types
         },
         inactiveTeamTypes () {

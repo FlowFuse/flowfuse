@@ -6,7 +6,7 @@
 @import '../ui-components/stylesheets/ff-colors.scss';
 @import '../ui-components/stylesheets/ff-utility.scss';
 
-$sidenav_width: 275px;
+$sidenav_width: 250px;
 $transition_time: .15s;
 
 /*
@@ -17,20 +17,41 @@ $transition_time: .15s;
 $nav_height: 60px;
 
 .ff-layout--box {
-    background-color: $ff-grey-800;
+    font-family: 'Heebo', system-ui, sans-serif;
+    background-color: $ff-white;
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100%;
     min-height: inherit;
-    background-image: url("./images/ff-flow-bg-white.svg");
-    background-size: contain;
+    background-image: url("./images/ff-bg-flow.jpg");
+    background-size: cover;
     background-repeat: no-repeat;
-    background-position-y: 90%;
+    background-position-y: 0%;
+    color: $ff-grey-700;
     .ff-error-inline {
         font-size: 0.875rem;;
         display: block;
         margin-top: 0.25rem;
         color: $ff-red-200;
+    }
+
+    &.ff--center-box {
+        flex-direction: column;
+        min-height: fit-content;
+        overflow: auto;
+
+        .ff-layout--box--wrapper {
+            display: flex;
+            width: 100%;
+            max-height: fit-content;
+            height: fit-content;
+
+            .ff-layout--box--left,
+            .ff-layout--box--right {
+                width: 100%;
+            }
+        }
     }
 }
 
@@ -38,7 +59,14 @@ $nav_height: 60px;
     width: calc(100% - 48px);
     height: 60%;
     display: grid;
-    background-color: rgba($ff-grey-600, 0.2);
+}
+.ff-layout--box--left {
+    .ff-logo {
+        max-width: 150px;
+        margin-bottom: 16px;
+    }
+}
+.ff-layout--box--right {
     .ff-logo {
         max-width: 200px;
         margin: auto;
@@ -48,15 +76,12 @@ $nav_height: 60px;
 
 .ff-layout--box--left,
 .ff-layout--box--right {
-    border-top: 2px solid $ff-red-400;
     height: 100%;
     justify-content: center;
     align-items: center;
 }
 
 .ff-layout--box--left {
-    color: white;
-    background-color: rgba($ff-grey-900, 0.5);
     h1 {
         max-width: 420px;
     }
@@ -64,9 +89,8 @@ $nav_height: 60px;
         font-size: 1.25rem;
     }
     p {
-        font-weight: 200;
+        font-weight: 300;
         line-height: 1.5rem;
-        color: $ff-grey-300;
     }
 }
 
@@ -75,11 +99,10 @@ $nav_height: 60px;
 }
 
 .ff-layout--box--right .ff-layout--box--content {
-    background-color: $ff-grey-700;
     min-height: 400px;
     padding: 64px 24px;
     @apply rounded-xl;
-    color: white;
+    color: $ff-grey-700;
     h2 {
         margin-top: -12px;
         margin-bottom: 24px;
@@ -90,39 +113,30 @@ $nav_height: 60px;
     }
     label {
         display: block;
-        color: white;
-        text-transform: uppercase;
-        font-weight: 600;
+        color: $ff-grey-700;
         margin-bottom: 4px;
-        font-size: 0.75rem;
     }
     .ff-radio-btn label {
-        color: $ff-grey-100;
         font-weight: normal;
     }
     p {
         margin-bottom: 1rem;
     }
     a {
-        color: $ff-teal-400;
+        color: $ff-blue-600;
     }
     .ff-input:not(.ff-input--error) {
-        border-color: transparent;
+        border-color: $ff-grey-300;
     }
     .ff-input {
-        background-color: $ff-grey-600;
         border-width: 2px;
-        input {
-            color: $ff-grey-50;
-        }
         &:focus-within {
-            border-color: $ff-teal-400;
+            border-color: $ff-indigo-600;
         }
     }
     .ff-radio-btn {
         .checkbox {
           border: 1px solid $ff-grey-400;
-          background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23374151' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='4'/%3e%3c/svg%3e")
         }
     }
 
@@ -139,10 +153,10 @@ $nav_height: 60px;
         margin-bottom: 6px;
     }
     .ff-btn.ff-btn--primary {
-        background-color: $ff-teal-600;
+        background-color: $ff-indigo-600;
         color: white;
         &:hover {
-            background-color: $ff-teal-700;
+            background-color: $ff-indigo-700;
         }
         &:disabled {
             background-color: $ff-grey-300;
@@ -150,11 +164,12 @@ $nav_height: 60px;
         }
     }
     .ff-btn.ff-btn--tertiary {
-        color: $ff-teal-500;
+        color: $ff-indigo-500;
         font-weight: normal;
+        border: 1px solid transparent;
         &:hover {
             background-color: transparent;
-            color: white;
+            border-color: $ff-indigo-600;
         }
     }
 }
@@ -167,21 +182,27 @@ $nav_height: 60px;
 .ff-layout--platform,
 .ff-layout--plain {
     min-height: inherit;
+    flex: 1;
     display: flex;
     flex-direction: column;
 }
 
 .ff-layout--platform--wrapper{
-    display: grid;
-    flex-grow: 1;
     padding-top: $nav_height;
     position: absolute;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    display: flex;
+    flex-direction: row;
+
     .ff-view {
         position: relative;
         overflow-y: auto;
+        overflow-x: hidden;
+        width: 100%;
+        height: 100%;
+        transition: ease-in-out margin-left .3s;
     }
     main {
         background-color: $ff-grey-50;
@@ -250,7 +271,7 @@ $nav_height: 60px;
     .ff-dropdown-options {
         position: absolute;
         min-width: $sidenav_width;
-        display: none;
+        display: block;
         z-index: 10;
         border-bottom: 0;
         max-height: initial;
@@ -323,7 +344,7 @@ $nav_height: 60px;
     }
 }
 .ff-header {
-    z-index: 10;
+    z-index: 110;
     background-color: $ff-grey-800;
     height: $nav_height;
     border-bottom: 2px solid $ff-red-500;
@@ -343,6 +364,7 @@ $nav_height: 60px;
         padding: 16px;
         svg {
             fill: white;
+            min-width: 24px;
         }
         &.active {
             cursor: pointer;
@@ -353,6 +375,7 @@ $nav_height: 60px;
         padding: 16px;
         img {
             padding: 0;
+            min-width: 24px;
         }
         &.active {
             cursor: pointer;
@@ -384,11 +407,25 @@ $nav_height: 60px;
             }
         }
     }
+    .ff-border-left {
+        border-width: 0 0 0 1px;
+        border-color: $ff-grey-500;
+    }
     .ff-navigation-right {
         height: 100%;
     }
+    .ff-desktop-navigation-right {
+        & > * {
+            border-left: 1px solid $ff-grey-500;
+        }
+    }
+    .ff-mobile-navigation-right {
+        img,
+        button {
+            cursor: pointer;
+        }
+    }
     .ff-dropdown {
-        display: none;
         height: calc(#{$nav_height} - 2px);
         color: white;
         min-width: $sidenav_width;
@@ -401,10 +438,9 @@ $nav_height: 60px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-width: 0 0 0 1px;
-            border-color: $ff-grey-500;
-            border-radius: 0;
+            border: none;
             background-color: $ff-grey-800;
+            border-radius: 0;
             &:hover {
                 background-color: $ff-grey-700;
             }
@@ -440,6 +476,10 @@ $nav_height: 60px;
     .ff-user-options {
         width: auto;
         min-width: $nav_height;
+
+        &.ff-navigation {
+            left: auto;
+        }
         .ff-dropdown-options {
             width: $sidenav_width;
         }
@@ -527,59 +567,7 @@ $nav_height: 60px;
     transition: 0.3s left, 0.3s right;
     -webkit-transition: 0.3s left, 0.3s right;
     width: $sidenav_width;
-    // left side menu for team/project/device options
-    .ff-side-navigation {
-        display: flex;
-        height: 100%;
-        .ff-side-navigation-divider {
-            height: 4px;
-            border-bottom: 1px solid $ff-grey-600;
-            background-color: $ff-grey-800;
-        }
-        .ff-team-selection {
-            height: 54px;
-        }
-        .ff-team-selection, .ff-nav-item {
-            transition: $transition_time padding, $transition_time background-color;
-            -webkit-transition: $transition_time padding, $transition_time background-color;
-        }
-        // showing a nested menu
-        &.minimised {
-            .ff-team-selection {
-                padding: 16px 14px;
-                svg, .ff-team-selection-name {
-                    display: none;
-                }
-            }
-            .ff-navigation-divider {
-                label {
-                    display: none;
-                }
-            }
-            .ff-side-navigation--primary {
-                width: 54px;
-                .ff-nav-item {
-                    padding: 16px;
-                    label {
-                        opacity: 0;
-                        display: none;
-                    }
-                }
-                svg.hollow {
-                    display: none
-                }
-            }
-            // nested menu options
-            .ff-side-navigation--nested {
-                width: calc(100% - 54px);
-                flex-grow: 1;
-            }
-        }
-    }
-    .ff-side-navigation--options {
-        width: 100%;
-    }
-    // handle route-r;ink active styling for primary options
+    // handle router-link active styling for primary options
     .ff-side-navigation--primary {
         width: 100%;
         transition: $transition_time width;
@@ -641,9 +629,18 @@ $nav_height: 60px;
         .ff-nav-item:last-child {
             border-top: 2px solid $ff-red-600;
         }
+
+        &.without-divider {
+            .ff-nav-item:last-child {
+                border-top: unset;
+            }
+        }
     }
     &.open {
         left: 0;
+    }
+    &.closed {
+        left: -$sidenav_width;
     }
     &.ff-navigation-right.open {
         left: initial;
@@ -670,13 +667,16 @@ $nav_height: 60px;
         background-color: $ff-grey-700;
         border-bottom: 1px solid $ff-grey-600;
     }
+    .disabled {
+        pointer-events: none;
+        opacity: 0.5;
+    }
     .ff-notification-pill {
         padding: 2px 12px;
         background-color: $ff-red-600;
         border: 1px solid $ff-red-700;
     }
     .ff-side-navigation--options-back {
-        // width: 100%;
         li {
             border-top: 1px solid $ff-grey-600;
         }
@@ -689,10 +689,6 @@ $nav_height: 60px;
     .ff-layout--box--wrapper {
         width: 85%;
     }
-    /* Platform */
-    .ff-layout--platform--wrapper {
-        grid-template-columns: $sidenav_width 1fr;
-    }
     .ff-navigation {
         left: 0;
         position: relative;
@@ -701,14 +697,113 @@ $nav_height: 60px;
         .ff-header--mobile-toggle {
             display: none;
         }
-        .ff-header--mobile-usertoggle {
+        .ff-header--mobile-usertoggle,
+        .ff-header--mobile-notificationstoggle {
             display: none;
         }
         img.ff-logo {
             padding: 16px;
         }
-        .ff-dropdown {
-            display: block;
+    }
+}
+
+#ff-app {
+    #left-drawer {
+        min-width: $sidenav_width;
+        position: relative;
+        transition: ease-in-out left .3s;
+        height: 100%;
+        z-index: 100;
+        left: 0;
+        background: $ff-color--context-menu;
+        border-right: 1px solid $ff-color--border;
+
+        .ff-main-navigation {
+            .ff-menu-groups {
+                padding-top: 10px;
+
+                .ff-menu-group {
+                    padding: 5px;
+
+                    .ff-group-title {
+                        margin: 10px 0 15px;
+                        padding: 0 10px;
+                        text-transform: uppercase;
+                        color: $ff-color--disabled;
+                        font-size: 11px;
+                    }
+
+                    .ff-menu-entries {
+
+                        .ff-menu-entry {
+                            margin: 0 10px 5px 10px;
+
+                            &:last-of-type {
+                                margin-bottom: 0;
+                            }
+
+                            .ff-nav-item {
+                                padding: 5px 10px;
+                                border-radius: 5px;
+
+                                & > div {
+                                    gap: 5px;
+                                }
+
+                                &:hover {
+                                    background: $ff-color--highlight--light;
+                                }
+                            }
+
+                            .router-link-active {
+                                .ff-nav-item {
+                                    background: $ff-color--action;
+                                    color: white;
+                                }
+                            }
+
+                            .disabled {
+                                .ff-nav-item {
+                                    color: $ff-color--disabled;
+                                    cursor: not-allowed;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    &.hidden-left-drawer {
+        #left-drawer {
+            left: -$sidenav_width;
+
+            &.active {
+                left: -$sidenav_width;
+            }
+        }
+        .ff-view {
+            margin-left:  -$sidenav_width;
+        }
+    }
+}
+
+
+/* CSS Media Query for Mobile */
+@media screen and (max-width: 1023px) {
+    #ff-app {
+        #left-drawer {
+            left: -$sidenav_width;
+            box-shadow: 6px 0 12px rgba(0, 0, 0, 0.2);
+
+            &.active {
+                left: 0;
+            }
+        }
+
+        .ff-view {
+            margin-left:  -$sidenav_width;
         }
     }
 }

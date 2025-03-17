@@ -19,6 +19,12 @@
   display: inline-block;
 }
 
+.ff-icon-md {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+
 .ff-icon-lg {
   width: 24px;
   height: 24px;
@@ -77,7 +83,7 @@
   line-height: 20px;
   height: 32px;
   position: relative;
-  
+
   justify-content: center;
   font-weight: bold;
   height: auto;
@@ -94,7 +100,7 @@
     line-height: 16px;
     height: 24px;
   }
-  
+
   &.ff-btn-fwidth {
     justify-content: center;
   }
@@ -146,6 +152,13 @@
       color: $ff-white;
     }
   }
+  &--tertiary-danger {
+    color: $ff-color--danger;
+    &:hover {
+      background-color: $ff-color--danger--dark;
+      color: $ff-white;
+    }
+  }
 
   &.ff-btn-small {
     .ff-btn--icon,
@@ -175,7 +188,8 @@
     }
   }
 
-  &:disabled {
+  &:disabled,
+  &[disabled=true] {
     cursor: not-allowed;
     border-color: $ff-grey-200;
     color: $ff-grey-400;
@@ -398,10 +412,11 @@ li.ff-list-item {
     left: 0;
     height: 16px;
     width: 16px;
+    margin-left: 4px;
     border-radius: 4px;
     background-color: transparent;
     border: 1px solid;
-    border-color: $ff-grey-400;    
+    border-color: $ff-grey-400;
   }
   &:hover:not([disabled=true]) {
     .checkbox {
@@ -564,7 +579,7 @@ li.ff-list-item {
     border-radius: 4px;
     background-color: transparent;
     border: 1px solid $ff-grey-400;
-    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e")    
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e")
   }
 }
 
@@ -656,7 +671,7 @@ li.ff-list-item {
     }
     &.active {
       border: 2px solid var(--ff-tile-selection-color);
-      svg {
+      .ff-tile-selection-option--header svg {
         fill: var(--ff-tile-selection-color);
       }
     }
@@ -667,7 +682,7 @@ li.ff-list-item {
 }
 
 /*
-  FF Data Table 
+  FF Data Table
 */
 .ff-data-table {
   width: 100%;
@@ -797,6 +812,12 @@ li.ff-list-item {
       justify-content: flex-end;
     }
   }
+}
+
+.ff-data-table thead .ff-checkbox,
+.ff-data-table tbody .ff-checkbox,
+.ff-data-table tbody .ff-radio-btn {
+    display: inline;
 }
 
 .ff-loadmore {
@@ -950,6 +971,7 @@ li.ff-list-item {
     cursor: pointer;
     position: relative;
     display: flex;
+    max-height: 20px;
     svg {
       position: relative;
       z-index: 2;

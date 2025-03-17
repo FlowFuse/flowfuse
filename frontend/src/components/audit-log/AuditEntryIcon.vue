@@ -23,6 +23,7 @@
     <CurrencyDollarIcon v-else-if="icon === 'billing'" class="ff-icon text-yellow-500" />
     <KeyIcon v-else-if="icon === 'key'" class="ff-icon text-green-700" />
     <KeyIcon v-else-if="icon === 'overage'" class="ff-icon text-red-700" />
+    <PuzzleIcon v-else-if="icon === 'package'" class="ff-icon text-green-700" />
     <InformationCircleIcon v-else class="ff-icon text-gray-600" />
 </template>
 
@@ -33,7 +34,7 @@ import {
     CurrencyDollarIcon, DesktopComputerIcon, ExclamationCircleIcon,
     ExclamationIcon, IdentificationIcon, InformationCircleIcon,
     KeyIcon, LockClosedIcon, LoginIcon, LogoutIcon, MailIcon,
-    TemplateIcon, TicketIcon, UserGroupIcon, UserIcon
+    PuzzleIcon, TemplateIcon, TicketIcon, UserGroupIcon, UserIcon
 } from '@heroicons/vue/outline'
 
 import DeviceGroupSolidIcon from '../icons/DeviceGroupSolid.js'
@@ -145,8 +146,8 @@ const iconMap = {
         'users.auto-created-team'
     ],
     mail: [
-        'user.invite.accepted',
-        'user.invite.deleted',
+        'user.invitation.accepted',
+        'user.invitation.deleted',
         'team.user.invited',
         'team.user.uninvited',
         'team.user.invite.accepted',
@@ -167,6 +168,7 @@ const iconMap = {
     ],
     clock: [
         'project.snapshot.created',
+        'project.snapshot.updated',
         'project.device.snapshot.created',
         'project.snapshot.deleted',
         'project.snapshot.rollback',
@@ -176,6 +178,7 @@ const iconMap = {
         'project.snapshot.device-target-set',
         'project.snapshot.deviceTarget', // legacy event
         'application.device.snapshot.created',
+        'application.device.snapshot.updated',
         'application.device.snapshot.deleted',
         'application.device.snapshot.exported',
         'application.device.snapshot.imported',
@@ -188,6 +191,7 @@ const iconMap = {
         'application.device.assigned',
         'team.device.created',
         'team.device.deleted',
+        'team.device.bulk-deleted',
         'team.device.updated',
         'team.device.unassigned',
         'team.device.assigned',
@@ -205,7 +209,8 @@ const iconMap = {
         'application.deviceGroup.created',
         'application.deviceGroup.updated',
         'application.deviceGroup.deleted',
-        'application.deviceGroup.members.changed'
+        'application.deviceGroup.members.changed',
+        'application.deviceGroup.settings.updated'
     ],
     beaker: [
         'team.device.developer-mode.enabled',
@@ -231,11 +236,17 @@ const iconMap = {
         'application.pipeline.deleted',
         'application.pipeline.stage-added',
         'application.pipeline.stage-deployed',
-        'project.assigned-to-pipeline-stage'
+        'project.assigned-to-pipeline-stage',
+        'device.pipeline.deployed',
+        'device.project.deployed'
     ],
     resource: [
         'resource.cpu',
         'resource.memory'
+    ],
+    package: [
+        'team.package.published',
+        'team.package.unpublished'
     ]
 }
 
@@ -295,7 +306,8 @@ export default {
         ExclamationCircleIcon,
         ExclamationIcon,
         TicketIcon,
-        InformationCircleIcon
+        InformationCircleIcon,
+        PuzzleIcon
     }
 }
 </script>

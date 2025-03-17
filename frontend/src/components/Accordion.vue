@@ -1,13 +1,15 @@
 <template>
-    <div class="ff-accordion" :class="{'open': isOpen}">
+    <div class="ff-accordion" :class="{open: isOpen}" data-el="accordion">
         <button class="ff-accordion--button" :disabled="disabled" @click="toggle()">
-            <label>{{ label }}</label>
-            <div>
+            <slot name="label">
+                <label>{{ label }}</label>
+            </slot>
+            <div class="toggle">
                 <slot name="meta" />
-                <ChevronLeftIcon v-if="!disabled" class="ff-icon" />
+                <ChevronLeftIcon v-if="!disabled" class="ff-icon chevron" />
             </div>
         </button>
-        <div ref="content" class="ff-accordion--content">
+        <div v-if="isOpen" ref="content" class="ff-accordion--content">
             <slot name="content" />
         </div>
     </div>
@@ -24,7 +26,8 @@ export default {
     props: {
         label: {
             type: String,
-            required: true
+            required: false,
+            default: ''
         },
         setOpen: {
             type: Boolean,
@@ -35,6 +38,7 @@ export default {
             default: false
         }
     },
+    emits: ['state-changed'],
     data () {
         return {
             isOpen: false
@@ -48,6 +52,7 @@ export default {
                     const content = this.$refs.content
                     return (2 * content.scrollHeight) + 'px'
                 })
+                this.$emit('state-changed', value)
             } else {
                 return null
             }
@@ -69,7 +74,7 @@ export default {
                 }
             }
         },
-        // externally facing open function so we can call all accordians open/close at once
+        // externally facing open function so we can call all accordions open/close at once
         open: function () {
             this.isOpen = true
         },

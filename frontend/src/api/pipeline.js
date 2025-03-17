@@ -21,6 +21,7 @@ export const getStageType = (stage) => {
 }
 
 export const StageAction = Object.freeze({
+    NONE: 'none',
     CREATE_SNAPSHOT: 'create_snapshot',
     USE_ACTIVE_SNAPSHOT: 'use_active_snapshot',
     USE_LATEST_SNAPSHOT: 'use_latest_snapshot',
@@ -125,10 +126,17 @@ const deployPipelineStage = async (pipelineId, sourceStageId, sourceSnapshotId) 
     })
 }
 
+const getTeamPipelines = async (teamId, options = {}) => {
+    return client.get(`/api/v1/teams/${teamId}/pipelines`, options).then(res => {
+        return res.data
+    })
+}
+
 export default {
     getPipelineStage,
     addPipelineStage,
     updatePipelineStage,
     deletePipelineStage,
-    deployPipelineStage
+    deployPipelineStage,
+    getTeamPipelines
 }

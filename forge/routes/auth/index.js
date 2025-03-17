@@ -15,13 +15,14 @@
  * @namespace session
  * @memberof forge.routes
  */
-const crypto = require('crypto')
-
 const fp = require('fastify-plugin')
+
+const { completeUserSignup } = require('../../lib/userTeam')
 
 // This defines how long the session cookie is valid for. This should match
 // the max session age defined in `forge/db/controllers/Session.DEFAULT_WEB_SESSION_EXPIRY
 // albeit in secs not millisecs due to cookie maxAge requirements
+// this can be overridden by `sessions.maxDuration` in config yml file
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 1 week in seconds
 
 // Options to apply to our session cookie
@@ -120,6 +121,16 @@ async function init (app, opts) {
                             delete request.session.scope
                         }
                     }
+                    if (accessToken.ownerType === 'broker') {
+                        request.session.Broker = await app.db.models.BrokerCredentials.findOne({
+                            where: { id: parseInt(accessToken.ownerId) },
+                            include: [{ model: app.db.models.Team }]
+                        })
+                        if (!request.session.Broker) {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        }
+                    }
                     return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
@@ -171,7 +182,7 @@ async function init (app, opts) {
         const session = await app.db.controllers.Session.createUserSession(username)
         if (session) {
             const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
-            cookieOptions.maxAge = SESSION_MAX_AGE
+            cookieOptions.maxAge = app.config.sessions?.maxDuration || SESSION_MAX_AGE
             if (/^https:/.test(app.config.base_url)) {
                 // If base_url starts https then we can safely set the secure flag
                 // on the cookie
@@ -439,7 +450,7 @@ async function init (app, opts) {
                     newUser,
                     'VerifyEmail',
                     {
-                        confirmEmailLink: `${app.config.base_url}/account/verify/${verificationToken}`
+                        token: verificationToken
                     }
                 )
             }
@@ -461,6 +472,12 @@ async function init (app, opts) {
                     // invite.external = false
                     // invite.inviteeId = verifiedUser.id
                     // await invite.save()
+                }
+            } else {
+                // Log them in
+                const sessionInfo = await app.createSessionCookie(newUser.username)
+                if (sessionInfo) {
+                    reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
                 }
             }
 
@@ -488,138 +505,45 @@ async function init (app, opts) {
     /**
      * Perform email verification
      */
-    app.post('/account/verify/:token', {
+    app.post('/account/verify/token', {
         config: {
-            rateLimit: false // never rate limit this route
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 2,
+                    timeWindow: 60000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
         },
         schema: {
             tags: ['Authentication', 'X-HIDDEN']
         }
     }, async (request, reply) => {
+        let sessionUser
+        if (request.sid) {
+            request.session = await app.db.controllers.Session.getOrExpire(request.sid)
+            sessionUser = request.session?.User
+        }
+        let verifiedUser
         try {
-            let sessionUser
-            if (request.sid) {
-                request.session = await app.db.controllers.Session.getOrExpire(request.sid)
-                sessionUser = request.session?.User
-            }
-            let verifiedUser
-            try {
-                verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.params.token)
-            } catch (err) {
-                const resp = { code: 'invalid_request', error: err.toString() }
-                await app.auditLog.User.account.verify.verifyToken(request.session?.User, resp)
-                reply.code(400).send(resp)
-                return
-            }
-
-            if (app.settings.get('user:team:auto-create')) {
-                const teamLimit = app.license.get('teams')
-                const teamCount = await app.db.models.Team.count()
-                if (teamCount >= teamLimit) {
-                    const resp = { code: 'team_limit_reached', error: 'Unable to auto create user team: license limit reached' }
-                    await app.auditLog.User.account.verify.verifyToken(verifiedUser, resp)
-                    reply.code(400).send(resp)
-                    return
-                }
-                // only create a personal team if no other teams exist
-                if (!((await app.db.models.Team.forUser(verifiedUser)).length)) {
-                    let teamTypeId = app.settings.get('user:team:auto-create:teamType')
-
-                    if (!teamTypeId) {
-                        // No team type set - pick the 'first' one based on 'order'
-                        const teamTypes = await app.db.models.TeamType.findAll({ where: { active: true }, order: [['order', 'ASC']], limit: 1 })
-                        teamTypeId = teamTypes[0].id
-                    } else {
-                        teamTypeId = app.db.models.TeamType.decodeHashid(teamTypeId)
-                    }
-                    const teamProperties = {
-                        name: `Team ${verifiedUser.name}`,
-                        slug: verifiedUser.username,
-                        TeamTypeId: teamTypeId
-                    }
-                    const team = await app.db.controllers.Team.createTeamForUser(teamProperties, verifiedUser)
-                    await app.auditLog.Platform.platform.team.created(request.session?.User || verifiedUser, null, team)
-                    await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, team)
-
-                    if (app.license.active() && app.billing) {
-                        // This checks to see if the team should be in trial mode
-                        await app.billing.setupTrialTeamSubscription(team, verifiedUser)
-                    }
-                }
-            }
-
-            const pendingInvitations = await app.db.models.Invitation.forExternalEmail(verifiedUser.email)
-            for (let i = 0; i < pendingInvitations.length; i++) {
-                const invite = pendingInvitations[i]
-                // For now we'll auto-accept any invites for this user
-                // See https://github.com/FlowFuse/flowfuse/issues/275#issuecomment-1040113991
-                await app.db.controllers.Invitation.acceptInvitation(invite, verifiedUser)
-                // // If we go back to having the user be able to accept invites
-                // // as a secondary step, the following code will convert the external
-                // // invite into an internal one.
-                // invite.external = false
-                // invite.inviteeId = verifiedUser.id
-                // await invite.save()
-            }
-            await app.auditLog.User.account.verify.verifyToken(request.session?.User || verifiedUser, null)
-
-            // only create a starting instance if the flag is set and this user and their teams have no instances
-            if (app.settings.get('user:team:auto-create:instanceType') &&
-             !((await app.db.models.Project.byUser(verifiedUser)).length)) {
-                const instanceTypeId = app.settings.get('user:team:auto-create:instanceType')
-
-                const instanceType = await app.db.models.ProjectType.byId(instanceTypeId)
-                const instanceStack = await instanceType?.getDefaultStack() || (await instanceType.getProjectStacks())?.[0]
-                const instanceTemplate = await app.db.models.ProjectTemplate.findOne({ where: { active: true } })
-
-                const userTeamMemberships = await app.db.models.Team.forUser(verifiedUser)
-                if (userTeamMemberships.length <= 0) {
-                    console.warn("Flag to auto-create instance is set ('user:team:auto-create:instanceType'), but user has no team, consider setting 'user:team:auto-create'")
-                    return reply.send({ status: 'okay' })
-                } else if (!instanceType) {
-                    throw new Error(`Instance type with id ${instanceTypeId} from 'user:team:auto-create:instanceType' not found`)
-                } else if (!instanceStack) {
-                    throw new Error(`Unable to find a stack for use with instance type ${instanceTypeId} to auto-create user instance`)
-                } else if (!instanceTemplate) {
-                    throw new Error('Unable to find the default instance template from which to auto-create user instance')
-                }
-
-                const userTeam = userTeamMemberships[0].Team
-
-                const applications = await app.db.models.Application.byTeam(userTeam.id)
-                let application
-                if (applications.length > 0) {
-                    application = applications[0]
-                } else {
-                    const applicationName = `${verifiedUser.name}'s Application`
-
-                    application = await app.db.models.Application.create({
-                        name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
-                        TeamId: userTeam.id
-                    })
-
-                    await app.auditLog.User.account.verify.autoCreateTeam(request.session?.User || verifiedUser, null, application)
-                }
-
-                const safeTeamName = userTeam.name.toLowerCase().replace(/[\W_]/g, '-')
-                const safeUserName = verifiedUser.username.toLowerCase().replace(/[\W_]/g, '-')
-
-                const instanceProperties = {
-                    name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
-                }
-
-                const instance = await app.db.controllers.Project.create(userTeam, application, verifiedUser, instanceType, instanceStack, instanceTemplate, instanceProperties)
-
-                await app.auditLog.User.account.verify.autoCreateInstance(request.session?.User || verifiedUser, null, instance)
-            }
-
-            reply.send({ status: 'okay' })
+            verifiedUser = await app.db.controllers.User.verifyEmailToken(sessionUser, request.body.token)
+            await app.auditLog.User.account.verify.verifyToken(verifiedUser, null)
         } catch (err) {
-            app.log.error(`/account/verify/token error - ${err.toString()}`)
-            const resp = { code: 'unexpected_error', error: err.toString() }
+            const resp = { code: 'invalid_request', error: err.toString() }
             await app.auditLog.User.account.verify.verifyToken(request.session?.User, resp)
             reply.code(400).send(resp)
+            return
         }
+        try {
+            await completeUserSignup(app, verifiedUser)
+        } catch (err) {
+            // At this point, the user is verified. So we need to respond with success.
+            // However, an error was hit whilst completing their post-signup tasks.
+            await app.auditLog.User.account.verify.verifyToken(sessionUser, { error: err.toString() })
+            app.log.error(`/account/verify/token error - ${err.stack}`)
+        }
+        reply.send({ status: 'okay' })
     })
 
     /**
@@ -659,7 +583,7 @@ async function init (app, opts) {
                 request.session.User,
                 'VerifyEmail',
                 {
-                    confirmEmailLink: `${app.config.base_url}/account/verify/${verificationToken}`
+                    token: verificationToken
                 }
             )
             await app.auditLog.User.account.verify.requestToken(request.session.User, null)

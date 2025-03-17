@@ -1,9 +1,9 @@
-import { RoleNames, Roles } from '../../../forge/lib/roles.js'
 import product from '../services/product.js'
 
 import daysSince from '../utils/daysSince.js'
 import elapsedTime from '../utils/elapsedTime.js'
 import paginateUrl from '../utils/paginateUrl.js'
+import { RoleNames, Roles } from '../utils/roles.js'
 
 import client from './client.js'
 
@@ -74,12 +74,17 @@ const deleteTeam = async (teamId) => {
  * Get a list of applications
  * This function does not get instance status
  * @param {string} teamId The Team ID (hash) to get applications and instances for
+ * @param associationsLimit
+ * @param includeApplicationSummary
  * @returns An array of application objects containing an array of instances
  */
-const getTeamApplications = async (teamId, { associationsLimit } = {}) => {
-    const options = {}
+const getTeamApplications = async (teamId, { associationsLimit, includeApplicationSummary = false } = {}) => {
+    const options = { params: {} }
     if (associationsLimit) {
-        options.params = { associationsLimit }
+        options.params.associationsLimit = associationsLimit
+    }
+    if (includeApplicationSummary) {
+        options.params.includeApplicationSummary = includeApplicationSummary
     }
     const result = await client.get(`/api/v1/teams/${teamId}/applications`, options)
     return result.data
@@ -131,6 +136,20 @@ const getTeamInstances = async (teamId) => {
         return r
     })
     await Promise.all(promises)
+    return res.data
+}
+
+const getTeamDashboards = async (teamId) => {
+    const res = await client.get(`/api/v1/teams/${teamId}/dashboard-instances`)
+    res.data.projects = res.data.projects.map(r => {
+        r.createdSince = daysSince(r.createdAt)
+        r.updatedSince = daysSince(r.updatedAt)
+        r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
+
+        r.link = { name: 'Application', params: { id: r.id } }
+
+        return r
+    })
     return res.data
 }
 
@@ -198,18 +217,37 @@ const removeTeamInvitation = (teamId, inviteId) => {
         })
     })
 }
+const resendTeamInvitation = (teamId, inviteId) => {
+    return client.post(`/api/v1/teams/${teamId}/invitations/${inviteId}`)
+        .then((response) => response.data)
+        .then((invitation) => {
+            product.capture('$ff-invite-resent', {
+                'invite-id': inviteId
+            }, {
+                team: teamId
+            })
+
+            invitation.roleName = RoleNames[invitation.role || Roles.Member]
+            invitation.createdSince = daysSince(invitation.createdAt)
+            invitation.expires = elapsedTime(invitation.expiresAt, Date.now())
+
+            return invitation
+        })
+}
 
 const create = async (options) => {
     return client.post('/api/v1/teams/', options).then(res => {
         // PostHog Event & Group Capture
         product.capture('$ff-team-created', {
             'team-name': options.name,
+            'team-type-id': options.type,
             'created-at': res.data.createdAt
         }, {
             team: res.data.id
         })
         const props = {
             'team-name': options.name,
+            'team-type-id': options.type,
             'created-at': res.data.createdAt,
             'count-applications': 0,
             'count-instances': 0,
@@ -230,7 +268,7 @@ const changeTeamMemberRole = (teamId, userId, role) => {
 
 const removeTeamMember = (teamId, userId) => {
     return client.delete(`/api/v1/teams/${teamId}/members/${userId}`).then(() => {
-        product.capture('$ff-team-created', {
+        product.capture('$ff-team-member-removed', {
             'member-removed': userId,
             'removed-at': (new Date()).toISOString()
         }, {
@@ -264,6 +302,21 @@ const getTeamDevices = async (teamId, cursor, limit, query, extraParams = {}) =>
         }
     })
     return res.data
+}
+
+const getTeamRegistry = async (teamId, cursor, limit) => {
+    const url = paginateUrl(`/api/v1/teams/${teamId}/npm/packages`, cursor, limit)
+    const res = await client.get(url)
+    return {
+        data: res.data
+    }
+}
+const generateRegistryUserToken = async (teamId) => {
+    const url = paginateUrl(`/api/v1/teams/${teamId}/npm/userToken`)
+    const res = await client.post(url)
+    return {
+        data: res.data
+    }
 }
 
 const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
@@ -362,6 +415,63 @@ const deleteTeamDeviceProvisioningToken = async (teamId, tokenId) => {
 }
 
 /**
+ * Bulk delete devices
+ * @param {string} teamId - Team ID (hash)
+ * @param {Array<string>} devices - Array of device IDs (hash)
+ * @returns
+ */
+const bulkDeviceDelete = async (teamId, devices) => {
+    return await client.delete(`/api/v1/teams/${teamId}/devices/bulk`, { data: { devices } })
+}
+
+/**
+ * Bulk move devices
+ * @param {string} teamId - Team ID (hash)
+ * @param {Array<string>} devices - Array of device IDs (hash)
+ * @param {object} options
+ * @param {'instance' | 'application' | 'unassigned'} options.moveTo - Destination to move devices to. Can be 'instance', 'application', or 'unassigned'
+ * @param {string} [options.id] - ID (hash) of the destination
+ * @returns
+ */
+const bulkDeviceMove = async (teamId, devices, moveTo, id = undefined) => {
+    const url = `/api/v1/teams/${teamId}/devices/bulk`
+    const data = { devices }
+    if (moveTo === 'instance') {
+        data.instance = id
+    } else if (moveTo === 'application') {
+        data.application = id
+    } else if (moveTo === 'unassigned') {
+        data.instance = null
+        data.application = null
+    } else {
+        throw new Error('Invalid destination')
+    }
+    const res = await client.put(url, data)
+    res.data.devices.forEach(device => {
+        device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
+        if (device.project) {
+            device.instance = device.project
+        }
+    })
+    return res.data
+}
+
+/**
+ * Get a list of Dependencies / Bill of Materials
+ * @param teamId
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+const getDependencies = (teamId) => {
+    return client.get(`/api/v1/teams/${teamId}/bom`)
+        .then(res => res.data)
+}
+
+const getTeamDeviceGroups = (teamId) => {
+    return client.get(`/api/v1/teams/${teamId}/device-groups`)
+        .then(res => res.data)
+}
+
+/**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
 */
@@ -375,19 +485,27 @@ export default {
     getTeamApplicationsAssociationsStatuses,
     getTeamInstances,
     getTeamInstancesList,
+    getTeamDashboards,
     getTeamMembers,
     changeTeamMemberRole,
     removeTeamMember,
     getTeamInvitations,
     createTeamInvitation,
     removeTeamInvitation,
+    resendTeamInvitation,
     getTeamAuditLog,
     getTeamUserMembership,
     getTeamDevices,
+    getTeamRegistry,
+    generateRegistryUserToken,
     getTeamLibrary,
     deleteFromTeamLibrary,
     getTeamDeviceProvisioningTokens,
     generateTeamDeviceProvisioningToken,
     updateTeamDeviceProvisioningToken,
-    deleteTeamDeviceProvisioningToken
+    deleteTeamDeviceProvisioningToken,
+    bulkDeviceDelete,
+    bulkDeviceMove,
+    getDependencies,
+    getTeamDeviceGroups
 }

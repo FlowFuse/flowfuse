@@ -48,14 +48,17 @@ module.exports = {
                 * @param {number|object|'system'} actionedBy A user object or a user id. NOTE: 0 will denote the "system", >0 denotes a user
                 * @param {*} error An error to log (pass null if no error)
                 * @param {Object} options
-                * @param {'users'|'teams'|'projects'|'devices'} options.resource The resource that has overage
+                * @param {'users'|'teams'|'projects'|'devices'|'mqttClients'} options.resource The resource that has overage
                 * @param {number} options.count The current count of the resource
                 * @param {number} options.limit The limit of the resource
                 */
                 async overage (actionedBy, error, { resource, count, limit } = {}) {
-                    ['users', 'teams', 'projects', 'devices'].includes(resource) || (resource = resource || 'unknown')
+                    ['users', 'teams', 'projects', 'devices', 'mqttClients'].includes(resource) || (resource = resource || 'unknown')
                     const info = { resource, count, limit }
                     await log('platform.license.overage', actionedBy, generateBody({ error, info }))
+                },
+                async expired (actionedBy, error, license) {
+                    await log('platform.license.expired', actionedBy, generateBody({ error, license }))
                 }
             },
             team: {
@@ -64,6 +67,12 @@ module.exports = {
                 },
                 async deleted (actionedBy, error, team) {
                     await log('platform.team.deleted', actionedBy, generateBody({ error, team }))
+                },
+                async suspended (actionedBy, error, team) {
+                    await log('platform.team.suspended', actionedBy, generateBody({ error, team }))
+                },
+                async unsuspended (actionedBy, error, team) {
+                    await log('platform.team.unsuspended', actionedBy, generateBody({ error, team }))
                 }
             }
         }

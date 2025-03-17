@@ -1,6 +1,14 @@
 ---
 navTitle: ctrlX - Node-RED
 navOrder: 2
+meta:
+   description: Discover how to install, log in, and create Node-RED flows on ctrlX devices with the Rexroth CtrlX App by FlowFuse.
+   tags:
+      - ctrlx
+      - nodered
+      - flowfuse
+      - installation
+      - configuration
 ---
 # ctrlX Node-RED App
 

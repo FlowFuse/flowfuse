@@ -1,13 +1,14 @@
 <template>
     <FeatureUnavailableToTeam v-if="teamUserLimitReached" fullMessage="You have reached the user limit for this team." class="mt-0" />
     <ff-loading v-if="loading" message="Loading Team..." />
-    <form v-else class="mb-8">
+    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+    <form v-else class="mb-14">
         <div class="text-right" />
         <ff-data-table data-el="members-table" :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
             <template v-if="hasPermission('team:user:invite')" #actions>
                 <ff-button data-action="member-invite-button" :disabled="teamUserLimitReached" kind="primary" @click="inviteMember">
-                    <template #icon-left><PlusSmIcon class="w-4" /></template>
-                    Invite Member
+                    <template #icon-left><UserAddIcon class="w-4" /></template>
+                    Invite Members
                 </ff-button>
             </template>
             <template v-if="canEditUser" #context-menu="{row}">
@@ -23,16 +24,16 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { UserAddIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../../../forge/lib/roles.js'
 import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
+import { Roles } from '../../../utils/roles.js'
 import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog.vue'
 import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog.vue'
 import InviteMemberDialog from '../dialogs/InviteMemberDialog.vue'
@@ -43,7 +44,7 @@ export default {
         ChangeTeamRoleDialog,
         ConfirmTeamUserRemoveDialog,
         FeatureUnavailableToTeam,
-        PlusSmIcon,
+        UserAddIcon,
         InviteMemberDialog
     },
     mixins: [permissionsMixin],
@@ -82,6 +83,12 @@ export default {
     },
     mounted () {
         this.fetchData()
+
+        // do we auto-open the dialog?
+        if (this.$route.query.action === 'invite') {
+            this.$router.replace({ query: null })
+            this.inviteMember()
+        }
     },
     methods: {
         inviteMember () {

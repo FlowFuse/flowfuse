@@ -50,6 +50,7 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
+import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import alerts from '../../../services/alerts.js'
 import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
@@ -76,7 +77,7 @@ export default {
         TokenCreated,
         TokenDialog
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, featuresMixin],
     inheritAttrs: false,
     props: {
         project: {
@@ -152,12 +153,19 @@ export default {
                     this.hasErrors = errors
                 }
             }
+        },
+        'editable.settings.httpNodeAuth_type': {
+            handler (v) {
+                if (v === 'flowforge-user') {
+                    this.getTokens()
+                }
+            }
         }
     },
     mounted () {
         this.checkAccess()
         this.getSettings()
-        if (this.settings.features.httpBearerTokens) {
+        if (this.isHTTPBearerTokensFeatureEnabled()) {
             this.getTokens()
         }
     },

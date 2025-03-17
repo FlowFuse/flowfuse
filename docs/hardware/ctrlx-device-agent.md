@@ -1,6 +1,14 @@
 ---
 navTitle: ctrlX - Device Agent
 navOrder: 3
+meta:
+   description: Learn to install and configure the FlowFuse Device Agent on ctrlX devices for seamless integration with FlowFuse, ensuring efficient device management.
+   tags:
+      - ctrlx
+      - device agent
+      - flowfuse
+      - installation
+      - configuration
 ---
 # ctrlX Device Agent App
 
@@ -20,7 +28,7 @@ navOrder: 3
 
 ## Device Agent Configuration for ctrlX
 
-1. After successful installation, [generate and download the "Device Credentials" in FlowFuse](/docs/device-agent/register/#generating-"device-configuration")
+1. After successful installation, [generate and download the "Device Credentials" in FlowFuse](/docs/device-agent/register/#manual-setup)
 
 2. In the ctrlX CORE web interface, navigate to the window **Settings** ➔ **Apps** ➔ **Manage App Data**
 

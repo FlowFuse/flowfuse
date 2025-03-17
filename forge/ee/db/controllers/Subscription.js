@@ -14,8 +14,7 @@ module.exports = {
 
             // This *could* be a trial team that has devices in it. In which case,
             // we need to reconcile the subscription device and instance count
-            await app.billing.updateTeamInstanceCount(team)
-            await app.billing.updateTeamDeviceCount(team)
+            await app.billing.updateTeamBillingCounts(team)
             return existingSub
         } else {
             // Create the subscription
@@ -27,6 +26,15 @@ module.exports = {
 
             return newSubscription
         }
+    },
+    createUnmanagedSubscription: async function (app, team) {
+        const newSubscription = await app.db.models.Subscription.create({
+            customer: '',
+            subscription: '',
+            status: app.db.models.Subscription.STATUS.UNMANAGED
+        })
+        await newSubscription.setTeam(team)
+        return newSubscription
     },
     createTrialSubscription: async function (app, team, trialEndsAt) {
         const newSubscription = await app.db.models.Subscription.create({

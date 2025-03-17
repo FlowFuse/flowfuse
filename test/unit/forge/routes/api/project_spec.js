@@ -10,7 +10,7 @@ const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
-const { KEY_HOSTNAME, KEY_HEALTH_CHECK_INTERVAL } = FF_UTIL.require('forge/db/models/ProjectSettings')
+const { KEY_HEALTH_CHECK_INTERVAL, KEY_DISABLE_AUTO_SAFE_MODE } = FF_UTIL.require('forge/db/models/ProjectSettings')
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 
 describe('Project API', function () {
@@ -498,7 +498,8 @@ describe('Project API', function () {
                         dashboardUI: '/test-dash',
                         env: [
                             { name: 'one', value: 'a' },
-                            { name: 'two', value: 'b' }
+                            { name: 'two', value: 'b' },
+                            { name: 'three', value: 'c', hidden: true }
                         ]
                     }
                 )
@@ -560,6 +561,7 @@ describe('Project API', function () {
                 runtimeSettings.should.have.property('env')
                 runtimeSettings.env.should.have.property('one', 'a')
                 runtimeSettings.env.should.have.property('two', 'b')
+                runtimeSettings.env.should.have.property('three', 'c')
             })
 
             it('Create a project cloned from existing one - env-var keys only', async function () {
@@ -1475,7 +1477,6 @@ describe('Project API', function () {
                 })
             })
         })
-
         describe('Change project name', function () {
             it('Updates the name', async function () {
                 // Setup some flows/credentials
@@ -1488,6 +1489,44 @@ describe('Project API', function () {
                     'key1',
                     {}
                 )
+                TestObjects.project1.state = 'suspended'
+                await TestObjects.project1.save()
+
+                // call "Update a project" with a new name
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    payload: {
+                        name: 'new project name'
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                await sleep(STOP_DELAY + START_DELAY + 50)
+                const newResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${TestObjects.project1.id}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                JSON.parse(newResponse.payload).should.have.property('name', 'new project name')
+            })
+
+            it('Updates the name fail for running instance', async function () {
+                // Setup some flows/credentials
+                await addFlowsToProject(app,
+                    TestObjects.project1.id,
+                    TestObjects.tokens.project,
+                    TestObjects.tokens.alice,
+                    [{ id: 'node1' }],
+                    { testCreds: 'abc' },
+                    'key1',
+                    {}
+                )
+
+                TestObjects.project1.name = 'project1'
+                await TestObjects.project1.save()
+                TestObjects.project1.state = 'running'
+                await TestObjects.project1.save()
 
                 // call "Update a project" with a new name
                 const response = await app.inject({
@@ -1584,7 +1623,8 @@ describe('Project API', function () {
                     codeEditor: 'monaco',
                     env: [
                         { name: 'one', value: 'a' },
-                        { name: 'two', value: 'b' }
+                        { name: 'two', value: 'b' },
+                        { name: 'three', value: 'c', hidden: true }
                     ]
                 }
             )
@@ -1596,7 +1636,8 @@ describe('Project API', function () {
                     settings: {
                         env: [
                             { name: 'one', value: '1' },
-                            { name: 'two', value: '2' }
+                            { name: 'two', value: '2' },
+                            { name: 'three', value: '3', hidden: true }
                         ]
                     }
                 },
@@ -1609,7 +1650,8 @@ describe('Project API', function () {
             newSettings.should.have.property('httpAdminRoot', '/test-red') // should be unchanged
             newSettings.should.have.property('env', [
                 { name: 'one', value: '1' },
-                { name: 'two', value: '2' }
+                { name: 'two', value: '2' },
+                { name: 'three', value: '3', hidden: true }
             ]) // should be unchanged
         })
         it('Change project env vars - member', async function () {
@@ -1654,7 +1696,7 @@ describe('Project API', function () {
                 { name: 'two', value: '2' }
             ]) // should be unchanged
         })
-        it('Change launcher health check interval - owner', async function () {
+        it('Change launcher settings - owner', async function () {
             // Setup some flows/credentials
             await addFlowsToProject(app,
                 TestObjects.project1.id,
@@ -1671,15 +1713,18 @@ describe('Project API', function () {
                 url: `/api/v1/projects/${TestObjects.project1.id}`,
                 payload: {
                     launcherSettings: {
-                        healthCheckInterval: 9876
+                        healthCheckInterval: 9876,
+                        disableAutoSafeMode: true
                     }
                 },
                 cookies: { sid: TestObjects.tokens.alice }
             })
             response.statusCode.should.equal(200)
 
-            const newValue = await TestObjects.project1.getSetting(KEY_HEALTH_CHECK_INTERVAL)
-            should(newValue).equal(9876)
+            const healthValue = await TestObjects.project1.getSetting(KEY_HEALTH_CHECK_INTERVAL)
+            should(healthValue).equal(9876)
+            const safeModeValue = await TestObjects.project1.getSetting(KEY_DISABLE_AUTO_SAFE_MODE)
+            should(safeModeValue).equal(true)
         })
         it('Change launcher health check interval bad value - owner', async function () {
             // Setup some flows/credentials
@@ -1732,82 +1777,6 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.statusCode.should.equal(403)
-        })
-
-        describe('Update hostname', function () {
-            it('Changes the projects hostname', async function () {
-                // call "Update a project" with a new hostname
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
-                    payload: {
-                        hostname: 'host.example.com'
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(200)
-                response.json().should.have.property('hostname', 'host.example.com')
-            })
-
-            it('Trims a trailing full-stop', async function () {
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
-                    payload: {
-                        hostname: 'my-project.flowforge.com.'
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(200)
-                response.json().should.have.property('hostname', 'my-project.flowforge.com')
-            })
-
-            it('Requires a FQDN', async function () {
-                // call "Update a project" with a new hostname
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
-                    payload: {
-                        hostname: 'examplecom'
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(409)
-                response.json().should.have.property('code', 'invalid_hostname')
-            })
-
-            it('Requires the hostname to be unique case-insensitively', async function () {
-                const existingProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
-                existingProject.updateSetting(KEY_HOSTNAME, 'already-in-use.flowforge.com')
-
-                // call "Update a project" with a new hostname
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
-                    payload: {
-                        hostname: 'Already-In-Use.FlowForge.com'
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(409)
-                response.json().code.should.match('invalid_hostname')
-                response.json().error.should.containEql('in use')
-            })
-
-            it('Does not allow hostnames that end with the host domain', async function () {
-                // call "Update a project" with a new hostname
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/projects/${TestObjects.project1.id}`,
-                    payload: {
-                        hostname: 'in-use-as-domain.FlowForge.dev'
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(409)
-                response.json().code.should.match('invalid_hostname')
-                response.json().error.should.containEql('in use')
-            })
         })
 
         it('Export to another project - includes everything ', async function () {
@@ -2614,6 +2583,7 @@ describe('Project API', function () {
             response.statusCode.should.eqls(403)
         })
     })
+
     describe('Validate Project Env Vars', function () {
         it('Reject Duplicate Env Var Names', async function () {
             const response = await app.inject({
@@ -2648,6 +2618,52 @@ describe('Project API', function () {
             response.should.have.property('statusCode')
             response.statusCode.should.eqls(400)
         })
+        it('should return empty values for hidden env vars', async () => {
+            const projectSettings = await TestObjects.project1.getSetting('settings')
+            projectSettings.env = [{ name: 'hidden_var', value: 'hidden-content', hidden: true }]
+            await TestObjects.project1.updateSetting('settings', projectSettings)
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${app.project.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.should.have.property('statusCode')
+            response.statusCode.should.eqls(200)
+
+            const json = response.json()
+            json.settings.env[4].should.have.property('name', 'hidden_var')
+            json.settings.env[4].should.have.property('value', '')
+            json.settings.env[4].should.have.property('hidden', true)
+        })
+        it('should store hidden env vars', async () => {
+            const projectSettings = await TestObjects.project1.getSetting('settings')
+            projectSettings.env = [{ name: 'hidden_var', value: 'initial-content', hidden: true }]
+            await TestObjects.project1.updateSetting('settings', projectSettings)
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${app.project.id}`,
+                body: {
+                    settings: {
+                        env: [
+                            { name: 'hidden_var', value: 'updated-content', hidden: true }
+                        ]
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const json = response.json()
+
+            json.settings.env[4].should.have.property('name', 'hidden_var')
+            json.settings.env[4].should.have.property('value', '')
+            json.settings.env[4].should.have.property('hidden', true)
+
+            const updatedProjectSettings = await TestObjects.project1.getSetting('settings')
+            updatedProjectSettings.env[0].should.have.property('name', 'hidden_var')
+            updatedProjectSettings.env[0].should.have.property('value', 'updated-content')
+            updatedProjectSettings.env[0].should.have.property('hidden', true)
+        })
         // it('Reject Illegal names', async function () {
         //     const response = await app.inject({
         //         method: 'PUT',
@@ -2664,5 +2680,16 @@ describe('Project API', function () {
         //     response.should.have.property('statusCode')
         //     response.statusCode.should.eqls(400)
         // })
+    })
+
+    describe('Project History', function () {
+        it('Should not get a timeline of changes to the project (EE only)', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${TestObjects.project1.id}/history`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
+        })
     })
 })

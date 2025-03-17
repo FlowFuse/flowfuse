@@ -47,6 +47,8 @@ module.exports = {
     'user:team:auto-create:teamType': null,
     // The type of instance to auto-create when an account signs up, defaults to none.
     'user:team:auto-create:instanceType': null,
+    // Auto-create a default application whenever a team is created
+    'user:team:auto-create:application': false,
 
     // Can external users be invited to join teams
     'team:user:invite:external': false,
@@ -60,5 +62,8 @@ module.exports = {
     'branding:account:signUpLeftBanner': null,
 
     // Has a stats monitoring token been created?
-    'platform:stats:token': false
+    'platform:stats:token': false,
+
+    // Team Broker topic cache
+    'team:broker:topics': null
 }

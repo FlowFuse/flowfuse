@@ -26,6 +26,9 @@ module.exports = {
                     async created (actionedBy, error, application, device, snapshot) {
                         await log('application.device.snapshot.created', actionedBy, application?.id, generateBody({ error, device, snapshot }))
                     },
+                    async updated (actionedBy, error, application, device, snapshot, updates) {
+                        await log('application.device.snapshot.updated', actionedBy, application?.id, generateBody({ error, device, snapshot, updates }))
+                    },
                     async deleted (actionedBy, error, application, device, snapshot) {
                         await log('application.device.snapshot.deleted', actionedBy, application?.id, generateBody({ error, device, snapshot }))
                     },
@@ -52,6 +55,11 @@ module.exports = {
                 },
                 async membersChanged (actionedBy, error, application, deviceGroup, updates, info) {
                     await log('application.deviceGroup.members.changed', actionedBy, application?.id, generateBody({ error, application, deviceGroup, updates, info }))
+                },
+                settings: {
+                    async updated (actionedBy, error, application, deviceGroup, updates) {
+                        await log('application.deviceGroup.settings.updated', actionedBy, application?.id, generateBody({ error, application, deviceGroup, updates }))
+                    }
                 }
             }
         }

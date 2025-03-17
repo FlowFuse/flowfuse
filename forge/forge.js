@@ -14,7 +14,9 @@ const db = require('./db')
 const ee = require('./ee')
 const housekeeper = require('./housekeeper')
 const license = require('./licensing')
+const notifications = require('./notifications')
 const postoffice = require('./postoffice')
+const product = require('./product')
 const routes = require('./routes')
 const settings = require('./settings')
 const { finishSetup } = require('./setup')
@@ -259,17 +261,21 @@ module.exports = async (options = {}) => {
                 contentSecurityPolicy = {
                     directives: {
                         'base-uri': ["'self'"],
-                        'default-src': ["'self'", `*.${runtimeConfig.domain}`],
-                        'frame-src': ["'self'", `*.${runtimeConfig.domain}`],
+                        'default-src': ["'self'"],
+                        'frame-src': ["'self'"],
                         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
                         'worker-src': ["'self'", 'blob:'],
                         'connect-src': ["'self'"],
-                        'img-src': ["'self'", 'data:', 'flowfuse.com', 'www.gravatar.com'],
-                        'font-src': ["'self'"],
+                        'img-src': ["'self'", 'data:', '*'],
+                        'font-src': ["'self'", 'data:'],
                         'style-src': ["'self'", 'https:', "'unsafe-inline'"],
                         'upgrade-insecure-requests': null,
                         'frame-ancestors': ["'self'"]
                     }
+                }
+                if (runtimeConfig.domain) {
+                    contentSecurityPolicy.directives['default-src'].push(`*.${runtimeConfig.domain}`)
+                    contentSecurityPolicy.directives['frame-src'].push(`*.${runtimeConfig.domain}`)
                 }
             } else {
                 contentSecurityPolicy = {
@@ -328,24 +334,16 @@ module.exports = async (options = {}) => {
                     'www.google.co.uk',
                     'google.com',
                     'googleads.g.doubleclick.net',
-                    'www.googleservices.com'
+                    'www.googleservices.com',
+                    'www.googleadservices.com'
                 ]
                 if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
                     contentSecurityPolicy.directives['script-src'].push(...googleDomains)
                 } else {
                     contentSecurityPolicy.directives['script-src'] = googleDomains
                 }
-                const googleImageDomains = [
-                    'www.google.com',
-                    'www.google.co.uk',
-                    'googleads.g.doubleclick.net'
-                ]
-                if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
-                    contentSecurityPolicy.directives['img-src'].push(...googleImageDomains)
-                } else {
-                    contentSecurityPolicy.directives['img-src'] = googleImageDomains
-                }
                 const googleConnectDomains = [
+                    'www.google.com',
                     'google.com'
                 ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
@@ -360,6 +358,14 @@ module.exports = async (options = {}) => {
                     contentSecurityPolicy.directives['frame-src'].push(...googleFrameDomains)
                 } else {
                     contentSecurityPolicy.directives['frame-src'] = googleFrameDomains
+                }
+                const googleFontDomains = [
+                    'fonts.gstatic.com'
+                ]
+                if (contentSecurityPolicy.directives['font-src'] && Array.isArray(contentSecurityPolicy.directives['font-src'])) {
+                    contentSecurityPolicy.directives['font-src'].push(...googleFontDomains)
+                } else {
+                    contentSecurityPolicy.directives['font-src'] = googleFontDomains
                 }
             }
             if (runtimeConfig.support?.enabled && runtimeConfig.support.frontend?.hubspot?.trackingcode) {
@@ -380,23 +386,14 @@ module.exports = async (options = {}) => {
                 } else {
                     contentSecurityPolicy.directives['script-src'] = hubspotDomains
                 }
-                const hubspotImageDomains = [
-                    '*.hsforms.com',
-                    '*.hubspot.com',
-                    '*.hsforms.net'
-                ]
-                if (contentSecurityPolicy.directives['img-src'] && Array.isArray(contentSecurityPolicy.directives['img-src'])) {
-                    contentSecurityPolicy.directives['img-src'].push(...hubspotImageDomains)
-                } else {
-                    contentSecurityPolicy.directives['img-src'] = hubspotImageDomains
-                }
                 const hubspotConnectDomains = [
                     '*.hubspot.com',
                     '*.hubapi.com',
                     '*.hsforms.com',
                     '*.hubspot.com',
                     '*.hs-banner.com',
-                    '*.hscollectedforms.net'
+                    '*.hscollectedforms.net',
+                    '*.hs-embed-reporting.com'
                 ]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
                     contentSecurityPolicy.directives['connect-src'].push(...hubspotConnectDomains)
@@ -421,7 +418,7 @@ module.exports = async (options = {}) => {
             strictTransportSecurity = {
                 includeSubDomains: false,
                 preload: true,
-                maxAge: 3600
+                maxAge: 2592000
             }
         }
 
@@ -445,6 +442,9 @@ module.exports = async (options = {}) => {
         await server.register(routes, { logLevel: server.config.logging.http })
         // Post Office : handles email
         await server.register(postoffice)
+        await server.register(notifications)
+        // Product service handles reporting to PostHog
+        await server.register(product, runtimeConfig.telemetry.frontend?.posthog)
         // Comms : real-time communication broker
         await server.register(comms)
         // Containers:
@@ -461,7 +461,7 @@ module.exports = async (options = {}) => {
         await server.db.controllers.TeamType.ensureDefaultTypeExists()
 
         // Create ff-admin
-        if (server.config.create_admin) {
+        if (server.config.create_admin && !server.settings.get('setup:initialised')) {
             await createAdminUser(server)
             await finishSetup(server)
         }

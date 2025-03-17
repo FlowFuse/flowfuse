@@ -1,5 +1,10 @@
+const crypto = require('crypto')
+
+const { Op } = require('sequelize')
+
 const { Roles } = require('../../lib/roles')
 
+const teamShared = require('./shared/team.js')
 const TeamDevices = require('./teamDevices.js')
 const TeamInvitations = require('./teamInvitations.js')
 const TeamMembers = require('./teamMembers.js')
@@ -17,81 +22,7 @@ const TeamMembers = require('./teamMembers.js')
  *
  */
 module.exports = async function (app) {
-    app.addHook('preHandler', async (request, reply) => {
-        if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
-            // The route may provide either :teamId or :teamSlug
-            if (request.params.teamId || request.params.teamSlug) {
-                let teamId = request.params.teamId
-                if (request.params.teamSlug) {
-                    // If :teamSlug is provided, need to lookup the team to get
-                    // its id for subsequent checks
-                    request.team = await app.db.models.Team.bySlug(request.params.teamSlug)
-                    if (!request.team) {
-                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return
-                    }
-                    teamId = request.team.hashid
-                }
-
-                try {
-                    if (!request.session.User) {
-                        // If request.session.User is not defined, this request is being
-                        // made with an access token. If it is a project access token,
-                        // ensure that project is in this team
-                        if (request.session.ownerType === 'project') {
-                            // Want this to be as small a query as possible. Sequelize
-                            // doesn't make it easy to just get `TeamId` without doing
-                            // a join on Team table.
-                            const project = await app.db.models.Project.findOne({
-                                where: { id: request.session.ownerId },
-                                include: {
-                                    model: app.db.models.Team,
-                                    attributes: ['hashid', 'id']
-                                }
-                            })
-                            // Ensure the token's project is in the team being accessed
-                            if (project && project.Team.hashid === teamId) {
-                                return
-                            }
-                        } else if (request.session.ownerType === 'device') {
-                            // Want this to be as small a query as possible. Sequelize
-                            // doesn't make it easy to just get `TeamId` without doing
-                            // a join on Team table.
-                            const device = await app.db.models.Device.findOne({
-                                where: { id: request.session.ownerId },
-                                include: {
-                                    model: app.db.models.Team,
-                                    attributes: ['hashid', 'id']
-                                }
-                            })
-                            // Ensure the device is in the team being accessed
-                            if (device && device.Team.hashid === teamId) {
-                                return
-                            }
-                        }
-                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return
-                    }
-                    request.teamMembership = await request.session.User.getTeamMembership(teamId)
-                    if (!request.teamMembership && !request.session.User?.admin) {
-                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return
-                    }
-                    if (!request.team) {
-                        // For a :teamId route, we can now lookup the full team object
-                        request.team = await app.db.models.Team.byId(request.params.teamId)
-                        if (!request.team) {
-                            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        }
-                    }
-                } catch (err) {
-                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                }
-            } else {
-                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-            }
-        }
-    })
+    app.addHook('preHandler', teamShared.defaultPreHandler.bind(null, app))
 
     app.post('/check-slug', {
         preHandler: app.needsPermission('team:create'),
@@ -131,14 +62,7 @@ module.exports = async function (app) {
         }
     })
 
-    async function getTeamDetails (request, reply, team) {
-        if (!request.session.User?.admin && request.teamMembership.role < Roles.Viewer) {
-            // Return summary details for any role less than Viewer (eg dashboard)
-            reply.send(app.db.views.Team.teamSummary(team))
-            return
-        }
-        const result = app.db.views.Team.team(team)
-        result.instanceCountByType = await team.instanceCountByType()
+    async function appendBillingDetails (result, team, request) {
         if (app.license.active() && app.billing) {
             result.billing = {}
             const subscription = await team.getSubscription()
@@ -161,6 +85,19 @@ module.exports = async function (app) {
                 result.billing.active = false
             }
         }
+    }
+
+    async function getTeamDetails (request, reply, team) {
+        if (!request.session.User?.admin && request.teamMembership.role < Roles.Viewer) {
+            // Return summary details for any role less than Viewer (eg dashboard)
+            reply.send(app.db.views.Team.teamSummary(team))
+            return
+        }
+        const result = app.db.views.Team.team(team)
+        result.instanceCountByType = await team.instanceCountByType()
+
+        await appendBillingDetails(result, team, request)
+
         reply.send(result)
     }
 
@@ -250,8 +187,24 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         // Admin request for all teams
+        const where = {}
+        const filters = []
+        if (request.query.teamType) {
+            const teamTypes = request.query.teamType.split(',').map(app.db.models.TeamType.decodeHashid).flat()
+            filters.push({ TeamTypeId: { [Op.in]: teamTypes } })
+        }
+        if (request.query.state === 'suspended') {
+            filters.push({ suspended: true })
+        } else if (app.billing && request.query.billing) {
+            filters.push({ suspended: false })
+            const billingStates = request.query.billing.split(',')
+            filters.push({ '$Subscription.status$': { [Op.in]: billingStates } })
+        }
+        if (filters.length > 0) {
+            where[Op.and] = filters
+        }
         const paginationOptions = app.getPaginationOptions(request)
-        const teams = await app.db.models.Team.getAll(paginationOptions)
+        const teams = await app.db.models.Team.getAll(paginationOptions, where)
         teams.teams = teams.teams.map(t => app.db.views.Team.team(t))
         reply.send(teams)
     })
@@ -292,7 +245,7 @@ module.exports = async function (app) {
         const includeInstances = true
         const includeApplicationDevices = true
         const associationsLimit = request.query.associationsLimit
-        const includeApplicationSummary = !!associationsLimit
+        const includeApplicationSummary = !!associationsLimit || request.query.includeApplicationSummary
 
         const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices, associationsLimit, includeApplicationSummary })
 
@@ -362,9 +315,9 @@ module.exports = async function (app) {
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list')
     }, async (request, reply) => {
-        const projects = await app.db.models.Project.byTeam(request.params.teamId)
+        const projects = await app.db.models.Project.byTeam(request.params.teamId, { includeSettings: true })
         if (projects) {
-            let result = await app.db.views.Project.instancesList(projects)
+            let result = await app.db.views.Project.instancesList(projects, { includeSettings: true })
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed
@@ -382,6 +335,71 @@ module.exports = async function (app) {
     })
 
     /**
+     * Get team instances that have dashboards installed
+     * /api/v1/teams/:teamId/dashboard-instances
+     */
+    app.get('/:teamId/dashboard-instances', {
+        preHandler: app.needsPermission('team:read')
+    }, async (request, reply) => {
+        const projects = await app.db.models.Project.byTeamForDashboard(request.params.teamId)
+        if (projects && projects.length > 0) {
+            // filters out projects/instances without dashboards
+            const filtered = projects.filter(project => {
+                return project.ProjectSettings.filter(settingEntry => {
+                    const isSettingsEntry = settingEntry.key === 'settings'
+                    let hasDashboardInstalled = false
+                    if (
+                        isSettingsEntry &&
+                        Object.prototype.hasOwnProperty.call(settingEntry.value, 'palette') &&
+                        Object.prototype.hasOwnProperty.call(settingEntry.value.palette, 'modules')
+                    ) {
+                        hasDashboardInstalled = !!settingEntry.value.palette.modules.find(module => module.name === '@flowfuse/node-red-dashboard')
+                    }
+
+                    return isSettingsEntry && hasDashboardInstalled
+                }).length > 0
+            })
+
+            if (filtered.length === 0) {
+                return reply.send({
+                    count: 0,
+                    projects: []
+                })
+            }
+
+            // map additional data
+            await Promise.all(filtered.map(async project => {
+                const projectStatePromise = project.liveState()
+                const projectState = await projectStatePromise
+                project.state = projectState.meta.state
+                project.flowLastUpdatedAt = projectState.flowLastUpdatedAt
+                project.settings = {
+                    dashboard2UI: '/dashboard' // hardcoding the dashboard endpoint for the time being
+                }
+            }))
+
+            const result = await app.db.views.Project.dashboardInstancesSummaryList(filtered)
+            return reply.send({
+                count: result.length,
+                projects: result
+            })
+        } else {
+            return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
+
+    async function createTeamApplication (user, team) {
+        const applicationName = `${user.name}'s Application`
+        const application = await app.db.models.Application.create({
+            name: applicationName.charAt(0).toUpperCase() + applicationName.slice(1),
+            TeamId: team.id
+        })
+        await app.auditLog.Team.application.created(user, null, team, application)
+        await app.auditLog.Application.application.created(user, null, application)
+        return application
+    }
+
+    /**
      * Create a new team
      * /api/v1/teams
      */
@@ -396,7 +414,8 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     type: { type: 'string' },
-                    slug: { type: 'string' }
+                    slug: { type: 'string' },
+                    trial: { type: 'boolean' }
                 }
             },
             response: {
@@ -430,6 +449,34 @@ module.exports = async function (app) {
             return
         }
 
+        let trialMode = false
+        if (app.license.active() && app.billing && request.body.trial) {
+            // Check this user is allowed to create a trial team of this type.
+            // Rules:
+            // 1. teamType must have trial mode enabled
+            const teamTrialActive = await teamType.getProperty('trial.active', false)
+            if (!teamTrialActive) {
+                reply.code(400).send({ code: 'invalid_request', error: 'trial mode not available' })
+                return
+            }
+            // 2. user must have no existing teams
+            const existingTeamCount = await app.db.models.Team.countForUser(request.session.User)
+            if (existingTeamCount > 0) {
+                reply.code(400).send({ code: 'invalid_request', error: 'trial mode not available' })
+                return
+            }
+            // 3. user must be < 1 week old
+            const delta = Date.now() - request.session.User.createdAt.getTime()
+            if (delta > 1000 * 60 * 60 * 24 * 7) {
+                reply.code(400).send({ code: 'invalid_request', error: 'trial mode not available' })
+                return
+            }
+            trialMode = true
+        } else if (request.body.trial) {
+            reply.code(400).send({ code: 'invalid_request', error: 'trial mode not available' })
+            return
+        }
+
         let team
 
         try {
@@ -444,12 +491,47 @@ module.exports = async function (app) {
 
             const teamView = app.db.views.Team.team(team)
 
+            let defaultTeamCreated = false
             if (app.license.active() && app.billing) {
-                const session = await app.billing.createSubscriptionSession(team, request.session.User)
-                app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
-                teamView.billingURL = session.url
+                if (trialMode) {
+                    await app.billing.setupTrialTeamSubscription(team, request.session.User)
+                    // In trial mode, we may also auto-create their first application and instance
+                    if (app.settings.get('user:team:auto-create:instanceType')) {
+                        const instanceTypeId = app.settings.get('user:team:auto-create:instanceType')
+                        const instanceType = await app.db.models.ProjectType.byId(instanceTypeId)
+                        const instanceStack = await instanceType?.getDefaultStack() || (await instanceType.getProjectStacks())?.[0]
+                        const instanceTemplate = await app.db.models.ProjectTemplate.findOne({ where: { active: true } })
+                        if (!instanceType) {
+                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Instance type with id ${instanceTypeId} from 'user:team:auto-create:instanceType' not found`)
+                        } else if (!instanceStack) {
+                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Unable to find a stack for use with instance type ${instanceTypeId}`)
+                        } else if (!instanceTemplate) {
+                            app.log.warn(`Unable to create Trial Instance in team ${team.hashid}: Unable to find the default instance template`)
+                        } else {
+                            const safeTeamName = team.name.toLowerCase().replace(/[\W_]/g, '-')
+                            const safeUserName = request.session.User.username.toLowerCase().replace(/[\W_]/g, '-')
+                            const application = await createTeamApplication(request.session.User, team)
+                            defaultTeamCreated = true
+                            const instanceProperties = {
+                                name: `${safeTeamName}-${safeUserName}-${crypto.randomBytes(4).toString('hex')}`
+                            }
+                            await app.db.controllers.Project.create(team, application, request.session.User, instanceType, instanceStack, instanceTemplate, instanceProperties)
+                        }
+                    }
+                } else {
+                    const teamBillingDisabled = await teamType.getProperty('billing.disabled', false)
+                    if (!teamBillingDisabled) {
+                        const session = await app.billing.createSubscriptionSession(team, request.session.User)
+                        app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
+                        teamView.billingURL = session.url
+                    }
+                }
             }
-
+            // Haven't created an application yet, but settings say we should
+            if (!defaultTeamCreated && app.settings.get('user:team:auto-create:application')) {
+                await createTeamApplication(request.session.User, team)
+            }
+            await appendBillingDetails(teamView, team, request)
             reply.send(teamView)
         } catch (err) {
             // prepare response
@@ -537,13 +619,6 @@ module.exports = async function (app) {
                 await app.auditLog.Team.team.device.deleted(request.session.User, null, request.team, device)
             }
 
-            if (app.license.active() && app.billing) {
-                const subscription = await request.team.getSubscription()
-                if (subscription && !subscription.isTrial() && !subscription.isUnmanaged()) {
-                    await app.billing.closeSubscription(subscription)
-                }
-            }
-
             await request.team.destroy()
             await app.auditLog.Platform.platform.team.deleted(request.session.User, null, request.team)
             await app.auditLog.Team.team.deleted(request.session.User, null, request.team)
@@ -575,7 +650,9 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     name: { type: 'string' },
-                    slug: { type: 'string' }
+                    slug: { type: 'string' },
+                    type: { type: 'string' },
+                    suspended: { type: 'boolean' }
                 }
             },
             response: {
@@ -613,6 +690,43 @@ module.exports = async function (app) {
                     // - then we apply it
                     await request.team.updateTeamType(targetTeamType)
                 } else {
+                    reply.send(app.db.views.Team.team(request.team))
+                    return
+                }
+            } else if (Object.hasOwn(request.body, 'suspended')) {
+                if (Object.keys(request.body).length > 1) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'Cannot modify other properties whilst changing suspended state' })
+                    return
+                }
+                if (!!request.body.suspended !== !!request.team.suspended) {
+                    let teamAuditFunc = app.auditLog.Team.team.suspended
+                    let platformAuditFunc = app.auditLog.Platform.platform.team.suspended
+                    try {
+                        if (request.body.suspended) {
+                            // Suspend the team
+                            await request.team.suspend()
+                        } else {
+                            teamAuditFunc = app.auditLog.Team.team.unsuspended
+                            platformAuditFunc = app.auditLog.Platform.platform.team.unsuspended
+                            // Reactivate the team
+                            await request.team.unsuspend()
+                        }
+                        teamAuditFunc(request.session.User, null, request.team)
+                        platformAuditFunc(request.session.User, null, request.team)
+                        reply.send(app.db.views.Team.team(request.team))
+                        return
+                    } catch (err) {
+                        teamAuditFunc(request.session.User, err, request.team)
+                        platformAuditFunc(request.session.User, err, request.team)
+                        const response = {
+                            code: err.code || 'unexpected_error',
+                            error: err.toString()
+                        }
+                        reply.code(400).send(response)
+                        return
+                    }
+                } else {
+                    // Already in the right state - no-op it
                     reply.send(app.db.views.Team.team(request.team))
                     return
                 }
@@ -723,7 +837,18 @@ module.exports = async function (app) {
                     properties: {
                         meta: { $ref: 'PaginationMeta' },
                         count: { type: 'number' },
-                        log: { $ref: 'AuditLogEntryList' }
+                        log: { $ref: 'AuditLogEntryList' },
+                        associations: {
+                            type: 'object',
+                            properties: {
+                                applications: {
+                                    type: 'array',
+                                    items: { $ref: 'ApplicationSummary' }
+                                },
+                                instances: { $ref: 'InstanceSummaryList' },
+                                devices: { $ref: 'DeviceSummaryList' }
+                            }
+                        }
                     }
                 },
                 '4xx': {
@@ -736,5 +861,61 @@ module.exports = async function (app) {
         const logEntries = await app.db.models.AuditLog.forTeam(request.team.id, paginationOptions)
         const result = app.db.views.AuditLog.auditLog(logEntries)
         reply.send(result)
+    })
+
+    /**
+     * Get the team audit log
+     * @name /api/v1/team/:teamId/audit-log/export
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:teamId/audit-log/export', {
+        preHandler: app.needsPermission('team:audit-log'),
+        schema: {
+            summary: 'Get team audit event entries',
+            tags: ['Teams'],
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    content: {
+                        'text/csv': {
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forTeam(request.team.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.type('text/csv').send([
+            ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
+            ...result.log.map(row => [
+                row.id,
+                row.event,
+                `"${row.body ? JSON.stringify(row.body).replace(/"/g, '""') : ''}"`,
+                `"${JSON.stringify(row.scope).replace(/"/g, '""')}"`,
+                `"${JSON.stringify(row.trigger).replace(/"/g, '""')}"`,
+                row.createdAt?.toISOString()
+            ])
+        ]
+            .map(row => row.join(','))
+            .join('\r\n'))
     })
 }

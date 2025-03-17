@@ -14,9 +14,11 @@ const modelTypes = [
     'AccessToken',
     'Application',
     'AuditLog',
+    'BOM',
     'Device',
     'DeviceGroup',
     'Invitation',
+    'Notification',
     'Project',
     'ProjectSnapshot',
     'ProjectStack',
@@ -24,7 +26,10 @@ const modelTypes = [
     'ProjectType',
     'Team',
     'TeamType',
-    'User'
+    'User',
+    'TeamBrokerClient',
+    'BrokerCredentials',
+    'MQTTTopicSchema'
 ]
 
 async function register (app, viewType, viewModule) {

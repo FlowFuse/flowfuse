@@ -1,15 +1,22 @@
 <template>
     <div class="ff-header" data-sentry-unmask>
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
-        <i class="ff-header--mobile-toggle" :class="{'active': mobileMenuOpen}">
-            <MenuIcon class="ff-avatar" @click="$emit('menu-toggle')" />
+        <i v-if="!hiddenLeftDrawer" class="ff-header--mobile-toggle">
+            <transition name="mobile-menu-fade" mode="out-in">
+                <MenuIcon v-if="!leftDrawer.state" class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
+                <XIcon v-else class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
+            </transition>
         </i>
         <!-- FlowFuse Logo -->
-        <img class="ff-logo" src="/ff-logo--wordmark-caps--dark.png" @click="home()">
+        <router-link :to="homeLink">
+            <img class="ff-logo" src="/ff-logo--wordmark--dark.png">
+        </router-link>
+        <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
-        <div v-if="team" class="flex">
-            <i class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
-                <img :src="team.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen">
+        <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
+            <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
+            <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
+                <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen">
             </i>
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
                 <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen">
@@ -24,26 +31,38 @@
             />
         </div>
         <!-- Mobile: Team Selection -->
-        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen}" data-action="team-selection">
+        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen, 'without-divider': !canCreateTeam}" data-action="team-selection">
             <nav-item
                 v-for="team in teams" :key="team.name"
                 :label="team.name" :avatar="team.avatar"
                 @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"
             />
             <nav-item
+                v-if="canCreateTeam"
                 label="Create New Team" :icon="plusIcon"
                 @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
             />
         </div>
-        <div class="hidden lg:flex">
+        <div class="hidden lg:flex ff-desktop-navigation-right" data-el="desktop-nav-right">
             <ff-team-selection data-action="team-selection" />
+            <div class="px-4 flex flex-col justify-center" v-if="showInviteButton">
+                <ff-button kind="secondary" type="anchor" :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }">
+                    <template #icon-left><UserAddIcon /></template>
+                    Invite Members
+                </ff-button>
+            </div>
             <!-- Desktop: User Options -->
-            <ff-dropdown v-if="user" class="ff-navigation ff-user-options" options-align="right" data-action="user-options" data-cy="user-options">
+            <NotificationsButton />
+            <ff-dropdown
+                v-if="user"
+                class="ff-navigation ff-user-options hidden lg:flex xl:flex md:flex sm:flex"
+                options-align="right"
+                data-action="user-options"
+                data-cy="user-options"
+            >
                 <template #placeholder>
                     <div class="ff-user">
                         <img :src="user.avatar" class="ff-avatar">
-                        <ff-notification-pill v-if="notifications.total > 0" data-el="notification-pill" class="ml-3" :count="notifications.total" />
-                        <!-- <label>{{ user.name }}</label> -->
                     </div>
                 </template>
                 <template #default>
@@ -56,27 +75,32 @@
     </div>
 </template>
 <script>
-import { AdjustmentsIcon, CogIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserGroupIcon } from '@heroicons/vue/solid'
+import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon, XIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import navigationMixin from '../mixins/Navigation.js'
+import permissionsMixin from '../mixins/Permissions.js'
+import product from '../services/product.js'
+import { Roles } from '../utils/roles.js'
 
 import NavItem from './NavItem.vue'
+import NotificationsButton from './NotificationsButton.vue'
+
 import TeamSelection from './TeamSelection.vue'
+import GlobalSearch from './global-search/GlobalSearch.vue'
 
 export default {
-    name: 'NavBar',
-    props: {
-        mobileMenuOpen: {
-            type: Boolean
-        }
-    },
-    emits: ['menu-toggle'],
-    mixins: [navigationMixin],
+    name: 'PageHeader',
+    mixins: [navigationMixin, permissionsMixin],
     computed: {
+        Roles () {
+            return Roles
+        },
         ...mapState('account', ['user', 'team', 'teams']),
-        ...mapGetters('account', ['notifications']),
+        ...mapState('ux', ['leftDrawer']),
+        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount', 'featuresCheck']),
+        ...mapGetters('ux', ['hiddenLeftDrawer']),
         navigationOptions () {
             return [
                 {
@@ -84,38 +108,46 @@ export default {
                     icon: CogIcon,
                     tag: 'user-settings',
                     onclick: this.$router.push,
-                    onclickparams: { name: 'User Settings' }
+                    onclickparams: { name: 'User Settings' },
+                    hidden: false
                 },
                 {
-                    label: 'Team Invitations',
-                    icon: UserGroupIcon,
-                    tag: 'team-invitations',
+                    label: 'Admin Settings',
+                    icon: AdjustmentsIcon,
+                    tag: 'admin-settings',
                     onclick: this.$router.push,
-                    onclickparams: { name: 'User Invitations' },
-                    notifications: this.notifications.invitations
+                    onclickparams: { name: 'Admin Settings' },
+                    hidden: !this.user.admin
                 },
-                this.user.admin
-                    ? {
-                        label: 'Admin Settings',
-                        icon: AdjustmentsIcon,
-                        tag: 'admin-settings',
-                        onclick: this.$router.push,
-                        onclickparams: { name: 'Admin Settings' }
-                    }
-                    : undefined,
                 {
                     label: 'Documentation',
                     icon: QuestionMarkCircleIcon,
                     tag: 'documentation',
-                    onclick: this.to,
+                    onclick: (route) => window.open(route.url, '_blank'),
                     onclickparams: { url: 'https://flowfuse.com/docs/' }
-                }, {
+                },
+                {
+                    label: 'Getting Started',
+                    icon: AcademicCapIcon,
+                    tag: 'getting-started',
+                    onclick: this.openEducationModal
+                },
+                {
+                    label: 'Welcome Tour',
+                    icon: CursorClickIcon,
+                    tag: 'welcome-tour',
+                    onclick: this.startWelcomeTour
+                },
+                {
                     label: 'Sign Out',
                     icon: LogoutIcon,
                     tag: 'sign-out',
                     onclick: this.signOut
                 }
-            ].filter(option => option !== undefined)
+            ].filter(option => !option.hidden)
+        },
+        showInviteButton () {
+            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
         }
     },
     watch: {
@@ -127,9 +159,13 @@ export default {
         }
     },
     components: {
+        GlobalSearch,
         NavItem,
         'ff-team-selection': TeamSelection,
-        MenuIcon
+        MenuIcon,
+        XIcon,
+        UserAddIcon,
+        NotificationsButton
     },
     data () {
         return {
@@ -145,8 +181,22 @@ export default {
         }
     },
     methods: {
-        to (route) {
-            window.open(route.url, '_blank')
+        ...mapActions('ux', ['toggleLeftDrawer', 'activateTour']),
+        openEducationModal () {
+            this.activateTour('education')
+            product.capture('clicked-open-education-modal')
+        },
+        startWelcomeTour () {
+            return this.$store.dispatch('ux/resetTours')
+                // it's unfortunate that we can't redirect premium users straight to the application device page, but we
+                // don't have available applications at this moment in time so they'll get redirected twice
+                .then(() => this.$router.push({ name: 'Applications' }))
+                .then(() => {
+                    // breathing room for the page, instances and devices to load for the tour to work properly
+                    setTimeout(() => {
+                        this.$store.dispatch('ux/activateTour', 'welcome')
+                    }, 1000)
+                })
         }
     }
 }

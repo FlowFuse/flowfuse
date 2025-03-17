@@ -1,6 +1,31 @@
 name: Create pre-staging environment
 
 on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Pull request number'
+        required: true
+      driver_k8s_branch:
+        description: 'flowfuse/driver-k8s branch name'
+        required: true
+        default: 'main'
+      nr_launcher_branch:
+        description: 'flowfuse/nr-launcher branch name'
+        required: true
+        default: 'main'
+      nr_project_nodes_branch:
+        description: 'flowfuse/nr-project-nodes branch name'
+        required: true
+        default: 'main'
+      nr_file_nodes_branch:
+        description: 'flowfuse/nr-file-nodes branch name'
+        required: true
+        default: 'main'
+      nr_assistant_branch:
+        description: 'flowfuse/nr-assistant branch name'
+        required: true
+        default: 'main'
   pull_request:
     types: 
       - opened
@@ -21,7 +46,8 @@ jobs:
     name: Validate trigger author
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'pull_request'
+      (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') &&
+      github.actor != 'dependabot[bot]'
     outputs:
       is_org_member: ${{ steps.validate.outputs.is_member }}
     steps:
@@ -47,17 +73,194 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
-  build:
-    name: Build and contenerize
+  publish_k8s_driver:
+    name: Build and publish kubernetes driver
     needs: validate-user
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
-      github.event_name == 'pull_request' && 
+      github.event_name == 'workflow_dispatch' &&
+      inputs.driver_k8s_branch != 'main'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    with:
+      package_name: driver-k8s
+      publish_package: true
+      repository_name: 'FlowFuse/driver-k8s'
+      branch_name: ${{ inputs.driver_k8s_branch }}
+      release_name: "pre-staging-${{ inputs.driver_k8s_branch }}"
+    secrets:
+      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  publish_nr_project_nodes:
+    name: Build and publish nr-project-nodes package
+    needs: validate-user
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.nr_project_nodes_branch != 'main'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    with:
+      package_name: nr-project-nodes
+      publish_package: true
+      repository_name: 'FlowFuse/nr-project-nodes'
+      branch_name: ${{ inputs.nr_project_nodes_branch }}
+      release_name: "pre-staging-${{ inputs.nr_project_nodes_branch }}"
+    secrets:
+      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  publish_nr_file_nodes:
+    name: Build and publish nr-file-nodes package
+    needs: validate-user
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.nr_file_nodes_branch != 'main'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    with:
+      package_name: nr-file-nodes
+      publish_package: true
+      repository_name: 'FlowFuse/nr-file-nodes'
+      branch_name: ${{ inputs.nr_file_nodes_branch }}
+      release_name: "pre-staging-${{ inputs.nr_file_nodes_branch }}"
+    secrets:
+      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  publish_nr_assistant:
+    name: Build and publish nr-assistant package
+    needs: validate-user
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.nr_assistant_branch != 'main'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    with:
+      package_name: nr-assistant
+      publish_package: true
+      repository_name: 'FlowFuse/nr-assistant'
+      branch_name: ${{ inputs.nr_assistant_branch }}
+      release_name: "pre-staging-${{ inputs.nr_assistant_branch }}"
+    secrets:
+      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  publish_nr_launcher:
+    name: Build and publish nr-launcher package
+    needs: 
+      - validate-user
+      - publish_nr_project_nodes
+      - publish_nr_file_nodes
+      - publish_nr_assistant
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      (always() && inputs.nr_launcher_branch != 'main') || needs.publish_nr_project_nodes.result == 'success' || needs.publish_nr_file_nodes.result == 'success' || needs.publish_nr_assistant.result == 'success'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    with:
+      package_name: flowfuse-nr-launcher
+      publish_package: true
+      repository_name: 'FlowFuse/nr-launcher'
+      branch_name: ${{ inputs.nr_launcher_branch }}
+      release_name: "pre-staging-${{ inputs.nr_launcher_branch == 'main' && github.sha || inputs.nr_launcher_branch }}"
+      package_dependencies: |
+        @flowfuse/nr-project-nodes=${{ inputs.nr_project_nodes_branch != 'main' && needs.publish_nr_project_nodes.outputs.release_name || 'nightly' }}
+        @flowfuse/nr-file-nodes=${{ inputs.nr_file_nodes_branch != 'main' && needs.publish_nr_file_nodes.outputs.release_name || 'nightly' }}
+        @flowfuse/nr-assistant=${{ inputs.nr_assistant_branch != 'main' && needs.publish_nr_assistant.outputs.release_name || 'nightly' }}
+    secrets:
+      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  build-node-red:
+    name: Build Node-RED 4.0.x container images
+    needs: 
+      - validate-user
+      - publish_nr_launcher
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      (always() && needs.publish_nr_launcher.result == 'success')
+    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.38.0
+    with:
+      image_name: 'node-red'
+      dockerfile_path: Dockerfile
+      image_tag_prefix: '4.0.x-'
+      build_context: './ci/node-red'
+      build_arguments: |
+        BUILD_TAG=${{ needs.publish_nr_launcher.outputs.release_name }}
+      build_platform: "linux/arm64"
+      npm_registry_url: ${{ vars.PUBLIC_NPM_REGISTRY_URL }}
+    secrets:
+      temporary_registry_token: ${{ secrets.GITHUB_TOKEN }}
+
+  upload-node-red:
+    name: Publish Node-RED 4.0.x container images
+    needs:
+      - validate-user 
+      - build-node-red
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      (always() && needs.build-node-red.result == 'success')
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      IMAGE_NAME: 'node-red'
+      PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
+    outputs:
+      nr_custom_image_tag: ${{ steps.set_outputs.outputs.nr_image_tag }}
+    steps:
+      - name: Set variables
+        run: | 
+          echo "tagged_image=${{ env.IMAGE_NAME }}:4.0.x-pr-${{ env.PR_NUMBER }}" >> $GITHUB_ENV
+          echo "timestamp=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
+  
+      - name: Configure AWS credentials for ECR interaction
+        id: aws-config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          aws-region: eu-west-1
+          mask-aws-account-id: true
+      
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: true
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push to ECR
+        id: image-push
+        run: |
+          docker pull ${{ needs.build-node-red.outputs.image }}
+          docker tag ${{ needs.build-node-red.outputs.image }} ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
+          docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
+          
+      - name: Set outputs
+        id: set_outputs
+        run: |
+          echo "nr_image_tag=${{ env.tagged_image }}-${{ env.timestamp }}" >> $GITHUB_OUTPUT
+
+  build:
+    name: Build and contenerize
+    needs: 
+      - validate-user
+      - publish_k8s_driver
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      (always() && needs.publish_k8s_driver.result != 'failure') &&
+      (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && 
       github.event.action != 'closed'
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: 'forge-k8s'
-      PR_NUMBER: ${{ github.event.number }}
+      PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,6 +274,15 @@ jobs:
   
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Set build-args if branch is not main
+        id: set-build-args
+        run: |
+          if [ "${{ inputs.driver_k8s_branch }}" != "" ]; then
+            echo "BUILD_ARGS=KUBERNETES_DRIVER_TAG=pre-staging-${{ inputs.driver_k8s_branch }}" >> $GITHUB_ENV
+          else
+            echo "BUILD_ARGS=" >> $GITHUB_ENV
+          fi
   
       - name: Build container image
         id: build
@@ -81,6 +293,9 @@ jobs:
           tags: ${{ env.tagged_image }}
           push: false
           outputs: type=docker,dest=/tmp/k8s-forge.tar
+          build-args: ${{ env.BUILD_ARGS }}
+        env:
+          DOCKER_BUILD_SUMMARY: false
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -91,16 +306,22 @@ jobs:
 
   deploy:
     name: Deploy application
-    needs: [ validate-user, build ]
     if: |
-      needs.validate-user.outputs.is_org_member == 'true' &&
-      github.event_name == 'pull_request' && 
-      github.event.action != 'closed'
+      always() && 
+      needs.build.result == 'success' &&
+      (needs.publish_k8s_driver.result != 'failure' || needs.upload-node-red.result != 'failure' ) &&
+      (( github.event_name == 'pull_request' && github.event.action != 'closed' ) ||
+      ( github.event_name == 'workflow_dispatch' && github.event.action != 'closed' ))
     runs-on: ubuntu-latest
     environment: staging
+    needs: 
+      - validate-user
+      - publish_k8s_driver
+      - upload-node-red
+      - build
     env:
       IMAGE_NAME: 'forge-k8s'
-      PR_NUMBER: ${{ github.event.number }}
+      PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -160,6 +381,11 @@ jobs:
         run: |
           aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
 
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+        with:
+          version: 2.25.0
+
       - name: Check out FlowFuse/helm repository (to access latest helm chart)
         uses: actions/checkout@v4
         with:
@@ -178,6 +404,8 @@ jobs:
           fi
 
       - name: Deploy
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
           helm upgrade --install \
             --create-namespace \
@@ -192,6 +420,10 @@ jobs:
             --set forge.projectNamespace=pr-${{ env.PR_NUMBER }}-projects \
             --set forge.clusterRole.name=pr-${{ env.PR_NUMBER }}-clusterrole \
             --set forge.license=${{ secrets.PRE_STAGING_LICENSE }} \
+            --set forge.aws.IAMRole=arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/flowforge_service_account_role \
+            --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
+            --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
+            --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowforge
 
       - name: Initial setup
@@ -206,13 +438,53 @@ jobs:
           echo "**Deployed commit SHA:** ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Deployed to:** [https://${{ env.PR_NUMBER }}.flowfuse.dev](https://${{ env.PR_NUMBER }}.flowfuse.dev)" >> $GITHUB_STEP_SUMMARY
 
+  create-custom-stack:
+    name: Create stack with custom Node-RED image
+    needs: [upload-node-red, deploy]
+    if: |
+      always() &&
+      github.event_name == 'workflow_dispatch' &&
+      needs.deploy.result == 'success' &&
+      needs.upload-node-red.result == 'success'
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
+      FLOWFUSE_DOMAIN: 'flowfuse.dev'
+    steps:
+      - name: Create/update stack
+        run: |
+          customStackId=$(curl -ks -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/ | jq -r '.stacks[] | select(.name == "NR-40-Custom") | .id')
+          if [ -n "$customStackId" ]; then
+            echo "Stack already exists, updating..."
+            curl -ks -X PUT \
+              --fail-with-body \
+              -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{"properties": {"container": "'"${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ needs.upload-node-red.outputs.nr_custom_image_tag }}"'"}}' \
+              https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/$customStackId
+          else
+            echo "Stack does not exists, creating..."
+            projectTypeId=$(curl -ks -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/project-types/ | jq -r '.types[].id')
+            curl -ks -w "\n" -XPOST \
+              --fail-with-body \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
+              -d '{"name":"'"NR-40-Custom"'","label":"'"4.0.x-custom"'", "projectType":"'"$projectTypeId"'","properties":{ "cpu":'"30"',"memory":'"256"',"container":"'"${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ needs.upload-node-red.outputs.nr_custom_image_tag }}"'"}}' \
+              https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/
+          fi
+  
   notify-slack:
     name: Notify about pre-staging deployment
-    needs: [deploy]
-    if: success() || failure()
+    needs: 
+      - deploy
+      - create-custom-stack
+    if: |
+      always() &&
+      (needs.deploy.result != 'skipped' || needs.create-custom-stack.result != 'skipped')
     runs-on: ubuntu-latest
     env:
-      PR_NUMBER: ${{ github.event.number }}
+      PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
 
     steps:
     - name: Map users  
@@ -224,7 +496,7 @@ jobs:
 
     - name: Post to a Slack channel
       id: slack
-      uses: slackapi/slack-github-action@v1.26.0
+      uses: slackapi/slack-github-action@v1.27.0
       with:
         channel-id: 'C067BD0377F'
         payload: |
@@ -247,7 +519,7 @@ jobs:
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>"
+                    "text": ${{ toJson(env.PR_TEXT) }}
                   },
                   {
                     "type": "mrkdwn",
@@ -269,13 +541,21 @@ jobs:
                   {
                     "type": "mrkdwn",
                     "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Logs:*\n<https://${{ env.GRAFANA_URL }}/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22editorMode%22:%22code%22,%22expr%22:%22%7Bnamespace%3D%5C%22pr-${{ env.PR_NUMBER }}%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%22,%22queryType%22:%22range%22%7D%5D,%22range%22:%7B%22from%22:%22now-30m%22,%22to%22:%22now%22%7D%7D|View>"
                   }
                 ]
               }
             ]
           }
       env:
+        PR_TEXT: |
+          *Pull Request:*
+          <https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
+        GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
 
 
   destroy:
@@ -289,7 +569,7 @@ jobs:
     environment: staging
     env:
       IMAGE_NAME: 'forge-k8s'
-      PR_NUMBER: ${{ github.event.number }}
+      PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
     steps:
       - name: Configure AWS credentials for EKS interaction
         uses: aws-actions/configure-aws-credentials@v4

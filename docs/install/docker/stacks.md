@@ -1,5 +1,16 @@
 ---
 navTitle: Add Project Stacks on Docker
+meta:
+   description: Configure Node-RED containers with Docker Stacks. Customize memory, CPU, and container images like flowfuse/node-red:latest.
+   tags:
+      - docker
+      - nodered
+      - container
+      - flowfuse
+      - configuration
+      - memory
+      - cpu
+      - dockerfile 
 ---
 
 # Docker Stacks

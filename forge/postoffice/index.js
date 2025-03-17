@@ -81,6 +81,13 @@ module.exports = fp(async function (app, _opts) {
                     defaultProvider
                 })
 
+                if (sesConfig.sourceArn) {
+                    mailDefaults.ses = {
+                        SourceArn: sesConfig.sourceArn,
+                        FromArn: sesConfig.FromArn ? sesConfig.FromArn : sesConfig.sourceArn
+                    }
+                }
+
                 mailTransport = nodemailer.createTransport({
                     SES: { ses, aws }
                 }, mailDefaults)
@@ -133,6 +140,50 @@ module.exports = fp(async function (app, _opts) {
             html: value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\./g, '<br style="display: none;"/>.')
         }
     }
+    /**
+     * Generates email-safe versions (both text and html) of a log array
+     * This is intended to make iso time strings and and sanitized log messages
+     * @param {Array<{ts: Number, level: String, msg: String}>} log
+     */
+    function sanitizeLog (log) {
+        const isoTime = (ts) => {
+            if (!ts) return ''
+            try {
+                let dt
+                if (typeof ts === 'string') {
+                    ts = +ts
+                }
+                // cater for ts with a 4 digit counter appended to the timestamp
+                if (ts > 99999999999999) {
+                    dt = new Date(ts / 10000)
+                } else {
+                    dt = new Date(ts)
+                }
+                let str = dt.toISOString().replace('T', ' ').replace('Z', '')
+                str = str.substring(0, str.length - 4) // remove milliseconds
+                return str
+            } catch (e) {
+                return ''
+            }
+        }
+        const htmlEscape = (str) => (str + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        return {
+            text: log.map(entry => {
+                return {
+                    timestamp: entry.ts ? isoTime(+entry.ts) : '',
+                    level: entry.level || '',
+                    message: entry.msg || ''
+                }
+            }),
+            html: log.map(entry => {
+                return {
+                    timestamp: entry.ts ? isoTime(+entry.ts) : '',
+                    level: htmlEscape(entry.level || ''),
+                    message: htmlEscape(entry.msg || '')
+                }
+            })
+        }
+    }
 
     /**
      * Send an email to a user
@@ -146,6 +197,17 @@ module.exports = fp(async function (app, _opts) {
         const template = templates[templateName] || loadTemplate(templateName)
         const templateContext = { forgeURL, user, ...context }
         templateContext.safeName = sanitizeText(user.name || 'user')
+        if (templateContext.teamName) {
+            templateContext.teamName = sanitizeText(templateContext.teamName)
+        }
+        if (templateContext.invitee) {
+            templateContext.invitee = sanitizeText(templateContext.invitee)
+        }
+        if (Array.isArray(templateContext.log) && templateContext.log.length > 0) {
+            templateContext.log = sanitizeLog(templateContext.log)
+        } else {
+            delete templateContext.log
+        }
         const mail = {
             to: user.email,
             subject: template.subject(templateContext, { allowProtoPropertiesByDefault: true, allowProtoMethodsByDefault: true }),

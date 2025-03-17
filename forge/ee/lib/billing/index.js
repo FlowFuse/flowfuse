@@ -4,6 +4,7 @@ module.exports.init = async function (app) {
 
     const ONE_DAY = 86400000
 
+    /** @type {import('stripe').default } */
     const stripe = require('stripe')(app.config.billing.stripe.key)
 
     app.housekeeper.registerTask({
@@ -36,6 +37,17 @@ module.exports.init = async function (app) {
     }
 
     return {
+        /**
+         * Create a Stripe subscription session for the given team
+         * The Stripe subscription will be populated with the appropriate items
+         * As a user may be modifying their team type at the same time, this function
+         * accepts an optional teamTypeId for the target team type. If that is not
+         * provided, it will use the billing ids for the team's existing type.
+         * @param {*} team The team to setup billing for
+         * @param {*} user An optional user who may have credits associated with them
+         * @param {*} teamTypeId An optional teamTypeId if the team is being upgraded at the same time
+         * @returns A Stripe checkout session object
+         */
         createSubscriptionSession: async (team, user = null, teamTypeId = null) => {
             // When setting up the initial subscription we'll default to the billing
             // ids of current team type. However, the subscription setup could be done
@@ -86,41 +98,31 @@ module.exports.init = async function (app) {
             // - Device item
             // - An item for each instance type
 
-            // Check if a device item is required
-            const deviceBillingIds = await teamType.getDeviceBillingIds()
-            if (deviceBillingIds.product) {
-                const deviceCount = await team.deviceCount()
+            // Get the billable counts of all instance/devices - taking into account free allowances
+            const billableCounts = await app.billing.getTeamBillableCounts(team, teamType)
+            if (billableCounts.billingIds.devices.product) {
+                const deviceCount = billableCounts.devices
                 if (deviceCount > 0) {
                     const deviceFreeAllocation = teamType.getProperty('devices.free', 0)
                     const billableCount = Math.max(0, deviceCount - deviceFreeAllocation)
                     if (billableCount > 0) {
                         // We have devices to include in the subscription
                         sub.line_items.push({
-                            price: deviceBillingIds.price,
+                            price: billableCounts.billingIds.devices.price,
                             quantity: billableCount
                         })
                     }
                 }
             }
-            const instanceCounts = await team.getBillableInstanceCountByType()
-            const instanceTypes = await app.db.models.ProjectType.findAll()
-            for (const instanceType of instanceTypes) {
-                // Get the stripe ids to use for this instance type in this team type
-                const instanceBillingIds = await teamType.getInstanceBillingIds(instanceType)
-                const count = instanceCounts[instanceType.hashid]
-                if (count) {
-                    // The team has one or more instances of this type.
-                    // Calculate the billableCount based on how many free
-                    // instances of this type are allowed for this teamType
-                    const freeAllowance = teamType.getInstanceTypeProperty(instanceType, 'free', 0)
-                    const billableCount = Math.max(0, count - freeAllowance)
-                    if (billableCount > 0) {
-                        // Need to add an item for this instance type
-                        sub.line_items.push({
-                            price: instanceBillingIds.price,
-                            quantity: billableCount
-                        })
-                    }
+
+            for (const instanceType of Object.keys(billableCounts.instances)) {
+                const instanceBillingIds = billableCounts.billingIds[instanceType]
+                const billableCount = billableCounts.instances[instanceType]
+                if (billableCount > 0) {
+                    sub.line_items.push({
+                        price: instanceBillingIds.price,
+                        quantity: billableCount
+                    })
                 }
             }
 
@@ -177,13 +179,28 @@ module.exports.init = async function (app) {
             app.log.info(`Creating Subscription for team ${team.hashid}` + (sub.discounts ? ` code='${userBillingCode.code}'` : ''))
             return session
         },
-
+        /**
+         * Add an instance to the team's billing.
+         * This passes straight through to `app.billing.updateTeamBillingCounts` as
+         * we no longer track individual instance billing state
+         * @param {*} team The team to update billing for
+         * @param {*} project The instance that was added
+         * @returns
+         */
         addProject: async (team, project) => {
-            return app.billing.updateTeamInstanceCount(team)
+            return app.billing.updateTeamBillingCounts(team)
         },
 
+        /**
+         * Remove an instance from the team's billing.
+         * This passes straight through to `app.billing.updateTeamBillingCounts` as
+         * we no longer track individual instance billing state
+         * @param {*} team The team to update billing for
+         * @param {*} project The instance that was removed
+         * @returns
+         */
         removeProject: async (team, project) => {
-            return app.billing.updateTeamInstanceCount(team)
+            return app.billing.updateTeamBillingCounts(team)
         },
         /**
          *
@@ -212,180 +229,186 @@ module.exports.init = async function (app) {
                     await stripe.subscriptionItems.del(existingTrialItem.id, { proration_behavior: prorationBehavior })
                 }
             }
-            await app.billing.updateTeamInstanceCount(team)
-            await app.billing.updateTeamDeviceCount(team)
+            await app.billing.updateTeamBillingCounts(team)
+        },
+
+        /**
+         * Gets the counts of all instances/devices that are billable. This takes
+         * into account any free allocation a teamType may have.
+         * It also includes the stripe billing ids to save looking them up multiple times
+         * by the calling functions.
+         * The response format is as follows. The keys under `instances` are the hashids
+         * of the different instance types.
+         * {
+         *     instances: {
+         *         abcde: 0,
+         *         fghij: 1,
+         *         klmno: 0
+         *     },
+         *     devices: 27,
+         *     billingIds: {
+         *         abcde: { price: 'stripe_price_id', product: 'stripe_product_id' },
+         *         ....
+         *         devices: { price: 'stripe_price_id', product: 'stripe_product_id' },
+         *     }
+         * }
+         * @param {*} team The team to get the counts for
+         * @param {*} teamType An optional teamType to get the billing ids for
+         * @returns The billable counts and ids for the team
+         */
+        getTeamBillableCounts: async (team, teamType) => {
+            await team.ensureTeamTypeExists()
+            if (!teamType) {
+                teamType = team.TeamType
+            }
+            const instanceCounts = await team.getBillableInstanceCountByType()
+            const deviceCount = await team.deviceCount()
+            let deviceFreeAllocation = 0
+            const deviceCombinedFreeAllocationType = await teamType.getProperty('devices.combinedFreeType', null)
+
+            const instanceTypes = await app.db.models.ProjectType.findAll()
+            const billableCounts = {}
+            const remainingFreeAllowance = {}
+            const billingIds = {}
+            // Do a first pass to calculate the billable counts for all items
+            for (const instanceType of instanceTypes) {
+                billingIds[instanceType.hashid] = await teamType.getInstanceBillingIds(instanceType)
+                const count = instanceCounts[instanceType.hashid] || 0
+                const freeAllowance = await teamType.getInstanceTypeProperty(instanceType, 'free', 0)
+                billableCounts[instanceType.hashid] = Math.max(0, count - freeAllowance)
+                remainingFreeAllowance[instanceType.hashid] = Math.max(0, freeAllowance - count)
+            }
+            if (deviceCombinedFreeAllocationType) {
+                deviceFreeAllocation = remainingFreeAllowance[deviceCombinedFreeAllocationType] || 0
+            } else {
+                deviceFreeAllocation = await teamType.getProperty('devices.free', 0)
+            }
+            const deviceBillableCount = Math.max(0, deviceCount - deviceFreeAllocation)
+            billingIds.devices = await teamType.getDeviceBillingIds()
+            return {
+                instances: billableCounts,
+                devices: deviceBillableCount,
+                billingIds
+            }
         },
         /**
-         * Called whenever the number of active instances in a team changes - ensures
-         * the subscription has the right number of instances listed against
-         * all billable types
+         * Called whenever any change occurs to the number of active instances
+         * or devices.
+         * This ensures the subscription has the right number of instances listed against
+         * each billable type, taking into account free allocations
          * @param {Team} team
          */
-        updateTeamInstanceCount: async (team) => {
-            const counts = await team.getBillableInstanceCountByType()
+        updateTeamBillingCounts: async (team) => {
             const subscription = await team.getSubscription()
-            if (subscription && subscription.isUnmanaged()) {
-                // Unmanaged subscription means the platform is not responsible
-                // for managing the stripe configuration
+            if (!subscription || (subscription.isUnmanaged() || !subscription.isActive())) {
+                // - no subscription
+                // - in unmanaged mode
+                // - sub not active
+                // = do nothing with the subscription
                 return
             }
-            if (subscription && subscription.isActive()) {
-                const prorationBehavior = await team.getBillingProrationBehavior()
-                const stripeSubscription = await stripe.subscriptions.retrieve(subscription.subscription)
-                const newItems = []
-                // Get a list of the active instanceTypes
-                const instanceTypes = await app.db.models.ProjectType.findAll()
-                for (const instanceType of instanceTypes) {
-                    // Get the stripe ids to use for this instance type in this team type
-                    const instanceBillingIds = await team.getInstanceBillingIds(instanceType)
-                    const count = counts[instanceType.hashid]
-                    if (count) {
-                        // The team has one or more instances of this type.
-                        // Calculate the billableCount based on how many free
-                        // instances of this type are allowed for this teamType
-                        const freeAllowance = await team.getInstanceFreeAllowance(instanceType)
-                        let billableCount = Math.max(0, count - freeAllowance)
+            const prorationBehavior = await team.getBillingProrationBehavior()
 
-                        if (!subscription.isTrialEnded()) {
-                            // In trial mode, but with billing setup. Check if the trial allows
-                            // for a single instance of this type - if so, reduce billableCount by one
-                            const teamTrialInstanceTypeId = await team.TeamType.getProperty('trial.instanceType', null)
-                            if (teamTrialInstanceTypeId === instanceType.hashid) {
-                                billableCount = Math.max(0, billableCount - 1)
-                            }
-                        }
-                        // Check the subscription for an existing item for this instance type
-                        const instanceItem = stripeSubscription.items.data.find(item => item.plan.product === instanceBillingIds.product)
-
-                        if (!instanceItem && billableCount > 0) {
-                            // No existing subscription item, so add one
-                            app.log.info(`Updating team ${team.hashid} subscription: set instance type ${instanceType.hashid} count to ${billableCount}`)
-                            newItems.push({
-                                price: instanceBillingIds.price,
-                                quantity: billableCount
-                            })
-                        } else if (instanceItem && instanceItem.quantity !== billableCount) {
-                            // Subscription quantity doesn't match what we think
-                            if (billableCount === 0) {
-                                // Remove from the subscription
-                                app.log.info(`Updating team ${team.hashid} subscription: set instance type ${instanceType.hashid} count to ${billableCount} - removing item`)
-                                try {
-                                    await stripe.subscriptionItems.del(instanceItem.id, {
-                                        proration_behavior: prorationBehavior
-                                    })
-                                } catch (error) {
-                                    app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
-                                }
-                            } else {
-                                // Update the existing item
-                                app.log.info(`Updating team ${team.hashid} subscription: set instance type ${instanceType.hashid} count to ${billableCount}`)
-                                try {
-                                    await stripe.subscriptionItems.update(instanceItem.id, {
-                                        quantity: billableCount,
-                                        proration_behavior: prorationBehavior
-                                    })
-                                } catch (error) {
-                                    app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
-                                }
-                            }
-                        }
+            // Get the billable counts of all instance/devices - taking into account free allowances
+            const billableCounts = await app.billing.getTeamBillableCounts(team)
+            // Next step is to validate the counts on stripe and make any changes needed
+            const stripeSubscription = await stripe.subscriptions.retrieve(subscription.subscription)
+            const existingItemsByProduct = {}
+            const itemsToUpdate = []
+            stripeSubscription.items.data.forEach(item => {
+                existingItemsByProduct[item.price.product] = {
+                    id: item.id,
+                    price: item.price.id,
+                    quantity: item.quantity
+                }
+            })
+            for (const instanceType of Object.keys(billableCounts.instances)) {
+                const instanceBillingIds = billableCounts.billingIds[instanceType]
+                const instanceItem = existingItemsByProduct[instanceBillingIds.product]
+                const billableCount = billableCounts.instances[instanceType]
+                if (!instanceItem && billableCount > 0) {
+                    // No existing subscription item, so add one
+                    app.log.info(`Updating team ${team.hashid} subscription: set instance type ${instanceType} count to ${billableCount}`)
+                    itemsToUpdate.push({
+                        price: instanceBillingIds.price,
+                        quantity: billableCount
+                    })
+                } else if (instanceItem && instanceItem.quantity !== billableCount) {
+                    // Subscription quantity doesn't match what we think
+                    if (billableCount === 0) {
+                        // Remove from the subscription
+                        app.log.info(`Updating team ${team.hashid} subscription: set instance type ${instanceType} count to ${billableCount} - removing item`)
+                        delete instanceItem.quantity
+                        instanceItem.deleted = true
+                        itemsToUpdate.push(instanceItem)
                     } else {
-                        // This team has no instances of this instance type.
-                        // Need to make sure the subscription doesn't have any matching items
-                        const instanceItem = stripeSubscription.items.data.find(item => item.plan.product === instanceBillingIds.product)
-                        if (instanceItem) {
-                            // This item is no longer needed on the subscription so can be removed
-                            try {
-                                app.log.info(`Updating team ${team.hashid} subscription: set instance type ${instanceType.hashid} count to 0 - removing item`)
-                                await stripe.subscriptionItems.del(instanceItem.id, {
-                                    proration_behavior: prorationBehavior
-                                })
-                            } catch (error) {
-                                app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
-                            }
-                        }
-                    }
-                }
-
-                if (newItems.length > 0) {
-                    // Add new items to the subscription
-                    try {
-                        await stripe.subscriptions.update(subscription.subscription, {
-                            proration_behavior: prorationBehavior,
-                            items: newItems
-                        })
-                    } catch (error) {
-                        app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
+                        // Update the existing item
+                        app.log.info(`Updating team ${team.hashid} subscription: set instance type ${instanceType} count to ${billableCount}`)
+                        instanceItem.quantity = billableCount
+                        itemsToUpdate.push(instanceItem)
                     }
                 }
             }
-        },
-        /**
-         * Called whenever the number of devices in a team changes - ensures
-         * the subscription has the right number of devices listed.
-         * @param {Team} team
-         */
-        updateTeamDeviceCount: async (team) => {
-            const deviceBillingIds = await team.getDeviceBillingIds()
-            if (!deviceBillingIds.product) {
-                return
-            }
-            const subscription = await team.getSubscription()
-            if (subscription && subscription.isUnmanaged()) {
-                // Unmanaged subscription means the platform is not responsible
-                // for managing the stripe configuration
-                return
-            }
-            if (subscription && subscription.isActive()) {
-                const deviceCount = await team.deviceCount()
-                const deviceFreeAllocation = await team.getDeviceFreeAllowance()
-                const prorationBehavior = await team.getBillingProrationBehavior()
-                const billableCount = Math.max(0, deviceCount - deviceFreeAllocation)
-                const existingSub = await stripe.subscriptions.retrieve(subscription.subscription)
-                const subItems = existingSub.items
-                const deviceItem = subItems.data.find(item => item.plan.product === deviceBillingIds.product)
+            // Now do Devices
+            // const deviceBillingIds = await team.getDeviceBillingIds()
+            if (billableCounts.billingIds.devices.product) {
+                const deviceItem = existingItemsByProduct[billableCounts.billingIds.devices.product]
+                const deviceBillableCount = billableCounts.devices
                 if (deviceItem) {
-                    if (deviceItem.quantity !== billableCount) {
-                        app.log.info(`Updating team ${team.hashid} subscription device count to ${billableCount}`)
-                        const update = {
-                            quantity: billableCount,
-                            proration_behavior: prorationBehavior
+                    // Device item already in the subscription
+                    if (deviceItem.quantity !== deviceBillableCount) {
+                        // Quantity doesn't match what we want
+                        if (deviceBillableCount === 0) {
+                            // Remove from the subscription
+                            app.log.info(`Updating team ${team.hashid} subscription: set device count to ${deviceBillableCount} - removing item`)
+                            delete deviceItem.quantity
+                            deviceItem.deleted = true
+                            itemsToUpdate.push(deviceItem)
+                        } else {
+                            // Update quantity
+                            app.log.info(`Updating team ${team.hashid} subscription: set device count to ${deviceBillableCount}`)
+                            deviceItem.quantity = deviceBillableCount
+                            itemsToUpdate.push(deviceItem)
                         }
-                        try {
-                            await stripe.subscriptionItems.update(deviceItem.id, update)
-                        } catch (error) {
-                            app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
-                        }
                     }
-                } else if (billableCount > 0) {
-                    // Need to add the device item to the subscription
-                    app.log.info(`Updating team ${team.hashid} subscription device count to ${billableCount}`)
-                    const update = {
-                        proration_behavior: prorationBehavior,
-                        items: [{
-                            price: deviceBillingIds.price,
-                            quantity: billableCount
-                        }]
-                    }
-                    try {
-                        await stripe.subscriptions.update(subscription.subscription, update)
-                    } catch (error) {
-                        console.error(error)
-                        app.log.warn(`Problem adding first device to subscription\n${error.message}`)
-                        throw error
-                    }
+                } else if (deviceBillableCount > 0) {
+                    // No existing device item, so add one
+                    app.log.info(`Updating team ${team.hashid} subscription device count to ${deviceBillableCount}`)
+                    itemsToUpdate.push({
+                        price: billableCounts.billingIds.devices.price,
+                        quantity: deviceBillableCount
+                    })
                 }
+            }
+            if (itemsToUpdate.length > 0) {
+                // Apply updates to the subscription
+                try {
+                    await stripe.subscriptions.update(subscription.subscription, {
+                        proration_behavior: prorationBehavior,
+                        items: itemsToUpdate
+                    })
+                } catch (error) {
+                    app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
+                }
+                // }
             }
         },
 
         closeSubscription: async (subscription) => {
             if (subscription.subscription) {
                 app.log.info(`Canceling subscription ${subscription.subscription} for team ${subscription.Team.hashid}`)
-
-                await stripe.subscriptions.del(subscription.subscription, {
-                    invoice_now: true,
-                    prorate: true
-                })
+                try {
+                    await stripe.subscriptions.del(subscription.subscription, {
+                        invoice_now: true,
+                        prorate: true
+                    })
+                } catch (err) {
+                    // resource_missing error is okay - that means the subscription cannot be found
+                    // and we can ignore it
+                    if (err.code !== 'resource_missing') {
+                        throw err
+                    }
+                }
             }
             subscription.status = app.db.models.Subscription.STATUS.CANCELED
             await subscription.save()
@@ -487,25 +510,32 @@ module.exports.init = async function (app) {
 
                 try {
                     // Add the new team plan item
-                    app.log.info(`Updating team ${team.hashid} subscription: adding team plan ${targetTeamBillingIds.price}`)
-                    await stripe.subscriptions.update(subscription.subscription, {
-                        proration_behavior: prorationBehavior,
-                        items: [{
-                            price: targetTeamBillingIds.price,
-                            quantity: 1
-                        }]
-                    })
-
+                    app.log.info(`Updating team ${team.hashid} subscription: updating to team plan ${targetTeamBillingIds.price}`)
+                    const newItems = [{
+                        price: targetTeamBillingIds.price,
+                        quantity: 1
+                    }]
                     // Remove all pre-existing items. They will get added back
                     // later with the new billing ids
                     for (const item of stripeSubscription.items.data) {
-                        app.log.info(`Updating team ${team.hashid} subscription: removing item ${item.price.id}`)
-                        await stripe.subscriptionItems.del(item.id, { proration_behavior: prorationBehavior })
+                        newItems.push({
+                            id: item.id,
+                            deleted: true
+                        })
                     }
+                    await stripe.subscriptions.update(subscription.subscription, {
+                        proration_behavior: prorationBehavior,
+                        items: newItems
+                    })
                 } catch (err) {
                     app.log.warn(`Problem updating team ${team.hashid} subscription: ${err.message}`)
                     throw err
                 }
+            } else if (subscription && subscription.isTrial() && targetTeamType.getProperty('billing.disabled', false)) {
+                // This team is a trial team that is changing to a disabled-billing team
+                // The cleanest approach here is to delete the subscription object to get
+                // things into the right state
+                await subscription.destroy()
             } else {
                 const err = new Error('Team subscription not active')
                 err.code = 'billing_required'
@@ -525,40 +555,63 @@ module.exports.init = async function (app) {
         enableManualBilling: async (team) => {
             app.log.info(`Enabling manual billing for team ${team.hashid}`)
             const subscription = await team.getSubscription()
-            const existingSubscription = subscription.subscription
-            subscription.subscription = ''
-            subscription.status = app.db.models.Subscription.STATUS.UNMANAGED
-            subscription.trialEndsAt = null
-            subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
-            await subscription.save()
+            if (subscription) {
+                const existingSubscription = subscription.subscription
+                subscription.subscription = ''
+                subscription.status = app.db.models.Subscription.STATUS.UNMANAGED
+                subscription.trialEndsAt = null
+                subscription.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
+                await subscription.save()
 
-            // Now we have marked the local subscription as unmanaged, we need to
-            // check to see if there is a stripe subscription to cancel
-            if (existingSubscription) {
-                try {
-                    const stripeSubscription = await stripe.subscriptions.retrieve(existingSubscription)
-                    if (stripeSubscription && stripeSubscription.status !== 'canceled') {
-                        app.log.info(`Canceling existing subscription ${existingSubscription} for team ${team.hashid}`)
-                        // There is an existing subscription to cancel
-                        try {
-                            // We do not use `app.billing.closeSubscription` because
-                            // that expects a Subscription object. However, we've already
-                            // updated the local Subscription object to remove the information
-                            // needed by closeSubscription. This is to ensure when the
-                            // stripe callback arrives we don't trigger a suspension of
-                            // the team resources.
-                            await stripe.subscriptions.del(existingSubscription, {
-                                invoice_now: true,
-                                prorate: true
-                            })
-                        } catch (err) {
-                            app.log.warn(`Error canceling existing subscription ${existingSubscription} for team ${team.hashid}: ${err.toString()}`)
+                // Now we have marked the local subscription as unmanaged, we need to
+                // check to see if there is a stripe subscription to cancel
+                if (existingSubscription) {
+                    try {
+                        const stripeSubscription = await stripe.subscriptions.retrieve(existingSubscription)
+                        if (stripeSubscription && stripeSubscription.status !== 'canceled') {
+                            app.log.info(`Canceling existing subscription ${existingSubscription} for team ${team.hashid}`)
+                            // There is an existing subscription to cancel
+                            try {
+                                // We do not use `app.billing.closeSubscription` because
+                                // that expects a Subscription object. However, we've already
+                                // updated the local Subscription object to remove the information
+                                // needed by closeSubscription. This is to ensure when the
+                                // stripe callback arrives we don't trigger a suspension of
+                                // the team resources.
+                                await stripe.subscriptions.del(existingSubscription, {
+                                    invoice_now: true,
+                                    prorate: true
+                                })
+                            } catch (err) {
+                                app.log.warn(`Error canceling existing subscription ${existingSubscription} for team ${team.hashid}: ${err.toString()}`)
+                            }
                         }
+                    } catch (err) {
+                        // Could not find a matching stripe subscription - that's means
+                        // we have nothing cancel
                     }
-                } catch (err) {
-                    // Could not find a matching stripe subscription - that's means
-                    // we have nothing cancel
                 }
+            } else {
+                // If the team bailed out of setting up stripe, they will not have
+                // a subscription.
+                await app.db.controllers.Subscription.createUnmanagedSubscription(team)
+            }
+        },
+        /**
+         * If in unmanaged mode, this will update the subscription to be 'canceled'
+         * but leave all instances running.
+         *
+         * The team will need to create a new stripe subscription before they
+         * can continue accessing the team.
+         *
+         * @param {*} team
+         */
+        disableManualBilling: async (team) => {
+            app.log.info(`Disabling manual billing for team ${team.hashid}`)
+            const subscription = await team.getSubscription()
+            if (subscription && subscription.status === app.db.models.Subscription.STATUS.UNMANAGED) {
+                subscription.status = app.db.models.Subscription.STATUS.CANCELED
+                await subscription.save()
             }
         },
         updateTrialSettings: async (team, settings) => {

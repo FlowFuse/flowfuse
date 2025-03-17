@@ -1,5 +1,32 @@
 <template>
-    <button ref="input" class="ff-btn transition-fade--color" :type="type" :class="'ff-btn--' + kind + (hasIcon ? ' ff-btn-icon' : '') + (size === 'small' ? ' ff-btn-small' : '') + (size === 'full-width' ? ' ff-btn-fwidth' : '')" @click="go()">
+    <router-link v-if="type==='anchor'"
+                 ref="input"
+                 class="ff-btn transition-fade--color"
+                 :target="target"
+                 :class="computedClass"
+                 :to="to ?? '#'"
+                 :aria-disabled="htmlDisabled"
+                 :disabled="htmlDisabled"
+    >
+        <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
+            <slot name="icon-left"></slot>
+        </span>
+        <span v-if="isIconOnly" class="ff-btn--icon">
+            <slot name="icon"></slot>
+        </span>
+        <slot></slot>
+        <span v-if="hasIconRight" class="ff-btn--icon ff-btn--icon-right">
+            <slot name="icon-right"></slot>
+        </span>
+    </router-link>
+
+    <button v-else ref="input"
+            class="ff-btn transition-fade--color"
+            :type="type"
+            :class="computedClass"
+            :disabled="htmlDisabled"
+            @mouseup="go"
+    >
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>
         </span>
@@ -14,11 +41,13 @@
 </template>
 
 <script>
+import { useNavigationHelper } from '../../composables/NavigationHelper.js'
+
 export default {
     name: 'ff-button',
     props: {
         type: {
-            default: 'button', // "button" or "submit"
+            default: 'button', // "button", "submit" or "anchor"
             type: String
         },
         kind: {
@@ -33,6 +62,11 @@ export default {
             default: null,
             type: [String, Object]
         },
+        /** Only applicable to type="anchor" */
+        target: {
+            default: '_self',
+            type: [String]
+        },
         hasRightIcon: {
             default: true,
             type: Boolean
@@ -40,6 +74,21 @@ export default {
         hasLeftIcon: {
             default: true,
             type: Boolean
+        },
+        disabled: {
+            default: null,
+            type: Boolean
+        },
+        emitInsteadOfNavigate: {
+            default: false,
+            type: Boolean
+        }
+    },
+    emits: ['click'],
+    setup () {
+        const { navigateTo } = useNavigationHelper()
+        return {
+            navigateTo
         }
     },
     computed: {
@@ -54,16 +103,34 @@ export default {
         },
         isIconOnly: function () {
             return this.$slots.icon
+        },
+        computedClass () {
+            return {
+                ['ff-btn--' + this.kind]: true,
+                'ff-btn-icon': this.hasIcon,
+                'ff-btn-small': this.size === 'small',
+                'ff-btn-fwidth': this.size === 'full-width'
+            }
+        },
+        htmlDisabled () {
+            return this.disabled === true ? 'true' : null
         }
     },
     methods: {
-        go: function () {
-            if (this.to) {
-                this.$router.push(this.to)
+        go (event) {
+            switch (true) {
+            case this.disabled:
+                return
+            case !!this.to:
+                return this.navigateTo(this.to, event)
+            default:
+                return this.$emit('click', event)
             }
         },
         focus () {
-            this.$refs.input?.focus()
+            if (!this.disabled) {
+                this.$refs.input?.focus()
+            }
         },
         blur () {
             this.$refs.input?.blur()

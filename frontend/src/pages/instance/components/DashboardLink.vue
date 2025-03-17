@@ -4,34 +4,33 @@
         kind="secondary"
         data-action="open-dashboard"
         :disabled="buttonDisabled"
-        @click.stop="openDashboard()"
+        class="whitespace-nowrap"
+        @click="openDashboard"
     >
-        <template v-if="showExternalLink" #icon-right>
-            <ExternalLinkIcon />
+        <template v-if="showText" #icon-left>
+            <ChartPieIcon />
         </template>
-        <slot name="default">
+        <template v-else #icon>
+            <ChartPieIcon />
+        </template>
+        <template v-if="showText">
             Dashboard
-        </slot>
+        </template>
     </ff-button>
 </template>
 
 <script>
-import { ExternalLinkIcon } from '@heroicons/vue/solid'
+import { ChartPieIcon } from '@heroicons/vue/outline'
 
-// utility function to remove leading and trailing slashes
-const removeSlashes = (str, leading = true, trailing = true) => {
-    if (leading && str.startsWith('/')) {
-        str = str.slice(1)
-    }
-    if (trailing && str.endsWith('/')) {
-        str = str.slice(0, -1)
-    }
-    return str
-}
+import { useNavigationHelper } from '../../../composables/NavigationHelper.js'
+
+import { removeSlashes } from '../../../composables/String.js'
+
+const { openInANewTab } = useNavigationHelper()
 
 export default {
     name: 'DashboardLink',
-    components: { ExternalLinkIcon },
+    components: { ChartPieIcon },
     inheritAttrs: false,
     props: {
         disabled: {
@@ -46,7 +45,7 @@ export default {
             default: null,
             type: Object
         },
-        showExternalLink: {
+        showText: {
             type: Boolean,
             default: true
         }
@@ -54,19 +53,27 @@ export default {
     computed: {
         buttonDisabled () {
             return this.disabled || !this.instance?.settings?.dashboard2UI
-        }
-    },
-    methods: {
-        openDashboard () {
-            if (this.disabled || !this.instance?.settings?.dashboard2UI) {
-                return
+        },
+        dashboardURL () {
+            if (this.buttonDisabled) {
+                return null
             }
             // The dashboard url will *always* be relative to the root as we
             // do not expose `httpNodeRoot` to customise the base path
             const baseURL = new URL(removeSlashes(this.instance.url, false, true))
             baseURL.pathname = removeSlashes(this.instance.settings.dashboard2UI, true, false)
-            const fixedTarget = '_db2_' + this.instance.id
-            window.open(baseURL.toString(), fixedTarget)
+            return baseURL.toString()
+        },
+        target () {
+            return '_db2_' + (this.instance?.id || '')
+        }
+    },
+    methods: {
+        openDashboard () {
+            if (this.buttonDisabled) {
+                return
+            }
+            openInANewTab(this.dashboardURL, this.target)
         }
     }
 }

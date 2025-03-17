@@ -1,6 +1,11 @@
 const SemVer = require('semver')
 const { literal } = require('sequelize')
 
+const { ControllerError } = require('../../lib/errors')
+
+/** @type {import('../../auditLog/team').getLoggers} */
+const getTeamLogger = (app) => { return app.auditLog.Team }
+
 module.exports = {
     isDeploying: function (app, device) {
         // Needs to have a target to be considered deploying
@@ -37,6 +42,9 @@ module.exports = {
             }
             if (state.agentVersion) {
                 device.set('agentVersion', state.agentVersion)
+            }
+            if (state.nodeRedVersion) {
+                device.set('nodeRedVersion', state.nodeRedVersion)
             }
             device.set('editorAffinity', state.affinity || null)
             if (!state.snapshot || state.snapshot === '0') {
@@ -158,6 +166,7 @@ module.exports = {
         result.push(makeVar('FF_SNAPSHOT_ID', snapshotId))
         result.push(makeVar('FF_SNAPSHOT_NAME', snapshotName))
         result.push(...app.db.controllers.Device.removePlatformSpecificEnvVars(envVars))
+
         return result
     },
 
@@ -221,5 +230,221 @@ module.exports = {
         }
 
         return paginationOptions
+    },
+
+    /**
+     * Bulk delete devices.
+     * Notes:
+     *  * All devices must belong to the same team
+     *  * All devices must be present in the database
+     * @param {*} app - Forge app instance
+     * @param {*} team - User's team
+     * @param {Array<string>} deviceIds - Array of device hashids
+     * @param {*} user - User performing the deletion (required for audit logging)
+     */
+    bulkDelete: async function (app, team, deviceIds, user) {
+        if (!deviceIds || !Array.isArray(deviceIds) || deviceIds.length === 0) {
+            throw new ControllerError('invalid_input', 'No devices specified', 400)
+        }
+
+        // convert hashids to ids
+        const idsDecoded = deviceIds.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
+        const ids = idsDecoded.map(id => id && Array.isArray(id) ? id[0] : null).filter(id => id)
+
+        // find all where id in ids
+        const devices = await app.db.models.Device.findAll({ where: { id: ids } })
+        if (devices.length === 0) {
+            throw new ControllerError('not_found', 'No devices found', 404)
+        }
+
+        // ensure all devices are part of the same team
+        const deviceTeam = await app.db.models.Team.byId(devices[0].TeamId)
+        if (!deviceTeam || deviceTeam.id !== team.id) {
+            throw new ControllerError('invalid_input', 'Devices must belong to the users team', 400)
+        }
+        if (devices.some(d => d.TeamId !== team.id)) {
+            throw new ControllerError('invalid_input', 'All devices must belong to the same team', 400)
+        }
+
+        // delete all devices
+        await app.db.models.Device.destroy({ where: { id: ids } })
+        if (app.license.active() && app.billing) {
+            await app.billing.updateTeamBillingCounts(team)
+        }
+
+        // Log the deletion
+        const teamLogger = getTeamLogger(app)
+        teamLogger.team.device.bulkDeleted(user, null, team, devices)
+    },
+
+    moveDevices: async function (app, deviceIds, targetApplicationId, targetInstanceId, user) {
+        // target is either a project or an application
+        if (targetApplicationId && targetInstanceId) {
+            throw new ControllerError('invalid_input', 'Target must be either an application or an instance', 400)
+        }
+
+        // Get devices
+        const idsDecoded = deviceIds.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
+        const ids = idsDecoded.map(id => id && Array.isArray(id) ? id[0] : null).filter(id => id)
+        const devicesData = await app.db.models.Device.getAll({}, { id: ids }, { includeInstanceApplication: true })
+        if (!devicesData?.count) {
+            throw new ControllerError('not_found', 'No devices found', 404)
+        }
+        const devices = devicesData.devices
+
+        // Check devices and the target are all part of the same team
+        /** @type {'instance'|'application'|null} */
+        const assignTo = targetInstanceId ? 'instance' : (targetApplicationId ? 'application' : null)
+        const assignToApplication = assignTo === 'application' ? await app.db.models.Application.byId(targetApplicationId) : null
+        const assignToProject = assignTo === 'instance' ? await app.db.models.Project.byId(targetInstanceId) : null
+        const team = await app.db.models.Team.byId(devices[0].TeamId)
+        if (!team) {
+            throw new ControllerError('not_found', 'No team found', 404)
+        }
+        if (assignTo === 'application' && !assignToApplication) {
+            throw new ControllerError('not_found', 'No application found', 404)
+        }
+        if (assignTo === 'instance' && !assignToProject) {
+            throw new ControllerError('not_found', 'No instance found', 404)
+        }
+        if (assignToApplication && assignToApplication.TeamId !== team.id) {
+            throw new ControllerError('invalid_application', 'Target application does not belong to the same team', 400)
+        }
+        if (assignToProject && assignToProject.TeamId !== team.id) {
+            throw new ControllerError('invalid_instance', 'Target instance does not belong to the same team', 400)
+        }
+        if (devices.some(d => d.TeamId !== team.id)) {
+            throw new ControllerError('invalid_input', 'All devices must belong to the same team', 400)
+        }
+
+        // Prepare the updates
+        const logEntries = []
+        const devicesToUpdate = []
+        const projectSettings = await assignToProject?.getSetting('deviceSettings') || {}
+        const projectTargetSnapshotId = projectSettings.targetSnapshot || null
+        for (let index = 0; index < devices.length; index++) {
+            const device = devices[index]
+            if (!assignTo) {
+                // ### Remove device from application/project ###
+                let previousOwner
+                if (!device.Project && device.Application) {
+                    previousOwner = {
+                        id: device.Application.id,
+                        name: device.Application.name,
+                        isApplicationOwned: true
+                    }
+                } else if (device.Project) {
+                    previousOwner = {
+                        id: device.Project.id,
+                        name: device.Project.name,
+                        isApplicationOwned: false
+                    }
+                } else {
+                    continue // Device is already unassigned - nothing to do
+                }
+                device.ProjectId = null // unassign from project
+                device.ApplicationId = null // unassign from application
+                device.targetSnapshotId = null // clear the target snapshot
+                device.DeviceGroupId = null // clear the deviceGroup
+                // RE: disable developer mode - this behaviour is aligned with the device update API endpoint
+                device.mode = 'autonomous' // disable developer mode
+                devicesToUpdate.push(device)
+                logEntries.push({
+                    logger: app.auditLog.Team.team.device.unassigned,
+                    params: [user, null, team, previousOwner, device]
+                })
+                if (previousOwner.isApplicationOwned) {
+                    logEntries.push({
+                        logger: app.auditLog.Application.application.device.unassigned,
+                        params: [user, null, previousOwner, device]
+                    })
+                } else {
+                    logEntries.push({
+                        logger: app.auditLog.Project.project.device.unassigned,
+                        params: [user, null, previousOwner, device]
+                    })
+                }
+            } else if (assignTo === 'instance') {
+                // ### Add device to instance ###
+                if (device.ownerType === 'instance' && device.Project?.id === assignToProject.id) {
+                    // Device is already assigned to this instance - nothing to do
+                    continue
+                } else {
+                    device.ProjectId = assignToProject.id
+                    device.ApplicationId = null
+                    device.targetSnapshotId = projectTargetSnapshotId // inherit the target snapshot of the project
+                    device.DeviceGroupId = null // not relevant to instance devices
+                    devicesToUpdate.push(device)
+                    logEntries.push({
+                        logger: app.auditLog.Team.team.device.assigned,
+                        params: [user, null, team, assignToProject, device]
+                    })
+                    logEntries.push({
+                        logger: app.auditLog.Project.project.device.assigned,
+                        params: [user, null, assignToProject, device]
+                    })
+                    logEntries.push({
+                        logger: app.auditLog.Device.device.assigned,
+                        params: [user, null, assignToProject, device]
+                    })
+                }
+            } else if (assignTo === 'application') {
+                // ### Add device to application ###
+                if (device.ownerType === 'application' && device.Application?.id === assignToApplication.id) {
+                    // Device is already assigned to this application - nothing to do
+                    continue
+                } else {
+                    device.ApplicationId = assignToApplication.id
+                    device.ProjectId = null
+                    device.targetSnapshotId = null
+                    device.DeviceGroupId = null
+                    devicesToUpdate.push(device)
+                    logEntries.push({
+                        logger: app.auditLog.Team.team.device.assigned,
+                        params: [user, null, team, assignToApplication, device]
+                    })
+                    logEntries.push({
+                        logger: app.auditLog.Application.application.device.assigned,
+                        params: [user, null, assignToApplication, device]
+                    })
+                    logEntries.push({
+                        logger: app.auditLog.Device.device.assigned,
+                        params: [user, null, assignToApplication, device]
+                    })
+                }
+            }
+        }
+
+        // Save the updates in one transaction to ensure consistency
+        const transaction = await app.db.sequelize.transaction()
+        try {
+            for (let index = 0; index < devicesToUpdate.length; index++) {
+                const device = devicesToUpdate[index]
+                await device.save({ transaction })
+            }
+            await transaction.commit()
+        } catch (error) {
+            await transaction.rollback()
+            throw error
+        }
+
+        // Send update command
+        const updatedIds = devicesToUpdate.map(d => d.id)
+        const updatedDevices = await app.db.models.Device.getAll(undefined, { id: updatedIds }, { includeInstanceApplication: true })
+        if (!updatedDevices.count) {
+            return updatedDevices
+        }
+        for (let index = 0; index < updatedDevices.devices.length; index++) {
+            const device = updatedDevices.devices[index]
+            await this.sendDeviceUpdateCommand(app, device)
+        }
+
+        // Log the changes
+        for (let index = 0; index < logEntries.length; index++) {
+            const logEntry = logEntries[index]
+            await logEntry.logger(...logEntry.params)
+        }
+
+        return updatedDevices
     }
 }

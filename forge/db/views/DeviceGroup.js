@@ -10,13 +10,20 @@ module.exports = function (app) {
             targetSnapshot: {
                 nullable: true,
                 allOf: [{ $ref: 'SnapshotSummary' }]
+            },
+            application: {
+                nullable: true,
+                allOf: [{ $ref: 'ApplicationSummary' }]
             }
         }
     })
-    function deviceGroupSummary (group) {
+    function deviceGroupSummary (group, options = {}) {
+        const { includeApplication = false } = options
+
         if (group.toJSON) {
             group = group.toJSON()
         }
+
         const result = {
             id: group.hashid,
             name: group.name,
@@ -24,6 +31,11 @@ module.exports = function (app) {
             deviceCount: group.deviceCount || 0,
             targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(group.targetSnapshot)
         }
+
+        if (includeApplication && group.Application) {
+            result.application = app.db.views.Application.applicationSummary(group.Application)
+        }
+
         return result
     }
 
@@ -37,7 +49,8 @@ module.exports = function (app) {
             developerModeCount: { type: 'number' },
             runningCount: { type: 'number' },
             isDeploying: { type: 'boolean' },
-            hasTargetSnapshot: { type: 'boolean' }
+            hasTargetSnapshot: { type: 'boolean' },
+            targetSnapshotId: { type: 'string' }
         }
     })
     function deviceGroupPipelineSummary (group) {
@@ -55,7 +68,11 @@ module.exports = function (app) {
             developerModeCount: 0,
             runningCount: 0,
             isDeploying: false,
-            hasTargetSnapshot: !!item.PipelineStageDeviceGroup?.targetSnapshotId
+            hasTargetSnapshot: !!item.PipelineStageDeviceGroup?.targetSnapshotId,
+            targetSnapshotId: null
+        }
+        if (result.hasTargetSnapshot) {
+            result.targetSnapshotId = app.db.models.ProjectSnapshot.encodeHashid(item.PipelineStageDeviceGroup.targetSnapshotId)
         }
         const pipelineTargetSnapshot = item.PipelineStageDeviceGroup?.targetSnapshotId ?? null
         if (item.Devices && item.Devices.length > 0) {
@@ -90,6 +107,15 @@ module.exports = function (app) {
             if (item.toJSON) {
                 item = item.toJSON()
             }
+            const settings = item.settings
+            if (settings.env && Array.isArray(settings.env)) {
+                settings.env = settings.env.map(setting => {
+                    if (setting.hidden) {
+                        setting.value = ''
+                    }
+                    return setting
+                })
+            }
             const filtered = {
                 id: item.hashid,
                 name: item.name,
@@ -97,6 +123,7 @@ module.exports = function (app) {
                 application: item.Application ? app.db.views.Application.applicationSummary(item.Application) : null,
                 deviceCount: item.deviceCount || 0,
                 devices: item.Devices ? item.Devices.map(app.db.views.Device.device) : [],
+                settings: item.settings,
                 targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(item.targetSnapshot)
             }
             return filtered

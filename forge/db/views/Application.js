@@ -63,6 +63,8 @@ module.exports = function (app) {
         }
 
         if (detailed) {
+            summary.deviceCount = application.get('deviceCount')
+            summary.instanceCount = application.get('instanceCount')
             summary.deviceGroupCount = application.get('deviceGroupCount')
             summary.snapshotCount = application.get('snapshotCount')
             summary.pipelineCount = application.get('pipelineCount')
@@ -150,6 +152,17 @@ module.exports = function (app) {
             }
         }))
     }
+
+    app.addSchema({
+        $id: 'ApplicationBom',
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            children: { type: 'array', items: { $ref: 'dependant' } } // dependant is defined in BOM.js
+        },
+        additionalProperties: true
+    })
 
     return {
         application,

@@ -1,19 +1,4 @@
 <template>
-    <Teleport
-        v-if="mounted"
-        to="#platform-sidenav"
-    >
-        <SideNavigation>
-            <template #options>
-                <a @click="$router.back()">
-                    <nav-item
-                        :icon="icons.chevronLeft"
-                        label="Back"
-                    />
-                </a>
-            </template>
-        </SideNavigation>
-    </Teleport>
     <ff-page>
         <template #header>
             <ff-page-header title="Instances">
@@ -55,8 +40,6 @@ import { mapState } from 'vuex'
 
 import instanceApi from '../../api/instances.js'
 
-import NavItem from '../../components/NavItem.vue'
-import SideNavigation from '../../components/SideNavigation.vue'
 import applicationMixin from '../../mixins/Application.js'
 import Alerts from '../../services/alerts.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
@@ -64,9 +47,7 @@ import InstanceForm from '../instance/components/InstanceForm.vue'
 export default {
     name: 'ApplicationCreateInstance',
     components: {
-        InstanceForm,
-        NavItem,
-        SideNavigation
+        InstanceForm
     },
     mixins: [applicationMixin],
     inheritAttrs: false,
@@ -128,7 +109,11 @@ export default {
             } catch (err) {
                 this.instanceDetails = instanceFields
                 if (err.response?.status === 409) {
-                    this.errors.name = err.response.data.error
+                    if (err.response.data?.code === 'invalid_application_name') {
+                        this.errors.applicationName = err.response.data.error
+                    } else {
+                        this.errors.name = err.response.data.error
+                    }
                 } else if (err.response?.status === 400) {
                     Alerts.emit('Failed to create instance: ' + err.response.data.error, 'warning', 7500)
                 } else {

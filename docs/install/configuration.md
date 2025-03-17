@@ -1,5 +1,17 @@
 ---
 navTitle: Configuring FlowFuse
+meta:
+   description: Customize FlowFuse platform settings for server, database, Node-RED deployment, MQTT, email, and more with detailed configuration options.
+   tags:
+      - flowfuse
+      - configuration
+      - server
+      - nodered
+      - mqtt
+      - email
+      - rate limiting
+      - logging
+      - file storage
 ---
 
 # Configuring FlowFuse
@@ -139,7 +151,9 @@ This assumes that the instance is running with a Service Account that has a AWS 
 
 Option        | Description
 --------------|------------
-`email.ses.region` | The AWS region to connect to
+`email.ses.region` | The AWS region to connect to. Default `unset`
+`email.ses.sourceArn` | The AWS ARN of a SES Identity to send email as. Default: `unset`
+`email.ses.fromArn` | The AWS ARN of a SES Identity to set as the from field. Default to value of `email.ses.sourceArn`
 
 
 ## Telemetry configuration
@@ -183,6 +197,14 @@ Option        | Description
 
 For additional options, see [fastify-rate-limit](https://github.com/fastify/fastify-rate-limit#options) documentation.
 
+## Session timeouts
+
+Allows control of the maximum user session life.
+
+Option        | Description
+--------------|------------
+`sessions.maxDuration` | The maximum number of seconds a user session can last. Default: `604800` (1 week)
+`sessions.maxIdleDuration` | The maximum number of seconds a session can be idle. Must be less than `sessions.maxDuration`. Default: `115200` (32 hours)
 
 ## Support configuration
 
@@ -265,3 +287,14 @@ Option        | Description
 `content_security_policy.directives` | Overrides the default set of directives, supplied as a JSON object defined by HelmetJS [here](https://helmetjs.github.io/#content-security-policy)
 `content_security_policy.report_only` | Enables reporting only mode. Default: `false`
 `content_security_policy.report_uri` |  Provides at URI for reporting to be sent to if enabled
+
+## NPM Registry
+
+These settings enable per team Node-RED private catalogue generation
+
+Option        | Description
+--------------|------------
+`npmRegistry.enabled` | Enables NPM Registry support. Default: false
+`npmRegistry.url` | The URL for the Verdaccio NPM Registry. Default: none
+`npmRegistry.admin.username` | Username for Verdaccio admin user
+`npmRegistry.admin.password` | Password for Verdaccio admin user

@@ -1,10 +1,12 @@
 ---
 navTitle: SAML SSO
+meta:
+   description: Learn how to configure SAML-based Single Sign-On (SSO) on FlowFuse's self-hosted Enterprise instances.
 ---
 
 # Configuring SAML based Single Sign-On
 
-_This feature is only available on self-hosted Enterprise licensed instances of FlowFuse._
+_This feature is only available on FlowFuse Cloud and self-hosted Enterprise licensed instances of FlowFuse._
 
 The SSO Configurations are managed by the platform Administrator under the
 `Admin Settings > Settings > SSO` section.
@@ -12,6 +14,41 @@ The SSO Configurations are managed by the platform Administrator under the
 To fully configure SAML SSO, you will need to generate a configuration in FlowFuse,
 provide some of the generated values to your Identity Provider, and copy back some
 values they provide.
+
+## Configuring SSO on FlowFuse Cloud
+
+Configuring SSO on FlowFuse Cloud requires co-ordinating tasks between the customer and
+FlowFuse Cloud administrators.
+
+When a customer requests SSO to be setup for their users, we require the following information:
+
+1. The email domain that will be covered by the configuration. Note that each SSO configuration can only be applied to a single domain. If a customer has multiple domains, each one will require its own SSO configuration. [Issue #5011](https://github.com/FlowFuse/flowfuse/issues/5011) has been raised to make this more flexible in the future.
+2. Whether it is SAML or LDAP based SSO
+3. What Identify Provider they are using for their SSO.
+
+Once this information has been provided, we can then create a draft SSO configuration in the Admin/Settings/SSO section. The configuration should not be marked as active yet.
+
+From the draft configuration, the values of `ACS URL` and `Entity ID / Issuer` can be given to the customer. These values will be required by their Identify Provider. Refer to the provider-specific documentation for how those values get applied.
+
+In return, the customer then needs to provide:
+
+1. `Identity Provider Single Sign-On URL`
+2. `Identity Provider Issuer ID / URL`
+3. `X.509 Certificate Public Key`
+
+Again, refer to the provider-specific documentation for where to find these values as each provider has its own terminology.
+
+These values should be applied to the draft SSO configuration in FlowFuse Cloud. The configuration can then be marked as active.
+
+It is recommended to do this final step whilst on a call with the customer so they can test the setup in real time.
+
+### Common Issues
+
+Aside from navigating the mismatched terminology between services providers, the most common issue we hit is where a login attempt fails and 'Invalid Document Signature' is shown in FlowFuse logs. This is because we expect both the SAML Assertions and Responses to be signed by the public certificate. The default configuration for many providers is to only sign the assertions - check the provider-specific documentation for the appropriate option to enable to address this.
+
+## Configuring SSO
+
+The following instructions give more details information on how to setup SSO.
 
 ### Create a SSO Configuration
 
@@ -70,6 +107,18 @@ The general points are:
 Once you have setup both sides of the configuration you can enable it for use
 by ticking the `active` checkbox and clicking `Update configuration`.
 
+## Creating new users
+
+With FlowFuse 2.7, the SSO Configuration now includes an option to automatically
+register users who sign in via the configuration.
+
+This option is not enabled by default, but can be enabled but selecting the `Allow Provisioning of New Users on first login`
+option in the SOO configuration.
+
+When creating the user, the platform will use information provided by the SAML provider
+to create the username. The user will be directed to their settings page where they
+can modify their user details to their preferred values.
+
 ## Managing Team Membership with SAML Groups
 
 Some SAML providers allow user group information to be shared as part of the sign-in process.
@@ -114,6 +163,19 @@ the groups in the SAML Provider - rather than using the team's id. However, a te
 by a team owner. Doing so will break the link between the group and the team membership - so should only
 be done with care.
 
+An optional prefix and suffix can be include in the group name to support SAML providers that have existing naming policies. The SSO configuration can be configured with the lengths of these values so they will be stripped off before the group name is validated.
+
+For example, if an organisation requires all groups to begin with `acme-org-`, a prefix length of `9` can be set and the group `acme-org-ff-development-owner` will be handled as `ff-development-owner`.
+## Managing Admin users
+
+The SSO Configuration can be configured to managed the admin users of the platform by enabling the
+`Manage Admin roles using group assertions` option. Once enabled, the name of a group can be provided
+that will be used to identify whether a user is an admin or not.
+
+**Note:* the platform will refuse to remove the admin flag from a user if they are the only admin
+on the platform. It is *strongly* recommended to have an admin user on the system that is not
+managed via SSO to ensure continued access in case of any issues with the SSO provider.
+
 ## Providers
 
 The following is a non-exhaustive list of the providers that are known to work
@@ -123,6 +185,7 @@ with FlowFuse SAML SSO.
  - [Google Workspace](#google-workspace)
  - [OneLogin](#onelogin)
  - [Okta](#okta)
+ - [Keycloak](#keycloak)
 
 ### Microsoft Entra
 
@@ -253,3 +316,16 @@ The final task is to copy some of the contents of the XML file into the FlowFuse
  - Find one of the `md:SingleSignOnService` tags and copy the value of its `Location` attribute into the `Identity Provider Single Sign-On URL` property
  - Copy the contents of the `ds:X509Certificate` tag into the `X.509 Certificate Public Key` property
 
+#### Group Membership Configuration
+
+In Keycloak and the Realm setup with FlowFuse as a client:
+
+ - Create a new "Client Scope"
+ - Give it a name and ensure the "Protocol" is `SAML`
+ - After saving the scope, select the "Mappers" tab
+ - "Add mapper" and pick "By configuration"
+ - Select "Group list" from the options
+ - Give it a name and set "Group attribute name" to `ff-roles` (this must match the value configured in FlowFuse, default 'ff-roles')
+ - Ensure that "Full group path" is unchecked
+ - Save and return to the "Clients" list and select your FlowFuse Client created earlier
+ - Under "Client scopes", use the "Add client scope" button to add the new scope

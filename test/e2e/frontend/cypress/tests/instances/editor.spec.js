@@ -41,7 +41,7 @@ describe('FlowForge - Instance editor', () => {
             'GET',
             '/api/*/projects/*',
             (req) => req.reply(res => {
-                res.body = { ...res.body, ...{ meta: { versions: { launcher: '2.3.1' } } } }
+                res.body = { ...res.body, ...{ meta: { versions: { launcher: '2.6.0', 'node-red': '4.0.2' } } } }
                 return res
             })).as('getProjects')
 
@@ -54,12 +54,15 @@ describe('FlowForge - Instance editor', () => {
 
         cy.get('[data-action="open-editor"]')
             .children()
-            .should('exist') // todo revert when the editor is ready
+            .should('exist')
 
-        // cy.get('[data-action="open-editor"]').click()
-        //
-        // cy.get('[data-el="editor-iframe"]').should('exist')
-        // cy.get('[data-el="tabs-drawer"]').should('exist')
+        cy.window().then((win) => {
+            cy.stub(win, 'open').as('windowOpen')
+        })
+
+        cy.get('[data-action="open-editor"]').click()
+
+        cy.get('@windowOpen').should('be.calledWithMatch', /\/instance\/.*\/editor/)
     })
 
     it('has working drawer navigation tabs', () => {
@@ -101,10 +104,9 @@ describe('FlowForge - Instance editor', () => {
         cy.get('@tabs-wrapper').contains('Devices')
         cy.get('@tabs-wrapper').contains('A list of all edge devices registered to this instance.')
 
-        cy.get('[data-nav="instance-snapshots"]').as('snapshots-tab').should('exist')
+        cy.get('[data-nav="instance-version-history"]').as('snapshots-tab').should('exist')
         cy.get('@snapshots-tab').click()
-        cy.get('@tabs-wrapper').contains('Snapshots')
-        cy.get('@tabs-wrapper').contains('Create your First Snapshot')
+        cy.url().should('match', /^.*\/instance\/.*\/version-history\/snapshots/) // defaults to snapshots if no feature/team enabled
 
         cy.get('[data-nav="instance-activity"]').as('activity-tab').should('exist')
         cy.get('@activity-tab').click()
@@ -235,7 +237,9 @@ describe('FlowForge - Instance editor', () => {
                 })
 
             cy.get('[data-el="tabs-drawer"]').within(() => {
-                cy.get('[data-action="open-dashboard"]').should('exist').should('be.disabled')
+                // cy.get('[data-action="open-dashboard"]').should('exist').should('be.disabled')
+                // anchors with disabled attribute fail the above assertion! so we need to check the attribute directly
+                cy.get('[data-action="open-dashboard"]').should('exist').should('have.attr', 'disabled')
             })
         })
     })

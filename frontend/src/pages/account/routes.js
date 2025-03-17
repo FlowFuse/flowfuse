@@ -16,7 +16,6 @@ import AccountSettings from './Settings.vue'
 import AccountTeamInvitations from './Teams/Invitations.vue'
 import AccountTeamTeams from './Teams/Teams.vue'
 import AccountTeams from './Teams/index.vue'
-import VerifyEmail from './VerifyEmail.vue'
 import VerifyPendingEmailChange from './VerifyPendingEmailChange.vue'
 
 import Account from './index.vue'
@@ -47,28 +46,33 @@ export default [
         redirect: '/account/settings',
         name: 'User Settings',
         meta: {
-            title: 'Account - Settings'
+            title: 'Account - Settings',
+            menu: 'user'
         },
         icon: CogIcon,
         component: Account,
         children: [
             {
+                name: 'user-settings-overview',
                 path: 'settings',
                 component: AccountSettings
             },
             {
+                name: 'user-settings-teams',
                 path: 'teams',
                 component: AccountTeams,
+                redirect: { name: 'user-teams' },
                 meta: {
                     title: 'Account - Teams'
                 },
                 children: [
-                    { path: '', component: AccountTeamTeams },
-                    { name: 'User Invitations', path: 'invitations', component: AccountTeamInvitations }
+                    { name: 'user-teams', path: '', component: AccountTeamTeams },
+                    { name: 'user-invitations', path: 'invitations', component: AccountTeamInvitations }
 
                 ]
             },
             {
+                name: 'user-settings-security',
                 path: 'security',
                 component: AccountSecurity,
                 meta: {
@@ -93,15 +97,6 @@ export default [
             title: 'Sign Up'
         },
         component: AccountCreate
-    },
-    {
-        name: 'VerifyEmail',
-        path: '/account/verify/:token',
-        props: true,
-        meta: {
-            requiresLogin: false
-        },
-        component: VerifyEmail
     },
     {
         name: 'VerifyPendingEmailChange',

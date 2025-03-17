@@ -6,20 +6,26 @@
                 :key="tab.label"
                 data-el="ff-tab"
                 class="ff-tab-option transition-fade--color"
-                :class="{'ff-tab-option--active': tab.isActive}"
                 :to="tab.to"
                 :data-nav="tab.tag"
                 @click="selectTab($index)"
             >
                 {{ tab.label }}
+                <span v-if="tab.featureUnavailable" v-ff-tooltip="'Not available in this Team Tier'" data-el="premium-feature">
+                    <SparklesIcon class="ff-icon transition-fade--color hollow" style="stroke-width: 1;" />
+                </span>
             </router-link>
         </ul>
     </div>
 </template>
 
 <script>
+import { SparklesIcon } from '@heroicons/vue/outline'
 export default {
     name: 'ff-tabs',
+    components: {
+        SparklesIcon
+    },
     props: {
         orientation: {
             default: 'horizontal',
@@ -33,17 +39,18 @@ export default {
     emits: ['tab-selected'],
     data () {
         return {
-            selectedIndex: -1,
-            scopedTabs: []
+            selectedIndex: -1
         }
     },
-    watch: {
-        tabs: function () {
-            this.scopedTabs = this.tabs
+    computed: {
+        scopedTabs () {
+            return this.tabs.filter(tab => {
+                if (Object.prototype.hasOwnProperty.call(tab, 'hidden')) {
+                    return !tab.hidden
+                }
+                return true
+            })
         }
-    },
-    mounted () {
-        this.scopedTabs = this.tabs
     },
     methods: {
         selectTab (i) {

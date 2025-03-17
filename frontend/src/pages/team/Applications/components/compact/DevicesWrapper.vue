@@ -1,38 +1,37 @@
 <template>
-    <section v-if="hasNoDevices" class="ff-no-data--boxed">
+    <section v-if="hasNoDevices" class="ff-no-data--boxed" data-el="application-devices-none">
         <label class="delimiter">
             <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
-            Devices
+            Remote Instances
         </label>
-        <span class="message">
+        <span v-if="!isSearching" class="message">
             This Application currently has no
-            <router-link :to="`/application/${application.id}/devices`" class="ff-link">attached devices</router-link>
-            .
+            <router-link :to="{name: 'ApplicationDevices', params: {team_slug: team.slug, id: application.id}}" class="ff-link">attached Remote Instances</router-link>.
+        </span>
+        <span v-else class="message">
+            No device matches your criteria.
         </span>
     </section>
     <section v-else class="ff-applications-list-instances--compact" data-el="application-devices">
         <label class="delimiter">
             <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
-            Devices
+            Remote Instances
         </label>
         <div class="items-wrapper" :class="{one: singleDevice, two: twoDevices, three: threeDevices}">
             <div
-                v-for="device in devices"
+                v-for="device in visibleDevices"
                 :key="device.id"
                 class="item-wrapper"
-                @click.stop="openDevice(device)"
             >
                 <DeviceTile :device="device" :application="application" @device-action="onDeviceAction" />
             </div>
-            <div v-if="hasMoreDevices" class="has-more item-wrapper">
-                <router-link :to="{name: 'ApplicationDevices', params: {id: application.id}}">
-                    <span>
-                        {{ remainingDevices }}
-                        More...
-                    </span>
-                    <ChevronRightIcon class="ff-icon" />
-                </router-link>
-            </div>
+            <HasMoreTile
+                v-if="hasMoreDevices"
+                link-to="ApplicationDevices"
+                :remaining="remainingDevices"
+                :application="application"
+                :search-query="searchQuery"
+            />
         </div>
 
         <TeamDeviceCreateDialog
@@ -54,7 +53,7 @@
                 </p>
                 <p class="my-4">
                     If you want your device to be automatically registered to an instance, in order to remotely deploy flows, you can use provisioning tokens
-                    in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link>
+                    in your <ff-team-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</ff-team-link>
                 </p>
                 <p class="my-4">
                     Further info on Devices can be found
@@ -68,7 +67,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/solid'
+import { mapState } from 'vuex'
 
 import IconDeviceSolid from '../../../../../components/icons/DeviceSolid.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
@@ -76,29 +75,41 @@ import DeviceCredentialsDialog from '../../../Devices/dialogs/DeviceCredentialsD
 import TeamDeviceCreateDialog from '../../../Devices/dialogs/TeamDeviceCreateDialog.vue'
 
 import DeviceTile from './DeviceTile.vue'
+import HasMoreTile from './HasMoreTile.vue'
 
 export default {
     name: 'DevicesWrapper',
-    components: { TeamDeviceCreateDialog, DeviceCredentialsDialog, ChevronRightIcon, IconDeviceSolid, DeviceTile },
+    components: { HasMoreTile, TeamDeviceCreateDialog, DeviceCredentialsDialog, IconDeviceSolid, DeviceTile },
     mixins: [deviceActionsMixin],
     props: {
         application: {
             type: Object,
             required: true,
             default: null
+        },
+        searchQuery: {
+            type: String,
+            required: false,
+            default: ''
         }
     },
     emits: ['delete-device'],
+    data () {
+        return {
+            devices: this.application.devices
+        }
+    },
     computed: {
+        ...mapState('account', ['team']),
         hasMoreDevices () {
-            return this.application.deviceCount > this.application.devices.length
+            return this.application.deviceCount > this.visibleDevices.length
         },
         hasNoDevices () {
-            return this.application.devices.length === 0
+            return this.devices.length === 0
         },
         remainingDevices () {
             if (this.hasNoDevices || this.hasMoreDevices) {
-                return this.application.deviceCount - this.application.devices.length
+                return this.application.deviceCount - this.visibleDevices.length
             } else return 0
         },
         singleDevice () {
@@ -110,8 +121,16 @@ export default {
         threeDevices () {
             return this.application.deviceCount === 3
         },
-        devices () {
-            return this.application.devices
+        visibleDevices () {
+            return this.devices.slice(0, 3)
+        },
+        isSearching () {
+            return this.searchQuery.length > 0
+        }
+    },
+    watch: {
+        'application.devices' (devices) {
+            this.devices = devices
         }
     },
     mounted () {

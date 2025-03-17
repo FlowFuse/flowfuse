@@ -1,5 +1,16 @@
 ---
 navTitle: Monitoring
+meta:
+   description: Learn how to monitor statistical information about your FlowFuse platform using the API endpoint.
+   tags:
+      - flowfuse
+      - nodered
+      - monitoring
+      - api
+      - prometheus
+      - platform statistics
+      - token-based access
+      - securing nodered
 ---
 
 # Platform Monitoring

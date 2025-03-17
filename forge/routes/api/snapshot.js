@@ -7,6 +7,8 @@
  * @memberof forge.routes.api
  */
 
+const { UpdatesCollection } = require('../../auditLog/formatters.js')
+
 module.exports = async function (app) {
     /** @type {typeof import('../../db/controllers/Snapshot.js')} */
     const snapshotController = app.db.controllers.Snapshot
@@ -161,6 +163,54 @@ module.exports = async function (app) {
     })
 
     /**
+     * Update a snapshot
+     */
+    app.put('/:id', {
+        preHandler: app.needsPermission('snapshot:edit'),
+        schema: {
+            summary: 'Update a snapshot',
+            tags: ['Snapshots'],
+            params: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    description: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'Snapshot'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        // capture the original name/description for the audit log
+        const snapshotBefore = { name: request.snapshot.name, description: request.snapshot.description }
+        // perform the update
+        const snapshot = await snapshotController.updateSnapshot(request.snapshot, request.body)
+        // log the update
+        const snapshotAfter = { name: snapshot.name, description: snapshot.description }
+        const updates = new UpdatesCollection()
+        updates.pushDifferences(snapshotBefore, snapshotAfter)
+        if (request.ownerType === 'device') {
+            const application = await request.owner.getApplication()
+            await applicationLogger.application.device.snapshot.updated(request.session.User, null, application, request.owner, request.snapshot, updates)
+        } else if (request.ownerType === 'instance') {
+            await projectLogger.project.snapshot.updated(request.session.User, null, request.owner, request.snapshot, updates)
+        }
+        reply.send(projectSnapshotView.snapshot(snapshot))
+    })
+
+    /**
      * Export a snapshot for later import in another project or platform
      */
     app.post('/:id/export', {
@@ -177,7 +227,20 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    credentialSecret: { type: 'string' }
+                    credentialSecret: { type: 'string' },
+                    components: {
+                        type: 'object',
+                        properties: {
+                            flows: { type: 'boolean', default: true },
+                            credentials: { type: 'boolean', default: true },
+                            envVars: {
+                                anyOf: [
+                                    { type: 'string', enum: ['all', 'keys'] },
+                                    { type: 'boolean', enum: [false] }
+                                ]
+                            }
+                        }
+                    }
                 }
             },
             response: {
@@ -193,7 +256,8 @@ module.exports = async function (app) {
         const options = {
             credentialSecret: request.body.credentialSecret,
             credentials: request.body.credentials,
-            owner: request.owner // the instance or device that owns the snapshot
+            owner: request.owner, // the instance or device that owns the snapshot
+            components: request.body.components
         }
 
         if (!options.credentialSecret) {
@@ -254,7 +318,20 @@ module.exports = async function (app) {
                         },
                         required: ['name', 'flows', 'settings']
                     },
-                    credentialSecret: { type: 'string' }
+                    credentialSecret: { type: 'string' },
+                    components: {
+                        type: 'object',
+                        properties: {
+                            flows: { type: 'boolean', default: true },
+                            credentials: { type: 'boolean', default: true },
+                            envVars: {
+                                anyOf: [
+                                    { type: 'string', enum: ['all', 'keys'] },
+                                    { type: 'boolean', enum: [false] }
+                                ]
+                            }
+                        }
+                    }
                 }
             },
             response: {
@@ -273,12 +350,17 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'bad_request', error: 'owner and snapshot are mandatory in the body' })
             return
         }
-        if (snapshot.flows.credentials?.$ && !request.body.credentialSecret) {
-            reply.code(400).send({ code: 'bad_request', error: 'Credential secret is required when importing a snapshot with credentials' })
-            return
+        if (request.body.components?.credentials !== false) {
+            if (snapshot.flows.credentials?.$ && !request.body.credentialSecret) {
+                reply.code(400).send({ code: 'bad_request', error: 'Credential secret is required when importing a snapshot with credentials' })
+                return
+            }
         }
         try {
-            const newSnapshot = await snapshotController.uploadSnapshot(owner, snapshot, request.body.credentialSecret, request.session.User)
+            const options = {
+                components: request.body.components || null
+            }
+            const newSnapshot = await snapshotController.uploadSnapshot(owner, snapshot, request.body.credentialSecret, request.session.User, options)
             if (!newSnapshot) {
                 throw new Error('Failed to upload snapshot')
             }

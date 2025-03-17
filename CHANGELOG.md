@@ -1,3 +1,555 @@
+#### 2.15.0: Release
+
+ - Sort instance table by date desc by default (#5311) @Steve-Mcl
+ - Fix UNS exit route guard (#5244) @cstns
+ - Add topic "Delete" button to Broker Schema (#5305) @Steve-Mcl
+ - Fix mqtt protocol version not remembered (#5306) @Steve-Mcl
+ - Bump axios from 1.7.4 to 1.8.3 (#5303) @app/dependabot
+ - Remove `Resync Maintenance` step from the release pipeline (#5302) @ppawlowski
+ - Add filter to snapshot views (#5288) @Steve-Mcl
+ - Fix generated API doc for external MQTT Broker API (#5296) @hardillb
+ - Pass npmrc and catalogue to instance/device (#5212) @hardillb
+ - Add `npm` to the restricted project name list (#5281) @hardillb
+ - Restore "Set Target Snapshot" option when creating Snapshot (#5273) @joepavitt
+ - Support Multiple Device Groups in pipeline - backend (#5259) @Steve-Mcl
+ - Allow a trial team to downgrade to freemium (#5262) @knolleary
+ - Add option to disable billing requirement for a team type (#5237) @knolleary
+ - Allow MQTT Schema agent on Docker (#5118) @hardillb
+ - Changed Bill Of Materials instance link to instance palette settings. (#5250) @78wesley
+ - Expose schema objects suggestions (#5226) @cstns
+ - Add the external url in the UI (#5247) @cstns
+ - Prevent duplicate tour, and don't show the "standard" welcome tour for Free Tier (#5242) @joepavitt
+ - Add externalUrl column on the FlowTemplate table (#5180) @cstns
+ - Broker docs schema metadata (#5207) @cstns
+ - Improve the labelling of a Pipeline for improved navigation (#5234) @joepavitt
+ - Onboarding: Improve clarification in the "Add Remote Instance" dialog (#5239) @joepavitt
+ - Fix invalid template conditional in dynamic component that was causing the device timeline to crash (#5236) @cstns
+ - Add the ability to pass down vue components to the global dialog modal (#5225) @cstns
+ - Styling: Make it clearer that Pipeline header is interactive (#5233) @joepavitt
+ - Docs: Add video walkthrough for FlowFuse Device agent (#5231) @gstout52
+ - Add API endpoint for private npm registry catalogue (#5173) @hardillb
+ - Add deviceLastSeen and remote broker counts to telemetry (#5220) @knolleary
+ - docs: Add suggested hardware requirements for self-hosted deployments (#5224) @ppawlowski
+ - Add topic suggestions (#5195) @cstns
+ - Ensure schema buttons are always shown (#5221) @knolleary
+ - Interactive device timeline events (#5205) @cstns
+ - Add a device snapshot created audit log event (#5176) @cstns
+ - Device timeline quick fixes (#5175) @cstns
+ - Update device doc references to new nomenclature (#5152) @cstns
+ - Add a device snapshot deployed audit log event (#5170) @cstns
+ - Add a device.project.deployed event to track device state changes from the device perspective (#5155) @cstns
+ - Add a device.pipeline.deployed event to track device state changes from the device perspective (#5149) @cstns
+ - Add new "Broker Error" component which details issues with connecting to 3rd party broker (#5218) @joepavitt
+ - Fix Team trial billing prompt after team creation (#5219) @cstns
+ - Add feature details on the "Delete Team" dialog (#5217) @joepavitt
+ - Ensure free tour shows when new Free Tier members sign up (#5215) @joepavitt
+ - Bump @aws-sdk/client-ses from 3.621.0 to 3.750.0 (#5174) @app/dependabot
+ - Fix missing prop on the template settings environment component (#5210) @cstns
+ - Fix incorrect status code in broker api (#5209) @knolleary
+ - Update device agent install information and fix ffox copy text utility (#5168) @cstns
+ - Split the brokers page into components pt2 (#5197) @cstns
+ - Split the brokers hierarchy into manageable chunks (#5188) @cstns
+ - Fix position of Team Broker settings in TeamType edit dialog (#5198) @knolleary
+ - Ensure non-node modules are included in snapshot package.json (#5196) @knolleary
+ - Fix Sentry Bug - MQTT client may be null (#5181) @hardillb
+ - Allow team suspend when subscription has expired (#5172) @knolleary
+ - Test for undefinded/null not true/false in ff-listbox (#5163) @hardillb
+ - Extend invitation expiration date when resending it (#5159) @cstns
+ - Show the user's email for external invitations in the action dialogs (#5158) @joepavitt
+ - Resend team invitations (#5151) @cstns
+ - Device docs installation (#5147) @joepavitt
+ - Improve the instructions for the Device Agent onboarding (#5145) @joepavitt
+ - Replace the application activity instance selector, and FormRow dropdown with the listbox component (#4591) @cstns
+ - Reset store state on logout (#5120) @cstns
+ - Add a team link component to simplify routing (#4942) @cstns
+ - docs: First iteration of FlowFuse on OpenShift (#5138) @ppawlowski
+ - Add a new start tour button in the main dropdown menu that restarts the product tour (#5140) @cstns
+ - Filter topic hierarchy list (#5144) @cstns
+
+#### 2.14.1: Release
+
+ - BUG: display the refresh button for the team-broker (#5137) @cstns
+ - Revert "Add debug on redirect_uri oauth flow" (#5136) @knolleary
+ - Force license Tier to be lowercase (#5135) @hardillb
+ - Fix: Adds new "Open Schema" button (#5134) @joepavitt
+ - Add debug on redirect_uri oauth flow (#5132) @knolleary
+ - Add option to disable manual billing (#5129) @knolleary
+ - Bump @vue/test-utils from 2.4.3 to 2.4.6 (#5042) @app/dependabot
+ - Bump serialize-javascript and mocha (#5110) @app/dependabot
+ - Bump untitaker/hyperlink from 0.1.43 to 0.1.44 (#5074) @app/dependabot
+ - Fix race condition in license expired unit test (#5119) @hardillb
+
+#### 2.14.0: Release
+
+ - Persist opened topic state (#5114) @cstns
+ - Add button to allow start/stop of MQTT agent (#5113) @hardillb
+ - Formatted Schema Documentation View (#5112) @joepavitt
+ - Add support for httpNodeAuth settings on devices (#5068) @knolleary
+ - Bump babel-loader from 9.1.3 to 9.2.1 (#4957) @app/dependabot
+ - Add a starting state for the MQTT-Schema-Agent status (#5109) @hardillb
+ - Add "Finish Setup" button for Remote Instances (#5106) @joepavitt
+ - Version history for devices UI (#5107) @cstns
+ - External Broker support (#5015) @hardillb
+ - Add a devices/:deviceId/history API endpoint (#5090) @cstns
+ - [docs] Remove outdated info on private npm tokens (#5097) @knolleary
+ - Allow a dev-mode device at Stage 0 to be triggered (#5089) @knolleary
+ - Bump vitest and @vitest/coverage-istanbul (#5077) @app/dependabot
+ - Applications routing follow up (#4891) @cstns
+ - ci: Add `nr-assistant` package build step to a pre-staging deployment (#5060) @ppawlowski
+ - Free product tour revision (#5059) @cstns
+ - docs: Specify minimum docker compose version (#5070) @ppawlowski
+ - Fix hidden env vars getting overwritten to blank value when updating other env-vars (#5064) @cstns
+ - Docs: Clearer DNS instructions and cross-linking (#4886) @joepavitt
+ - Bump @fastify/multipart from 8.3.0 to 8.3.1 (#5052) @app/dependabot
+ - Allow env var values to be hidden in UI (#5043) @cstns
+ - Fix dashboard role users blank page (#5049) @cstns
+ - Bump vite from 5.4.7 to 5.4.14 (#5048) @app/dependabot
+ - Update migration docs (#5047) @gstout52
+ - Add docs on how to setup SSO on FlowFuse Cloud (#5040) @knolleary
+ - PostHog - New "team-type-changed" event & add team type on team-created event (#5044) @joepavitt
+ - Update node-saml to 5 (#5037) @knolleary
+ - Update introduction.md (#5034) @gstout52
+
+#### 2.13.1: Release
+
+ - Fix missing sideNav during app setup (#5029) @cstns
+ - Fix oauth tests on node 20 (#5024) @knolleary
+ - Fix invalid check for billing enablement (#5028) @knolleary
+ - Change external domain used in offboarding test to be more reliable (#5023) @knolleary
+ - Use camelcase for unit test names (#5022) @cstns
+ - Team groups follow-up (#5021) @cstns
+
+#### 2.13.0: Release
+
+ - ci: Fix `Tests` pipeline summary generation  (#4988)
+ - Add a team level device groups UI (#5018) @cstns
+ - Disable caching of index.html when in dev mode (#5017) @knolleary
+ - Update Team Device Groups routes to use hashid not slug (#5016) @knolleary
+ - Add a team level device groups API (#5009) @cstns
+ - Set pending state when loggin in to prevent no team limbo (#5012) @cstns
+ - ci: Enable concurrency in `Tests` workflow (#5006) @ppawlowski
+ - Add Open Schema button to Topic Hierarchy view (#5008) @knolleary
+ - Use named routes for the application summary labels (#5010) @cstns
+ - Enrich crash email with detail and hints where crash reason can be inferred (#4936) @Steve-Mcl
+ - Fix silently failing featuresCheck due to missing team (#5005) @cstns
+ - Serve seo tags for the login and signup pages prerendered (#5000) @cstns
+ - Add initial schema generation for team-broker topics (#4997) @knolleary
+ - Add Team Broker hostname to UI settings (#4998) @hardillb
+ - ci: Add `nr-file-nodes` package build step to the pre-staging deployment (#4995) @ppawlowski
+ - Remove the injected canonical link (#4994) @cstns
+ - Fix console errors when logging in due to the team not being loaded (#4993) @cstns
+ - Change team before switching route when accessing team link from the admin page (#4992) @cstns
+ - Update text on create button for trial teams (#4986) @knolleary
+ - Fix topic copy button (#4991) @knolleary
+ - Updated Onboarding Tours (#4979) @joepavitt
+ - Revert "Create check-tests-status job summary" (#4989) @ppawlowski
+ - ci: Create `check-tests-status` job summary (#4987) @ppawlowski
+ - Add option to auto-create team application (#4985) @knolleary
+ - Update persistent-context.md (#4984) @sumitshinde-84
+ - ci: Improve notification on tests failures (#4971) @ppawlowski
+ - "Devices" & "Edge Instances" > Remote Instances (#4976) @joepavitt
+ - Ensure Pipelines don't fall over if Device Groups are unavailable (#4975) @joepavitt
+ - Show "Expired" for expired licenses (#4967) @hardillb
+ - Add tooltips to "Open Editor" button for Devices (#4973) @joepavitt
+ - Fix broken Device Application Link (#4972) @joepavitt
+ - Improve feedback when unable to connect to Device Logs (#4974) @joepavitt
+ - ci: Add `nr-project-nodes` package build step to the pre-staging deployment pipeline (#4968) @ppawlowski
+ - Only hash httpNodeAuth Password if not already hashed (#4966) @hardillb
+ - Remove the term "Free Trial" from the welcome dialog (#4962) @joepavitt
+ - Make sure the Team Types are ordered correctly when changing team type (#4961) @joepavitt
+ - Improve feedback when Hosted Instances are not available to a team (#4956) @joepavitt
+ - Fixes setMainNavBackButton race condition before a team is present after logging in (#4949) @cstns
+ - Fix race condition when changing teams while on the application page (#4951) @cstns
+ - Allow trial team to be manually created (#4941) @knolleary
+ - Bump semver from 7.6.0 to 7.6.3 (#4925) @app/dependabot
+
+#### 2.12.0: Release
+
+ - Add note about Private CA chain (#4901)
+ - Bump actions/github-script from 6 to 7 (#4897)
+ - Bump flowfuse/github-actions-workflows from 0.37.0 to 0.38.0 (#4896)
+ - Make it clearer which IP address to use (#4887)
+ - Bump codecov/codecov-action from 4 to 5 (#4795)
+ - Support disabling instance launcher "auto safe mode" (#4922) @Steve-Mcl
+ - Allow NR Dashboard to be loaded in iFrames (#4900) @hardillb
+ - Add system-ui as a backup font for heebo (to match internal font) (#4946) @cstns
+ - Remove platform banners from the applications page (#4939) @cstns
+ - Better device proxy cache (#4792) @hardillb
+ - Fix application child routes not making the applications nav menu active (#4885) @cstns
+ - Decrease device auto timeout to 15 seconds from 30 (#4932) @hardillb
+ - Add logo version for dark backgrounds (#4930) @Yndira-E
+ - Open Dashboard and Editor links in new tab by default (#4923) @joepavitt
+ - Update the sign up page and box layout to new branding (#4924) @joepavitt
+ - Bump nanoid from 3.3.7 to 3.3.8 (#4918) @app/dependabot
+ - Add note to Instance Types setting default Stack (#4917) @hardillb
+ - Team Bill Of Materials UI (#4872) @cstns
+ - Remove notifications for deleted instances (#4899) @hardillb
+ - Revert Device log changes (#4916) @hardillb
+ - Allow for prefix/suffix to SSO GroupNames (#4902) @hardillb
+ - Add device agent docker timezone docs (#4907) @hardillb
+ - Ensure Device Provisioning tokens removed with Team (#4906) @hardillb
+ - Return device type in application/devices (#4904) @hardillb
+ - Fix device log race condition between publish and disconnect (#4903) @cstns
+ - Ensure device logs always shown (#4893) @hardillb
+ - Add some Team Broker developement docs (#4799) @hardillb
+ - Ensure Instance suspended on expired license (#4888) @hardillb
+ - Bump cypress from 13.13.1 to 13.16.1 (#4895) @app/dependabot
+ - ci: Fix prestaging slack notification conditional (#4892) @ppawlowski
+ - ci: "upstream" packages validation workflow (#4455) @ppawlowski
+ - docs: Change links to Docker Compose files (#4890) @ppawlowski
+ - Fix main nav matching context order (#4869) @cstns
+ - Use default behavior for platform wide anchors (part I) (#4834) @cstns
+ - Bump path-to-regexp and express (#4879) @app/dependabot
+ - Fix padding on Device Group Settings view (#4865) @knolleary
+ - docs: Add description how to start Device Agent on system boot (#4878) @ppawlowski
+ - Send invite Reminders (#4824) @hardillb
+ - Fixe the outline of the first search result title (#4877) @cstns
+ - Add more filters for admin notification targeting (#4843) @knolleary
+ - Topic hierarchy follow up (#4818) @cstns
+ - Update role-based permissions table (#4863) @sumitshinde-84
+ - Add Team BOM api endpoint (#4849) @hardillb
+ - Ensure existing http auth tokens shown (#4861) @hardillb
+ - fix hovering over pipeline and application name and update empty state message (#4859) @cstns
+ - Expand the UNS Hierarchy by default & improve hover behaviour (#4854) @joepavitt
+ - Fix access permission for team pipeline api (#4856) @hardillb
+ - Improve help text and empty state language for Teams > Pipelines (#4855) @joepavitt
+ - Navigation - Add Team Pipelines View (#4852) @cstns
+ - Prevent viewer role users from getting 404 when accesing applications (#4846) @cstns
+ - Team Pipelines API (#4847) @hardillb
+ - ci: Publish to npm only on successful tests (#4848) @ppawlowski
+ - Team member device mode toggle (#4844) @hardillb
+ - Improve padding/sizing of the global search box (#4825) @joepavitt
+ - Bump @sentry/browser and @sentry/vue (#4731) @app/dependabot
+ - Allow branding settings to be cleared in the UI (#4841) @knolleary
+ - ci: Test docs along with website (#4840) @ppawlowski
+ - Improved Admin Team view (#4770) @knolleary
+ - 4563 replace instance and audit logs dropdowns (#4567) @cstns
+ - Support Search by id in Global Search (#4814) @Steve-Mcl
+ - fix device groups layout (#4817) @Steve-Mcl
+ - docs: fix failing anchors on kubernetes and docker docs (#4812) @ppawlowski
+ - Fix broken anchor links in docs (#4811) @Steve-Mcl
+
+#### 2.11.0: Release
+
+ - Bump flowfuse/github-actions-workflows from 0.36.0 to 0.37.0 (#4733)
+ - ci: Automate docs publishing (#4725)
+ - Add TeamBroker enabled to pre-staging (#4717)
+ - docs: Refactor instructions for installing FlowFuse on self-hosted environment using docker (#4665)
+ - Address mobile and alignment issues for global search (#4807) @cstns
+ - Include Application.description and Device.type in search scope (#4808) @knolleary
+ - Update terms in the tour to align with new terminology (#4803) @knolleary
+ - Global search UI (#4798) @cstns
+ - Bump cross-spawn (#4805) @app/dependabot
+ - Add ACLS for project nodes to access team broker topic space (#4789) @knolleary
+ - Respect CTRL/CMD+Click for opening instance editor in new tab (#4800) @Steve-Mcl
+ - Broker Topic Hierarchy UI (#4790) @cstns
+ - Add "Event Scope" and "Include Children" to Instance Audit Logs (#4753) @Steve-Mcl
+ - Show child items in team and application audit log (#4749) @Steve-Mcl
+ - Track topics used by a Team on Team Broker (#4748) @hardillb
+ - Add links to MQTT docs (#4775) @hardillb
+ - Add connection test button to LDAP SSO page (#4787) @hardillb
+ - Add search api for apps/devices/instances (#4764) @knolleary
+ - Add more logging when License expires (#4773) @hardillb
+ - Modify invite link for SSO enabled external users (#4786) @knolleary
+ - Make email matching case insensitive for external invites (#4783) @knolleary
+ - Fix immersive editor not displaying due to parent container height (#4780) @cstns
+ - Fix multiple non-authenticated page layouts (#4777) @cstns
+ - Adds autocomplete attribute to login username field (#4774) @knolleary
+ - Deny ACL check for deleted MQTT Clients (#4766) @hardillb
+ - Sidebar redesign follow up (#4763) @cstns
+ - Fix applications page nested routes (#4765) @cstns
+ - Update 404 page (#4757) @cstns
+ - Fix failing feature checks when the features state hasn't been hydrated (#4761) @cstns
+ - Sidebar Re-design: Left Drawer (#4745) @cstns
+ - docs: Add note about self-signed certificate warning (#4730) @ppawlowski
+ - docs: Self-hosted kubernetes installation page refactor (#4704) @ppawlowski
+ - docs: docker on windows adjustments (#4724) @ppawlowski
+ - Sidebar Re-design: Routing (#4744) @cstns
+ - Sidebar Re-design: prerequisites (#4743) @cstns
+ - Update Device Agent docs for 3.x release (#4747) @knolleary
+ - Ensure Downgraded Teams can't authenticate MQTT Clients (#4739) @hardillb
+ - Ensure correct env vars are applied to device (#4686) @Steve-Mcl
+ - Do not add api-error:version_mismatch to audit log (#4740) @knolleary
+ - Add the ability to emit platform wide notifications (#4637) @cstns
+ - Add mqttClients to license claims (#4732) @knolleary
+ - Bump sass-loader from 14.1.1 to 16.0.2 (#4548) @app/dependabot
+ - Docs: Improve Device Agent Intro Documentation (#4718) @joepavitt
+ - Add the missing tests for new broker Auth/ACL (#4721) @hardillb
+ - docs: Remove duplication in the introduction paragraph (#4710) @ppawlowski
+ - Bump yaml from 2.3.4 to 2.6.0 (#4705) @app/dependabot
+ - Bump nodemon from 3.1.0 to 3.1.7 (#4706) @app/dependabot
+ - Update MQTT Cloud docs (#4722) @hardillb
+ - Check for project: not platform: in username (#4720) @hardillb
+ - ci: Disable team broker for starter team type on pre-staging (#4719) @ppawlowski
+ - Follow up mqtt broker ux (#4711) @cstns
+ - Re-order Join Reason options in Sign Up page (#4714) @joepavitt
+ - Add uninstall instructions (#4715) @hardillb
+ - Update snapshot hero info dialog images to be same for all (#4697) @Steve-Mcl
+ - Add Team Broker Clients count to telemetry (#4703) @hardillb
+ - Add Copy button to broker client username (#4701) @hardillb
+ - Bump css-loader from 6.10.0 to 7.1.2 (#4272) @app/dependabot
+ - Bump pg from 8.11.5 to 8.13.0 (#4669) @app/dependabot
+ - Update snapshots docs (#4700) @Steve-Mcl
+ - Add initial details on MQTT Broker service (#4676) @hardillb
+ - Prevent broker client limits being shown in wrong TeamType (#4694) @hardillb
+
+#### 2.10.0: Release
+
+ - Enable Team Broker and Version History Timeline features on pre-staging (#4679)
+ - Bump flowfuse/github-actions-workflows from 0.34.0 to 0.36.0 (#4644)
+ - Bump flowfuse/github-actions-workflows from 0.30.0 to 0.34.0 (#4622)
+ - Remove <img /> tags for now due to Eleventy problems (#4599)
+ - Add note about backing up the database (#4592)
+ - Replace 'ACL' term in the dialog (#4691) @knolleary
+ - Put Team Broker behind a flag in the flowforge.yml (#4688) @hardillb
+ - Update 'both' MQTT ACL label to 'publish & subscribe' (#4690) @knolleary
+ - Clarify "Push to stage" dialog env var statement (#4604) @Steve-Mcl
+ - Team broker client UI (#4646) @hardillb
+ - Audit log shows empty username for password resets (#4681) @hardillb
+ - Return error if broker client already exists for team (#4678) @hardillb
+ - Update version history timeline pictograms (#4677) @cstns
+ - Add repeat password field for confirmation (#4670) @Steve-Mcl
+ - Fix permissions (#4675) @hardillb
+ - Ensure teamMembership in session for broker API (#4674) @hardillb
+ - Update docs for group env vars (#4666) @Steve-Mcl
+ - Visual timeline of version history (#4647) @cstns
+ - Fix device router link for BOM (#4671) @Steve-Mcl
+ - MQTT Broker Service API (#4627) @hardillb
+ - Add Device Group env vars API support (#4659) @Steve-Mcl
+ - Bump jsdom from 22.1.0 to 25.0.1 (#4545) @app/dependabot
+ - docs: Introduce quick start page (#4639) @ppawlowski
+ - Add details of suspending team to docs (#4662) @knolleary
+ - Add links to stripe dashbaord in admin info for team (#4657) @knolleary
+ - Fix enabling sso group allocation in admin settings (#4654) @knolleary
+ - PostHog: Add "team-created" event when teams are automatically created server-side (#4648) @joepavitt
+ - docs: Migrating static assets is manual but possible (#4645) @ZJvandeWeg
+ - Snapshot import export component options (#4610) @Steve-Mcl
+ - Fix overflow on actions section (#4642) @cstns
+ - Fix admin action tabs alignment (#4629) @cstns
+ - Add ability to mark multiple notitications as read (#4601) @cstns
+ - Enable combined device/instance free allocation (#4621) @knolleary
+ - Bump cookie, express, express-session, @immobiliarelabs/fastify-sentry and light-my-request (#4626) @app/dependabot
+ - Only allow instance rename if suspended (#4596) @hardillb
+ - Only show warning if 10-file.js active (#4620) @hardillb
+ - Fix allowing mixed case instance names (#4619) @hardillb
+ - Include user's e-mail address on "Please Verify" screen (#4615) @joepavitt
+ - Update static assets docs images with clear image and correct sized i… (#4613) @sumitshinde-84
+ - change the posthog identifier for the $ff-invite-accepted event (#4612) @cstns
+ - ci: handle special characters in PR title (#4607) @ppawlowski
+ - Replace the AssetCompareDialog, VisibilitySelector and Logs dropdowns (#4580) @cstns
+ - Bump vite from 5.2.8 to 5.4.7 (#4543) @app/dependabot
+ - Bump rollup from 4.14.1 to 4.22.4 (#4551) @app/dependabot
+ - Docs: Improve the Docs Landing Page (#4597) @joepavitt
+ - Add Team upgrade docs (#4594) @hardillb
+ - remove image logo alt name to fix gmail email summary (#4595) @cstns
+ - Update install.md (#4590) @sumitshinde-84
+ - fix dependencies display (#4589) @cstns
+ - Update snapshot nomenclature (#4585) @cstns
+ - Docs: Add unique identifier for Docker cmds (#4586) @joepavitt
+ - bom incorrect package version (#4579) @cstns
+ - Enable team lookup by id in admin view (#4584) @knolleary
+ - Update remaining roles imports (#4578) @cstns
+ - Store platform settings, teamMembership and team store values in localStorage (#4507) @cstns
+ - Create a new listbox component that can replace the existing Dropdown (#4560) @cstns
+
+#### 2.9.0: Release
+
+ - Enable BOM feature for Enterprise team on pre-staging (#4550)
+ - Bump flowfuse/github-actions-workflows from 0.29.0 to 0.30.0 (#4547)
+ - Bump flowfuse/github-actions-workflows from 0.28.0 to 0.29.0 (#4471)
+ - Bump flowfuse/github-actions-workflows from 0.21.0 to 0.28.0 (#4442)
+ - Bump slackapi/slack-github-action from 1.26.0 to 1.27.0 (#4441)
+ - Bump tj-actions/changed-files from 44 to 45 (#4404)
+ - ci: Add possibility to send e-mails from pre-staging environments (#4437)
+ - ci: Set Node-RED v4 as a default stack on pre-staging (#4436)
+ - ci: Enable latest features on pre-staging environment (#4435)
+ - Make the immersive editor collapse button permanently visible when the drawer is open (#4569) @cstns
+ - Add bill of materials docs (#4523) @cstns
+ - Add an user education modal to trial users (#4540) @cstns
+ - Add warning about file nodes to Assets page (#4541) @hardillb
+ - Implement history timeline API (backend) (#4509) @Steve-Mcl
+ - Use the provided user info sent to the audit endpoint to get which user is triggering an operation (#4530) @Steve-Mcl
+ - improved alert notification messages on asset service file/folder upload (#4542) @cstns
+ - handle new logout event from nr-editor (#4544) @cstns
+ - Bump find-my-way from 8.1.0 to 8.2.2 (#4513) @app/dependabot
+ - Allow users to delete accounts even when they have active teams (reapplied) (#4531) @knolleary
+ -  Update BOM API use project model versions (#4535) @Steve-Mcl
+ - Add egress to banned list of instance names (#4533) @hardillb
+ - Revert "Allow users to delete accounts even when they have active teams" (#4528) @knolleary
+ - Add versions info to Project model (#4526) @knolleary
+ - fix visibility selector styling propagation (#4525) @cstns
+ - adds a fallback for missing semver/installed node-red versions for k8/docker deployments (#4520) @cstns
+ - Software bill of materials API (#4376) @Steve-Mcl
+ - Update docs following the static file service navivagtion and visibility selector changes (#4514) @cstns
+ - Add a directory navigation component (#4473) @cstns
+ - Update File Node docs to cover new Persistent Storage (#4516) @hardillb
+ - Wrap last PostHog API call in try catch (#4515) @hardillb
+ - Bump serve-static and express (#4492) @app/dependabot
+ - Ensure user has selected an available team type on upgrade (#4510) @knolleary
+ - Ensure consistent pictograms are used across devices and instances (#4466) @Steve-Mcl
+ - Add guards on PostHog API calls (#4508) @hardillb
+ - fix remaining HS chat bubble issues (#4504) @Steve-Mcl
+ - Improve user feedback when developer mode change fails (#4469) @Steve-Mcl
+ - Update ffc docs to include data security details (#4496) @knolleary
+ - Bump @vitejs/plugin-vue from 5.0.4 to 5.1.2 (#4324) @app/dependabot
+ - Bump sinon from 17.0.1 to 19.0.2 (#4491) @app/dependabot
+ - Only get tokens if team feature enabled (#4487) @hardillb
+ - Remove temp background highlight from HS chat bubble (#4486) @Steve-Mcl
+ - Mitigate chat widget blocking elements (#4477) @Steve-Mcl
+ - 4439 hide instance asset tab from users (#4448) @cstns
+ - Add debug logging for SSO Groups (#4470) @hardillb
+ - Handle team with inactive team-type when viewing change-type (#4464) @knolleary
+ - fix: Asset upload dialog (#4465) @Steve-Mcl
+ - Show missing application selection error in the right place (#4462) @knolleary
+ - Improve dashboard only landing page (#4444) @cstns
+ - Add suspended state for teams (#4446) @knolleary
+ - Ensure subscription is deleted from db when team is deleted (#4457) @knolleary
+ - Fix pipeline tests due to name reuse (#4460) @knolleary
+ - Don't try and create default items more than once (#4454) @hardillb
+ - ci: Enable FlowFuse Assistant on pre-staging environment (#4445) @ppawlowski
+ - Don't overwrite theme with pipeline (#4425) @hardillb
+ - Add static asset service user docs (#4426) @cstns
+ - Provide proactive feedback when trying to change team type to incompatible type (#4378) @knolleary
+ - Remove the file browser entry selectors because we don't support bulk operations (#4432) @cstns
+ - Bump webpack from 5.91.0 to 5.94.0 (#4405) @app/dependabot
+ - Update introduction.md (#4429) @sumitshinde-84
+ - Add missing alert notification for create folder error (#4428) @cstns
+ - Fix the file upload component not clearing when clearing the component (#4427) @cstns
+
+#### 2.8.0: Release
+
+ - docs: Docker Engine on Windows how-to article (#4406)
+ - Update Dockerfile (#4365)
+ - Implement files api (#4384) @knolleary
+ - hide the application page instance kebab menu for non admin/owner users (#4417) @cstns
+ - Adds LDAP group support (#4407) @hardillb
+ - Add crash notifications (#4409) @Steve-Mcl
+ - Fill width to match other controls on form (#4414) @Steve-Mcl
+ - Fix broken navbar on 404 (#4403) @cstns
+ - Shutdown Instances when license expires (#4268) @hardillb
+ - Track server-side invitation events with PostHog (#4386) @joepavitt
+ - fix tags indentation (#4401) @sumitshinde-84
+ - Fix tags indentation (#4400) @Yndira-E
+ - Move invite accept to before personal team create (#4397) @hardillb
+ - Change editor & dashboard buttons to anchors (#4396) @Steve-Mcl
+ - Audit log export (#4330) @hardillb
+ - Add meta tags and description (#4225) @sumitshinde-84
+ - Dashboard URL setting clarification (#4395) @Steve-Mcl
+ - Add comment about different certs for the forge app. (#4389) @hardillb
+ - Product Tour - Welcome to FlowFuse (#4383) @joepavitt
+ - Send notification to inviter when a team invite is accepted (#4385) @joepavitt
+ - Bump axios from 1.6.5 to 1.7.4 (#4372) @dependabot
+ - Add 'none' option as pipeline stage action (#4369) @knolleary
+ - Bulk update team devices API (bulk move support only) (#4336) @Steve-Mcl
+ - Allow users to delete accounts even when they have active teams (#4354) @cstns
+ - Pipelines: Adds missing [data-action="pipeline-add"] on empty state button (#4364) @joepavitt
+ - Ensure personal instance is created in personal team on signup (#4360) @knolleary
+ - Custom catalog and npmrc settings UX improvements (#4349) @cstns
+ - Add option to require contact via HS form for create/upgrade of team type (#4343) @knolleary
+ - Highlighting the update stack options when navigating to the instance update settings (#4321) @cstns
+ - Fix lingering active tab when navigating back (#4350) @cstns
+ - 4249 application device kebab menu not clearing devices (#4340) @cstns
+ - Update billing.md (#4348) @ZJvandeWeg
+ - Add explicit PH event for verification (#4344) @joepavitt
+ - Show feature not available on CE Blueprint page (#4341) @hardillb
+ - Remove limits on img-src (#4293) @hardillb
+ - Remove dynamically registered permissions (#4320) @cstns
+ - Fix incorrect status codes in tests (#4334) @Steve-Mcl
+ - Add link to description of wildcard DNS entry (#4332) @hardillb
+ - Add Keycloak to the provider list (#4331) @hardillb
+ - Update immersive editor loading animations (#4329) @cstns
+ - Fix instance not being removed from the applications list after being deleted (#4322) @cstns
+ - Only clear PH data if there is user session to clear (#4328) @joepavitt
+ - Fix project access for Admins (#4327) @hardillb
+ - Hide npmrc secrets from frontend (#4316) @hardillb
+ - UX Fixes for Users Without Assigned Teams (#4314) @cstns
+ - Site wide audit log better formatting when updates object is to be displayed (#4315) @Steve-Mcl
+ - Fix bulk intermittent e2e tests (#4309) @Steve-Mcl
+ - Hide the invite member button for users that don't have access to a team or insufficient privileges (#4303) @cstns
+ - Bump fast-xml-parser, @aws-sdk/client-ses and @aws-sdk/credential-provider-node (#4301) @dependabot
+ - Allow a team without subscription to go unmanaged (#4302) @knolleary
+
+#### 2.7.0: Release
+
+ - ci: Add logs link to pre-staging slack message (#4215)
+ - ci: Update `publish_node_package` workflow to `v0.21.0` (#4146)
+ - Edit snapshot (#4282) @Steve-Mcl
+ - Clearer communication of navigation restriction when billing is required (#4298) @joepavitt
+ - Fix snapshot package.json download dependencies (#4289) @hardillb
+ - Add locked field test (#4280) @hardillb
+ - remove the request trial license hs form (#4279) @sumitshinde-84
+ - Initial user notification backend (#4164) @knolleary
+ - Clear device group target snapshot (#4276) @Steve-Mcl
+ - Allow Uppercase letters in initial admin username (#4267) @hardillb
+ - Fix link in device deploy docs (#4269) @hardillb
+ - move local installation under contribute section (#4259) @sumitshinde-84
+ - Remove vue-template-compiler (#4265) @hardillb
+ - Bump fastify-metrics from 10.4.1 to 11.0.0 (#3848) @app/dependabot
+ - Clear query action on invite page (#4263) @knolleary
+ - Fix import of snapshot credentials for instances (#4262) @knolleary
+ - Found race condition in tests (#4260) @hardillb
+ - show full buttons when instance count is 1 (#4247) @Steve-Mcl
+ - Update so locked template fields are not overwritten (#4244) @hardillb
+ - Bump postcss-loader from 7.3.3 to 8.1.1 (#3796) @app/dependabot
+ - Fix import of snapshots and improve test coverage (#4258) @knolleary
+ - Bump vue from 3.4.21 to 3.4.34 (#4256) @app/dependabot
+ - Bump cypress from 13.7.3 to 13.13.1 (#4235) @app/dependabot
+ - Add Keycloak group mapping info (#4233) @hardillb
+ - update examples links (#4144) @sumitshinde-84
+ - Bump @babel/core from 7.24.3 to 7.24.9 (#4179) @app/dependabot
+ - Allow admin to be set from SSO group (#4237) @hardillb
+ - Improve 2FA handling (#4255) @hardillb
+ - Fix device tile kebab menu actions (#4253) @Steve-Mcl
+ - Fix: Remove dialog mixin from the DevicesBrowser (#4252) @joepavitt
+ - Add AZURE specific suggestion (#4251) @hardillb
+ - Allow Session expiry to be configured (#4243) @hardillb
+ - Add bulk delete for devices browser (#4219) @Steve-Mcl
+ - Sso create new user (#4207) @hardillb
+ - Bulk device delete api (#4209) @Steve-Mcl
+ - Move notification tray out of ff-view (#4240) @knolleary
+ - Do not store modified email when deduping email list (#4232) @knolleary
+ - Ability to add device from empty state (#4228) @Steve-Mcl
+ - Fix limbo state after leaving last team (#4226) @Steve-Mcl
+ - Add notifications drawer (#4210) @cstns
+ - Clear redirect url on logout (#4223) @cstns
+ - Better sanitization of team names in invite email (#4221) @knolleary
+ - Mask both quoted and unquoted registry tokens (#4220) @hardillb
+ - Fix accessing team as dashboard user (#4216) @knolleary
+ - ci: Skip pre-staging workflow on dependabot pull requests (#4205) @ppawlowski
+ - Ensure team slug is passed for nested views (#4202) @joepavitt
+ - Move to email verification codes rather than links on signup (#4195) @knolleary
+ - Add blueprint count to telemetry ping (#4196) @knolleary
+ - auto genrate license and display (#4105) @sumitshinde-84
+ - Surface the "Invite Members" button to the main navigation (#4186) @joepavitt
+ - Allow AWS SES sourceArn to be set (#4177) @hardillb
+ - Differentiate between the instance/device name and tile link/details (#4112) @cstns
+ - Add CTA on resource Audit entries (#4192) @hardillb
+ - Adds rate limits to assistant route (#4182) @Steve-Mcl
+ - carry on application search params to followup pages (#4170) @cstns
+ - cI: Notify on `Install test` workflow failure (#4178) @ppawlowski
+ - extend applications search to include app/instance/device id's (#4171) @cstns
+ - Add search functionality to the applications instances page (#4172) @cstns
+ - Update Security headers (#4154) @hardillb
+ - Search applications by instances and devices (#4159) @cstns
+ - add meta information to docs (#4162) @sumitshinde-84
+ - Only permit instance/device token to call upon assistant endpoint (#4163) @Steve-Mcl
+ - Add session ownerId/type to log output if set (#4155) @knolleary
+ - Add support for JSON in FlowFuse Assistant (#4128) @Steve-Mcl
+ - Add option to show mfa code instead of qrcode (#4156) @knolleary
+ - Swap maps with arrays on the applications page (#4148) @cstns
+ - e2e tests for instance and device rollback feature (#4149) @Steve-Mcl
+ - Add search bar and allow searching through applications (#4141) @cstns
+ - Fix install test. (#4143) @hardillb
+ - Use absolute path for camera icon (#4138) @Steve-Mcl
+ - Install NodeJS (#4140) @hardillb
+ - fix path to install.sh (#4135) @hardillb
+ - ci: Change the way how `Create pre-staging environment` workflow is triggered (#4130) @ppawlowski
+ - Bump ws from 8.16.0 to 8.18.0 (#4136) @app/dependabot
+ - Install test (#4134) @hardillb
+ - include nr-assistant in snapshot and map through settings (#4127) @Steve-Mcl
+ - Reset publish build to NodeJS 18 (#4133) @hardillb
+ - fix broken link (#4132) @sumitshinde-84
+
 #### 2.6.1: Release
 
  - Set nodejs version back to 16 for package build (#4121) @hardillb

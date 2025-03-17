@@ -64,18 +64,24 @@ class DeviceCommsHandler {
         client.on('logs/heartbeat', (beat) => {
             this.deviceLogHeartbeats[beat.id] = beat.timestamp
         })
+        client.on('logs/disconnect', (beat) => {
+            const parts = beat.id.split(':')
+            this.sendCommand(parts[0], parts[1], 'stopLog', '')
+            this.app.log.info(`Disable device logging ${parts[1]} in team ${parts[0]}`)
+            delete this.deviceLogHeartbeats[beat.id]
+        })
 
         this.deviceLogHeartbeatInterval = setInterval(() => {
             const now = Date.now()
             for (const [key, value] of Object.entries(this.deviceLogHeartbeats)) {
-                if (now - value > 25000) {
+                if (now - value > 12500) {
                     const parts = key.split(':')
                     this.sendCommand(parts[0], parts[1], 'stopLog', '')
                     this.app.log.info(`Disable device logging ${parts[1]} in team ${parts[0]}`)
                     delete this.deviceLogHeartbeats[key]
                 }
             }
-        }, 30000)
+        }, 15000)
     }
 
     async handleStatus (status) {
@@ -117,15 +123,18 @@ class DeviceCommsHandler {
                     sendUpdateCommand = true
                 }
                 if (Object.hasOwn(payload, 'snapshot')) {
-                    // load the full snapshot (as specified by the device) from the db so we can check the snapshots
-                    // `ProjectId` is "something" (not orphaned) and matches the device's project
-                    const targetSnapshot = (await this.app.db.models.ProjectSnapshot.byId(payload.snapshot, { includeFlows: false, includeSettings: false }))
-                    if (payload.snapshot !== (targetSnapshot?.hashid || null)) {
-                        // The Snapshot is incorrect
-                        sendUpdateCommand = true
-                    } else if (targetSnapshot && !device.isApplicationOwned && payload.project !== (targetSnapshot?.ProjectId || null)) {
-                        // The project the device is reporting it belongs to does not match the target Snapshot parent project
-                        sendUpdateCommand = true
+                    const targetSnapshot = device.targetSnapshot
+                    const reportedSnapshotId = payload.snapshot === '0' ? null : payload.snapshot
+                    if (reportedSnapshotId !== (targetSnapshot?.hashid || null)) {
+                        sendUpdateCommand = true // The Snapshot reported in device status does not match the device model target snapshot
+                    } else if (reportedSnapshotId && !device.isApplicationOwned) {
+                        // load the full snapshot (as specified by the device status) from the db so we can check the snapshots
+                        // `ProjectId` is "something" (not orphaned) and matches the device's project
+                        const reportedSnapshot = (await this.app.db.models.ProjectSnapshot.byId(reportedSnapshotId, { includeFlows: false, includeSettings: false }))
+                        if (reportedSnapshot && payload.project !== (reportedSnapshot?.ProjectId || null)) {
+                            // The project the device is reporting it belongs to does not match the target Snapshot parent project
+                            sendUpdateCommand = true
+                        }
                     }
                 }
                 if (Object.hasOwn(payload, 'settings') && payload.settings !== (device.settingsHash || null)) {

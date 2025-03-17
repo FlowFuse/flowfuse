@@ -40,14 +40,52 @@
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
                 <FormRow v-model="editable.settings.dashboardUI" :error="editable.errors.dashboardUI" :disabled="!editTemplate && !editable.policy.dashboardUI" type="text">
-                    Dashboard URL Path
+                    Legacy Dashboard URL Path
                     <template #description>
-                        The path used to serve the node-red-dashboard UI
+                        <div>The path used to serve the legacy node-red-dashboard UI</div>
+                        <div>
+                            NOTE: node-red-dashboard <a href="https://flowfuse.com/blog/2024/06/dashboard-1-deprecated/" class="ff-link" target="_blank" rel="noopener noreferrer">is deprecated</a>
+                        </div>
                     </template>
                     <template #append><ChangeIndicator :value="editable.changed.settings.dashboardUI" /></template>
                 </FormRow>
             </div>
             <LockSetting v-model="editable.policy.dashboardUI" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.dashboardUI" />
+        </div>
+        <div class="flex flex-col sm:flex-row">
+            <div class="w-full max-w-md sm:mr-8">
+                <FormRow type="text">
+                    FlowFuse Dashboard URL Path
+                    <template #description>
+                        The path used to serve the <a href="https://dashboard.flowfuse.com/" class="ff-link" target="_blank" rel="noopener noreferrer">FlowFuse Dashboard</a>
+                    </template>
+                    <template #input>
+                        <div data-el="form-row-uneditable" class="w-full uneditable undefined text-gray-300">/dashboard</div>
+                    </template>
+                </FormRow>
+            </div>
+            <LockSetting class="flex justify-end flex-col" tooltip="This setting is fixed and cannot be changed." />
+        </div>
+        <div v-if="dashboardIFrameAvailable">
+            <div class="flex flex-col sm:flex-row">
+                <div class="w-full max-w-md sm:mr-8">
+                    <FormRow v-model="editable.settings.dashboardIFrame" :error="editable.errors.dashboardIFrame" :disabled="!editTemplate && !editable.policy.dashboardIFrame" type="checkbox">
+                        Allow Dashboard to be embedded in an iFrame
+                        <template #description>
+                            Sets the <span>Content-Security-Policy: frame-ancestor '*'</span> HTTP Header for the Dashboard
+                        </template>
+                        <template #append><ChangeIndicator :value="editable.changed.settings.dashboardIFrame" /></template>
+                    </FormRow>
+                </div>
+                <LockSetting v-model="editable.policy.dashboardIFrame" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.dashboardIFrame" />
+            </div>
+        </div>
+        <div v-else class="flex flex-col sm:flex-row">
+            <div class="space-y-4 w-full max-w-md sm:mr-8">
+                <p>Upgrade your stack to be able to enable</p>
+                <p>embedding Dashboards in iFrames</p>
+                <ff-button size="small" to="general">Upgrade</ff-button>
+            </div>
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
@@ -181,7 +219,8 @@ export default {
         },
         instance: {
             type: Object,
-            required: true
+            required: false,
+            default: () => {}
         },
         team: {
             type: Object,
@@ -230,6 +269,15 @@ export default {
         },
         debugLimitDisabled () {
             return !this.editTemplate && !this.editable.policy.debugMaxLength
+        },
+        dashboardIFrameAvailable () {
+            const launcherVersion = this.instance?.meta?.versions?.launcher
+            if (!launcherVersion) {
+                // We won't have this for a suspended project - so err on the side
+                // of permissive
+                return true
+            }
+            return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.12.0')
         }
     }
 }

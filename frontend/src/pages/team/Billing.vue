@@ -22,7 +22,7 @@
                     </template>
                     <template #tools>
                         <div class="flex flex-row gap-x-4">
-                            <ff-button v-if="subscription" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Upgrade Team</ff-button>
+                            <ff-button v-if="!isUnmanaged" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Upgrade Team</ff-button>
                             <ff-button v-if="subscription" @click="customerPortal()">
                                 <template #icon-right><ExternalLinkIcon /></template>
                                 Stripe Customer Portal
@@ -51,31 +51,18 @@
                     Something went wrong loading your subscription information, please try again.
                 </div>
             </div>
-            <EmptyState v-else-if="!isUnmanaged">
+            <EmptyState v-else-if="billingDisabledForTeam">
                 <template #img>
                     <img src="../../images/empty-states/team-instances.png">
                 </template>
-                <template #header>Setup Team Billing</template>
+                <template #header>Team Billing</template>
                 <template #message>
-                    <template v-if="!trialHasEnded">
-                        <p v-if="trialMode">
-                            You have <span class="font-bold" v-text="trialEndsIn" /> left of your trial.
-                        </p>
-                        <p>
-                            During the trial you can make full use of the features available to your team. To keep things running you will need to setup your billing details.
-                        </p>
-                    </template>
-                    <template v-else>
-                        <p>
-                            You trial has ended. You will need to setup billing to continuing using this team.
-                        </p>
-                    </template>
-                </template>
-                <template #actions>
-                    <ff-button data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
+                    <p>
+                        Your team does not require billing to be setup.
+                    </p>
                 </template>
             </EmptyState>
-            <EmptyState v-else>
+            <EmptyState v-else-if="isUnmanaged">
                 <template #img>
                     <img src="../../images/empty-states/team-instances.png">
                 </template>
@@ -87,6 +74,30 @@
                     <p>
                         Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
                     </p>
+                </template>
+            </EmptyState>
+            <EmptyState v-else>
+                <template #img>
+                    <img src="../../images/empty-states/team-instances.png">
+                </template>
+                <template #header>Setup Team Billing</template>
+                <template #message>
+                    <template v-if="!trialHasEnded">
+                        <p v-if="trialMode">
+                            You have <span class="font-bold" v-text="trialEndsIn" /> left of your trial.
+                        </p>
+                        <p>
+                            You must add billing details in order to continue using FlowFuse.
+                        </p>
+                    </template>
+                    <template v-else>
+                        <p>
+                            You trial has ended. You will need to setup billing to continuing using this team.
+                        </p>
+                    </template>
+                </template>
+                <template #actions>
+                    <ff-button v-if="hasPermission('team:edit')" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
                 </template>
             </EmptyState>
         </ff-page>
@@ -180,6 +191,10 @@ export default {
         },
         isUnmanaged () {
             return this.team.billing?.unmanaged
+        },
+        billingDisabledForTeam () {
+            // This team's type has billing disabled
+            return this.team.type?.properties?.billing?.disabled
         },
         trialMode () {
             return this.team.billing?.trial

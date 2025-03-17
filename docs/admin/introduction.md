@@ -1,6 +1,17 @@
 ---
 navTitle: Administering FlowFuse
 navOrder: 1
+meta:
+  descriptions: Learn how to administer FlowFuse with this comprehensive guide. Explore user management, team setup, instance and stack management, and more.
+  tags:  
+     - flowfuse
+     - nodered 
+     - user management
+     - team setup
+     - instance management
+     - stack management
+     - platform administration
+     - security
 ---
 # Administering FlowFuse
 
@@ -118,6 +129,8 @@ Whenever a new Instance Type is created, it will need to be manually enabled for
 the individual [Team Types](#managing-team-types) before they will be available
 for teams to use.
 
+Instance Types also control the default Stack (and in turn, the default Node-RED versions) that Instances will run with if there are multiple available Stacks associated with an Instance Type.
+
 ### Managing Stacks
 
 > Admin Settings > Stacks
@@ -128,7 +141,7 @@ to create and edit the stacks on the platform.
 For Deployment specific information about working with stacks, refer to the
 documentation of your chosen deployment model:
 
- - [Local Stacks](/docs/install/local/stacks.md)
+ - [Local Stacks](/docs/contribute/local/stacks.md)
  - [Docker Stacks](/docs/install/docker/stacks.md)
  - [Kubernetes Stacks](/docs/install/kubernetes/stacks.md)
 

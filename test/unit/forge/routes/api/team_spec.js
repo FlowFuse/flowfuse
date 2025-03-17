@@ -1,3 +1,5 @@
+const sleep = require('util').promisify(setTimeout)
+
 const should = require('should') // eslint-disable-line
 
 const { KEY_SETTINGS } = require('../../../../../forge/db/models/ProjectSettings')
@@ -5,6 +7,10 @@ const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
+
+let objectCount = 0
+const generateName = (root = 'object') => `${root}-${objectCount++}`
 
 describe('Team API', function () {
     let app
@@ -25,7 +31,15 @@ describe('Team API', function () {
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
         TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', slug: 'bteam', TeamTypeId: app.defaultTeamType.id })
         TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam abc', TeamTypeId: app.defaultTeamType.id })
-        TestObjects.DTeam = await app.db.models.Team.create({ name: 'DTeAbCam', TeamTypeId: app.defaultTeamType.id })
+
+        TestObjects.secondTeamType = await app.db.models.TeamType.create({
+            name: 'second team type',
+            active: false,
+            order: 1,
+            description: '',
+            properties: {}
+        })
+        TestObjects.DTeam = await app.db.models.Team.create({ name: 'DTeAbCam', TeamTypeId: TestObjects.secondTeamType.id, suspended: true })
 
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
@@ -153,19 +167,7 @@ describe('Team API', function () {
     describe('Get list of teams', async function () {
         // GET /api/v1/teams/:teamId
 
-        const getTeams = async (limit, cursor, search) => {
-            const query = {}
-            // app.inject will inject undefined values as the string 'undefined' rather
-            // than ignore them. So need to build-up the query object the long way
-            if (limit !== undefined) {
-                query.limit = limit
-            }
-            if (cursor !== undefined) {
-                query.cursor = cursor
-            }
-            if (search !== undefined) {
-                query.query = search
-            }
+        const getTeams = async (query = {}) => {
             const response = await app.inject({
                 method: 'GET',
                 url: '/api/v1/teams',
@@ -178,28 +180,47 @@ describe('Team API', function () {
         it('returns a list of all teams', async function () {
             const result = await getTeams()
             result.teams.should.have.length(4)
+            result.teams[0].should.have.property('name', 'ATeam')
+            result.teams[3].should.have.property('name', 'DTeAbCam')
         })
 
+        it('returns list in reverse order', async function () {
+            const result = await getTeams({ sort: 'createdAt-desc' })
+            result.teams.should.have.length(4)
+            result.teams[0].should.have.property('name', 'DTeAbCam')
+            result.teams[3].should.have.property('name', 'ATeam')
+        })
+        it('filters by team type', async function () {
+            let result = await getTeams({ teamType: TestObjects.secondTeamType.hashid })
+            result.teams.should.have.length(1)
+            result.teams[0].should.have.property('name', 'DTeAbCam')
+
+            result = await getTeams({ teamType: `${TestObjects.secondTeamType.hashid},${app.defaultTeamType.hashid}` })
+            result.teams.should.have.length(4)
+
+            result = await getTeams({ teamType: `not-a-valid-team,${app.defaultTeamType.hashid}` })
+            result.teams.should.have.length(3)
+        })
         it('can page through list', async function () {
-            const firstPage = await getTeams(2)
+            const firstPage = await getTeams({ limit: 2 })
             firstPage.should.have.property('meta')
             firstPage.meta.should.have.property('next_cursor', TestObjects.BTeam.hashid)
             firstPage.teams.should.have.length(2)
             firstPage.teams[0].should.have.property('name', 'ATeam')
             firstPage.teams[1].should.have.property('name', 'BTeam')
 
-            const secondPage = await getTeams(2, firstPage.meta.next_cursor)
+            const secondPage = await getTeams({ limit: 2, cursor: firstPage.meta.next_cursor })
             secondPage.meta.should.have.property('next_cursor', TestObjects.DTeam.hashid)
             secondPage.teams.should.have.length(2)
             secondPage.teams[0].should.have.property('name', 'CTeam abc')
             secondPage.teams[1].should.have.property('name', 'DTeAbCam')
 
-            const thirdPage = await getTeams(2, secondPage.meta.next_cursor)
+            const thirdPage = await getTeams({ limit: 2, cursor: secondPage.meta.next_cursor })
             thirdPage.meta.should.not.have.property('next_cursor')
             thirdPage.teams.should.have.length(0)
         })
         it('can search for teams - name', async function () {
-            const firstPage = await getTeams(undefined, undefined, 'aBC')
+            const firstPage = await getTeams({ query: 'aBC' })
             firstPage.meta.should.not.have.property('next_cursor')
             firstPage.teams.should.have.length(2)
             firstPage.teams[0].should.have.property('name', 'CTeam abc')
@@ -515,7 +536,7 @@ describe('Team API', function () {
             await startResult.started
 
             // Starting
-            await app.containers.start(thirdInstance)
+            const startThirdResult = await app.containers.start(thirdInstance)
 
             const response = await app.inject({
                 method: 'GET',
@@ -538,6 +559,7 @@ describe('Team API', function () {
 
             const thirdInstanceStatus = application.instances.find((instance) => instance.id === thirdInstance.id)
             thirdInstanceStatus.meta.should.have.property('state', 'starting')
+            await startThirdResult.started
         })
 
         it('with all devices and their status', async function () {
@@ -626,6 +648,154 @@ describe('Team API', function () {
                 }
             })
             response.statusCode.should.equal(404)
+        })
+    })
+
+    describe('Get a list of a teams dashboard instances', () => {
+        it('Users can get a filtered list of team instances that only have the dashboard module installed', async function () {
+            // GET /api/v1/team/:teamId/dashboard-instances
+            const team = await app.db.models.Team.create({ name: 'mock-team-1', TeamTypeId: app.defaultTeamType.id })
+            const application = await app.factory.createApplication({ name: 'application-1' }, team)
+            await app.factory.createInstance(
+                { name: 'mock-instance-1' },
+                application,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false,
+                    settings: {
+                        palette: { modules: [{ name: '@flowfuse/node-red-dashboard', version: '~1.15.0', local: true }] }
+                    }
+                }
+            )
+            await app.factory.createInstance(
+                { name: 'mock-instance-2' },
+                application,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false
+                }
+            )
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${team.hashid}/dashboard-instances`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('projects').and.be.an.Array()
+            result.projects.should.have.a.property('length', 1)
+        })
+        it('Non team members cannot access the endpoint', async function () {
+            // GET /api/v1/team/:teamId/dashboard-instances
+            const team = await app.db.models.Team.create({ name: 'mock-team-1', TeamTypeId: app.defaultTeamType.id })
+            const application = await app.factory.createApplication({ name: 'application-1' }, team)
+            await app.factory.createInstance(
+                { name: 'mock-instance-1' },
+                application,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false,
+                    settings: {
+                        palette: { modules: [{ name: '@flowfuse/node-red-dashboard', version: '~1.15.0', local: true }] }
+                    }
+                }
+            )
+            await app.factory.createInstance(
+                { name: 'mock-instance-2' },
+                application,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false
+                }
+            )
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${team.hashid}/dashboard-instances`,
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('Unauthenticated members cannot access the endpoint (401)', async function () {
+            // GET /api/v1/team/:teamId/dashboard-instances
+            const team = await app.db.models.Team.create({ name: 'mock-team-1', TeamTypeId: app.defaultTeamType.id })
+            const application = await app.factory.createApplication({ name: 'application-1' }, team)
+            await app.factory.createInstance(
+                { name: 'mock-instance-1' },
+                application,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false,
+                    settings: {
+                        palette: { modules: [{ name: '@flowfuse/node-red-dashboard', version: '~1.15.0', local: true }] }
+                    }
+                }
+            )
+            await app.factory.createInstance(
+                { name: 'mock-instance-2' },
+                application,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false
+                }
+            )
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${team.hashid}/dashboard-instances`,
+                cookies: { sid: 'abcd' }
+            })
+            response.statusCode.should.equal(401)
+        })
+        it('Returns a 404 response when no instances are found', async () => {
+            // GET /api/v1/team/:teamId/dashboard-instances
+            const team = await app.db.models.Team.create({ name: 'mock-team-1', TeamTypeId: app.defaultTeamType.id })
+            await app.factory.createApplication({ name: 'application-1' }, team)
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${team.hashid}/dashboard-instances`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('Returns a 200 empty response when no dashboards are found', async () => {
+            // GET /api/v1/team/:teamId/dashboard-instances
+            const team = await app.db.models.Team.create({ name: 'mock-team-1', TeamTypeId: app.defaultTeamType.id })
+
+            const application = await app.factory.createApplication({ name: 'application-1' }, team)
+            await app.factory.createInstance(
+                { name: 'mock-instance-3' },
+                application,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false,
+                    settings: {}
+                }
+            )
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${team.hashid}/dashboard-instances`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const reply = response.json()
+            should(reply).be.an.Object()
+            reply.should.have.property('count', 0)
+            reply.should.have.property('projects').and.be.Array()
+            reply.projects.should.have.property('length', 0)
         })
     })
 
@@ -812,6 +982,152 @@ describe('Team API', function () {
             await team.reload()
 
             team.should.have.property('TeamTypeId', newTeamType.id)
+        })
+
+        describe('Suspending team', async function () {
+            it('non-owner cannot suspend team', async function () {
+                const teamName = generateName('suspend-team')
+                const team = await app.db.models.Team.create({ name: teamName, slug: teamName, TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+                await team.addUser(TestObjects.chris, { through: { role: Roles.Member } })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        suspended: true
+                    },
+                    cookies: { sid: TestObjects.tokens.chris }
+                })
+                response.statusCode.should.equal(403)
+            })
+            it('cannot modify name and suspended state in one request', async function () {
+                const teamName = generateName('suspend-team')
+                const team = await app.db.models.Team.create({ name: teamName, slug: teamName, TeamTypeId: app.defaultTeamType.id })
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: {
+                        name: teamName + '-new',
+                        suspended: true
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(400)
+                const result = response.json()
+                result.should.have.property('code', 'invalid_request')
+                result.error.should.match(/Cannot modify other properties/i)
+            })
+            it('suspending a team causes all instances to be suspended', async function () {
+                // 0. Create team/application/instance
+                const teamName = generateName('suspend-team')
+                const team = await app.db.models.Team.create({ name: teamName, slug: teamName, TeamTypeId: app.defaultTeamType.id })
+                const application = await app.factory.createApplication({ name: generateName('suspend-team-app') }, team)
+                await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+                const projectName = generateName('suspend-team-project')
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: projectName,
+                        applicationId: application.hashid,
+                        projectType: app.projectType.hashid,
+                        template: app.template.hashid,
+                        stack: app.stack.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                const instanceDetails = response.json()
+                const getInstanceStatus = async () => {
+                    return (await app.inject({ method: 'GET', url: `/api/v1/projects/${instanceDetails.id}`, cookies: { sid: TestObjects.tokens.bob } })).json().meta.state
+                }
+                await sleep(START_DELAY + 50)
+                ;(await getInstanceStatus()).should.equal('running')
+
+                // 1. Suspend the team
+                const suspendResponse = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: { suspended: true },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                suspendResponse.statusCode.should.equal(200)
+                const suspendResult = suspendResponse.json()
+
+                // 2. Check team is marked as suspended
+                suspendResult.should.have.property('suspended', true)
+
+                // 3. Check the team instance has been suspended
+                await sleep(STOP_DELAY + 50)
+                ;(await getInstanceStatus()).should.equal('suspended')
+
+                // 4. Check we cannot restart the team instance
+                const startResponse = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/projects/${instanceDetails.id}/actions/start`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                const startResult = startResponse.json()
+                startResult.should.have.property('code', 'team_suspended')
+                startResponse.statusCode.should.equal(400)
+
+                // 5. Check we cannot create a new instance
+                const createInstanceResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: generateName('suspend-team-project'),
+                        applicationId: application.hashid,
+                        projectType: app.projectType.hashid,
+                        template: app.template.hashid,
+                        stack: app.stack.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                const createInstanceResult = createInstanceResponse.json()
+                createInstanceResult.should.have.property('code', 'team_suspended')
+                createInstanceResponse.statusCode.should.equal(400)
+
+                // 6. Check we cannot create a new device
+                const createDeviceResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/devices',
+                    body: {
+                        name: generateName('suspend-team-device'),
+                        type: 'rp',
+                        team: team.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                const createDeviceResult = createDeviceResponse.json()
+                createDeviceResult.should.have.property('code', 'team_suspended')
+                createDeviceResponse.statusCode.should.equal(400)
+
+                // 7. Unsuspend the team
+                const unsuspendResponse = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: { suspended: false },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                unsuspendResponse.statusCode.should.equal(200)
+                const unsuspendResult = unsuspendResponse.json()
+
+                // 8. Check team is marked as *not* suspended
+                unsuspendResult.should.have.property('suspended', false)
+
+                // 9. Check we can restart the team instance
+                const restartResponse = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/projects/${instanceDetails.id}/actions/start`,
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                restartResponse.statusCode.should.equal(200)
+
+                await sleep(START_DELAY + 50)
+                ;(await getInstanceStatus()).should.equal('running')
+            })
         })
     })
 

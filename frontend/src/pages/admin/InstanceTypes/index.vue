@@ -1,5 +1,6 @@
 <template>
-    <div class="space-y-6">
+    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+    <div class="space-y-6 mb-14">
         <SectionTopMenu hero="Instance Types">
             <template #tools>
                 <ff-button data-action="create-type" @click="showCreateInstanceTypeDialog">
@@ -12,7 +13,7 @@
         </SectionTopMenu>
         <ff-tile-selection data-el="active-types">
             <ff-tile-selection-option
-                v-for="(instanceType, index) in activeInstanceTypes" :key="index"
+                v-for="(instanceType, index) in activeInstanceTypes" :key="index" value=""
                 :editable="true" :price="instanceType.properties?.billingDescription?.split('/')[0]"
                 :price-interval="instanceType.properties?.billingDescription?.split('/')[1]"
                 :label="instanceType.name"

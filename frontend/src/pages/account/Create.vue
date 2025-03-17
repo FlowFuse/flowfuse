@@ -1,11 +1,11 @@
 <!-- eslint-disable vue/no-v-html -->
 
 <template>
-    <ff-layout-box class="ff-signup">
+    <ff-layout-box class="ff-signup ff--center-box">
         <template v-if="splash" #splash-content>
             <div data-el="splash" v-html="splash" />
         </template>
-        <form v-if="!emailSent && !ssoCreated" id="ff-sign-up" class="max-w-md m-auto" @submit.prevent="registerUser()">
+        <form v-if="!ssoCreated" id="ff-sign-up" class="max-w-md m-auto" @submit.prevent="registerUser()">
             <p
                 v-if="settings['branding:account:signUpTopBanner']"
                 data-el="banner-text"
@@ -25,6 +25,9 @@
                 <label>Password</label>
                 <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="showErrors.password ? errors.password : ''" type="password" />
                 <span class="ff-error-inline">{{ showErrors.password ? errors.password : '' }}</span>
+                <label>Confirm Password</label>
+                <ff-text-input ref="signup-repeat-password" v-model="input.repeatPassword" data-form="signup-repeat-password" label="Confirm Password" :error="showErrors.repeatPassword ? errors.repeatPassword : ''" type="password" />
+                <span class="ff-error-inline">{{ showErrors.repeatPassword ? errors.repeatPassword : '' }}</span>
             </div>
             <div v-if="askJoinReason" class="pt-3">
                 <ff-radio-group
@@ -53,11 +56,7 @@
                 </p>
             </div>
         </form>
-        <div v-else-if="emailSent">
-            <h5>Confirm your e-mail address.</h5>
-            <p>Please click the link in the email we sent to {{ input.email }}</p>
-        </div>
-        <div v-else>
+        <div v-else-if="ssoCreated">
             <p>You can now login using your SSO Provider.</p>
             <ff-button :to="{ name: 'Home' }" data-action="login">Login</ff-button>
         </div>
@@ -90,16 +89,17 @@ export default {
                 username: false,
                 email: false,
                 password: false,
+                repeatPassword: false,
                 name: false
             },
             teams: [],
-            emailSent: false,
             ssoCreated: false,
             input: {
                 name: '',
                 username: '',
                 email: '',
                 password: '',
+                repeatPassword: '',
                 join_reason: null,
                 tcs_accepted: false,
                 code: ''
@@ -107,14 +107,15 @@ export default {
             errors: {
                 email: '',
                 password: '',
+                repeatPassword: '',
                 username: '',
                 name: '',
                 general: ''
             },
             reasons: [
+                { label: 'Educational Use', value: 'education' },
                 { label: 'Business Needs', value: 'business' },
-                { label: 'Personal Use', value: 'personal' },
-                { label: 'Educational Use', value: 'education' }
+                { label: 'Personal Use', value: 'personal' }
             ]
         }
     },
@@ -127,6 +128,7 @@ export default {
             return (this.input.email && !this.errors.email) &&
                    (this.input.username && !this.errors.username) &&
                    (this.input.password && !this.errors.password) &&
+                   (this.input.repeatPassword && !this.errors.repeatPassword) &&
                    (this.askJoinReason ? this.input.join_reason : true) &&
                    (this.settings['user:tcs-required'] ? this.input.tcs_accepted : true) &&
                    (!this.errors.name)
@@ -148,8 +150,9 @@ export default {
                 if (newVal.email) {
                     this.showErrors.email = true
                 }
-                if (newVal.password) {
+                if (newVal.password || newVal.repeatPassword) {
                     this.showErrors.password = true
+                    this.showErrors.repeatPassword = true
                 }
                 this.validateFormInputs()
             },
@@ -189,10 +192,11 @@ export default {
                 this.errors.email = ''
             }
 
+            let checkRepeat = false
             if (!this.input.password) {
                 this.errors.password = 'Password is required'
             } else if (this.input.password.length < 8) {
-                this.errors.password = 'Password needs to be longer than 8 chars'
+                this.errors.password = 'Password must be 8 characters or more'
             } else if (this.input.password.length > 128) {
                 this.errors.password = 'Password too long'
             } else if (this.input.password === this.input.username.trim()) {
@@ -205,9 +209,16 @@ export default {
                 this.errors.password = 'Password needs to be more complex'
             } else {
                 this.errors.password = ''
+                checkRepeat = true
             }
 
-            return !this.errors.username && !this.errors.email && !this.errors.password && !this.errors.name
+            if (checkRepeat && this.input.password !== this.input.repeatPassword) {
+                this.errors.repeatPassword = 'Passwords do not match'
+            } else {
+                this.errors.repeatPassword = ''
+            }
+
+            return !this.errors.username && !this.errors.email && !this.errors.password && !this.errors.repeatPassword && !this.errors.name
         },
         registerUser () {
             // ensure errors are shown
@@ -215,6 +226,7 @@ export default {
                 username: true,
                 email: true,
                 password: true,
+                repeatPassword: true,
                 name: true
             }
             const inputsValid = this.validateFormInputs()
@@ -232,15 +244,17 @@ export default {
             const opts = { ...this.input, name: name || this.input.username, email }
             this.busy = true // show spinner
             this.errors.general = '' // clear any previous errors
-            userApi.registerUser(opts).then(result => {
+            userApi.registerUser(opts).then(async result => {
                 if (result.sso_enabled) {
                     this.ssoCreated = true
-                } else {
-                    this.emailSent = true
                 }
                 this.busy = false
                 if (window.gtag && this.settings.adwords?.events?.conversion) {
                     window.gtag('event', 'conversion', this.settings.adwords.events.conversion)
+                }
+                if (!result.sso_enabled) {
+                    this.$store.dispatch('account/setUser', result)
+                    this.$router.push('/')
                 }
             }).catch(err => {
                 console.error(err)

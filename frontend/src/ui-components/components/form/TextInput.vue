@@ -8,10 +8,12 @@
             :disabled="disabled"
             :value="modelValue"
             :maxlength="maxlength"
+            :autocomplete="autocomplete"
             @change="$emit('update:modelValue', $event.target.value)"
             @input="$emit('update:modelValue', $event.target.value)"
             @blur="$emit('blur')" @keyup.enter="$emit('enter', $evt)"
         />
+        <slot name="icon-right" />
     </div>
 </template>
 
@@ -30,11 +32,15 @@ export default {
         },
         placeholder: {
             type: String,
-            default: ''
+            default: null
         },
         maxlength: {
             type: String,
-            default: ''
+            default: null
+        },
+        autocomplete: {
+            type: String,
+            default: null
         },
         // flowfuse specific props
         size: {

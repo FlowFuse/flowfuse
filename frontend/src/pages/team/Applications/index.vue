@@ -12,10 +12,9 @@
                     <img src="../../../images/pictograms/application_red.png">
                 </template>
                 <template #helptext>
-                    <p>This is a list of all Applications hosted on the same domain as FlowFuse.</p>
-                    <p>Each Application can host multiple Node-RED instances.</p>
-                    <p>Click an application header to go to the overview of that application.</p>
-                    <p>Click an instance within an application to go to the Instances overview.</p>
+                    <p>Each Application can host multiple Node-RED instances, both Hosted and Remote.</p>
+                    <p>Click an Application header to go to the overview of that Application.</p>
+                    <p>Click an Instance within an Application to go to the Instance's overview.</p>
                 </template>
                 <template #tools>
                     <ff-button
@@ -23,6 +22,7 @@
                         data-action="create-application"
                         kind="primary"
                         :to="{name: 'CreateTeamApplication'}"
+                        type="anchor"
                     >
                         <template #icon-left>
                             <PlusSmIcon />
@@ -40,14 +40,16 @@
                     v-model="filterTerm"
                     class="ff-data-table--search"
                     data-form="search"
-                    placeholder="Search Applications..."
+                    placeholder="Search Applications, Instances and Devices..."
                 >
                     <template #icon><SearchIcon /></template>
                 </ff-text-input>
-                <ul v-if="filteredApplications.length > 0" class="ff-applications-list" data-el="applications-list">
-                    <li v-for="application in filteredApplications" :key="application.id">
+                <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+                <ul v-if="filteredApplications.length > 0" class="ff-applications-list mb-14" data-el="applications-list">
+                    <li v-for="application in filteredApplications" :key="application.id" data-el="application-item">
                         <ApplicationListItem
                             :application="application"
+                            :search-query="filterTerm"
                             @instance-deleted="fetchData(false)"
                             @device-deleted="fetchData(false)"
                         />
@@ -75,6 +77,7 @@
                         v-if="hasPermission('project:create')"
                         data-action="create-application"
                         kind="primary"
+                        type="anchor"
                         :to="{name: 'CreateTeamApplication'}"
                     >
                         <template #icon-left>
@@ -99,14 +102,19 @@
 <script>
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
+import { mapGetters, mapState } from 'vuex'
+
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
+import Tours from '../../../tours/Tours.js'
+
+import TourFirstDevice from '../../../tours/tour-first-device.js'
+import TourWelcomeFree from '../../../tours/tour-welcome-free.json'
+import TourWelcome from '../../../tours/tour-welcome.json'
 
 import ApplicationListItem from './components/Application.vue'
-
-const ASSOCIATIONS_LIMIT = 3
 
 export default {
     name: 'TeamApplications',
@@ -124,10 +132,13 @@ export default {
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
             ],
-            filterTerm: ''
+            filterTerm: '',
+            tour: null
         }
     },
     computed: {
+        ...mapState('ux', ['tours', 'completeTours']),
+        ...mapGetters('account', ['featuresCheck', 'team']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
                 return {
@@ -139,31 +150,110 @@ export default {
         },
         filteredApplications () {
             if (this.filterTerm) {
-                return this.applicationsList.filter(app => {
-                    const includes = []
-                    const appNameMatch = app.name.toLowerCase().includes(this.filterTerm.toLowerCase())
+                return this.applicationsList
+                    .filter(app => {
+                        const filteredInstances = app.instances.filter(instance => {
+                            return [
+                                instance.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                instance.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
+                        })
+                        const filteredDevices = app.devices.filter(device => {
+                            return [
+                                device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.type.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
+                        })
 
-                    includes.push(appNameMatch)
+                        return [
+                            app.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            app.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            filteredInstances.length > 0,
+                            filteredDevices.length > 0
+                        ].includes(true)
+                    })
+                    .map(app => {
+                        const filteredInstances = app.instances.filter(instance => {
+                            return [
+                                instance.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                instance.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
+                        })
+                        const filteredDevices = app.devices.filter(device => {
+                            return [
+                                device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                                device.type.toLowerCase().includes(this.filterTerm.toLowerCase())
+                            ].includes(true)
+                        })
 
-                    return includes.includes(true)
-                })
+                        const filteredInstancesOrEntireSet = filteredInstances.length
+                            ? filteredInstances
+                            : (filteredDevices.length > 0 ? filteredInstances : app.instances)
+                        const filteredDevicesOrEntireSet = filteredDevices.length
+                            ? filteredDevices
+                            : (filteredInstances.length > 0 ? filteredDevices : app.devices)
+
+                        return {
+                            ...app,
+                            instances: filteredInstancesOrEntireSet,
+                            instanceCount: filteredInstancesOrEntireSet.length,
+                            devices: filteredDevicesOrEntireSet,
+                            deviceCount: filteredDevicesOrEntireSet.length
+                        }
+                    })
             } return this.applicationsList
+        },
+        deviceCount () {
+            if (this.applicationsList.length === 0) return 0
+            return this.applicationsList.reduce((count, app) => {
+                count += app.devices.length
+                return count
+            }, 0)
+        },
+        instanceCount () {
+            if (this.applicationsList.length === 0) return 0
+            return this.applicationsList.reduce((count, app) => {
+                count += app.instances.length
+                return count
+            }, 0)
+        },
+        isFreemiumTeamType () {
+            return !this.featuresCheck?.isHostedInstancesEnabledForTeam
         }
     },
     watch: {
-        team: 'fetchData'
+        team: 'fetchData',
+        tours: {
+            handler (tours) {
+                // handles the user manually re-requesting the tour
+                if (tours.welcome || tours['first-device']) {
+                    this.dispatchTour()
+                }
+            },
+            deep: true,
+            immediate: true
+        }
     },
-    mounted () {
-        this.fetchData()
+    async mounted () {
+        await this.fetchData()
         if ('billing_session' in this.$route.query) {
             this.$nextTick(() => {
-                // Clear the query param so a reload of the page does retrigger
+                // Clear the query param so a reload of the page does re-trigger
                 // the notification
                 this.$router.replace({ query: '' })
-                // allow the Alerts servcie to have subscription by wrapping in nextTick
+                // allow the Alerts service to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
         }
+
+        if (this.tours.welcome || this.tours['first-device']) {
+            // given we've loaded resources, check for tour status
+            this.dispatchTour()
+        }
+
+        this.setSearchQuery()
     },
     methods: {
         async fetchData (withLoading = true) {
@@ -171,7 +261,7 @@ export default {
             if (this.team.id) {
                 const applicationsMap = new Map()
 
-                const applicationsPromise = teamApi.getTeamApplications(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })
+                const applicationsPromise = teamApi.getTeamApplications(this.team.id, { includeApplicationSummary: true })
 
                 const applications = (await applicationsPromise).applications
                 applications.forEach((applicationData) => {
@@ -213,7 +303,7 @@ export default {
             this.loading = false
         },
         async updateApplicationAssociationStatuses () {
-            const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id, { associationsLimit: ASSOCIATIONS_LIMIT })).applications
+            const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id, { includeApplicationSummary: true })).applications
 
             applicationsAssociationsStatuses.forEach((applicationData) => {
                 const application = this.applications.get(applicationData.id) || {}
@@ -246,6 +336,57 @@ export default {
                     ...applicationProps
                 })
             })
+        },
+        setSearchQuery () {
+            if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'searchQuery')) {
+                this.filterTerm = this.$route.query.searchQuery
+            }
+        },
+        hasTourBeenCompleted (tour) {
+            return Object.prototype.hasOwnProperty.call(this.completeTours, tour)
+        },
+        dispatchTour () {
+            if (this.tour) {
+                // don't run two tours at once
+                return
+            }
+            switch (true) {
+            case this.isFreemiumTeamType && !this.hasTourBeenCompleted('first-device') && !!this.applicationsList[0]:
+                // freemium users must first undergo the first-device tour on the ApplicationDevices page
+                return this.$store.dispatch('ux/activateTour', 'first-device')
+                    .then(() => this.$router.push({
+                        name: 'ApplicationDevices',
+                        params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
+                    }))
+                    .then(() => {
+                        this.tour = Tours.create(
+                            'first-device',
+                            TourFirstDevice,
+                            this.$store
+                        )
+                        this.tour.start()
+                    })
+                    .catch(e => e)
+
+            case !this.isFreemiumTeamType && this.instanceCount > 0:
+                this.tour = Tours.create('welcome', TourWelcome, this.$store, () => {
+                    this.$store.dispatch('ux/activateTour', 'education')
+                })
+                // Running with an Instance pre-configured (Trial team types)
+                return this.tour.start()
+
+            case !this.isFreemiumTeamType:
+                // any regular team type
+                this.tour = Tours.create('welcome', TourWelcomeFree, this.$store, () => {
+                    if (this.deviceCount === 0) {
+                        this.$store.dispatch('ux/activateTour', 'first-device')
+                    }
+                })
+                return this.tour.start()
+
+            default:
+                // no tours
+            }
         }
     }
 }

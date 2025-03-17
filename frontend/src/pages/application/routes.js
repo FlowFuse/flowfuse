@@ -1,13 +1,12 @@
-/**
- * WARNING: There is ongoing work to move Application functionality up into applications
- * or down into instances.
- *
- * No new functionality should be added here.
- */
+import store from '../../store/index.js'
+
 import ApplicationActivity from './Activity.vue'
+import Dependencies from './Dependencies/Dependencies.vue'
+import ApplicationDeviceGroupSettingsEnvironment from './DeviceGroup/Settings/Environment.vue'
+import ApplicationDeviceGroupSettingsGeneral from './DeviceGroup/Settings/General.vue'
+import ApplicationDeviceGroupSettings from './DeviceGroup/Settings/index.vue'
 import ApplicationDeviceGroupDevices from './DeviceGroup/devices.vue'
 import ApplicationDeviceGroupIndex from './DeviceGroup/index.vue'
-import ApplicationDeviceGroupSettings from './DeviceGroup/settings.vue'
 import ApplicationDeviceGroups from './DeviceGroups.vue'
 import ApplicationDevices from './Devices.vue'
 import ApplicationLogs from './Logs.vue'
@@ -22,11 +21,18 @@ import ApplicationSnapshots from './Snapshots.vue'
 import ApplicationCreateInstance from './createInstance.vue'
 import ApplicationIndex from './index.vue'
 
+// import account vuex store
+
 export default [
     {
-        path: '/application/:id',
-        redirect: to => {
-            return `/application/${to.params.id}/instances`
+        path: ':id',
+        redirect: function () {
+            const features = store.getters['account/featuresCheck']
+            if (features.isHostedInstancesEnabledForTeam) {
+                return { name: 'ApplicationInstances' }
+            } else {
+                return { name: 'ApplicationDevices' }
+            }
         },
         name: 'Application',
         component: ApplicationIndex,
@@ -75,6 +81,7 @@ export default [
                 }
             },
             {
+                name: 'application-settings',
                 path: 'settings',
                 component: ApplicationSettings,
                 meta: {
@@ -84,6 +91,7 @@ export default [
             {
                 path: 'logs',
                 component: ApplicationLogs,
+                name: 'application-logs',
                 meta: {
                     title: 'Application - Logs',
                     shouldPoll: true
@@ -91,6 +99,7 @@ export default [
             },
             {
                 path: 'activity',
+                name: 'application-activity',
                 component: ApplicationActivity,
                 meta: {
                     title: 'Application - Activity'
@@ -114,9 +123,7 @@ export default [
                 meta: {
                     title: 'Pipeline'
                 },
-                redirect: to => {
-                    return `/application/${to.params.applicationId}/pipelines/${to.params.pipelineId}/stages/create`
-                },
+                redirect: { name: 'CreatePipelineStage' },
                 children: [
                     {
                         path: 'stages/create',
@@ -135,30 +142,45 @@ export default [
                         }
                     }
                 ]
+            },
+            {
+                path: 'dependencies',
+                name: 'application-dependencies',
+                component: Dependencies,
+                meta: {
+                    title: 'Dependencies'
+                }
             }
         ]
     },
     {
-        path: '/application/:id/instances/create',
+        path: ':id/instances/create',
         name: 'ApplicationCreateInstance',
         component: ApplicationCreateInstance,
         props: route => ({
             sourceInstanceId: route.query.sourceInstanceId
         }),
         meta: {
-            title: 'Application - Instances - Create'
+            title: 'Application - Instances - Create',
+            menu: {
+                type: 'back',
+                backTo: ({ query, params }) => {
+                    return {
+                        label: 'Back',
+                        to: { name: 'ApplicationInstances', params, query }
+                    }
+                }
+            }
         }
     },
     {
-        path: '/application/:applicationId/device-group/:deviceGroupId',
+        path: ':applicationId/device-group/:deviceGroupId',
         name: 'ApplicationDeviceGroupIndex',
         component: ApplicationDeviceGroupIndex,
         meta: {
             title: 'Application - Device Group'
         },
-        redirect: to => {
-            return `/application/${to.params.applicationId}/device-group/${to.params.deviceGroupId}/devices`
-        },
+        redirect: { name: 'ApplicationDeviceGroupDevices' },
         children: [
             {
                 path: 'devices',
@@ -174,7 +196,28 @@ export default [
                 component: ApplicationDeviceGroupSettings,
                 meta: {
                     title: 'Application - Device Group - Settings'
-                }
+                },
+                redirect: {
+                    name: 'ApplicationDeviceGroupSettingsGeneral'
+                },
+                children: [
+                    {
+                        path: 'general',
+                        name: 'ApplicationDeviceGroupSettingsGeneral',
+                        component: ApplicationDeviceGroupSettingsGeneral,
+                        meta: {
+                            title: 'Application - Device Group - Settings - General'
+                        }
+                    },
+                    {
+                        path: 'environment',
+                        name: 'ApplicationDeviceGroupSettingsEnvironment',
+                        component: ApplicationDeviceGroupSettingsEnvironment,
+                        meta: {
+                            title: 'Application - Device Group - Settings - Environment'
+                        }
+                    }
+                ]
             }
         ]
     }

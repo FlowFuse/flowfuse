@@ -9,7 +9,7 @@
         </template>
         <template #content>
             <div v-for="entry in logEntries" :key="entry.id">
-                <AuditEntry :entry="entry" />
+                <AuditEntry :entry="entry" :association="getAssociation(entry)" :disableAssociations="disableAssociations" />
             </div>
         </template>
     </ff-accordion>
@@ -33,6 +33,11 @@ export default {
             type: [null, Array],
             required: true
         },
+        associations: {
+            // list of associations to be used to resolve the model
+            type: Object,
+            default: () => {}
+        },
         showLoadMore: {
             // do we show the "Show More" button at the end of the log
             type: Boolean,
@@ -40,6 +45,11 @@ export default {
         },
         disableAccordion: {
             // should the accordion functionality be disabled?
+            type: Boolean,
+            default: false
+        },
+        disableAssociations: {
+            // should the association be disabled?
             type: Boolean,
             default: false
         }
@@ -82,6 +92,21 @@ export default {
     methods: {
         loadMore: async function () {
             this.$emit('load-more')
+        },
+        getAssociation (entry) {
+            if (this.disableAssociations || !entry?.scope) {
+                return null
+            }
+            if (entry.scope.type === 'project') {
+                return this.associations?.instances?.find((instance) => instance.id === entry.scope?.id)
+            } else if (entry.scope?.type === 'application') {
+                return this.associations?.applications?.find((application) => application.id === entry.scope?.id)
+            } else if (entry.scope?.type === 'device') {
+                return this.associations?.devices?.find((device) => device.id === entry.scope?.id)
+            } else if (entry.scope?.type === 'team') {
+                return { name: 'This Team' }
+            }
+            return null
         }
     },
     components: {

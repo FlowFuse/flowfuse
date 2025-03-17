@@ -1,33 +1,40 @@
 <template>
-    <div :data-type="`${isImmersiveEditor ? 'immersive' : 'standard'}-editor`" @click.stop="openEditor()">
+    <div :data-type="`${isImmersiveEditor ? 'immersive' : 'standard'}-editor`" @mouseup.stop.prevent="openEditor">
         <slot name="default">
             <ff-button
                 v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
                 kind="secondary"
                 data-action="open-editor"
-                :disabled="editorDisabled || disabled || !url"
+                :disabled="buttonDisabled"
                 class="whitespace-nowrap"
-                :has-right-icon="!isImmersiveEditor"
-                @click.stop="openEditor()"
+                :emit-instead-of-navigate="true"
             >
-                <template #icon-right>
-                    <ExternalLinkIcon />
+                <template v-if="showText" #icon-left>
+                    <ProjectIcon />
                 </template>
-                {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
+                <template v-else #icon>
+                    <ProjectIcon />
+                </template>
+                <template v-if="showText">
+                    {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
+                </template>
             </ff-button>
         </slot>
     </div>
 </template>
 
 <script>
-import { ExternalLinkIcon } from '@heroicons/vue/solid'
+
 import SemVer from 'semver'
 
 import { mapState } from 'vuex'
 
+import ProjectIcon from '../../../components/icons/Projects.js'
+import { useNavigationHelper } from '../../../composables/NavigationHelper.js'
+
 export default {
     name: 'InstanceEditorLink',
-    components: { ExternalLinkIcon },
+    components: { ProjectIcon },
     inheritAttrs: false,
     props: {
         editorDisabled: {
@@ -45,6 +52,17 @@ export default {
         instance: {
             type: Object,
             required: true
+        },
+        showText: {
+            default: true,
+            type: Boolean
+        }
+    },
+    setup () {
+        const { openInANewTab } = useNavigationHelper()
+
+        return {
+            openInANewTab
         }
     },
     computed: {
@@ -62,16 +80,27 @@ export default {
                 return this.$router.resolve({ name: 'instance-editor', params: { id: this.instance.id } }).fullPath
             }
 
+            return this.editorURL
+        },
+        editorURL () {
             return this.instance.url || this.instance.editor?.url
+        },
+        buttonDisabled: function () {
+            return this.editorDisabled || this.disabled || !this.url
         }
     },
     methods: {
-        openEditor () {
+        openEditor (evt) {
             if (this.disabled) {
-                return
+                return false
             }
 
-            window.open(this.url, !this.isImmersiveEditor ? '_blank' : '_self')
+            const target = `_${this.instance.id}`
+            if (!this.isImmersiveEditor) {
+                return this.openInANewTab(this.editorURL, target)
+            } else {
+                return this.openInANewTab(this.url, target)
+            }
         }
     }
 }

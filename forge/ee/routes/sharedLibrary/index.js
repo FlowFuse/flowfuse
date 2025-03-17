@@ -1,13 +1,4 @@
-const { registerPermissions } = require('../../../lib/permissions')
-const { Roles } = require('../../../lib/roles.js')
-
 module.exports = async function (app) {
-    registerPermissions({
-        'library:entry:create': { description: 'Create entries in a team library', role: Roles.Member },
-        'library:entry:list': { description: 'List entries in a team library', role: Roles.Member },
-        'library:entry:delete': { description: 'Delete an entry in a team library', role: Roles.Member }
-    })
-
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, response) => {
         // The request has a valid token, but need to check the token is allowed

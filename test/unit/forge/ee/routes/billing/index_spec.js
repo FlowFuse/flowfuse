@@ -750,10 +750,10 @@ describe('Billing routes', function () {
             })
 
             it('Handles cancellation for unknown teams but with a subscription (team manually deleted)', async () => {
-                const team = await app.factory.createTeam({ name: 'team-02' })
-                await app.factory.createSubscription(team, 'sub_unknown_123', 'cus_unknown_123')
-                await team.destroy()
-
+                await app.db.models.Subscription.create({
+                    customer: 'cus_unknown_123',
+                    subscription: 'sub_unknown_123'
+                })
                 const response = await (app.inject({
                     method: 'POST',
                     url: callbackURL,
@@ -859,12 +859,12 @@ describe('Billing routes', function () {
             // Check we updated stripe
             stripe.subscriptions.update.called.should.be.true()
 
-            should.exist(stripe._.data.sub_1234567890)
-            stripe._.data.sub_1234567890.items.data.should.have.length(1)
-            const item = stripe._.data.sub_1234567890.items.data[0]
-            item.should.have.property('_price', 'price_123')
-            item.should.have.property('quantity', 1)
-            item.plan.should.have.property('product', 'product_123')
+            const stripeData = await stripe.subscriptions.retrieve('sub_1234567890')
+            stripeData.items.data.should.have.length(1)
+            stripeData.items.data[0].should.have.property('quantity', 1)
+            stripeData.items.data[0].should.have.property('price')
+            stripeData.items.data[0].price.should.have.property('id', 'price_123')
+            stripeData.items.data[0].price.should.have.property('product', 'product_123')
         })
 
         it('Suspend/resume project with billing setup', async function () {
@@ -887,11 +887,13 @@ describe('Billing routes', function () {
             const project = await app.db.models.Project.byId(projectDetails.id)
             // Check we updated stripe
             stripe.subscriptions.update.callCount.should.equal(1)
-            stripe.subscriptionItems.update.callCount.should.equal(0)
-            stripe._.data.sub_1234567890.items.data.should.have.length(1)
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('_price', 'price_123')
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 2)
-            stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
+
+            let stripeData = await stripe.subscriptions.retrieve('sub_1234567890')
+            stripeData.items.data.should.have.length(1)
+            stripeData.items.data[0].should.have.property('quantity', 2)
+            stripeData.items.data[0].should.have.property('price')
+            stripeData.items.data[0].price.should.have.property('id', 'price_123')
+            stripeData.items.data[0].price.should.have.property('product', 'product_123')
 
             // Suspend it
             const suspendResponse = await app.inject({
@@ -904,13 +906,9 @@ describe('Billing routes', function () {
             await project.reload()
             project.state.should.equal('suspended')
             // Check we updated stripe
-            stripe.subscriptions.update.callCount.should.equal(1)
-            stripe.subscriptionItems.update.callCount.should.equal(1)
-            stripe._.data.sub_1234567890.items.data.should.have.length(1)
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('_price', 'price_123')
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 1)
-            stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
-
+            stripeData = await stripe.subscriptions.retrieve('sub_1234567890')
+            stripeData.items.data.should.have.length(1)
+            stripeData.items.data[0].should.have.property('quantity', 1)
             // Resume it
             const startResponse = await app.inject({
                 method: 'POST',
@@ -922,13 +920,9 @@ describe('Billing routes', function () {
             await project.reload()
             project.state.should.equal('running')
             // Check we updated stripe
-            stripe.subscriptions.update.callCount.should.equal(1)
-            stripe.subscriptionItems.update.callCount.should.equal(2)
-            stripe._.data.sub_1234567890.items.data.should.have.length(1)
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('_price', 'price_123')
-            stripe._.data.sub_1234567890.items.data[0].should.have.property('quantity', 2)
-            stripe._.data.sub_1234567890.items.data[0].plan.should.have.property('product', 'product_123')
-
+            stripeData = await stripe.subscriptions.retrieve('sub_1234567890')
+            stripeData.items.data.should.have.length(1)
+            stripeData.items.data[0].should.have.property('quantity', 2)
             // Wait for the stub driver to start the project to avoid
             // an async call to the audit log completing after the test
             // has finished
@@ -1785,6 +1779,51 @@ describe('Billing routes', function () {
                     cookies: { sid: TestObjects.tokens.bob }
                 })
                 response.statusCode.should.equal(403)
+            })
+            it('Admin can re-enable billing for a team', async function () {
+                // Create team
+                const team = await app.factory.createTeam({ name: generateName('unmanagedSubTeam') })
+                await team.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+                await app.factory.createSubscription(team)
+
+                let response = await app.inject({
+                    method: 'POST',
+                    url: `/ee/billing/teams/${team.hashid}/manual`,
+                    payload: {
+                        teamTypeId: unmanagedSubTargetTeamType.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                // Check the team type has been updated to the target type
+                await team.reload()
+                team.TeamTypeId.should.equal(unmanagedSubTargetTeamType.id)
+
+                // Check the team subscription is flagged as unmanaged
+                let sub = await team.getSubscription()
+                sub.isActive().should.be.false()
+                sub.isUnmanaged().should.be.true()
+                sub.isCanceled().should.be.false()
+                sub.isPastDue().should.be.false()
+                sub.isTrial().should.be.false()
+                sub.isTrialEnded().should.be.true()
+
+                // Now put it back in billing mode
+                response = await app.inject({
+                    method: 'DELETE',
+                    url: `/ee/billing/teams/${team.hashid}/manual`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                await team.reload()
+                sub = await team.getSubscription()
+                sub.isActive().should.be.false()
+                sub.isUnmanaged().should.be.false()
+                sub.isCanceled().should.be.true()
+                sub.isPastDue().should.be.false()
+                sub.isTrial().should.be.false()
+                sub.isTrialEnded().should.be.true()
             })
         })
     })

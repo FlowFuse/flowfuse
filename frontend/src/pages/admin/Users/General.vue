@@ -1,5 +1,6 @@
 <template>
-    <div class="space-y-6">
+    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+    <div class="space-y-6 mb-14">
         <ff-data-table
             v-model:search="userSearch"
             :columns="columns"
@@ -14,7 +15,7 @@
             @load-more="loadItems" @row-selected="showUser"
         >
             <template #actions>
-                <ff-button to="./create">
+                <ff-button :to="{name: 'admin-users-create'}">
                     <template #icon-left>
                         <UserAddIcon />
                     </template>
@@ -136,7 +137,7 @@ export default {
         },
         showUser (user) {
             this.$router.push({
-                name: 'Admin User Details',
+                name: 'admin-users-user',
                 params: { id: user.id }
             })
         }

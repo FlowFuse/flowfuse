@@ -13,11 +13,11 @@
 
 const crypto = require('crypto')
 
-const { DataTypes, Op } = require('sequelize')
+const { col, fn, DataTypes, Op, where } = require('sequelize')
 
 const Controllers = require('../controllers')
 
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL, KEY_CUSTOM_HOSTNAME } = require('./ProjectSettings')
+const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HA, KEY_PROTECTED, KEY_HEALTH_CHECK_INTERVAL, KEY_CUSTOM_HOSTNAME, KEY_DISABLE_AUTO_SAFE_MODE } = require('./ProjectSettings')
 
 const BANNED_NAME_LIST = [
     'app',
@@ -32,7 +32,10 @@ const BANNED_NAME_LIST = [
     'status',
     'billing',
     'mqtt',
-    'broker'
+    'broker',
+    'egress',
+    'npm',
+    'registry'
 ]
 
 /** @type {FFModel} */
@@ -88,6 +91,20 @@ module.exports = {
             get () {
                 return this.getDataValue('safeName') || this.getDataValue('name')?.toLowerCase()
             }
+        },
+        versions: {
+            type: DataTypes.TEXT,
+            get () {
+                const rawValue = this.getDataValue('versions')
+                return rawValue ? JSON.parse(rawValue) : {}
+            },
+            set (value) {
+                if (Object.keys(value).length === 0) {
+                    this.setDataValue('versions', null)
+                    return
+                }
+                this.setDataValue('versions', JSON.stringify(value))
+            }
         }
     },
     indexes: [
@@ -135,11 +152,26 @@ module.exports = {
                     await app.auditLog.Platform.platform.license.overage('system', null, instances)
                 }
             },
+            beforeUpdate: async (project, opts) => {
+                if (project.changed('name')) {
+                    if (project.state !== 'suspended') {
+                        throw new Error('Name can only be changed when suspended')
+                    }
+                }
+            },
             afterDestroy: async (project, opts) => {
                 await M.AccessToken.destroy({
                     where: {
                         ownerType: 'project',
                         ownerId: project.id
+                    }
+                })
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: {
+                            [Op.like]: `p-${project.id}@%`
+                        }
                     }
                 })
                 await M.AuthClient.destroy({
@@ -182,6 +214,16 @@ module.exports = {
                 await M.StorageFlow.destroy({
                     where: {
                         ProjectId: project.id
+                    }
+                })
+                await M.Notification.destroy({
+                    where: {
+                        type: {
+                            [Op.in]: ['instance-crashed', 'instance-safe-mode']
+                        },
+                        reference: {
+                            [Op.in]: [`instance-crashed:${project.id}`, `instance-safe-mode:${project.id}`]
+                        }
                     }
                 })
             }
@@ -289,6 +331,21 @@ module.exports = {
                         }
                     } else {
                         result.meta = await app.containers.details(this) || { state: 'unknown' }
+                        if (result.meta.versions) {
+                            const currentVersionInfo = { ...this.versions }
+                            let changed = false
+                            for (const [key, value] of Object.entries(result.meta.versions)) {
+                                currentVersionInfo[key] = currentVersionInfo[key] || {}
+                                if (currentVersionInfo[key].current !== value) {
+                                    currentVersionInfo[key].current = value
+                                    changed = true
+                                }
+                            }
+                            if (changed) {
+                                this.versions = currentVersionInfo
+                                await this.save()
+                            }
+                        }
                     }
 
                     result.meta.isDeploying = isDeploying
@@ -317,7 +374,7 @@ module.exports = {
                     return this.findAll({
                         include: {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended'],
                             include: [
                                 {
                                     model: M.TeamMember,
@@ -334,7 +391,7 @@ module.exports = {
                     const include = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
                         },
                         {
                             model: M.Application,
@@ -361,7 +418,8 @@ module.exports = {
                                     { key: KEY_HA },
                                     { key: KEY_PROTECTED },
                                     { key: KEY_CUSTOM_HOSTNAME },
-                                    { key: KEY_HEALTH_CHECK_INTERVAL }
+                                    { key: KEY_HEALTH_CHECK_INTERVAL },
+                                    { key: KEY_DISABLE_AUTO_SAFE_MODE }
                                 ]
                             },
                             required: false
@@ -387,7 +445,7 @@ module.exports = {
                     const include = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
                         },
                         {
                             model: M.Application,
@@ -432,32 +490,58 @@ module.exports = {
                         include
                     })
                 },
-                byTeam: async (teamHashId) => {
-                    const teamId = M.Team.decodeHashid(teamHashId)
-                    return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                where: { id: teamId },
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
-                            },
-                            {
-                                model: M.Application,
-                                attributes: ['hashid', 'id', 'name', 'links']
-                            },
-                            {
-                                model: M.ProjectType,
-                                attributes: ['hashid', 'id', 'name']
-                            },
-                            {
-                                model: M.ProjectStack
-                            },
-                            {
-                                model: M.ProjectTemplate,
-                                attributes: ['hashid', 'id', 'name', 'links']
-                            }
-                        ]
-                    })
+                byTeam: async (teamIdOrHash, { query = null, instanceId = null, includeAssociations = true, includeSettings = false } = {}) => {
+                    let teamId = teamIdOrHash
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
+                    const include = [
+                        {
+                            model: M.Team,
+                            where: { id: teamId },
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                        }
+                    ]
+                    if (includeAssociations) {
+                        include.push({
+                            model: M.Application,
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        },
+                        {
+                            model: M.ProjectType,
+                            attributes: ['hashid', 'id', 'name']
+                        },
+                        {
+                            model: M.ProjectStack
+                        },
+                        {
+                            model: M.ProjectTemplate,
+                            attributes: ['hashid', 'id', 'name', 'links']
+                        }
+                        )
+                    }
+
+                    if (includeSettings) {
+                        include.push({
+                            model: M.ProjectSettings,
+                            attributes: ['id', 'key', 'value', 'ProjectId'],
+                            where: { key: 'settings' }
+                        })
+                    }
+
+                    const queryObject = {
+                        include
+                    }
+
+                    if (instanceId) {
+                        queryObject.where = { id: instanceId }
+                    } else if (query) {
+                        queryObject.where = where(
+                            fn('lower', col('Project.name')),
+                            { [Op.like]: `%${query.toLowerCase()}%` }
+                        )
+                    }
+                    return this.findAll(queryObject)
                 },
                 getProjectTeamId: async (id) => {
                     const project = await this.findOne({
@@ -470,9 +554,29 @@ module.exports = {
                         return project.TeamId
                     }
                 },
-
                 generateCredentialSecret () {
                     return crypto.randomBytes(32).toString('hex')
+                },
+                byTeamForDashboard: async (teamHashId) => {
+                    const teamId = M.Team.decodeHashid(teamHashId)
+                    return this.findAll({
+                        include: [
+                            {
+                                model: M.Team,
+                                where: { id: teamId },
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
+                            },
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id', 'name', 'links']
+                            },
+                            {
+                                model: M.ProjectSettings,
+                                attributes: ['id', 'key', 'value', 'ProjectId'],
+                                where: { key: 'settings' }
+                            }
+                        ]
+                    })
                 }
             }
         }

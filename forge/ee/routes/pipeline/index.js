@@ -2,7 +2,6 @@ const { ValidationError } = require('sequelize')
 
 const { KEY_PROTECTED } = require('../../../db/models/ProjectSettings.js')
 const { ControllerError } = require('../../../lib/errors.js')
-const { registerPermissions } = require('../../../lib/permissions')
 const { Roles } = require('../../../lib/roles.js')
 
 // Declare getLogger functions to provide type hints / quick code nav / code completion
@@ -11,14 +10,6 @@ const getTeamLogger = (app) => { return app.auditLog.Team }
 
 module.exports = async function (app) {
     const teamLogger = getTeamLogger(app)
-
-    registerPermissions({
-        'pipeline:read': { description: 'View a pipeline', role: Roles.Member },
-        'pipeline:create': { description: 'Create a pipeline', role: Roles.Owner },
-        'pipeline:edit': { description: 'Edit a pipeline', role: Roles.Owner },
-        'pipeline:delete': { description: 'Delete a pipeline', role: Roles.Owner },
-        'application:pipeline:list': { description: 'List pipelines within an application', role: Roles.Member }
-    })
 
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.pipelineId) {
@@ -505,11 +496,18 @@ module.exports = async function (app) {
                 request.params.stageId
             )
 
+            if (sourceStage?.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.NONE) {
+                // Nothing to do
+                reply.code(200).send({ status: 'okay' })
+                return
+            }
+
             const {
                 sourceInstance,
                 targetInstance,
                 sourceDevice,
                 targetDevice,
+                sourceDeviceGroup,
                 targetDeviceGroup,
                 targetStage
             } = await app.db.controllers.Pipeline.validateSourceStageForDeploy(
@@ -549,6 +547,9 @@ module.exports = async function (app) {
                     request.body?.sourceSnapshotId
                 )
                 sourceDeployed = sourceDevice
+            } else if (sourceDeviceGroup) {
+                sourceSnapshot = await app.db.controllers.Pipeline.getSnapshotForSourceDeviceGroup(sourceDeviceGroup)
+                sourceDeployed = sourceDeviceGroup
             } else {
                 throw new Error('No source device or instance found.')
             }
@@ -576,6 +577,7 @@ module.exports = async function (app) {
                 const deployPromise = app.db.controllers.Pipeline.deploySnapshotToDevice(
                     sourceSnapshot,
                     targetDevice,
+                    request.pipeline,
                     {
                         user
 

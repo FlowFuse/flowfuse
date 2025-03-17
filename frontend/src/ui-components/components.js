@@ -2,6 +2,7 @@ import FFNavBreadcrumb from './components/Breadcrumb.vue'
 import FFButton from './components/Button.vue'
 import FFCheck from './components/Check.vue'
 import FFDialogBox from './components/DialogBox.vue'
+import FFDivider from './components/Divider.vue'
 import FFHelpTooltip from './components/Help.vue'
 import FFKebabMenu from './components/KebabMenu.vue'
 
@@ -19,6 +20,7 @@ import FFDataTableRow from './components/data-table/DataTableRow.vue'
 import FFCheckbox from './components/form/Checkbox.vue'
 import FFDropdown from './components/form/Dropdown.vue'
 import FFDropdownOption from './components/form/DropdownOption.vue'
+import FFListbox from './components/form/ListBox.vue'
 import FFRadioButton from './components/form/RadioButton.vue'
 import FFRadioGroup from './components/form/RadioGroup.vue'
 import FFTextInput from './components/form/TextInput.vue'
@@ -38,6 +40,7 @@ export default {
     FFKebabMenu,
     FFNavBreadcrumb,
     FFDialogBox,
+    FFDivider,
     FFHelpTooltip,
     FFListItem,
     FFCheck,
@@ -50,6 +53,7 @@ export default {
     // Form Elements
     FFTextInput,
     FFDropdown,
+    FFListbox,
     FFDropdownOption,
     FFCheckbox,
     FFToggleSwitch,

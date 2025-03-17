@@ -21,12 +21,15 @@ describe('FlowFuse platform invitees', () => {
     })
 
     it('can reject an invitation to a new team', () => {
-        // should show one pending invite
-        cy.get('[data-el="notification-pill"]').should('have.text', '2')
+        cy.get('[data-el="desktop-nav-right"]').within(() => {
+            cy.get('[data-el="notification-pill"]').should('have.text', '2')
+            cy.get('[data-el="notifications-button"]').click()
+        })
+
+        cy.get('[data-el="notifications-drawer"]').should('be.visible')
+        cy.get('[data-el="invitation-message"]').eq(0).click()
 
         // user should see a message
-        cy.get('[data-nav="team-invites"]').should('be.visible')
-        cy.get('[data-nav="team-invites"]').click()
 
         cy.url().should('include', '/account/teams/invitations')
 
@@ -46,11 +49,13 @@ describe('FlowFuse platform invitees', () => {
 
     it('can accept an invitation to a new team and is navigated to the team\'s dashboard', () => {
         // should show one pending invite
-        cy.get('[data-el="notification-pill"]').should('have.text', '1')
+        cy.get('[data-el="desktop-nav-right"]').within(() => {
+            cy.get('[data-el="notifications-button"]').click()
+        })
 
-        // user should see a message
-        cy.get('[data-nav="team-invites"]').should('be.visible')
-        cy.get('[data-nav="team-invites"]').click()
+        cy.get('[data-el="notifications-drawer"]').should('be.visible')
+        cy.get('[data-action="show-read-check"]').click()
+        cy.get('[data-el="invitation-message"]').eq(0).click()
 
         cy.url().should('include', '/account/teams/invitations')
 

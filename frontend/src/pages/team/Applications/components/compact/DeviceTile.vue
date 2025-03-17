@@ -4,30 +4,31 @@
             <StatusBadge :status="device.status" />
         </div>
         <div class="details">
-            <span class="cursor-pointer">{{ device.name }}</span>
-            <span>
-                Last seen:
-                <DaysSince v-if="device.lastSeenAt" :date="device.lastSeenAt" />
-                <template v-else>never</template>
-            </span>
+            <div class="detail-wrapper">
+                <router-link :to="{ name: 'Device', params: { id: device.id } }" class="name" :title="device.name">
+                    {{ device.name }}
+                </router-link>
+            </div>
+            <div class="detail-wrapper">
+                <span class="detail">
+                    Last seen:
+                    <DaysSince v-if="device.lastSeenAt" :date="device.lastSeenAt" />
+                    <template v-else>never</template>
+                </span>
+            </div>
         </div>
         <div class="actions">
-            <ff-kebab-menu>
+            <FinishSetupButton v-if="neverConnected" :device="device" />
+            <ff-kebab-menu v-else>
                 <ff-list-item
                     label="Edit Details"
                     @click.stop="$emit('device-action',{action: 'edit', id: device.id})"
                 />
                 <ff-list-item
-                    v-if="device.ownerType === 'application' && (displayingTeam || displayingApplication)"
+                    v-if="(displayingTeam || displayingApplication)"
                     label="Remove from Application"
                     data-action="device-remove-from-application"
                     @click.stop="$emit('device-action',{action: 'removeFromApplication', id: device.id})"
-                />
-                <ff-list-item
-                    v-else-if="device.ownerType === 'instance' && (displayingTeam || displayingInstance)"
-                    label="Remove from Instance"
-                    data-action="device-remove-from-instance"
-                    @click.stop="$emit('device-action',{action: 'removeFromProject', id: device.id})"
                 />
                 <ff-list-item
                     kind="danger"
@@ -46,6 +47,7 @@
 </template>
 
 <script>
+import FinishSetupButton from '../../../../../components/FinishSetup.vue'
 import StatusBadge from '../../../../../components/StatusBadge.vue'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
@@ -58,7 +60,8 @@ export default {
     components: {
         StatusBadge,
         FfKebabMenu,
-        DaysSince
+        DaysSince,
+        FinishSetupButton
     },
     mixins: [AuditMixin, permissionsMixin, deviceActionsMixin],
     props: {
@@ -71,7 +74,17 @@ export default {
             type: Object
         }
     },
-    emits: ['device-action']
+    emits: ['device-action'],
+    computed: {
+        neverConnected () {
+            return !this.device.lastSeenAt
+        }
+    },
+    methods: {
+        finishSetup () {
+            this.deviceAction('updateCredentials')
+        }
+    }
 }
 </script>
 

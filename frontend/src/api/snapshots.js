@@ -45,12 +45,13 @@ const exportSnapshot = (snapshotId, options) => {
  * @param {Object} snapshot - snapshot object to import
  * @param {String} [credentialSecret] - secret to use when decrypting credentials in the snapshot object (optional/only required when the snapshot contains credentials)
  */
-const importSnapshot = async (ownerId, ownerType, snapshot, credentialSecret) => {
+const importSnapshot = async (ownerId, ownerType, snapshot, credentialSecret, options) => {
     return client.post('/api/v1/snapshots/import', {
         ownerId,
         ownerType,
         snapshot,
-        credentialSecret
+        credentialSecret,
+        components: options?.components
     }).then(res => {
         const props = {
             'snapshot-id': res.data.id
@@ -78,10 +79,29 @@ const deleteSnapshot = async (snapshotId) => {
     })
 }
 
+/**
+ * Update a snapshot
+ * @param {String} snapshotId - id of the snapshot
+ * @param {Object} options - options to update
+ * @param {String} [options.name] - name of the snapshot
+ * @param {String} [options.description] - description of the snapshot
+ */
+const updateSnapshot = async (snapshotId, options) => {
+    return client.put(`/api/v1/snapshots/${snapshotId}`, options).then(res => {
+        const props = {
+            'snapshot-id': snapshotId,
+            'updated-at': (new Date()).toISOString()
+        }
+        product.capture('$ff-snapshot-updated', props, {})
+        return res.data
+    })
+}
+
 export default {
     getSummary,
     getFullSnapshot,
     exportSnapshot,
     importSnapshot,
-    deleteSnapshot
+    deleteSnapshot,
+    updateSnapshot
 }

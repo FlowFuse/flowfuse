@@ -22,33 +22,10 @@ describe('FlowForge - Library', () => {
             cy.get('[data-el="page-name"]').contains('Library')
             cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
 
-            cy.get('[data-el="category"]')
-                .contains('Category A')
-                .parent()
-                .within(() => {
-                    cy.get('[data-el="tiles-wrapper"]')
-                        .children()
-                        .should('have.length', 1)
-
-                    cy.contains('Blueprint 1')
-                    cy.contains('This is a blueprint')
-                })
-
-            cy.get('[data-el="category"]')
-                .contains('Category B')
-                .parent()
-                .within(() => {
-                    cy.get('[data-el="tiles-wrapper"]')
-                        .children()
-                        .should('have.length', 2)
-
-                    cy.contains('Blueprint 2')
-                    cy.contains('Blueprint 3')
-                    cy.contains('This is another blueprint')
-                    cy.contains('This is yet another blueprint')
-                })
+            cy.contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
         })
     })
+
     describe('Team Library', () => {
         it('should load the Library page and display the unavailable feature banner for Team Library tab', () => {
             cy.visit('team/ateam/library')
@@ -57,4 +34,15 @@ describe('FlowForge - Library', () => {
             cy.contains('This is a FlowFuse Enterprise feature. Please upgrade your instance of FlowFuse in order to use it.')
         })
     })
+
+    // describe('Custom Nodes', () => {
+    //     it('do not load when the feature is disabled on the platform', () => {
+    //         cy.visit('team/ateam/library')
+    //         cy.get('[data-el="ff-tab"]').contains('Custom Nodes').click()
+
+    //         cy.get('[data-el="page-banner-feature-unavailable"]').should('exist')
+    //         cy.get('[data-action="refresh-registry"]').should('not.exist')
+    //         cy.get('[data-action="publish-package"]').should('not.exist')
+    //     })
+    // })
 })

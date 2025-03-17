@@ -131,6 +131,8 @@ module.exports = fp(async function (app, _opts) {
     await registerTask(require('./tasks/licenseCheck'))
     await registerTask(require('./tasks/licenseOverage'))
     await registerTask(require('./tasks/telemetryMetrics'))
+    await registerTask(require('./tasks/expireInvites'))
+    await registerTask(require('./tasks/inviteReminder'))
 
     app.addHook('onReady', async () => {
         let promise = Promise.resolve()

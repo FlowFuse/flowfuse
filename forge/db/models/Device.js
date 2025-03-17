@@ -4,7 +4,9 @@
  */
 const crypto = require('crypto')
 
-const { DataTypes, Op } = require('sequelize')
+const SemVer = require('semver')
+
+const { col, fn, DataTypes, Op, where } = require('sequelize')
 
 const Controllers = require('../controllers')
 const { buildPaginationSearchClause } = require('../utils')
@@ -13,7 +15,8 @@ const ALLOWED_SETTINGS = {
     autoSnapshot: 1,
     editor: 1,
     env: 1,
-    palette: 1
+    palette: 1,
+    security: 1
 }
 
 const DEFAULT_SETTINGS = {
@@ -33,6 +36,7 @@ module.exports = {
         lastSeenAt: { type: DataTypes.DATE, allowNull: true },
         settingsHash: { type: DataTypes.STRING, allowNull: true },
         agentVersion: { type: DataTypes.STRING, allowNull: true },
+        nodeRedVersion: { type: DataTypes.STRING, allowNull: true },
         mode: { type: DataTypes.STRING, allowNull: true, defaultValue: 'autonomous' },
         editorAffinity: { type: DataTypes.STRING, defaultValue: '' },
         editorToken: { type: DataTypes.STRING, defaultValue: '' },
@@ -67,6 +71,10 @@ module.exports = {
         this.hasMany(M.DeviceSettings)
         this.hasMany(M.ProjectSnapshot) // associate device at application level with snapshots
         this.belongsTo(M.DeviceGroup, { foreignKey: { allowNull: true } }) // SEE: forge/db/models/DeviceGroup.js for the other side of this relationship
+
+        // Also hasOne AuthClient (for ff-auth) - but not adding the association as we don't
+        // want the sequelize mixins to be added to the Device model - they don't
+        // handle the casting from int to string for the deviceId/ownerId
     },
     hooks: function (M, app) {
         return {
@@ -77,6 +85,10 @@ module.exports = {
                     const { devices } = await app.license.usage('devices')
                     if (devices.count >= devices.limit) {
                         throw new Error('license limit reached')
+                    }
+                } else {
+                    if (app.license.status().expired) {
+                        throw new Error('license expired')
                     }
                 }
             },
@@ -89,8 +101,30 @@ module.exports = {
             afterSave: async (device, options) => {
                 // since `id`, `name` and `type` are added as FF_DEVICE_xx env vars, we
                 // should update the settings checksum if they are modified
-                if (device.changed('name') || device.changed('type') || device.changed('id')) {
-                    await device.updateSettingsHash()
+                // Additionally, since changing the target snapshot or DeviceGroupId
+                // can affect the FF_ env vars, we should update the checksum
+                if (device.changed('name') || device.changed('type') || device.changed('id') || device.changed('targetSnapshotId') || device.changed('DeviceGroupId')) {
+                    const updated = await device.updateSettingsHash()
+                    if (updated) {
+                        await device.save({
+                            hooks: false,
+                            transaction: options.transaction
+                        })
+                    }
+                }
+            },
+            afterBulkUpdate: async (options) => {
+                if (options.fields.includes('targetSnapshotId') || options.fields.includes('DeviceGroupId')) {
+                    const devices = await M.Device.findAll({ where: options.where })
+                    for (const device of devices) {
+                        const updated = await device.updateSettingsHash()
+                        if (updated) {
+                            await device.save({
+                                hooks: false,
+                                transaction: options.transaction
+                            })
+                        }
+                    }
                 }
             },
             afterDestroy: async (device, opts) => {
@@ -100,12 +134,26 @@ module.exports = {
                         ownerId: '' + device.id
                     }
                 })
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: {
+                            [Op.like]: `d-${device.hashid}@%`
+                        }
+                    }
+                })
                 await M.DeviceSettings.destroy({
                     where: {
                         DeviceId: device.id
                     }
                 })
                 await M.BrokerClient.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: '' + device.id
+                    }
+                })
+                await M.AuthClient.destroy({
                     where: {
                         ownerType: 'device',
                         ownerId: '' + device.id
@@ -141,18 +189,58 @@ module.exports = {
                         where: { ownerId: '' + this.id, ownerType: 'device', scope: 'device' }
                     })
                 },
+                async getAuthClient () {
+                    // Cannot use a hasOne association as the resulting getAuthClient
+                    // mixin doesn't know to cast this.id to a string
+                    return M.AuthClient.findOne({
+                        where: { ownerId: '' + this.id, ownerType: 'device' }
+                    })
+                },
                 async updateSettingsHash (settings) {
-                    const _settings = settings || await this.getAllSettings()
+                    const settingsHash = this.settingsHash
+                    const _settings = settings || await this.getAllSettings({ mergeDeviceGroupSettings: true })
                     delete _settings.autoSnapshot // autoSnapshot is not part of the settings hash
                     this.settingsHash = hashSettings(_settings)
+                    return this.settingsHash !== settingsHash
                 },
-                async getAllSettings () {
+                async getAllSettings (options = { mergeDeviceGroupSettings: false }) {
+                    const mergeDeviceGroupSettings = options.mergeDeviceGroupSettings || false
                     const result = {}
                     const settings = await this.getDeviceSettings()
                     settings.forEach(setting => {
                         result[setting.key] = setting.value
                     })
+                    // To compute the platform specific env vars, we need the associated
+                    // owner (application or instance) and the target snapshot model (if any)
+                    const reloadWith = []
+                    if (this.isApplicationOwned && !this.Application) {
+                        reloadWith.push(M.Application)
+                    }
+                    if (this.targetSnapshotId && !this.targetSnapshot) {
+                        reloadWith.push({ model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] })
+                    }
+                    if (reloadWith.length) {
+                        await this.reload({ include: reloadWith })
+                    }
                     result.env = Controllers.Device.insertPlatformSpecificEnvVars(this, result.env) // add platform specific device env vars
+                    // if the device is a group member, we need to merge the group settings
+                    if (mergeDeviceGroupSettings && this.DeviceGroupId) {
+                        const group = this.DeviceGroup || await M.DeviceGroup.byId(this.DeviceGroupId)
+                        if (group) {
+                            const groupEnv = await group.settings.env || []
+                            // Merge rule: If the device has an env var AND it has a value, it remains unchanged.
+                            // Otherwise, the value is taken from the group.
+                            // This is to allow the device to override a (global) group env setting.
+                            groupEnv.forEach(env => {
+                                const existing = result.env.find(e => e.name === env.name)
+                                if (!existing) {
+                                    result.env.push(env)
+                                } else if (existing && !existing.value) {
+                                    existing.value = env.value
+                                }
+                            })
+                        }
+                    }
                     if (!Object.prototype.hasOwnProperty.call(result, 'autoSnapshot')) {
                         result.autoSnapshot = DEFAULT_SETTINGS.autoSnapshot
                     }
@@ -201,6 +289,21 @@ module.exports = {
                         limit: 1
                     })
                     return snapshots[0]
+                },
+                getDefaultNodeRedVersion () {
+                    let nodeRedVersion = '3.0.2' // default to older Node-RED
+                    if (SemVer.satisfies(SemVer.coerce(this.agentVersion), '>=1.11.2')) {
+                        // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
+                        nodeRedVersion = 'latest'
+                    }
+                    return nodeRedVersion
+                },
+                getDefaultModules () {
+                    return {
+                        'node-red': this.getDefaultNodeRedVersion(),
+                        '@flowfuse/nr-project-nodes': '>0.5.0', // TODO: get this from the "settings" (future)
+                        '@flowfuse/nr-assistant': '>=0.1.0'
+                    }
                 }
             },
             static: {
@@ -228,6 +331,26 @@ module.exports = {
                             { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
                         ]
                     })
+                },
+                byTeam: async (teamIdOrHash, { query = null, deviceId = null } = {}) => {
+                    let teamId = teamIdOrHash
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
+                    const queryObject = {
+                        where: { [Op.and]: [{ TeamId: teamId }] }
+                    }
+                    if (deviceId) {
+                        queryObject.where[Op.and].push({ id: deviceId })
+                    } else if (query) {
+                        queryObject.where[Op.and].push({
+                            [Op.or]: [
+                                where(fn('lower', col('Device.name')), { [Op.like]: `%${query.toLowerCase()}%` }),
+                                where(fn('lower', col('Device.type')), { [Op.like]: `%${query.toLowerCase()}%` })
+                            ]
+                        })
+                    }
+                    return this.getAll({}, queryObject.where)
                 },
                 getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false, includeDeviceGroup = false } = {}) => {
                     // Pagination

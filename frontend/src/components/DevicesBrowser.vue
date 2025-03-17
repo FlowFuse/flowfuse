@@ -1,15 +1,16 @@
 <template>
+    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
     <div
-        class="space-y-2"
+        class="space-y-2 mb-14"
         data-el="devices-section"
     >
         <ff-loading
             v-if="loadingStatuses || loadingDevices"
-            message="Loading Devices..."
+            message="Loading Remote Instances..."
         />
         <template v-else-if="team">
-            <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the device limit for this team." :class="{'mt-0': displayingTeam }" />
-            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." :class="{'mt-0': displayingTeam }" />
+            <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the limit for Remote Instances in this team." :class="{'mt-0': displayingTeam }" />
+            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the limit for Instances in this team." :class="{'mt-0': displayingTeam }" />
             <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
             <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(allDeviceStatuses.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             <ff-data-table
@@ -18,13 +19,17 @@
                 :columns="columns"
                 :rows="devicesWithStatuses"
                 :show-search="true"
-                search-placeholder="Search Devices"
+                search-placeholder="Search Remote Instances"
                 :show-load-more="moreThanOnePage"
+                :check-key="row => row.id"
+                :show-row-checkboxes="true"
+                @rows-checked="checkedDevices = $event"
                 @load-more="loadMoreDevices"
                 @update:search="updateSearch"
                 @update:sort="updateSort"
             >
                 <template #actions>
+                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete') || hasPermission('team:device:bulk-edit')" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu>
                     <ff-button
                         v-if="displayingInstance && hasPermission('project:snapshot:create')"
                         data-action="change-target-snapshot"
@@ -49,7 +54,7 @@
                         <template #icon-left>
                             <PlusSmIcon />
                         </template>
-                        Add Device
+                        Add Remote Instance
                     </ff-button>
                 </template>
                 <template
@@ -103,14 +108,14 @@
                         <template #img>
                             <img src="../images/empty-states/team-devices.png">
                         </template>
-                        <template #header>Connect your First Device</template>
+                        <template #header>Connect your First Remote Instance</template>
                         <template #message>
                             <p>
-                                Devices in FlowFuse allow you to manage Node-RED instances
+                                FlowFuse allow you to manage Node-RED instances
                                 running on remote hardware.
                             </p>
                             <p>
-                                A Device runs the <a
+                                To manage your  <a
                                     class="ff-link" href="https://flowfuse.com/docs/user/devices"
                                     target="_blank"
                                 >FlowFuse Device Agent</a>, and can be used to deploy and debug
@@ -129,7 +134,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Device
+                                Add Remote Instance
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -139,28 +144,82 @@
                         <template #img>
                             <img src="../images/empty-states/instance-devices.png">
                         </template>
-                        <template #header>Connect your First Device</template>
+                        <template #header>Connect your First Remote Instances</template>
                         <template #message>
                             <p>
-                                Here, you will see a list of Devices connected to this Node-RED Instance.
+                                Here, you will see a list of Remote Instances connected to this Hosted Instance.
                             </p>
                             <p>
                                 You can deploy <router-link class="ff-link" :to="{name: 'instance-snapshots', params: {id: instance.id}}">Snapshots</router-link> of this Instance to your connected Devices.
                             </p>
                             <p>
-                                A full list of your Team's Devices are available <router-link
+                                A full list of your Team's Devices are available <ff-team-link
                                     class="ff-link"
                                     :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
                                 >
                                     here
-                                </router-link>.
+                                </ff-team-link>.
                             </p>
+                        </template>
+                        <template #actions>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                kind="primary"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                data-action="register-device"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Remote Instance
+                            </ff-button>
+                        </template>
+                    </EmptyState>
+                </template>
+                <template v-else-if="displayingApplication">
+                    <EmptyState data-el="application-no-devices">
+                        <template #img>
+                            <img src="../images/empty-states/instance-devices.png">
+                        </template>
+                        <template #header>Connect your First Remote Instance</template>
+                        <template #message>
+                            <p>
+                                Here, you will see a list of Devices belonging to this Application.
+                            </p>
+                            <p>
+                                You can deploy <router-link class="ff-link" :to="{name: 'ApplicationSnapshots'}">Snapshots</router-link> of this Application to your connected Devices.
+                            </p>
+                            <p>
+                                A full list of your Team's Devices are available <ff-team-link
+                                    class="ff-link"
+                                    :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
+                                >
+                                    here
+                                </ff-team-link>.
+                            </p>
+                        </template>
+                        <template #actions>
+                            <ff-button
+                                v-if="hasPermission('device:create')"
+                                class="font-normal"
+                                kind="primary"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                data-action="register-device"
+                                @click="showCreateDeviceDialog"
+                            >
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Remote Instance
+                            </ff-button>
                         </template>
                     </EmptyState>
                 </template>
                 <div v-else class="ff-no-data ff-no-data-large">
                     <span data-el="no-devices">
-                        No devices found.
+                        No Remote Instances found.
                     </span>
                 </div>
             </template>
@@ -176,21 +235,11 @@
         @device-updated="deviceUpdated"
     >
         <template #description>
-            <p>
-                Here, you can add a new device to your
-                <template v-if="displayingTeam">team.</template>
-                <template v-if="displayingApplication">application.</template>
-                <template v-else-if="displayingInstance">application instance.</template>
-                This will generate a <b>device.yml</b> file that should be
-                placed on the target device.
+            <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours['first-device']">
+                Describe your new Remote Instance here, e.g. "Raspberry Pi", "Allen-Bradley PLC", etc.
             </p>
-            <p class="my-4">
-                If you want your device to be automatically registered to an instance, in order to remotely deploy flows, you can use provisioning tokens
-                in your <router-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</router-link>
-            </p>
-            <p class="my-4">
-                Further info on Devices can be found
-                <a href="https://flowfuse.com/docs/user/devices/" target="_blank">here</a>.
+            <p v-else>
+                Remote Instances are managed using the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
             </p>
         </template>
     </TeamDeviceCreateDialog>
@@ -205,16 +254,62 @@
     />
 
     <DeviceAssignInstanceDialog
-        v-if="displayingTeam"
         ref="deviceAssignInstanceDialog"
         @assign-device="assignDevice"
+        @move-devices="moveDevicesToInstance"
     />
 
     <DeviceAssignApplicationDialog
-        v-if="displayingTeam"
         ref="deviceAssignApplicationDialog"
         @assign-device="assignDeviceToApplication"
+        @move-devices="moveDevicesToApplication"
     />
+
+    <ff-dialog
+        ref="teamBulkDeviceDeleteDialog"
+        header="Confirm Device Delete"
+        class="ff-dialog-fixed-height"
+        confirm-label="Confirm"
+        data-el="team-bulk-device-delete-dialog"
+        kind="danger"
+        @confirm="confirmBulkDelete()"
+    >
+        <template #default>
+            <p>The following device{{ checkedDevices.length > 1 ? 's' : '' }} will be deleted:</p>
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="ff-devices-ul">
+                    <li v-for="device in checkedDevices" :key="device.id">
+                        <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
+                    </li>
+                </ul>
+            </div>
+            <p>This action cannot be undone.</p>
+        </template>
+    </ff-dialog>
+
+    <ff-dialog
+        ref="devicesMoveNoOwnerDialog"
+        :header="displayingTeam ? `Unassign Device${checkedDevices.length > 1 ? 's' : ''}` : `Remove Device${checkedDevices.length > 1 ? 's' : ''} from ${displayingInstance ? 'Instance' : displayingApplication ? 'Application' : 'Assignment'}`"
+        class="ff-dialog-fixed-height"
+        :confirm-label="displayingTeam ?'Unassign' : 'Remove'"
+        data-el="team-bulk-device-unassign-dialog"
+        kind="danger"
+        @confirm="moveDevicesToUnassigned(checkedDevices)"
+    >
+        <template #default>
+            <p v-if="displayingInstance">The following devices will be removed from this Instance:</p>
+            <p v-else-if="displayingApplication">The following devices will be removed from this Application:</p>
+            <p v-else>The following devices will be removed from their current assignment:</p>
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="ff-devices-ul">
+                    <li v-for="device in checkedDevices" :key="device.id">
+                        <span class="font-bold">{{ device.name }}</span> <span class="text-gray-500 text-sm"> ({{ device.id }})</span>
+                    </li>
+                </ul>
+            </div>
+            <p>This will stop the flows running on the device{{ checkedDevices.length > 1 ? 's' : '' }}.</p>
+        </template>
+    </ff-dialog>
 </template>
 
 <script>
@@ -222,19 +317,20 @@ import { ClockIcon } from '@heroicons/vue/outline'
 import { PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import deviceApi from '../api/devices.js'
+import teamApi from '../api/team.js'
+import DropdownMenu from '../components/DropdownMenu.vue'
 import deviceActionsMixin from '../mixins/DeviceActions.js'
-
 import permissionsMixin from '../mixins/Permissions.js'
 
 import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAssignedToLink.vue'
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
 
-import DeviceLastSeenBadge from '../pages/device/components/DeviceLastSeenBadge.vue'
-import SnapshotAssignDialog from '../pages/instance/Snapshots/dialogs/SnapshotAssignDialog.vue'
+import DeviceLastSeenCell from '../pages/device/components/DeviceLastSeenCell.vue'
+import SnapshotAssignDialog from '../pages/instance/VersionHistory/Snapshots/dialogs/SnapshotAssignDialog.vue'
 import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
 import DeviceAssignApplicationDialog from '../pages/team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
 import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
@@ -259,6 +355,7 @@ export default {
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
+        DropdownMenu,
         FeatureUnavailableToTeam,
         PlusSmIcon,
         SnapshotAssignDialog,
@@ -293,6 +390,8 @@ export default {
             // Devices lists
             devices: new Map(), // devices currently available to be displayed
 
+            checkedDevices: [], // devices currently selected in the table
+
             unsearchedHasMoreThanOnePage: true,
             unfilteredHasMoreThanOnePage: true,
 
@@ -306,11 +405,13 @@ export default {
     },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
+        ...mapState('ux', ['tours']),
+        ...mapGetters('account', ['featuresCheck']),
         columns () {
             const columns = [
-                { label: 'Device', key: 'name', class: ['w-64'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
+                { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
-                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-32'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenBadge) } },
+                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenCell) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
             ]
 
@@ -386,6 +487,25 @@ export default {
                 return true
             }
             return false
+        },
+        bulkActionsDropdownOptions () {
+            const actionsEnabled = this.checkedDevices?.length > 0
+            const enableDelete = actionsEnabled && this.hasPermission('team:device:bulk-delete')
+            const enableMove = actionsEnabled && this.hasPermission('team:device:bulk-edit')
+            const showRemoveFromInstance = this.displayingInstance || this.displayingTeam
+            const showRemoveFromApplication = this.displayingApplication || this.displayingTeam
+            const menu = []
+            menu.push({ name: 'Move to Instance', action: this.showTeamBulkDeviceMoveToInstanceDialog, disabled: !enableMove })
+            menu.push({ name: 'Move to Application', action: this.showTeamBulkDeviceMoveToApplicationDialog, disabled: !enableMove })
+            if (this.displayingInstance && showRemoveFromInstance) {
+                menu.push({ name: 'Remove from Instance', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
+            } else if (this.displayingApplication && showRemoveFromApplication) {
+                menu.push({ name: 'Remove from Application', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
+            } else if (this.displayingTeam && (showRemoveFromInstance || showRemoveFromApplication)) {
+                menu.push({ name: 'Unassign', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
+            }
+            menu.push({ name: 'Delete', class: ['!text-red-600'], action: this.showTeamBulkDeviceDeleteDialog, disabled: !enableDelete })
+            return menu
         }
     },
     watch: {
@@ -463,6 +583,34 @@ export default {
             this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application, showApplicationsList)
         },
 
+        confirmBulkDelete () {
+            // do the delete
+            teamApi.bulkDeviceDelete(this.team?.id, this.checkedDevices.map(device => device.id))
+                .then(() => {
+                    Alerts.emit('Devices successfully deleted.', 'confirmation')
+                    this.fullReloadOfData()
+                })
+                .catch((error) => {
+                    Alerts.emit('Error deleting devices: ' + error.message, 'error')
+                })
+        },
+
+        showTeamBulkDeviceDeleteDialog () {
+            this.$refs.teamBulkDeviceDeleteDialog.show()
+        },
+
+        showTeamBulkDeviceUnassignDialog () {
+            this.$refs.devicesMoveNoOwnerDialog.show()
+        },
+
+        showTeamBulkDeviceMoveToInstanceDialog () {
+            this.$refs.deviceAssignInstanceDialog.show(this.checkedDevices)
+        },
+
+        showTeamBulkDeviceMoveToApplicationDialog () {
+            this.$refs.deviceAssignApplicationDialog.show(this.checkedDevices)
+        },
+
         showSelectTargetSnapshotDialog () {
             this.$refs.snapshotAssignDialog.show()
         },
@@ -483,8 +631,62 @@ export default {
             this.updateLocalCopyOfDevice({ ...device, ...updatedDevice })
         },
 
+        /**
+         * @param {Array<object>} devices - Array of devices to move
+         * @param {string} instance - ID of the instance to move the devices to
+         */
+        async moveDevicesToInstance (devices, instance) {
+            const deviceIds = devices.map(device => device.id)
+            const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'instance', instance)
+            if (data?.devices.length) {
+                Alerts.emit('Devices successfully moved.', 'confirmation')
+                data.devices.forEach(updatedDevice => {
+                    const device = this.devices.get(updatedDevice.id)
+                    // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
+                    const ensureProps = { instance: updatedDevice.instance || null, application: updatedDevice.application || null }
+                    this.updateLocalCopyOfDevice({ ...device, ...updatedDevice, ...ensureProps })
+                })
+            }
+        },
+
+        /**
+         * @param {Array<object>} devices - Array of devices to move
+         * @param {string} application - ID of the application to move the devices to
+         */
+        async moveDevicesToApplication (devices, application) {
+            const deviceIds = devices.map(device => device.id)
+            const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'application', application)
+            if (data?.devices.length) {
+                Alerts.emit('Devices successfully moved.', 'confirmation')
+                data.devices.forEach(updatedDevice => {
+                    const device = this.devices.get(updatedDevice.id)
+                    // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
+                    const ensureProps = { instance: updatedDevice.instance || null, application: updatedDevice.application || null }
+                    this.updateLocalCopyOfDevice({ ...device, ...updatedDevice, ...ensureProps })
+                })
+            }
+        },
+
+        /**
+         * @param {Array<object>} devices - Array of devices to move
+         */
+        async moveDevicesToUnassigned (devices) {
+            const deviceIds = devices.map(device => device.id)
+            const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'unassigned')
+            if (data?.devices.length) {
+                Alerts.emit('Devices successfully unassigned.', 'confirmation')
+                data.devices.forEach(updatedDevice => {
+                    const device = this.devices.get(updatedDevice.id)
+                    // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
+                    const ensureProps = { instance: updatedDevice.instance || null, application: updatedDevice.application || null }
+                    this.updateLocalCopyOfDevice({ ...device, ...updatedDevice, ...ensureProps })
+                })
+            }
+        },
+
         // Device loading
         fullReloadOfData () {
+            this.checkedDevices = []
             this.loadDevices(true)
             this.pollForDeviceStatuses(true)
         },
@@ -573,3 +775,16 @@ export default {
     }
 }
 </script>
+
+<style>
+.ff-dialog-content .ff-devices-ul {
+    list-style-type: disc;
+    list-style-position: inside;
+    columns: 2;
+}
+.ff-dialog-content .ff-devices-ul li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+</style>

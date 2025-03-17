@@ -140,8 +140,18 @@ describe('Assistant API', async function () {
                 })
                 response.statusCode.should.equal(401)
             })
+            it('user token can not access', async function () {
+                sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/assistant/${serviceName}`,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                })
+                response.statusCode.should.equal(401)
+                axios.post.calledOnce.should.be.false()
+            })
             it('device token can access', async function () {
-                // const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
                 const deviceCreateResponse = await app.inject({
                     method: 'POST',
                     url: '/api/v1/devices',
@@ -203,7 +213,11 @@ describe('Assistant API', async function () {
                 axios.post.calledOnce.should.be.true()
                 axios.post.args[0][2].headers.should.have.properties({
                     'ff-owner-type': 'project',
-                    'ff-owner-id': TestObjects.instance.id
+                    'ff-owner-id': TestObjects.instance.id,
+                    'ff-team-id': TestObjects.ATeam.hashid,
+                    'ff-license-active': false,
+                    'ff-license-type': 'CE',
+                    'ff-license-tier': null
                 })
             })
             it('contains owner info in headers for a device', async function () {
@@ -217,7 +231,11 @@ describe('Assistant API', async function () {
                 axios.post.calledOnce.should.be.true()
                 axios.post.args[0][2].headers.should.have.properties({
                     'ff-owner-type': 'device',
-                    'ff-owner-id': TestObjects.device.hashid
+                    'ff-owner-id': TestObjects.device.hashid,
+                    'ff-team-id': TestObjects.ATeam.hashid,
+                    'ff-license-active': false,
+                    'ff-license-type': 'CE',
+                    'ff-license-tier': null
                 })
             })
         }

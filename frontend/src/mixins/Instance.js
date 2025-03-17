@@ -1,11 +1,11 @@
 import { mapState } from 'vuex'
 
-import { Roles } from '../../../forge/lib/roles.js'
 import InstanceApi from '../api/instances.js'
 import SnapshotApi from '../api/projectSnapshots.js'
 import alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { InstanceStateMutator } from '../utils/InstanceStateMutator.js'
+import { Roles } from '../utils/roles.js'
 
 import permissionsMixin from './Permissions.js'
 
@@ -74,7 +74,7 @@ export default {
                 }
             } catch (err) {
                 this.$router.push({
-                    name: 'PageNotFound',
+                    name: 'page-not-found',
                     params: { pathMatch: this.$router.currentRoute.value.path.substring(1).split('/') },
                     // preserve existing query and hash if any
                     query: this.$router.currentRoute.value.query,
@@ -92,7 +92,7 @@ export default {
         onInstanceDelete () {
             this.$router.push({
                 name: 'ApplicationInstances',
-                params: { id: this.instance.application.id }
+                params: { id: this.instance.application.id, team_slug: this.team.slug }
             })
         }
     },

@@ -1,9 +1,9 @@
 <template>
     <ApplicationHeader :application="localApplication" />
 
-    <InstancesWrapper :application="localApplication" @delete-instance="onInstanceDelete" />
+    <InstancesWrapper :application="localApplication" :search-query="searchQuery" @delete-instance="onInstanceDelete" />
 
-    <DevicesWrapper :application="localApplication" @delete-device="$emit('device-deleted')" />
+    <DevicesWrapper :application="localApplication" :search-query="searchQuery" @delete-device="$emit('device-deleted')" />
 
     <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
 </template>
@@ -28,6 +28,11 @@ export default {
         application: {
             type: Object,
             required: true
+        },
+        searchQuery: {
+            type: String,
+            required: false,
+            default: ''
         }
     },
     emits: ['instance-deleted', 'device-deleted'],
@@ -44,8 +49,8 @@ export default {
     },
     methods: {
         onInstanceDeleted (instance) {
-            if (this.localApplication.instances.has(instance.id)) {
-                this.localApplication.instances.delete(instance.id)
+            if (this.localApplication.instances.find((el) => el.id === instance.id)) {
+                this.localApplication.instances = this.localApplication.instances.filter((el) => el.id !== instance.id)
                 this.localApplication.instanceCount--
                 this.$emit('instance-deleted')
             }

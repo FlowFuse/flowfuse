@@ -2,6 +2,17 @@
 navGroup: FlowFuse User Manuals
 navOrder: 2
 navTitle: FlowFuse API
+meta:
+  description: Explore the FlowFuse Platform API, a RESTful interface that facilitates custom integrations, workflows, and interactions
+  tags:
+  - flowfuse
+  - nodered
+  - api
+  - integrations
+  - workflows
+  - rest api
+  - openapi
+  - access tokens
 ---
 
 # FlowFuse Platform API

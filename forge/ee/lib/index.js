@@ -13,10 +13,19 @@ module.exports = fp(async function (app, opts) {
         require('./protectedInstance').init(app)
         require('./customHostnames').init(app)
         app.decorate('sso', await require('./sso').init(app))
+        require('./teamBroker').init(app)
         // Set the MFA Feature Flag
         app.config.features.register('mfa', true, true)
         // Set the Device Groups Feature Flag
         app.config.features.register('deviceGroups', true, true)
+        // Set the Project History timeline Feature Flag
+        app.config.features.register('projectHistory', true, true)
+        // Set the Bill of Materials Feature Flag
+        app.config.features.register('bom', true, true)
+        if (app.config.npmRegistry?.enabled) {
+            // Set npm Feature Flag
+            app.config.features.register('npm', true, true)
+        }
     }
 
     // Set the Team Library Feature Flag

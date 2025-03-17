@@ -1,5 +1,5 @@
 <template>
-    <div id="ff-app" class="min-h-screen flex flex-col">
+    <div id="ff-app" class="flex flex-col" :class="{'hidden-left-drawer': hiddenLeftDrawer}">
         <template v-if="offline">
             <main class="ff-bg-dark flex-grow flex flex-col">
                 <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
@@ -27,11 +27,17 @@
                     <router-view />
                 </ff-layout-box>
             </template>
+            <template v-else-if="pageLayout === 'docs'">
+                <ff-layout-docs>
+                    <router-view />
+                </ff-layout-docs>
+            </template>
             <template v-else-if="pageLayout === 'plain'">
                 <ff-layout-plain>
                     <router-view />
                 </ff-layout-plain>
             </template>
+            <EducationModal />
         </template>
         <!-- Password Reset Required -->
         <template v-else-if="user && user.password_expired">
@@ -56,12 +62,14 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
 import LicenseBanner from './components/banners/LicenseBanner.vue'
+import EducationModal from './components/dialogs/EducationModal.vue'
 import FFLayoutBox from './layouts/Box.vue'
+import FFLayoutDocs from './layouts/Docs.vue'
 import FFLayoutPlain from './layouts/Plain.vue'
 import FFLayoutPlatform from './layouts/Platform.vue'
 import Login from './pages/Login.vue'
@@ -72,6 +80,7 @@ import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 export default {
     name: 'App',
     components: {
+        EducationModal,
         Login,
         PasswordExpired,
         UnverifiedEmail,
@@ -81,10 +90,13 @@ export default {
         Offline,
         'ff-layout-platform': FFLayoutPlatform,
         'ff-layout-box': FFLayoutBox,
+        'ff-layout-docs': FFLayoutDocs,
         'ff-layout-plain': FFLayoutPlain
     },
     computed: {
         ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
+        ...mapState('ux', ['leftDrawer']),
+        ...mapGetters('ux', ['hiddenLeftDrawer']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },
@@ -114,8 +126,7 @@ export default {
         },
         pageLayout () {
             const layout = this.$route.meta?.layout
-
-            return ['platform', 'modal', 'plain'].includes(layout) ? layout : 'platform'
+            return ['platform', 'modal', 'plain', 'docs'].includes(layout) ? layout : 'platform'
         }
     },
     mounted () {

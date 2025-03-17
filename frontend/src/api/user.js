@@ -1,8 +1,8 @@
-import { RoleNames, Roles } from '../../../forge/lib/roles.js'
 import product from '../services/product.js'
 
 import daysSince from '../utils/daysSince.js'
 import elapsedTime from '../utils/elapsedTime.js'
+import { RoleNames, Roles } from '../utils/roles.js'
 
 import client from './client.js'
 
@@ -19,13 +19,18 @@ const verifyMFAToken = (token) => {
     return client.post('/account/login/token', {
         token
     }).then((res) => {
+        product.capture('$ff-user-verified')
         return res.data
     })
 }
 
 const logout = () => {
     return client.post('/account/logout').then((res) => {
-        window.posthog?.reset()
+        try {
+            window.posthog?.reset()
+        } catch (err) {
+            console.error('posthog error resetting user data')
+        }
         return res.data
     })
 }
@@ -75,6 +80,32 @@ const deleteUser = async () => {
         return res.data
     })
 }
+const getNotifications = async () => {
+    return client.get('/api/v1/user/notifications').then(res => {
+        res.data.invitations = res.data.notifications.map(r => {
+            r.createdSince = daysSince(r.createdAt)
+            return r
+        })
+        return res.data
+    })
+}
+const markNotificationRead = async (id) => {
+    return client.put('/api/v1/user/notifications/' + id, {
+        read: true
+    })
+}
+const markNotificationsBulk = async (ids, data = { read: true }) => {
+    return client.put('/api/v1/user/notifications/', {
+        ids,
+        ...data
+    }).then(res => {
+        res.data.notifications = res.data.notifications.map(n => {
+            n.createdSince = daysSince(n.createdAt)
+            return n
+        })
+        return res.data
+    })
+}
 const getTeamInvitations = async () => {
     return client.get('/api/v1/user/invitations').then(res => {
         res.data.invitations = res.data.invitations.map(r => {
@@ -88,12 +119,6 @@ const getTeamInvitations = async () => {
 }
 const acceptTeamInvitation = async (invitationId, teamId) => {
     return client.patch('/api/v1/user/invitations/' + invitationId).then(res => {
-        product.capture('$ff-invite-accepted', {
-            'invite-id': invitationId,
-            'accepted-at': (new Date()).toISOString()
-        }, {
-            team: teamId
-        })
         return res.data
     })
 }
@@ -124,7 +149,9 @@ const triggerVerification = async () => {
  * @returns {Promise}
  */
 const verifyEmailToken = async (token) => {
-    return client.post(`/account/verify/${token}`).then(res => {
+    return client.post('/account/verify/token', {
+        token
+    }).then(res => {
         return res.data
     })
 }
@@ -222,6 +249,9 @@ export default {
     changePassword,
     updateUser,
     deleteUser,
+    getNotifications,
+    markNotificationRead,
+    markNotificationsBulk,
     getTeamInvitations,
     acceptTeamInvitation,
     rejectTeamInvitation,

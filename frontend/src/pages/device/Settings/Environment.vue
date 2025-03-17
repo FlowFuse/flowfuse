@@ -1,8 +1,16 @@
 <template>
     <form class="space-y-6">
-        <TemplateSettingsEnvironment :readOnly="!hasPermission('device:edit-env')" v-model="editable" :editTemplate="false" />
+        <TemplateSettingsEnvironment
+            :readOnly="!hasPermission('device:edit-env')"
+            v-model="editable"
+            :original-env-vars="original?.settings?.env ?? []"
+            :editTemplate="false"
+            @validated="onFormValidated"
+        />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges || hasError" @click="saveSettings()">Save Settings</ff-button>
+            <ff-button size="small" :disabled="isUpdateButtonDisabled" @click="saveSettings()" data-el="submit">
+                Save Settings
+            </ff-button>
         </div>
     </form>
 </template>
@@ -52,6 +60,8 @@ export default {
                     // or if we do recognise it, but the value is different
                     if (!this.original.settings.envMap[field.name] || field.value !== this.original.settings.envMap[field.name].value) {
                         changed = true
+                    } else if (field.hidden !== this.original.settings.envMap[field.name].hidden) {
+                        changed = true
                     }
                     // there is an issue with he key/value
                     if (field.error) {
@@ -90,14 +100,19 @@ export default {
             },
             original: {
                 settings: {
-                    envMap: {}
+                    envMap: {},
+                    env: []
                 }
             },
             templateEnvValues: {}
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership'])
+        ...mapState('account', ['teamMembership']),
+        isUpdateButtonDisabled () {
+            if (this.hasError) return true
+            return !this.unsavedChanges
+        }
     },
     mounted () {
         this.getSettings()
@@ -109,9 +124,22 @@ export default {
                 this.editable.settings.env = []
                 const settings = await deviceApi.getSettings(this.device.id)
                 settings.env?.forEach(envVar => {
+                    envVar = {
+                        hidden: false,
+                        ...envVar
+                    }
                     this.editable.settings.env.push(Object.assign({}, envVar))
                     // make a map of the key:value so it's easier to check for changes
                     this.original.settings.envMap[envVar.name] = envVar
+                })
+
+                this.original.settings.env = []
+                Object.keys(this.original.settings.envMap).forEach((key, i) => {
+                    this.original.settings.env.push({
+                        index: i,
+                        hidden: false,
+                        ...this.original.settings.envMap[key]
+                    })
                 })
             }
         },
@@ -122,12 +150,16 @@ export default {
             this.editable.settings.env.forEach(field => {
                 settings.env.push({
                     name: field.name,
-                    value: field.value
+                    value: field.value,
+                    hidden: field.hidden
                 })
             })
-            deviceApi.updateSettings(this.device.id, settings)
+            await deviceApi.updateSettings(this.device.id, settings)
             this.$emit('device-updated')
             alerts.emit('Device settings successfully updated. NOTE: changes will be applied once the device restarts.', 'confirmation', 6000)
+        },
+        onFormValidated (hasErrors) {
+            this.hasError = hasErrors
         }
     }
 }

@@ -1,0 +1,20 @@
+{
+  "id": "fzlxuz683b",
+  "createdAt": "2024-10-17T15:09:18.579Z",
+  "user": {
+    "id": "qMN5ng9xYv",
+    "username": "mr_jinn",
+    "name": "Qui-Gon Jinn"
+  },
+  "event": "project.snapshot.rolled-back",
+  "data": {
+    "snapshot": {
+      "id": "b9xyBD18pa",
+      "name": "Auto Snapshot - 2024-10-16 10:59:38",
+      "description": "Instance Auto Snapshot taken following a Full deployment"
+    },
+    "info": {
+      "snapshotExists": true
+    }
+  }
+}

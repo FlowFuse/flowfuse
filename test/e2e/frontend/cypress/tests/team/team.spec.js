@@ -5,6 +5,59 @@ describe('FlowForge - Team', () => {
         cy.home()
         cy.intercept('GET', '/api/v1/teams/*/applications*').as('getTeamApplications')
         cy.intercept('DELETE', '/api/v1/teams/*').as('deleteTeam')
+        cy.intercept('PUT', '/api/v1/teams/*').as('updateTeam')
+    })
+
+    describe('Suspend Team', () => {
+        it('can suspend/unsuspend a team', () => {
+            const TEAM_NAME = `new-team-${Math.random().toString(36).substring(2, 7)}`
+            let team
+            cy.request('GET', 'api/v1/team-types').then(response => {
+                teamTypeId = response.body.types[0].id
+                return cy.request('POST', 'api/v1/teams', {
+                    name: TEAM_NAME,
+                    type: teamTypeId
+                })
+            }).then((response) => {
+                team = response.body
+                cy.visit(`team/${team.slug}`)
+                cy.visit(`team/${team.slug}/settings/danger`)
+                cy.wait('@getTeamApplications')
+                cy.get('[data-action="suspend-team"]').should('not.be.disabled')
+                cy.get('[data-action="unsuspend-team"]').should('not.exist')
+
+                cy.get('[data-action="suspend-team"]').click()
+
+                cy.get('[data-el="suspend-team-dialog"]')
+                    .should('be.visible')
+                    .within(() => {
+                        // Dialog is open
+                        cy.get('.ff-dialog-header').contains('Suspend Team')
+
+                        // Main button should be disabled
+                        cy.get('button.ff-btn.ff-btn--danger').should('be.disabled')
+                        cy.get('[data-form="team-name"] input[type="text"]').type(TEAM_NAME)
+
+                        // Should now be enabled again
+                        cy.get('button.ff-btn.ff-btn--danger').click()
+
+                        cy.wait('@updateTeam')
+                    })
+            }).then(() => {
+                cy.visit(`team/${team.slug}/settings/danger`)
+                cy.get('[data-el="banner-team-suspended"]').should('be.visible')
+
+                cy.get('[data-action="suspend-team"]').should('not.exist')
+                cy.get('[data-action="unsuspend-team"]').should('not.be.disabled')
+
+                cy.get('[data-action="unsuspend-team"]').click()
+
+                cy.wait('@updateTeam')
+            }).then(() => {
+                cy.visit(`team/${team.slug}`)
+                cy.get('[data-el="banner-team-suspended"]').should('not.exist')
+            })
+        })
     })
 
     describe('Delete Team', () => {
@@ -149,5 +202,20 @@ describe('Navigation', () => {
         cy.get('[data-nav="team-instances"]').click()
         cy.contains('instance-2-1')
         cy.contains('instance-2-with-devices')
+    })
+
+    it('should display the back button when creating a team', () => {
+        cy.login('alice', 'aaPassword')
+
+        cy.visit('/team/create')
+
+        cy.url().should('contain', '/team/create')
+
+        cy.get('[data-nav="back"]').should('exist')
+        cy.get('[data-nav="back"]').contains('Back to Dashboard')
+
+        cy.get('[data-nav="back"]').click()
+
+        cy.url().should('match', /^.*\/team\/.*\/applications/)
     })
 })

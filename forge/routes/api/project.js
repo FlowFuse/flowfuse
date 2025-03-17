@@ -1,11 +1,10 @@
-const { KEY_HOSTNAME, KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL } = require('../../db/models/ProjectSettings')
+const { KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_DISABLE_AUTO_SAFE_MODE, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
 const { Roles } = require('../../lib/roles')
-
-const { isFQDN } = require('../../lib/validate')
 
 const ProjectActions = require('./projectActions')
 const ProjectDevices = require('./projectDevices')
 const ProjectSnapshots = require('./projectSnapshots')
+const projectShared = require('./shared/project.js')
 
 /**
  * Instance api routes
@@ -25,35 +24,7 @@ const ProjectSnapshots = require('./projectSnapshots')
  */
 
 module.exports = async function (app) {
-    app.addHook('preHandler', async (request, reply) => {
-        if (request.params.instanceId !== undefined) {
-            if (request.params.instanceId) {
-                try {
-                    // StorageFlow needed for last updates time (live status)
-                    request.project = await app.db.models.Project.byId(request.params.instanceId, { includeStorageFlows: true })
-                    if (!request.project) {
-                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return
-                    }
-                    if (request.session.User) {
-                        request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id)
-                        if (!request.teamMembership && !request.session.User.admin) {
-                            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                            return // eslint-disable-line no-useless-return
-                        }
-                    } else if (request.session.ownerId !== request.params.instanceId) {
-                        // AccesToken being used - but not owned by this project
-                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return // eslint-disable-line no-useless-return
-                    }
-                } catch (err) {
-                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                }
-            } else {
-                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-            }
-        }
-    })
+    app.addHook('preHandler', projectShared.defaultPreHandler.bind(null, app))
 
     app.register(ProjectDevices, { prefix: '/:instanceId/devices' })
     app.register(ProjectActions, { prefix: '/:instanceId/actions' })
@@ -95,6 +66,30 @@ module.exports = async function (app) {
 
         const project = await projectPromise
         const projectState = await projectStatePromise
+
+        const teamType = await request.project.Team.getTeamType()
+        const customCatalogsEnabledForTeam = app.config.features.enabled('customCatalogs') && teamType.getFeatureProperty('customCatalogs', false)
+        if (!customCatalogsEnabledForTeam) {
+            delete project.settings?.palette?.npmrc
+            delete project.settings?.palette?.catalogue
+        } else {
+            if ((!request.teamMembership && request.session.User.admin) || request.teamMembership.role < Roles.Owner || request.project.ProjectTemplate.policy.palette.npmrc === false) {
+                if (project.settings?.palette?.npmrc !== undefined) {
+                    let temp = project.settings.palette.npmrc
+                    temp = temp.replace(/_authToken="?(.*)"?/g, '_authToken="xxxxxxx"')
+                    temp = temp.replace(/_auth="?(.*)"?/g, '_auth="xxxxxxx"')
+                    temp = temp.replace(/_password="?(.*)"?/, '_password="xxxxxxx"')
+                    project.settings.palette.npmrc = temp
+                }
+                if (project.template.settings?.palette?.npmrc !== undefined) {
+                    let temp = project.template.settings.palette.npmrc
+                    temp = temp.replace(/_authToken="?(.*)"?/g, '_authToken="xxxxxxx"')
+                    temp = temp.replace(/_auth="?(.*)"?/g, '_auth="xxxxxxx"')
+                    temp = temp.replace(/_password="?(.*)"?/, '_password="xxxxxxx"')
+                    project.template.settings.palette.npmrc = temp
+                }
+            }
+        }
 
         reply.send({ ...project, ...projectState })
     })
@@ -386,25 +381,6 @@ module.exports = async function (app) {
             changesToPersist.name = { from: projectName, to: reqName }
         }
 
-        // Hostname
-        const newHostname = request.body.hostname?.toLowerCase().replace(/\.$/, '') // trim trailing .
-        const oldHostname = await request.project.getSetting(KEY_HOSTNAME)
-        if (newHostname && newHostname !== oldHostname) {
-            if (!isFQDN(newHostname)) {
-                reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is not an FQDN' })
-                return
-            }
-
-            const hostnameInUse = await app.db.models.ProjectSettings.isHostnameUsed(newHostname)
-            const hostnameMatchesDomain = (app.config.domain && newHostname.endsWith(app.config.domain.toLowerCase()))
-            if (hostnameInUse || hostnameMatchesDomain) {
-                reply.status(409).type('application/json').send({ code: 'invalid_hostname', error: 'Hostname is already in use' })
-                return
-            }
-
-            changesToPersist.hostname = { from: oldHostname, to: newHostname }
-        }
-
         // Settings
         if (request.body.settings) {
             let bodySettings
@@ -435,6 +411,17 @@ module.exports = async function (app) {
 
             // Merge the settings into the existing values
             const currentProjectSettings = await request.project.getSetting(KEY_SETTINGS) || {}
+            if (newSettings.env && Array.isArray(newSettings.env)) {
+                newSettings.env = newSettings.env.map(env => {
+                    // hidden env vars are received as empty strings so we'll replace the empty string with the previous value,
+                    // allowing them to be overwritten when needed
+                    if (Object.prototype.hasOwnProperty.call(env, 'hidden') && env.hidden && !env.value.length) {
+                        const previousValue = currentProjectSettings.env.find(e => e.name === env.name)
+                        env.value = previousValue.value
+                    }
+                    return env
+                })
+            }
             const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
 
             changesToPersist.settings = { from: currentProjectSettings, to: updatedSettings }
@@ -480,22 +467,31 @@ module.exports = async function (app) {
         }
 
         // Launcher settings
-        if (request.body?.launcherSettings?.healthCheckInterval) {
-            const oldInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
-            const newInterval = parseInt(request.body.launcherSettings.healthCheckInterval, 10)
-            if (isNaN(newInterval) || newInterval < 5000) {
-                reply.code(400).send({ code: 'invalid_heathCheckInterval', error: 'Invalid heath check interval' })
-                return
+        if (request.body?.launcherSettings) {
+            if (request.body.launcherSettings.healthCheckInterval) {
+                const oldInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
+                const newInterval = parseInt(request.body.launcherSettings.healthCheckInterval, 10)
+                if (isNaN(newInterval) || newInterval < 5000) {
+                    reply.code(400).send({ code: 'invalid_heathCheckInterval', error: 'Invalid heath check interval' })
+                    return
+                }
+                if (oldInterval !== newInterval) {
+                    changesToPersist.healthCheckInterval = { from: oldInterval, to: newInterval }
+                }
             }
-            if (oldInterval !== newInterval) {
-                changesToPersist.healthCheckInterval = { from: oldInterval, to: newInterval }
+            if (typeof request.body.launcherSettings.disableAutoSafeMode === 'boolean') {
+                const oldInterval = await request.project.getSetting(KEY_DISABLE_AUTO_SAFE_MODE)
+                const newInterval = request.body.launcherSettings.disableAutoSafeMode
+                if (oldInterval !== newInterval) {
+                    changesToPersist.disableAutoSafeMode = { from: oldInterval, to: newInterval }
+                }
             }
         }
 
         /// Persist the changes
         const updates = new app.auditLog.formatters.UpdatesCollection()
         const transaction = await app.db.sequelize.transaction() // start a transaction
-        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType) && !changesToPersist.projectType?.firstUpdate
+        const changesToProjectDefinition = (changesToPersist.stack || changesToPersist.projectType || changesToPersist.name) && !changesToPersist.projectType?.firstUpdate
         let repliedEarly = false
         try {
             let resumeProject, targetState
@@ -519,12 +515,6 @@ module.exports = async function (app) {
                 await request.project.save({ transaction })
 
                 updates.push('name', changesToPersist.name.from, changesToPersist.name.to)
-            }
-
-            if (changesToPersist.hostname) {
-                await request.project.updateSetting(KEY_HOSTNAME, changesToPersist.hostname.to, { transaction })
-
-                updates.push('hostname', changesToPersist.hostname.from, changesToPersist.hostname.to)
             }
 
             if (changesToPersist.settings) {
@@ -558,6 +548,10 @@ module.exports = async function (app) {
             if (changesToPersist.healthCheckInterval) {
                 await request.project.updateSetting(KEY_HEALTH_CHECK_INTERVAL, changesToPersist.healthCheckInterval.to, { transaction })
                 updates.pushDifferences({ healthCheckInterval: changesToPersist.healthCheckInterval.from }, { healthCheckInterval: changesToPersist.healthCheckInterval.to })
+            }
+            if (changesToPersist.disableAutoSafeMode) {
+                await request.project.updateSetting(KEY_DISABLE_AUTO_SAFE_MODE, changesToPersist.disableAutoSafeMode.to, { transaction })
+                updates.pushDifferences({ disableAutoSafeMode: changesToPersist.disableAutoSafeMode.from }, { disableAutoSafeMode: changesToPersist.disableAutoSafeMode.to })
             }
 
             await transaction.commit() // all good, commit the transaction
@@ -832,6 +826,7 @@ module.exports = async function (app) {
         settings.state = request.project.state
         settings.stack = request.project.ProjectStack?.properties || {}
         settings.healthCheckInterval = await request.project.getSetting(KEY_HEALTH_CHECK_INTERVAL)
+        settings.disableAutoSafeMode = await request.project.getSetting(KEY_DISABLE_AUTO_SAFE_MODE)
         settings.settings = await app.db.controllers.Project.getRuntimeSettings(request.project)
         if (settings.settings.env) {
             settings.env = Object.assign({}, settings.settings.env, settings.env)
@@ -851,9 +846,51 @@ module.exports = async function (app) {
             delete settings.settings?.palette?.npmrc
             delete settings.settings?.palette?.catalogue
         }
+
+        const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)
+        if (teamNPMEnabled) {
+            const npmRegURL = new URL(app.config.npmRegistry.url)
+            const deviceNPMPassword = await app.db.controllers.AccessToken.createTokenForNPM(request.project, request.project.Team)
+            const token = Buffer.from(`p-${request.project.id}@${settings.teamID}:${deviceNPMPassword.token}`).toString('base64')
+            if (settings.settings?.palette?.npmrc) {
+                settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
+                    `@flowfuse-${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:_auth="${token}"\n`
+            } else {
+                settings.settings.palette.npmrc =
+                    `@flowfuse-${settings.teamID}:registry=${app.config.npmRegistry.url}\n` +
+                    `//${npmRegURL.host}:_auth="${token}"\n`
+            }
+            if (settings.settings?.palette?.catalogue) {
+                settings.settings.palette.catalogue
+                    .push(`${app.config.base_url}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`)
+            } else {
+                settings.settings.palette.catalogue = [
+                    `${app.config.base_url}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`
+                ]
+            }
+        }
+
+        if (app.config.features.enabled('staticAssets') && teamType.getFeatureProperty('staticAssets', false)) {
+            const sharingConfig = await request.project.getSetting(KEY_SHARED_ASSETS) || {}
+            // Stored as object with path->config. Need to transform to an array of settings
+            const sharingPaths = Object.keys(sharingConfig)
+            if (sharingPaths.length > 0) {
+                settings.settings.httpStatic = []
+                sharingPaths.forEach(filePath => {
+                    settings.settings.httpStatic.push({
+                        path: filePath,
+                        ...sharingConfig[filePath]
+                    })
+                })
+            }
+            settings.httpStatic = sharingConfig
+        }
+
         settings.features = {
             'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true),
-            projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)
+            projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true),
+            teamBroker: app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true)
         }
         reply.send(settings)
     })
@@ -995,7 +1032,18 @@ module.exports = async function (app) {
                     properties: {
                         meta: { $ref: 'PaginationMeta' },
                         count: { type: 'number' },
-                        log: { $ref: 'AuditLogEntryList' }
+                        log: { $ref: 'AuditLogEntryList' },
+                        associations: {
+                            type: 'object',
+                            properties: {
+                                applications: {
+                                    type: 'array',
+                                    items: { $ref: 'ApplicationSummary' }
+                                },
+                                instances: { $ref: 'InstanceSummaryList' },
+                                devices: { $ref: 'DeviceSummaryList' }
+                            }
+                        }
                     }
                 },
                 '4xx': {
@@ -1010,6 +1058,62 @@ module.exports = async function (app) {
         reply.send(result)
     })
 
+    /**
+     * TODO: Add support for filtering by instance param when this is migrated to application API
+     * Export logs as CSV
+     * @name /api/v1/projects/:id/audit-log/export
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:instanceId/audit-log/export', {
+        preHandler: app.needsPermission('project:audit-log'),
+        schema: {
+            summary: 'Get instance audit event entries',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    { $ref: 'AuditLogQueryParams' }
+                ]
+            },
+            response: {
+                200: {
+                    content: {
+                        'text/csv': {
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const paginationOptions = app.getPaginationOptions(request)
+        const logEntries = await app.db.models.AuditLog.forProject(request.project.id, paginationOptions)
+        const result = app.db.views.AuditLog.auditLog(logEntries)
+        reply.type('text/csv').send([
+            ['id', 'event', 'body', 'scope', 'trigger', 'createdAt'],
+            ...result.log.map(row => [
+                row.id,
+                row.event,
+                `"${row.body ? JSON.stringify(row.body).replace(/"/g, '""') : ''}"`,
+                `"${JSON.stringify(row.scope).replace(/"/g, '""')}"`,
+                `"${JSON.stringify(row.trigger).replace(/"/g, '""')}"`,
+                row.createdAt?.toISOString()
+            ])
+        ]
+            .map(row => row.join(','))
+            .join('\r\n'))
+    })
     /**
      *
      * @name /api/v1/projects/:id/import

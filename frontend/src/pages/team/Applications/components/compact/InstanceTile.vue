@@ -9,20 +9,39 @@
             />
         </div>
         <div class="details">
-            <span :title="localInstance.name" class="cursor-pointer" @click="openInstance">{{ localInstance.name }}</span>
-            <a :href="localInstance.url" target="_blank" @click.stop>
-                {{ localInstance.url }}
-            </a>
+            <div class="detail-wrapper">
+                <router-link
+                    :to="{ name: 'Instance', params: { id: localInstance.id } }"
+                    :title="localInstance.name"
+                    class="name"
+                    :class="{'no-highlight': isHoveringInstanceUrl}"
+                >
+                    {{ localInstance.name }}
+                </router-link>
+            </div>
+            <div class="detail-wrapper detail">
+                <a
+                    v-if="isInstanceRunning"
+                    :href="localInstance.url"
+                    target="_blank"
+                    class="editor-link"
+                    @click.stop @mouseover="isHoveringInstanceUrl = true"
+                    @mouseleave="isHoveringInstanceUrl = false"
+                >
+                    {{ localInstance.url }}
+                </a>
+                <span v-else class="editor-link inactive">
+                    {{ localInstance.url }}
+                </span>
+            </div>
         </div>
         <div class="actions">
             <DashboardLink
                 v-if="instance.settings?.dashboard2UI"
                 :instance="instance"
                 :disabled="!editorAvailable"
-                :show-external-link="false"
-            >
-                <ChartPieIcon class="ff-icon" />
-            </DashboardLink>
+                :show-text="showButtonLabels"
+            />
 
             <InstanceEditorLink
                 v-if="!localInstance.ha?.replicas !== undefined"
@@ -30,13 +49,10 @@
                 :editorDisabled="!!(localInstance.settings?.disableEditor)"
                 :url="instance.url"
                 :instance="instance"
-            >
-                <ff-button kind="secondary" data-action="open-editor" class="whitespace-nowrap" :disabled="!isInstanceRunning">
-                    <ProjectIcon class="ff-btn--icon ff-icon" />
-                </ff-button>
-            </InstanceEditorLink>
+                :show-text="showButtonLabels"
+            />
 
-            <ff-kebab-menu @click.stop>
+            <ff-kebab-menu v-if="shouldDisplayKebabMenu" @click.stop>
                 <ff-list-item
                     :disabled="localInstance.pendingStateChange || instanceRunning "
                     label="Start"
@@ -66,10 +82,9 @@
 </template>
 
 <script>
-import { ChartPieIcon } from '@heroicons/vue/outline'
+import { mapGetters } from 'vuex'
 
 import InstanceStatusPolling from '../../../../../components/InstanceStatusPolling.vue'
-import ProjectIcon from '../../../../../components/icons/Projects.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import instanceActionsMixin from '../../../../../mixins/InstanceActions.js'
 import permissionsMixin from '../../../../../mixins/Permissions.js'
@@ -84,11 +99,9 @@ export default {
     name: 'InstanceTile',
     components: {
         DashboardLink,
-        ProjectIcon,
         FfKebabMenu,
         InstanceStatusBadge,
         InstanceStatusPolling,
-        ChartPieIcon,
         InstanceEditorLink
     },
     mixins: [AuditMixin, permissionsMixin, instanceActionsMixin],
@@ -96,15 +109,21 @@ export default {
         instance: {
             required: true,
             type: Object
+        },
+        showButtonLabels: {
+            type: Boolean,
+            default: true
         }
     },
     emits: ['delete-instance'],
     data () {
         return {
-            localInstance: this.instance
+            localInstance: this.instance,
+            isHoveringInstanceUrl: false
         }
     },
     computed: {
+        ...mapGetters('account', ['isAdminUser']),
         isInstanceRunning () {
             return this.localInstance.meta?.state === 'running'
         },
@@ -119,6 +138,9 @@ export default {
         },
         instanceSuspended () {
             return this.localInstance.meta?.state === 'suspended'
+        },
+        shouldDisplayKebabMenu () {
+            return this.isAdminUser || this.hasPermission('project:change-status')
         }
     },
     watch: {
@@ -132,14 +154,6 @@ export default {
             mutator.clearState()
 
             this.localInstance = { ...this.localInstance, ...instanceData }
-        },
-        openInstance () {
-            this.$router.push({
-                name: 'Instance',
-                params: {
-                    id: this.localInstance.id
-                }
-            })
         }
     }
 }
