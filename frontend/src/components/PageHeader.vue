@@ -182,10 +182,10 @@ export default {
     },
     methods: {
         ...mapActions('ux', ['toggleLeftDrawer']),
-        ...mapActions('ux/tours', ['activateTour']),
         openEducationModal () {
-            this.activateTour('education')
-            product.capture('clicked-open-education-modal')
+            this.$store.dispatch('ux/tours/openModal', 'education')
+                .then(() => product.capture('clicked-open-education-modal'))
+                .catch(e => e)
         },
         startWelcomeTour () {
             return this.$store.dispatch('ux/tours/resetTours')
@@ -194,9 +194,7 @@ export default {
                 .then(() => this.$router.push({ name: 'Applications' }))
                 .then(() => {
                     // breathing room for the page, instances and devices to load for the tour to work properly
-                    setTimeout(() => {
-                        this.$store.dispatch('ux/tours/activateTour', 'welcome')
-                    }, 1000)
+                    setTimeout(() => this.$store.dispatch('ux/tours/presentTour'), 1000)
                 })
         }
     }
