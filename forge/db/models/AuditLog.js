@@ -95,7 +95,7 @@ module.exports = {
                         log: rows
                     }
                 },
-                forProjectHistory: async (projectId, pagination = {}) => {
+                forTimelineHistory: async (entityId, entityType, pagination = {}) => {
                     // Premise:
                     //  we want to generate a timeline of events for a project, including snapshots
                     //  so that user can see "things that changed" the project and any immediate snapshots.
@@ -107,21 +107,36 @@ module.exports = {
                     //    Additionally, flag snapshot existence in the info object as { snapshotExists: true/false }
                     //    (The info object is a permitted field in the audit log entry body (schema))
                     // * Return the log entries as { meta: Object, count: Number, timeline: Array<Object> }
-
+                    let events = []
                     const limit = parseInt(pagination.limit) || 100
+
+                    if (entityType === 'project') {
+                        events = [
+                            'project.created',
+                            'project.deleted',
+                            'flows.set', // flows deployed by user
+                            'project.settings.updated',
+                            'project.snapshot.created', // snapshot created manually or automatically
+                            'project.snapshot.rolled-back', // snapshot rolled back by user
+                            'project.snapshot.imported' // result of a pipeline deployment
+                        ]
+                    } else if (entityType === 'device') {
+                        events = [
+                            'flows.set',
+                            'device.restarted',
+                            'device.settings.updated',
+                            'device.pipeline.deployed',
+                            'device.project.deployed',
+                            'device.snapshot.deployed',
+                            'device.snapshot.created'
+                        ]
+                    }
+
                     const where = {
-                        entityId: projectId,
-                        entityType: 'project',
+                        entityId: '' + entityId,
+                        entityType,
                         event: {
-                            [Op.in]: [
-                                'project.created',
-                                'project.deleted',
-                                'flows.set', // flows deployed by user
-                                'project.settings.updated',
-                                'project.snapshot.created', // snapshot created manually or automatically
-                                'project.snapshot.rolled-back', // snapshot rolled back by user
-                                'project.snapshot.imported' // result of a pipeline deployment
-                            ]
+                            [Op.in]: events
                         }
                     }
                     const result = {
@@ -167,7 +182,6 @@ module.exports = {
                     for (const row of rows) {
                         try {
                             row.body = typeof row.body === 'string' ? JSON.parse(row.body) : JSON.parse('' + row.body)
-                            delete row.body.project // we don't need to include the project object in specific project history
                         } catch (_e) {
                             row.body = {}
                         }

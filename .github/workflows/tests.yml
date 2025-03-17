@@ -7,58 +7,28 @@ on:
       - maintenance
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check-changes:
     name: Verify changes
     runs-on: ubuntu-latest
     outputs:
-      run_backend_tests: ${{ steps.set-outputs.outputs.backend_tests }}
-      run_postgres_tests: ${{ steps.set-outputs.outputs.postgres_tests }}
-      run_ui_tests: ${{ steps.set-outputs.outputs.ui_tests }}
+      run_backend_tests: ${{ steps.changed-files.outputs.backend_changed }}
+      run_postgres_tests: ${{ steps.changed-files.outputs.postgres_changed }}
+      run_ui_tests: ${{ steps.changed-files.outputs.ui_changed }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Get changed files
+      - name: Find changed files
         id: changed-files
-        uses: tj-actions/changed-files@v45
-        with:
-          files_yaml: |
-            backend:
-              - 'forge/**'
-              - 'test/unit/**'
-              - 'test/system/**'
-              - 'frontend/**'
-              - 'test/e2e/frontend/**'
-              - 'test/unit/frontend/**'
-              - 'package.json'
-              - 'package-lock.json'
-              - '.eslintrc'
-            postgres:
-              - 'forge/**'
-              - 'test/unit/**'
-              - 'test/system/**'
-              - 'package.json'
-              - 'package-lock.json'
-            ui:
-              - 'forge/**'
-              - 'test/unit/**'
-              - 'test/system/**'
-              - 'frontend/**'
-              - 'test/e2e/frontend/**'
-              - 'test/unit/frontend/**'
-              - 'package.json'
-              - 'package-lock.json'
-              - '.eslintrc'
-      - name: Set outputs
-        id: set-outputs
-        shell: bash
         run: |
-          echo "backend_tests=${{ steps.changed-files.outputs.backend_any_changed }}" >> "$GITHUB_OUTPUT"
-          echo "postgres_tests=${{ steps.changed-files.outputs.postgres_any_changed }}" >> "$GITHUB_OUTPUT"
-          echo "ui_tests=${{ steps.changed-files.outputs.ui_any_changed }}" >> "$GITHUB_OUTPUT"
-  
+          ./.github/scripts/detect_changed_files.sh
+
   backend-tests:
     if: ${{ needs.check-changes.outputs.run_backend_tests == 'true' }}
     name: Backend tests
@@ -216,13 +186,14 @@ jobs:
           echo "SUMMARY_ICON=no_entry" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until this issue is resolved." >> $GITHUB_ENV
           echo "LAST_COMMIT_SHA=${{ github.sha}}" >> $GITHUB_ENV
+          echo "PR_LINK=*Branch:* ${{ github.ref_name }}" >> $GITHUB_ENV
         else
           echo "HEADER_MESSAGE=Tests failed against ${{ github.event.number }} pull request" >> $GITHUB_ENV
           echo "SUMMARY_ICON=warning" >> $GITHUB_ENV
           echo "SUMMARY_MESSAGE= Please resolve the problem before merging your changes into the main branch." >> $GITHUB_ENV
           echo "LAST_COMMIT_SHA=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+          echo "PR_LINK=*Pull request:* <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.pull_request.number }}|${{ github.event.pull_request.number }}>" >> $GITHUB_ENV
         fi
-
 
     - name: Send notification
       uses: slackapi/slack-github-action@v2.0.0
@@ -277,11 +248,15 @@ jobs:
                   },
                   {
                     "type": "mrkdwn",
+                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View failed workflow>"
+                  },
+                  {
+                    "type": "mrkdwn",
                     "text": "*Last commit:* <${{ github.server_url }}/${{ github.repository }}/commit/${{ env.LAST_COMMIT_SHA }}|${{ env.LAST_COMMIT_SHA }}>"
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
+                    "text": "${{ env.PR_LINK }}"
                   }
                 ]
               }

@@ -23,6 +23,7 @@
     <CurrencyDollarIcon v-else-if="icon === 'billing'" class="ff-icon text-yellow-500" />
     <KeyIcon v-else-if="icon === 'key'" class="ff-icon text-green-700" />
     <KeyIcon v-else-if="icon === 'overage'" class="ff-icon text-red-700" />
+    <PuzzleIcon v-else-if="icon === 'package'" class="ff-icon text-green-700" />
     <InformationCircleIcon v-else class="ff-icon text-gray-600" />
 </template>
 
@@ -33,7 +34,7 @@ import {
     CurrencyDollarIcon, DesktopComputerIcon, ExclamationCircleIcon,
     ExclamationIcon, IdentificationIcon, InformationCircleIcon,
     KeyIcon, LockClosedIcon, LoginIcon, LogoutIcon, MailIcon,
-    TemplateIcon, TicketIcon, UserGroupIcon, UserIcon
+    PuzzleIcon, TemplateIcon, TicketIcon, UserGroupIcon, UserIcon
 } from '@heroicons/vue/outline'
 
 import DeviceGroupSolidIcon from '../icons/DeviceGroupSolid.js'
@@ -235,11 +236,17 @@ const iconMap = {
         'application.pipeline.deleted',
         'application.pipeline.stage-added',
         'application.pipeline.stage-deployed',
-        'project.assigned-to-pipeline-stage'
+        'project.assigned-to-pipeline-stage',
+        'device.pipeline.deployed',
+        'device.project.deployed'
     ],
     resource: [
         'resource.cpu',
         'resource.memory'
+    ],
+    package: [
+        'team.package.published',
+        'team.package.unpublished'
     ]
 }
 
@@ -299,7 +306,8 @@ export default {
         ExclamationCircleIcon,
         ExclamationIcon,
         TicketIcon,
-        InformationCircleIcon
+        InformationCircleIcon,
+        PuzzleIcon
     }
 }
 </script>

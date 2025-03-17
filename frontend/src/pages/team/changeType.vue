@@ -4,14 +4,7 @@
         <div v-else class="m-auto">
             <form class="space-y-6">
                 <div>
-                    <FormHeading>
-                        <template v-if="isTypeChange">
-                            Change your team type
-                        </template>
-                        <template v-else>
-                            Select your team type
-                        </template>
-                    </FormHeading>
+                    <FormHeading>Change your team type</FormHeading>
                     <div v-if="isUnmanaged" class="space-y-2">
                         <p>
                             Your team type cannot currently be managed from the dashboard.
@@ -54,12 +47,12 @@
                             <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
                             <p v-if="trialMode && !trialHasEnded">Setting up billing will bring your free trial to an end</p>
                             <p v-if="!isContactRequired && team.suspended">Setting up billing will unsuspend your team</p>
-                            <p v-if="isTypeChange">Your billing subscription will be updated to reflect the new costs</p>
+                            <p v-if="!isContactRequired"> Your billing subscription will be updated to reflect the new costs</p>
                         </div>
                     </template>
                     <div class="flex gap-x-4">
                         <template v-if="!isContactRequired">
-                            <ff-button v-if="isTypeChange" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
+                            <ff-button v-if="!billingEnabled || billingDisabledForSelectedTeamType" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
                                 Change team type
                             </ff-button>
                             <ff-button v-else :disabled="!formValid" data-action="setup-team-billing" @click="setupBilling()">
@@ -92,6 +85,7 @@ import teamTypesApi from '../../api/teamTypes.js'
 import FormHeading from '../../components/FormHeading.vue'
 
 import Alerts from '../../services/alerts.js'
+import Product from '../../services/product.js'
 
 export default {
     name: 'ChangeTeamType',
@@ -108,6 +102,9 @@ export default {
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
+            init: {
+                teamTypeId: ''
+            },
             input: {
                 teamTypeId: '',
                 teamType: null
@@ -120,7 +117,7 @@ export default {
             return !this.isUnmanaged &&
                     this.input.teamTypeId &&
                     this.isSelectionAvailable &&
-                    (!this.isTypeChange || this.input.teamTypeId !== this.team.type.id) &&
+                    (this.billingMissing || this.input.teamTypeId !== this.team.type.id) &&
                     this.upgradeErrors.length === 0
         },
         billingEnabled () {
@@ -132,11 +129,15 @@ export default {
         trialHasEnded () {
             return this.team.billing?.trialEnded
         },
-        billingSetup () {
-            return this.billingEnabled && this.team.billing?.active
+        billingDisabledForSelectedTeamType () {
+            // This team's type has billing disabled
+            return this.input.teamType?.properties?.billing?.disabled
         },
-        isTypeChange () {
-            return !this.billingEnabled || this.billingSetup
+        billingMissing () {
+            // True if the team is missing billing information (and its required)
+            return this.billingEnabled &&
+                !this.billingDisabledForSelectedTeamType &&
+                !this.team.billing?.active
         },
         isUnmanaged () {
             return this.team.billing?.unmanaged
@@ -250,7 +251,7 @@ export default {
     },
     async created () {
         this.teamTypes = (await teamTypesApi.getTeamTypes()).types.map(teamType => {
-            if (this.isTypeChange && teamType.id === this.team.type.id) {
+            if (teamType.id === this.team.type.id) {
                 teamType.name = `${teamType.name} (current)`
             }
             return teamType
@@ -264,6 +265,7 @@ export default {
     },
     async mounted () {
         this.mounted = true
+        this.init.teamTypeId = this.team.type.id
     },
     methods: {
         updateTeam () {
@@ -275,6 +277,13 @@ export default {
             teamApi.updateTeam(this.team.id, opts).then(async result => {
                 await this.$store.dispatch('account/refreshTeams')
                 await this.$store.dispatch('account/refreshTeam')
+                // send posthog event
+                Product.capture('$ff-team-type-changed', {
+                    'team-type-id': opts.type,
+                    'team-type-id-previous': this.init.teamTypeId
+                }, {
+                    team: this.team.id
+                })
                 this.$router.push({ name: 'Team', params: { team_slug: result.slug } })
             }).catch(err => {
                 Alerts.emit('Unable to change team type: ' + err.response.data.error, 'warning', 15000)

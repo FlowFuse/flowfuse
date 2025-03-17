@@ -490,10 +490,11 @@ describe('License API', async function () {
         afterEach(async function () {
             await app.close()
         })
-        async function getLog () {
+        async function getLogs () {
             const logs = await app.db.models.AuditLog.forEntity()
-            logs.log.should.have.length(1)
-            return (await app.db.views.AuditLog.auditLog({ log: logs.log })).log[0]
+            const formatted = await app.db.views.AuditLog.auditLog({ log: logs.log })
+            formatted.log.should.have.length(2)
+            return formatted
         }
         it('should suspend all instances', async function () {
             instance.state.should.equal('running')
@@ -502,8 +503,9 @@ describe('License API', async function () {
             await licenseCheck.run(app)
 
             // check logs
-            const log = await getLog()
-            log.event.should.equal('platform.license.expired')
+            const log = await getLogs()
+            log.log[0].event.should.equal('project.suspended')
+            log.log[1].event.should.equal('platform.license.expired')
 
             // check instance suspended
             await instance.reload()

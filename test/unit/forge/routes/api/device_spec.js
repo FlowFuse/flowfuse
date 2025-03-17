@@ -1,7 +1,7 @@
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
-const { sha256 } = require('../../../../../forge/db/utils')
+const { sha256, compareHash } = require('../../../../../forge/db/utils')
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -152,6 +152,37 @@ describe('Device API', async function () {
             },
             cookies: { sid: token }
         })
+    }
+    async function getLiveSettings (device) {
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/devices/${device.id}/live/settings`,
+            headers: {
+                authorization: `Bearer ${device.credentials.token}`
+            }
+        })
+        response.statusCode.should.equal(200)
+        return response.json()
+    }
+    async function getSettings (device, token) {
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/devices/${device.id}/settings`,
+            cookies: { sid: token }
+        })
+        response.statusCode.should.equal(200)
+        return response.json()
+    }
+
+    async function updateSettings (device, token, settings) {
+        const response = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/devices/${device.id}/settings`,
+            body: settings,
+            cookies: { sid: token }
+        })
+        response.statusCode.should.equal(200)
+        response.json().should.have.property('status', 'okay')
     }
 
     describe('Create device', async function () {
@@ -1118,24 +1149,10 @@ describe('Device API', async function () {
         describe('edit device settings', function () {
             it('can set env vars for the device', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/devices/${device.id}/settings`,
-                    body: {
-                        env: [{ name: 'a', value: 'foo' }]
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(200)
-                response.json().should.have.property('status', 'okay')
 
-                const settingsResponse = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/devices/${device.id}/settings`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
+                await updateSettings(device, TestObjects.tokens.alice, { env: [{ name: 'a', value: 'foo' }] })
 
-                const settings = settingsResponse.json()
+                const settings = await getSettings(device, TestObjects.tokens.alice)
                 settings.should.have.property('env')
                 const nonPlatformVars = settings.env.filter(e => !e.name.startsWith('FF_')) // ignore platform defined vars
                 nonPlatformVars.should.have.length(1)
@@ -1143,26 +1160,29 @@ describe('Device API', async function () {
                 nonPlatformVars[0].should.have.property('value', 'foo')
                 settings.should.not.have.property('invalid')
             })
+            it('can set hidden env vars for the device', async function () {
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+
+                await updateSettings(device, TestObjects.tokens.alice, { env: [{ name: 'a', value: 'foo' }, { name: 'b', value: 'bar', hidden: true }] })
+
+                const settings = await getSettings(device, TestObjects.tokens.alice)
+                settings.should.have.property('env')
+                const nonPlatformVars = settings.env.filter(e => !e.name.startsWith('FF_')) // ignore platform defined vars
+                nonPlatformVars.should.have.length(2)
+                nonPlatformVars[0].should.have.property('name', 'a')
+                nonPlatformVars[0].should.have.property('value', 'foo')
+                nonPlatformVars[1].should.have.property('name', 'b')
+                nonPlatformVars[1].should.have.property('value', '')
+                nonPlatformVars[1].should.have.property('hidden', true)
+                settings.should.not.have.property('invalid')
+            })
+
             it('non team owner can set env vars for the device', async function () {
                 const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/devices/${device.id}/settings`,
-                    body: {
-                        env: [{ name: 'a', value: 'foo' }]
-                    },
-                    cookies: { sid: TestObjects.tokens.chris }
-                })
-                response.statusCode.should.equal(200)
-                response.json().should.have.property('status', 'okay')
 
-                const settingsResponse = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/devices/${device.id}/settings`,
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
+                await updateSettings(device, TestObjects.tokens.chris, { env: [{ name: 'a', value: 'foo' }] })
 
-                const settings = settingsResponse.json()
+                const settings = await getSettings(device, TestObjects.tokens.alice)
                 settings.should.have.property('env')
                 const nonPlatformVars = settings.env.filter(e => !e.name.startsWith('FF_')) // ignore platform defined vars
                 nonPlatformVars.should.have.length(1)
@@ -1172,32 +1192,126 @@ describe('Device API', async function () {
             })
             it('owner set .npmrc', async function () {
                 const device = await createDevice({ name: 'Ad2', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-                const response = await app.inject({
-                    method: 'PUT',
-                    url: `/api/v1/devices/${device.id}/settings`,
-                    body: {
-                        palette: {
-                            npmrc: '; testing',
-                            catalogues: ['http://example.com/catalog.json']
-                        }
-                    },
-                    cookies: { sid: TestObjects.tokens.alice }
-                })
-                response.statusCode.should.equal(200)
-                response.json().should.have.property('status', 'okay')
 
-                const settingsResponse = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/devices/${device.id}/settings`,
-                    cookies: { sid: TestObjects.tokens.alice }
+                await updateSettings(device, TestObjects.tokens.alice, {
+                    palette: {
+                        npmrc: '; testing',
+                        catalogues: ['http://example.com/catalog.json']
+                    }
                 })
 
-                const settings = settingsResponse.json()
+                const settings = await getSettings(device, TestObjects.tokens.alice)
                 settings.should.have.property('palette')
                 settings.palette.should.have.property('npmrc', '; testing')
                 settings.palette.should.have.property('catalogues')
                 settings.palette.catalogues.should.have.length(1)
                 settings.palette.catalogues[0].should.equal('http://example.com/catalog.json')
+            })
+
+            it('can set httpNodeAuth to basic', async function () {
+                const device = await createDevice({ name: 'AuthSettingsD1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+
+                await updateSettings(device, TestObjects.tokens.alice, {
+                    security: {
+                        httpNodeAuth: {
+                            type: 'basic',
+                            user: 'userName',
+                            pass: 'passWord'
+                        }
+                    }
+                })
+
+                const settings = await getSettings(device, TestObjects.tokens.alice)
+
+                settings.should.have.property('security')
+                settings.security.should.have.property('httpNodeAuth')
+                settings.security.httpNodeAuth.should.have.property('type', 'basic')
+                settings.security.httpNodeAuth.should.have.property('user', 'userName')
+                // Verify password isn't returned
+                settings.security.httpNodeAuth.should.have.property('pass', true)
+
+                // Verify the live settings include the hashed credentials
+                let liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('security')
+                liveSettings.security.should.have.property('httpNodeAuth')
+                liveSettings.security.httpNodeAuth.should.have.property('type', 'basic')
+                liveSettings.security.httpNodeAuth.should.have.property('user', 'userName')
+                liveSettings.security.httpNodeAuth.should.have.property('pass')
+                compareHash('passWord', liveSettings.security.httpNodeAuth.pass).should.be.true()
+
+                // Verify that updating the username does not clear the password
+                await updateSettings(device, TestObjects.tokens.alice, {
+                    security: {
+                        httpNodeAuth: {
+                            type: 'basic',
+                            user: 'newUserName'
+                        }
+                    }
+                })
+                liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('security')
+                liveSettings.security.should.have.property('httpNodeAuth')
+                liveSettings.security.httpNodeAuth.should.have.property('type', 'basic')
+                liveSettings.security.httpNodeAuth.should.have.property('user', 'newUserName')
+                liveSettings.security.httpNodeAuth.should.have.property('pass')
+                compareHash('passWord', liveSettings.security.httpNodeAuth.pass).should.be.true()
+
+                // Verify that changing to none clears out the credentials information
+                await updateSettings(device, TestObjects.tokens.alice, { security: { httpNodeAuth: { } } })
+
+                liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('security')
+                liveSettings.security.should.have.property('httpNodeAuth', {})
+            })
+            it('can set httpNodeAuth to flowforge-user', async function () {
+                const device = await createDevice({ name: 'AuthSettingsD2', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                await updateSettings(device, TestObjects.tokens.alice, {
+                    security: {
+                        httpNodeAuth: {
+                            type: 'flowforge-user'
+                        }
+                    }
+                })
+
+                const settings = await getSettings(device, TestObjects.tokens.alice)
+                settings.should.have.property('security')
+                settings.security.should.have.property('httpNodeAuth')
+                settings.security.httpNodeAuth.should.have.property('type', 'flowforge-user')
+
+                // Verify the deviceLive settings are updated
+                let liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('security')
+                liveSettings.security.should.have.property('httpNodeAuth')
+                // Note: we map 'flowforge-user' to 'ff-user' for devices
+                liveSettings.security.httpNodeAuth.should.have.property('type', 'ff-user')
+                liveSettings.security.httpNodeAuth.should.have.property('clientID')
+                liveSettings.security.httpNodeAuth.should.have.property('clientSecret')
+
+                // Store the current values
+                const { clientID, clientSecret } = liveSettings.security.httpNodeAuth
+
+                const [deviceId] = app.db.models.Device.decodeHashid(device.id)
+                let authClient = await app.db.models.AuthClient.findOne({ where: { ownerType: 'device', ownerId: '' + deviceId } })
+                authClient.clientID.should.equal(clientID)
+                compareHash(clientSecret, authClient.clientSecret).should.be.true()
+
+                // Get the live settings again - verify the client credentials have been refreshed
+                liveSettings = await getLiveSettings(device)
+                liveSettings.security.httpNodeAuth.should.have.property('clientID')
+                liveSettings.security.httpNodeAuth.should.have.property('clientSecret')
+                liveSettings.security.httpNodeAuth.clientID.should.not.equal(clientID)
+                liveSettings.security.httpNodeAuth.clientSecret.should.not.equal(clientSecret)
+
+                // Verify that changing to none clears out the credentials information
+                await updateSettings(device, TestObjects.tokens.alice, { security: { httpNodeAuth: { } } })
+
+                liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('security')
+                liveSettings.security.should.have.property('httpNodeAuth', {})
+
+                // Verify the AuthClient has been removed
+                authClient = await app.db.models.AuthClient.findOne({ where: { ownerType: 'device', ownerId: '' + deviceId } })
+                should.not.exist(authClient)
             })
         })
 
@@ -1986,16 +2100,7 @@ describe('Device API', async function () {
             const deviceSettings = await TestObjects.deviceProject.getSetting('deviceSettings')
             dbDevice.targetSnapshotId = deviceSettings?.targetSnapshot
             await dbDevice.save()
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/devices/${device.id}/live/settings`,
-                headers: {
-                    authorization: `Bearer ${device.credentials.token}`,
-                    'content-type': 'application/json'
-                }
-            })
-            const body = JSON.parse(response.body)
-            response.statusCode.should.equal(200)
+            const body = await getLiveSettings(device)
             body.should.have.property('hash').which.equal(dbDevice.settingsHash)
             body.should.have.property('env').which.have.property('FOO')
             body.should.have.property('env').which.have.property('FF_DEVICE_ID', device.id)
@@ -2018,16 +2123,7 @@ describe('Device API', async function () {
             await dbDevice.save()
             app.config.features.register('projectComms', true, true)
             app.config.features.register('shared-library', true, true)
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/devices/${device.id}/live/settings`,
-                headers: {
-                    authorization: `Bearer ${device.credentials.token}`,
-                    'content-type': 'application/json'
-                }
-            })
-            const body = JSON.parse(response.body)
-            response.statusCode.should.equal(200)
+            const body = await getLiveSettings(device)
             body.should.have.property('features').and.be.an.Object()
             body.features.should.have.property('projectComms', true)
             body.features.should.have.property('shared-library', true)
@@ -2039,16 +2135,7 @@ describe('Device API', async function () {
             dbDevice.setApplication(TestObjects.Application1)
             await dbDevice.save()
 
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/devices/${device.id}/live/settings`,
-                headers: {
-                    authorization: `Bearer ${device.credentials.token}`,
-                    'content-type': 'application/json'
-                }
-            })
-            const body = JSON.parse(response.body)
-            response.statusCode.should.equal(200)
+            const body = await getLiveSettings(device)
             body.should.have.property('editor').and.be.an.Object()
             body.editor.should.have.property('nodeRedVersion', 'next')
         })

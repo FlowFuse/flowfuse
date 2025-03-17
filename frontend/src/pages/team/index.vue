@@ -51,7 +51,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
-        ...mapGetters('account', ['noBilling', 'isAdminUser']),
+        ...mapGetters('account', ['requiresBilling', 'isAdminUser']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -102,7 +102,7 @@ export default {
         },
         checkBilling: async function () {
             // Team Billing
-            if (this.noBilling) {
+            if (this.requiresBilling) {
                 this.$router.push({
                     path: `/team/${this.team.slug}/billing`
                 })

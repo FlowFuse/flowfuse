@@ -53,7 +53,8 @@ describe('FlowForge - Trial Users', () => {
         cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
         cy.get('[data-nav="team-billing"]').click()
         cy.url().should('include', 'team/tteam/billing')
-        cy.get('[data-action="change-team-type"]').click()
+        cy.get('[data-action="change-team-type"]').should('have.length', 2) // checking that we also have the page header btn
+        cy.get('[data-el="empty-state"] [data-action="change-team-type"]').click()
         cy.url().should('include', 'team/tteam/settings/change-type')
         cy.wait('@getTeamTypes').then(response => {
             // We will eventually submit with the 3rd team type
