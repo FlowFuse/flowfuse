@@ -84,7 +84,7 @@
         "cronosjs": "^1.7.1",
         "dotenv": "^16.3.1",
         "fastify": "^4.25.2",
-        "fastify-metrics": "^11.0.0",
+        "fastify-metrics": "^12.1.0",
         "fastify-plugin": "^4.5.1",
         "handlebars": "^4.7.7",
         "hashids": "^2.3.0",
