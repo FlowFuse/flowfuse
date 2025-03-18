@@ -12,7 +12,7 @@
 
         <ff-loading v-else-if="sourceInstanceId && !sourceInstance" message="Loading instance to Copy From..." />
 
-        <MultiStepInstanceForm v-else />
+        <MultiStepInstanceForm v-else :application="application" />
     </ff-page>
 </template>
 

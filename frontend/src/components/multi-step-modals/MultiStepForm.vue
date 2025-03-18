@@ -9,13 +9,15 @@
             />
         </section>
         <section class="content">
-            <component
-                :is="currentStep.component"
-                v-if="currentStep"
-                v-bind="currentStep.bindings"
-                v-model="payload"
-                @step-updated="$emit('step-updated', $event)"
-            />
+            <transition name="fade" mode="out-in">
+                <component
+                    :is="currentStep.component"
+                    v-if="currentStep"
+                    v-bind="currentStep.bindings"
+                    v-model="payload"
+                    @step-updated="$emit('step-updated', $event)"
+                />
+            </transition>
         </section>
         <section class="footer my-10">
             <section class="flex gap-3">
@@ -54,7 +56,7 @@ export default {
             default: 'Finish'
         }
     },
-    emits: ['step-updated'],
+    emits: ['step-updated', 'submit'],
     data () {
         return {
             currentStepKey: this.startingStep,
@@ -92,6 +94,8 @@ export default {
         nextStep () {
             if (!this.isLastStep) {
                 this.currentStepKey++
+            } else {
+                this.$emit('submit')
             }
         },
         previousStep () {

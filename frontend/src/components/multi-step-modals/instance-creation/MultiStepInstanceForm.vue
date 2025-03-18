@@ -4,11 +4,14 @@
         :starting-step="1"
         :disable-next-step="shouldDisableNextStep"
         last-step-label="Create Instance"
+        style="min-height: 85vh;"
+        @submit="onSubmit"
         @step-updated="updateForm"
     />
 </template>
 
 <script>
+import instanceApi from '../../../api/instances.js'
 import MultiStepForm from '../MultiStepForm.vue'
 
 import BlueprintStep from './steps/BlueprintStep.vue'
@@ -20,6 +23,12 @@ const BLUEPRINT_SLUG = 'blueprint'
 export default {
     name: 'MultiStepInstanceForm',
     components: { MultiStepForm },
+    props: {
+        application: {
+            type: Object,
+            required: true
+        }
+    },
     data () {
         return {
             form: {
@@ -66,6 +75,16 @@ export default {
     methods: {
         updateForm (payload) {
             this.form = { ...this.form, ...payload }
+        },
+        async onSubmit () {
+            return instanceApi.create({
+                applicationId: this.application.id,
+                name: this.form[INSTANCE_SLUG].input.name,
+                projectType: this.form[INSTANCE_SLUG].input.instanceType,
+                stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
+                template: this.form[INSTANCE_SLUG].input.template,
+                flowBlueprintId: this.form[BLUEPRINT_SLUG].blueprint?.id ?? ''
+            })
         }
     }
 }

@@ -38,7 +38,7 @@
 
             <template v-else>
                 <div class="instance-types input-wrapper flex flex-wrap items-stretch">
-                    <label class="mb-1">Choose your Instance Type</label>
+                    <label class="mb-2">Choose your Instance Type</label>
                     <template v-if="hasInstanceTypes">
                         <InstanceCreditBanner :subscription="subscription" />
                         <ff-tile-selection v-model="input.instanceType" data-form="project-type">
@@ -57,6 +57,27 @@
                     <template v-else>
                         <p class="text-center center my-5 w-full text-gray-500">
                             No instance types available. Ask an Administrator to create a new instance type
+                        </p>
+                    </template>
+                </div>
+
+                <div v-if="hasMultipleTemplates" class="instance-templates input-wrapper flex flex-wrap items-stretch">
+                    <label class="mb-2">Choose your Template</label>
+                    <template v-if="hasTemplates">
+                        <ff-tile-selection v-model="input.template" data-form="project-type">
+                            <ff-tile-selection-option
+                                v-for="(template, index) in instanceTemplates"
+                                :key="index"
+                                :label="template.name"
+                                :description="template.description"
+                                :value="template.id"
+                                :disabled="template.disabled"
+                            />
+                        </ff-tile-selection>
+                    </template>
+                    <template v-else>
+                        <p class="text-center center my-5 w-full text-gray-500">
+                            No templates available. Ask an Administrator to create a new template
                         </p>
                     </template>
                 </div>
@@ -89,6 +110,7 @@ import { mapState } from 'vuex'
 import billingApi from '../../../../api/billing.js'
 import instanceTypesApi from '../../../../api/instanceTypes.js'
 import stacksApi from '../../../../api/stacks.js'
+import templatesApi from '../../../../api/templates.js'
 import InstanceCreditBanner from '../../../../pages/instance/components/InstanceCreditBanner.vue'
 import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
 import FfTextInput from '../../../../ui-components/components/form/TextInput.vue'
@@ -120,7 +142,8 @@ export default {
             input: {
                 name: this.initialState.name ?? NameGenerator(),
                 instanceType: this.initialState.instanceType ?? null,
-                nodeREDVersion: this.initialState.nodeREDVersion ?? null
+                nodeREDVersion: this.initialState.nodeREDVersion ?? null,
+                template: this.initialState.template ?? null
             },
             errors: {
                 name: null,
@@ -129,6 +152,7 @@ export default {
             },
             nodeRedVersions: [],
             instanceTypes: [],
+            instanceTemplates: [],
             subscription: null,
             loading: true
         }
@@ -237,8 +261,14 @@ export default {
         hasInstanceTypes () {
             return this.instanceTypes.length > 0
         },
+        hasMultipleTemplates () {
+            return this.instanceTemplates.length > 1
+        },
         hasNodeRedVersions () {
             return this.nodeRedVersions.length > 0
+        },
+        hasTemplates () {
+            return this.instanceTemplates.length > 0
         },
         hasValidName () {
             return /^[a-zA-Z][a-zA-Z0-9-\s]*$/.test(this.input.name)
@@ -278,6 +308,10 @@ export default {
                     this.errors.nodeREDVersion = 'NodeRED Version is mandatory'
                 } else { this.errors.nodeREDVersion = null }
 
+                if (this.hasMultipleTemplates && !this.input.template) {
+                    this.errors.template = 'Template is mandatory'
+                } else { this.errors.template = null }
+
                 Object.keys(this.errors).forEach(key => {
                     if (this.errors[key] !== null) {
                         hasErrors = true
@@ -288,7 +322,8 @@ export default {
                     [this.slug]: {
                         input: {
                             ...input,
-                            name: this.instanceName
+                            name: this.instanceName,
+                            input: this.hasMultipleTemplates ? input.template : this.instanceTemplates[0].id
                         },
                         hasErrors,
                         errors: this.errors
@@ -307,6 +342,7 @@ export default {
         this.getSubscription()
             .then(() => this.getInstanceTypes())
             .then(() => this.getNodeRedVersions())
+            .then(() => this.getTemplates())
             .catch(e => e)
             .finally(() => {
                 this.loading = false
@@ -338,6 +374,10 @@ export default {
                     }
                 }
             }
+        },
+        async getTemplates () {
+            const templates = await templatesApi.getTemplates()
+            this.instanceTemplates = templates.templates
         },
         refreshName () {
             this.input.name = NameGenerator()
