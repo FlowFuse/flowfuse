@@ -62,6 +62,18 @@ import BlueprintTile from '../../../blueprints/BlueprintTile.vue'
 export default {
     name: 'BlueprintStep',
     components: { BlueprintTile },
+    props: {
+        slug: {
+            required: true,
+            type: String
+        },
+        state: {
+            required: false,
+            type: Object,
+            default: () => ({})
+        }
+    },
+    emits: ['step-updated'],
     setup () {
         return { PlusIcon }
     },
@@ -81,6 +93,21 @@ export default {
                 (acc[category] = acc[category] || []).push(blueprint)
                 return acc
             }, {})
+        }
+    },
+    watch: {
+        selectedBlueprint: {
+            handler (blueprint) {
+                this.$emit('step-updated', {
+                    [this.slug]: {
+                        blueprint,
+                        hasErrors: false,
+                        errors: null
+                    }
+                })
+            },
+            deep: true,
+            immediate: true
         }
     },
     async mounted () {

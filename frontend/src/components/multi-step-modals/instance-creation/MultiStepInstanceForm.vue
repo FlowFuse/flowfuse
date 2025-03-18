@@ -14,7 +14,7 @@ import BlueprintStep from './steps/BlueprintStep.vue'
 import InstanceStep from './steps/InstanceStep.vue'
 
 const INSTANCE_SLUG = 'instance'
-const BLUEPRINT_SLUG = 'instance'
+const BLUEPRINT_SLUG = 'blueprint'
 
 export default {
     name: 'MultiStepInstanceForm',
@@ -63,6 +63,7 @@ export default {
     },
     methods: {
         updateForm (payload) {
+            console.log('updating', payload)
             this.form = { ...this.form, ...payload }
         }
     }
