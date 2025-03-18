@@ -169,7 +169,16 @@ export default {
         cloudColumns () {
             return [
                 { label: 'Name', class: ['w-1/2'], component: { is: markRaw(DeploymentName) } },
-                { label: 'Instance Status', class: ['w-1/5'], component: { is: markRaw(InstanceStatusBadge), map: { status: 'meta.state' } } },
+                {
+                    label: 'Instance Status',
+                    class: ['w-1/5'],
+                    instanceType: 'instance',
+                    component: {
+                        is: markRaw(InstanceStatusBadge),
+                        map: { status: 'meta.state', instanceId: 'id' },
+                        extraProps: { instanceType: 'instance' }
+                    }
+                },
                 { label: 'Last Deployed', class: ['w-1/5'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
                 { label: '', component: { is: markRaw(DashboardLinkCell), map: { instance: '_self', hidden: 'hideDashboard2Button' } } },
                 { label: '', component: { is: markRaw(InstanceEditorLinkCell), map: { instance: '_self' } } }

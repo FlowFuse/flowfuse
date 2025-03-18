@@ -1,7 +1,7 @@
 <template>
     <div class="device-tile" data-el="device-tile">
         <div class="status">
-            <StatusBadge :status="device.status" />
+            <StatusBadge :status="device.status" :instanceId="device.id" instanceType="device" />
         </div>
         <div class="details">
             <div class="detail-wrapper">
