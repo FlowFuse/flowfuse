@@ -46,7 +46,8 @@ export default {
                 {
                     sliderTitle: 'Blueprint',
                     bindings: {
-                        slug: BLUEPRINT_SLUG
+                        slug: BLUEPRINT_SLUG,
+                        state: this.form[BLUEPRINT_SLUG]
                     },
                     component: BlueprintStep
                 }

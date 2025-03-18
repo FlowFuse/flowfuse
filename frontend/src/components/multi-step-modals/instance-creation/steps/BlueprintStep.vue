@@ -74,13 +74,14 @@ export default {
         }
     },
     emits: ['step-updated'],
-    setup () {
-        return { PlusIcon }
+    setup (props) {
+        const initialState = props.state
+        return { PlusIcon, initialState }
     },
     data () {
         return {
             blueprints: [],
-            selectedBlueprint: null
+            selectedBlueprint: this.initialState.blueprint ?? null
         }
     },
     computed: {
