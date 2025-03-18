@@ -47,6 +47,11 @@ export default {
             type: Boolean,
             required: false,
             default: false
+        },
+        lastStepLabel: {
+            type: String,
+            required: false,
+            default: 'Finish'
         }
     },
     emits: ['step-updated'],
@@ -68,7 +73,7 @@ export default {
         },
         nextStepLabel () {
             if (this.isLastStep) {
-                return 'Finish'
+                return this.lastStepLabel
             }
 
             return 'Next'

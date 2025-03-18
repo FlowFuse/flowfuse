@@ -3,6 +3,7 @@
         :steps="formSteps"
         :starting-step="1"
         :disable-next-step="shouldDisableNextStep"
+        last-step-label="Create Instance"
         @step-updated="updateForm"
     />
 </template>
@@ -63,7 +64,6 @@ export default {
     },
     methods: {
         updateForm (payload) {
-            console.log('updating', payload)
             this.form = { ...this.form, ...payload }
         }
     }
