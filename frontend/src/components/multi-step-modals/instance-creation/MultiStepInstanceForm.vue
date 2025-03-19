@@ -1,12 +1,17 @@
 <template>
     <MultiStepForm
+        ref="multiStepForm"
         :steps="formSteps"
         :starting-step="1"
         :disable-next-step="shouldDisableNextStep"
         :loading-overlay="formLoading"
         :loading-overlay-text="loadingText"
+        :showFooter="false"
         last-step-label="Create Instance"
         style="min-height: 85vh;"
+        @previous-step-state-changed="$emit('previous-step-state-changed', $event)"
+        @next-step-state-changed="$emit('next-step-state-changed', $event)"
+        @next-step-label-changed="$emit('next-step-label-changed', $event)"
         @submit="onSubmit"
         @step-updated="updateForm"
     />
@@ -32,7 +37,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-created'],
+    emits: ['instance-created', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
     data () {
         return {
             form: {
@@ -113,6 +118,12 @@ export default {
                     this.loadingText = ''
                     this.formLoading = false
                 })
+        },
+        goToNextStep () {
+            this.$refs.multiStepForm.nextStep()
+        },
+        goToPreviousStep () {
+            this.$refs.multiStepForm.previousStep()
         }
     }
 }

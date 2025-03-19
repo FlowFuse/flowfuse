@@ -7,8 +7,21 @@
                 </template>
                 <template #tools>
                     <section class="flex gap-3">
-                        <ff-button class="flex-1" kind="secondary">Back</ff-button>
-                        <ff-button class="flex-1">Next</ff-button>
+                        <ff-button
+                            class="flex-1"
+                            kind="secondary"
+                            :disabled="!form.previousButtonState"
+                            @click="$refs.multiStepForm.goToPreviousStep()"
+                        >
+                            Back
+                        </ff-button>
+                        <ff-button
+                            class="flex-1 whitespace-nowrap"
+                            :disabled="form.nextButtonState"
+                            @click="$refs.multiStepForm.goToNextStep()"
+                        >
+                            {{ form.nextStepLabel }}
+                        </ff-button>
                     </section>
                 </template>
             </ff-page-header>
@@ -18,7 +31,13 @@
 
         <ff-loading v-else-if="sourceInstanceId && !sourceInstance" message="Loading instance to Copy From..." />
 
-        <MultiStepInstanceForm v-else :application="application" @instance-created="onInstanceCreated" />
+        <MultiStepInstanceForm
+            v-else
+            ref="multiStepForm" :application="application" @instance-created="onInstanceCreated"
+            @previous-step-state-changed="form.previousButtonState = $event"
+            @next-step-state-changed="form.nextButtonState = $event"
+            @next-step-label-changed="form.nextStepLabel = $event"
+        />
     </ff-page>
 </template>
 
@@ -52,7 +71,12 @@ export default {
             errors: {
                 name: ''
             },
-            instanceDetails: null
+            instanceDetails: null,
+            form: {
+                nextButtonState: false,
+                previousButtonState: false,
+                nextStepLabel: 'Next'
+            }
         }
     },
     computed: {
@@ -76,53 +100,6 @@ export default {
         this.mounted = true
     },
     methods: {
-        // async handleFormSubmit (formData, copyParts) {
-        //     this.loading = true
-        //
-        //     // Drop applicationName from the payload
-        //     const { applicationName, ...instanceFields } = formData
-        //
-        //     try {
-        //         await this.createInstance(instanceFields, copyParts)
-        //         await this.$store.dispatch('account/refreshTeam')
-        //
-        //         this.$emit('application-updated')
-        //
-        //         this.$router.push({ name: 'ApplicationInstances', params: { id: this.application.id } })
-        //     } catch (err) {
-        //         this.instanceDetails = instanceFields
-        //         if (err.response?.status === 409) {
-        //             if (err.response.data?.code === 'invalid_application_name') {
-        //                 this.errors.applicationName = err.response.data.error
-        //             } else {
-        //                 this.errors.name = err.response.data.error
-        //             }
-        //         } else if (err.response?.status === 400) {
-        //             Alerts.emit('Failed to create instance: ' + err.response.data.error, 'warning', 7500)
-        //         } else {
-        //             Alerts.emit('Failed to create instance')
-        //             console.error(err)
-        //         }
-        //     }
-        //
-        //     this.loading = false
-        // },
-        // createInstance (instanceDetails, copyParts) {
-        //     const createPayload = { ...instanceDetails, applicationId: this.application.id }
-        //     if (this.sourceInstance?.id) {
-        //         delete createPayload.flowBlueprintId
-        //         createPayload.sourceProject = {
-        //             id: this.sourceInstanceId,
-        //             options: { ...copyParts }
-        //         }
-        //     }
-        //     if (this.features.ha && createPayload.isHA) {
-        //         createPayload.ha = { replicas: 2 }
-        //     }
-        //     delete createPayload.isHA
-        //
-        //     return instanceApi.create(createPayload)
-        // },
         async onInstanceCreated () {
             await this.$store.dispatch('account/refreshTeam')
 
@@ -130,8 +107,6 @@ export default {
 
             this.$router.push({ name: 'ApplicationInstances', params: { id: this.application.id } })
         }
-
     }
-
 }
 </script>

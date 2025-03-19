@@ -27,11 +27,13 @@
             </transition>
         </section>
 
-        <section class="footer my-10">
-            <section class="flex gap-3">
-                <ff-button class="flex-1" kind="secondary" :disabled="!canGoToPreviousStep" @click="previousStep">Back</ff-button>
-                <ff-button class="flex-1" :disabled="disableNextStep" @click="nextStep">{{ nextStepLabel }}</ff-button>
-            </section>
+        <section v-if="showFooter" class="footer my-10">
+            <slot name="footer">
+                <section class="flex gap-3">
+                    <ff-button class="flex-1" kind="secondary" :disabled="!canGoToPreviousStep" @click="previousStep">Back</ff-button>
+                    <ff-button class="flex-1" :disabled="disableNextStep" @click="nextStep">{{ nextStepLabel }}</ff-button>
+                </section>
+            </slot>
         </section>
     </div>
 </template>
@@ -74,9 +76,14 @@ export default {
             type: String,
             required: false,
             default: 'Loading...'
+        },
+        showFooter: {
+            type: Boolean,
+            required: false,
+            default: true
         }
     },
-    emits: ['step-updated', 'submit'],
+    emits: ['step-updated', 'submit', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
     data () {
         return {
             currentStepKey: this.startingStep,
@@ -105,6 +112,17 @@ export default {
                 title: step.sliderTitle ?? 'Stage',
                 disabled: step.disabled
             }))
+        }
+    },
+    watch: {
+        canGoToPreviousStep (value) {
+            this.$emit('previous-step-state-changed', value)
+        },
+        disableNextStep (value) {
+            this.$emit('next-step-state-changed', value)
+        },
+        nextStepLabel (value) {
+            this.$emit('next-step-label-changed', value)
         }
     },
     methods: {
