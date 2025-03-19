@@ -296,6 +296,8 @@ export default {
         input: {
             handler (input) {
                 let hasErrors = false
+                let template = null
+
                 if (!this.hasValidName) {
                     this.errors.name = 'Invalid instance name.'
                 } else { this.errors.name = null }
@@ -318,12 +320,18 @@ export default {
                     }
                 })
 
+                if (this.hasMultipleTemplates) {
+                    template = input.template ?? null
+                } else {
+                    template = this.instanceTemplates[0]?.id ?? null
+                }
+
                 this.$emit('step-updated', {
                     [this.slug]: {
                         input: {
-                            ...input,
-                            name: this.instanceName,
-                            input: this.hasMultipleTemplates ? input.template : this.instanceTemplates[0].id
+                            ...(input ?? {}),
+                            template,
+                            name: this.instanceName
                         },
                         hasErrors,
                         errors: this.errors
