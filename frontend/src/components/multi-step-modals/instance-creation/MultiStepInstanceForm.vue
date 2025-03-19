@@ -3,6 +3,8 @@
         :steps="formSteps"
         :starting-step="1"
         :disable-next-step="shouldDisableNextStep"
+        :loading-overlay="formLoading"
+        :loading-overlay-text="loadingText"
         last-step-label="Create Instance"
         style="min-height: 85vh;"
         @submit="onSubmit"
@@ -36,6 +38,11 @@ export default {
             form: {
                 [INSTANCE_SLUG]: { },
                 [BLUEPRINT_SLUG]: { }
+            },
+            formLoading: false,
+            loadingText: '',
+            errors: {
+
             }
         }
     },
@@ -79,27 +86,32 @@ export default {
             this.form = { ...this.form, ...payload }
         },
         async onSubmit () {
-            return instanceApi.create({
+            this.loadingText = 'Creating a new Instance'
+            this.formLoading = true
+            const payload = {
                 applicationId: this.application.id,
                 name: this.form[INSTANCE_SLUG].input.name,
                 projectType: this.form[INSTANCE_SLUG].input.instanceType,
                 stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
                 template: this.form[INSTANCE_SLUG].input.template,
                 flowBlueprintId: this.form[BLUEPRINT_SLUG].blueprint?.id ?? ''
-            }).then(() => this.$emit('instance-created'))
+            }
+
+            return instanceApi.create(payload)
+                .then(() => this.$emit('instance-created'))
                 .catch(err => {
-                    if (err.response?.status === 409) {
-                        if (err.response.data?.code === 'invalid_application_name') {
-                            this.errors.applicationName = err.response.data.error
-                        } else {
-                            this.errors.name = err.response.data.error
-                        }
-                    } else if (err.response?.status === 400) {
-                        Alerts.emit('Failed to create instance: ' + err.response.data.error, 'warning', 7500)
+                    const error = err.response.data.error
+
+                    if (error) {
+                        Alerts.emit('Failed to create instance: ' + error, 'warning', 7500)
                     } else {
                         Alerts.emit('Failed to create instance')
                         console.error(err)
                     }
+                })
+                .finally(() => {
+                    this.loadingText = ''
+                    this.formLoading = false
                 })
         }
     }

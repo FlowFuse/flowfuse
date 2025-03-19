@@ -72,7 +72,7 @@ export default {
         .progress {
             position: absolute;
             left: 0;
-            top: -2px;
+            top: 15px;
             height: 4px;
             width: 99%;
             background: $ff-grey-300;
@@ -110,7 +110,7 @@ export default {
             width: 100%;
             position: absolute;
             left: 0;
-            top: -12px;
+            top: 5px;
             display: flex;
             justify-content: space-between;
 

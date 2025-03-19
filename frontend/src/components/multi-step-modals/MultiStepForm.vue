@@ -1,5 +1,11 @@
 <template>
     <div class="ff-multi-step-form">
+        <transition name="fade" mode="out-in">
+            <div v-if="loadingOverlay" class="loading-overlay">
+                <ff-loading :message="loadingOverlayText" />
+            </div>
+        </transition>
+
         <section class="header">
             <step-slider
                 :entries="sliderTitles"
@@ -8,6 +14,7 @@
                 @step-selected="selectStep"
             />
         </section>
+
         <section class="content">
             <transition name="fade" mode="out-in">
                 <component
@@ -19,6 +26,7 @@
                 />
             </transition>
         </section>
+
         <section class="footer my-10">
             <section class="flex gap-3">
                 <ff-button class="flex-1" kind="secondary" :disabled="!canGoToPreviousStep" @click="previousStep">Back</ff-button>
@@ -29,11 +37,13 @@
 </template>
 
 <script>
+import FfLoading from '../Loading.vue'
+
 import StepSlider from './StepSlider.vue'
 
 export default {
     name: 'MultiStepForm',
-    components: { StepSlider },
+    components: { FfLoading, StepSlider },
     props: {
         steps: {
             type: Array,
@@ -54,6 +64,16 @@ export default {
             type: String,
             required: false,
             default: 'Finish'
+        },
+        loadingOverlay: {
+            type: Boolean,
+            required: false,
+            default: false
+        },
+        loadingOverlayText: {
+            type: String,
+            required: false,
+            default: 'Loading...'
         }
     },
     emits: ['step-updated', 'submit'],
@@ -108,5 +128,17 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.ff-multi-step-form {
+    position: relative;
 
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left:0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255, .6);
+        z-index: 100;
+    }
+}
 </style>
