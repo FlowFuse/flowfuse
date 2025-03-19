@@ -1,18 +1,36 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Add a new Instance">
-                <template #helptext>
-                    Help MEEEEE
+            <ff-page-header title="Instances">
+                <template #custom-breadcrumbs>
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Application', params: {id: application.id}}">
+                        {{ application.name }}
+                    </ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb>
+                        Create Instance
+                    </ff-nav-breadcrumb>
+                </template>
+                <template #context>
+                    Let's get your new Node-RED instance setup in no time.
                 </template>
             </ff-page-header>
         </template>
 
         <ff-loading v-if="isLoading" />
-
         <ff-loading v-else-if="sourceInstanceId && !sourceInstance" message="Loading instance to Copy From..." />
-
-        <MultiStepInstanceForm v-else :application="application" @instance-created="onInstanceCreated" />
+        <InstanceForm
+            v-else
+            :has-header="false"
+            :instance="instanceDetails"
+            :source-instance="sourceInstance"
+            :team="team"
+            :applicationFieldsLocked="!!application?.id"
+            :billing-enabled="!!features.billing"
+            :flow-blueprints-enabled="!!features.flowBlueprints"
+            :submit-errors="errors"
+            @on-submit="handleFormSubmit"
+        />
     </ff-page>
 </template>
 
@@ -21,14 +39,15 @@ import { ChevronLeftIcon } from '@heroicons/vue/solid/index.js'
 import { mapState } from 'vuex'
 
 import instanceApi from '../../api/instances.js'
-import MultiStepInstanceForm from '../../components/multi-step-modals/instance-creation/MultiStepInstanceForm.vue'
 
 import applicationMixin from '../../mixins/Application.js'
+import Alerts from '../../services/alerts.js'
+import InstanceForm from '../instance/components/InstanceForm.vue'
 
 export default {
     name: 'ApplicationCreateInstance',
     components: {
-        MultiStepInstanceForm
+        InstanceForm
     },
     mixins: [applicationMixin],
     inheritAttrs: false,
@@ -74,59 +93,52 @@ export default {
         this.mounted = true
     },
     methods: {
-        // async handleFormSubmit (formData, copyParts) {
-        //     this.loading = true
-        //
-        //     // Drop applicationName from the payload
-        //     const { applicationName, ...instanceFields } = formData
-        //
-        //     try {
-        //         await this.createInstance(instanceFields, copyParts)
-        //         await this.$store.dispatch('account/refreshTeam')
-        //
-        //         this.$emit('application-updated')
-        //
-        //         this.$router.push({ name: 'ApplicationInstances', params: { id: this.application.id } })
-        //     } catch (err) {
-        //         this.instanceDetails = instanceFields
-        //         if (err.response?.status === 409) {
-        //             if (err.response.data?.code === 'invalid_application_name') {
-        //                 this.errors.applicationName = err.response.data.error
-        //             } else {
-        //                 this.errors.name = err.response.data.error
-        //             }
-        //         } else if (err.response?.status === 400) {
-        //             Alerts.emit('Failed to create instance: ' + err.response.data.error, 'warning', 7500)
-        //         } else {
-        //             Alerts.emit('Failed to create instance')
-        //             console.error(err)
-        //         }
-        //     }
-        //
-        //     this.loading = false
-        // },
-        // createInstance (instanceDetails, copyParts) {
-        //     const createPayload = { ...instanceDetails, applicationId: this.application.id }
-        //     if (this.sourceInstance?.id) {
-        //         delete createPayload.flowBlueprintId
-        //         createPayload.sourceProject = {
-        //             id: this.sourceInstanceId,
-        //             options: { ...copyParts }
-        //         }
-        //     }
-        //     if (this.features.ha && createPayload.isHA) {
-        //         createPayload.ha = { replicas: 2 }
-        //     }
-        //     delete createPayload.isHA
-        //
-        //     return instanceApi.create(createPayload)
-        // },
-        async onInstanceCreated () {
-            await this.$store.dispatch('account/refreshTeam')
+        async handleFormSubmit (formData, copyParts) {
+            this.loading = true
 
-            this.$emit('application-updated')
+            // Drop applicationName from the payload
+            const { applicationName, ...instanceFields } = formData
 
-            this.$router.push({ name: 'ApplicationInstances', params: { id: this.application.id } })
+            try {
+                await this.createInstance(instanceFields, copyParts)
+                await this.$store.dispatch('account/refreshTeam')
+
+                this.$emit('application-updated')
+
+                this.$router.push({ name: 'ApplicationInstances', params: { id: this.application.id } })
+            } catch (err) {
+                this.instanceDetails = instanceFields
+                if (err.response?.status === 409) {
+                    if (err.response.data?.code === 'invalid_application_name') {
+                        this.errors.applicationName = err.response.data.error
+                    } else {
+                        this.errors.name = err.response.data.error
+                    }
+                } else if (err.response?.status === 400) {
+                    Alerts.emit('Failed to create instance: ' + err.response.data.error, 'warning', 7500)
+                } else {
+                    Alerts.emit('Failed to create instance')
+                    console.error(err)
+                }
+            }
+
+            this.loading = false
+        },
+        createInstance (instanceDetails, copyParts) {
+            const createPayload = { ...instanceDetails, applicationId: this.application.id }
+            if (this.sourceInstance?.id) {
+                delete createPayload.flowBlueprintId
+                createPayload.sourceProject = {
+                    id: this.sourceInstanceId,
+                    options: { ...copyParts }
+                }
+            }
+            if (this.features.ha && createPayload.isHA) {
+                createPayload.ha = { replicas: 2 }
+            }
+            delete createPayload.isHA
+
+            return instanceApi.create(createPayload)
         }
 
     }
