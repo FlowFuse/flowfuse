@@ -277,6 +277,7 @@ module.exports = async function (app) {
                     .push(`${app.config.base_url}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`)
             } else {
                 response.palette.catalogues = [
+                    'https://catalogue.nodered.org/catalogue.json',
                     `${app.config.base_url}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`
                 ]
             }
