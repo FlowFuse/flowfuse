@@ -8,7 +8,6 @@
         :loading-overlay-text="loadingText"
         :showFooter="false"
         last-step-label="Create Instance"
-        style="min-height: 85vh;"
         @previous-step-state-changed="$emit('previous-step-state-changed', $event)"
         @next-step-state-changed="$emit('next-step-state-changed', $event)"
         @next-step-label-changed="$emit('next-step-label-changed', $event)"

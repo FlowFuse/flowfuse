@@ -163,7 +163,7 @@ export default {
     .blueprints {
         overflow: auto;
         min-width: 400px;
-        max-height: 65vh;
+        max-height: 75vh;
         padding-right: 15px;
 
         .tiles {
