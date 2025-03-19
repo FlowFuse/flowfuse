@@ -49,12 +49,13 @@ export default {
     data () {
         return {
             isClosing: false,
-            closingTimer: 0
+            closingTimer: 0,
+            closingIntervalId: null
         }
     },
     computed: {
         ...mapGetters({
-            isOpen: 'ux/shouldShowEducationModal'
+            isOpen: 'ux/tours/shouldShowEducationModal'
         }),
         helpOptions () {
             return [
@@ -79,28 +80,31 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux', ['deactivateTour']),
+        ...mapActions('ux/tours', ['deactivateTour']),
         triggerClose () {
             if (this.isClosing) {
                 this.closeModal()
+                clearInterval(this.closingIntervalId)
+                this.closingTimer = 0
             } else {
                 this.isClosing = true
-
-                const intervalId = setInterval(() => {
+                this.closingIntervalId = setInterval(() => {
                     this.closingTimer += 0.225
 
                     if (this.closingTimer >= 100) {
-                        clearInterval(intervalId)
+                        clearInterval(this.closingIntervalId)
+                        this.closeModal()
                     }
                 }, 10)
-
-                setTimeout(() => this.closeModal(), 5000)
             }
         },
         closeModal () {
-            this.deactivateTour('education')
-            this.isClosing = false
-            this.closingTimer = 0
+            this.$store.dispatch('ux/tours/closeModal', 'education')
+                .then(() => {
+                    this.isClosing = false
+                    this.closingTimer = 0
+                })
+                .catch(e => e)
         },
         capturePostHog (option) {
             product.capture('clicked-trial-education-link', option)
