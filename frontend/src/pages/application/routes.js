@@ -1,6 +1,7 @@
 import store from '../../store/index.js'
 
 import ApplicationActivity from './Activity.vue'
+import ApplicationCreateInstanceMultiStep from './CreateInstanceMultiStep.vue'
 import Dependencies from './Dependencies/Dependencies.vue'
 import ApplicationDeviceGroupSettingsEnvironment from './DeviceGroup/Settings/Environment.vue'
 import ApplicationDeviceGroupSettingsGeneral from './DeviceGroup/Settings/General.vue'
@@ -20,8 +21,6 @@ import ApplicationSettings from './Settings.vue'
 import ApplicationSnapshots from './Snapshots.vue'
 import ApplicationCreateInstance from './createInstance.vue'
 import ApplicationIndex from './index.vue'
-
-// import account vuex store
 
 export default [
     {
@@ -153,13 +152,30 @@ export default [
             }
         ]
     },
-    {
+    { // sunsetting, use application-create-instance for creation
         path: ':id/instances/create',
         name: 'ApplicationCreateInstance',
         component: ApplicationCreateInstance,
         props: route => ({
             sourceInstanceId: route.query.sourceInstanceId
         }),
+        meta: {
+            title: 'Application - Instances - Create',
+            menu: {
+                type: 'back',
+                backTo: ({ query, params }) => {
+                    return {
+                        label: 'Back',
+                        to: { name: 'ApplicationInstances', params, query }
+                    }
+                }
+            }
+        }
+    },
+    {
+        path: ':id/instances/create-step',
+        name: 'application-create-instance',
+        component: ApplicationCreateInstanceMultiStep,
         meta: {
             title: 'Application - Instances - Create',
             menu: {
