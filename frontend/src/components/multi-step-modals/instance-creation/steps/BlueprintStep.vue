@@ -26,6 +26,7 @@
                                             :class="{'no-icon': !blueprint.icon}"
                                             default-icon="plus"
                                             @selected="onTileSelect"
+                                            @preview="onPreview($event)"
                                         />
                                     </li>
                                 </ul>
@@ -53,6 +54,8 @@
                 </div>
             </div>
         </transition>
+
+        <AssetDetailDialog ref="flowRendererDialog" />
     </section>
 </template>
 
@@ -64,10 +67,11 @@ import flowBlueprintsApi from '../../../../api/flowBlueprints.js'
 import { scrollIntoView } from '../../../../composables/Ux.js'
 import FfLoading from '../../../Loading.vue'
 import BlueprintTile from '../../../blueprints/BlueprintTile.vue'
+import AssetDetailDialog from '../../../dialogs/AssetDetailDialog.vue'
 
 export default {
     name: 'BlueprintStep',
-    components: { FfLoading, BlueprintTile },
+    components: { AssetDetailDialog, FfLoading, BlueprintTile },
     props: {
         slug: {
             required: true,
@@ -138,6 +142,9 @@ export default {
             if (el.length > 0) {
                 scrollIntoView(el[0])
             }
+        },
+        onPreview (blueprint) {
+            this.$refs.flowRendererDialog.show(blueprint)
         },
         onTileSelect (blueprint) {
             if (this.selectedBlueprint && this.selectedBlueprint.id === blueprint.id) {
