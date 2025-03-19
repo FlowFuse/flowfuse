@@ -34,71 +34,73 @@
                 </div>
             </div>
 
-            <Loading v-if="loading" size="small" />
+            <transition name="fade" mode="out-in">
+                <Loading v-if="loading" size="small" />
 
-            <template v-else>
-                <div class="instance-types input-wrapper flex flex-wrap items-stretch">
-                    <label class="mb-2">Choose your Instance Type</label>
-                    <template v-if="hasInstanceTypes">
-                        <InstanceCreditBanner :subscription="subscription" />
-                        <ff-tile-selection v-model="input.instanceType" data-form="project-type">
-                            <ff-tile-selection-option
-                                v-for="(projType, index) in filteredProjectTypes"
-                                :key="index"
-                                :label="projType.name"
-                                :description="projType.description"
-                                :price="projType.price"
-                                :price-interval="projType.priceInterval"
-                                :value="projType.id"
-                                :disabled="projType.disabled"
+                <div v-else class="flex flex-col gap-1">
+                    <div class="instance-types input-wrapper flex flex-wrap items-stretch">
+                        <label class="mb-2">Choose your Instance Type</label>
+                        <template v-if="hasInstanceTypes">
+                            <InstanceCreditBanner :subscription="subscription" />
+                            <ff-tile-selection v-model="input.instanceType" data-form="project-type">
+                                <ff-tile-selection-option
+                                    v-for="(projType, index) in filteredProjectTypes"
+                                    :key="index"
+                                    :label="projType.name"
+                                    :description="projType.description"
+                                    :price="projType.price"
+                                    :price-interval="projType.priceInterval"
+                                    :value="projType.id"
+                                    :disabled="projType.disabled"
+                                />
+                            </ff-tile-selection>
+                        </template>
+                        <template v-else>
+                            <p class="text-center center my-5 w-full text-gray-500">
+                                No instance types available. Ask an Administrator to create a new instance type
+                            </p>
+                        </template>
+                    </div>
+
+                    <div v-if="hasMultipleTemplates" class="instance-templates input-wrapper flex flex-wrap items-stretch">
+                        <label class="mb-2">Choose your Template</label>
+                        <template v-if="hasTemplates">
+                            <ff-tile-selection v-model="input.template" data-form="project-type">
+                                <ff-tile-selection-option
+                                    v-for="(template, index) in instanceTemplates"
+                                    :key="index"
+                                    :label="template.name"
+                                    :description="template.description"
+                                    :value="template.id"
+                                    :disabled="template.disabled"
+                                />
+                            </ff-tile-selection>
+                        </template>
+                        <template v-else>
+                            <p class="text-center center my-5 w-full text-gray-500">
+                                No templates available. Ask an Administrator to create a new template
+                            </p>
+                        </template>
+                    </div>
+
+                    <div class="node-red-version input-wrapper flex flex-col gap-1">
+                        <label class="mb-1">Node-RED Version</label>
+                        <template v-if="hasNodeRedVersions">
+                            <ff-listbox
+                                v-model="input.nodeREDVersion"
+                                :options="nodeRedVersions"
+                                :disabled="!input.instanceType"
+                                :placeholder="nodeRedVersionPlaceholder"
                             />
-                        </ff-tile-selection>
-                    </template>
-                    <template v-else>
-                        <p class="text-center center my-5 w-full text-gray-500">
-                            No instance types available. Ask an Administrator to create a new instance type
-                        </p>
-                    </template>
+                        </template>
+                        <template v-else>
+                            <p class="text-center center my-5 w-full text-gray-500">
+                                No Node-RED Versions available for this instance type. Ask an Administrator to create a Node-RED Version stack definition
+                            </p>
+                        </template>
+                    </div>
                 </div>
-
-                <div v-if="hasMultipleTemplates" class="instance-templates input-wrapper flex flex-wrap items-stretch">
-                    <label class="mb-2">Choose your Template</label>
-                    <template v-if="hasTemplates">
-                        <ff-tile-selection v-model="input.template" data-form="project-type">
-                            <ff-tile-selection-option
-                                v-for="(template, index) in instanceTemplates"
-                                :key="index"
-                                :label="template.name"
-                                :description="template.description"
-                                :value="template.id"
-                                :disabled="template.disabled"
-                            />
-                        </ff-tile-selection>
-                    </template>
-                    <template v-else>
-                        <p class="text-center center my-5 w-full text-gray-500">
-                            No templates available. Ask an Administrator to create a new template
-                        </p>
-                    </template>
-                </div>
-
-                <div class="node-red-version input-wrapper flex flex-col gap-1">
-                    <label class="mb-1">Node-RED Version</label>
-                    <template v-if="hasNodeRedVersions">
-                        <ff-listbox
-                            v-model="input.nodeREDVersion"
-                            :options="nodeRedVersions"
-                            :disabled="!input.instanceType"
-                            :placeholder="nodeRedVersionPlaceholder"
-                        />
-                    </template>
-                    <template v-else>
-                        <p class="text-center center my-5 w-full text-gray-500">
-                            No Node-RED Versions available for this instance type. Ask an Administrator to create a Node-RED Version stack definition
-                        </p>
-                    </template>
-                </div>
-            </template>
+            </transition>
         </form>
     </section>
 </template>

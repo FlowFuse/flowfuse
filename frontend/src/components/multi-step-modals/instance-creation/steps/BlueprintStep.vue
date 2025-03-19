@@ -4,50 +4,55 @@
 
         <p>We have a collection of pre-build flow templates that you can use as a starting point for your Node-RED Instance.</p>
 
-        <div class="flex gap-16 text-left flex-wrap-reverse">
-            <div class="blueprints flex-1">
-                <ul class="categories flex flex-col gap-8">
-                    <li v-for="(category, $categoryName) in categories" :key="$categoryName" :ref="$categoryName">
-                        <h3>{{ $categoryName }}</h3>
-                        <hr class="my-3">
-                        <ul class="tiles flex gap-5 flex-wrap">
-                            <li v-for="(blueprint, $key) in category" :key="$key" class="tile">
-                                <BlueprintTile
-                                    :blueprint="blueprint"
-                                    :display-preview-button="false"
-                                    :display-external-url-button="false"
-                                    :display-select-button="false"
-                                    :tile-behavior="true"
-                                    :active="selectedBlueprint && selectedBlueprint.id === blueprint.id"
-                                    :alt-preview-button="true"
-                                    :class="{'no-icon': !blueprint.icon}"
-                                    default-icon="plus"
-                                    @selected="onTileSelect"
-                                />
+        <transition name="fade" mode="out-in">
+            <ff-loading v-if="loading" message="Loading Blueprints..." />
+            <div v-else class="flex flex-col gap-7">
+                <div class="flex gap-16 text-left flex-wrap-reverse">
+                    <div class="blueprints flex-1">
+                        <ul class="categories flex flex-col gap-8">
+                            <li v-for="(category, $categoryName) in categories" :key="$categoryName" :ref="$categoryName">
+                                <h3>{{ $categoryName }}</h3>
+                                <hr class="my-3">
+                                <ul class="tiles flex gap-5 flex-wrap">
+                                    <li v-for="(blueprint, $key) in category" :key="$key" class="tile">
+                                        <BlueprintTile
+                                            :blueprint="blueprint"
+                                            :display-preview-button="false"
+                                            :display-external-url-button="false"
+                                            :display-select-button="false"
+                                            :tile-behavior="true"
+                                            :active="selectedBlueprint && selectedBlueprint.id === blueprint.id"
+                                            :alt-preview-button="true"
+                                            :class="{'no-icon': !blueprint.icon}"
+                                            default-icon="plus"
+                                            @selected="onTileSelect"
+                                        />
+                                    </li>
+                                </ul>
                             </li>
                         </ul>
-                    </li>
-                </ul>
+                    </div>
+                    <div class="categories">
+                        <h3>Categories</h3>
+                        <hr class="my-3">
+                        <ul>
+                            <li
+                                v-for="(category, $categoryName) in categories"
+                                :key="$categoryName"
+                                class="mb-3 flex gap-3 font-bold"
+                            >
+                                <div class="flex-1 flex gap-2 cursor-pointer" @click="onCategoryClick($categoryName)">
+                                    <span>
+                                        {{ $categoryName }}
+                                    </span>
+                                </div>
+                                <div>{{ category.length }}</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div class="categories">
-                <h3>Categories</h3>
-                <hr class="my-3">
-                <ul>
-                    <li
-                        v-for="(category, $categoryName) in categories"
-                        :key="$categoryName"
-                        class="mb-3 flex gap-3 font-bold"
-                    >
-                        <div class="flex-1 flex gap-2 cursor-pointer" @click="onCategoryClick($categoryName)">
-                            <span>
-                                {{ $categoryName }}
-                            </span>
-                        </div>
-                        <div>{{ category.length }}</div>
-                    </li>
-                </ul>
-            </div>
-        </div>
+        </transition>
     </section>
 </template>
 
@@ -57,11 +62,12 @@ import { mapState } from 'vuex'
 
 import flowBlueprintsApi from '../../../../api/flowBlueprints.js'
 import { scrollIntoView } from '../../../../composables/Ux.js'
+import FfLoading from '../../../Loading.vue'
 import BlueprintTile from '../../../blueprints/BlueprintTile.vue'
 
 export default {
     name: 'BlueprintStep',
-    components: { BlueprintTile },
+    components: { FfLoading, BlueprintTile },
     props: {
         slug: {
             required: true,
@@ -81,7 +87,8 @@ export default {
     data () {
         return {
             blueprints: [],
-            selectedBlueprint: this.initialState.blueprint ?? null
+            selectedBlueprint: this.initialState.blueprint ?? null,
+            loading: true
         }
     },
     computed: {
@@ -112,12 +119,18 @@ export default {
         }
     },
     async mounted () {
-        await this.getBlueprints()
+        this.getBlueprints()
+            .catch(e => e)
+            .finally(() => {
+                this.loading = false
+            })
     },
     methods: {
         async getBlueprints () {
-            const response = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
-            this.blueprints = response.blueprints
+            return flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
+                .then(response => {
+                    this.blueprints = response.blueprints
+                })
         },
         onCategoryClick (category) {
             const el = this.$refs[category]
