@@ -89,7 +89,7 @@
                             <ff-listbox
                                 v-model="input.nodeREDVersion"
                                 :options="nodeRedVersions"
-                                :disabled="!input.instanceType"
+                                :disabled="!input.instanceType || !input.template"
                                 :placeholder="nodeRedVersionPlaceholder"
                             />
                         </template>
@@ -282,6 +282,10 @@ export default {
         nodeRedVersionPlaceholder () {
             if (!this.input.instanceType) {
                 return 'Please select an Instance Type First'
+            }
+
+            if (!this.input.template) {
+                return 'Please select a Template First'
             }
 
             return 'Please select'
