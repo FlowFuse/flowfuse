@@ -150,7 +150,8 @@ export default {
             errors: {
                 name: null,
                 instanceType: null,
-                nodeREDVersion: null
+                nodeREDVersion: null,
+                template: null
             },
             nodeRedVersions: [],
             instanceTypes: [],
@@ -325,7 +326,7 @@ export default {
                 if (this.hasMultipleTemplates) {
                     template = input.template ?? null
                 } else {
-                    template = this.instanceTemplates[0]?.id ?? null
+                    template = input.template ?? this.instanceTemplates[0]?.id ?? null
                 }
 
                 this.$emit('step-updated', {
