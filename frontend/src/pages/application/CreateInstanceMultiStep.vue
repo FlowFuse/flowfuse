@@ -2,8 +2,8 @@
     <ff-page>
         <template #header>
             <ff-page-header title="Add a new Instance">
-                <template #helptext>
-                    Help MEEEEE
+                <template #context>
+                    Let's get your new Node-RED instance setup in no time.
                 </template>
                 <template #tools>
                     <section class="flex gap-3">
