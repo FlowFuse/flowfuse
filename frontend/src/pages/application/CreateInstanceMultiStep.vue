@@ -29,8 +29,6 @@
 
         <ff-loading v-if="isLoading" />
 
-        <ff-loading v-else-if="sourceInstanceId && !sourceInstance" message="Loading instance to Copy From..." />
-
         <MultiStepInstanceForm
             v-else
             ref="multiStepForm" :application="application" @instance-created="onInstanceCreated"
@@ -44,7 +42,6 @@
 <script>
 import { mapState } from 'vuex'
 
-import instanceApi from '../../api/instances.js'
 import MultiStepInstanceForm from '../../components/multi-step-modals/instance-creation/MultiStepInstanceForm.vue'
 
 import applicationMixin from '../../mixins/Application.js'
@@ -56,22 +53,13 @@ export default {
     },
     mixins: [applicationMixin],
     inheritAttrs: false,
-    props: {
-        sourceInstanceId: {
-            default: null,
-            type: String
-        }
-    },
     emits: ['application-updated'],
     data () {
         return {
             loading: false,
-            sourceInstance: null,
-            mounted: false,
             errors: {
                 name: ''
             },
-            instanceDetails: null,
             form: {
                 nextButtonState: false,
                 previousButtonState: false,
@@ -86,18 +74,33 @@ export default {
         }
     },
     async created () {
-        await this.updateApplication()
-
-        if (this.sourceInstanceId) {
-            instanceApi.getInstance(this.sourceInstanceId).then(instance => {
-                this.sourceInstance = instance
-            }).catch(err => {
-                console.error('Failed to load source instance', err)
+        if (
+            // Billing feature must be enabled
+            this.features.billing &&
+            // Team must not have billing set up
+            !this.team.billing?.active &&
+            !this.team.billing?.unmanaged &&
+            (
+                // Redirect to billing if:
+                //   - subscription is not unmanaged
+                //   - team has cancelled their subscription
+                //   - team is not a trial team, or:
+                //   - team is a trial team and:
+                //     - has expired, or:
+                //     - is an instanceType-limited trial and already has a instance created
+                this.team.billing?.canceled ||
+                !this.team.billing?.trial ||
+                this.team.billing?.trialEnded ||
+                (this.team.type.properties?.trial?.instanceType && this.team.instanceCount > 0)
+            )
+        ) {
+            this.$router.push({
+                name: 'Billing',
+                params: {
+                    team_slug: this.team.slug
+                }
             })
         }
-    },
-    async mounted () {
-        this.mounted = true
     },
     methods: {
         async onInstanceCreated () {
@@ -105,7 +108,10 @@ export default {
 
             this.$emit('application-updated')
 
-            this.$router.push({ name: 'ApplicationInstances', params: { id: this.application.id } })
+            this.$router.push({
+                name: 'ApplicationInstances',
+                params: { id: this.application.id }
+            })
         }
     }
 }

@@ -5,6 +5,10 @@
         <p>We have a collection of pre-build flow templates that you can use as a starting point for your Node-RED Instance.</p>
 
         <form class="max-w-2xl m-auto text-left flex flex-col gap-7">
+            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
+
+            <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
+
             <div class="name input-wrapper flex flex-col gap-1">
                 <label class="mb-1">Name</label>
                 <div class="input-wrapper flex gap-3 items-center">
@@ -40,7 +44,7 @@
                 <div v-else class="flex flex-col gap-1">
                     <div class="instance-types input-wrapper flex flex-wrap items-stretch">
                         <label class="mb-2">Choose your Instance Type</label>
-                        <template v-if="hasInstanceTypes">
+                        <template v-if="hasInstanceTypes && activeInstanceTypeCount > 0">
                             <InstanceCreditBanner :subscription="subscription" />
                             <ff-tile-selection v-model="input.instanceType" data-form="project-type">
                                 <ff-tile-selection-option
@@ -54,6 +58,11 @@
                                     :disabled="projType.disabled"
                                 />
                             </ff-tile-selection>
+                        </template>
+                        <template v-else-if="hasInstanceTypesAndAllAreDisabled">
+                            <p class="text-center center my-5 w-full text-gray-500">
+                                No instance types available at this moment.
+                            </p>
                         </template>
                         <template v-else>
                             <p class="text-center center my-5 w-full text-gray-500">
@@ -118,10 +127,11 @@ import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
 import FfTextInput from '../../../../ui-components/components/form/TextInput.vue'
 import NameGenerator from '../../../../utils/name-generator/index.js'
 import Loading from '../../../Loading.vue'
+import FeatureUnavailableToTeam from '../../../banners/FeatureUnavailableToTeam.vue'
 
 export default {
     name: 'InstanceStep',
-    components: { RefreshIcon, CheckCircleIcon, Loading, InstanceCreditBanner, FfListbox, FfTextInput },
+    components: { FeatureUnavailableToTeam, RefreshIcon, CheckCircleIcon, Loading, InstanceCreditBanner, FfListbox, FfTextInput },
     props: {
         slug: {
             required: true,
@@ -162,8 +172,11 @@ export default {
     },
     computed: {
         ...mapState('account', ['features', 'team']),
+        activeInstanceTypeCount () {
+            return this.decoratedInstanceTypes.filter(instance => !instance.disabled).length
+        },
         decoratedInstanceTypes () {
-            let instanceTypes = this.instanceTypes
+            let instanceTypes = [...this.instanceTypes]
 
             // Do a first pass of the instance types to disable any not allowed for this team
             instanceTypes = instanceTypes.map(instanceType => {
@@ -188,9 +201,9 @@ export default {
                         instanceType.disabled = true
                     }
                 }
-                if (instanceType.disabled) {
-                    this.activeProjectTypeCount--
-                }
+                // if (instanceType.disabled) {
+                //     this.activeInstanceTypeCount--
+                // }
 
                 return instanceType
             })
@@ -240,9 +253,9 @@ export default {
                                 if (!this.team.billing?.active) {
                                     // No active billing - only allow the trial instance type
                                     instanceType.disabled = !isTrialProjectType
-                                    if (instanceType.disabled) {
-                                        this.activeProjectTypeCount--
-                                    }
+                                    // if (instanceType.disabled) {
+                                    //     this.activeInstanceTypeCount--
+                                    // }
                                 }
                                 if (isTrialProjectType && this.team.billing?.trialProjectAllowed) {
                                     instanceType.price = 'Free Trial'
@@ -263,6 +276,9 @@ export default {
         },
         hasInstanceTypes () {
             return this.instanceTypes.length > 0
+        },
+        hasInstanceTypesAndAllAreDisabled () {
+            return this.hasInstanceTypes && this.activeInstanceTypeCount === 0
         },
         hasMultipleTemplates () {
             return this.instanceTemplates.length > 1
@@ -289,6 +305,13 @@ export default {
             }
 
             return 'Please select'
+        },
+        teamInstanceLimitReached () {
+            // this.projectTypes.length > 0 : There are Instance Types defined
+            // this.activeInstanceTypeCount : How instance types are available for the user to select
+            //                               taking into account their limits
+            // Hence, if activeInstanceTypeCount === 0, then they are at their limit of usage
+            return this.instanceTypes.length > 0 && this.activeInstanceTypeCount === 0
         },
         teamRuntimeLimitReached () {
             let teamTypeRuntimeLimit = this.team.type.properties?.runtimes?.limit
@@ -375,6 +398,7 @@ export default {
             const instanceTypes = await instanceTypesApi.getInstanceTypes()
 
             this.instanceTypes = instanceTypes.types ?? []
+            this.activeInstanceTypeCount = this.instanceTypes.length
         },
         async getSubscription () {
             if (this.features.billing && !this.team.billing?.unmanaged && !this.team.type.properties?.billing?.disabled) {
