@@ -23,6 +23,14 @@
                         />
                     </template>
                 </InfoCardRow>
+                <InfoCardRow property="Node-RED Version:">
+                    <template #value>
+                        <StatusBadge
+                            :status="nrVersionWarning ? 'error' : 'success'"
+                            :text="device.nrVersion || 'unknown'" v-ff-tooltip="agentVersionWarning"
+                        />
+                    </template>
+                </InfoCardRow>
             </template>
         </InfoCard>
         <InfoCard header="Deployment:">
@@ -154,6 +162,11 @@ export default {
                 return 'Devices assigned to an application must be version 1.15 or greater in order to receive snapshots and updates'
             }
             return ''
+        },
+        nrVersionWarning: function () {
+            if (!this.device?.nrVersion) {
+                return 'Devices must have connected and initialized to report Node-RED version'
+            }
         }
     },
     mounted () {
