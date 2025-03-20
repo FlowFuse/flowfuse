@@ -155,7 +155,7 @@ module.exports = {
                         where,
                         order: [['id', 'DESC']],
                         limit,
-                        attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt', 'ProjectId', 'DeviceId', 'ownerType'],
+                        attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt', 'ProjectId', 'DeviceId', 'ownerType', 'settings'],
                         include: [{
                             model: M.User,
                             attributes: ['hashid', 'id', 'username', 'avatar']
