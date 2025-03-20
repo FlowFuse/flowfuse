@@ -167,6 +167,7 @@ export default {
             if (!this.device?.nrVersion) {
                 return 'Devices must have connected and initialized to report Node-RED version'
             }
+            return ''
         }
     },
     mounted () {

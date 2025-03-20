@@ -47,16 +47,11 @@ export default {
             return this.payload?.flows?.flows || []
         },
         nrVersion () {
-            try {
-                const mods = this.payload?.settings?.modules
-                if (mods) {
-                    return mods['node-red'] || 'ben'
-                } else {
-                    return ''
-                }
-            } catch (e) {
-                console.log(e)
+            const mods = this.payload?.settings?.modules
+            if (mods) {
+                return mods['node-red'] || 'ben'
             }
+            return ''
         },
         header () {
             return this.payload?.name || this.title || 'Flow'
