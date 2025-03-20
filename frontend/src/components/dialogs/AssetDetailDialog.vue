@@ -6,6 +6,7 @@
             </div>
         </template>
         <template #actions>
+            Node-RED {{ nrVersion }}
             <div class="flex justify-end">
                 <ff-button data-action="dialog-confirm" @click="confirm()">Close</ff-button>
             </div>
@@ -44,6 +45,18 @@ export default {
     computed: {
         flow () {
             return this.payload?.flows?.flows || []
+        },
+        nrVersion () {
+            try {
+                const mods = this.payload?.settings?.modules
+                if (mods) {
+                    return mods['node-red'] || 'ben'
+                } else {
+                    return ''
+                }
+            } catch (e) {
+                console.log(e)
+            }
         },
         header () {
             return this.payload?.name || this.title || 'Flow'
