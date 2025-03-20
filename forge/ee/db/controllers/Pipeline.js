@@ -473,7 +473,7 @@ module.exports = {
             // Update the targetSnapshot of the device
             await targetDevice.update({ targetSnapshotId: sourceSnapshot.id })
 
-            await app.auditLog.Application.application.device.snapshot.deviceTargetSet(user, null, targetDevice.Application, targetDevice, sourceSnapshot)
+            await app.auditLog.Device.device.snapshot.targetSet(user, null, targetDevice, sourceSnapshot)
 
             if (pipeline) {
                 await app.auditLog.Device.device.pipeline.deployed(user, null, targetDevice, pipeline, targetDevice.Application, sourceSnapshot)

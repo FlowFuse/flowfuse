@@ -257,6 +257,20 @@ export default {
                                     </span>
                                 </span>`
                 })
+            case 'device.snapshot.target-set':
+                // eslint-disable-next-line vue/one-component-per-file
+                return defineComponent({
+                    emits: ['preview-snapshot'],
+                    methods: {
+                        previewSnapshot () { this.$emit('preview-snapshot') }
+                    },
+                    template: `
+                        <span>
+                            Snapshot Target Set:
+                            <i v-if="${!data.info?.snapshotExists}">${data.snapshot.name}</i>
+                            <a href="#" v-else @click.stop.prevent="previewSnapshot">${data.snapshot.name}</a>
+                        </span>`
+                })
             default:
                 // eslint-disable-next-line vue/one-component-per-file
                 return defineComponent({
@@ -291,6 +305,8 @@ export default {
                 return 'Hosted instance deployment'
             case 'device.snapshot.deployed':
                 return 'Snapshot deployment'
+            case 'device.snapshot.target-set':
+                return 'Snapshot set as target'
             default:
                 return this.event.event
             }
