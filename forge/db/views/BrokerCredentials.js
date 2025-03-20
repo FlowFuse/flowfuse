@@ -11,7 +11,8 @@ module.exports = function (app) {
             protocolVersion: { type: 'number' },
             ssl: { type: 'boolean' },
             verifySSL: { type: 'boolean' },
-            clientId: { type: 'string' }
+            clientId: { type: 'string' },
+            topicPrefix: { type: 'string' }
         },
         additionalProperties: true
     })
