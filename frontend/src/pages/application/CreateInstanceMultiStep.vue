@@ -101,6 +101,8 @@ export default {
                 }
             })
         }
+
+        await this.updateApplication()
     },
     methods: {
         async onInstanceCreated () {
