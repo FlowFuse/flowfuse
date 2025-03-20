@@ -128,7 +128,8 @@ module.exports = {
                             'device.pipeline.deployed',
                             'device.project.deployed',
                             'device.snapshot.deployed',
-                            'device.snapshot.created'
+                            'device.snapshot.created',
+                            'device.snapshot.target-set'
                         ]
                     }
 

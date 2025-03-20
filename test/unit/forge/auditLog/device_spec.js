@@ -12,6 +12,7 @@ describe('Audit Log > Device', async function () {
     let APPLICATION
     let DEVICE
     let TEAM
+    let SNAPSHOT
 
     // temporarily assign the logger purely for type info & intellisense
     // so that xxxxxLogger.yyy.zzz function parameters are offered
@@ -28,6 +29,13 @@ describe('Audit Log > Device', async function () {
         TEAM = await app.db.models.Team.create({ name: 'ATeam', TeamTypeId: defaultTeamType.id })
         APPLICATION = await app.db.models.Application.create({ name: 'application1', TeamId: TEAM.id })
         DEVICE = await app.db.models.Device.create({ name: 'deviceOne', type: 'something', credentialSecret: 'deviceKey' })
+        SNAPSHOT = await app.db.models.ProjectSnapshot.create({
+            name: 'snapshot',
+            description: '',
+            settings: {},
+            flows: {},
+            DeviceId: DEVICE.id
+        })
     })
     after(async () => {
         await app.close()
@@ -214,5 +222,46 @@ describe('Audit Log > Device', async function () {
         logEntry.body.error.should.only.have.keys('code', 'message')
         logEntry.body.error.code.should.equal('abc')
         logEntry.body.error.message.should.equal('xyz')
+    })
+    it('Provides a logger for device snapshot deployed action', async function () {
+        await logger.device.snapshot.deployed(ACTIONED_BY, null, DEVICE, SNAPSHOT)
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'device.snapshot.deployed')
+        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('device', 'snapshot', 'user')
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
+        logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
+        logEntry.body.user.id.should.equal(ACTIONED_BY.hashid)
+    })
+
+    it('Provides a logger for device snapshot created action', async function () {
+        await logger.device.snapshot.created(ACTIONED_BY, null, DEVICE, SNAPSHOT)
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'device.snapshot.created')
+        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('device', 'snapshot')
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
+        logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
+    })
+    it('Provides a logger for device snapshot targetSet action', async function () {
+        await logger.device.snapshot.targetSet(ACTIONED_BY, null, DEVICE, SNAPSHOT)
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'device.snapshot.target-set')
+        logEntry.should.have.property('scope', { id: DEVICE.hashid, type: 'device' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('device', 'snapshot')
+        logEntry.body.device.should.only.have.keys('id', 'name')
+        logEntry.body.device.id.should.equal(DEVICE.hashid)
+        logEntry.body.snapshot.should.only.have.keys('id', 'name', 'description')
+        logEntry.body.snapshot.id.should.equal(SNAPSHOT.hashid)
     })
 })
