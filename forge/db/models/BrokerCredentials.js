@@ -36,7 +36,8 @@ module.exports = {
                     this.setDataValue('settings', JSON.stringify(value))
                 }
             }
-        }
+        },
+        topicPrefix: { type: DataTypes.STRING, allowNull: true, default: '#' }
     },
     indexes: [
         { name: 'broker_name_team_unique', fields: ['name', 'TeamId'], unique: true }
