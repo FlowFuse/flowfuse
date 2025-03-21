@@ -194,7 +194,6 @@ module.exports = async function (app) {
         if (request.broker) {
             if (request.broker.Team.hashid === request.params.teamId) {
                 const resp = request.broker.toJSON()
-                request.broker.
                 resp.id = resp.hashid
                 delete resp.hashid
                 delete resp.slug

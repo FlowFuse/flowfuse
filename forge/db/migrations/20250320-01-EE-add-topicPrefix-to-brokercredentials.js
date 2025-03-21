@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 /*
- *
+ * Adds the topicPrefix column to the BrokerCredentials Table
  */
 const { DataTypes, QueryInterface } = require('sequelize')
 
