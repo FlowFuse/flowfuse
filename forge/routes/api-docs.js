@@ -155,7 +155,8 @@ module.exports = fp(async function (app, opts) {
         properties: {
             next_cursor: { type: 'string' },
             previous_cursor: { type: 'string' }
-        }
+        },
+        additionalProperties: true
     })
     app.addSchema({
         $id: 'LinksMeta',

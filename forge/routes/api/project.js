@@ -943,6 +943,7 @@ module.exports = async function (app) {
             let logs = await app.containers?.logs(request.project)
             const firstLogCursor = logs.length > 0 ? logs[0].ts : null
             const fullLogLength = logs.length
+            const lastLogCursor = logs.length > 1 ? logs[fullLogLength - 1].ts : null
             if (!paginationOptions.cursor) {
                 logs = logs.slice(-paginationOptions.limit)
             } else {
@@ -976,7 +977,9 @@ module.exports = async function (app) {
                 meta: {
                     // next_cursor - are there more recent logs to get?
                     next_cursor: logs.length > 0 ? logs[logs.length - 1].ts : undefined,
-                    previous_cursor: logs.length > 0 && logs[0].ts !== firstLogCursor ? ('-' + logs[0].ts) : undefined
+                    previous_cursor: logs.length > 0 && logs[0].ts !== firstLogCursor ? ('-' + logs[0].ts) : undefined,
+                    first_entry: firstLogCursor,
+                    last_entry: lastLogCursor
                 },
                 log: logs
             }
