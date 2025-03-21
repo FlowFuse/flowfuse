@@ -189,15 +189,15 @@ export default {
             protocolVersionOptions: [
                 {
                     label: '3.0',
-                    value: '3'
+                    value: 3
                 },
                 {
                     label: '3.1',
-                    value: '4'
+                    value: 4
                 },
                 {
                     label: '5.0',
-                    value: '5'
+                    value: 5
                 }
             ],
             booleanOptions: [
