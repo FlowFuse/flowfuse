@@ -71,6 +71,22 @@
                             <ff-listbox id="verifySSL" v-model="form.verifySSL" :options="booleanOptions" data-select="verifySSL" />
                         </div>
                     </div>
+
+                    <div class="flex gap-3 md:flex-nowrap flex-wrap">
+                        <FormRow
+                            v-model="form.topicPrefix"
+                            type="text"
+                            name="topicPrefix"
+                            placeholder="#"
+                            class="port flex-1"
+                            container-class="max-w"
+                            data-input="topicPrefix"
+                        >
+                            <template #default>
+                                Topic Wildcard
+                            </template>
+                        </FormRow>
+                    </div>
                 </section>
 
                 <section class="credentials space-y-3 flex-1 max-w-sm">
@@ -157,7 +173,8 @@ export default {
                 credentials: {
                     username: '',
                     password: ''
-                }
+                },
+                topicPrefix: '#'
             },
             protocolOptions: [
                 {

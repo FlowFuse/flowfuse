@@ -29,7 +29,8 @@ module.exports = function (app) {
                 ssl: result.ssl,
                 verifySSL: result.verifySSL,
                 clientId: result.clientId,
-                state: result.state
+                state: result.state,
+                topicPrefix: result.topicPrefix
             }
             return cleaned
         },
