@@ -1,5 +1,5 @@
 <template>
-    <main v-if="device" class="ff-with-status-header">
+    <main v-if="device" class="ff-with-status-header h-full w-full flex flex-col">
         <Teleport v-if="mounted" to="#platform-banner">
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
@@ -52,11 +52,11 @@
                 </template>
             </SectionNavigationHeader>
         </div>
-        <div class="mt-4 sm:mt-8">
+        <div class="pt-7 h-full w-full flex-1 overflow-auto">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>
             </Teleport>
-            <div class="px-3 pb-3 md:px-6 md:pb-6">
+            <div class="px-3 pb-3 md:px-6 md:pb-6 h-full w-full flex flex-col overflow-auto">
                 <router-view :instance="device.instance" :closingTunnel="closingTunnel" :openingTunnel="openingTunnel" :device="device" @device-updated="loadDevice" @close-tunnel="closeTunnel" @open-tunnel="openTunnel" @device-refresh="deviceRefresh" @assign-device="openAssignmentDialog" />
             </div>
         </div>
