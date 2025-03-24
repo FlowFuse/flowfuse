@@ -1,5 +1,5 @@
 <template>
-    <section class="instance-step text-center flex flex-col gap-7">
+    <section class="ff-instance-step text-center flex flex-col gap-4 pt-6">
         <h2>Setup Your Instance</h2>
 
         <p>We have a collection of pre-build flow templates that you can use as a starting point for your Node-RED Instance.</p>
@@ -9,9 +9,9 @@
 
             <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
 
-            <div class="name input-wrapper flex flex-col gap-1">
+            <div class="ff-instance-name ff-input-wrapper flex flex-col gap-1">
                 <label class="mb-1">Name</label>
-                <div class="input-wrapper flex gap-3 items-center">
+                <div class="ff-input-wrapper flex gap-3 items-center">
                     <ff-text-input
                         v-model="input.name"
                         label="instance-name"
@@ -41,9 +41,9 @@
             <transition name="fade" mode="out-in">
                 <Loading v-if="loading" size="small" />
 
-                <div v-else class="flex flex-col gap-1">
-                    <div class="instance-types input-wrapper flex flex-wrap items-stretch">
-                        <label class="mb-2">Choose your Instance Type</label>
+                <div v-else class="flex flex-col gap-4">
+                    <div class="instance-types ff-input-wrapper flex flex-wrap items-stretch">
+                        <label class="w-full mb-2 block">Choose your Instance Type</label>
                         <template v-if="hasInstanceTypes && activeInstanceTypeCount > 0">
                             <InstanceCreditBanner :subscription="subscription" />
                             <ff-tile-selection v-model="input.instanceType" data-form="project-type">
@@ -71,8 +71,8 @@
                         </template>
                     </div>
 
-                    <div v-if="hasMultipleTemplates" class="instance-templates input-wrapper flex flex-wrap items-stretch">
-                        <label class="mb-2">Choose your Template</label>
+                    <div v-if="hasMultipleTemplates" class="instance-templates ff-input-wrapper flex flex-wrap items-stretch">
+                        <label class="mb-2 block w-full">Choose your Template</label>
                         <template v-if="hasTemplates">
                             <ff-tile-selection v-model="input.template" data-form="project-type">
                                 <ff-tile-selection-option
@@ -92,7 +92,7 @@
                         </template>
                     </div>
 
-                    <div class="node-red-version input-wrapper flex flex-col gap-1">
+                    <div class="node-red-version ff-input-wrapper flex flex-col gap-1">
                         <label class="mb-1">Node-RED Version</label>
                         <template v-if="hasNodeRedVersions">
                             <ff-listbox
@@ -426,10 +426,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.instance-step {
+.ff-instance-step {
     form {
-        .name {
-            .input-wrapper {
+        .ff-instance-name {
+            .ff-input-wrapper {
                 button {
                     padding: 5px 10px;
                 }

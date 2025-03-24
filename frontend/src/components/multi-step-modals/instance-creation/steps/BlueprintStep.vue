@@ -1,5 +1,5 @@
 <template>
-    <section class="blueprint-step text-center flex flex-col gap-7">
+    <section class="ff-blueprint-step text-center flex flex-col gap-4 pt-6">
         <h2>Select Your Blueprint</h2>
 
         <p>We have a collection of pre-build flow templates that you can use as a starting point for your Node-RED Instance.</p>
@@ -8,12 +8,12 @@
             <ff-loading v-if="loading" message="Loading Blueprints..." />
             <div v-else class="flex flex-col gap-7">
                 <div class="flex gap-16 text-left flex-wrap-reverse">
-                    <div class="blueprints flex-1">
-                        <ul class="categories flex flex-col gap-8">
+                    <div class="ff-blueprints flex-1">
+                        <ul class="flex flex-col gap-8">
                             <li v-for="(category, $categoryName) in categories" :key="$categoryName" :ref="$categoryName">
                                 <h3>{{ $categoryName }}</h3>
                                 <hr class="my-3">
-                                <ul class="tiles flex gap-5 flex-wrap">
+                                <ul class="ff-blueprint-tiles flex gap-5 flex-wrap">
                                     <li v-for="(blueprint, $key) in category" :key="$key" class="tile">
                                         <BlueprintTile
                                             :blueprint="blueprint"
@@ -24,7 +24,7 @@
                                             :active="selectedBlueprint && selectedBlueprint.id === blueprint.id"
                                             :alt-preview-button="true"
                                             :class="{'no-icon': !blueprint.icon}"
-                                            default-icon="plus"
+                                            class="cursor-pointer"
                                             @selected="onTileSelect"
                                             @preview="onPreview($event)"
                                         />
@@ -33,7 +33,7 @@
                             </li>
                         </ul>
                     </div>
-                    <div class="categories">
+                    <div class="ff-blueprint-categories">
                         <h3>Categories</h3>
                         <hr class="my-3">
                         <ul>
@@ -60,7 +60,6 @@
 </template>
 
 <script>
-import { PlusIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import flowBlueprintsApi from '../../../../api/flowBlueprints.js'
@@ -86,7 +85,7 @@ export default {
     emits: ['step-updated'],
     setup (props) {
         const initialState = props.state
-        return { PlusIcon, initialState }
+        return { initialState }
     },
     data () {
         return {
@@ -158,44 +157,27 @@ export default {
 </script>
 
 <style lang="scss">
-.blueprint-step {
+.ff-blueprint-step {
 
-    .blueprints {
+    .ff-blueprints {
         overflow: auto;
         min-width: 400px;
         max-height: 75vh;
         padding-right: 15px;
 
-        .tiles {
-            .tile {
-                .ff-blueprint-tile {
-                    width: 280px;
-
-                    .ff-blueprint-tile--header {
-                        height: 115px;
-
-                        .ff-icon {
-                            transform: scale(8);
-                            position: absolute;
-                            top: 70px;
-                        }
-                    }
-
-                    &.no-icon {
-                        .ff-blueprint-tile--header {
-                            .ff-icon:not(.alt-preview) {
-                                transform: scale(4);
-                                position: initial;
-                            }
-                        }
-                    }
-                }
+        .ff-blueprint-tiles {
+            .ff-blueprint-tile {
+                width: 280px;
             }
         }
     }
 
-    .categories {
+    .ff-blueprint-categories {
         min-width: 300px;
+        li:hover {
+            cursor: pointer;
+            color: $ff-blue-600;
+        }
     }
 }
 </style>

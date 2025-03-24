@@ -1,6 +1,6 @@
 <template>
     <div
-        class="ff-blueprint-tile" :class="{['ff-blueprint-group--' + categoryClass]: true, active}"
+        class="ff-blueprint-tile" :class="{['ff-blueprint-group--' + categoryClass]: true, active, 'interactive': tileBehavior}"
         data-el="blueprint-tile" @click="onTileClick()"
     >
         <div class="ff-blueprint-tile--header">
@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import { CheckCircleIcon, QuestionMarkCircleIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, PlusIcon } from '@heroicons/vue/outline'
 import { SearchIcon } from '@heroicons/vue/solid'
 import { defineAsyncComponent } from 'vue'
 import { mapState } from 'vuex'
@@ -72,7 +72,8 @@ export default {
         AssetDetailDialog,
         CheckCircleIcon,
         ProjectIcon,
-        SearchIcon
+        SearchIcon,
+        PlusIcon
     },
     props: {
         altPreviewButton: {
@@ -139,7 +140,7 @@ export default {
                 if (this.defaultIcon && typeof this.defaultIcon === 'string') {
                     iconName = this.defaultIcon
                 } else {
-                    return this.defaultIcon ?? QuestionMarkCircleIcon
+                    return this.defaultIcon ?? PlusIcon
                 }
             }
 
@@ -154,7 +155,7 @@ export default {
                     icon = await import(`@heroicons/vue/outline/${importName}.js`)
                 } catch (err) {
                     console.warn(`Did not recognise icon name "${iconName}" (imported as "${importName}")`)
-                    icon = QuestionMarkCircleIcon
+                    icon = PlusIcon
                 }
                 return icon
             })
@@ -185,19 +186,26 @@ export default {
 .ff-blueprint-tile {
     background-color: $ff-white;
     width: 250px;
+    border-width: 2px;
 
     &.active {
+        border-width: 2px;
         border-color: $ff-blue-600;
         transition: border-color .3s;
     }
 
     .ff-blueprint-tile--header {
         position: relative;
+        height: 115px;
 
         .ff-icon {
+            transform: scale(8);
+            position: absolute;
+            top: 70px;
+            transition: transform .3s;
             &.alt-preview {
                 position: absolute;
-                cursor: pointer;
+                cursor: zoom-in;
                 height: 30px;
                 width: 30px;
                 transform: scale(1) !important;
@@ -205,6 +213,18 @@ export default {
                 right: 5px !important;
                 stroke: none;
                 opacity: .7;
+                &:hover {
+                    color: $ff-blue-600;
+                }
+            }
+        }
+    }
+
+    &.no-icon {
+        .ff-blueprint-tile--header {
+            .ff-icon:not(.alt-preview) {
+                transform: scale(4);
+                position: initial;
             }
         }
     }
@@ -219,6 +239,23 @@ export default {
 
             .ff-dialog-actions {
                 padding: 5px 15px;
+            }
+        }
+    }
+    &.interactive:hover {
+        border-width: 2px;
+        border-color: $ff-blue-600;
+        .ff-blueprint-tile--header {
+            .ff-icon:not(.alt-preview) {
+                transform: scale(10);
+            }
+        }
+
+        &.no-icon {
+            .ff-blueprint-tile--header {
+                .ff-icon:not(.alt-preview) {
+                    transform: scale(6);
+                }
             }
         }
     }
