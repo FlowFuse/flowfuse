@@ -19,8 +19,7 @@ describe('FlowForge - Table Component', () => {
             cy.visit('team/ateam/devices')
             cy.wait(['@getDevices'])
             // scroll to the bottom of the page
-            // eslint-disable-next-line cypress/require-data-selectors
-            cy.get('div.ff-view').scrollTo('bottom')
+            cy.get('[data-el="devices-section"]').scrollTo('bottom')
             // ensure the last row is visible
             cy.get('[data-el="devices-browser"] tbody tr:last-child').should('be.visible')
             // click the kebab menu on the last device
