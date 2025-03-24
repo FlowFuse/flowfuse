@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-section-header flex border-b border-gray-400 mb-4 sm:mb-2 text-gray-500 justify-between min-h-12">
+    <div class="ff-section-header flex border-b border-gray-400 mb-4 sm:mb-2 text-gray-500 justify-between" style="min-height: 42px;">
         <div class="w-full flex flex-nowrap justify-between mb-2 items-center gap-2">
             <div class="flex-shrink flex-grow flex-wrap max-w-full flex gap-x-2 items-baseline min-w-0">
                 <div class="flex gap-2 items-center">
