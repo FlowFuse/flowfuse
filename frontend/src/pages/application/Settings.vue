@@ -1,6 +1,6 @@
 <template>
     <SectionTopMenu hero="Application Settings" />
-    <div class="flex flex-col sm:flex-row mt-9 ml-6" data-el="application-settings">
+    <div class="flex flex-col sm:flex-row mt-5 flex-1" data-el="application-settings">
         <SectionSideMenu :options="sideNavigation" />
         <div class="space-y-6">
             <FormHeading class="mb-6">Application Details</FormHeading>

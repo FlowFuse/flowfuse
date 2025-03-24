@@ -1,18 +1,84 @@
 <template>
-    <div>
-        <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Hosted instances of Node-RED, owned by this application.">
-            <template #pictogram>
-                <img src="../../images/pictograms/instance_red.png">
+    <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Hosted instances of Node-RED, owned by this application.">
+        <template #pictogram>
+            <img src="../../images/pictograms/instance_red.png">
+        </template>
+        <template #helptext>
+            <p>This is a list of Node-RED instances in this Application, hosted on the same domain as FlowFuse.</p>
+            <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
+            <p>To edit an Application's flow, open the editor of the Instance.</p>
+        </template>
+        <template v-if="instancesAvailable" #tools>
+            <ff-button
+                v-if="hasPermission('project:create')"
+                data-action="create-instance"
+
+                :to="{ name: 'application-create-instance' }"
+                type="anchor"
+            >
+                <template #icon-left><PlusSmIcon /></template>
+                Add Instance
+            </ff-button>
+        </template>
+    </SectionTopMenu>
+    <FeatureUnavailableToTeam v-if="!instancesAvailable" />
+    <div class="space-y-6 overflow-auto">
+        <ff-data-table
+            v-if="instances?.length > 0"
+            data-el="cloud-instances"
+            :columns="cloudColumns"
+            :rows="filteredRows"
+            :show-search="true"
+            :search="searchTerm"
+            search-placeholder="Search Instances"
+            :rows-selectable="true"
+            @update:search="updateSearch"
+            @row-selected="selectedCloudRow"
+        >
+            <template
+                v-if="hasPermission('project:change-status')"
+                #context-menu="{row}"
+            >
+                <ff-list-item
+                    :disabled="row.pendingStateChange || row.running"
+                    label="Start"
+                    @click.stop="$emit('instance-start', row)"
+                />
+
+                <ff-list-item
+                    :disabled="!row.notSuspended"
+                    label="Restart"
+                    @click.stop="$emit('instance-restart', row)"
+                />
+
+                <ff-list-item
+                    :disabled="!row.notSuspended"
+                    kind="danger"
+                    label="Suspend"
+                    @click.stop="$emit('instance-suspend', row)"
+                />
+
+                <ff-list-item
+                    v-if="hasPermission('project:delete')"
+                    kind="danger"
+                    label="Delete"
+                    @click.stop="$emit('instance-delete', row)"
+                />
             </template>
-            <template #helptext>
-                <p>This is a list of Node-RED instances in this Application, hosted on the same domain as FlowFuse.</p>
-                <p>It will always run the latest flow deployed in Node-RED and use the latest credentials and runtime settings defined in the Projects settings.</p>
-                <p>To edit an Application's flow, open the editor of the Instance.</p>
+        </ff-data-table>
+        <EmptyState v-else-if="instancesAvailable">
+            <template #img>
+                <img src="../../images/empty-states/application-instances.png">
             </template>
-            <template v-if="instancesAvailable" #tools>
+            <template #header>Add your Application's First Instance</template>
+            <template #message>
+                <p>
+                    Applications in FlowFuse are used to manage groups of Node-RED Instances.
+                </p>
+            </template>
+            <template #actions>
                 <ff-button
                     v-if="hasPermission('project:create')"
-                    data-action="create-instance"
                     :to="{ name: 'application-create-instance' }"
                     type="anchor"
                 >
@@ -20,93 +86,25 @@
                     Add Instance
                 </ff-button>
             </template>
-        </SectionTopMenu>
-        <FeatureUnavailableToTeam v-if="!instancesAvailable" />
-        <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-        <div class="space-y-6 mb-14">
-            <ff-data-table
-                v-if="instances?.length > 0"
-                data-el="cloud-instances"
-                :columns="cloudColumns"
-                :rows="filteredRows"
-                :show-search="true"
-                :search="searchTerm"
-                search-placeholder="Search Instances"
-                :rows-selectable="true"
-                @update:search="updateSearch"
-                @row-selected="selectedCloudRow"
-            >
-                <template
-                    v-if="hasPermission('project:change-status')"
-                    #context-menu="{row}"
-                >
-                    <ff-list-item
-                        :disabled="row.pendingStateChange || row.running"
-                        label="Start"
-                        @click.stop="$emit('instance-start', row)"
-                    />
-
-                    <ff-list-item
-                        :disabled="!row.notSuspended"
-                        label="Restart"
-                        @click.stop="$emit('instance-restart', row)"
-                    />
-
-                    <ff-list-item
-                        :disabled="!row.notSuspended"
-                        kind="danger"
-                        label="Suspend"
-                        @click.stop="$emit('instance-suspend', row)"
-                    />
-
-                    <ff-list-item
-                        v-if="hasPermission('project:delete')"
-                        kind="danger"
-                        label="Delete"
-                        @click.stop="$emit('instance-delete', row)"
-                    />
-                </template>
-            </ff-data-table>
-            <EmptyState v-else-if="instancesAvailable">
-                <template #img>
-                    <img src="../../images/empty-states/application-instances.png">
-                </template>
-                <template #header>Add your Application's First Instance</template>
-                <template #message>
-                    <p>
-                        Applications in FlowFuse are used to manage groups of Node-RED Instances.
-                    </p>
-                </template>
-                <template #actions>
-                    <ff-button
-                        v-if="hasPermission('project:create')"
-                        :to="{ name: 'application-create-instance' }"
-                        type="anchor"
-                    >
-                        <template #icon-left><PlusSmIcon /></template>
-                        Add Instance
-                    </ff-button>
-                </template>
-                <template #note>
-                    <p>
-                        The FlowFuse team also have more planned for Applications, including
-                        <a class="ff-link" href="https://github.com/FlowFuse/flowfuse/issues/1734" target="_blank">
-                            shared settings across Instances</a>.
-                    </p>
-                </template>
-            </EmptyState>
-            <EmptyState v-else>
-                <template #img>
-                    <img src="../../images/empty-states/application-instances.png">
-                </template>
-                <template #header>Hosted Instances Not Available</template>
-                <template #message>
-                    <p>
-                        Hosted Instances are not available for this team tier. Please consider upgrading if you would like to enable this feature.
-                    </p>
-                </template>
-            </EmptyState>
-        </div>
+            <template #note>
+                <p>
+                    The FlowFuse team also have more planned for Applications, including
+                    <a class="ff-link" href="https://github.com/FlowFuse/flowfuse/issues/1734" target="_blank">
+                        shared settings across Instances</a>.
+                </p>
+            </template>
+        </EmptyState>
+        <EmptyState v-else>
+            <template #img>
+                <img src="../../images/empty-states/application-instances.png">
+            </template>
+            <template #header>Hosted Instances Not Available</template>
+            <template #message>
+                <p>
+                    Hosted Instances are not available for this team tier. Please consider upgrading if you would like to enable this feature.
+                </p>
+            </template>
+        </EmptyState>
     </div>
 </template>
 

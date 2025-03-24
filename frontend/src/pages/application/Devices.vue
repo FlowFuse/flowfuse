@@ -1,5 +1,5 @@
 <template>
-    <div data-el="application-devices">
+    <div data-el="application-devices" class="overflow-auto flex flex-col w-full h-full">
         <SectionTopMenu hero="Remote Instances" help-header="Remote Instances - Registered to FlowFuse" info="Manage remote instances of Node-RED running on your own hardware, managed with the FlowFuse Device Agent.">
             <template #pictogram>
                 <img src="../../images/pictograms/devices_red.png">
@@ -10,8 +10,7 @@
                 <p>Remote Instances are registered to a Team, and assigned to an Application.</p>
             </template>
         </SectionTopMenu>
-
-        <DevicesBrowser :application="application" />
+        <DevicesBrowser :application="application" class="overflow-auto" />
     </div>
 </template>
 
