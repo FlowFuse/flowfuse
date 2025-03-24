@@ -1,107 +1,105 @@
 <template>
-    <div>
-        <div
-            v-if="subscription?.customer?.balance < 0"
-            class="ff-banner ff-banner-info mb-3"
-            data-el="credit-balance-banner"
-        >
-            You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to the next invoice.
-        </div>
-        <div
-            v-else-if="subscription?.customer?.balance > 0"
-            class="ff-banner ff-banner-info mb-3"
-            data-el="credit-balance-banner"
-        >
-            You owe {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to the next invoice.
-        </div>
-        <ff-page>
-            <template #header>
-                <ff-page-header title="Team Billing">
-                    <template #context>
-                        Manage your team's billing subscription
-                    </template>
-                    <template #tools>
-                        <div class="flex flex-row gap-x-4">
-                            <ff-button v-if="!isUnmanaged" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Upgrade Team</ff-button>
-                            <ff-button v-if="subscription" @click="customerPortal()">
-                                <template #icon-right><ExternalLinkIcon /></template>
-                                Stripe Customer Portal
-                            </ff-button>
-                        </div>
-                    </template>
-                </ff-page-header>
-            </template>
-            <Loading v-if="loading" size="small" />
-            <div v-else-if="billingSetUp">
-                <FormHeading v-if="trialMode" class="mb-6">Trial Ends:  <span class="font-normal">{{ formatDate(team.billing.trialEndsAt) }}</span></FormHeading>
-                <FormHeading class="mb-6">Next Payment: <span v-if="subscription && !subscriptionExpired" class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
-                <div v-if="subscriptionExpired" class="ff-no-data ff-no-data-large">
-                    Your subscription has expired. Please renew it to continue using FlowFuse.
-
-                    <ff-button data-action="renew-subscription" class="mx-auto mt-3" @click="setupBilling()">
-                        <template #icon-right><ExternalLinkIcon /></template>
-                        Renew Subscription
-                    </ff-button>
-                </div>
-                <div v-else-if="subscription">
-                    <ff-data-table :columns="columns" :rows="subscription.items" />
-                    <div v-if="hasTrialProject" class="text-gray-400 mt-1 pl-2 text-sm">Your trial instance will be automatically added to your subscription when the trial ends</div>
-                </div>
-                <div v-else class="ff-no-data ff-no-data-large">
-                    Something went wrong loading your subscription information, please try again.
-                </div>
-            </div>
-            <EmptyState v-else-if="billingDisabledForTeam">
-                <template #img>
-                    <img src="../../images/empty-states/team-instances.png">
-                </template>
-                <template #header>Team Billing</template>
-                <template #message>
-                    <p>
-                        Your team does not require billing to be setup.
-                    </p>
-                </template>
-            </EmptyState>
-            <EmptyState v-else-if="isUnmanaged">
-                <template #img>
-                    <img src="../../images/empty-states/team-instances.png">
-                </template>
-                <template #header>Team Billing</template>
-                <template #message>
-                    <p>
-                        Your team billing cannot currently be managed from the dashboard.
-                    </p>
-                    <p>
-                        Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
-                    </p>
-                </template>
-            </EmptyState>
-            <EmptyState v-else>
-                <template #img>
-                    <img src="../../images/empty-states/team-instances.png">
-                </template>
-                <template #header>Setup Team Billing</template>
-                <template #message>
-                    <template v-if="!trialHasEnded">
-                        <p v-if="trialMode">
-                            You have <span class="font-bold" v-text="trialEndsIn" /> left of your trial.
-                        </p>
-                        <p>
-                            You must add billing details in order to continue using FlowFuse.
-                        </p>
-                    </template>
-                    <template v-else>
-                        <p>
-                            You trial has ended. You will need to setup billing to continuing using this team.
-                        </p>
-                    </template>
-                </template>
-                <template #actions>
-                    <ff-button v-if="hasPermission('team:edit')" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
-                </template>
-            </EmptyState>
-        </ff-page>
+    <div
+        v-if="subscription?.customer?.balance < 0"
+        class="ff-banner ff-banner-info mb-3"
+        data-el="credit-balance-banner"
+    >
+        You have a credit balance of {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to the next invoice.
     </div>
+    <div
+        v-else-if="subscription?.customer?.balance > 0"
+        class="ff-banner ff-banner-info mb-3"
+        data-el="credit-balance-banner"
+    >
+        You owe {{ formatCurrency(Math.abs(subscription.customer.balance)) }} that will be applied to the next invoice.
+    </div>
+    <ff-page>
+        <template #header>
+            <ff-page-header title="Team Billing">
+                <template #context>
+                    Manage your team's billing subscription
+                </template>
+                <template #tools>
+                    <div class="flex flex-row gap-x-4">
+                        <ff-button v-if="!isUnmanaged" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Upgrade Team</ff-button>
+                        <ff-button v-if="subscription" @click="customerPortal()">
+                            <template #icon-right><ExternalLinkIcon /></template>
+                            Stripe Customer Portal
+                        </ff-button>
+                    </div>
+                </template>
+            </ff-page-header>
+        </template>
+        <Loading v-if="loading" size="small" />
+        <div v-else-if="billingSetUp">
+            <FormHeading v-if="trialMode" class="mb-6">Trial Ends:  <span class="font-normal">{{ formatDate(team.billing.trialEndsAt) }}</span></FormHeading>
+            <FormHeading class="mb-6">Next Payment: <span v-if="subscription && !subscriptionExpired" class="font-normal">{{ formatDate(subscription.next_billing_date) }}</span></FormHeading>
+            <div v-if="subscriptionExpired" class="ff-no-data ff-no-data-large">
+                Your subscription has expired. Please renew it to continue using FlowFuse.
+
+                <ff-button data-action="renew-subscription" class="mx-auto mt-3" @click="setupBilling()">
+                    <template #icon-right><ExternalLinkIcon /></template>
+                    Renew Subscription
+                </ff-button>
+            </div>
+            <div v-else-if="subscription">
+                <ff-data-table :columns="columns" :rows="subscription.items" />
+                <div v-if="hasTrialProject" class="text-gray-400 mt-1 pl-2 text-sm">Your trial instance will be automatically added to your subscription when the trial ends</div>
+            </div>
+            <div v-else class="ff-no-data ff-no-data-large">
+                Something went wrong loading your subscription information, please try again.
+            </div>
+        </div>
+        <EmptyState v-else-if="billingDisabledForTeam">
+            <template #img>
+                <img src="../../images/empty-states/team-instances.png">
+            </template>
+            <template #header>Team Billing</template>
+            <template #message>
+                <p>
+                    Your team does not require billing to be setup.
+                </p>
+            </template>
+        </EmptyState>
+        <EmptyState v-else-if="isUnmanaged">
+            <template #img>
+                <img src="../../images/empty-states/team-instances.png">
+            </template>
+            <template #header>Team Billing</template>
+            <template #message>
+                <p>
+                    Your team billing cannot currently be managed from the dashboard.
+                </p>
+                <p>
+                    Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
+                </p>
+            </template>
+        </EmptyState>
+        <EmptyState v-else>
+            <template #img>
+                <img src="../../images/empty-states/team-instances.png">
+            </template>
+            <template #header>Setup Team Billing</template>
+            <template #message>
+                <template v-if="!trialHasEnded">
+                    <p v-if="trialMode">
+                        You have <span class="font-bold" v-text="trialEndsIn" /> left of your trial.
+                    </p>
+                    <p>
+                        You must add billing details in order to continue using FlowFuse.
+                    </p>
+                </template>
+                <template v-else>
+                    <p>
+                        You trial has ended. You will need to setup billing to continuing using this team.
+                    </p>
+                </template>
+            </template>
+            <template #actions>
+                <ff-button v-if="hasPermission('team:edit')" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Setup Billing</ff-button>
+            </template>
+        </EmptyState>
+    </ff-page>
 </template>
 
 <script>
