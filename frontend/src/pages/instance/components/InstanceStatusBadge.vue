@@ -3,6 +3,8 @@
         :status="status"
         :text="text"
         :pendingChange="optimisticStateChange || pendingStateChange"
+        :instanceId="instanceId"
+        :instanceType="instanceType"
     />
 </template>
 
@@ -29,6 +31,14 @@ export default {
         },
         text: {
             type: [Number, String],
+            default: null
+        },
+        instanceType: {
+            type: String,
+            default: null
+        },
+        instanceId: {
+            type: String,
             default: null
         }
     }

@@ -107,7 +107,11 @@ export default {
     methods: {
         pluralize,
         async getExternalDependency () {
-            this.externalDependency = await ExternalClient.getNpmDependency(this.title)
+            try {
+                this.externalDependency = await ExternalClient.getNpmDependency(this.title)
+            } catch (error) {
+                console.error(`Failed to lookup dependency ${this.title} : ${error.message}`)
+            }
         },
         toggleOpenState () {
             this.isOpen = !this.isOpen
