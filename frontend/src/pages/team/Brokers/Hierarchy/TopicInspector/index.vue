@@ -146,8 +146,10 @@ export default {
 <style scoped lang="scss">
 .ff-topic-inspector {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     min-width: 50%;
     transition: width 0.3s;
-    overflow: hidden;
+    overflow: auto;
 }
 </style>

@@ -10,6 +10,7 @@
         :disabled="disabled"
         loading-message="Loading directory..."
         data-el="files-table"
+        class="h-full w-full overflow-auto"
         @row-selected="directoryClicked"
     >
         <template #actions>

@@ -41,7 +41,7 @@
         v-if="loading"
         message="Loading Pipelines..."
     />
-    <div v-else-if="pipelines?.length > 0" class="pt-4 space-y-6" data-el="pipelines-list">
+    <div v-else-if="pipelines?.length > 0" class="pt-4 space-y-6 overflow-auto" data-el="pipelines-list">
         <PipelineRow
             v-for="pipeline in pipelines"
             :key="pipeline.id"

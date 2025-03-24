@@ -1,5 +1,5 @@
 <template>
-    <div class="dependencies-wrapper">
+    <div class="dependencies-wrapper flex flex-col h-full w-full">
         <SectionTopMenu hero="Dependencies" help-header="Node-RED Dependencies - Running in FlowFuse" info="Dependencies of Node-RED Instances belonging to this application.">
             <template #pictogram>
                 <img src="../../../images/pictograms/instance_red.png">
@@ -9,7 +9,7 @@
             </template>
         </SectionTopMenu>
 
-        <div class="space-y-6">
+        <div class="overflow-auto h-full w-full">
             <div class="banner-wrapper mt-5">
                 <FeatureUnavailable v-if="!isBOMFeatureEnabledForPlatform" />
                 <FeatureUnavailableToTeam v-else-if="!isBOMFeatureEnabledForTeam" />
@@ -17,7 +17,7 @@
 
             <ff-loading v-if="loading" message="Loading Snapshots..." />
 
-            <div v-else-if="hasInstances">
+            <template v-else-if="hasInstances">
                 <ff-text-input
                     v-model="searchTerm"
                     class="ff-data-table--search mb-5 mt-5"
@@ -28,7 +28,7 @@
                 </ff-text-input>
 
                 <BomDependencies :payload="payload" :search-term="searchTerm" />
-            </div>
+            </template>
             <EmptyState v-else>
                 <template #img>
                     <img src="../../../images/empty-states/application-instances.png">

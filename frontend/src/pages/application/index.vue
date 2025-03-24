@@ -4,7 +4,7 @@
     <main v-else-if="!application?.id">
         <ff-loading message="Loading Application..." />
     </main>
-    <main v-else class="ff-with-status-header">
+    <main v-else class="ff-with-status-header h-full w-full overflow-auto flex flex-col">
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
         <div class="ff-instance-header">
@@ -14,7 +14,7 @@
                 </template>
             </ff-page-header>
         </div>
-        <div class="px-3 py-3 md:px-6 md:py-6">
+        <div class="px-3 py-3 md:px-6 md:py-6 flex-1 overflow-auto h-full w-full flex flex-col">
             <router-view
                 :application="application"
                 :instances="instancesArray"

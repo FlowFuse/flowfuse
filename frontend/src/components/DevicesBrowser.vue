@@ -1,9 +1,5 @@
 <template>
-    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-    <div
-        class="space-y-2 mb-14"
-        data-el="devices-section"
-    >
+    <div class="space-y-2 overflow-auto" data-el="devices-section">
         <ff-loading
             v-if="loadingStatuses || loadingDevices"
             message="Loading Remote Instances..."

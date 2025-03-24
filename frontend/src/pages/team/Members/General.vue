@@ -1,8 +1,7 @@
 <template>
     <FeatureUnavailableToTeam v-if="teamUserLimitReached" fullMessage="You have reached the user limit for this team." class="mt-0" />
     <ff-loading v-if="loading" message="Loading Team..." />
-    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-    <form v-else class="mb-14">
+    <form v-else>
         <div class="text-right" />
         <ff-data-table data-el="members-table" :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
             <template v-if="hasPermission('team:user:invite')" #actions>

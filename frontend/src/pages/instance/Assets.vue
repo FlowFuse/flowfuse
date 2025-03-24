@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-instance-assets">
+    <div class="ff-instance-assets h-full flex flex-col">
         <div class="banner-wrapper">
             <FeatureUnavailable v-if="!isStaticAssetFeatureEnabledForPlatform" />
             <FeatureUnavailableToTeam v-else-if="!isStaticAssetsFeatureEnabledForTeam" />

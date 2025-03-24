@@ -12,67 +12,69 @@
                 <slot name="actions" />
             </div>
         </div>
-        <table class="ff-data-table--data">
-            <slot name="table">
-                <thead>
-                    <!-- HEADERS -->
-                    <slot name="header">
-                        <ff-data-table-row>
-                            <ff-data-table-cell v-if="showRowCheckboxes" class="w-5">
-                                <ff-checkbox v-model="allChecked" data-action="check-all" @click="toggleAllChecks" />
-                            </ff-data-table-cell>
-                            <ff-data-table-cell
-                                v-for="(col, $index) in columns" :key="$index"
-                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
-                                :style="col.style"
-                                @click="sortBy(col, $index)"
-                            >
-                                <!-- Internal div required to have flex w/sorting icons -->
-                                <div>
-                                    {{ col.label }}
-                                    <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key" class="ff-icon ff-icon-sm" />
-                                    <SortAscendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'" class="ff-icon ff-icon-sm icon-sorted" />
-                                    <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'" class="ff-icon ff-icon-sm icon-sorted" />
-                                </div>
-                            </ff-data-table-cell>
+        <div class="overflow-auto">
+            <table class="ff-data-table--data">
+                <slot name="table">
+                    <thead>
+                        <!-- HEADERS -->
+                        <slot name="header">
+                            <ff-data-table-row>
+                                <ff-data-table-cell v-if="showRowCheckboxes" class="w-5">
+                                    <ff-checkbox v-model="allChecked" data-action="check-all" @click="toggleAllChecks" />
+                                </ff-data-table-cell>
+                                <ff-data-table-cell
+                                    v-for="(col, $index) in columns" :key="$index"
+                                    :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
+                                    :style="col.style"
+                                    @click="sortBy(col, $index)"
+                                >
+                                    <!-- Internal div required to have flex w/sorting icons -->
+                                    <div>
+                                        {{ col.label }}
+                                        <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key" class="ff-icon ff-icon-sm" />
+                                        <SortAscendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'" class="ff-icon ff-icon-sm icon-sorted" />
+                                        <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'" class="ff-icon ff-icon-sm icon-sorted" />
+                                    </div>
+                                </ff-data-table-cell>
 
-                            <ff-data-table-cell v-if="hasRowActions" />
-                            <ff-data-table-cell v-if="hasContextMenu" />
-                        </ff-data-table-row>
-                    </slot>
-                </thead>
-                <tbody>
-                    <!-- ROWS -->
-                    <slot name="rows">
-                        <ff-data-table-row v-if="loading">
-                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ loadingMessage }}</ff-data-table-cell>
-                        </ff-data-table-row>
-                        <template v-if="!loading">
-                            <ff-data-table-row
-                                v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
-                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r, $event)"
-                            >
-                                <template v-if="showRowCheckboxes" #row-prepend="{row}">
-                                    <ff-checkbox v-model="checks[row[checkKeyProp]]" />
-                                </template>
-                                <template v-if="hasRowActions" #row-actions="{row}">
-                                    <slot name="row-actions" :row="row" />
-                                </template>
-                                <template v-if="hasContextMenu" #context-menu="{row}">
-                                    <slot name="context-menu" :row="row" />
-                                </template>
+                                <ff-data-table-cell v-if="hasRowActions" />
+                                <ff-data-table-cell v-if="hasContextMenu" />
                             </ff-data-table-row>
-                        </template>
-                        <ff-data-table-row v-if="!loading && rows?.length > 0 && filteredRows?.length === 0">
-                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">No Data Found. Try Another Search.</ff-data-table-cell>
-                        </ff-data-table-row>
-                        <ff-data-table-row v-else-if="!loading && filteredRows?.length === 0">
-                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ noDataMessage }}</ff-data-table-cell>
-                        </ff-data-table-row>
-                    </slot>
-                </tbody>
-            </slot>
-        </table>
+                        </slot>
+                    </thead>
+                    <tbody>
+                        <!-- ROWS -->
+                        <slot name="rows">
+                            <ff-data-table-row v-if="loading">
+                                <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ loadingMessage }}</ff-data-table-cell>
+                            </ff-data-table-row>
+                            <template v-if="!loading">
+                                <ff-data-table-row
+                                    v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
+                                    :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r, $event)"
+                                >
+                                    <template v-if="showRowCheckboxes" #row-prepend="{row}">
+                                        <ff-checkbox v-model="checks[row[checkKeyProp]]" />
+                                    </template>
+                                    <template v-if="hasRowActions" #row-actions="{row}">
+                                        <slot name="row-actions" :row="row" />
+                                    </template>
+                                    <template v-if="hasContextMenu" #context-menu="{row}">
+                                        <slot name="context-menu" :row="row" />
+                                    </template>
+                                </ff-data-table-row>
+                            </template>
+                            <ff-data-table-row v-if="!loading && rows?.length > 0 && filteredRows?.length === 0">
+                                <ff-data-table-cell class="status-message" :colspan="messageColSpan">No Data Found. Try Another Search.</ff-data-table-cell>
+                            </ff-data-table-row>
+                            <ff-data-table-row v-else-if="!loading && filteredRows?.length === 0">
+                                <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ noDataMessage }}</ff-data-table-cell>
+                            </ff-data-table-row>
+                        </slot>
+                    </tbody>
+                </slot>
+            </table>
+        </div>
         <div v-if="showLoadMore" class="ff-loadmore">
             <span data-action="load-more" @click="$emit('load-more')">Load More...</span>
         </div>
