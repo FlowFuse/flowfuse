@@ -93,7 +93,7 @@ jobs:
     if: |
       needs.check-tests-status.outputs.tests_status == 'success' && github.ref == 'refs/heads/main'
     needs: check-tests-status
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.39.0'
     with:
       package_name: flowfuse
       build_package: true

@@ -80,7 +80,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.driver_k8s_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.39.0'
     with:
       package_name: driver-k8s
       publish_package: true
@@ -97,7 +97,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_project_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.39.0'
     with:
       package_name: nr-project-nodes
       publish_package: true
@@ -114,7 +114,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_file_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.39.0'
     with:
       package_name: nr-file-nodes
       publish_package: true
@@ -131,7 +131,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_assistant_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.39.0'
     with:
       package_name: nr-assistant
       publish_package: true
@@ -152,7 +152,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       (always() && inputs.nr_launcher_branch != 'main') || needs.publish_nr_project_nodes.result == 'success' || needs.publish_nr_file_nodes.result == 'success' || needs.publish_nr_assistant.result == 'success'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.38.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.39.0'
     with:
       package_name: flowfuse-nr-launcher
       publish_package: true
@@ -175,7 +175,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       (always() && needs.publish_nr_launcher.result == 'success')
-    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.38.0
+    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.39.0
     with:
       image_name: 'node-red'
       dockerfile_path: Dockerfile
