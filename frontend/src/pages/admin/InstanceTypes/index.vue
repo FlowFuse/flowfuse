@@ -1,6 +1,5 @@
 <template>
-    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-    <div class="space-y-6 mb-14">
+    <div class="space-y-6">
         <SectionTopMenu hero="Instance Types">
             <template #tools>
                 <ff-button data-action="create-type" @click="showCreateInstanceTypeDialog">
