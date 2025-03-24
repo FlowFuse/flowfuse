@@ -1,21 +1,21 @@
 <template>
-    <div>
-        <template v-if="pendingTeamChange">
-            <Loading />
-        </template>
-        <div v-else-if="canAccessTeam && team">
-            <Teleport v-if="mounted" to="#platform-banner">
-                <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
-                <TeamSuspendedBanner v-if="team.suspended" :team="team" />
-                <SubscriptionExpiredBanner v-else :team="team" />
-                <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
-            </Teleport>
-            <router-view />
-        </div>
-        <div v-else-if="!canAccessTeam">
-            <TeamInstances :dashboard-role-only="true" />
-        </div>
-    </div>
+    <!--    <div>-->
+    <template v-if="pendingTeamChange">
+        <Loading />
+    </template>
+    <template v-else-if="canAccessTeam && team">
+        <Teleport v-if="mounted" to="#platform-banner">
+            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
+            <TeamSuspendedBanner v-if="team.suspended" :team="team" />
+            <SubscriptionExpiredBanner v-else :team="team" />
+            <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
+        </Teleport>
+        <router-view />
+    </template>
+    <template v-else-if="!canAccessTeam">
+        <TeamInstances :dashboard-role-only="true" />
+    </template>
+<!--    </div>-->
 </template>
 
 <script>
