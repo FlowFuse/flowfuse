@@ -1,5 +1,5 @@
 <template>
-    <div class="unified-namespace-hierarchy">
+    <div class="unified-namespace-hierarchy flex flex-col">
         <main-title title="Topic Hierarchy">
             <template #actions>
                 <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
@@ -11,23 +11,23 @@
             </template>
         </main-title>
 
-        <div class="space-y-3">
-            <ff-text-input
-                v-model="filterTerm"
-                class="ff-data-table--search"
-                data-form="search"
-                placeholder="Search topics..."
-            >
-                <template #icon><SearchIcon /></template>
-                <template #icon-right>
-                    <XIcon v-if="filterTerm.length" class="ff-icon-sm cursor-pointer ease-in mr-2" @click="filterTerm=''" />
-                </template>
-            </ff-text-input>
+        <ff-text-input
+            v-model="filterTerm"
+            class="mb-3"
+            data-form="search"
+            placeholder="Search topics..."
+        >
+            <template #icon><SearchIcon /></template>
+            <template #icon-right>
+                <XIcon v-if="filterTerm.length" class="ff-icon-sm cursor-pointer ease-in mr-2" @click="filterTerm=''" />
+            </template>
+        </ff-text-input>
 
+        <div class="space-y-3 overflow-auto">
             <ff-loading v-if="loading" message="Loading Topics..." />
 
             <template v-else>
-                <section v-if="filteredTopics.length > 0" class="topics">
+                <section v-if="filteredTopics.length > 0" class="topics h-full overflow-auto">
                     <topic-segment
                         v-for="(segment, key) in hierarchySegments"
                         :key="segment"

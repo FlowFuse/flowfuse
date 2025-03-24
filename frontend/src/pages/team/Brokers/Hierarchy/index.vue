@@ -1,6 +1,6 @@
 <template>
     <BrokerError v-if="brokerState === 'error' && errorCode" :errorCode="errorCode" />
-    <div class="ff-broker-hierarchy">
+    <div class="ff-broker-hierarchy h-full">
         <TopicHierarchy
             :broker-state="brokerState"
             :loading="loading"
