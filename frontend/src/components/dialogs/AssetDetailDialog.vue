@@ -52,7 +52,7 @@ export default {
         nrVersion () {
             const mods = this.payload?.settings?.modules
             if (mods) {
-                return mods['node-red'] || 'ben'
+                return mods['node-red'] || 'unknown'
             }
             return ''
         },
