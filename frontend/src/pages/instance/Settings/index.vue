@@ -2,9 +2,9 @@
     <div class="mb-3">
         <SectionTopMenu hero="Settings" info="" />
     </div>
-    <div class="flex flex-col sm:flex-row">
+    <div class="flex flex-col sm:flex-row flex-1 overflow-auto">
         <SectionSideMenu :options="sideNavigation" />
-        <div class="flex-grow">
+        <div class="flex-grow overflow-auto">
             <router-view
                 :project="instance"
                 :instance="instance"

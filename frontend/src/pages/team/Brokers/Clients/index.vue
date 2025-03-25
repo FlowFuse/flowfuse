@@ -1,14 +1,14 @@
 <template>
-    <div class="unified-namespace-clients">
+    <div class="unified-namespace-clients overflow-auto flex flex-col">
         <div class="title mb-5 flex gap-3 items-center">
             <RssIcon class="ff-icon-sm" />
             <h3 class="my-2" data-el="subtitle">MQTT Broker</h3>
         </div>
 
-        <div class="space-y-6">
+        <div class="space-y-6 overflow-auto">
             <ff-loading v-if="loading" message="Loading Clients..." />
             <template v-else>
-                <section v-if="clients.length > 0">
+                <section v-if="clients.length > 0" class="h-full overflow-auto flex flex-col">
                     <div class="header ff-data-table--options">
                         <ff-text-input
                             v-model="filterTerm"
@@ -30,12 +30,12 @@
                             Create Client
                         </ff-button>
                     </div>
-                    <div class="clients-wrapper">
+                    <div class="clients-wrapper overflow-auto flex flex-col">
                         <div class="header grid grid-cols-6 gap-4 font-bold">
                             <span class="username">Username/ClientId</span>
                             <span class="rules">Rules</span>
                         </div>
-                        <ul data-el="clients-list" class="clients-list">
+                        <ul data-el="clients-list" class="clients-list overflow-auto">
                             <li v-for="client in filteredClients" :key="client.id" class="client" data-el="client">
                                 <broker-client
                                     :client="client"
@@ -170,7 +170,6 @@ export default {
     .clients-wrapper {
         border: 1px solid $ff-grey-300;
         border-radius: 5px;
-        overflow: hidden;
 
         .header {
             background: $ff-grey-100;
