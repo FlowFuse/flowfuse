@@ -7,6 +7,7 @@
                     :disabled="tools.saveButton.disabled"
                     class="ff-btn ff-btn--primary"
                     size="small"
+                    data-el="save-settings-button"
                     @click="onSaveButtonClick"
                 >
                     {{ tools.saveButton.label }}
