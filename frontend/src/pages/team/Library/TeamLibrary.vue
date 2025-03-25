@@ -1,6 +1,5 @@
 <template>
-    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-    <div class="ff-team-library mb-14">
+    <div class="ff-team-library h-full w-full overflow-auto flex flex-col">
         <SectionTopMenu hero="Team Library" info="Centralized management of common Javascript functions and Node-RED flows for your team." />
         <div v-if="isSharedLibraryFeatureEnabled" class="breadcrumbs-wrapper">
             <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
@@ -11,7 +10,7 @@
             </div>
             <ff-button v-if="file?.contents" kind="secondary" size="small" @click="copyToClipboard()">Copy to Clipboard</ff-button>
         </div>
-        <ff-data-table v-if="!viewingFile && rows.length > 0" :columns="columns" :rows="rows">
+        <ff-data-table v-if="!viewingFile && rows.length > 0" class="overflow-auto" :columns="columns" :rows="rows">
             <template #rows>
                 <ff-data-table-row v-for="row in rows" :key="row" :selectable="true" @click="entrySelected(row)">
                     <ff-data-table-cell><TypeIcon :type="row.type" /></ff-data-table-cell>
@@ -24,8 +23,8 @@
             </template>
         </ff-data-table>
         <!-- file viewer -->
-        <ff-flow-viewer v-else-if="viewingFile && file.meta.type === 'flows'" :flow="file?.contents" />
-        <ff-code-previewer v-else-if="viewingFile && file.meta.type === 'functions'" ref="code-preview" :snippet="file?.contents" />
+        <ff-flow-viewer v-else-if="viewingFile && file.meta.type === 'flows'" :flow="file?.contents" class="flex-1" />
+        <ff-code-previewer v-else-if="viewingFile && file.meta.type === 'functions'" ref="code-preview" class="flex-1" :snippet="file?.contents" />
         <EmptyState v-else :featureUnavailable="!isSharedLibraryFeatureEnabledForPlatform" :featureUnavailableToTeam="!isSharedLibraryFeatureEnabledForTeam">
             <template #img>
                 <img src="../../../images/empty-states/team-library.png" alt="team-logo">

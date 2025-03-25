@@ -1,7 +1,7 @@
 <template>
     <ff-page>
         <ff-loading v-if="loading" message="Updating Team..." />
-        <div v-else class="m-auto">
+        <div v-else>
             <form class="space-y-6">
                 <div>
                     <FormHeading>Change your team type</FormHeading>
