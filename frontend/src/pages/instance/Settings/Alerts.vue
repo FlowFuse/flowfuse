@@ -1,9 +1,6 @@
 <template>
     <form class="space-y-6">
         <TemplateSettingsAlert v-model="editable" :editTemplate="false" />
-        <div class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges" data-el="alert-save-button" @click="saveSettings()">Save settings</ff-button>
-        </div>
     </form>
 </template>
 

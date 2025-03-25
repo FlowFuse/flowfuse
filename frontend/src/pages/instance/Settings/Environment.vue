@@ -7,11 +7,6 @@
             :original-env-vars="original?.settings?.env ?? []"
             @validated="onFormValidated"
         />
-        <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges || hasErrors" data-el="submit" @click="saveSettings()">
-                Save settings
-            </ff-button>
-        </div>
     </form>
 </template>
 
@@ -82,7 +77,7 @@ export default {
         ...mapState('account', ['teamMembership']),
         saveButton () {
             return {
-                visible: true,
+                visible: this.hasPermission('device:edit-env'),
                 disabled: !this.unsavedChanges || this.hasErrors
             }
         }

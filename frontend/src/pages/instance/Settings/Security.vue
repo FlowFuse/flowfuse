@@ -32,9 +32,6 @@
                 Upgrade your Node-RED Version to enable this feature
             </div>
         </div>
-        <div class="space-x-4 whitespace-nowrap">
-            <ff-button data-action="new-token" size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
-        </div>
     </form>
     <TokenDialog ref="tokenDialog" data-el="http-token-diag" :project="project" @token-created="newTokenDone" @token-updated="getTokens" />
     <TokenCreated ref="tokenCreated" />

@@ -20,10 +20,6 @@
                 Some settings are not available until you upgrade your stack. <ff-button size="small" to="general">Upgrade</ff-button>
             </div>
         </div>
-
-        <div class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges || !validateFormInputs()" data-action="save-settings" @click="saveSettings()">Save settings</ff-button>
-        </div>
     </form>
 </template>
 
