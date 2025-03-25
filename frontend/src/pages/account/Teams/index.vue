@@ -1,6 +1,6 @@
 <template>
     <template v-if="user.email_verified">
-        <div class="flex flex-col sm:flex-row">
+        <div class="flex flex-col sm:flex-row flex-1 w-full h-full">
             <SectionSideMenu :options="sideNavigation" />
             <div class="flex-grow">
                 <router-view />

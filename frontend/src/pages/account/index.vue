@@ -1,13 +1,13 @@
 <template>
     <ff-page>
-        <div class="flex items-center mb-8">
+        <div class="flex items-center">
             <div class="mr-3"><img :src="user.avatar" class="h-14 v-14 rounded-md"></div>
             <div class="flex flex-col">
                 <div class="text-xl font-bold">{{ user.name }}</div>
                 <div class="text-l text-gray-400">{{ user.username }}</div>
             </div>
         </div>
-        <div class="text-sm mt-4 sm:mt-8">
+        <div class="text-sm mt-4 sm:mt-8 flex-1 h-full w-full">
             <router-view />
         </div>
     </ff-page>

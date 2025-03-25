@@ -9,7 +9,7 @@
         </template>
         <ff-loading v-if="redirecting" message="Redirecting to Stripe..." />
         <ff-loading v-else-if="loading" message="Creating Team..." />
-        <div v-else class="m-auto max-w-5xl" :class="presetTeamType ? 'flex flex-col gap-4 sm:flex-row sm:gap-0' : 'space-y-6 max-w-4xl m-auto'">
+        <div v-else :class="presetTeamType ? 'flex flex-col gap-4 sm:flex-row sm:gap-0' : 'space-y-6'">
             <div v-if="presetTeamType" class="w-full max-w-lg">
                 <team-type-tile class="m-auto" :team-type="presetTeamType" :enableCTA="false" />
             </div>

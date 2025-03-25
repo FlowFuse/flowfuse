@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col sm:flex-row">
+    <div class="flex flex-col sm:flex-row flex-1 h-full w-full">
         <SectionSideMenu :options="sideNavigation" />
         <div class="flex-grow">
             <router-view />
