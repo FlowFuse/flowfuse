@@ -54,7 +54,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'save-button-state'],
     data () {
         return {
             mounted: false,
@@ -69,7 +69,6 @@ export default {
             errors: {
                 healthCheckInterval: ''
             }
-
         }
     },
     computed: {
@@ -86,6 +85,12 @@ export default {
                 return true
             }
             return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.12.0')
+        },
+        saveButton () {
+            return {
+                visible: true,
+                disabled: !this.unsavedChanges || !this.validateFormInputs()
+            }
         }
     },
     watch: {
@@ -98,6 +103,12 @@ export default {
         'input.disableAutoSafeMode': function (value) {
             if (this.mounted) {
                 this.validateFormInputs()
+            }
+        },
+        saveButton: {
+            immediate: true,
+            handler (state) {
+                this.$emit('save-button-state', state)
             }
         }
     },

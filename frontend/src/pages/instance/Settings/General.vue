@@ -117,7 +117,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated', 'instance-confirm-delete', 'instance-confirm-suspend'],
+    emits: ['instance-updated', 'instance-confirm-delete', 'instance-confirm-suspend', 'save-button-state'],
     data () {
         return {
             editing: {
@@ -144,7 +144,11 @@ export default {
             },
             url: '',
             checkingDomain: false,
-            domainStatusValid: false
+            domainStatusValid: false,
+            saveButton: {
+                visible: false,
+                disabled: true
+            }
         }
     },
     computed: {
@@ -196,6 +200,12 @@ export default {
                 this.errors.customHostname = ''
             } else {
                 this.errors.customHostname = 'Not a valid subdomain name'
+            }
+        },
+        saveButton: {
+            immediate: true,
+            handler: function (state) {
+                this.$emit('save-button-state', state)
             }
         }
     },

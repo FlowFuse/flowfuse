@@ -1,6 +1,17 @@
 <template>
     <div class="mb-3">
-        <SectionTopMenu hero="Settings" info="" />
+        <SectionTopMenu hero="Settings" info="">
+            <template #tools>
+                <ff-button
+                    v-if="tools.saveButton.visible"
+                    :disabled="tools.saveButton.disabled"
+                    class="ff-btn ff-btn--primary"
+                    size="small"
+                >
+                    {{ tools.saveButton.label }}
+                </ff-button>
+            </template>
+        </SectionTopMenu>
     </div>
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="sideNavigation" />
@@ -11,6 +22,7 @@
                 @instance-updated="$emit('instance-updated')"
                 @instance-confirm-suspend="$emit('instance-confirm-suspend')"
                 @instance-confirm-delete="$emit('instance-confirm-delete')"
+                @save-button-state="onSaveButtonStateChange"
             />
         </div>
     </div>
@@ -40,7 +52,14 @@ export default {
     emits: ['instance-updated', 'instance-confirm-delete', 'instance-confirm-suspend'],
     data () {
         return {
-            sideNavigation: []
+            sideNavigation: [],
+            tools: {
+                saveButton: {
+                    visible: false,
+                    disabled: true,
+                    label: 'Save Changes'
+                }
+            }
         }
     },
     computed: {
@@ -72,6 +91,12 @@ export default {
                 if (this.features.emailAlerts && this.team.type.properties.features?.emailAlerts) {
                     this.sideNavigation.push({ name: 'Alerts', path: './alerts' })
                 }
+            }
+        },
+        onSaveButtonStateChange (state) {
+            this.tools.saveButton = {
+                ...this.tools.saveButton,
+                ...state
             }
         }
     }

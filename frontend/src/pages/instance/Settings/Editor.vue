@@ -39,7 +39,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'save-button-state'],
     data () {
         return {
             unsavedChanges: false,
@@ -59,7 +59,13 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership'])
+        ...mapState('account', ['team', 'teamMembership']),
+        saveButton () {
+            return {
+                visible: true,
+                disabled: !this.unsavedChanges
+            }
+        }
     },
     watch: {
         project: 'getSettings',
@@ -85,6 +91,12 @@ export default {
                     this.unsavedChanges = changed
                     this.hasErrors = errors
                 }
+            }
+        },
+        saveButton: {
+            immediate: true,
+            handler: function (state) {
+                this.$emit('save-button-state', state)
             }
         }
     },

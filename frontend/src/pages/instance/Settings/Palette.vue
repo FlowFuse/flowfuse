@@ -48,7 +48,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'save-button-state'],
     data () {
         return {
             unsavedChanges: false,
@@ -88,6 +88,13 @@ export default {
         },
         npmEditable () {
             return this.editable?.policy.palette_npmrc
+        },
+        saveButton () {
+            // todo not working properly from the get-go
+            return {
+                visible: true,
+                disabled: !this.unsavedChanges && !this.modulesChanged
+            }
         }
     },
     watch: {
@@ -116,6 +123,12 @@ export default {
                 const result = comparePaletteModules(v, this.original.settings.palette_modulesMap || {})
                 this.modulesChanged = result.changed
                 this.hasErrors = result.errors
+            }
+        },
+        saveButton: {
+            immediate: true,
+            handler (state) {
+                this.$emit('save-button-state', state)
             }
         }
     },
