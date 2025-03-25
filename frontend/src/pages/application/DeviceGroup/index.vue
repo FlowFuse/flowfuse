@@ -2,7 +2,7 @@
     <main v-if="!application?.id">
         <ff-loading message="Loading Application..." />
     </main>
-    <main v-else class="ff-with-status-header device-group">
+    <main v-else class="ff-with-status-header device-group h-full overflow-auto flex flex-col">
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-project-as-admin">
                 You are viewing this device group as an Administrator
@@ -47,7 +47,7 @@
                 </template>
             </ff-page-header>
         </div>
-        <div class="px-3 py-3 md:px-6 md:py-6">
+        <div class="px-3 py-3 md:px-6 md:py-6 overflow-auto h-full flex-1 flex flex-col">
             <router-view
                 :application="application"
                 :deviceGroup="deviceGroup"
