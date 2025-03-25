@@ -14,7 +14,7 @@
         </SectionTopMenu>
     </div>
     <div class="flex flex-col sm:flex-row">
-        <SectionSideMenu :options="sideNavigation" />
+        <SectionSideMenu :options="navigation" />
         <div class="flex-grow">
             <router-view
                 :project="instance"
@@ -63,36 +63,50 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'features', 'settings'])
+        ...mapState('account', ['team', 'teamMembership', 'features', 'settings']),
+        navigation () {
+            const canEditProject = this.hasPermission('project:edit')
+
+            const routes = [
+                { name: 'General', path: { name: 'instance-settings-general' } },
+                { name: 'Environment', path: { name: 'instance-settings-environment' } },
+                {
+                    name: 'High Availability',
+                    path: { name: 'instance-settings-ha' },
+                    hidden: !canEditProject || !!this.features.ha === false
+                },
+                {
+                    name: 'Protect Instance',
+                    path: { name: 'instance-settings-protect' },
+                    hidden: !canEditProject ||
+                        !!this.features?.protectedInstance === false ||
+                        !!this.team?.type?.properties?.features?.protectedInstance === false
+                },
+                { name: 'Editor', path: { name: 'instance-settings-editor' }, hidden: !canEditProject },
+                { name: 'Security', path: { name: 'instance-settings-security' }, hidden: !canEditProject },
+                { name: 'Palette', path: { name: 'instance-settings-palette' }, hidden: !canEditProject },
+                { name: 'Launcher', path: { name: 'instance-settings-launcher' }, hidden: !canEditProject },
+                {
+                    name: 'Alerts',
+                    path: { name: 'instance-settings-alerts' },
+                    hidden: !canEditProject ||
+                        !!this.features?.emailAlerts === false ||
+                        !!this.team?.type?.properties?.features?.emailAlerts === false
+                }
+            ]
+            return routes.map(route => {
+                if (this.$route.name.includes('-editor-')) {
+                    route.path.name = route.path.name.replace('instance-', 'instance-editor-')
+                }
+                return route
+            })
+        }
     },
-    watch: {
-        teamMembership: 'checkAccess'
-    },
+
     mounted () {
         this.checkAccess()
     },
     methods: {
-        checkAccess: async function () {
-            this.sideNavigation = [
-                { name: 'General', path: './general' },
-                { name: 'Environment', path: './environment' }
-            ]
-            if (this.hasPermission('project:edit')) {
-                if (this.features.ha) {
-                    this.sideNavigation.push({ name: 'High Availability', path: './ha' })
-                }
-                if (this.features.protectedInstance && this.team.type.properties.features?.protectedInstance) {
-                    this.sideNavigation.push({ name: 'Protect Instance', path: './protectInstance' })
-                }
-                this.sideNavigation.push({ name: 'Editor', path: './editor' })
-                this.sideNavigation.push({ name: 'Security', path: './security' })
-                this.sideNavigation.push({ name: 'Palette', path: './palette' })
-                this.sideNavigation.push({ name: 'Launcher', path: './launcher' })
-                if (this.features.emailAlerts && this.team.type.properties.features?.emailAlerts) {
-                    this.sideNavigation.push({ name: 'Alerts', path: './alerts' })
-                }
-            }
-        },
         onSaveButtonStateChange (state) {
             this.tools.saveButton = {
                 ...this.tools.saveButton,
