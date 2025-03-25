@@ -1,8 +1,8 @@
 <template>
     <main-title title="Payload Schema" class="mt-1" />
 
-    <div class="ff-topic-inspecting">
-        <section class="schema-wrapper">
+    <div class="ff-topic-inspecting overflow-auto">
+        <section class="schema-wrapper flex flex-col overflow-auto">
             <sub-title title="Schema" :icon="CodeBracketSquareIcon">
                 <template v-if="canClearSuggestion" #actions>
                     <span v-ff-tooltip:left="'Clear accepted suggestion'">

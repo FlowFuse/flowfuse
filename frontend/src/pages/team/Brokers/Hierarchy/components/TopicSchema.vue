@@ -1,5 +1,5 @@
 <template>
-    <div class="topic-schema" :class="{collapsed: isSchemaCollapsed}">
+    <div class="topic-schema">
         <template v-if="schema === null">
             <p class="text-center opacity-50">
                 No schema defined
@@ -18,10 +18,6 @@
                 <b>Schema</b>:
                 <object-properties v-if="schemaType === 'object'" :properties="schema.properties" />
                 <array-properties v-else-if="schemaType === 'array'" :items="schema.items" />
-                <button v-if="isSchemaCollapsible" class="show-more" @click="isSchemaExtended = !isSchemaExtended">
-                    <template v-if="isSchemaCollapsed">Show More</template>
-                    <template v-else>Show Less</template>
-                </button>
             </section>
         </template>
     </div>
@@ -85,23 +81,14 @@ export default {
             default:
                 return ''
             }
-        },
-        isSchemaCollapsible () {
-            return this.schemaContainerHeight > this.schemaContainerMaxHeight
-        },
-        isSchemaCollapsed () {
-            if (this.isSchemaExtended === true) {
-                return false
-            }
-            return this.isSchemaCollapsible
         }
     },
-    mounted () {
-        this.updateResizeObserver()
-    },
-    updated () {
-        this.updateResizeObserver()
-    },
+    // mounted () {
+    //     this.updateResizeObserver()
+    // },
+    // updated () {
+    //     this.updateResizeObserver()
+    // },
     methods: {
         updateHeight () {
             return new Promise(resolve => {
@@ -123,18 +110,18 @@ export default {
                 this.resizeObserver.observe(this.$refs.schemaContainer)
                 resolve()
             })
-        },
-        updateResizeObserver () {
-            return new Promise((resolve) => {
-                if (this.resizeObserver) {
-                    this.resizeObserver.disconnect()
-                }
-                resolve()
-            })
-                .then(() => this.updateHeight())
-                .then(() => this.observeHeightChanges())
-                .catch(e => e)
         }
+        // updateResizeObserver () {
+        //     return new Promise((resolve) => {
+        //         if (this.resizeObserver) {
+        //             this.resizeObserver.disconnect()
+        //         }
+        //         resolve()
+        //     })
+        //         .then(() => this.updateHeight())
+        //         .then(() => this.observeHeightChanges())
+        //         .catch(e => e)
+        // }
     }
 }
 </script>
@@ -148,7 +135,7 @@ export default {
     padding: 10px 6px;
     font-size: 0.875rem;
     line-height: 1.25rem;
-    overflow: hidden;
+    overflow: auto;
     position: relative;
 
     .topic-schema-unknown {
@@ -166,19 +153,6 @@ export default {
             left: 45%;
         }
 
-    }
-
-    &.collapsed {
-        box-shadow: inset 0 -30px 20px -20px rgba(49, 46, 129, 0.2);
-        padding-bottom: 35px;
-
-        .schema-container {
-            max-height: 400px;
-        }
-
-        .show-more {
-            padding: 10px;
-        }
     }
 }
 </style>
