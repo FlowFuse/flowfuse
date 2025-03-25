@@ -1,6 +1,6 @@
 <template>
     <SectionTopMenu hero="Node-RED Logs" help-header="FlowFuse - Node-RED Logs" info="Live logs from your Remote Node-RED Instance" />
-    <LogsShared :device="device" />
+    <LogsShared :device="device" class="flex-1 overflow-auto w-full h-full" />
 </template>
 
 <script>

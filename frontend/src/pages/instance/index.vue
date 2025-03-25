@@ -54,15 +54,15 @@
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <div>
-            <router-view
-                :instance="instance"
-                :is-visiting-admin="isVisitingAdmin"
-                @instance-updated="loadInstance"
-                @instance-confirm-delete="showConfirmDeleteDialog"
-                @instance-confirm-suspend="showConfirmSuspendDialog"
-            />
-        </div>
+        <!--        <div>-->
+        <router-view
+            :instance="instance"
+            :is-visiting-admin="isVisitingAdmin"
+            @instance-updated="loadInstance"
+            @instance-confirm-delete="showConfirmDeleteDialog"
+            @instance-confirm-suspend="showConfirmSuspendDialog"
+        />
+        <!--        </div>-->
 
         <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
     </ff-page>

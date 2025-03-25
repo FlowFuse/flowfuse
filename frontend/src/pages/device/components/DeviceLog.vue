@@ -1,7 +1,7 @@
 <template>
     <ff-loading v-if="loading" message="Loading Logs..." />
     <template v-else>
-        <div v-if="device?.status && deviceOnline" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
+        <div v-if="device?.status && deviceOnline" class="h-full w-full overflow-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
             <span
                 v-for="(item, itemIdx) in logEntries"
                 :key="itemIdx"
