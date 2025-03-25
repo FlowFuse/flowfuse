@@ -192,10 +192,7 @@ export default {
                 // it's unfortunate that we can't redirect premium users straight to the application device page, but we
                 // don't have available applications at this moment in time so they'll get redirected twice
                 .then(() => this.$router.push({ name: 'Applications' }))
-                .then(() => {
-                    // breathing room for the page, instances and devices to load for the tour to work properly
-                    setTimeout(() => this.$store.dispatch('ux/tours/presentTour'), 1000)
-                })
+                .then(() => this.$store.dispatch('ux/tours/presentTour'))
         }
     }
 }
