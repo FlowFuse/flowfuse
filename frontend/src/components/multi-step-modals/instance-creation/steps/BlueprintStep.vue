@@ -2,7 +2,7 @@
     <section class="ff-blueprint-step text-center flex flex-col gap-4 pt-6">
         <h2>Select Your Blueprint</h2>
 
-        <p>We have a collection of pre-build flow templates that you can use as a starting point for your Node-RED Instance.</p>
+        <p>We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</p>
 
         <transition name="fade" mode="out-in">
             <ff-loading v-if="loading" message="Loading Blueprints..." />
@@ -18,7 +18,7 @@
                                         <BlueprintTile
                                             :blueprint="blueprint"
                                             :display-preview-button="false"
-                                            :display-external-url-button="false"
+                                            :display-external-url-button="true"
                                             :display-select-button="false"
                                             :tile-behavior="true"
                                             :active="selectedBlueprint && selectedBlueprint.id === blueprint.id"

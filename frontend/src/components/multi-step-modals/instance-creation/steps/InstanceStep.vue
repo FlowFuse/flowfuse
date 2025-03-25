@@ -1,9 +1,6 @@
 <template>
     <section class="ff-instance-step text-center flex flex-col gap-4 pt-6">
         <h2>Setup Your Instance</h2>
-
-        <p>We have a collection of pre-build flow templates that you can use as a starting point for your Node-RED Instance.</p>
-
         <form class="max-w-2xl m-auto text-left flex flex-col gap-7">
             <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
 
