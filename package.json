@@ -79,6 +79,7 @@
         "@sentry/profiling-node": "^1.2.1",
         "@sentry/vue": "^7.91.0",
         "@sentry/webpack-plugin": "^2.7.1",
+        "@vuepic/vue-datepicker": "^11.0.2",
         "axios": "^1.4.0",
         "bcrypt": "^5.1.0",
         "cronosjs": "^1.7.1",
