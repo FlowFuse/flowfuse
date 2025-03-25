@@ -11,7 +11,7 @@ This can occur for a number of reasons including:
 - an issue in a third-party library or node
 
 Possible solutions:
-- try selecting a larger instance type
+- upgrading to a larger instance type
 - try disabling some nodes to see if the problem settles down after a restart
 - check your flows for loops or functions that are causing high CPU usage
 - check the issue tracker of your contrib nodes
