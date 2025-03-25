@@ -11,7 +11,7 @@ This can occur for a number of reasons including:
 - an issue in a third-party library or node
 
 Possible solutions:
-- try selecting a larger instance type
+- upgrading to a larger instance type
 - try disabling some nodes to see if the problem settles down after a restart
 - when polling external services, ensure you are not polling too frequently as this may cause backpressure leading to memory exhaustion
 - check your flows for large data structures being held in memory, particularly in context
