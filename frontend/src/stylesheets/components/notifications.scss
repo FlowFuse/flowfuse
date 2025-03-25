@@ -97,6 +97,7 @@ $ff-notifications-drawer-side-padding: 6px;
     flex: 1;
     width: 100%;
     background-color: $ff-grey-100;
+    overflow: auto;
     $read: $ff-grey-400;
     $info: blue;
     $warning: $ff-yellow-600;
