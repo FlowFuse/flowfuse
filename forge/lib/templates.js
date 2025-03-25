@@ -25,6 +25,8 @@ module.exports = {
         'httpNodeAuth_pass',
         'emailAlerts_crash',
         'emailAlerts_safe',
+        'emailAlerts_resource_cpu',
+        'emailAlerts_resource_memory',
         'emailAlerts_recipients',
         'debugMaxLength',
         'apiMaxLength'
@@ -58,6 +60,8 @@ module.exports = {
         httpNodeAuth_pass: '',
         emailAlerts_crash: false,
         emailAlerts_safe: false,
+        emailAlerts_resource_cpu: false,
+        emailAlerts_resource_memory: false,
         emailAlerts_recipients: 'owners',
         debugMaxLength: 1000,
         apiMaxLength: '5mb'
@@ -88,6 +92,8 @@ module.exports = {
         httpNodeAuth_pass: true,
         emailAlerts_crash: true,
         emailAlerts_safe: true,
+        emailAlerts_resource_cpu: true,
+        emailAlerts_resource_memory: true,
         emailAlerts_recipients: true,
         debugMaxLength: true,
         apiMaxLength: true

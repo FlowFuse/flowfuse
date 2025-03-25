@@ -37,6 +37,10 @@ module.exports = {
                         template = templateName.join('-')
                     } else if (emailAlerts?.safe && event === 'safe-mode') {
                         template = 'SafeMode'
+                    } else if (emailAlerts?.resource?.cpu && event === 'resource.cpu') {
+                        template = 'InstanceResourceCPUExceeded'
+                    } else if (emailAlerts?.resource?.memory && event === 'resource.memory') {
+                        template = 'InstanceResourceMemoryExceeded'
                     }
                     if (!template || !teamType.getFeatureProperty('emailAlerts', false)) {
                         return
