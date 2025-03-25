@@ -1,7 +1,7 @@
 <template>
     <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
     <div
-        class="space-y-2 mb-14"
+        class="space-y-2 mb-14 overflow-auto"
         data-el="devices-section"
     >
         <ff-loading
