@@ -7,6 +7,7 @@
                     :disabled="tools.saveButton.disabled"
                     class="ff-btn ff-btn--primary"
                     size="small"
+                    @click="onSaveButtonClick"
                 >
                     {{ tools.saveButton.label }}
                 </ff-button>
@@ -16,14 +17,18 @@
     <div class="flex flex-col sm:flex-row">
         <SectionSideMenu :options="navigation" />
         <div class="flex-grow">
-            <router-view
-                :project="instance"
-                :instance="instance"
-                @instance-updated="$emit('instance-updated')"
-                @instance-confirm-suspend="$emit('instance-confirm-suspend')"
-                @instance-confirm-delete="$emit('instance-confirm-delete')"
-                @save-button-state="onSaveButtonStateChange"
-            />
+            <router-view v-slot="{ Component }">
+                <component
+                    :is="Component"
+                    ref="settingsPage"
+                    :project="instance"
+                    :instance="instance"
+                    @instance-updated="$emit('instance-updated')"
+                    @instance-confirm-suspend="$emit('instance-confirm-suspend')"
+                    @instance-confirm-delete="$emit('instance-confirm-delete')"
+                    @save-button-state="onSaveButtonStateChange"
+                />
+            </router-view>
         </div>
     </div>
 </template>
@@ -102,15 +107,19 @@ export default {
             })
         }
     },
-
-    mounted () {
-        this.checkAccess()
-    },
     methods: {
         onSaveButtonStateChange (state) {
             this.tools.saveButton = {
                 ...this.tools.saveButton,
                 ...state
+            }
+        },
+        onSaveButtonClick () {
+            if (
+                Object.prototype.hasOwnProperty.call(this.$refs.settingsPage, 'saveSettings') &&
+                typeof this.$refs.settingsPage.saveSettings === 'function'
+            ) {
+                this.$refs.settingsPage.saveSettings()
             }
         }
     }
