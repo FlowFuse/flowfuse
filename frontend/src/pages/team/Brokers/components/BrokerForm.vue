@@ -240,7 +240,7 @@ export default {
         onSubmit () {
             const payload = { ...this.form }
 
-            payload.topicPrefix = [ this.form.topicPrefix ]
+            payload.topicPrefix = [this.form.topicPrefix]
 
             if (!payload.port) {
                 payload.port = 1883

@@ -16,7 +16,7 @@ module.exports = {
                 if (rawValue) {
                     return JSON.parse(rawValue)
                 } else {
-                    return [ '#' ]
+                    return ['#']
                 }
             },
             set (value) {
