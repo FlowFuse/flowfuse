@@ -13,13 +13,13 @@
                     <h5 class="title truncate">
                         {{ application.label }}
                     </h5>
-                    <div class="counters flex flex-col">
-                        <div class="remote flex gap-2 justify-between truncate">
-                            <span class="type truncate">Hosted Instances:</span>
+                    <div class="counters flex gap-4 items-center">
+                        <div title="Number Of Hosted Instances" class="remote flex gap-1 justify-between truncate items-center">
+                            <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" />
                             <span class="counter">{{ application.counters.instances }}</span>
                         </div>
-                        <div class="hosted flex gap-2 justify-between truncate">
-                            <span class="type truncate">Remote Instances:</span>
+                        <div class="hosted flex gap-1 justify-between truncate items-center">
+                            <IconDeviceSolid title="Number of Remote Instances" class="ff-icon ff-icon-sm text-teal-700" />
                             <span class="counter">{{ application.counters.devices }}</span>
                         </div>
                     </div>
@@ -36,10 +36,13 @@
 </template>
 
 <script>
+import IconDeviceSolid from '../../../icons/DeviceSolid.js'
+
+import IconNodeRedSolid from '../../../icons/NodeRedSolid.js'
 
 export default {
     name: 'SelectApplicationStep',
-    components: {},
+    components: { IconDeviceSolid, IconNodeRedSolid },
     props: {
         slug: {
             required: true,
@@ -135,6 +138,7 @@ export default {
 
         .description {
             color: $ff-grey-400;
+            font-size: $ff-funit-sm;
         }
     }
 }
