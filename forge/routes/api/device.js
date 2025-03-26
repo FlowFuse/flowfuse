@@ -777,6 +777,11 @@ module.exports = async function (app) {
             // Do not return actual value - use a boolean to indicate it is set
             settings.security.httpNodeAuth.pass = true
         }
+        // Never return the local login auth password
+        if (settings.security?.localAuth?.pass) {
+            // Do not return actual value - use a boolean to indicate it is set
+            settings.security.localAuth.pass = true
+        }
         if (request.teamMembership?.role === Roles.Owner) {
             reply.send(settings)
         } else {
