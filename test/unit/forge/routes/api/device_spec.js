@@ -1332,17 +1332,16 @@ describe('Device API', async function () {
                 settings.security.localAuth.should.have.property('user', 'local-user')
                 settings.security.localAuth.should.have.property('pass', true)
 
-                // Verify the deviceLive settings are set and the password is hashed
+                // Verify the deviceLive settings are present and the password is hashed
                 let liveSettings = await getLiveSettings(device)
                 liveSettings.should.have.property('security')
                 liveSettings.security.should.have.property('localAuth').and.be.an.Object()
-                // Note: we map 'flowforge-user' to 'ff-user' for devices
                 liveSettings.security.localAuth.should.have.property('user', 'local-user')
                 liveSettings.security.localAuth.should.have.property('pass')
                 liveSettings.security.localAuth.pass.should.not.equal('$Password')
                 compareHash('$Password', liveSettings.security.localAuth.pass).should.be.true()
 
-                // Verify that changing to none clears out the credentials information
+                // Verify that disabling localAuth resets the enabled flag
                 await updateSettings(device, TestObjects.tokens.alice, { security: { localAuth: { enabled: false } } })
 
                 liveSettings = await getLiveSettings(device)
