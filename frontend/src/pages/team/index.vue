@@ -65,6 +65,9 @@ export default {
         canAccessTeam: function () {
             return this.isAdminUser || this.teamMembership?.role >= Roles.Viewer
         }
+        // isEmbeddedEditor () {
+        //     return !!this.$route.matched.filter(m => m.name === 'instance-editor')
+        // }
     },
     watch: {
         '$route.params.team_slug' (slug) {

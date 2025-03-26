@@ -121,7 +121,7 @@
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 import teamApi from '../../api/team.js'
 import EmptyState from '../../components/EmptyState.vue'
@@ -182,6 +182,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         ...mapGetters('account', ['featuresCheck']),
         instancesAvailable () {
             return this.featuresCheck?.isHostedInstancesEnabledForTeam
@@ -209,7 +210,8 @@ export default {
             this.$router.push({
                 name: 'Instance',
                 params: {
-                    id: instance.id
+                    id: instance.id,
+                    team_slug: this.team.slug
                 }
             })
         }
