@@ -28,7 +28,7 @@ describe('FlowFuse - Instance - Settings - Launcher', () => {
         cy.home()
     })
 
-    it.only('Validates health check interval user input', () => {
+    it('Validates health check interval user input', () => {
         cy.intercept('PUT', '/api/*/projects/*').as('updateInstance')
         // navigate to instance settings -> launcher tab
         cy.login('bob', 'bbPassword')
