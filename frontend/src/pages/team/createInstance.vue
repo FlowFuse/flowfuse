@@ -5,14 +5,35 @@
                 <template #context>
                     Let's get your new Node-RED instance setup in no time.
                 </template>
+                <template #tools>
+                    <section class="flex gap-3">
+                        <ff-button
+                            class="flex-1"
+                            kind="secondary"
+                            :disabled="!form.previousButtonState"
+                            @click="$refs.multiStepForm.goToPreviousStep()"
+                        >
+                            Back
+                        </ff-button>
+                        <ff-button
+                            class="flex-1 whitespace-nowrap"
+                            :disabled="form.nextButtonState"
+                            @click="$refs.multiStepForm.goToNextStep()"
+                        >
+                            {{ form.nextStepLabel }}
+                        </ff-button>
+                    </section>
+                </template>
             </ff-page-header>
         </template>
 
         <ff-loading v-if="loading" message="Creating instance..." />
 
-        <MultiStepInstanceForm
+        <MultiStepApplicationsInstanceForm
             v-else
-            ref="multiStepForm" :application="application" @instance-created="onInstanceCreated"
+            ref="multiStepForm"
+            :applications="applications"
+            @instance-created="onInstanceCreated"
             @previous-step-state-changed="form.previousButtonState = $event"
             @next-step-state-changed="form.nextButtonState = $event"
             @next-step-label-changed="form.nextStepLabel = $event"
@@ -28,7 +49,7 @@ import ApplicationApi from '../../api/application.js'
 
 import instanceApi from '../../api/instances.js'
 import teamApi from '../../api/team.js'
-import MultiStepInstanceForm from '../../components/multi-step-forms/instance/MultiStepInstanceForm.vue'
+import MultiStepApplicationsInstanceForm from '../../components/multi-step-forms/instance/MultiStepApplicationsInstanceForm.vue'
 
 import Alerts from '../../services/alerts.js'
 import LocalStorageService from '../../services/storage/local-storage.service.js'
@@ -36,7 +57,7 @@ import LocalStorageService from '../../services/storage/local-storage.service.js
 export default {
     name: 'CreateInstance',
     components: {
-        MultiStepInstanceForm
+        MultiStepApplicationsInstanceForm
     },
     beforeRouteEnter (to, from, next) {
         if (from.name === 'CreateTeamApplication') {
@@ -58,7 +79,7 @@ export default {
     inheritAttrs: false,
     data () {
         return {
-            applications: null,
+            applications: [],
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
@@ -71,7 +92,12 @@ export default {
             instanceDetails: null,
             preDefinedInputs: null,
             blueprintId: null,
-            application: null
+            application: null,
+            form: {
+                nextButtonState: false,
+                previousButtonState: false,
+                nextStepLabel: 'Next'
+            }
         }
     },
     computed: {
@@ -186,9 +212,17 @@ export default {
                 return {
                     label: a.name,
                     description: a.description,
-                    value: a.id
+                    value: a.id,
+                    id: a.id,
+                    counters: {
+                        instances: a.instances.length,
+                        devices: a.devices.length
+                    }
                 }
             })
+        },
+        onInstanceCreated () {
+            console.log('instance created')
         }
     }
 }

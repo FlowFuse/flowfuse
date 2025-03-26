@@ -22,7 +22,7 @@
                     v-if="currentStep"
                     v-bind="currentStep.bindings"
                     v-model="payload"
-                    @step-updated="$emit('step-updated', $event)"
+                    @step-updated="$emit('step-updated', $event, currentStepKey)"
                 />
             </transition>
         </section>
