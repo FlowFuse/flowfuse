@@ -324,6 +324,28 @@ httpStatic:
     root: /js
 ```
 
+### `localAuth` configuration
+
+*Available in Device Agent 3.20+*
+
+This option can be used to enable local login for the Node-RED editor.
+
+```yml
+localAuth:
+    enabled: true
+    user: user-name
+    pass: $hashed-password
+```
+
+NOTE: The password should be hashed version generated using the Node-RED admin CLI. For example:
+
+```bash
+node-red admin hash-pw
+```
+
+Alternatively, the password can be set in FlowFuse on the settings -> security tab of the Remote Instance.
+
+
 ## Troubleshooting
 
 If you have problems with the device agent the first thing to do is to enable the verbose logging mode.
