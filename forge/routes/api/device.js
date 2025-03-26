@@ -701,6 +701,17 @@ module.exports = async function (app) {
                     await app.db.controllers.AuthClient.removeClientForDevice(request.device)
                 }
             }
+            if (request.body.security?.localAuth) {
+                // If enabled and pass not present, merge in existing value
+                if (request.body.security.localAuth.enabled === true) {
+                    if (!request.body.security.localAuth.pass) {
+                        request.body.security.localAuth.pass = currentSettings.security?.localAuth?.pass
+                    } else {
+                        // Store the hashed password
+                        request.body.security.localAuth.pass = hash(request.body.security.localAuth.pass)
+                    }
+                }
+            }
             await request.device.updateSettings(request.body)
             const keys = Object.keys(request.body)
             // capture key/val updates sent in body
