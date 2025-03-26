@@ -221,8 +221,8 @@ export default {
                 }
             })
         },
-        onInstanceCreated () {
-            console.log('instance created')
+        onInstanceCreated (instance) {
+            return this.$router.push({ name: 'instance-overview', params: { id: instance.id } })
         }
     }
 }

@@ -103,7 +103,7 @@ export default {
             this.loadingText = 'Creating a new Instance'
             this.formLoading = true
             const payload = {
-                applicationId: this.application.id,
+                applicationId: this.form[APPLICATION_SLUG].selection.id,
                 name: this.form[INSTANCE_SLUG].input.name,
                 projectType: this.form[INSTANCE_SLUG].input.instanceType,
                 stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
@@ -112,7 +112,7 @@ export default {
             }
 
             return instanceApi.create(payload)
-                .then(() => this.$emit('instance-created'))
+                .then((response) => this.$emit('instance-created', response))
                 .catch(err => {
                     const error = err.response.data.error
 
