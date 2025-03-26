@@ -9,19 +9,13 @@
         </template>
 
         <ff-loading v-if="loading" message="Creating instance..." />
-        <InstanceForm
-            v-else-if="team"
-            :instance="instanceDetails"
-            :team="team"
-            :applicationSelection="true"
-            :applications="applications"
-            :billing-enabled="!!features.billing"
-            :flow-blueprints-enabled="!!features.flowBlueprints"
-            :submit-errors="errors"
-            :pre-defined-inputs="preDefinedInputs"
-            :has-header="false"
-            @on-submit="handleFormSubmit"
-            @blueprint-updated="onBlueprintUpdated"
+
+        <MultiStepInstanceForm
+            v-else
+            ref="multiStepForm" :application="application" @instance-created="onInstanceCreated"
+            @previous-step-state-changed="form.previousButtonState = $event"
+            @next-step-state-changed="form.nextButtonState = $event"
+            @next-step-label-changed="form.nextStepLabel = $event"
         />
     </ff-page>
 </template>
@@ -34,15 +28,15 @@ import ApplicationApi from '../../api/application.js'
 
 import instanceApi from '../../api/instances.js'
 import teamApi from '../../api/team.js'
+import MultiStepInstanceForm from '../../components/multi-step-forms/instance/MultiStepInstanceForm.vue'
 
 import Alerts from '../../services/alerts.js'
 import LocalStorageService from '../../services/storage/local-storage.service.js'
-import InstanceForm from '../instance/components/InstanceForm.vue'
 
 export default {
     name: 'CreateInstance',
     components: {
-        InstanceForm
+        MultiStepInstanceForm
     },
     beforeRouteEnter (to, from, next) {
         if (from.name === 'CreateTeamApplication') {
