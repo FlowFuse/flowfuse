@@ -1313,6 +1313,43 @@ describe('Device API', async function () {
                 authClient = await app.db.models.AuthClient.findOne({ where: { ownerType: 'device', ownerId: '' + deviceId } })
                 should.not.exist(authClient)
             })
+            it('can set localAuth for a device', async function () {
+                const device = await createDevice({ name: 'LocalAuthSettingsD1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                await updateSettings(device, TestObjects.tokens.alice, {
+                    security: {
+                        localAuth: {
+                            enabled: true,
+                            user: 'local-user',
+                            pass: '$Password'
+                        }
+                    }
+                })
+
+                const settings = await getSettings(device, TestObjects.tokens.alice)
+                settings.should.have.property('security')
+                settings.security.should.have.property('localAuth')
+                settings.security.localAuth.should.have.property('enabled', true)
+                settings.security.localAuth.should.have.property('user', 'local-user')
+                settings.security.localAuth.should.have.property('pass', true)
+
+                // Verify the deviceLive settings are set and the password is hashed
+                let liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('security')
+                liveSettings.security.should.have.property('localAuth').and.be.an.Object()
+                // Note: we map 'flowforge-user' to 'ff-user' for devices
+                liveSettings.security.localAuth.should.have.property('user', 'local-user')
+                liveSettings.security.localAuth.should.have.property('pass')
+                liveSettings.security.localAuth.pass.should.not.equal('$Password')
+                compareHash('$Password', liveSettings.security.localAuth.pass).should.be.true()
+
+                // Verify that changing to none clears out the credentials information
+                await updateSettings(device, TestObjects.tokens.alice, { security: { localAuth: { enabled: false } } })
+
+                liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('security')
+                liveSettings.security.should.have.property('localAuth').and.be.an.Object()
+                liveSettings.security.localAuth.should.have.property('enabled', false)
+            })
         })
 
         describe('device remote editor (unlicensed)', function () {
