@@ -328,7 +328,7 @@ httpStatic:
 
 *Available in Device Agent 3.20+*
 
-This option can be used to enable local login for the Node-RED editor.
+This option can be used to enable local login for the Node-RED editor.  This option is not recommended for day to day use.
 
 ```yml
 localAuth:
