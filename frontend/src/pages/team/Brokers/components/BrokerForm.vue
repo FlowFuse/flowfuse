@@ -240,6 +240,8 @@ export default {
         onSubmit () {
             const payload = { ...this.form }
 
+            payload.topicPrefix = [ this.form.topicPrefix ]
+
             if (!payload.port) {
                 payload.port = 1883
             }
@@ -253,6 +255,11 @@ export default {
                 broker.verifySSL = broker.verifySSL.toString()
 
                 this.form = { ...this.form, ...broker }
+                if (broker.topicPrefix) {
+                    this.form.topicPrefix = JSON.parse(broker.topicPrefix)[0]
+                } else {
+                    broker.form.topicPrefix = '#'
+                }
             }
         }
     }

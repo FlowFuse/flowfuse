@@ -12,7 +12,7 @@ module.exports = function (app) {
             ssl: { type: 'boolean' },
             verifySSL: { type: 'boolean' },
             clientId: { type: 'string' },
-            topicPrefix: { type: 'string' }
+            topicPrefix: { type: 'array', items: { type: 'string' } }
         },
         additionalProperties: true
     })

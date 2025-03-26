@@ -37,7 +37,24 @@ module.exports = {
                 }
             }
         },
-        topicPrefix: { type: DataTypes.STRING, allowNull: true, default: '#' }
+        topicPrefix: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            default: '["#"]',
+            get () {
+                const rawValue = this.getDataValue('topicPrefix')
+                if (rawValue) {
+                    return JSON.parse(rawValue)
+                } else {
+                    return [ '#' ]
+                }
+            },
+            set (value) {
+                if (value) {
+                    this.setDataValue(this.topicPrefix, JSON.stringify(value))
+                }
+            }
+        }
     },
     indexes: [
         { name: 'broker_name_team_unique', fields: ['name', 'TeamId'], unique: true }
