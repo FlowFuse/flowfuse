@@ -124,7 +124,6 @@ describe('FlowForge - Blueprints', () => {
     })
 
     it('are included in the POST request when creating an Instance', () => {
-        const INSTANCE_NAME = 'test-instance'
         let defaultBlueprint = null
         cy.intercept('POST', '/api/*/projects', 'success').as('createInstance')
         cy.intercept('GET', '/api/*/flow-blueprints*', singleBlueprint).as('getFlowBlueprints')

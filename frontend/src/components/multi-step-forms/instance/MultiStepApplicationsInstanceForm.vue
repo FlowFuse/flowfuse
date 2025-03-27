@@ -17,13 +17,16 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
+import applicationApi from '../../../api/application.js'
 import instanceApi from '../../../api/instances.js'
 import Alerts from '../../../services/alerts.js'
 import MultiStepForm from '../MultiStepForm.vue'
 
+import ApplicationStep from './steps/ApplicationStep.vue'
 import BlueprintStep from './steps/BlueprintStep.vue'
 import InstanceStep from './steps/InstanceStep.vue'
-import SelectApplicationStep from './steps/SelectApplicationStep.vue'
 
 const APPLICATION_SLUG = 'application'
 const INSTANCE_SLUG = 'instance'
@@ -58,11 +61,12 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         formSteps () {
             return [
                 {
                     sliderTitle: 'Application',
-                    component: SelectApplicationStep,
+                    component: ApplicationStep,
                     bindings: {
                         slug: APPLICATION_SLUG,
                         applications: this.applications,
@@ -92,34 +96,48 @@ export default {
             const currentSlug = currentStep.bindings.slug
 
             return this.form[currentSlug].hasErrors
+        },
+        hasToCreateAnApplication () {
+            return this.applications.length === 0
         }
     },
     methods: {
         updateForm (payload, stepKey) {
+            console.log(payload)
             this.currentStepKey = stepKey
             this.form = { ...this.form, ...payload }
         },
         async onSubmit () {
             this.loadingText = 'Creating a new Instance'
             this.formLoading = true
-            const payload = {
-                applicationId: this.form[APPLICATION_SLUG].selection.id,
-                name: this.form[INSTANCE_SLUG].input.name,
-                projectType: this.form[INSTANCE_SLUG].input.instanceType,
-                stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
-                template: this.form[INSTANCE_SLUG].input.template,
-                flowBlueprintId: this.form[BLUEPRINT_SLUG].blueprint?.id ?? ''
-            }
 
-            return instanceApi.create(payload)
+            return new Promise((resolve) => {
+                if (this.hasToCreateAnApplication) {
+                    return applicationApi.createApplication({ ...this.form[APPLICATION_SLUG].input, teamId: this.team.id })
+                        .then(resolve)
+                }
+                return resolve(this.form[APPLICATION_SLUG].selection)
+            })
+                .then((application) => instanceApi.create({
+                    applicationId: application.id,
+                    name: this.form[INSTANCE_SLUG].input.name,
+                    projectType: this.form[INSTANCE_SLUG].input.instanceType,
+                    stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
+                    template: this.form[INSTANCE_SLUG].input.template,
+                    flowBlueprintId: this.form[BLUEPRINT_SLUG].blueprint?.id ?? ''
+                }))
                 .then((response) => this.$emit('instance-created', response))
                 .catch(err => {
-                    const error = err.response.data.error
+                    if (err.response) {
+                        const error = err.response.data.error
 
-                    if (error) {
-                        Alerts.emit('Failed to create instance: ' + error, 'warning', 7500)
+                        if (error) {
+                            Alerts.emit('Failed to create instance: ' + error, 'warning', 7500)
+                        } else {
+                            Alerts.emit('Failed to create instance')
+                            console.error(err)
+                        }
                     } else {
-                        Alerts.emit('Failed to create instance')
                         console.error(err)
                     }
                 })
