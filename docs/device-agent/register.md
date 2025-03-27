@@ -324,9 +324,6 @@ httpStatic:
     root: /js
 ```
 
-## Local Login configuration
-
-
 ### `localAuth` configuration
 
 *Available in Device Agent 3.20+*
