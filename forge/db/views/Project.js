@@ -110,7 +110,21 @@ module.exports = function (app) {
             const settingsCustomHostnameRow = proj.ProjectSettings?.find(row => row.key === KEY_CUSTOM_HOSTNAME)
             result.customHostname = settingsCustomHostnameRow?.value || undefined
         }
-
+        if (app.config.features.enabled('emailAlerts')) {
+            // Default email alert settings
+            if (typeof result.settings.emailAlerts !== 'object') {
+                result.settings.emailAlerts = {}
+            }
+            if (typeof result.settings.emailAlerts.resource !== 'object') {
+                result.settings.emailAlerts.resource = {}
+            }
+            if (typeof result.settings.emailAlerts.resource.cpu !== 'boolean') {
+                result.settings.emailAlerts.resource.cpu = true
+            }
+            if (typeof result.settings.emailAlerts.resource.memory !== 'boolean') {
+                result.settings.emailAlerts.resource.memory = true
+            }
+        }
         if (proj.Application) {
             result.application = app.db.views.Application.applicationSummary(proj.Application)
         }
