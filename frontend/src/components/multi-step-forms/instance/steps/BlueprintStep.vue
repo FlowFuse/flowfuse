@@ -128,6 +128,7 @@ export default {
     },
     async mounted () {
         this.getBlueprints()
+            .then(() => this.preSelectBlueprint())
             .catch(e => e)
             .finally(() => {
                 this.loading = false
@@ -156,6 +157,14 @@ export default {
             } else {
                 this.selectedBlueprint = blueprint
             }
+        },
+        preSelectBlueprint () {
+            return new Promise(resolve => {
+                if (this.$route?.query && this.$route?.query?.blueprintId) {
+                    this.selectedBlueprint = this.blueprints.find(bp => bp.id === this.$route.query.blueprintId)
+                }
+                resolve()
+            })
         }
     }
 }

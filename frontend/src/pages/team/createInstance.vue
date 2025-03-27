@@ -192,15 +192,6 @@ export default {
 
             return instanceApi.create(createPayload)
         },
-        setPredefinedInputs () {
-            // TODO blueprint deployment
-            if (this.$route?.query && this.$route?.query?.blueprintId) {
-                this.preDefinedInputs = {
-                    flowBlueprintId: this.$route.query.blueprintId
-                }
-                this.onBlueprintUpdated(this.$route?.query?.blueprintId)
-            }
-        },
         async getData () {
             const data = await teamApi.getTeamApplications(this.team.id)
             this.applications = data.applications.map((a) => {
