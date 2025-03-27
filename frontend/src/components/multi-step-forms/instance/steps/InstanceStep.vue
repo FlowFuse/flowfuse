@@ -202,9 +202,6 @@ export default {
                         instanceType.disabled = true
                     }
                 }
-                // if (instanceType.disabled) {
-                //     this.activeInstanceTypeCount--
-                // }
 
                 return instanceType
             })
@@ -254,9 +251,6 @@ export default {
                                 if (!this.team.billing?.active) {
                                     // No active billing - only allow the trial instance type
                                     instanceType.disabled = !isTrialProjectType
-                                    // if (instanceType.disabled) {
-                                    //     this.activeInstanceTypeCount--
-                                    // }
                                 }
                                 if (isTrialProjectType && this.team.billing?.trialProjectAllowed) {
                                     instanceType.price = 'Free Trial'
@@ -399,7 +393,6 @@ export default {
             const instanceTypes = await instanceTypesApi.getInstanceTypes()
 
             this.instanceTypes = instanceTypes.types ?? []
-            this.activeInstanceTypeCount = this.instanceTypes.length
         },
         async getSubscription () {
             if (this.features.billing && !this.team.billing?.unmanaged && !this.team.type.properties?.billing?.disabled) {
