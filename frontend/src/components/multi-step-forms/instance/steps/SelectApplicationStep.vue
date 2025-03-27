@@ -7,6 +7,7 @@
                 :key="$key"
                 class="app-tile flex flex-col gap-2"
                 :class="{selected: application.id === selection?.id}"
+                data-el="application-item"
                 @click="selectApplication(application)"
             >
                 <div class="header flex justify-between gap-2 items-center">

@@ -39,7 +39,7 @@
                 <Loading v-if="loading" size="small" />
 
                 <div v-else class="flex flex-col gap-4">
-                    <div class="instance-types ff-input-wrapper flex flex-wrap items-stretch">
+                    <div class="instance-types ff-input-wrapper flex flex-wrap items-stretch" data-group="instance-types">
                         <label class="w-full mb-2 block">Choose your Instance Type</label>
                         <template v-if="hasInstanceTypes && activeInstanceTypeCount > 0">
                             <InstanceCreditBanner :subscription="subscription" />
@@ -68,7 +68,11 @@
                         </template>
                     </div>
 
-                    <div v-if="hasMultipleTemplates" class="instance-templates ff-input-wrapper flex flex-wrap items-stretch">
+                    <div
+                        v-if="hasMultipleTemplates"
+                        class="instance-templates ff-input-wrapper flex flex-wrap items-stretch"
+                        data-group="templates"
+                    >
                         <label class="mb-2 block w-full">Choose your Template</label>
                         <template v-if="hasTemplates">
                             <ff-tile-selection v-model="input.template" data-form="project-type">

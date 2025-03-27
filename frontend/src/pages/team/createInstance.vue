@@ -11,6 +11,7 @@
                             class="flex-1"
                             kind="secondary"
                             :disabled="!form.previousButtonState"
+                            data-el="previous-step"
                             @click="$refs.multiStepForm.goToPreviousStep()"
                         >
                             Back
@@ -18,6 +19,7 @@
                         <ff-button
                             class="flex-1 whitespace-nowrap"
                             :disabled="form.nextButtonState"
+                            data-el="next-step"
                             @click="$refs.multiStepForm.goToNextStep()"
                         >
                             {{ form.nextStepLabel }}
@@ -147,7 +149,6 @@ export default {
     },
     async mounted () {
         this.mounted = true
-        this.setPredefinedInputs()
     },
     methods: {
         async handleFormSubmit (formData, copyParts) {
@@ -192,19 +193,13 @@ export default {
             return instanceApi.create(createPayload)
         },
         setPredefinedInputs () {
+            // TODO blueprint deployment
             if (this.$route?.query && this.$route?.query?.blueprintId) {
                 this.preDefinedInputs = {
                     flowBlueprintId: this.$route.query.blueprintId
                 }
                 this.onBlueprintUpdated(this.$route?.query?.blueprintId)
             }
-        },
-        onBlueprintUpdated (blueprintId) {
-            this.blueprintId = blueprintId
-        },
-        createApplication (applicationDetails) {
-            const createPayload = { ...applicationDetails, teamId: this.team.id }
-            return ApplicationApi.createApplication(createPayload)
         },
         async getData () {
             const data = await teamApi.getTeamApplications(this.team.id)

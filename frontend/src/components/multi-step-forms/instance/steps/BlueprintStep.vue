@@ -1,16 +1,21 @@
 <template>
-    <section class="ff-blueprint-step text-center flex flex-col gap-4 pt-6">
+    <section class="ff-blueprint-step text-center flex flex-col gap-4 pt-6" data-step="blueprint">
         <h2>Select Your Blueprint</h2>
 
         <p>We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</p>
 
         <transition name="fade" mode="out-in">
             <ff-loading v-if="loading" message="Loading Blueprints..." />
-            <div v-else class="flex flex-col gap-7">
+            <div v-else class="flex flex-col gap-7" data-el="blueprints-wrapper">
                 <div class="flex gap-16 text-left flex-wrap-reverse">
                     <div class="ff-blueprints flex-1">
-                        <ul class="flex flex-col gap-8">
-                            <li v-for="(category, $categoryName) in categories" :key="$categoryName" :ref="$categoryName">
+                        <ul class="flex flex-col gap-8" data-group="blueprint-groups">
+                            <li
+                                v-for="(category, $categoryName) in categories"
+                                :key="$categoryName"
+                                :ref="$categoryName"
+                                data-group="blueprints"
+                            >
                                 <h3>{{ $categoryName }}</h3>
                                 <hr class="my-3">
                                 <ul class="ff-blueprint-tiles flex gap-5 flex-wrap">
