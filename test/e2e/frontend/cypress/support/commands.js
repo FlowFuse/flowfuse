@@ -258,7 +258,7 @@ Cypress.Commands.add('adminGetAllBlueprints', () => {
     cy.login('alice', 'aaPassword')
 
     cy.intercept('GET', '/api/*/flow-blueprints*').as('getAllBlueprints')
-    cy.visit('/deploy/blueprint')
+    cy.visit('/admin/flow-blueprints')
     cy.wait('@getAllBlueprints')
         .then(interception => interception.response.body.blueprints)
         .then(blueprints => {

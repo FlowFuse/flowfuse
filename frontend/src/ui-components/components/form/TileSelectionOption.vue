@@ -6,6 +6,7 @@
          :style="{'--ff-tile-selection-color': color || null}"
          tabindex="0"
          :data-form="`tile-selection-option-${value}`"
+         data-item="tile-selection-option"
          @click="select(false)"
          @keydown.space.prevent="select(true)"
     >
