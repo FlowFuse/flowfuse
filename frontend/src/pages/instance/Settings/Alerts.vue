@@ -1,9 +1,6 @@
 <template>
     <form class="space-y-6">
         <TemplateSettingsAlert v-model="editable" :editTemplate="false" />
-        <div class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges" data-el="alert-save-button" @click="saveSettings()">Save settings</ff-button>
-        </div>
     </form>
 </template>
 
@@ -37,7 +34,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'save-button-state'],
     data () {
         return {
             unsavedChanges: false,
@@ -77,6 +74,12 @@ export default {
                     description: 'Email Team Members'
                 }
             ]
+        },
+        saveButton () {
+            return {
+                visible: true,
+                disabled: !this.unsavedChanges
+            }
         }
     },
     watch: {
@@ -91,6 +94,12 @@ export default {
                     })
                     this.unsavedChanges = changed
                 }
+            }
+        },
+        saveButton: {
+            immediate: true,
+            handler (state) {
+                this.$emit('save-button-state', state)
             }
         }
     },

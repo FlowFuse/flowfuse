@@ -46,10 +46,14 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'save-button-state'],
     data: function () {
         return {
-            updating: false
+            updating: false,
+            saveButton: {
+                visible: false,
+                disabled: false
+            }
         }
     },
     computed: {
@@ -65,6 +69,14 @@ export default {
             const flag = this.team.type.properties.features?.protectedInstance
             const enabled = flag === undefined || flag
             return this.teamMembership.role === Roles.Owner && enabled
+        }
+    },
+    watch: {
+        saveButton: {
+            immediate: true,
+            handler: function (state) {
+                this.$emit('save-button-state', state)
+            }
         }
     },
     methods: {
