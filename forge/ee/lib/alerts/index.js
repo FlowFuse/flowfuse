@@ -37,9 +37,9 @@ module.exports = {
                         template = templateName.join('-')
                     } else if (emailAlerts?.safe && event === 'safe-mode') {
                         template = 'SafeMode'
-                    } else if (emailAlerts?.resource?.cpu && event === 'resource.cpu') {
+                    } else if ((emailAlerts?.resource?.cpu ?? true) && event === 'resource.cpu') {
                         template = 'InstanceResourceCPUExceeded'
-                    } else if (emailAlerts?.resource?.memory && event === 'resource.memory') {
+                    } else if ((emailAlerts?.resource?.memory ?? true) && event === 'resource.memory') {
                         template = 'InstanceResourceMemoryExceeded'
                     }
                     if (!template || !teamType.getFeatureProperty('emailAlerts', false)) {

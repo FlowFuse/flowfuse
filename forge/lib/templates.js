@@ -66,8 +66,8 @@ module.exports = {
         localAuth_pass: '',
         emailAlerts_crash: false,
         emailAlerts_safe: false,
-        emailAlerts_resource_cpu: false,
-        emailAlerts_resource_memory: false,
+        emailAlerts_resource_cpu: true,
+        emailAlerts_resource_memory: true,
         emailAlerts_recipients: 'owners',
         debugMaxLength: 1000,
         apiMaxLength: '5mb'

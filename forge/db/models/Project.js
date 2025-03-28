@@ -219,10 +219,10 @@ module.exports = {
                 await M.Notification.destroy({
                     where: {
                         type: {
-                            [Op.in]: ['instance-crashed', 'instance-safe-mode']
+                            [Op.in]: ['instance-crashed', 'instance-safe-mode', 'instance-resource-cpu', 'instance-resource-memory']
                         },
                         reference: {
-                            [Op.in]: [`instance-crashed:${project.id}`, `instance-safe-mode:${project.id}`]
+                            [Op.in]: [`instance-crashed:${project.id}`, `instance-safe-mode:${project.id}`, `instance-resource-cpu:${project.id}`, `instance-resource-memory:${project.id}`]
                         }
                     }
                 })
