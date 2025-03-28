@@ -44,16 +44,11 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState, useStore } from 'vuex'
 
-import ApplicationApi from '../../api/application.js'
-
-import instanceApi from '../../api/instances.js'
 import teamApi from '../../api/team.js'
 import MultiStepApplicationsInstanceForm from '../../components/multi-step-forms/instance/MultiStepApplicationsInstanceForm.vue'
 
-import Alerts from '../../services/alerts.js'
 import LocalStorageService from '../../services/storage/local-storage.service.js'
 
 export default {
@@ -82,19 +77,8 @@ export default {
     data () {
         return {
             applications: [],
-            icons: {
-                chevronLeft: ChevronLeftIcon
-            },
             loading: false,
-            sourceInstance: null,
             mounted: false,
-            errors: {
-                name: ''
-            },
-            instanceDetails: null,
-            preDefinedInputs: null,
-            blueprintId: null,
-            application: null,
             form: {
                 nextButtonState: false,
                 previousButtonState: false,
@@ -108,23 +92,8 @@ export default {
         isLandingFromExternalLink () {
             return this.$route.name === 'DeployBlueprint'
         },
-        blueprintName () {
-            return this.updatedBlueprint?.name ||
-            this.preDefinedBlueprint?.name ||
-            this.defaultBlueprint?.name ||
-            'Blueprint'
-        },
-        updatedBlueprint () {
-            return this.blueprints.find(blueprint => blueprint.id === this.blueprintId)
-        },
-        blueprintTitle () {
-            return `Deploy ${this.blueprintName}`
-        },
         pageTitle () {
-            return this.isLandingFromExternalLink ? this.blueprintTitle : 'Instances'
-        },
-        preDefinedBlueprint () {
-            return this.blueprints.find(blueprint => blueprint.id === this.preDefinedInputs?.flowBlueprintId)
+            return this.isLandingFromExternalLink ? 'Deploy Blueprint' : 'Instances'
         }
     },
     watch: {
@@ -151,47 +120,6 @@ export default {
         this.mounted = true
     },
     methods: {
-        async handleFormSubmit (formData, copyParts) {
-            this.loading = true
-
-            // Drop application id, name and description from the payload
-            const { applicationId, applicationName, applicationDescription, ...instanceFields } = formData
-            try {
-                if (!applicationId) {
-                    this.application = await this.createApplication({ name: applicationName, description: applicationDescription })
-                }
-
-                const instance = await this.createInstance(applicationId || this.application.id, instanceFields, copyParts)
-
-                await this.$store.dispatch('account/refreshTeam')
-
-                this.$router.push({ name: 'Instance', params: { id: instance.id } })
-                    .then(() => {
-                        this.loading = false
-                    })
-                    .catch(() => {})
-            } catch (err) {
-                this.instanceDetails = instanceFields
-                if (err.response?.status === 409) {
-                    if (err.response.data?.code === 'invalid_application_name') {
-                        this.errors.applicationId = 'Select an Application'
-                    } else {
-                        this.errors.name = err.response.data.error
-                    }
-                } else if (err.response?.status === 400) {
-                    Alerts.emit('Failed to create instance: ' + err.response.data.error, 'warning', 7500)
-                } else {
-                    Alerts.emit('Failed to create instance')
-                    console.error(err)
-                }
-                this.loading = false
-            }
-        },
-        createInstance (applicationId, instanceDetails) {
-            const createPayload = { ...instanceDetails, applicationId }
-
-            return instanceApi.create(createPayload)
-        },
         async getData () {
             const data = await teamApi.getTeamApplications(this.team.id)
             this.applications = data.applications.map((a) => {

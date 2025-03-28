@@ -193,8 +193,9 @@ describe('FlowFuse - Deploy Blueprint', () => {
                         cy.contains('type1 / stack 1')
 
                         cy.wait('@getInstance')
-                        cy.window().then((win) => expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/))
+                        return cy.window()
                     })
+                    .then((win) => expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/))
             })
 
             it('reverts to the default blueprint when an invalid blueprint id is given after logging in', () => {
@@ -228,8 +229,9 @@ describe('FlowFuse - Deploy Blueprint', () => {
                         cy.contains('type1 / stack 1')
 
                         cy.wait('@getInstance')
-                        cy.window().then((win) => expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/))
+                        return cy.window()
                     })
+                    .then((win) => expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/))
             })
 
             it('can deploy pre-defined blueprints after logging in', () => {
@@ -258,18 +260,19 @@ describe('FlowFuse - Deploy Blueprint', () => {
 
                         cy.get('[data-el="next-step"]').click()
 
-                        cy.wait('@createInstance')
-                            .then((interception) => {
-                                const instanceName = interception.request.body.name
-
-                                cy.get('[data-el="page-name"]').contains(instanceName)
-
-                                cy.contains('type1 / stack 1')
-
-                                cy.wait('@getInstance')
-                                cy.window().then((win) => expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/))
-                            })
+                        return cy.wait('@createInstance')
                     })
+                    .then((interception) => {
+                        const instanceName = interception.request.body.name
+
+                        cy.get('[data-el="page-name"]').contains(instanceName)
+
+                        cy.contains('type1 / stack 1')
+
+                        cy.wait('@getInstance')
+                        return cy.window()
+                    })
+                    .then((win) => expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/))
             })
         })
     })
@@ -421,7 +424,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
                 })
         })
 
-        it.only('that follow registration land on the deploy blueprint page with the correct predefined blueprint', () => {
+        it('that follow registration land on the deploy blueprint page with the correct predefined blueprint', () => {
             const stamp = new Date().getTime()
             const newUser = {
                 username: `formidable-padawan-${stamp}`,

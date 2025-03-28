@@ -103,7 +103,6 @@ export default {
     },
     methods: {
         updateForm (payload, stepKey) {
-            console.log(payload)
             this.currentStepKey = stepKey
             this.form = { ...this.form, ...payload }
         },
