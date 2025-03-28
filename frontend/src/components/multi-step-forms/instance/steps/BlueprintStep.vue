@@ -165,7 +165,7 @@ export default {
                     // through a website deployment, so we really want a blueprint
                     let blueprint = this.blueprints.find(bp => bp.id === this.$route.query.blueprintId)
                     if (!blueprint) {
-                        // because we really want a blueprint selected but can't find the requested one, we'll default to the default one
+                        // because we really want a blueprint selected but can't find the requested one, we'll fall back to the default one
                         blueprint = this.blueprints.find(bp => bp.default)
                     }
 
