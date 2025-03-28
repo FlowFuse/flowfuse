@@ -20,6 +20,7 @@
 import { mapState } from 'vuex'
 
 import applicationApi from '../../../api/application.js'
+import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import instanceApi from '../../../api/instances.js'
 import Alerts from '../../../services/alerts.js'
 import MultiStepForm from '../MultiStepForm.vue'
@@ -57,7 +58,8 @@ export default {
 
             },
             startingStep,
-            currentStepKey: startingStep
+            currentStepKey: startingStep,
+            blueprints: []
         }
     },
     computed: {
@@ -84,12 +86,17 @@ export default {
                 {
                     sliderTitle: 'Blueprint',
                     component: BlueprintStep,
+                    hidden: this.hasNoBlueprints,
                     bindings: {
                         slug: BLUEPRINT_SLUG,
-                        state: this.form[BLUEPRINT_SLUG]
+                        state: this.form[BLUEPRINT_SLUG],
+                        blueprints: this.blueprints
                     }
                 }
             ]
+        },
+        hasNoBlueprints () {
+            return this.blueprints.length === 0
         },
         shouldDisableNextStep () {
             const currentStep = this.formSteps[this.currentStepKey]
@@ -100,6 +107,11 @@ export default {
         hasToCreateAnApplication () {
             return this.applications.length === 0
         }
+    },
+    mounted () {
+        // we need to get blueprints early on when we load the form in order to be able to hide the blueprints step if
+        // there aren't any
+        this.getBlueprints()
     },
     methods: {
         updateForm (payload, stepKey) {
@@ -150,6 +162,12 @@ export default {
         },
         goToPreviousStep () {
             this.$refs.multiStepForm.previousStep()
+        },
+        async getBlueprints () {
+            return flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
+                .then(response => {
+                    this.blueprints = response.blueprints
+                })
         }
     }
 }

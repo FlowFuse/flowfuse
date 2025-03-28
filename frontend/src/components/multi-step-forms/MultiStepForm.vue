@@ -92,13 +92,16 @@ export default {
     },
     computed: {
         currentStep () {
-            return this.steps[this.currentStepKey] ?? null
+            return this.filteredSteps[this.currentStepKey] ?? null
         },
         canGoToPreviousStep () {
             return this.currentStepKey > this.startingStep
         },
+        filteredSteps () {
+            return this.steps.filter(step => !step.hidden)
+        },
         isLastStep () {
-            return this.currentStepKey === this.steps.length - 1
+            return this.currentStepKey === this.filteredSteps.length - 1
         },
         nextStepLabel () {
             if (this.isLastStep) {
@@ -108,9 +111,10 @@ export default {
             return 'Next'
         },
         sliderTitles () {
-            return this.steps.map(step => ({
+            return this.filteredSteps.map(step => ({
                 title: step.sliderTitle ?? 'Stage',
-                disabled: step.disabled
+                disabled: step.disabled,
+                hidden: step.hidden
             }))
         }
     },

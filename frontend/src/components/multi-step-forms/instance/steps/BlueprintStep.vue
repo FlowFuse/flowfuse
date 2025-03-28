@@ -67,7 +67,6 @@
 <script>
 import { mapState } from 'vuex'
 
-import flowBlueprintsApi from '../../../../api/flowBlueprints.js'
 import { scrollIntoView } from '../../../../composables/Ux.js'
 import FfLoading from '../../../Loading.vue'
 import BlueprintTile from '../../../blueprints/BlueprintTile.vue'
@@ -85,6 +84,10 @@ export default {
             required: false,
             type: Object,
             default: () => ({})
+        },
+        blueprints: {
+            type: Array,
+            required: true
         }
     },
     emits: ['step-updated'],
@@ -94,7 +97,6 @@ export default {
     },
     data () {
         return {
-            blueprints: [],
             selectedBlueprint: this.initialState.blueprint ?? null,
             loading: true
         }
@@ -127,20 +129,25 @@ export default {
         }
     },
     async mounted () {
-        this.getBlueprints()
-            .then(() => this.preSelectBlueprint())
+        this.preSelectBlueprint()
             .catch(e => e)
             .finally(() => {
                 this.loading = false
             })
+        // this.getBlueprints()
+        //     .then(() => this.preSelectBlueprint())
+        //     .catch(e => e)
+        //     .finally(() => {
+        //         this.loading = false
+        //     })
     },
     methods: {
-        async getBlueprints () {
-            return flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
-                .then(response => {
-                    this.blueprints = response.blueprints
-                })
-        },
+        // async getBlueprints () {
+        //     return flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
+        //         .then(response => {
+        //             this.blueprints = response.blueprints
+        //         })
+        // },
         onCategoryClick (category) {
             const el = this.$refs[category]
 
