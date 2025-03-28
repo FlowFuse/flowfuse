@@ -320,10 +320,6 @@ export default {
                 }
             }
         },
-        async getTemplates () {
-            const templates = await templatesApi.getTemplates()
-            this.instanceTemplates = templates.templates
-        },
         decorateInstanceTypes (instanceTypes) {
             // TODO this needs to be a computed prop but it's causing too many side effects to be used as is
 
@@ -413,6 +409,17 @@ export default {
             }
 
             return instanceTypes
+        },
+        getTemplates () {
+            return templatesApi.getTemplates()
+                .then((response) => {
+                    const templates = response.templates
+                    if (templates.length === 1) {
+                        this.input.template = templates[0].id
+                    }
+
+                    this.instanceTemplates = templates
+                })
         },
         refreshName () {
             this.input.name = NameGenerator()

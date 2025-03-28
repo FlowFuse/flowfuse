@@ -2,6 +2,9 @@
     <section class="ff-select-application-step text-center flex flex-col gap-4 pt-6">
         <template v-if="hasApplications">
             <h2>Choose an Application</h2>
+
+            <p>Applications are used to manage and group together your Node-RED instances and devices.</p>
+
             <ul class="max-w-2xl w-full m-auto text-left flex flex-col gap-4">
                 <li
                     v-for="(application, $key) in applications"
@@ -37,6 +40,9 @@
         </template>
         <template v-else>
             <h2>Create an Application</h2>
+
+            <p>Applications are used to manage and group together your Node-RED instances and devices.</p>
+
             <div class="max-w-lg w-full m-auto text-left flex flex-col gap-4">
                 <FormRow
                     v-model="input.name"
