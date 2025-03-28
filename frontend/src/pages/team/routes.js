@@ -18,6 +18,7 @@ import TeamPipelines from './Pipelines/index.vue'
 import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
+import TeamSettingsIntegrations from './Settings/Integrations.vue'
 import TeamSettings from './Settings/index.vue'
 import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
@@ -146,6 +147,7 @@ export default [
                                 children: [
                                     { name: 'team-settings-general', path: 'general', component: TeamSettingsGeneral },
                                     { name: 'TeamSettingsDevices', path: 'devices', component: TeamSettingsDevices },
+                                    { name: 'team-settings-integrations', path: 'integrations', component: TeamSettingsIntegrations },
                                     { name: 'team-settings-danger', path: 'danger', component: TeamSettingsDanger }
 
                                 ]
