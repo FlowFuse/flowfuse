@@ -274,8 +274,6 @@ describe('FlowForge - Instances', () => {
 
         cy.get('[data-el="next-step"]').click()
 
-        cy.get('[data-el="next-step"]').click()
-
         cy.wait('@getProjectTypes')
 
         cy.wait('@createInstance')

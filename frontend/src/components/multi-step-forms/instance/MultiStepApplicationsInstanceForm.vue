@@ -168,6 +168,7 @@ export default {
                 .then(response => {
                     this.blueprints = response.blueprints
                 })
+                .catch(e => e)
         }
     }
 }
