@@ -36,6 +36,24 @@ module.exports = {
                     this.setDataValue('settings', JSON.stringify(value))
                 }
             }
+        },
+        topicPrefix: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            default: '["#"]',
+            get () {
+                const rawValue = this.getDataValue('topicPrefix')
+                if (rawValue) {
+                    return JSON.parse(rawValue)
+                } else {
+                    return ['#']
+                }
+            },
+            set (value) {
+                if (value) {
+                    this.setDataValue(this.topicPrefix, JSON.stringify(value))
+                }
+            }
         }
     },
     indexes: [
