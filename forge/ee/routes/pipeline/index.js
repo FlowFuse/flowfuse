@@ -250,8 +250,13 @@ module.exports = async function (app) {
                     instanceId: { type: 'string' },
                     deviceId: { type: 'string' },
                     deviceGroupId: { type: 'string' },
-                    source: { type: 'string' },
-                    action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
+                    deployToDevices: { type: 'boolean' },
+                    action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) },
+                    gitTokenId: { type: 'string' },
+                    url: { type: 'string' },
+                    branch: { type: 'string' },
+                    credentialSecret: { type: 'string' },
+                    source: { type: 'string' }
                 }
             },
             response: {
@@ -266,8 +271,18 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
-        const { instanceId, deviceId, deviceGroupId, deployToDevices, action } = request.body
-
+        const {
+            instanceId,
+            deviceId,
+            deviceGroupId,
+            deployToDevices,
+            action,
+            // Git Repo options
+            gitTokenId,
+            url,
+            branch,
+            credentialSecret
+        } = request.body
         let stage
         try {
             const options = {
@@ -276,7 +291,11 @@ module.exports = async function (app) {
                 deviceId,
                 deviceGroupId,
                 deployToDevices,
-                action
+                action,
+                gitTokenId,
+                url,
+                branch,
+                credentialSecret
             }
             if (request.body.source) {
                 options.source = request.body.source
@@ -336,7 +355,12 @@ module.exports = async function (app) {
                     instanceId: { type: 'string' },
                     deviceId: { type: 'string' },
                     deviceGroupId: { type: 'string' },
-                    action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
+                    action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) },
+                    gitTokenId: { type: 'string' },
+                    url: { type: 'string' },
+                    branch: { type: 'string' },
+                    credentialSecret: { type: 'string' },
+                    source: { type: 'string' }
                 }
             },
             response: {
@@ -356,7 +380,11 @@ module.exports = async function (app) {
                 deployToDevices: request.body.deployToDevices,
                 action: request.body.action,
                 deviceId: request.body.deviceId,
-                deviceGroupId: request.body.deviceGroupId
+                deviceGroupId: request.body.deviceGroupId,
+                gitTokenId: request.body.gitTokenId,
+                url: request.body.url,
+                branch: request.body.branch,
+                credentialSecret: request.body.credentialSecret
             }
 
             const stage = await app.db.controllers.Pipeline.updatePipelineStage(
@@ -509,6 +537,7 @@ module.exports = async function (app) {
                 targetDevice,
                 sourceDeviceGroup,
                 targetDeviceGroup,
+                targetGitRepo,
                 targetStage
             } = await app.db.controllers.Pipeline.validateSourceStageForDeploy(
                 request.pipeline,
@@ -599,6 +628,13 @@ module.exports = async function (app) {
                 repliedEarly = true
                 deployTarget = targetDeviceGroup
                 await deployPromise
+            } else if (targetGitRepo) {
+                const options = {
+                    sourceObject: sourceDeployed,
+                    user: request.session.User,
+                    pipeline: request.pipeline
+                }
+                await targetGitRepo.deploy(sourceSnapshot, options)
             } else {
                 throw new Error('No target device or instance found.')
             }

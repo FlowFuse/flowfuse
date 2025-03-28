@@ -12,8 +12,10 @@ const modelTypes = [
     'PipelineStageInstance',
     'PipelineStageDevice',
     'PipelineStageDeviceGroup',
+    'PipelineStageGitRepo',
     'FlowTemplate',
-    'MFAToken'
+    'MFAToken',
+    'GitToken'
 ]
 
 async function init (app) {
@@ -106,7 +108,7 @@ async function init (app) {
             m.associations.call(m.model, app.db.models)
         }
         if (m.finders) {
-            const finders = m.finders.call(m.model, app.db.models)
+            const finders = m.finders.call(m.model, app.db.models, app)
             if (finders.static) {
                 Object.assign(m.model, finders.static)
             }
