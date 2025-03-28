@@ -100,7 +100,17 @@ export default {
             } else {
                 options.deviceGroupId = input.deviceGroupId
             }
-
+            if (input.gitTokenId) {
+                // Git repo - clean up unused settings
+                options.gitTokenId = input.gitTokenId
+                options.url = input.url
+                options.branch = input.branch
+                if (input.credentialSecret) {
+                    // Only pass back a non-blank value. This avoids overwriting
+                    // the existing value
+                    options.credentialSecret = input.credentialSecret
+                }
+            }
             await PipelinesAPI.updatePipelineStage(this.pipeline.id, this.stage.id, options)
             Alerts.emit('Pipeline stage successfully updated.', 'confirmation')
 
@@ -115,7 +125,6 @@ export default {
             if (!this.pipeline.id) {
                 return
             }
-
             this.stage = await PipelinesAPI.getPipelineStage(this.pipeline.id, this.$route.params.stageId)
         }
     }

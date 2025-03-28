@@ -2,7 +2,8 @@ const modelTypes = [
     'SAMLProvider',
     'Pipeline',
     'PipelineStage',
-    'FlowTemplate'
+    'FlowTemplate',
+    'GitToken'
 ]
 
 async function init (app) {

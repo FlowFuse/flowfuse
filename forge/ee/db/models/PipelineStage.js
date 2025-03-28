@@ -137,6 +137,7 @@ module.exports = {
         this.belongsToMany(M.Project, { through: M.PipelineStageInstance, as: 'Instances', otherKey: 'InstanceId' })
         this.belongsToMany(M.Device, { through: M.PipelineStageDevice, as: 'Devices' })
         this.belongsToMany(M.DeviceGroup, { through: M.PipelineStageDeviceGroup, as: 'DeviceGroups' })
+        this.hasOne(M.PipelineStageGitRepo, { onDelete: 'CASCADE' })
         this.hasOne(M.PipelineStage, { as: 'NextStage', foreignKey: 'NextStageId', allowNull: true })
     },
     finders: function (M) {
@@ -190,6 +191,28 @@ module.exports = {
                     }
 
                     await this.addDeviceGroup(deviceGroup, options)
+                },
+                async addGitRepo (gitOptions, options = {}) {
+                    // Both create/update paths will have already validated this gitTokenId belongs to the
+                    // appropriate team
+                    const GitTokenId = M.GitToken.decodeHashid(gitOptions.gitTokenId)
+                    const existingRepoStage = await this.getPipelineStageGitRepo()
+                    if (existingRepoStage) {
+                        existingRepoStage.GitTokenId = GitTokenId
+                        existingRepoStage.url = gitOptions.url
+                        existingRepoStage.branch = gitOptions.branch
+                        if (gitOptions.credentialSecret) {
+                            existingRepoStage.credentialSecret = gitOptions.credentialSecret
+                        }
+                        await existingRepoStage.save(options)
+                    } else {
+                        await this.createPipelineStageGitRepo({
+                            GitTokenId,
+                            url: gitOptions.url,
+                            branch: gitOptions.branch,
+                            credentialSecret: gitOptions.credentialSecret
+                        }, options)
+                    }
                 }
             },
             static: {
@@ -213,7 +236,8 @@ module.exports = {
                             {
                                 association: 'DeviceGroups',
                                 attributes: ['hashid', 'id', 'name', 'description']
-                            }
+                            },
+                            'PipelineStageGitRepo'
                         ]
                     })
                 },
@@ -265,7 +289,8 @@ module.exports = {
                                 ]
                             },
                             devicesInclude,
-                            deviceGroupsInclude
+                            deviceGroupsInclude,
+                            'PipelineStageGitRepo'
                         ]
                     })
                 },

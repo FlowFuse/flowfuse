@@ -223,7 +223,9 @@ const getters = {
             isExternalMqttBrokerFeatureEnabledForPlatform: !!state.features?.externalBroker,
 
             // DevOps Pipelines
-            devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines']
+            devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines'],
+
+            isGitIntegrationFeatureEnabledForPlatform: !!state.features?.gitIntegration
         }
         return {
             ...preCheck,
@@ -238,7 +240,8 @@ const getters = {
             // external broker must be enabled for platform, and share the same team-level feature flag as the team broker
             isExternalMqttBrokerFeatureEnabled: preCheck.isExternalMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
             devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
-            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups
+            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups,
+            isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration
         }
     }
 }

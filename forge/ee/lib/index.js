@@ -14,6 +14,7 @@ module.exports = fp(async function (app, opts) {
         require('./customHostnames').init(app)
         app.decorate('sso', await require('./sso').init(app))
         require('./teamBroker').init(app)
+        app.decorate('gitops', await require('./gitops').init(app))
         // Set the MFA Feature Flag
         app.config.features.register('mfa', true, true)
         // Set the Device Groups Feature Flag
