@@ -10,6 +10,8 @@
                         range
                         is-24
                         placeholder="Start Time"
+                        :min-date="startTime"
+                        :max-date="endTime"
                     />
                 </div>
                 <div v-if="instance.ha?.replicas != undefined" style="display: flex;align-items: center;">
@@ -24,7 +26,7 @@
             </template>
         </SectionTopMenu>
     </div>
-    <LogsShared :instance="instance" :filter="selectedHAId" @ha-instance-detected="newHAId" ref="logs"/>
+    <LogsShared :instance="instance" :filter="selectedHAId" @ha-instance-detected="newHAId" @new-range="newRange" ref="logs"/>
 </template>
 
 <script>
@@ -54,7 +56,8 @@ export default {
             haIds: [],
             selectedHAId: 'all',
             range: [],
-            startTime: null
+            startTime: null,
+            endTime: null
         }
     },
     computed: {
@@ -68,12 +71,17 @@ export default {
                 this.haIds.push(id)
             }
         },
+        newRange (d) {
+            this.startTime = new Date(d.first/10000)
+            this.endTime = new Date(d.last/10000)
+        }
     },
     watch: {
-        range (newState) {
-            console.log(newState)
-            this.startTime = Date.parse(newState[0])
-            this.$refs.logs.stopPolling()
+        async range (newState) {
+            const newStartTime = Date.parse(newState)
+            // this.$refs.logs.stopPolling()
+            this.$refs.logs.clear()
+            await this.$refs.logs.loadItems(this.instance.id, newStartTime * 10000)
         }
     }
 }

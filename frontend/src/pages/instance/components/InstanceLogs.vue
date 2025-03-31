@@ -99,6 +99,9 @@ export default {
         this.stopPolling()
     },
     methods: {
+        clear: function () {
+            this.logEntries = []
+        },
         shouldPoll: function () {
             return Object.hasOwnProperty.call(this.$route, 'meta') &&
                 Object.hasOwnProperty.call(this.$route.meta, 'shouldPoll') &&
@@ -174,6 +177,12 @@ export default {
                     }
                     if (!cursor || cursor[0] !== '-') {
                         this.nextCursor = entries.meta.next_cursor
+                    }
+                    if (entries.meta.first_entry && entries.meta.last_entry) {
+                        this.$emit('new-range', {
+                            first: entries.meta.first_entry,
+                            last: entries.meta.last_entry
+                        })
                     }
                 }
             } catch (error) {
