@@ -134,12 +134,6 @@ export default {
             .finally(() => {
                 this.loading = false
             })
-        // this.getBlueprints()
-        //     .then(() => this.preSelectBlueprint())
-        //     .catch(e => e)
-        //     .finally(() => {
-        //         this.loading = false
-        //     })
     },
     methods: {
         // async getBlueprints () {
