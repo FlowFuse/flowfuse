@@ -136,12 +136,6 @@ export default {
             })
     },
     methods: {
-        // async getBlueprints () {
-        //     return flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
-        //         .then(response => {
-        //             this.blueprints = response.blueprints
-        //         })
-        // },
         onCategoryClick (category) {
             const el = this.$refs[category]
 
