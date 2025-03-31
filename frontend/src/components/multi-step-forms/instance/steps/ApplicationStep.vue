@@ -186,10 +186,10 @@ export default {
 <style scoped lang="scss">
 .ff-select-application-step {
     .app-tile {
-        padding: 10px;
+        padding: 12px;
         border: 2px solid $ff-grey-300;
         width: 100%;
-        border-radius: 5px;
+        border-radius: 6px;
         cursor: pointer;
         transition: ease-in-out .3s;
 
