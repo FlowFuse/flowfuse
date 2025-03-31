@@ -55,7 +55,7 @@ export default {
             required: false
         }
     },
-    emits: ['ha-instance-detected'],
+    emits: ['ha-instance-detected', 'new-range'],
     data () {
         return {
             doneInitialLoad: false,

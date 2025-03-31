@@ -26,13 +26,13 @@
             </template>
         </SectionTopMenu>
     </div>
-    <LogsShared :instance="instance" :filter="selectedHAId" @ha-instance-detected="newHAId" @new-range="newRange" ref="logs"/>
+    <LogsShared ref="logs" :instance="instance" :filter="selectedHAId" @ha-instance-detected="newHAId" @new-range="newRange" />
 </template>
 
 <script>
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
-import FfListbox from '../../ui-components/components/form/ListBox.vue'
 import DateTimePicker from '../../ui-components/components/form/DateTime.vue'
+import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
 import LogsShared from './components/InstanceLogs.vue'
 
@@ -65,6 +65,14 @@ export default {
             return [{ label: 'All', value: 'all' }, ...this.haIds.map(id => ({ label: id, value: id }))]
         }
     },
+    watch: {
+        async range (newState) {
+            const newStartTime = Date.parse(newState)
+            // this.$refs.logs.stopPolling()
+            this.$refs.logs.clear()
+            await this.$refs.logs.loadItems(this.instance.id, newStartTime * 10000)
+        }
+    },
     methods: {
         newHAId (id) {
             if (!this.haIds.includes(id)) {
@@ -72,16 +80,8 @@ export default {
             }
         },
         newRange (d) {
-            this.startTime = new Date(d.first/10000)
-            this.endTime = new Date(d.last/10000)
-        }
-    },
-    watch: {
-        async range (newState) {
-            const newStartTime = Date.parse(newState)
-            // this.$refs.logs.stopPolling()
-            this.$refs.logs.clear()
-            await this.$refs.logs.loadItems(this.instance.id, newStartTime * 10000)
+            this.startTime = new Date(d.first / 10000)
+            this.endTime = new Date(d.last / 10000)
         }
     }
 }
