@@ -5,6 +5,7 @@
 <script>
 
 import VueDatePicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
 // documentation https://vue3datepicker.com/props/modes/
 export default {
