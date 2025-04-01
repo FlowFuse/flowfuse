@@ -55,7 +55,7 @@ export default {
             try {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
-                this.$store.dispatch('ux/activateTour', 'welcome')
+                this.$store.dispatch('ux/tours/presentTour')
                 this.$store.dispatch('ux/setNewlyCreatedUser', true)
                 this.$router.go()
             } catch (err) {
