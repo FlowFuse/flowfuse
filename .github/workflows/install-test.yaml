@@ -9,7 +9,7 @@ jobs:
     name: Install and test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version: 20
       - name: install
@@ -19,7 +19,7 @@ jobs:
           cp node_modules/@flowfuse/flowfuse/etc/flowforge.yml etc/
           ls -lh node_modules/.bin
       - name: start server in background
-        uses: JarvusInnovations/background-action@v1
+        uses: JarvusInnovations/background-action@2428e7b970a846423095c79d43f759abf979a635 # v1.0.7
         with:
           run: |
             node_modules/.bin/flowfuse
@@ -42,7 +42,7 @@ jobs:
     steps:
     - name: Post to a Slack channel
       id: slack
-      uses: slackapi/slack-github-action@v1.27.0
+      uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
       with:
         channel-id: 'C067BD0377F'
         payload: |
