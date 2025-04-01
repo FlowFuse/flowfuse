@@ -64,20 +64,21 @@ export default {
                 },
                 {
                     sliderTitle: 'Instance',
+                    component: InstanceStep,
                     bindings: {
                         slug: INSTANCE_SLUG,
                         state: this.form[INSTANCE_SLUG].input
-                    },
-                    component: InstanceStep
+                    }
                 },
                 {
                     sliderTitle: 'Blueprint',
+                    hidden: this.hasNoBlueprints,
+                    component: BlueprintStep,
                     bindings: {
                         slug: BLUEPRINT_SLUG,
                         state: this.form[BLUEPRINT_SLUG],
                         blueprints: this.blueprints
-                    },
-                    component: BlueprintStep
+                    }
                 }
             ]
         },
