@@ -51,7 +51,7 @@ module.exports = {
             },
             set (value) {
                 if (value) {
-                    this.setDataValue(this.topicPrefix, JSON.stringify(value))
+                    this.setDataValue('topicPrefix', JSON.stringify(value))
                 }
             }
         }
