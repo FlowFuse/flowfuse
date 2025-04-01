@@ -37,7 +37,6 @@ import Dialog from '../../../../../../services/dialog.js'
 
 import ObjectProperties from '../schema/ObjectProperties.vue'
 
-// eslint-disable-next-line vue/one-component-per-file
 export default {
     name: 'TopicSuggestion',
     components: {
