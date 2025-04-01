@@ -921,7 +921,14 @@ module.exports = async function (app) {
                 200: {
                     type: 'object',
                     properties: {
-                        meta: { $ref: 'PaginationMeta' },
+                        meta: {
+                            properties: {
+                                next_cursor: { type: 'string' },
+                                previous_cursor: { type: 'string' },
+                                first_entry: { type: 'string' },
+                                last_entry: { type: 'string' }
+                            }
+                        },
                         log: { type: 'array', items: { type: 'object', additionalProperties: true } }
                     }
                 },
