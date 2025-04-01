@@ -947,10 +947,10 @@ module.exports = async function (app) {
         }
         try {
             const paginationOptions = app.getPaginationOptions(request, { limit: 30 })
-            let logs = await app.containers?.logs(request.project) | []
-            const firstLogCursor = logs.length > 0 ? logs[0]?.ts : null
+            let logs = await app.containers?.logs(request.project)
+            const firstLogCursor = logs.length > 0 ? logs[0].ts : null
             const fullLogLength = logs.length
-            const lastLogCursor = logs.length > 1 ? logs[fullLogLength - 1]?.ts : null
+            const lastLogCursor = logs.length > 1 ? logs[fullLogLength - 1].ts : null
             if (!paginationOptions.cursor) {
                 logs = logs.slice(-paginationOptions.limit)
             } else {
