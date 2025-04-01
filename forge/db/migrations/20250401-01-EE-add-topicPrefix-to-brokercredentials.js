@@ -6,24 +6,15 @@
 const { DataTypes, QueryInterface } = require('sequelize')
 
 module.exports = {
+    /**
+     * Add topicPrefix field to BrokerCredentials table
+     * @param {QueryInterface} context Sequelize.QueryInterface
+     */
     up: async (context) => {
         await context.addColumn('BrokerCredentials', 'topicPrefix', {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
             defaultValue: '["#"]',
-            allowNull: true,
-            get () {
-                const rawValue = this.getDataValue('topicPrefix')
-                if (rawValue) {
-                    return JSON.parse(rawValue)
-                } else {
-                    return ['#']
-                }
-            },
-            set (value) {
-                if (value) {
-                    this.setDataValue(this.topicPrefix, JSON.stringify(value))
-                }
-            }
+            allowNull: true
         })
     },
     down: async (context) => {}
