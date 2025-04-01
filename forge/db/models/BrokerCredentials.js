@@ -38,7 +38,7 @@ module.exports = {
             }
         },
         topicPrefix: {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
             allowNull: true,
             default: '["#"]',
             get () {
