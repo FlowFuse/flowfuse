@@ -299,6 +299,18 @@ export default {
             this.nodeRedVersions = versions.stacks
                 .filter(version => version.active)
                 .map(version => { return { ...version, value: version.id, label: version.label || version.name } })
+            if (this.input.instanceType) {
+                const instanceType = this.getInstanceType(this.input.instanceType)
+                if (instanceType?.defaultStack) {
+                    const version = this.nodeRedVersions.find(version => version.id === instanceType.defaultStack)
+                    if (version) {
+                        this.input.nodeREDVersion = instanceType.defaultStack
+                    } else if (this.nodeRedVersions.length > 0) {
+                        // Default to first in the list; don't force a selection to be made
+                        this.input.nodeREDVersion = this.nodeRedVersions[0]?.id
+                    }
+                }
+            }
         },
         async getInstanceTypes () {
             const instanceTypes = await instanceTypesApi.getInstanceTypes()
@@ -423,6 +435,9 @@ export default {
         },
         refreshName () {
             this.input.name = NameGenerator()
+        },
+        getInstanceType (id) {
+            return this.instanceTypes.find(instanceType => instanceType.id === id)
         }
     }
 }
