@@ -30,7 +30,7 @@
                             <div class="grid grid-cols-1 gap-4">
                                 <div class="p-2 border rounded bg-gray-50">
                                     <template v-if="selectedOS === 'Windows'">
-                                        <p>Open PowerShell as Administrator and run:</p>
+                                        <p>Open Command Prompt or PowerShell as administrator and run:</p>
                                         <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">npm install -g @flowfuse/device-agent</pre>
                                         <div class="flex flex-row justify-end space-x-2 -mt-1">
                                             <ff-button kind="tertiary" size="small" @click="copy('npm install -g @flowfuse/device-agent')">
