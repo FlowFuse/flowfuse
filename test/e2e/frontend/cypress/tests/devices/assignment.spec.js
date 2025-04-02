@@ -95,6 +95,7 @@ describe('FlowForge - Team - Devices - Create', () => {
             cy.get('[data-form="application"]').within(() => {
                 // eslint-disable-next-line cypress/require-data-selectors
                 cy.get('.ff-listbox').should('not.be.disabled')
+                // eslint-disable-next-line cypress/require-data-selectors
                 cy.get('.ff-listbox').click()
 
                 // Click item with label 'application-2'
