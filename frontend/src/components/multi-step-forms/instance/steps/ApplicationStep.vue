@@ -3,7 +3,7 @@
         <template v-if="hasApplications">
             <h2>Choose an Application</h2>
 
-            <p>Applications are used to manage and group together your Node-RED instances and devices.</p>
+            <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
 
             <ul class="max-w-2xl w-full m-auto text-left flex flex-col gap-4">
                 <li
