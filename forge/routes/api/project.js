@@ -922,12 +922,16 @@ module.exports = async function (app) {
                     type: 'object',
                     properties: {
                         meta: {
-                            properties: {
-                                next_cursor: { type: 'string' },
-                                previous_cursor: { type: 'string' },
-                                first_entry: { type: 'string' },
-                                last_entry: { type: 'string' }
-                            }
+                            allOf: [
+                                { $ref: 'PaginationMeta' },
+                                {
+                                    type: 'object',
+                                    properties: {
+                                        first_entry: { type: 'string' },
+                                        last_entry: { type: 'string' }
+                                    }
+                                }
+                            ]
                         },
                         log: { type: 'array', items: { type: 'object', additionalProperties: true } }
                     }
