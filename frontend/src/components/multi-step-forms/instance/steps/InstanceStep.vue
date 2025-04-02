@@ -413,7 +413,7 @@ export default {
         getTemplates () {
             return templatesApi.getTemplates()
                 .then((response) => {
-                    const templates = response.templates
+                    const templates = response.templates.filter(template => template.active)
                     if (templates.length === 1) {
                         this.input.template = templates[0].id
                     }
