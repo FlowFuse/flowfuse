@@ -34,7 +34,8 @@ import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
-import alerts from '../../../services/alerts.js'
+import Alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 
 export default {
     name: 'LauncherSettings',
@@ -50,7 +51,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated', 'save-button-state'],
+    emits: ['instance-updated', 'save-button-state', 'restart-instance'],
     data () {
         return {
             mounted: false,
@@ -152,12 +153,20 @@ export default {
                 }
             }
             if (!this.validateFormInputs()) {
-                alerts.emit('Please correct the errors before saving.', 'error')
+                Alerts.emit('Please correct the errors before saving.', 'error')
                 return
             }
             await InstanceApi.updateInstance(this.project.id, { launcherSettings })
             this.$emit('instance-updated')
-            alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
+            Dialog.show({
+                header: 'Restart Required',
+                html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
+                confirmLabel: 'Restart Now',
+                cancelLabel: 'Restart Later'
+            }, () => {
+                // restart the instance
+                this.$emit('restart-instance')
+            })
         }
     }
 }

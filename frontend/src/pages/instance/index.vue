@@ -87,6 +87,7 @@ import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDelet
 import DashboardLink from './components/DashboardLink.vue'
 import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
+
 export default {
     name: 'InstancePage',
     components: {

@@ -49,7 +49,7 @@ import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
-import alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
 import ExpiryCell from '../../account/components/ExpiryCell.vue'
 import TemplateSettingsSecurity from '../../admin/Template/sections/Security.vue'
@@ -82,7 +82,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated', 'save-button-state'],
+    emits: ['instance-updated', 'save-button-state', 'restart-instance'],
     data () {
         return {
             unsavedChanges: false,
@@ -227,7 +227,15 @@ export default {
             }
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
-            alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
+            Dialog.show({
+                header: 'Restart Required',
+                html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
+                confirmLabel: 'Restart Now',
+                cancelLabel: 'Restart Later'
+            }, () => {
+                // restart the instance
+                this.$emit('restart-instance')
+            })
         },
         async getTokens () {
             const response = await InstanceApi.getHTTPTokens(this.project.id)
