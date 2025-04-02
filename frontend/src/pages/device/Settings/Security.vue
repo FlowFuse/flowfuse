@@ -10,13 +10,14 @@
         <TemplateSettingsSecurity
             v-model="editable"
             :editTemplate="false"
+            :device="device"
             :team="team"
         />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
             <div v-if="!securityOptionsSupported" class="ff-description italic mb-2">
                 These options require Device Agent v3.1 or later to take effect.
             </div>
-            <ff-button data-el="submit" size="small" :disabled="!unsavedChanges" @click="saveSettings()">
+            <ff-button data-el="submit" size="small" :disabled="!unsavedChanges || editable.hasErrors" @click="saveSettings()">
                 Save Settings
             </ff-button>
         </div>
@@ -50,23 +51,36 @@ export default {
                 settings: {
                     httpNodeAuth_type: '',
                     httpNodeAuth_user: '',
-                    httpNodeAuth_pass: ''
+                    httpNodeAuth_pass: '',
+                    localAuth_enabled: false,
+                    localAuth_user: '',
+                    localAuth_pass: ''
                 },
                 policy: {
                     httpNodeAuth_type: true,
                     httpNodeAuth_user: true,
-                    httpNodeAuth_pass: true
+                    httpNodeAuth_pass: true,
+                    localAuth_enabled: true,
+                    localAuth_user: true,
+                    localAuth_pass: true
                 },
                 changed: {
                     settings: {},
                     policy: { }
                 },
-                errors: {}
+                errors: {
+                    localAuth_user: '',
+                    localAuth_pass: ''
+                },
+                hasErrors: false
             },
             original: {
                 httpNodeAuth_type: '',
                 httpNodeAuth_user: '',
-                httpNodeAuth_pass: ''
+                httpNodeAuth_pass: '',
+                localAuth_enabled: false,
+                localAuth_user: '',
+                localAuth_pass: ''
             }
         }
     },
@@ -92,6 +106,17 @@ export default {
                     return true
                 }
             }
+            if (this.editable.settings.localAuth_enabled !== this.original.localAuth_enabled) {
+                return true
+            }
+            if (this.editable.settings.localAuth_enabled) {
+                if (this.editable.settings.localAuth_user !== this.original.localAuth_user) {
+                    return true
+                }
+                if (this.editable.settings.localAuth_pass !== this.original.localAuth_pass) {
+                    return true
+                }
+            }
             return false
         }
     },
@@ -101,12 +126,33 @@ export default {
                 this.getSettings()
             },
             deep: true
+        },
+        'editable.settings': {
+            handler () {
+                this.validate()
+            },
+            deep: true
         }
     },
     mounted () {
         this.getSettings()
     },
     methods: {
+        validate: function () {
+            this.editable.errors.localAuth_user = ''
+            this.editable.errors.localAuth_pass = ''
+            this.editable.hasErrors = false
+            if (this.editable.settings.localAuth_enabled) {
+                if (!this.editable.settings.localAuth_user) {
+                    this.editable.errors.localAuth_user = 'Username is required'
+                }
+                if (!this.editable.settings.localAuth_pass) {
+                    this.editable.errors.localAuth_pass = 'Password is required'
+                }
+            }
+            this.editable.hasErrors = !!this.editable.errors.localAuth_user || !!this.editable.errors.localAuth_pass
+            return !this.editable.hasErrors
+        },
         async updateDevice () {
             await deviceApi.updateDevice(this.device.id, { name: this.input.deviceName })
             this.$emit('device-updated')
@@ -124,9 +170,24 @@ export default {
                 this.original.httpNodeAuth_type = this.editable.settings.httpNodeAuth_type
                 this.original.httpNodeAuth_user = this.editable.settings.httpNodeAuth_user
                 this.original.httpNodeAuth_pass = this.editable.settings.httpNodeAuth_pass
+
+                this.editable.settings.localAuth_enabled = settings.security?.localAuth?.enabled || false
+                this.editable.settings.localAuth_user = settings.security?.localAuth?.user || ''
+                this.editable.settings.localAuth_pass = settings.security?.localAuth?.pass || ''
+                if (this.editable.settings.localAuth_pass === true) {
+                    this.editable.settings.localAuth_pass = '_PLACEHOLDER_'
+                }
+                this.original.localAuth_enabled = this.editable.settings.localAuth_enabled
+                this.original.localAuth_user = this.editable.settings.localAuth_user
+                this.original.localAuth_pass = this.editable.settings.localAuth_pass
             }
         },
         saveSettings: async function () {
+            if (!this.validate()) {
+                // This should never happen, due to error validation markers printed below the fields
+                // and the save button _should_ be disabled!  But just in case...
+                return
+            }
             const settings = { security: { } }
             if (this.editable.settings.httpNodeAuth_type !== 'none') {
                 settings.security.httpNodeAuth = {
@@ -137,6 +198,15 @@ export default {
                     if (this.editable.settings.httpNodeAuth_pass !== '_PLACEHOLDER_') {
                         settings.security.httpNodeAuth.pass = this.editable.settings.httpNodeAuth_pass
                     }
+                }
+            }
+            settings.security.localAuth = {
+                enabled: !!this.editable.settings.localAuth_enabled
+            }
+            if (settings.security.localAuth.enabled) {
+                settings.security.localAuth.user = this.editable.settings.localAuth_user
+                if (this.editable.settings.localAuth_pass !== '_PLACEHOLDER_') {
+                    settings.security.localAuth.pass = this.editable.settings.localAuth_pass
                 }
             }
             await deviceApi.updateSettings(this.device.id, settings)
