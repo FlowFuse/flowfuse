@@ -34,6 +34,7 @@ module.exports = async function (app) {
         if (app.config.npmRegistry?.enabled) {
             await app.register(require('./catalogues'), { prefix: '/api/v1/teams/:teamId', logLevel: app.config.logging.http })
         }
+        await app.register(require('./gitops'), { prefix: '/api/v1/teams/:teamId/git', logLevel: app.config.logging.http })
 
         // Important: keep SSO last to avoid its error handling polluting other routes.
         await app.register(require('./sso'), { logLevel: app.config.logging.http })

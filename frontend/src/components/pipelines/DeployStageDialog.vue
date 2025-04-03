@@ -24,7 +24,12 @@
                 <template v-else-if="stage.action === StageAction.PROMPT">
                     use the snapshot selected below from "{{ stage.name }}" and
                 </template>
-                copy over all flows, nodes, environment variables and credentials to "{{ target?.name }}".
+                <template v-if="target?.stageType !== StageType.GITREPO">
+                    copy over all flows, nodes, environment variables and credentials to "{{ target?.name }}".
+                </template>
+                <template v-else>
+                    push it to the configured Git repository.
+                </template>
             </p>
             <template v-if="target?.stageType === StageType.DEVICEGROUP">
                 <p class="my-4">
@@ -36,7 +41,7 @@
                     And push out the changes to all devices connected to "{{ target?.name }}".
                 </p>
             </template>
-            <p class="my-4">
+            <p v-if="target?.stageType !== StageType.GITREPO" class="my-4">
                 NOTE: Environment variables in the target {{ targetTypeName }} that already have a value will not be overwritten.
             </p>
 
