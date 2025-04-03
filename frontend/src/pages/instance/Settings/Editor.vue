@@ -1,9 +1,6 @@
 <template>
     <form class="space-y-6">
         <TemplateSettingsEditor v-model="editable" :editTemplate="false" :team="team" :instance="project" />
-        <div class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
-        </div>
     </form>
 </template>
 
@@ -39,7 +36,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'save-button-state'],
     data () {
         return {
             unsavedChanges: false,
@@ -59,7 +56,13 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership'])
+        ...mapState('account', ['team', 'teamMembership']),
+        saveButton () {
+            return {
+                visible: true,
+                disabled: !this.unsavedChanges
+            }
+        }
     },
     watch: {
         project: 'getSettings',
@@ -85,6 +88,12 @@ export default {
                     this.unsavedChanges = changed
                     this.hasErrors = errors
                 }
+            }
+        },
+        saveButton: {
+            immediate: true,
+            handler: function (state) {
+                this.$emit('save-button-state', state)
             }
         }
     },

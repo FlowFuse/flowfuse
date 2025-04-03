@@ -46,7 +46,7 @@ export default {
                 this.dialog.text = msg.text
                 this.dialog.textLines = msg.text?.split('\n')
                 this.dialog.html = msg.html
-                this.dialog.is = markRaw(msg.is)
+                this.dialog.is = msg.is ? markRaw(msg.is) : undefined
                 this.dialog.confirmLabel = msg.confirmLabel
                 this.dialog.kind = msg.kind
                 this.dialog.disablePrimary = msg.disablePrimary

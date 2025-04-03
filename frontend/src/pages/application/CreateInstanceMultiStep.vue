@@ -42,7 +42,7 @@
 <script>
 import { mapState } from 'vuex'
 
-import MultiStepInstanceForm from '../../components/multi-step-modals/instance-creation/MultiStepInstanceForm.vue'
+import MultiStepInstanceForm from '../../components/multi-step-forms/instance/MultiStepInstanceForm.vue'
 
 import applicationMixin from '../../mixins/Application.js'
 

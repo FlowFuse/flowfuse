@@ -7,11 +7,6 @@
             :original-env-vars="original?.settings?.env ?? []"
             @validated="onFormValidated"
         />
-        <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges || hasErrors" data-el="submit" @click="saveSettings()">
-                Save settings
-            </ff-button>
-        </div>
     </form>
 </template>
 
@@ -58,7 +53,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'save-button-state'],
     data () {
         return {
             unsavedChanges: false,
@@ -79,7 +74,13 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership'])
+        ...mapState('account', ['teamMembership']),
+        saveButton () {
+            return {
+                visible: this.hasPermission('device:edit-env'),
+                disabled: !this.unsavedChanges || this.hasErrors
+            }
+        }
     },
     watch: {
         project: 'getSettings',
@@ -116,6 +117,12 @@ export default {
                     }
                     this.unsavedChanges = changed
                 }
+            }
+        },
+        saveButton: {
+            immediate: true,
+            handler: function (state) {
+                this.$emit('save-button-state', state)
             }
         }
     },
