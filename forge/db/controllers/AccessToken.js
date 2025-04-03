@@ -206,16 +206,21 @@ module.exports = {
      * Only the project and expiry date can be updated.
      * @param {Object} app - The app object
      * @param {Object} token - The token to update
-     * @param {Object|string} [project] - The project object or id (set to `null` or `undefined` to remove project scope)
+     * @param {'application'|'instance'} [autoAssignType] - The type of auto assign (set to `null` or `undefined` to remove auto assign)
+     * @param {string} [autoAssignId] - The auto assign id (set to `null` or `undefined` to remove auto assign)
      * @param {Date|'never'} [expiresAt] - The expiry date. If `undefined`, the token never expires
      */
-    updateTokenForTeamDeviceProvisioning: async function (app, token, project, expiresAt) {
+    updateTokenForTeamDeviceProvisioning: async function (app, token, autoAssignType, autoAssignId, expiresAt) {
         let scope = [...(token.scope || [])]
-        const projectId = (project && typeof project === 'object') ? project.id : project
-        // remove project scope & add updated project scope (if set)
+        const instanceId = autoAssignType === 'instance' ? (autoAssignId && typeof autoAssignId === 'object') ? autoAssignId.id : autoAssignId : null
+        const applicationId = autoAssignType === 'application' ? (autoAssignId && typeof autoAssignId === 'object') ? autoAssignId.hashid : autoAssignId : null
+        // remove instance/application scope & add updated instance/application scope (if set)
         scope = scope.filter((s) => !s.startsWith('project:'))
-        if (projectId) {
-            scope.push(`project:${projectId}`)
+        scope = scope.filter((s) => !s.startsWith('application:'))
+        if (applicationId) {
+            scope.push(`application:${applicationId}`)
+        } else if (instanceId) {
+            scope.push(`project:${instanceId}`)
         }
         const tokenUpdates = {
             scope, // scope format: ['device:provision', `name:${token name}`, `project:${project id}`]
