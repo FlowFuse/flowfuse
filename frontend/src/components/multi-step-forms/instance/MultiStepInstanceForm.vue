@@ -92,8 +92,17 @@ export default {
             return flag
         }
     },
-    mounted () {
-        this.getBlueprints()
+    watch: {
+        team: {
+            immediate: true,
+            handler (team) {
+                // we need to get blueprints early on when we load the form in order to be able to hide the blueprints step if
+                // there aren't any
+                if (team) {
+                    this.getBlueprints()
+                }
+            }
+        }
     },
     methods: {
         updateForm (payload) {
