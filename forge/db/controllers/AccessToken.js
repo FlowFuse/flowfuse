@@ -174,15 +174,19 @@ module.exports = {
      * @param {Object} app - The app object
      * @param {string} name - A name for this token
      * @param {Object|number} team - The team object or id
-     * @param {Object|string} project - The project object or id
+     * @param {'application'|'instance'} [autoAssignType] - The type of auto assign (set to `null` or `undefined` to remove auto assign)
+     * @param {Object|string} [autoAssignId] - The auto assign id (set to `null` or `undefined` to remove auto assign)
      * @param {Date|'never'} [expiresAt] - The expiry date. If `undefined`, the token never expires
      */
-    createTokenForTeamDeviceProvisioning: async function (app, name, team, project, expiresAt) {
+    createTokenForTeamDeviceProvisioning: async function (app, name, team, autoAssignType, autoAssignId, expiresAt) {
         const generatedToken = generateToken(32, 'ffadp')
         const scope = ['device:provision', `name:${name}`]
-        const projectId = (project && typeof project === 'object') ? project.id : project
+        const projectId = autoAssignType === 'instance' ? (autoAssignId && typeof autoAssignId === 'object') ? autoAssignId.id : autoAssignId : null
+        const applicationId = autoAssignType === 'application' ? (autoAssignId && typeof autoAssignId === 'object') ? autoAssignId.hashid : autoAssignId : null
         const teamId = (team && typeof team === 'object') ? team.id : team
-        if (projectId) {
+        if (applicationId) {
+            scope.push(`application:${applicationId}`)
+        } else if (projectId) {
             scope.push(`project:${projectId}`)
         }
         const newToken = await app.db.models.AccessToken.create({
