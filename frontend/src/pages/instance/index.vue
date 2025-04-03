@@ -23,6 +23,11 @@
                     <router-link v-if="instance.protected?.enabled" :to="{ name: 'instance-settings-protect'}" @click.stop>
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" data-el="protected-pill" status="protected" text="Protected" />
                     </router-link>
+                    <router-link v-if="instance.settings.disableEditor" :to="{name: 'instance-settings-editor', params: { id: instance.id }}" @click.stop>
+                        <StatusBadge class="ml-2 text-gray-400 cursor-pointer hover:text-blue-600" status="Editor Disabled">
+                            <template #icon><LockClosedIcon class="w-4 h-4" /></template>
+                        </StatusBadge>
+                    </router-link>
                 </template>
                 <template #context>
                     Application:
@@ -69,6 +74,7 @@
 </template>
 
 <script>
+import { LockClosedIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
@@ -98,7 +104,8 @@ export default {
         StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner,
-        InstanceEditorLink
+        InstanceEditorLink,
+        LockClosedIcon
     },
     mixins: [permissionsMixin, instanceMixin, featuresMixin],
     data: function () {
