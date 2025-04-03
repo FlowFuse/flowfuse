@@ -82,6 +82,9 @@ export default {
                 }
             ]
         },
+        hasNoBlueprints () {
+            return this.blueprints.length === 0
+        },
         shouldDisableNextStep () {
             let flag = false
             Object.keys(this.form).forEach(key => {
