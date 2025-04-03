@@ -148,6 +148,7 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     instance: { type: 'string' },
+                    application: { type: 'string' },
                     expiresAt: {
                         oneOf: [
                             { type: 'string' },
@@ -170,6 +171,9 @@ module.exports = async function (app) {
         const AccessTokenController = app.db.controllers.AccessToken
         const team = request.team
         const instanceId = request.body.instance
+        const applicationId = request.body.application
+        const autoAssignType = instanceId ? 'instance' : (applicationId ? 'application' : null)
+        const autoAssignId = autoAssignType ? (instanceId || applicationId) : null
         const tokenName = request.body.name?.trim()
         const expiresAt = request.body.expiresAt ? new Date(request.body.expiresAt) : null
         try {
@@ -180,7 +184,7 @@ module.exports = async function (app) {
             if (tokenName.length < 1 || tokenName.length > 80) {
                 throw new Error('Token name must be between 1 and 80 characters long')
             }
-            if (instanceId) {
+            if (autoAssignType === 'instance') {
                 const instanceDetails = await app.db.models.Project.findOne({
                     where: { id: instanceId },
                     attributes: ['TeamId']
@@ -190,9 +194,16 @@ module.exports = async function (app) {
                     err.code = 'invalid_instance'
                     throw err
                 }
+            } else if (autoAssignType === 'application') {
+                const applicationDetails = await app.db.models.Application.byId(applicationId)
+                if (!applicationDetails || applicationDetails.TeamId !== team.id) {
+                    const err = new Error('Invalid application')
+                    err.code = 'invalid_application'
+                    throw err
+                }
             }
-            const token = await AccessTokenController.createTokenForTeamDeviceProvisioning(tokenName, team, instanceId, expiresAt)
-            await app.auditLog.Team.team.device.provisioning.created(request.session.User, null, token.id, tokenName, team, instanceId)
+            const token = await AccessTokenController.createTokenForTeamDeviceProvisioning(tokenName, team, autoAssignType, autoAssignId, expiresAt)
+            await app.auditLog.Team.team.device.provisioning.created(request.session.User, null, token.id, tokenName, team, instanceId) // TODO: add applicationId
             reply.send(token)
         } catch (err) {
             let responseMessage
@@ -202,7 +213,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             const resp = { code: err.code || 'unexpected_error', error: responseMessage }
-            await app.auditLog.Team.team.device.provisioning.created(request.session.User, resp, '', tokenName, team, instanceId)
+            await app.auditLog.Team.team.device.provisioning.created(request.session.User, resp, '', tokenName, team, instanceId) // TODO: add applicationId
             reply.code(400).send(resp)
         }
     })
