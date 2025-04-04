@@ -321,14 +321,12 @@ export default {
                 hidden: false,
                 policy: this.editTemplate ? false : undefined
             }
-            console.log('field', field)
             this.envVarLookup[field.name] = this.editable.settings.env.length
             this.editable.settings.env.push(field)
             // focus the new row?
             if (focusNewRow) {
                 this.$nextTick(() => {
                     const row = this.$el.querySelector('tr:last-child input')
-                    console.log('row', row)
                     if (row) {
                         row.focus()
                         // select the text in the input
