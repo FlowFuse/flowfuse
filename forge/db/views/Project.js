@@ -110,7 +110,25 @@ module.exports = function (app) {
             const settingsCustomHostnameRow = proj.ProjectSettings?.find(row => row.key === KEY_CUSTOM_HOSTNAME)
             result.customHostname = settingsCustomHostnameRow?.value || undefined
         }
-
+        // Ensure resource email alert settings have a value that reflects in the UI what will be used at runtime
+        if (app.config.features.enabled('emailAlerts')) {
+            if (typeof result.settings.emailAlerts !== 'object') {
+                result.settings.emailAlerts = {}
+            }
+            if (typeof result.settings.emailAlerts.resource !== 'object') {
+                result.settings.emailAlerts.resource = {}
+            }
+            // If the project has no setting for cpu, infer value from the template (or default to true)
+            if (typeof result.settings.emailAlerts.resource.cpu !== 'boolean') {
+                const templateSetting = proj.ProjectTemplate?.settings?.emailAlerts?.resource?.cpu
+                result.settings.emailAlerts.resource.cpu = templateSetting ?? true
+            }
+            // If the project has no setting for memory, infer value from the template (or default to true)
+            if (typeof result.settings.emailAlerts.resource.memory !== 'boolean') {
+                const templateSetting = proj.ProjectTemplate?.settings?.emailAlerts?.resource?.memory
+                result.settings.emailAlerts.resource.memory = templateSetting ?? true
+            }
+        }
         if (proj.Application) {
             result.application = app.db.views.Application.applicationSummary(proj.Application)
         }
