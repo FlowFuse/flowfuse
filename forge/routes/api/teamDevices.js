@@ -176,6 +176,8 @@ module.exports = async function (app) {
         const autoAssignId = autoAssignType ? (instanceId || applicationId) : null
         const tokenName = request.body.name?.trim()
         const expiresAt = request.body.expiresAt ? new Date(request.body.expiresAt) : null
+        let instanceLogInfo = null
+        let applicationLogInfo = null
         try {
             // ensure name is made up of only alphanumeric characters, spaces, dashed and underscores
             if (/^[a-z0-9-_ ]+$/i.test(tokenName) !== true) {
@@ -194,6 +196,10 @@ module.exports = async function (app) {
                     err.code = 'invalid_instance'
                     throw err
                 }
+                instanceLogInfo = {
+                    id: instanceId.id,
+                    name: instanceDetails.name
+                }
             } else if (autoAssignType === 'application') {
                 const applicationDetails = await app.db.models.Application.byId(applicationId)
                 if (!applicationDetails || applicationDetails.TeamId !== team.id) {
@@ -201,9 +207,13 @@ module.exports = async function (app) {
                     err.code = 'invalid_application'
                     throw err
                 }
+                applicationLogInfo = {
+                    id: applicationId.hashid,
+                    name: applicationDetails.name
+                }
             }
             const token = await AccessTokenController.createTokenForTeamDeviceProvisioning(tokenName, team, autoAssignType, autoAssignId, expiresAt)
-            await app.auditLog.Team.team.device.provisioning.created(request.session.User, null, token.id, tokenName, team, instanceId) // TODO: add applicationId
+            await app.auditLog.Team.team.device.provisioning.created(request.session.User, null, token.id, tokenName, team, applicationLogInfo, instanceLogInfo)
             reply.send(token)
         } catch (err) {
             let responseMessage
@@ -213,7 +223,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             const resp = { code: err.code || 'unexpected_error', error: responseMessage }
-            await app.auditLog.Team.team.device.provisioning.created(request.session.User, resp, '', tokenName, team, instanceId) // TODO: add applicationId
+            await app.auditLog.Team.team.device.provisioning.created(request.session.User, resp, '', tokenName, team, applicationLogInfo, instanceLogInfo)
             reply.code(400).send(resp)
         }
     })
@@ -322,7 +332,7 @@ module.exports = async function (app) {
                 responseMessage = err.toString()
             }
             const resp = { code: err.code || 'unexpected_error', error: responseMessage }
-            await app.auditLog.Team.team.device.provisioning.created(request.session.User, resp, tokenId, tokenName, team, instanceId)
+            await app.auditLog.Team.team.device.provisioning.updated(request.session.User, resp, tokenId, tokenName, team)
             reply.code(400).send(resp)
         }
     })
