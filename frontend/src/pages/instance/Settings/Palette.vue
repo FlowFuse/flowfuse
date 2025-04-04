@@ -190,15 +190,18 @@ export default {
             })
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
-            Dialog.show({
-                header: 'Restart Required',
-                html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
-                confirmLabel: 'Restart Now',
-                cancelLabel: 'Restart Later'
-            }, () => {
-                // restart the instance
-                this.$emit('restart-instance')
-            })
+            // is instance running
+            if (this.project.meta.state === 'running') {
+                Dialog.show({
+                    header: 'Restart Required',
+                    html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
+                    confirmLabel: 'Restart Now',
+                    cancelLabel: 'Restart Later'
+                }, () => {
+                    // restart the instance
+                    this.$emit('restart-instance')
+                })
+            }
         }
     }
 }
