@@ -152,7 +152,7 @@ describe('FlowForge - Application - Dependencies', () => {
                 .parent()
                 .within(() => {
                     cy.get('[data-el="versions-list"] button').click()
-                    cy.get('[data-el="versions-list"] button').contains('1 x Instances')
+                    cy.get('[data-el="versions-list"] button').contains('1 x Hosted Instances')
                     cy.get('[data-el="versions-list"]')
                         .within(() => {
                             cy.get('[data-el="instance-item"]').should('have.length', 1)
@@ -165,7 +165,7 @@ describe('FlowForge - Application - Dependencies', () => {
                 .parent()
                 .within(() => {
                     cy.get('[data-el="versions-list"] button').click()
-                    cy.get('[data-el="versions-list"] button').contains('1 x Instances')
+                    cy.get('[data-el="versions-list"] button').contains('1 x Hosted Instances')
                     cy.get('[data-el="versions-list"]')
                         .within(() => {
                             cy.get('[data-el="instance-item"]').should('have.length', 1)
