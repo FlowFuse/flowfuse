@@ -41,9 +41,9 @@
                                     </template>
                                     <template v-if="selectedOS === 'MacOS'">
                                         <p>Open Terminal and run:</p>
-                                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">npm install -g @flowfuse/device-agent</pre>
+                                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">sudo npm install -g @flowfuse/device-agent</pre>
                                         <div class="flex flex-row justify-end space-x-2 -mt-1">
-                                            <ff-button kind="tertiary" size="small" @click="copy('npm install -g @flowfuse/device-agent')">
+                                            <ff-button kind="tertiary" size="small" @click="copy('sudo npm install -g @flowfuse/device-agent')">
                                                 <template #icon-right><ClipboardCopyIcon /></template>
                                                 <span class="">Copy</span>
                                             </ff-button>
