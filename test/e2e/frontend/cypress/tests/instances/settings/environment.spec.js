@@ -12,6 +12,13 @@ describe('FlowForge - Instance - Settings Environment', () => {
             .then((response) => {
                 instanceId = response.body.projects[1].id
                 cy.visit(`/instance/${instanceId}/settings/environment`)
+                cy.intercept('GET', `/api/v1/projects/${instanceId}`, async (req) => {
+                    req.continue((res) => {
+                        // intercept the request to get the instance status and force "running"
+                        res.body.meta.state = 'running'
+                    })
+                }).as('getInstance')
+                cy.wait('@getInstance')
             })
     })
 
