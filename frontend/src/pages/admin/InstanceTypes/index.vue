@@ -1,46 +1,49 @@
 <template>
-    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-    <div class="space-y-6 mb-14">
-        <SectionTopMenu hero="Instance Types">
-            <template #tools>
-                <ff-button data-action="create-type" @click="showCreateInstanceTypeDialog">
-                    <template #icon-right>
-                        <PlusSmIcon />
-                    </template>
-                    Create instance type
-                </ff-button>
-            </template>
-        </SectionTopMenu>
-        <ff-tile-selection data-el="active-types">
-            <ff-tile-selection-option
-                v-for="(instanceType, index) in activeInstanceTypes" :key="index" value=""
-                :editable="true" :price="instanceType.properties?.billingDescription?.split('/')[0]"
-                :price-interval="instanceType.properties?.billingDescription?.split('/')[1]"
-                :label="instanceType.name"
-                :description="instanceType.description" :meta="[{key: 'ID', value: instanceType.id}, {key: 'Instance Count', value: instanceType.instanceCount}, {key: 'Stack Count', value: instanceType.stackCount}]"
-                @edit="showEditInstanceTypeDialog(instanceType)"
-            />
-        </ff-tile-selection>
-        <div v-if="nextCursor">
-            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+    <ff-page>
+        <template #header>
+            <ff-page-header title="Instance Types">
+                <template #tools>
+                    <ff-button data-action="create-type" @click="showCreateInstanceTypeDialog">
+                        <template #icon-right>
+                            <PlusSmIcon />
+                        </template>
+                        Create instance type
+                    </ff-button>
+                </template>
+            </ff-page-header>
+        </template>
+        <div class="space-y-6 mb-14">
+            <ff-tile-selection data-el="active-types">
+                <ff-tile-selection-option
+                    v-for="(instanceType, index) in activeInstanceTypes" :key="index" value=""
+                    :editable="true" :price="instanceType.properties?.billingDescription?.split('/')[0]"
+                    :price-interval="instanceType.properties?.billingDescription?.split('/')[1]"
+                    :label="instanceType.name"
+                    :description="instanceType.description" :meta="[{key: 'ID', value: instanceType.id}, {key: 'Instance Count', value: instanceType.instanceCount}, {key: 'Stack Count', value: instanceType.stackCount}]"
+                    @edit="showEditInstanceTypeDialog(instanceType)"
+                />
+            </ff-tile-selection>
+            <div v-if="nextCursor">
+                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+            </div>
+            <SectionTopMenu hero="Inactive Types" />
+            <ff-data-table :columns="columns" :rows="inactiveInstanceTypes" data-el="inactive-types">
+                <template #context-menu="{row}">
+                    <ff-list-item label="Edit Instance Type" @click="instanceTypeAction('edit', row.id)" />
+                    <ff-list-item label="Delete Instance Type" kind="danger" @click="instanceTypeAction('delete', row.id)" />
+                </template>
+            </ff-data-table>
+            <div v-if="nextCursor">
+                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+            </div>
         </div>
-        <SectionTopMenu hero="Inactive Types" />
-        <ff-data-table :columns="columns" :rows="inactiveInstanceTypes" data-el="inactive-types">
-            <template #context-menu="{row}">
-                <ff-list-item label="Edit Instance Type" @click="instanceTypeAction('edit', row.id)" />
-                <ff-list-item label="Delete Instance Type" kind="danger" @click="instanceTypeAction('delete', row.id)" />
-            </template>
-        </ff-data-table>
-        <div v-if="nextCursor">
-            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
-        </div>
-    </div>
-    <InstanceTypeEditDialog
-        ref="adminInstanceTypeEditDialog"
-        @instance-type-created="instanceTypeCreated"
-        @instance-type-updated="instanceTypeUpdated"
-        @show-delete-dialog="showConfirmInstanceTypeDeleteDialog"
-    />
+        <InstanceTypeEditDialog
+            ref="adminInstanceTypeEditDialog"
+            @instance-type-created="instanceTypeCreated"
+            @instance-type-updated="instanceTypeUpdated"
+            @show-delete-dialog="showConfirmInstanceTypeDeleteDialog"
+        />
+    </ff-page>
 </template>
 
 <script>

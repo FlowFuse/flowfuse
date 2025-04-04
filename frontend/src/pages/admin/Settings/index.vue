@@ -1,14 +1,12 @@
 <template>
-    <div class="clear-page-gutters">
-        <div class="ff-instance-header">
+    <ff-page>
+        <template #header>
             <ff-page-header title="Settings" :tabs="sideNavigation" />
+        </template>
+        <div class="flex-grow">
+            <router-view />
         </div>
-        <div class="px-3 py-3 md:px-6 md:py-6">
-            <div class="flex-grow">
-                <router-view />
-            </div>
-        </div>
-    </div>
+    </ff-page>
 </template>
 
 <script>

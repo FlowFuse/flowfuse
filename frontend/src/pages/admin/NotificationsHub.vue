@@ -1,84 +1,82 @@
 <template>
-    <div class="clear-page-gutters">
-        <div class="ff-instance-header">
+    <ff-page>
+        <template #header>
             <ff-page-header title="Notifications Hub" />
-        </div>
-        <div class="px-3 py-3 md:px-6 md:py-6">
-            <form class="flex flex-col gap-5" data-el="notification-form" @submit.prevent>
-                <section class="flex gap-10">
-                    <section>
-                        <FormRow v-model="form.title" type="input" placeholder="Title" class="mb-5" data-el="notification-title">
-                            Announcement Title
-                            <template #description>Enter a concise title for your announcement.</template>
-                        </FormRow>
-                        <FormRow v-model="form.message" class="mb-5" data-el="notification-message">
-                            Announcement Text
-                            <template #description>Provide the details of your announcement.</template>
-                            <template #input><textarea v-model="form.message" class="w-full max-h-80 min-h-40" rows="4" /></template>
-                        </FormRow>
-                        <FormRow v-model="form.url" type="input" :placeholder="urlPlaceholder" class="mb-5" data-el="notification-external-url">
-                            URL Link
-                            <template #description>Provide an url where users will be redirected when they click on the notification.</template>
-                        </FormRow>
-                    </section>
-                    <section>
-                        <FormHeading>Audience</FormHeading>
-                        <div class="ff-description mb-2 space-y-1">Select the audience of your announcement.</div>
-                        <FormHeading class="mt-4">User Roles:</FormHeading>
+        </template>
+        <form class="flex flex-col gap-5" data-el="notification-form" @submit.prevent>
+            <section class="flex gap-10">
+                <section>
+                    <FormRow v-model="form.title" type="input" placeholder="Title" class="mb-5" data-el="notification-title">
+                        Announcement Title
+                        <template #description>Enter a concise title for your announcement.</template>
+                    </FormRow>
+                    <FormRow v-model="form.message" class="mb-5" data-el="notification-message">
+                        Announcement Text
+                        <template #description>Provide the details of your announcement.</template>
+                        <template #input><textarea v-model="form.message" class="w-full max-h-80 min-h-40" rows="4" /></template>
+                    </FormRow>
+                    <FormRow v-model="form.url" type="input" :placeholder="urlPlaceholder" class="mb-5" data-el="notification-external-url">
+                        URL Link
+                        <template #description>Provide an url where users will be redirected when they click on the notification.</template>
+                    </FormRow>
+                </section>
+                <section>
+                    <FormHeading>Audience</FormHeading>
+                    <div class="ff-description mb-2 space-y-1">Select the audience of your announcement.</div>
+                    <FormHeading class="mt-4">User Roles:</FormHeading>
+                    <div class="grid gap-1 grid-cols-2 items-middle">
+                        <label
+                            v-for="(role, $key) in roleIds"
+                            :key="$key"
+                            class="ff-checkbox text-sm"
+                            :data-el="`audience-role-${role}`"
+                            @keydown.space.prevent="toggleRole(role)"
+                        >
+                            <span ref="input" class="checkbox" :checked="form.roles.includes(role)" tabindex="0" @keydown.space.prevent />
+                            <input v-model="form.roles" type="checkbox" :value="role" @keydown.space.prevent>
+                            {{ role }}
+                        </label>
+                    </div>
+                    <FormHeading class="mt-4">Team Types:</FormHeading>
+                    <div class="grid gap-1 grid-cols-2 items-middle">
+                        <label
+                            v-for="teamType in teamTypes"
+                            :key="teamType.id"
+                            class="ff-checkbox text-sm"
+                            :class="!teamType.active ? ['inactive-team'] : []"
+                            :data-el="`audience-teamType-${teamType.id}`"
+                            @keydown.space.prevent="toggleTeamType(teamType.id)"
+                        >
+                            <span ref="input" class="checkbox" :checked="form.teamTypes.includes(teamType.id)" tabindex="0" @keydown.space.prevent />
+                            <input v-model="form.teamTypes" type="checkbox" :value="teamType.id" @keydown.space.prevent>
+                            {{ teamType.name }}
+                        </label>
+                    </div>
+                    <template v-if="features.billing">
+                        <FormHeading class="mt-4">Billing State:</FormHeading>
                         <div class="grid gap-1 grid-cols-2 items-middle">
                             <label
-                                v-for="(role, $key) in roleIds"
+                                v-for="(billingState, $key) in billingStates"
                                 :key="$key"
                                 class="ff-checkbox text-sm"
-                                :data-el="`audience-role-${role}`"
-                                @keydown.space.prevent="toggleRole(role)"
+                                :data-el="`audience-billing-${billingState}`"
+                                @keydown.space.prevent="toggleBillingState(billingState)"
                             >
-                                <span ref="input" class="checkbox" :checked="form.roles.includes(role)" tabindex="0" @keydown.space.prevent />
-                                <input v-model="form.roles" type="checkbox" :value="role" @keydown.space.prevent>
-                                {{ role }}
+                                <span ref="input" class="checkbox" :checked="form.billing.includes(billingState)" tabindex="0" @keydown.space.prevent />
+                                <input v-model="form.billing" type="checkbox" :value="billingState" @keydown.space.prevent>
+                                {{ billingState }}
                             </label>
                         </div>
-                        <FormHeading class="mt-4">Team Types:</FormHeading>
-                        <div class="grid gap-1 grid-cols-2 items-middle">
-                            <label
-                                v-for="teamType in teamTypes"
-                                :key="teamType.id"
-                                class="ff-checkbox text-sm"
-                                :class="!teamType.active ? ['inactive-team'] : []"
-                                :data-el="`audience-teamType-${teamType.id}`"
-                                @keydown.space.prevent="toggleTeamType(teamType.id)"
-                            >
-                                <span ref="input" class="checkbox" :checked="form.teamTypes.includes(teamType.id)" tabindex="0" @keydown.space.prevent />
-                                <input v-model="form.teamTypes" type="checkbox" :value="teamType.id" @keydown.space.prevent>
-                                {{ teamType.name }}
-                            </label>
-                        </div>
-                        <template v-if="features.billing">
-                            <FormHeading class="mt-4">Billing State:</FormHeading>
-                            <div class="grid gap-1 grid-cols-2 items-middle">
-                                <label
-                                    v-for="(billingState, $key) in billingStates"
-                                    :key="$key"
-                                    class="ff-checkbox text-sm"
-                                    :data-el="`audience-billing-${billingState}`"
-                                    @keydown.space.prevent="toggleBillingState(billingState)"
-                                >
-                                    <span ref="input" class="checkbox" :checked="form.billing.includes(billingState)" tabindex="0" @keydown.space.prevent />
-                                    <input v-model="form.billing" type="checkbox" :value="billingState" @keydown.space.prevent>
-                                    {{ billingState }}
-                                </label>
-                            </div>
-                        </template>
-                    </section>
+                    </template>
                 </section>
-                <section class="actions">
-                    <ff-button :disabled="!canSubmit" data-action="submit" @click.stop.prevent="submitForm">
-                        Send Announcement
-                    </ff-button>
-                </section>
-            </form>
-        </div>
-    </div>
+            </section>
+            <section class="actions">
+                <ff-button :disabled="!canSubmit" data-action="submit" @click.stop.prevent="submitForm">
+                    Send Announcement
+                </ff-button>
+            </section>
+        </form>
+    </ff-page>
 </template>
 
 <script>

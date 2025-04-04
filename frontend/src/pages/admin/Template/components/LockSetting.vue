@@ -6,7 +6,6 @@
         <FormRow
             v-else-if="editTemplate"
             v-model="localValue"
-            class="w-24"
             type="select"
             wrapper-class="flex gap-15"
             append-class="ml-2"

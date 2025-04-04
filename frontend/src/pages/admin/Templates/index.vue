@@ -1,16 +1,21 @@
 <template>
-    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-    <div class="space-y-6 mb-14">
-        <SectionTopMenu hero="Templates">
-            <template #tools>
-                <ff-button :to="{ name: 'admin-templates-template', params: { id: 'create' } }">
-                    <template #icon-right>
-                        <PlusSmIcon />
-                    </template>
-                    Create template
-                </ff-button>
-            </template>
-        </SectionTopMenu>
+    <ff-page>
+        <template #header>
+            <ff-page-header title="Templates">
+                <template #tools>
+                    <ff-button :to="{ name: 'admin-templates-template', params: { id: 'create' } }">
+                        <template #icon-right>
+                            <PlusSmIcon />
+                        </template>
+                        Create template
+                    </ff-button>
+                </template>
+            </ff-page-header>
+        </template>
+        <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
+        <div v-if="loading" class="space-y-6 mb-14">
+            <ff-loading message="Loading Templates..." />
+        </div>
         <ff-loading v-if="loading" message="Loading Templates..." />
         <ff-data-table
             v-if="!loading"
@@ -31,7 +36,7 @@
         <div v-if="nextCursor">
             <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
         </div>
-    </div>
+    </ff-page>
 </template>
 
 <script>
@@ -42,15 +47,12 @@ import { mapState } from 'vuex'
 
 import templatesApi from '../../../api/templates.js'
 
-import SectionTopMenu from '../../../components/SectionTopMenu.vue'
-
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import Dialog from '../../../services/dialog.js'
 
 export default {
     name: 'AdminTemplates',
     components: {
-        SectionTopMenu,
         PlusSmIcon
     },
     data () {

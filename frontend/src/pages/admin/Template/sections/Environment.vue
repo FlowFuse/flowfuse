@@ -63,13 +63,12 @@
                                 :disabled="isDisabledName(item)"
                                 value-empty-text=""
                                 data-el="var-name"
-                                :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"
+                                :type="(!readOnly && (editTemplate || item.policy === undefined)) ? 'text' : 'uneditable'"
                             />
                         </td>
                         <td class="ff-data-table--cell !p-1 border w-3/5 align-top max-w-xl" :class="{'align-middle':item.encrypted}">
                             <div v-if="!item.encrypted" class="w-full">
                                 <template v-if="(!readOnly && (editTemplate || item.policy === undefined || item.policy))">
-                                    <!-- editable -->
                                     <textarea
                                         v-model="item.value"
                                         :placeholder="item.hidden ? 'Value hidden' : ''"
@@ -202,12 +201,13 @@ export default {
         },
         originalEnvVars: {
             type: Array,
-            required: true
+            default: () => []
         }
     },
     emits: ['update:modelValue', 'validated'],
     data () {
         return {
+            ogEnvVars: [],
             addedCount: 0,
             input: {},
             envVarLookup: {},
@@ -249,6 +249,12 @@ export default {
     mounted () {
         this.updateLookup()
         this.validate()
+        // save the original env vars
+        if (!this.originalEnvVars || this.originalEnvVars.length === 0) {
+            this.ogEnvVars = this.editable.settings.env
+        } else {
+            this.ogEnvVars = this.originalEnvVars
+        }
     },
     methods: {
         openInfoDialog () {
@@ -315,12 +321,14 @@ export default {
                 hidden: false,
                 policy: this.editTemplate ? false : undefined
             }
+            console.log('field', field)
             this.envVarLookup[field.name] = this.editable.settings.env.length
             this.editable.settings.env.push(field)
             // focus the new row?
             if (focusNewRow) {
                 this.$nextTick(() => {
                     const row = this.$el.querySelector('tr:last-child input')
+                    console.log('row', row)
                     if (row) {
                         row.focus()
                         // select the text in the input
