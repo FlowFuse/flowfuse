@@ -107,14 +107,14 @@ describe('Device API', async function () {
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
 
+        TestObjects.defaultTeamType = app.defaultTeamType
         TestObjects.Project1 = app.project
+        TestObjects.Application1 = app.application
         TestObjects.provisioningTokens = {
             token1: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 1', TestObjects.ATeam),
-            token2: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.ATeam, TestObjects.Project1)
+            token2: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.ATeam, 'instance', TestObjects.Project1.id),
+            token3: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 3', TestObjects.ATeam, 'application', TestObjects.Application1.hashid)
         }
-
-        TestObjects.defaultTeamType = app.defaultTeamType
-        TestObjects.Application1 = app.application
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
@@ -308,6 +308,34 @@ describe('Device API', async function () {
 
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
             result.instance.should.have.property('id', TestObjects.Project1.id)
+            result.credentials.should.have.property('token')
+        })
+
+        it('creates a device in the team and assigns it to an application using a provisioning token', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: 'aa:bb:cc:dd:ee:ff',
+                    type: 'app device',
+                    team: TestObjects.ATeam.hashid
+                },
+                headers: {
+                    authorization: `Bearer ${TestObjects.provisioningTokens.token3.token}`
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('name', 'aa:bb:cc:dd:ee:ff')
+            result.should.have.property('type', 'app device')
+            result.should.have.property('lastSeenMs', null) // required for device list UI
+            result.should.have.property('links').and.be.an.Object()
+            result.should.have.property('team').and.be.an.Object()
+            result.should.have.property('application').and.be.an.Object()
+            result.should.have.property('credentials').and.be.an.Object()
+
+            result.team.should.have.property('id', TestObjects.ATeam.hashid)
+            result.application.should.have.property('id', TestObjects.Application1.hashid)
             result.credentials.should.have.property('token')
         })
 
