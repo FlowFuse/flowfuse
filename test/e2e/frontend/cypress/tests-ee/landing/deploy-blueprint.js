@@ -42,16 +42,36 @@ function interceptAndSetDefaultBlueprint () {
     ).as('setDefaultBlueprint')
 }
 
+function prefillMultiStepInstanceForm () {
+    // move along the multi-step form
+    cy.get('[data-el="application-item"]').first().click()
+    cy.get('[data-el="next-step"]').click()
+
+    // select instance type
+    cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()
+
+    // select template
+    cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
+
+    // select nr-version
+    cy.get('[data-el="listbox"]').click()
+    cy.get('[data-option="stack 1"]').click()
+
+    cy.get('[data-el="next-step"]').click()
+
+    cy.get('[data-group="blueprints"]').should('exist')
+}
+
 describe('FlowFuse - Deploy Blueprint', () => {
     before(() => {
         cy.adminEnableSignUp()
         cy.adminEnableTeamAutoCreate()
     })
 
-    after(() => {
-        cy.adminDisableSignUp()
-        cy.adminDisableTeamAutoCreate()
-    })
+    // after(() => {
+    //     cy.adminDisableSignUp()
+    //     cy.adminDisableTeamAutoCreate()
+    // })
 
     describe('Users with accounts', () => {
         describe('And authenticated', () => {
@@ -67,24 +87,20 @@ describe('FlowFuse - Deploy Blueprint', () => {
 
                 cy.visit('/deploy/blueprint')
 
+                prefillMultiStepInstanceForm()
+
                 cy.wait('@setDefaultBlueprint')
 
-                cy.get('[data-el="page-name"]').contains('Deploy Blueprint 1')
+                cy.get('[data-el="blueprint-tile"].active').contains('Blueprint 1')
 
-                cy.get('[data-form="application-id"]').click()
-                cy.get('[data-form="application-id"] .ff-options').should('be.visible')
-                cy.get('[data-form="application-id"] .ff-options > .ff-option:first').click()
+                cy.get('[data-el="next-step"]').click()
 
-                cy.get('[data-action="click-small-blueprint-tile"]').contains('Blueprint 1')
-                cy.get('[data-form="project-type"]').children().first().click()
-
-                cy.get('[data-form="project-name"] input')
-                    .invoke('val')
-                    .then((instanceName) => {
-                        cy.get('[data-action="create-project"]').click()
-                        cy.wait('@createInstance')
+                cy.wait('@createInstance')
+                    .then((interception) => {
+                        const instanceName = interception.request.body.name
 
                         cy.get('[data-el="page-name"]').contains(instanceName)
+
                         cy.contains('type1 / stack 1')
                     })
             })
@@ -98,18 +114,14 @@ describe('FlowFuse - Deploy Blueprint', () => {
 
                 cy.visit('/deploy/blueprint?blueprintId=non-existing-id')
 
+                prefillMultiStepInstanceForm()
+
                 cy.wait('@setDefaultBlueprint')
 
-                cy.get('[data-el="page-name"]').contains('Deploy Blueprint 1')
+                cy.get('[data-el="blueprint-tile"].active').contains('Blueprint 1')
 
-                cy.get('[data-form="application-id"]').click()
-                cy.get('[data-form="application-id"] .ff-options').should('be.visible')
-                cy.get('[data-form="application-id"] .ff-options > .ff-option:first').click()
+                cy.get('[data-el="next-step"]').click()
 
-                cy.get('[data-action="click-small-blueprint-tile"]').contains('Blueprint 1')
-                cy.get('[data-form="project-type"]').children().first().click()
-
-                cy.get('[data-action="create-project"]').click()
                 cy.wait('@createInstance')
                 cy.wait('@getInstance')
 
@@ -122,6 +134,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
                 cy.login('alice', 'aaPassword')
 
                 cy.intercept('GET', '/api/*/projects/*').as('getInstance')
+
                 cy.get('@allBlueprints')
                     .then(blueprints => {
                         const predefinedBlueprint = blueprints[1]
@@ -132,16 +145,13 @@ describe('FlowFuse - Deploy Blueprint', () => {
 
                         cy.visit(`/deploy/blueprint?blueprintId=${predefinedBlueprint.id}`)
 
-                        cy.get('[data-el="page-name"]').contains(`Deploy ${predefinedBlueprint.name}`)
+                        prefillMultiStepInstanceForm()
 
-                        cy.get('[data-form="application-id"]').click()
-                        cy.get('[data-form="application-id"] .ff-options').should('be.visible')
-                        cy.get('[data-form="application-id"] .ff-options > .ff-option:first').click()
+                        // check that the proper blueprint is selected
+                        cy.get('[data-el="blueprint-tile"].active').contains(predefinedBlueprint.name)
 
-                        cy.get('[data-action="click-small-blueprint-tile"]').contains(predefinedBlueprint.name)
-                        cy.get('[data-form="project-type"]').children().first().click()
+                        cy.get('[data-el="next-step"]').click()
 
-                        cy.get('[data-action="create-project"]').click()
                         cy.wait('@createInstance')
 
                         cy.wait('@getInstance')
@@ -155,7 +165,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
 
         describe('And unauthenticated', () => {
             it('reverts to the default blueprint when no blueprint id is given after logging in', () => {
-                cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
+                cy.intercept('GET', '/api/*/projects/*').as('getInstance')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
                 interceptAndSetDefaultBlueprint()
 
@@ -165,26 +175,27 @@ describe('FlowFuse - Deploy Blueprint', () => {
 
                 followLoginForm()
 
+                prefillMultiStepInstanceForm()
+
                 cy.wait('@setDefaultBlueprint')
 
-                cy.get('[data-el="page-name"]').contains('Deploy Blueprint 1')
+                // check that the proper blueprint is selected
+                cy.get('[data-el="blueprint-tile"].active').contains('Blueprint 1')
 
-                cy.get('[data-form="application-id"]').click()
-                cy.get('[data-form="application-id"] .ff-options').should('be.visible')
-                cy.get('[data-form="application-id"] .ff-options > .ff-option:first').click()
+                cy.get('[data-el="next-step"]').click()
 
-                cy.get('[data-action="click-small-blueprint-tile"]').contains('Blueprint 1')
-                cy.get('[data-form="project-type"]').children().first().click()
-
-                cy.get('[data-form="project-name"] input')
-                    .invoke('val')
-                    .then((instanceName) => {
-                        cy.get('[data-action="create-project"]').click()
-                        cy.wait('@createInstance')
+                cy.wait('@createInstance')
+                    .then((interception) => {
+                        const instanceName = interception.request.body.name
 
                         cy.get('[data-el="page-name"]').contains(instanceName)
+
                         cy.contains('type1 / stack 1')
+
+                        cy.wait('@getInstance')
+                        return cy.window()
                     })
+                    .then((win) => expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/))
             })
 
             it('reverts to the default blueprint when an invalid blueprint id is given after logging in', () => {
@@ -200,22 +211,27 @@ describe('FlowFuse - Deploy Blueprint', () => {
 
                 followLoginForm()
 
+                prefillMultiStepInstanceForm()
+
                 cy.wait('@setDefaultBlueprint')
 
-                cy.get('[data-el="page-name"]').contains('Deploy Blueprint 1')
+                // check that the proper blueprint is selected
+                cy.get('[data-el="blueprint-tile"].active').contains('Blueprint 1')
 
-                cy.get('[data-form="application-id"]').click()
-                cy.get('[data-form="application-id"] .ff-options').should('be.visible')
-                cy.get('[data-form="application-id"] .ff-options > .ff-option:first').click()
+                cy.get('[data-el="next-step"]').click()
 
-                cy.get('[data-action="click-small-blueprint-tile"]').contains('Blueprint 1')
-                cy.get('[data-form="project-type"]').children().first().click()
-
-                cy.get('[data-action="create-project"]').click()
                 cy.wait('@createInstance')
-                cy.wait('@getInstance')
+                    .then((interception) => {
+                        const instanceName = interception.request.body.name
 
-                cy.window().then((win) => expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/))
+                        cy.get('[data-el="page-name"]').contains(instanceName)
+
+                        cy.contains('type1 / stack 1')
+
+                        cy.wait('@getInstance')
+                        return cy.window()
+                    })
+                    .then((win) => expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/))
             })
 
             it('can deploy pre-defined blueprints after logging in', () => {
@@ -237,24 +253,26 @@ describe('FlowFuse - Deploy Blueprint', () => {
 
                         followLoginForm()
 
-                        cy.get('[data-el="page-name"]').contains(`Deploy ${predefinedBlueprint.name}`)
+                        prefillMultiStepInstanceForm()
 
-                        cy.get('[data-form="application-id"]').click()
-                        cy.get('[data-form="application-id"] .ff-options').should('be.visible')
-                        cy.get('[data-form="application-id"] .ff-options > .ff-option:first').click()
+                        // check that the proper blueprint is selected
+                        cy.get('[data-el="blueprint-tile"].active').contains(predefinedBlueprint.name)
 
-                        cy.get('[data-action="click-small-blueprint-tile"]').contains(predefinedBlueprint.name)
-                        cy.get('[data-form="project-type"]').children().first().click()
+                        cy.get('[data-el="next-step"]').click()
 
-                        cy.get('[data-action="create-project"]').click()
-                        cy.wait('@createInstance')
+                        return cy.wait('@createInstance')
+                    })
+                    .then((interception) => {
+                        const instanceName = interception.request.body.name
+
+                        cy.get('[data-el="page-name"]').contains(instanceName)
+
+                        cy.contains('type1 / stack 1')
 
                         cy.wait('@getInstance')
-                        cy.window()
+                        return cy.window()
                     })
-                    .then((win) => {
-                        expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/)
-                    })
+                    .then((win) => expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/))
             })
         })
     })
@@ -297,22 +315,36 @@ describe('FlowFuse - Deploy Blueprint', () => {
                     cy.get('[data-form="verify-token"]').type(verifyCode)
                     cy.get('[data-action="submit-verify-token"]').click()
 
+                    cy.get('[data-form="application-name"] input').type('My first Application!')
+                    cy.get('[data-form="application-description"] textarea').type('Coherent description goes here >><<')
+
+                    cy.get('[data-el="next-step"]').click()
+
+                    // select instance type
+                    cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()
+
+                    // select template
+                    cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
+
+                    // select nr-version
+                    cy.get('[data-el="listbox"]').click()
+                    cy.get('[data-option="stack 1"]').click()
+
+                    cy.get('[data-el="next-step"]').click()
+
+                    cy.get('[data-group="blueprints"]').should('exist')
+
                     cy.wait('@setDefaultBlueprint')
 
-                    cy.get('[data-form="application-name"]').type('My first Application!')
-                    cy.get('[data-form="application-description"]').type('Coherent description goes here >><<')
+                    // check that the proper blueprint is selected
+                    cy.get('[data-el="blueprint-tile"].active').contains('Blueprint 1')
 
-                    cy.get('[data-action="click-small-blueprint-tile"]').contains('Blueprint 1')
-                    cy.get('[data-form="project-type"]').children().first().click()
+                    cy.get('[data-el="next-step"]').click()
 
-                    return cy.get('[data-form="project-name"] input')
-                        .invoke('val')
+                    return cy.wait('@createInstance')
                 })
-                .then((instanceName) => {
-                    cy.get('[data-action="create-project"]').click()
-                    cy.wait('@createInstance')
-
-                    cy.get('[data-el="page-name"]').contains(instanceName)
+                .then((interception) => {
+                    cy.get('[data-el="page-name"]').contains(interception.response.body.name)
                     cy.contains('type1 / stack 1')
 
                     cy.url().should('match', /^.*\/instance\/.*\/overview/)
@@ -356,22 +388,36 @@ describe('FlowFuse - Deploy Blueprint', () => {
                     cy.get('[data-form="verify-token"]').type(verifyCode)
                     cy.get('[data-action="submit-verify-token"]').click()
 
+                    cy.get('[data-form="application-name"] input').type('My first Application!')
+                    cy.get('[data-form="application-description"] textarea').type('Coherent description goes here >><<')
+
+                    cy.get('[data-el="next-step"]').click()
+
+                    // select instance type
+                    cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()
+
+                    // select template
+                    cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
+
+                    // select nr-version
+                    cy.get('[data-el="listbox"]').click()
+                    cy.get('[data-option="stack 1"]').click()
+
+                    cy.get('[data-el="next-step"]').click()
+
+                    cy.get('[data-group="blueprints"]').should('exist')
+
                     cy.wait('@setDefaultBlueprint')
 
-                    cy.get('[data-form="application-name"]').type('My first Application!')
-                    cy.get('[data-form="application-description"]').type('Coherent description goes here >><<')
+                    // check that the proper blueprint is selected
+                    cy.get('[data-el="blueprint-tile"].active').contains('Blueprint 1')
 
-                    cy.get('[data-action="click-small-blueprint-tile"]').contains('Blueprint 1')
-                    cy.get('[data-form="project-type"]').children().first().click()
+                    cy.get('[data-el="next-step"]').click()
 
-                    return cy.get('[data-form="project-name"] input')
-                        .invoke('val')
+                    return cy.wait('@createInstance')
                 })
-                .then((instanceName) => {
-                    cy.get('[data-action="create-project"]').click()
-                    cy.wait('@createInstance')
-
-                    cy.get('[data-el="page-name"]').contains(instanceName)
+                .then((interception) => {
+                    cy.get('[data-el="page-name"]').contains(interception.response.body.name)
                     cy.contains('type1 / stack 1')
 
                     cy.url().should('match', /^.*\/instance\/.*\/overview/)
@@ -426,29 +472,39 @@ describe('FlowFuse - Deploy Blueprint', () => {
                     cy.get('[data-form="verify-token"]').type(verifyCode)
                     cy.get('[data-action="submit-verify-token"]').click()
 
-                    cy.get('[data-form="application-name"]').type('My first Application!')
-                    cy.get('[data-form="application-description"]').type('Coherent description goes here >><<')
+                    cy.get('[data-form="application-name"] input').type('My first Application!')
+                    cy.get('[data-form="application-description"] textarea').type('Coherent description goes here >><<')
+
+                    cy.get('[data-el="next-step"]').click()
+
+                    // select instance type
+                    cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()
+
+                    // select template
+                    cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
+
+                    // select nr-version
+                    cy.get('[data-el="listbox"]').click()
+                    cy.get('[data-option="stack 1"]').click()
+
+                    cy.get('[data-el="next-step"]').click()
+
+                    cy.get('[data-group="blueprints"]').should('exist')
                 })
                 .then(() => cy.get('@predefinedBlueprint'))
                 .then((predefinedBlueprint) => {
-                    cy.get('[data-action="click-small-blueprint-tile"]').contains(predefinedBlueprint.name)
-                    cy.get('[data-form="project-type"]').children().first().click()
+                    // check that the proper blueprint is selected
+                    cy.get('[data-el="blueprint-tile"].active').contains(predefinedBlueprint.name)
 
-                    return cy.get('[data-form="project-name"] input')
-                        .invoke('val')
+                    cy.get('[data-el="next-step"]').click()
+
+                    return cy.wait('@createInstance')
                 })
-                .then((instanceName) => {
-                    cy.get('[data-action="create-project"]').click()
-                    cy.wait('@createInstance')
-
-                    cy.get('[data-el="page-name"]').contains(instanceName)
+                .then((interception) => {
+                    cy.get('[data-el="page-name"]').contains(interception.response.body.name)
                     cy.contains('type1 / stack 1')
 
                     cy.url().should('match', /^.*\/instance\/.*\/overview/)
-                })
-                .then(() => cy.window())
-                .then((win) => {
-                    expect(win.location.href).to.match(/.*\/instance\/[^/]+\/overview/)
                 })
         })
     })

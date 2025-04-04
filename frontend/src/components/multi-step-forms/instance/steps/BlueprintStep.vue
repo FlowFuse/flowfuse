@@ -1,16 +1,21 @@
 <template>
-    <section class="ff-blueprint-step text-center flex flex-col gap-4 pt-6">
+    <section class="ff-blueprint-step text-center flex flex-col gap-4 pt-6" data-step="blueprint">
         <h2>Select Your Blueprint</h2>
 
         <p>We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</p>
 
         <transition name="fade" mode="out-in">
             <ff-loading v-if="loading" message="Loading Blueprints..." />
-            <div v-else class="flex flex-col gap-7">
+            <div v-else class="flex flex-col gap-7" data-el="blueprints-wrapper">
                 <div class="flex gap-16 text-left flex-wrap-reverse">
                     <div class="ff-blueprints flex-1">
-                        <ul class="flex flex-col gap-8">
-                            <li v-for="(category, $categoryName) in categories" :key="$categoryName" :ref="$categoryName">
+                        <ul class="flex flex-col gap-8" data-group="blueprint-groups">
+                            <li
+                                v-for="(category, $categoryName) in categories"
+                                :key="$categoryName"
+                                :ref="$categoryName"
+                                data-group="blueprints"
+                            >
                                 <h3>{{ $categoryName }}</h3>
                                 <hr class="my-3">
                                 <ul class="ff-blueprint-tiles flex gap-5 flex-wrap">
@@ -62,7 +67,6 @@
 <script>
 import { mapState } from 'vuex'
 
-import flowBlueprintsApi from '../../../../api/flowBlueprints.js'
 import { scrollIntoView } from '../../../../composables/Ux.js'
 import FfLoading from '../../../Loading.vue'
 import BlueprintTile from '../../../blueprints/BlueprintTile.vue'
@@ -80,6 +84,10 @@ export default {
             required: false,
             type: Object,
             default: () => ({})
+        },
+        blueprints: {
+            type: Array,
+            required: true
         }
     },
     emits: ['step-updated'],
@@ -89,7 +97,6 @@ export default {
     },
     data () {
         return {
-            blueprints: [],
             selectedBlueprint: this.initialState.blueprint ?? null,
             loading: true
         }
@@ -122,19 +129,13 @@ export default {
         }
     },
     async mounted () {
-        this.getBlueprints()
+        this.preSelectBlueprint()
             .catch(e => e)
             .finally(() => {
                 this.loading = false
             })
     },
     methods: {
-        async getBlueprints () {
-            return flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
-                .then(response => {
-                    this.blueprints = response.blueprints
-                })
-        },
         onCategoryClick (category) {
             const el = this.$refs[category]
 
@@ -151,6 +152,22 @@ export default {
             } else {
                 this.selectedBlueprint = blueprint
             }
+        },
+        preSelectBlueprint () {
+            return new Promise(resolve => {
+                if ((this.$route?.query && this.$route?.query?.blueprintId) || this.$route.name === 'DeployBlueprint') {
+                    // we can safely assume we got to this point either by selecting a blueprint from the Team Library or
+                    // through a website deployment, so we really want a blueprint
+                    let blueprint = this.blueprints.find(bp => bp.id === this.$route.query.blueprintId)
+                    if (!blueprint) {
+                        // because we really want a blueprint selected but can't find the requested one, we'll fall back to the default one
+                        blueprint = this.blueprints.find(bp => bp.default)
+                    }
+
+                    this.selectedBlueprint = blueprint ?? null
+                }
+                resolve()
+            })
         }
     }
 }
