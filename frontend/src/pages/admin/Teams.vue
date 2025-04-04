@@ -1,59 +1,63 @@
 <template>
-    <div class="ff-admin-audit">
-        <div>
-            <SectionTopMenu hero="Teams" />
-            <ff-data-table
-                v-model:search="teamSearch"
-                :columns="columns"
-                :rows="teams"
-                :rows-selectable="true"
-                :show-search="true"
-                search-placeholder="Search Teams..."
-                :search-fields="['name', 'id']"
-                :show-load-more="!!nextCursor"
-                :loading="loading"
-                loading-message="Loading Teams"
-                no-data-message="No Teams Found"
-                data-el="teams-table"
-                @row-selected="viewTeam"
-                @load-more="loadItems"
-            />
-        </div>
-        <div>
-            <SectionTopMenu hero="Filters" />
-            <FormHeading class="mt-4">Sort:</FormHeading>
-            <div data-el="sort-options">
-                <ff-dropdown v-model="filters.sortBy" class="w-full">
-                    <ff-dropdown-option
-                        v-for="sortOpt in sortOptions" :key="sortOpt.id"
-                        :label="`${sortOpt.label}`" :value="sortOpt.id"
-                    />
-                </ff-dropdown>
+    <ff-page>
+        <template #header>
+            <ff-page-header title="Teams" />
+        </template>
+        <div class="ff-admin-audit">
+            <div>
+                <ff-data-table
+                    v-model:search="teamSearch"
+                    :columns="columns"
+                    :rows="teams"
+                    :rows-selectable="true"
+                    :show-search="true"
+                    search-placeholder="Search Teams..."
+                    :search-fields="['name', 'id']"
+                    :show-load-more="!!nextCursor"
+                    :loading="loading"
+                    loading-message="Loading Teams"
+                    no-data-message="No Teams Found"
+                    data-el="teams-table"
+                    @row-selected="viewTeam"
+                    @load-more="loadItems"
+                />
             </div>
-            <FormHeading class="mt-4">Team Type:</FormHeading>
-            <div data-el="filter-team-types" class="pl-2 space-y-2">
-                <FormRow
-                    v-for="teamType in teamTypes"
-                    :key="teamType.id"
-                    v-model="filters.teamType[teamType.id]"
-                    type="checkbox"
-                >
-                    {{ teamType.name }}
-                </FormRow>
-            </div>
-
-            <template v-if="features.billing">
-                <FormHeading class="mt-4">Billing State:</FormHeading>
-                <div data-el="filter-team-types" class="pl-2 space-y-2">
-                    <FormRow v-model="filters.suspended" type="checkbox">Suspended</FormRow>
-                    <FormRow v-model="filters.billing.active" :disabled="filters.suspended" type="checkbox">Active</FormRow>
-                    <FormRow v-model="filters.billing.trial" :disabled="filters.suspended" type="checkbox">Trial</FormRow>
-                    <FormRow v-model="filters.billing.canceled" :disabled="filters.suspended" type="checkbox">Canceled</FormRow>
-                    <FormRow v-model="filters.billing.unmanaged" :disabled="filters.suspended" type="checkbox">Unmanaged</FormRow>
+            <div>
+                <SectionTopMenu hero="Filters" />
+                <FormHeading class="mt-4">Sort:</FormHeading>
+                <div data-el="sort-options">
+                    <ff-dropdown v-model="filters.sortBy" class="w-full">
+                        <ff-dropdown-option
+                            v-for="sortOpt in sortOptions" :key="sortOpt.id"
+                            :label="`${sortOpt.label}`" :value="sortOpt.id"
+                        />
+                    </ff-dropdown>
                 </div>
-            </template>
+                <FormHeading class="mt-4">Team Type:</FormHeading>
+                <div data-el="filter-team-types" class="pl-2 space-y-2">
+                    <FormRow
+                        v-for="teamType in teamTypes"
+                        :key="teamType.id"
+                        v-model="filters.teamType[teamType.id]"
+                        type="checkbox"
+                    >
+                        {{ teamType.name }}
+                    </FormRow>
+                </div>
+
+                <template v-if="features.billing">
+                    <FormHeading class="mt-4">Billing State:</FormHeading>
+                    <div data-el="filter-team-types" class="pl-2 space-y-2">
+                        <FormRow v-model="filters.suspended" type="checkbox">Suspended</FormRow>
+                        <FormRow v-model="filters.billing.active" :disabled="filters.suspended" type="checkbox">Active</FormRow>
+                        <FormRow v-model="filters.billing.trial" :disabled="filters.suspended" type="checkbox">Trial</FormRow>
+                        <FormRow v-model="filters.billing.canceled" :disabled="filters.suspended" type="checkbox">Canceled</FormRow>
+                        <FormRow v-model="filters.billing.unmanaged" :disabled="filters.suspended" type="checkbox">Unmanaged</FormRow>
+                    </div>
+                </template>
+            </div>
         </div>
-    </div>
+    </ff-page>
 </template>
 
 <script>

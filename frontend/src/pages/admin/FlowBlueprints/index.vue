@@ -1,29 +1,31 @@
 <template>
-    <div class="space-y-6">
-        <SectionTopMenu hero="Flow Blueprints">
-            <template #tools>
-                <div class="tools">
-                    <ff-button data-action="export-flow-blueprints" @click="exportFlowBlueprints">
-                        <template #icon-right>
-                            <DownloadIcon class="ff-icon" />
-                        </template>
-                        Export
-                    </ff-button>
-                    <ff-button data-action="import-flow-blueprints" @click="showImportFlowBlueprintsDialog()">
-                        <template #icon-right>
-                            <UploadIcon class="ff-icon" />
-                        </template>
-                        Import
-                    </ff-button>
-                    <ff-button data-action="create-flow-blueprint" @click="showBlueprintForm()">
-                        <template #icon-right>
-                            <PlusSmIcon class="ff-icon" />
-                        </template>
-                        Create Flow Blueprint
-                    </ff-button>
-                </div>
-            </template>
-        </SectionTopMenu>
+    <ff-page>
+        <template #header>
+            <ff-page-header title="Flow Blueprints">
+                <template #tools>
+                    <div class="tools">
+                        <ff-button data-action="export-flow-blueprints" @click="exportFlowBlueprints">
+                            <template #icon-right>
+                                <DownloadIcon class="ff-icon" />
+                            </template>
+                            Export
+                        </ff-button>
+                        <ff-button data-action="import-flow-blueprints" @click="showImportFlowBlueprintsDialog()">
+                            <template #icon-right>
+                                <UploadIcon class="ff-icon" />
+                            </template>
+                            Import
+                        </ff-button>
+                        <ff-button data-action="create-flow-blueprint" @click="showBlueprintForm()">
+                            <template #icon-right>
+                                <PlusSmIcon class="ff-icon" />
+                            </template>
+                            Create Flow Blueprint
+                        </ff-button>
+                    </div>
+                </template>
+            </ff-page-header>
+        </template>
         <div data-el="blueprints" class="flex flex-wrap gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-w-screen-xl">
             <BlueprintTile
                 v-for="(flowBlueprint, index) in activeFlowBlueprints"
@@ -36,17 +38,19 @@
         <div v-if="nextCursor">
             <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
         </div>
-        <SectionTopMenu hero="Inactive Blueprints" />
-        <ff-data-table :columns="columns" :rows="inactiveFlowBlueprints" data-el="inactive-flow-blueprints">
-            <template #context-menu="{row}">
-                <ff-list-item label="Edit Flow Blueprint" @click="showBlueprintForm(row)" />
-                <ff-list-item label="Delete Flow Blueprint" kind="danger" @click="showDeleteBlueprint(row)" />
-            </template>
-        </ff-data-table>
-        <div v-if="nextCursor">
-            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+        <div class="mt-6">
+            <SectionTopMenu hero="Inactive Blueprints" />
+            <ff-data-table :columns="columns" :rows="inactiveFlowBlueprints" data-el="inactive-flow-blueprints">
+                <template #context-menu="{row}">
+                    <ff-list-item label="Edit Flow Blueprint" @click="showBlueprintForm(row)" />
+                    <ff-list-item label="Delete Flow Blueprint" kind="danger" @click="showDeleteBlueprint(row)" />
+                </template>
+            </ff-data-table>
+            <div v-if="nextCursor">
+                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+            </div>
         </div>
-    </div>
+    </ff-page>
     <FlowBlueprintFormDialog
         ref="adminFlowBlueprintDialog"
         data-el="create-blueprint-dialog"

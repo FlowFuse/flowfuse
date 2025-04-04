@@ -1,9 +1,14 @@
 <template>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="platform" @load-entries="loadEntries">
-        <template #title>
-            <SectionTopMenu hero="Platform Audit Log" info="Recorded events that have taken place at the Platform level." />
+    <ff-page>
+        <template #header>
+            <ff-page-header title="Platform Audit Log">
+                <template #context>
+                    Recorded events that have taken place at the Platform level.
+                </template>
+            </ff-page-header>
         </template>
-    </AuditLogBrowser>
+        <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="platform" @load-entries="loadEntries" />
+    </ff-page>
 </template>
 
 <script>
@@ -11,13 +16,11 @@ import { mapState } from 'vuex'
 
 import AdminAPI from '../../api/admin.js'
 import UsersAPI from '../../api/users.js'
-import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 
 export default {
     name: 'PlatformAuditLog',
     components: {
-        SectionTopMenu,
         AuditLogBrowser
     },
     data () {

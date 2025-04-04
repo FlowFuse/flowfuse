@@ -106,14 +106,7 @@ export default [
                         path: 'create',
                         component: AdminCreateUser,
                         meta: {
-                            title: 'Admin - Create User',
-                            menu: {
-                                type: 'back',
-                                backTo: {
-                                    label: 'Back to Users',
-                                    to: { name: 'admin-users-general' }
-                                }
-                            }
+                            title: 'Admin - Create User'
                         }
                     },
                     {
@@ -121,14 +114,7 @@ export default [
                         path: ':id',
                         component: AdminUserDetails,
                         meta: {
-                            title: 'Admin - User',
-                            menu: {
-                                type: 'back',
-                                backTo: {
-                                    label: 'Back to Users',
-                                    to: { name: 'admin-users-general' }
-                                }
-                            }
+                            title: 'Admin - User'
                         }
                     }
                 ]
