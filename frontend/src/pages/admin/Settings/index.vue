@@ -29,7 +29,4 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.clear-page-gutters {
-    margin: -1.75rem
-}
 </style>

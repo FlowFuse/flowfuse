@@ -240,7 +240,4 @@ export default {
 .inactive-team {
     color: $ff-grey-400;
 }
-.clear-page-gutters {
-    margin: -1.75rem
-}
 </style>
