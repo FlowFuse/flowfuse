@@ -22,7 +22,7 @@
 
             <interview-popup v-if="interview?.enabled" :flag="interview.flag" :payload="interview.payload" />
 
-            <ff-dialog ref="dialog" data-el="platform-dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" :canBeCanceled="dialog.canBeCanceled" @cancel="clearDialog(true)" @confirm="dialog.onConfirm">
+            <ff-dialog ref="dialog" data-el="platform-dialog" :header="dialog.header" :kind="dialog.kind" :disable-primary="dialog.disablePrimary" :confirm-label="dialog.confirmLabel" :cancel-label="dialog.cancelLabel" :canBeCanceled="dialog.canBeCanceled" @cancel="clearDialog(true)" @confirm="dialog.onConfirm">
                 <template v-if="dialog.textLines">
                     <div class="space-y-2">
                         <p v-for="(text, $index) in dialog.textLines" :key="$index">{{ text }}</p>

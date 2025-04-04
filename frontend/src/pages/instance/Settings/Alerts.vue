@@ -10,7 +10,7 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
-import alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 import TemplateSettingsAlert from '../../admin/Template/sections/Alerts.vue'
 import {
     getObjectValue,
@@ -34,7 +34,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated', 'save-button-state'],
+    emits: ['instance-updated', 'save-button-state', 'restart-instance'],
     data () {
         return {
             unsavedChanges: false,
@@ -153,7 +153,18 @@ export default {
             })
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
-            alerts.emit('Instance successfully updated.', 'confirmation')
+            // is instance running
+            if (this.project.meta.state === 'running') {
+                Dialog.show({
+                    header: 'Restart Required',
+                    html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
+                    confirmLabel: 'Restart Now',
+                    cancelLabel: 'Restart Later'
+                }, () => {
+                    // restart the instance
+                    this.$emit('restart-instance')
+                })
+            }
         }
     }
 }
