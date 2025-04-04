@@ -48,6 +48,7 @@ export default {
                 this.dialog.html = msg.html
                 this.dialog.is = msg.is ? markRaw(msg.is) : undefined
                 this.dialog.confirmLabel = msg.confirmLabel
+                this.dialog.cancelLabel = msg.cancelLabel
                 this.dialog.kind = msg.kind
                 this.dialog.disablePrimary = msg.disablePrimary
                 if (Object.prototype.hasOwnProperty.call(msg, 'canBeCanceled')) {
