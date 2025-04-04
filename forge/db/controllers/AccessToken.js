@@ -175,14 +175,22 @@ module.exports = {
      * @param {string} name - A name for this token
      * @param {Object|number} team - The team object or id
      * @param {'application'|'instance'} [autoAssignType] - The type of auto assign (set to `null` or `undefined` to remove auto assign)
-     * @param {Object|string} [autoAssignId] - The auto assign id (set to `null` or `undefined` to remove auto assign)
+     * @param {Object|string} [autoAssignItem] - The auto assign project/application id (Only valid if autoAssignType is set)
      * @param {Date|'never'} [expiresAt] - The expiry date. If `undefined`, the token never expires
      */
-    createTokenForTeamDeviceProvisioning: async function (app, name, team, autoAssignType, autoAssignId, expiresAt) {
+    createTokenForTeamDeviceProvisioning: async function (app, name, team, autoAssignType, autoAssignItem, expiresAt) {
         const generatedToken = generateToken(32, 'ffadp')
         const scope = ['device:provision', `name:${name}`]
-        const projectId = autoAssignType === 'instance' ? (autoAssignId && typeof autoAssignId === 'object') ? autoAssignId.id : autoAssignId : null
-        const applicationId = autoAssignType === 'application' ? (autoAssignId && typeof autoAssignId === 'object') ? autoAssignId.hashid : autoAssignId : null
+        let autoAssignId = null
+        if (autoAssignItem) {
+            if (typeof autoAssignItem === 'object') {
+                autoAssignId = autoAssignItem.id
+            } else {
+                autoAssignId = autoAssignItem || null
+            }
+        }
+        const projectId = autoAssignType === 'instance' ? autoAssignId : null
+        const applicationId = autoAssignType === 'application' ? autoAssignId : null
         const teamId = (team && typeof team === 'object') ? team.id : team
         if (applicationId) {
             scope.push(`application:${applicationId}`)
@@ -207,13 +215,21 @@ module.exports = {
      * @param {Object} app - The app object
      * @param {Object} token - The token to update
      * @param {'application'|'instance'} [autoAssignType] - The type of auto assign (set to `null` or `undefined` to remove auto assign)
-     * @param {string} [autoAssignId] - The auto assign id (set to `null` or `undefined` to remove auto assign)
+     * @param {Object|string} [autoAssignItem] - The auto assign project/application (or id). Set to `null` or `undefined` to remove auto assign
      * @param {Date|'never'} [expiresAt] - The expiry date. If `undefined`, the token never expires
      */
-    updateTokenForTeamDeviceProvisioning: async function (app, token, autoAssignType, autoAssignId, expiresAt) {
+    updateTokenForTeamDeviceProvisioning: async function (app, token, autoAssignType, autoAssignItem, expiresAt) {
         let scope = [...(token.scope || [])]
-        const instanceId = autoAssignType === 'instance' ? (autoAssignId && typeof autoAssignId === 'object') ? autoAssignId.id : autoAssignId : null
-        const applicationId = autoAssignType === 'application' ? (autoAssignId && typeof autoAssignId === 'object') ? autoAssignId.hashid : autoAssignId : null
+        let autoAssignId = null
+        if (autoAssignItem) {
+            if (typeof autoAssignItem === 'object') {
+                autoAssignId = autoAssignItem.id
+            } else {
+                autoAssignId = autoAssignItem || null
+            }
+        }
+        const instanceId = autoAssignType === 'instance' ? autoAssignId : null
+        const applicationId = autoAssignType === 'application' ? autoAssignId : null
         // remove instance/application scope & add updated instance/application scope (if set)
         scope = scope.filter((s) => !s.startsWith('project:'))
         scope = scope.filter((s) => !s.startsWith('application:'))
