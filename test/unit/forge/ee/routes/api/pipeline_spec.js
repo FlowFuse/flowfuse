@@ -3041,34 +3041,37 @@ describe('Pipelines API', function () {
             body.should.have.property('count', 3)
             body.pipelines.should.have.length(3)
 
-            body.pipelines[0].should.have.property('name', 'new-pipeline')
-            body.pipelines[0].should.have.property('stages')
+            const p1 = body.pipelines.find(p => p.name === 'new-pipeline')
+            should.exist(p1)
+            p1.should.have.property('stages')
 
-            body.pipelines[0].stages.should.have.length(1)
-            body.pipelines[0].stages[0].should.have.property('name', 'stage-one')
+            p1.stages.should.have.length(1)
+            p1.stages[0].should.have.property('name', 'stage-one')
 
-            body.pipelines[0].stages[0].instances.should.have.length(1)
-            body.pipelines[0].stages[0].instances[0].should.have.property('name', 'project1')
+            p1.stages[0].instances.should.have.length(1)
+            p1.stages[0].instances[0].should.have.property('name', 'project1')
 
-            body.pipelines[1].should.have.property('name', 'new-pipeline-devices')
+            const p2 = body.pipelines.find(p => p.name === 'new-pipeline-devices')
+            should.exist(p2)
 
-            body.pipelines[1].stages.should.have.length(1)
-            body.pipelines[1].stages[0].should.have.property('name', 'stage-one-devices')
+            p2.stages.should.have.length(1)
+            p2.stages[0].should.have.property('name', 'stage-one-devices')
 
-            body.pipelines[1].stages[0].devices.should.have.length(1)
-            body.pipelines[1].stages[0].devices[0].should.have.property('name', 'device-a')
+            p2.stages[0].devices.should.have.length(1)
+            p2.stages[0].devices[0].should.have.property('name', 'device-a')
 
-            body.pipelines[2].should.have.property('name', 'new-pipeline-device-groups')
+            const p3 = body.pipelines.find(p => p.name === 'new-pipeline-device-groups')
+            should.exist(p3)
 
-            body.pipelines[2].stages.should.have.length(2)
-            body.pipelines[2].stages[0].should.have.property('name', 'stage-one-instance') // first stage is an instance
-            body.pipelines[2].stages[1].should.have.property('name', 'stage-two-device-group') // second stage is a device group
+            p3.stages.should.have.length(2)
+            p3.stages[0].should.have.property('name', 'stage-one-instance') // first stage is an instance
+            p3.stages[1].should.have.property('name', 'stage-two-device-group') // second stage is a device group
 
-            body.pipelines[2].stages[0].instances.should.have.length(1)
-            body.pipelines[2].stages[0].instances[0].should.have.property('name', 'project1')
+            p3.stages[0].instances.should.have.length(1)
+            p3.stages[0].instances[0].should.have.property('name', 'project1')
 
-            body.pipelines[2].stages[1].deviceGroups.should.have.length(1)
-            body.pipelines[2].stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
+            p3.stages[1].deviceGroups.should.have.length(1)
+            p3.stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
 
             response.statusCode.should.equal(200)
         })
@@ -3087,38 +3090,41 @@ describe('Pipelines API', function () {
             body.should.have.property('count', 3)
             body.pipelines.should.have.length(3)
 
-            body.pipelines[0].should.have.property('name', 'new-pipeline')
-            body.pipelines[0].should.have.property('stages')
-            body.pipelines[0].should.have.property('application')
-            body.pipelines[0].application.should.have.property('name', TestObjects.application.name)
+            const p1 = body.pipelines.find(p => p.name === 'new-pipeline')
+            should.exist(p1)
+            p1.should.have.property('stages')
+            p1.should.have.property('application')
+            p1.application.should.have.property('name', TestObjects.application.name)
 
-            body.pipelines[0].stages.should.have.length(1)
-            body.pipelines[0].stages[0].should.have.property('name', 'stage-one')
+            p1.stages.should.have.length(1)
+            p1.stages[0].should.have.property('name', 'stage-one')
 
-            body.pipelines[0].stages[0].instances.should.have.length(1)
-            body.pipelines[0].stages[0].instances[0].should.have.property('name', 'project1')
+            p1.stages[0].instances.should.have.length(1)
+            p1.stages[0].instances[0].should.have.property('name', 'project1')
 
-            body.pipelines[1].should.have.property('name', 'new-pipeline-devices')
-            body.pipelines[1].should.have.property('application')
+            const p2 = body.pipelines.find(p => p.name === 'new-pipeline-devices')
+            should.exist(p2)
+            p2.should.have.property('application')
 
-            body.pipelines[1].stages.should.have.length(1)
-            body.pipelines[1].stages[0].should.have.property('name', 'stage-one-devices')
+            p2.stages.should.have.length(1)
+            p2.stages[0].should.have.property('name', 'stage-one-devices')
 
-            body.pipelines[1].stages[0].devices.should.have.length(1)
-            body.pipelines[1].stages[0].devices[0].should.have.property('name', 'device-a')
+            p2.stages[0].devices.should.have.length(1)
+            p2.stages[0].devices[0].should.have.property('name', 'device-a')
 
-            body.pipelines[2].should.have.property('name', 'new-pipeline-device-groups')
-            body.pipelines[2].should.have.property('application')
+            const p3 = body.pipelines.find(p => p.name === 'new-pipeline-device-groups')
+            should.exist(p3)
+            p3.should.have.property('application')
 
-            body.pipelines[2].stages.should.have.length(2)
-            body.pipelines[2].stages[0].should.have.property('name', 'stage-one-instance') // first stage is an instance
-            body.pipelines[2].stages[1].should.have.property('name', 'stage-two-device-group') // second stage is a device group
+            p3.stages.should.have.length(2)
+            p3.stages[0].should.have.property('name', 'stage-one-instance') // first stage is an instance
+            p3.stages[1].should.have.property('name', 'stage-two-device-group') // second stage is a device group
 
-            body.pipelines[2].stages[0].instances.should.have.length(1)
-            body.pipelines[2].stages[0].instances[0].should.have.property('name', 'project1')
+            p3.stages[0].instances.should.have.length(1)
+            p3.stages[0].instances[0].should.have.property('name', 'project1')
 
-            body.pipelines[2].stages[1].deviceGroups.should.have.length(1)
-            body.pipelines[2].stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
+            p3.stages[1].deviceGroups.should.have.length(1)
+            p3.stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
         })
     })
 

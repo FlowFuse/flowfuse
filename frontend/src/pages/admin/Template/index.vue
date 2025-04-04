@@ -285,6 +285,11 @@ export default {
                 this.editable.settings.httpNodeAuth_pass = ''
             }
 
+            if (this.editable.settings.localAuth_enabled !== true) {
+                this.editable.policy.localAuth_user = ''
+                this.editable.policy.localAuth_pass = ''
+            }
+
             templateFields.forEach(field => {
                 setTemplateValue(template.settings, field, this.editable.settings[field])
                 setObjectValue(template.policy, field, this.editable.policy[field])

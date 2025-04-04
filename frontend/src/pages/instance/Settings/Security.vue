@@ -32,9 +32,6 @@
                 Upgrade your Node-RED Version to enable this feature
             </div>
         </div>
-        <div class="space-x-4 whitespace-nowrap">
-            <ff-button data-action="new-token" size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
-        </div>
     </form>
     <TokenDialog ref="tokenDialog" data-el="http-token-diag" :project="project" @token-created="newTokenDone" @token-updated="getTokens" />
     <TokenCreated ref="tokenCreated" />
@@ -85,7 +82,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'save-button-state'],
     data () {
         return {
             unsavedChanges: false,
@@ -126,6 +123,12 @@ export default {
                 return true
             }
             return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.2.0')
+        },
+        saveButton () {
+            return {
+                visible: true,
+                disabled: !this.unsavedChanges
+            }
         }
     },
     watch: {
@@ -152,6 +155,12 @@ export default {
                     this.unsavedChanges = changed
                     this.hasErrors = errors
                 }
+            }
+        },
+        saveButton: {
+            immediate: true,
+            handler (state) {
+                this.$emit('save-button-state', state)
             }
         },
         'editable.settings.httpNodeAuth_type': {
