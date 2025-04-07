@@ -217,6 +217,31 @@ ingress:
 
 Apply changes with [platform startup command](#start-flowfuse-platform).
 
+### I use Kubernetes Network Policies, how can I configure them?
+
+The FlowFuse Helm chart does not create any Network Policies by default. If your cluster uses Network Policies to restrict traffic between namespaces, you'll need to create appropriate policies.
+
+Here's an example Network Policy that allows traffic from the `flowforge` namespace (default namespace for Node-RED instances) to the `flowfuse` namespace:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-flowforge-to-flowfuse
+  namespace: flowfuse
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: flowforge
+  policyTypes:
+    - Ingress
+```
+
+You may need to adjust this policy based on your specific network requirements and namespace configuration.
+
 ### How to use external database server?
 
 FlowFuse platform uses PostgreSQL database to store its data. By default, the internal database instance is created and managed by the Helm chart. 
