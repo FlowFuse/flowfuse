@@ -9,7 +9,7 @@
 
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Tokens..." />
-        <ff-loading v-else-if="creatingDevice" message="Creating Token..." />
+        <ff-loading v-else-if="creatingToken" message="Creating Token..." />
         <ff-loading v-else-if="deletingItem" message="Deleting Token..." />
         <template v-else>
             <ff-data-table
@@ -52,11 +52,12 @@
 </template>
 
 <script>
-import { KeyIcon, PlusSmIcon } from '@heroicons/vue/outline'
+import { KeyIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
 import teamApi from '../../../api/team.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import ProjectsIcon from '../../../components/icons/Projects.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
@@ -70,13 +71,20 @@ const TokenFieldFormatter = {
     components: { KeyIcon }
 }
 
-const InstanceFieldFormatter = {
+const AutoAssignToFieldFormatter = {
     template: `
-        <template v-if="instance">
-            <router-link :to="{ name: 'Instance', params: { id: instance }}">{{instanceName}}</router-link>
+        <template v-if="application">
+            <router-link class="flex content-center" :to="{ name: 'Application', params: { id: application }}"><TemplateIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 !leading-normal">{{ applicationName }}</span></router-link>
+        </template>
+        <template v-else-if="instance">
+            <router-link class="flex content-center" :to="{ name: 'Instance', params: { id: instance } }"><ProjectsIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 !leading-normal">{{ instanceName }}</span></router-link>
         </template>
         <template v-else><span class="italic text-gray-500">Don't assign</span></template>`,
-    props: ['instance', 'instanceName']
+    props: ['instance', 'instanceName', 'application', 'applicationName'],
+    components: {
+        TemplateIcon,
+        ProjectsIcon
+    }
 }
 
 export default {
@@ -91,12 +99,13 @@ export default {
     data () {
         return {
             loading: true,
-            creatingDevice: false,
+            creatingToken: false,
             deletingItem: false,
             tokens: new Map(),
             checkInterval: null,
             nextCursor: null,
-            instanceNames: []
+            instanceNames: [],
+            applicationNames: []
         }
     },
     computed: {
@@ -112,7 +121,7 @@ export default {
         columns: function () {
             return [
                 { label: 'Token Name', class: ['w-64'], key: 'name', sortable: true, component: { is: markRaw(TokenFieldFormatter) } },
-                { label: 'Auto Assign Instance', class: ['w-64'], key: 'instance', sortable: true, component: { is: markRaw(InstanceFieldFormatter) } },
+                { label: 'Auto Assign', class: ['w-64'], key: 'instance', sortable: true, component: { is: markRaw(AutoAssignToFieldFormatter) } },
                 { label: 'Target Snapshot', class: ['w-64'], key: 'targetSnapshot', sortable: true }
             ]
         }
@@ -139,6 +148,12 @@ export default {
         async fetchData (nextCursor = null, polled = false) {
             // load instance names into local cache (TODO: consider moving this to a vuex store for global access)
             this.instanceNames = await teamApi.getTeamInstancesList(this.team.id)
+            const applications = await teamApi.getTeamApplications(this.team.id)
+            if (applications?.count > 0) {
+                this.applicationNames = applications.applications.map(a => ({ id: a.id, name: a.name }))
+            } else {
+                this.applicationNames = []
+            }
             // get the tokens
             const data = await teamApi.getTeamDeviceProvisioningTokens(this.team.id, nextCursor)
 
@@ -159,6 +174,10 @@ export default {
             const instance = this.instanceNames?.find(p => p.id === id)
             return instance ? instance.name : id
         },
+        getApplicationName (id) {
+            const application = this.applicationNames?.find(p => p.id === id)
+            return application ? application.name : id
+        },
         async loadMore () {
             await this.fetchData(this.nextCursor)
         },
@@ -169,10 +188,10 @@ export default {
             this.$refs.CreateProvisioningTokenDialog.show(token)
         },
         tokenCreating () {
-            this.creatingDevice = true
+            this.creatingToken = true
         },
         async tokenCreated (token) {
-            this.creatingDevice = false
+            this.creatingToken = false
             if (token) {
                 setTimeout(() => {
                     this.$refs.provisioningCredentialsDialog.show(token)
@@ -185,6 +204,7 @@ export default {
         },
         updateTokenCache (token) {
             token.instanceName = this.getInstanceName(token.instance)
+            token.applicationName = this.getApplicationName(token.application)
             this.tokens.set(token.id, token)
         },
         menuAction (action, tokenId) {
