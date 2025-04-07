@@ -1,9 +1,12 @@
 <template>
-    <SectionTopMenu hero="Device Provisioning" help-header="Device Provisioning Tokens" info="A list of device provisioning tokens that can be used to auto register devices to a team.">
+    <SectionTopMenu hero="Remote Instance Provisioning" help-header="Remote Instance Provisioning Tokens" info="A list of Remote Instance provisioning tokens that can be used to auto register devices to a team.">
+        <template #pictogram>
+            <img src="../../../images/pictograms/devices_red.png">
+        </template>
         <template #helptext>
             <p>FlowFuse can be used to manage instances of Node-RED running on remote devices.</p>
             <p>Each device must run the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>, which connects back to the platform to receive updates.</p>
-            <p>Provisioning tokens can be created to allow devices to automatically connect to a team, application and instance without having to register them first.</p>
+            <p>Provisioning tokens can be created to allow Remote Instances to automatically join a team and to be auto assigned to an application or an instance if required.</p>
         </template>
     </SectionTopMenu>
 
