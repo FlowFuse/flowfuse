@@ -125,3 +125,72 @@ jobs:
           ref: main
           token: ${{ steps.generate_token.outputs.token }}
           inputs: '{"flowforge_ref": "${{ github.ref }}", "flowforge_release_name": "${{ env.release_name }}"}'
+
+  notify-slack:
+    name: Notify on failure
+    if: failure()
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Send notification
+      uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
+      with:
+        method: chat.postMessage
+        token: ${{ secrets.SLACK_GHBOT_TOKEN }}
+        payload: |
+          {
+            "channel": "C067BD0377F",
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": ":x: FlowFuse npm package publish pipeline failed",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "type": "rich_text",
+                "elements": [
+                  {
+                    "type": "rich_text_section",
+                    "elements": [
+                      {
+                        "type": "emoji",
+                        "name": "warning"
+                      },
+                      {
+                        "type": "text",
+                        "text": " Deployment to FFC environments will not happen until this issue is resolved.",
+                        "style": {
+                          "bold": true
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "View Failed Workflow",
+                      "emoji": true
+                    },
+                    "style": "primary",
+                    "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                    "value": "view_workflow"
+                  }
+                ]
+              }
+            ]
+          }
