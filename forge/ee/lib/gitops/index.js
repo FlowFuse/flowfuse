@@ -69,7 +69,7 @@ module.exports.init = async function (app) {
                     result.cause = err
                     throw result
                 }
-                // Remove branch does not exist
+                // Remote branch does not exist
                 if (/Could not find remote branch|Remote branch .+ not found/.test(output)) {
                     const result = new Error('Branch not found')
                     result.code = 'invalid_branch'
