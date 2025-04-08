@@ -38,7 +38,7 @@ describe('FlowFuse EE - Instance - Alerts', () => {
 
         // Change and save changes
         cy.get('[data-el="notify-list"] div label:nth-child(2)').click()
-        cy.get('[data-el="alert-save-button"]').click()
+        cy.get('[data-el="save-settings-button"]').click()
 
         cy.wait('@updateInstance')
         cy.wait('@getInstance')

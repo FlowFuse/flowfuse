@@ -1,11 +1,10 @@
 <template>
-    <ff-dialog ref="dialog" header="Device Provisioning Configuration">
+    <ff-dialog ref="dialog" header="Remote Instance Provisioning Configuration">
         <template #default>
             <form class="space-y-6 mt-2">
                 <p class="text-sm text-gray-500">
-                    To auto provision your devices on the platform, use the following
-                    configuration. Make a note of it as this is the only
-                    time you will see it.
+                    To auto provision your Remote Instance on the platform, use the following
+                    configuration. Make a note of it as this is the only time you will see it.
                 </p>
                 <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
             </form>

@@ -246,7 +246,7 @@
                             When a device Pipeline stage type is triggered an Device Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
                         </p>
                         <p>
-                            <b>Use Active Snapshot:</b> Will use the snapshot currently active on the device. The deploy will fail is there is no active snapshot.
+                            <b>Use Active Snapshot:</b> Will use the snapshot currently active on the device. The deploy will fail if there is no active snapshot.
                         </p>
                         <p>
                             <b>Use Latest Device Snapshot:</b> Uses the most recent snapshot created from the device. The deploy will fail if no snapshot exists.

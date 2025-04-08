@@ -13,7 +13,7 @@
                 <ff-button
                     v-if="hasPermission('project:create')"
                     data-action="create-instance"
-                    :to="{ name: 'ApplicationCreateInstance' }"
+                    :to="{ name: 'application-create-instance' }"
                     type="anchor"
                 >
                     <template #icon-left><PlusSmIcon /></template>
@@ -80,7 +80,7 @@
                 <template #actions>
                     <ff-button
                         v-if="hasPermission('project:create')"
-                        :to="{ name: 'ApplicationCreateInstance' }"
+                        :to="{ name: 'application-create-instance' }"
                         type="anchor"
                     >
                         <template #icon-left><PlusSmIcon /></template>

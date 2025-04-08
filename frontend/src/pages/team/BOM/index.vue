@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Bill Of Materials">
                 <template #context>
-                    Single view of all libraries and dependencies running within your Node-RED flows
+                    Single view of all libraries and dependencies running within your Node-RED flows.
                 </template>
                 <template #pictogram>
                     <img alt="logo" src="../../../images/pictograms/instance_red.png">
@@ -43,7 +43,7 @@
                         v-model="searchTerm"
                         class="ff-data-table--search mb-5"
                         data-form="search"
-                        placeholder="Search Package Dependency, Instance or Device"
+                        placeholder="Search Package Dependency, Hosted Instance or Remote Instance"
                     >
                         <template #icon><SearchIcon /></template>
                     </ff-text-input>
@@ -58,10 +58,10 @@
                     <template #header>No Dependencies Here... Yet!</template>
                     <template #message>
                         <p>
-                            It looks like there are no Instances or Devices assigned to this team yet.
+                            It looks like there are no Hosted or Remote Instances assigned to this team yet.
                         </p>
                         <p>
-                            Once you assign an Instance or Device to an application belonging to this team, you'll be able to view a complete list of their dependencies.
+                            Once you assign an Hosted or Remote Instance to an application belonging to this team, you'll be able to view a complete list of their dependencies.
                         </p>
                     </template>
                 </EmptyState>

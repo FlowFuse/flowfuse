@@ -83,6 +83,9 @@ const getters = {
     team (state) {
         return state.team
     },
+    isFreeTeamType (state) {
+        return !!(state.team?.type?.properties?.billing?.disabled)
+    },
     teamMembership (state) {
         return state.teamMembership
     },
@@ -149,6 +152,7 @@ const getters = {
     featuresCheck: (state) => {
         const preCheck = {
             // Instances
+            // deprecated, use the isFreeTeamType getter
             isHostedInstancesEnabledForTeam: ((state) => {
                 if (!state.team) {
                     return false
