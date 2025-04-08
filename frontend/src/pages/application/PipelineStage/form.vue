@@ -379,7 +379,7 @@ export default {
                 gitTokenId: stage.gitRepo?.gitTokenId,
                 url: stage.gitRepo?.url,
                 branch: stage.gitRepo?.branch,
-                credentialSecret: ''
+                credentialSecret: stage.gitRepo?.credentialSecret ? '__PLACEHOLDER__' : ''
             },
             newDeviceGroupInput: {
                 name: '',
@@ -457,7 +457,7 @@ export default {
                     this.input.url !== this.stage.gitRepo?.url ||
                     this.input.branch !== this.stage.gitRepo?.branch ||
                     this.input.gitTokenId !== this.stage.gitRepo?.gitTokenId ||
-                    this.input.credentialSecret !== ''
+                    (this.input.credentialSecret !== '' && this.input.credentialSecret !== '__PLACEHOLDER__')
                 ))
             )
         },
@@ -471,7 +471,7 @@ export default {
                         this.input.url &&
                         this.errors.url === '' &&
                         this.input.branch &&
-                        (this.repoStageHasCredentialSecret || this.input.credentialSecret)
+                        this.input.credentialSecret
                     )
                     : true
                 ) &&
@@ -675,8 +675,8 @@ export default {
                 this.input.deviceId = null
                 this.input.deviceGroupId = null
                 this.input.action = StageAction.NONE // default to NONE (not used for git repos)
-                if (this.repoStageHasCredentialSecret && !this.input.credentialSecret) {
-                    // Don't send back a blank value to avoid overwriting the existing value
+                if (this.repoStageHasCredentialSecret && (!this.input.credentialSecret || this.input.credentialSecret === '__PLACEHOLDER__')) {
+                    // Don't send back a blank/placeholder value to avoid overwriting the existing value
                     delete this.input.credentialSecret
                 }
             }
