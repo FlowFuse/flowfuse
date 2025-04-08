@@ -17,6 +17,8 @@ RUN npm install --no-audit --no-fund pg-hstore@^2.3.4 && \
 
 FROM node:18-alpine
 
+RUN apk add --no-cache git
+
 WORKDIR /usr/src/forge
 COPY package.json .
 COPY --from=builder /build/forge /usr/src/forge/forge/
