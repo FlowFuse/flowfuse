@@ -7,9 +7,11 @@
                     <DateTimePicker
                         v-model="range"
                         model-auto
-                        range
+                        range="false"
                         is-24
+                        enable-seconds
                         placeholder="Start Time"
+                        locale="en-GB"
                         :min-date="startTime"
                         :max-date="endTime"
                     />
@@ -63,6 +65,9 @@ export default {
     computed: {
         haIdOptions () {
             return [{ label: 'All', value: 'all' }, ...this.haIds.map(id => ({ label: id, value: id }))]
+        },
+        locale () {
+            return window.navigator.language
         }
     },
     watch: {
