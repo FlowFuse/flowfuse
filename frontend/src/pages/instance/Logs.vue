@@ -78,7 +78,7 @@ export default {
         }
     },
     watch: {
-        async range (newState) {
+        async startDate (newState) {
             const newStartTime = Date.parse(newState)
             // this.$refs.logs.stopPolling()
             this.$refs.logs.clear()
