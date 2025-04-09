@@ -91,6 +91,15 @@ module.exports = async function (app) {
             }
         }
 
+        if (project.template?.settings?.env) {
+            project.template.settings.env = project.template.settings.env.map(env => {
+                if (env.hidden) {
+                    env.value = ''
+                }
+                return env
+            })
+        }
+
         reply.send({ ...project, ...projectState })
     })
 
