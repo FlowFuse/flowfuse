@@ -71,12 +71,14 @@ module.exports = async function (app) {
 
         if (template) {
             const result = app.db.views.ProjectTemplate.template(template)
-            result.settings.env = result.settings.env.map(env => {
-                if (env.hidden) {
-                    env.value = ''
-                }
-                return env
-            })
+            if (result.settings?.env) {
+                result.settings.env = result.settings.env.map(env => {
+                    if (env.hidden) {
+                        env.value = ''
+                    }
+                    return env
+                })
+            }
             reply.send(result)
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
