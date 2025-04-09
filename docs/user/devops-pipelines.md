@@ -56,30 +56,24 @@ This ensures a split between your staging environments.
 
 * Stages of a pipeline are executed from left to right.
 * Actionable stages have a play button that will push from that stage to the next stage.
-* Every stage, except the last one, is effectively a source stage that can be pushed _from_.
+* Every stage, except the last one, is effectively a source stage that can be pulled _from_.
 * Every stage, except the first one, is a target stage that can be pushed _to_.
 * You cannot currently insert a Stage into the middle of a Pipeline, only at the end.
-* Only one Device Group can appear in a Pipeline, and it must be the last Stage.
 
 ### Stage Types
 
-<img src="./images/ui-devops-stage-types.png" width="100%" />
-
-There are 3 "Stages Type" options to chose from:
-1. **[Instance](./concepts.md#instance)** - a single Node-RED instance that belongs to the application.
-   1. This can be selected for a source and a target stage.
-   1. This kind of stage is Actionable (see Actions below).
-2. **[Device](./concepts.md#device)** - a single device assigned to the application.
-   1. This can be selected for a source and a target stage.
-   1. This kind of stage is Actionable (see Actions below).
-3. **[Device Group](./concepts.md#device-groups)** - a group of devices application assigned to an instance.
-   1. This can only be selected for a target stage.
-   1. This kind of stage is not Actionable and therefore cannot be pushed from.
-
+There are four types of stage to chose from:
+1. **[Instance](./concepts.md#instance)** - a single Node-RED instance.
+2. **[Device](./concepts.md#device)** - a single remote instance.
+3. **[Device Group](./concepts.md#device-groups)** - a group of remote instances.
+4. **Git Repository** - a remote GitHub repository.
+  1. This stage currently only supports:
+     1. Repositories hosted on GitHub.com
+     2. Pushing snapshots to the repostitory; pulling snapshots back from the respository will be added in a future release
 
 ### Actions
 
-<img src="./images/ui-devops-select-action.png" width="100%" />
+<img src="./images/ui-devops-select-action.png" />
 
 The action defines what happens when the stage is deployed. 
 The available actions depend on the stage type selected for the stage.
@@ -88,26 +82,29 @@ These are listed below.
 
 #### Instance stage actions
 
-- **Create new instance snapshot** - When a pipeline stage with this action is deployed, a new snapshot of the defined instance will be created and pushed to the next stage.
+- **Create new instance snapshot** - A new snapshot of the instance will be created and pushed to the next stage.
 
-- **Use latest instance snapshot** - When a pipeline stage with this action is deployed, the latest existing snapshot of the defined instance will be pushed to the next stage.
+- **Use latest instance snapshot** - The latest existing snapshot of the instance will be pushed to the next stage.
 
-- **Prompt to select instance snapshot** - When a pipeline stage with this action is deployed, you will be prompted to choose which snapshot to push to the next stage.
+- **Prompt to select instance snapshot** - You will be prompted to choose which snapshot to push to the next stage.
 
 
 #### Device stage action
 
-- **Use active snapshot** - When a pipeline stage with this action is deployed, the active snapshot of the defined device will be pushed to the next stage.
+- **Use active snapshot** - The active snapshot of the device will be pushed to the next stage.
 
-- **Use latest device snapshot** - When a pipeline stage with this action is deployed, the latest snapshot of the defined device will be pushed to the next stage.
+- **Use latest device snapshot** - The latest snapshot of the device will be pushed to the next stage.
 
-- **Prompt to select device snapshot** - When a pipeline stage with this action is deployed, you will be prompted to choose which snapshot to push to the next stage.
+- **Prompt to select device snapshot** - You will be prompted to choose which snapshot to push to the next stage.
 
 
 #### Device Group stage
 
-Device group stages are not actionable, i.e. they cannot push content to another stage.
-It is only used as a target stage for deploying to a group of devices.
+When a Device Group stage is triggered, it will push the current active snapshot of the group to the next stage.
+
+#### Git Repository stage
+
+Currently, the Git Repository stage can only be the last stage of a pipeline. It supports pushing a snapshot to the git repository, but support for pulling it back will come in a future release.
 
 #### Deploy to Devices
 
