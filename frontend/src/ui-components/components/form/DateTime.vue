@@ -14,6 +14,15 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
+.dp__action_button {
+    &.dp__action_select {
+        background: $ff-indigo-700;
+
+        &[disabled] {
+            background: $ff-grey-300;
+        }
+    }
+}
 
 </style>

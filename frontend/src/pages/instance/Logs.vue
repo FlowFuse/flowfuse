@@ -5,15 +5,15 @@
                 <div style="display: flex;align-items: center;">
                     <div class="mr-2"><strong>Jump:</strong></div>
                     <DateTimePicker
-                        v-model="range"
-                        model-auto
-                        range="false"
+                        v-model="startDate"
                         is-24
                         enable-seconds
                         placeholder="Start Time"
-                        locale="en-GB"
-                        :min-date="startTime"
-                        :max-date="endTime"
+                        :locale="locale"
+                        :format="format"
+                        :min-date="logsStartDate"
+                        :max-date="logsEndDate"
+                        :startTime="startTime"
                     />
                 </div>
                 <div v-if="instance.ha?.replicas != undefined" style="display: flex;align-items: center;">
@@ -57,9 +57,9 @@ export default {
         return {
             haIds: [],
             selectedHAId: 'all',
-            range: [],
-            startTime: null,
-            endTime: null
+            startDate: null,
+            logsStartDate: null,
+            logsEndDate: null
         }
     },
     computed: {
@@ -68,6 +68,13 @@ export default {
         },
         locale () {
             return window.navigator.language
+        },
+        startTime () {
+            return {
+                hours: this.logsEndDate ? this.logsEndDate.getHours() : 0,
+                minutes: this.logsEndDate ? this.logsEndDate.getMinutes() : 0,
+                seconds: this.logsEndDate ? this.logsEndDate.getSeconds() : 0
+            }
         }
     },
     watch: {
@@ -85,8 +92,11 @@ export default {
             }
         },
         newRange (d) {
-            this.startTime = new Date(d.first / 10000)
-            this.endTime = new Date(d.last / 10000)
+            this.logsStartDate = new Date(d.first / 10000)
+            this.logsEndDate = new Date(d.last / 10000)
+        },
+        format (date) {
+            return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
         }
     }
 }
