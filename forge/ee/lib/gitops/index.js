@@ -8,6 +8,15 @@ const execPromised = promisify(exec)
 const axios = require('axios')
 
 module.exports.init = async function (app) {
+    // Check if git is installed
+    try {
+        await execPromised('git --version')
+    } catch (err) {
+        // Error running git
+        app.log.warn('Git integration is disabled: git command not found')
+        return
+    }
+
     // Set the git feature flag
     app.config.features.register('gitIntegration', true, true)
 
