@@ -1,5 +1,5 @@
 <template>
-    <SectionTopMenu hero="Git Version Control" help-header="Git Version Control" info="A list of access tokens that can be used in Pipelines to connect your instances with git repositories.">
+    <SectionTopMenu hero="Git Version Control" help-header="Git Version Control" info="A list of access tokens that can be used in Pipelines to connect your instances with GitHub repositories.">
         <template #helptext>
             <p>Pipelines can be created to push snapshots to a connected Git repository. Currently, only GitHub.com hosted repositories are supported.</p>
             <p>Here you can manage the tokens used by your pipelines to access the repositories.</p>
@@ -66,7 +66,6 @@
                     </ff-button>
                 </template>
                 <template v-if="editEnabled || deleteEnabled" #context-menu="{row}">
-                    <!-- <ff-list-item :disabled="!editEnabled" label="Edit Details" @click="menuAction('edit', row.id)" /> -->
                     <ff-list-item :disabled="!deleteEnabled" kind="danger" label="Delete Token" @click="menuAction('delete', row.id)" />
                 </template>
                 <template v-if="tokens.size === 0" #table>
@@ -173,9 +172,7 @@ export default {
         },
         menuAction (action, tokenId) {
             const token = this.tokens.get(tokenId)
-            if (action === 'edit') {
-                this.showEditDialog(token)
-            } else if (action === 'delete') {
+            if (action === 'delete') {
                 Dialog.show({
                     header: 'Delete Git Token',
                     kind: 'danger',

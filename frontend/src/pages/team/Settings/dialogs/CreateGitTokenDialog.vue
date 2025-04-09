@@ -1,14 +1,21 @@
 <template>
     <ff-dialog
         ref="dialog"
-        header="Add Git Token"
+        header="Add GitHub Personal Access Token"
         confirm-label="Add"
         :disable-primary="!formValid"
         @confirm="confirm()"
     >
         <template #default>
-            <p>Add a new git token to your team.</p>
-            <p>TODO: add more information about how and where this token comes from </p>
+            <p>Add a new GitHub Personal Access Token to your team.</p>
+            <ol class="list-decimal list-inside space-y-1 ml-2">
+                <li>Open <a href="https://github.com/settings/personal-access-tokens" target="_blank">GitHub Personal Access Tokens Settings</a></li>
+                <li>Click on <strong>Generate a new token</strong></li>
+                <li>Select the <strong>Only select respositories</strong> option and pick which repositories to grant access to</li>
+                <li>Expand the <strong>Repository permissions</strong> section and ensure the <strong>Contents</strong> option is set to <strong>Read and write</strong></li>
+                <li>Click on <strong>Generate token</strong></li>
+                <li>This will be the only time GitHub shows you the token value. Copy the token into the field below</li>
+            </ol>
             <form class="space-y-6 mt-2 mb-2">
                 <FormRow v-model="input.name" data-form="token-name" :error="errors.name">Name</FormRow>
                 <FormRow v-model="input.token" data-form="token-value">Token</FormRow>
