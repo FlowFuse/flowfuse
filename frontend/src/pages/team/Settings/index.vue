@@ -29,6 +29,7 @@ export default {
             sideOptions: [
                 { label: 'General', to: './general' },
                 { label: 'Provisioning', to: './devices' },
+                { label: 'Integrations', to: './integrations' },
                 { label: 'Danger', to: './danger' }
             ]
         }
