@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Templates">
                 <template #tools>
-                    <ff-button :to="{ name: 'admin-templates-template', params: { id: 'create' } }">
+                    <ff-button :to="{ name: 'admin-templates-template', params: { id: 'create' } }" size="small">
                         <template #icon-right>
                             <PlusSmIcon />
                         </template>
@@ -12,8 +12,7 @@
                 </template>
             </ff-page-header>
         </template>
-        <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-        <div v-if="loading" class="space-y-6 mb-14">
+        <div v-if="loading" class="space-y-6">
             <ff-loading message="Loading Templates..." />
         </div>
         <ff-loading v-if="loading" message="Loading Templates..." />
