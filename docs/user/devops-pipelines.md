@@ -5,7 +5,7 @@ navTitle: DevOps Pipelines
 # DevOps Pipelines
 
 
-**Navigation**: `Team > Application > DevOps Pipelines`
+**Navigation**: `Team > Application > Pipelines`
 
 
 <img src="./images/ui-devops-pipelines.png" width="100%" />
@@ -67,9 +67,9 @@ There are four types of stage to chose from:
 2. **[Device](./concepts.md#device)** - a single remote instance.
 3. **[Device Group](./concepts.md#device-groups)** - a group of remote instances.
 4. **Git Repository** - a remote GitHub repository.
-  1. This stage currently only supports:
-     1. Repositories hosted on GitHub.com
-     2. Pushing snapshots to the repostitory; pulling snapshots back from the respository will be added in a future release
+    -  This stage currently only supports:
+       - Repositories hosted on GitHub.com
+       - Pushing snapshots to the repostitory; pulling snapshots back from the respository will be added in a future release
 
 ### Actions
 
