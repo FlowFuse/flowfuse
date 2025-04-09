@@ -1,7 +1,7 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header :title="isNew ? 'Create a new template' : template.name" :tabs="sideNavigation">
+            <ff-page-header :title="isNew ? 'Create a new template' : template.name">
                 <template #breadcrumbs>
                     <ff-nav-breadcrumb :to="{path: '/admin/templates'}">Templates</ff-nav-breadcrumb>
                 </template>
@@ -22,7 +22,7 @@
         <div class="flex flex-col sm:flex-row">
             <SectionSideMenu :options="sideNavigation" />
             <div class="flex-grow">
-                <router-view v-model="editable" :editTemplate="true" />
+                <router-view v-model="editable" :originalEnvVars="original.settings.env ?? []" :editTemplate="true" />
             </div>
         </div>
     </ff-page>
@@ -169,6 +169,8 @@ export default {
                                     envChanged = true
                                 } else if (original.policy !== field.policy) {
                                     envChanged = true
+                                } else if (original.hidden !== field.hidden) {
+                                    envChanged = true
                                 }
                             } else {
                                 envChanged = true
@@ -295,7 +297,8 @@ export default {
                     template.settings.env.push({
                         name: envField.name.trim(),
                         value: envField.value,
-                        policy: envField.policy
+                        policy: envField.policy,
+                        hidden: envField.hidden
                     })
                 }
             })

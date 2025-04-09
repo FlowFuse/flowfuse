@@ -59,7 +59,7 @@
                                 class="font-mono"
                                 :containerClass="'w-full' + (!readOnly && (editTemplate || item.policy === undefined)) ? ' env-cell-uneditable':''"
                                 :inputClass="item.deprecated ? 'w-full text-yellow-700 italic' : 'w-full'"
-                                :error="errors[item.index].error"
+                                :error="errors[item.index] ? errors[item.index].error : null"
                                 :disabled="isDisabledName(item)"
                                 value-empty-text=""
                                 data-el="var-name"
@@ -223,7 +223,7 @@ export default {
         },
         filteredRows: function () {
             if (this.search === '') {
-                return this.editable.settings.env.filter(row => !row.deprecated)
+                return this.editable?.settings?.env?.filter(row => !row.deprecated)
             }
             const search = this.search.toLowerCase()
             return this.editable.settings.env.filter(row => {
