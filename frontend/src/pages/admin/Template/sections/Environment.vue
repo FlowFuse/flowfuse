@@ -66,7 +66,7 @@
                                 :type="(!readOnly && (editTemplate || item.policy === undefined)) ? 'text' : 'uneditable'"
                             />
                         </td>
-                        <td class="ff-data-table--cell !p-1 border w-3/5 align-top max-w-xl" :class="{'align-middle':item.encrypted}">
+                        <td class="ff-data-table--cell !p-1 border w-3/5 max-w-xl" :class="{'align-middle':item.encrypted, 'align-top': !item.hidden}">
                             <div v-if="!item.encrypted" class="w-full">
                                 <template v-if="(!readOnly && (editTemplate || item.policy === undefined || item.policy))">
                                     <textarea
@@ -77,7 +77,9 @@
                                     />
                                 </template>
                                 <template v-else>
+                                    <span v-if="item.hidden" class="italic text-gray-300">Value hidden</span>
                                     <FormRow
+                                        v-else
                                         v-model="item.value"
                                         class="font-mono"
                                         containerClass="w-full env-cell-uneditable"
