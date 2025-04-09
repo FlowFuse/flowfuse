@@ -634,13 +634,15 @@ export default {
         if (!this.allowInstanceSelection) {
             this.input.stageType = StageType.DEVICEGROUP
         }
-        const tokens = await teamApi.getGitTokens(this.team.id)
-        this.gitTokens = tokens.tokens.map((token) => {
-            return {
-                label: token.name,
-                value: token.id
-            }
-        })
+        if (this.gitReposEnabled) {
+            const tokens = await teamApi.getGitTokens(this.team.id)
+            this.gitTokens = tokens.tokens.map((token) => {
+                return {
+                    label: token.name,
+                    value: token.id
+                }
+            })
+        }
     },
     methods: {
         async submit () {
