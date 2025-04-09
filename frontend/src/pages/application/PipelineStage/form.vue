@@ -139,6 +139,9 @@
                     <template #default>
                         Choose Git Token
                     </template>
+                    <template #description>
+                        This token is used to authenticate with the GitHub API. To manage your tokens, go to <strong>Team Settings -> Integrations</strong>.
+                    </template>
                 </FormRow>
                 <FormRow
                     v-model="input.url"
