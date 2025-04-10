@@ -35,7 +35,7 @@
                 />
                 <Transition name="fade">
                     <ChevronRightIcon
-                        v-if="$index <= pipeline.stages.length - 1"
+                        v-if="$index <= pipeline.stages.length - 2 || ($index == pipeline.stages.length - 1 && addStageAvailable)"
                         class="ff-icon mt-4 flex-shrink-0"
                         :class="{
                             'animate-deploying': nextStageDeploying($index),
@@ -45,11 +45,11 @@
                 </Transition>
             </template>
             <Transition name="fade">
-                <PipelineStage @click="addStage" />
+                <PipelineStage v-if="addStageAvailable" @click="addStage" />
             </Transition>
         </div>
         <div v-else class="ff-pipeline-stages">
-            <PipelineStage @click="addStage" />
+            <PipelineStage v-if="addStageAvailable" @click="addStage" />
         </div>
     </div>
 </template>
@@ -96,6 +96,10 @@ export default {
         deviceGroupStatusMap: {
             required: true,
             type: Map
+        },
+        gitRepoStatusMap: {
+            required: true,
+            type: Map
         }
     },
     emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
@@ -117,6 +121,10 @@ export default {
         saveRowEnabled () {
             return this.scopedPipeline.name?.length > 0
         },
+        addStageAvailable () {
+            return this.pipeline.stages.length === 0 ||
+                this.pipeline.stages[this.pipeline.stages.length - 1].stageType !== StageType.GITREPO
+        },
         stagesWithStates () {
             return this.pipeline.stages.map((stage) => {
                 // For now, each stage contains only one instance, one device, or a device group, so read state from that object
@@ -127,8 +135,17 @@ export default {
                 const stageDeviceGroupMapId = `${stage.id}:${stage.deviceGroup?.id}`
                 const stageDeviceGroupState = this.deviceGroupStatusMap.get(stageDeviceGroupMapId) || stage.deviceGroup
 
-                // Set the state state based on group, device, or instance
-                if (stageDeviceGroupState) {
+                const stageGitRepoState = this.gitRepoStatusMap.get(stage.id)
+
+                if (stage.stageType === StageType.GITREPO) {
+                    stage.state = {
+                        isDeploying: stageGitRepoState?.isDeploying,
+                        status: stageGitRepoState?.status ?? stage.gitRepo.status,
+                        statusMessage: stageGitRepoState?.statusMessage ?? stage.gitRepo.statusMessage,
+                        lastPushAt: stageGitRepoState?.lastPushAt ?? stage.gitRepo.lastPushAt
+                    }
+                } else if (stageDeviceGroupState) {
+                    // Set the state state based on group, device, or instance
                     stage.state = {
                         isDeploying: stageDeviceGroupState.isDeploying,
                         targetMatchCount: stageDeviceGroupState.targetMatchCount,
@@ -145,7 +162,7 @@ export default {
                 stage.lastSeenSince = stageDeviceState?.lastSeenSince
 
                 // If any device or instance inside the stage are deploying, this stage is deploying
-                stage.isDeploying = stageDeviceState?.isDeploying || stageInstanceState?.isDeploying || stageDeviceGroupState?.isDeploying
+                stage.isDeploying = stageDeviceState?.isDeploying || stageInstanceState?.isDeploying || stageDeviceGroupState?.isDeploying || stageGitRepoState?.isDeploying
 
                 return stage
             })
@@ -193,15 +210,15 @@ export default {
         },
         stageDeployStarting (stage) {
             const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
-            this.$emit('stage-deploy-starting', stage, nextStage)
+            this.$emit('stage-deploy-starting', stage, nextStage, this.pipeline)
         },
         stageDeployStarted (stage) {
             const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
-            this.$emit('stage-deploy-started', stage, nextStage)
+            this.$emit('stage-deploy-started', stage, nextStage, this.pipeline)
         },
         stageDeployFailed (stage) {
             const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
-            this.$emit('stage-deploy-failed', stage, nextStage)
+            this.$emit('stage-deploy-failed', stage, nextStage, this.pipeline)
         },
         stageDeleted (stageIndex) {
             this.$emit('stage-deleted', stageIndex)
@@ -214,6 +231,9 @@ export default {
             return false
         },
         nextStageAvailable (stage, $index) {
+            if (stage.type === StageType.GITREPO) {
+                return false
+            }
             const endofPipeline = ($index >= this.pipeline.stages.length - 1)
             if (stage.action !== StageAction.NONE && !endofPipeline) {
                 // we are mid-pipeline

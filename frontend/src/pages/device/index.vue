@@ -4,54 +4,52 @@
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <div class="ff-instance-header">
-            <SectionNavigationHeader :tabs="navigation">
-                <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Remote Instances</ff-nav-breadcrumb>
-                    <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
-                </template>
-                <template #status>
-                    <div class="flex flex-wrap gap-2">
-                        <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
-                        <StatusBadge :status="device.status" />
-                        <DeviceModeBadge v-if="isDevModeAvailable " :mode="device.mode" />
-                    </div>
-                </template>
-                <template #context>
-                    <div v-if="device?.ownerType === 'application' && device.application" data-el="device-assigned-application">
-                        Application:
-                        <ff-team-link :to="{name: 'Application', params: {id: device.application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application?.name }}</ff-team-link>
-                    </div>
-                    <div v-else-if="device?.ownerType === 'instance' && device.instance" data-el="device-assigned-instance">
-                        Instance:
-                        <ff-team-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</ff-team-link>
-                    </div>
-                    <div v-else data-el="device-assigned-none">
-                        <span class="italic">No Application or Instance Assigned</span> - <a class="ff-link" data-action="assign-device" @click="openAssignmentDialog">Assign</a>
-                    </div>
-                </template>
-                <template #tools>
-                    <!--
-                        div style 34px is a workaround to prevent the Device Editor button growing taller than adjacent
-                        button (size difference is caused by odd padding in the toggle button, which though not visible
-                        is still there and affects the button height in this div group)
-                    -->
-                    <div class="space-x-2 flex align-center" style="height: 34px;">
-                        <template v-if="isDevModeAvailable">
-                            <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
-                            <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
-                                Open Editor
-                                <span class="ff-btn--icon ff-btn--icon-right">
-                                    <ExternalLinkIcon />
-                                </span>
-                            </button>
-                        </template>
-                        <FinishSetupButton v-if="neverConnected" :device="device" />
-                        <DropdownMenu v-if="hasPermission('device:change-status') && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
-                    </div>
-                </template>
-            </SectionNavigationHeader>
-        </div>
+        <SectionNavigationHeader :tabs="navigation">
+            <template #breadcrumbs>
+                <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Remote Instances</ff-nav-breadcrumb>
+                <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
+            </template>
+            <template #status>
+                <div class="flex flex-wrap gap-2">
+                    <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
+                    <StatusBadge :status="device.status" :instanceId="device.id" instanceType="device" />
+                    <DeviceModeBadge v-if="isDevModeAvailable " :mode="device.mode" />
+                </div>
+            </template>
+            <template #context>
+                <div v-if="device?.ownerType === 'application' && device.application" data-el="device-assigned-application">
+                    Application:
+                    <ff-team-link :to="{name: 'Application', params: {id: device.application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application?.name }}</ff-team-link>
+                </div>
+                <div v-else-if="device?.ownerType === 'instance' && device.instance" data-el="device-assigned-instance">
+                    Instance:
+                    <ff-team-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</ff-team-link>
+                </div>
+                <div v-else data-el="device-assigned-none">
+                    <span class="italic">No Application or Instance Assigned</span> - <a class="ff-link" data-action="assign-device" @click="openAssignmentDialog">Assign</a>
+                </div>
+            </template>
+            <template #tools>
+                <!--
+                    div style 34px is a workaround to prevent the Device Editor button growing taller than adjacent
+                    button (size difference is caused by odd padding in the toggle button, which though not visible
+                    is still there and affects the button height in this div group)
+                -->
+                <div class="space-x-2 flex align-center" style="height: 34px;">
+                    <template v-if="isDevModeAvailable">
+                        <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
+                        <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
+                            Open Editor
+                            <span class="ff-btn--icon ff-btn--icon-right">
+                                <ExternalLinkIcon />
+                            </span>
+                        </button>
+                    </template>
+                    <FinishSetupButton v-if="neverConnected" :device="device" />
+                    <DropdownMenu v-if="hasPermission('device:change-status') && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
+                </div>
+            </template>
+        </SectionNavigationHeader>
         <div class="mt-4 sm:mt-8">
             <Teleport v-if="mounted && isVisitingAdmin" to="#platform-banner">
                 <div class="ff-banner" data-el="banner-device-as-admin">You are viewing this device as an Administrator</div>

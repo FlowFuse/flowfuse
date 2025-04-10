@@ -102,6 +102,10 @@ module.exports = {
                         device,
                         snapshot
                     }))
+                },
+
+                async targetSet (actionedBy, error, device, snapshot) {
+                    await log('device.snapshot.target-set', actionedBy, device?.id, generateBody({ error, device, snapshot }))
                 }
             }
         }

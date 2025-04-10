@@ -2,6 +2,7 @@
  * This file is currently naively copied from the projects test coverage
  * As such some tests may be out of date
  */
+
 describe('FlowForge - Instances', () => {
     function navigateToInstances (teamName) {
         cy.request('GET', '/api/v1/user/teams')
@@ -253,29 +254,27 @@ describe('FlowForge - Instances', () => {
         navigateToInstances('ATeam')
         cy.get('[data-action="create-project"]').click()
 
-        cy.wait('@getProjectTypes')
-        cy.url().should('include', '/ateam/instances/create')
+        // move along the multi-step form
+        cy.get('[data-el="application-item"]').first().click()
+        cy.get('[data-el="next-step"]').click()
 
-        cy.get('[data-action="create-project"]').should('be.disabled')
-
-        // select application
-        cy.get('[data-form="application-id"] [data-el="dropdown"]').click()
-        cy.get('[data-form="application-id"] [data-el="dropdown"] .ff-options').should('be.visible')
-        cy.get('[data-form="application-id"] [data-el="dropdown"] .ff-options > .ff-option:first').click()
-
-        // give instance a name
-        cy.get('[data-form="project-name"] input').clear()
-        cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
+        // set the new instance name
+        cy.get('[data-el="instance-name"] input').clear()
+        cy.get('[data-el="instance-name"] input').type(INSTANCE_NAME)
 
         // select instance type
-        cy.get('[data-form="project-type"]').contains('type1').click()
+        cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()
 
-        // disabled instance types should not be visible
-        cy.get('[data-form="project-type"]').contains('Disabled Instance Type').should('not.exist')
+        // select template
+        cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
-        cy.get('[data-form="project-template"]').should('exist') // template section visible for create
+        // select nr-version
+        cy.get('[data-el="listbox"]').click()
+        cy.get('[data-option="stack 1"]').click()
 
-        cy.get('[data-action="create-project"]').should('not.be.disabled').click()
+        cy.get('[data-el="next-step"]').click()
+
+        cy.wait('@getProjectTypes')
 
         cy.wait('@createInstance')
             .then((interception) => {

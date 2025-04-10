@@ -54,6 +54,16 @@ export default {
                     icon: 'device',
                     title: 'Node-RED Device Safe Mode',
                     message: '"<i>{{device.name}}</i>" is running in safe mode'
+                },
+                'instance-resource-cpu': {
+                    icon: 'instance',
+                    title: 'Node-RED Instance CPU Usage',
+                    message: 'CPU usage of "<i>{{instance.name}}</i>" has spent more than 5 minutes at more than 75% of CPU limit. This instance may benefit from being upgraded to a larger Instance type'
+                },
+                'instance-resource-memory': {
+                    icon: 'instance',
+                    title: 'Node-RED Instance Memory Usage',
+                    message: 'Memory usage of "<i>{{instance.name}}</i>" has spent more than 5 minutes at more than 75% of memory limit. This instance may benefit from being upgraded to a larger Instance type'
                 }
             }
         }

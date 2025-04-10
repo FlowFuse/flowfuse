@@ -42,7 +42,7 @@
                 <SpinnerIcon v-if="deploying" class="ff-icon" />
             </div>
         </div>
-        <div v-if="stage.instance || stage.device || stage.deviceGroup" class="py-3">
+        <div v-if="stage.instance || stage.device || stage.deviceGroup || stage.gitRepo" class="py-3">
             <div>
                 <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-type">
                     <router-link class="flex gap-2 items-center" :to="{name: 'Instance', params: { id: stage.instance.id }}">
@@ -81,6 +81,15 @@
                         </div>
                     </router-link>
                 </div>
+                <div v-if="stage.stageType == StageType.GITREPO" class="ff-pipeline-stage-type">
+                    <a class="flex gap-2 items-center" target="_blank" :href="`${stage.gitRepo.url}/tree/${stage.gitRepo.branch || 'main'}`">
+                        <IconGit class="ff-icon ff-icon-lg" style="color: #e46133" />
+                        <div>
+                            <label class="flex items-center gap-2">GitHub Repository:</label>
+                            <span>{{ stage.gitRepo?.url.replace("https://github.com/","") }}</span>
+                        </div>
+                    </a>
+                </div>
             </div>
             <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-row">
                 <label>Last Deployed:</label>
@@ -90,7 +99,7 @@
                 <label>Last Seen:</label>
                 <span>{{ stage.lastSeenSince ? stage.lastSeenSince : 'Unknown' }}</span>
             </div>
-            <div v-if="stage.stageType !== StageType.DEVICEGROUP" class="ff-pipeline-stage-row">
+            <div v-if="stage.stageType !== StageType.DEVICEGROUP && stage.stageType !== StageType.GITREPO" class="ff-pipeline-stage-row">
                 <label v-if="stage.stageType == StageType.DEVICE">Last Known Status:</label>
                 <label v-else>Status:</label>
                 <InstanceStatusBadge :status="stage.state" />
@@ -116,6 +125,26 @@
                     />
                 </div>
             </div>
+
+            <template v-if="stage.stageType == StageType.GITREPO">
+                <div class="ff-pipeline-stage-row">
+                    <label>Branch:</label>
+                    <span>{{ stage.gitRepo?.branch || 'main' }}</span>
+                </div>
+                <div class="ff-pipeline-stage-row">
+                    <label>Last Pushed:</label>
+                    <span v-ff-tooltip="stage.state?.lastPushAt || stage.gitRepo?.lastPushAt ||'Never'">{{ (stage.state?.lastPushAt || stage.gitRepo?.lastPushAt) ? daysSince((stage.state?.lastPushAt || stage.gitRepo?.lastPushAt)) : 'Never' }}</span>
+                </div>
+                <div v-if="stage.state?.status" class="ff-pipeline-stage-row">
+                    <label>Status:</label>
+                    <StatusBadge :status="stage.state?.status" />
+                </div>
+                <div v-if="stage.state?.statusMessage" class="ff-pipeline-stage-row">
+                    <label>&nbsp;</label>
+                    <span>{{ stage.state?.statusMessage }}</span>
+                </div>
+            </template>
+
             <div v-if="playEnabled" class="ff-pipeline-stage-row">
                 <label>Deploy Action:</label>
                 <span>
@@ -166,8 +195,12 @@ import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusB
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
+
+import daysSince from '../../utils/daysSince.js'
+
 import IconDeviceGroupSolid from '../icons/DeviceGroupSolid.js'
 import IconDeviceSolid from '../icons/DeviceSolid.js'
+import IconGit from '../icons/Git.js'
 import IconNodeRedSolid from '../icons/NodeRedSolid.js'
 
 import SpinnerIcon from '../icons/Spinner.js'
@@ -180,6 +213,7 @@ export default {
         DeployStageDialog,
         IconDeviceGroupSolid,
         IconDeviceSolid,
+        IconGit,
         IconNodeRedSolid,
         InstanceStatusBadge,
         LockClosedIcon,
@@ -237,6 +271,7 @@ export default {
         this.StageAction = StageAction
     },
     methods: {
+        daysSince,
         runStage: async function () {
             // get target stage
             const target = await PipelineAPI.getPipelineStage(

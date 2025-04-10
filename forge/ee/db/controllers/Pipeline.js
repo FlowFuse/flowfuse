@@ -43,9 +43,9 @@ module.exports = {
         // Null will remove devices and instances, undefined skips
         if (options.instanceId !== undefined || options.deviceId !== undefined || options.deviceGroupId !== undefined) {
             // Check that only one of instanceId, deviceId or deviceGroupId is set
-            const idCount = [options.instanceId, options.deviceId, options.deviceGroupId].filter(id => !!id).length
+            const idCount = [options.instanceId, options.deviceId, options.deviceGroupId, options.gitTokenId].filter(id => !!id).length
             if (idCount > 1) {
-                throw new PipelineControllerError('invalid_input', 'Must provide only one instance, device or device group', 400)
+                throw new PipelineControllerError('invalid_input', 'Must provide only one instance, device, device group or git token', 400)
             }
 
             const stages = await pipeline.stages()
@@ -88,6 +88,41 @@ module.exports = {
                         throw new PipelineControllerError('invalid_input', 'This stage cannot be a Device Group as a later stage contains an instance', 400)
                     }
                 }
+            } else if (options.gitTokenId) {
+                if (orderedStages.length === 0) {
+                    // this should never be reached but here for completeness
+                    throw new PipelineControllerError('invalid_input', 'A Git Repository cannot be the first stage', 400)
+                }
+                // if the first stage is the same as the stage being updated, then it's the first stage
+                if (firstStage && firstStage.id === stage.id) {
+                    throw new PipelineControllerError('invalid_input', 'A Git Repository cannot be the first stage', 400)
+                }
+                if (laterStages && laterStages.length) {
+                    throw new PipelineControllerError('invalid_input', 'This stage cannot be a Git Repository as it is not the last stage', 400)
+                }
+                // TODO: code duplication between here and the create path to validate ownership of the gitToken
+                const gitTokenId = app.db.models.GitToken.decodeHashid(options.gitTokenId)
+                let gitToken
+                if (gitTokenId && gitTokenId.length === 1) {
+                    // Verify the git token exists in the same team as this pipeline
+                    gitToken = await app.db.models.GitToken.findOne({
+                        where: { id: gitTokenId },
+                        include: [
+                            {
+                                model: app.db.models.Team,
+                                include: [{
+                                    model: app.db.models.Application,
+                                    where: { id: pipeline.ApplicationId }
+                                }],
+                                // Set required to true to ensure we match both token and application ids
+                                required: true
+                            }
+                        ]
+                    })
+                }
+                if (!gitToken) {
+                    throw new PipelineControllerError('invalid_input', 'Invalid git token')
+                }
             } else {
                 // hosted/remote instance
                 // If a device group is set before this stage, that is an error
@@ -118,6 +153,11 @@ module.exports = {
             for (const deviceGroup of deviceGroups) {
                 await stage.removeDeviceGroup(deviceGroup)
             }
+            const existingGitRepo = await stage.getPipelineStageGitRepo()
+            if (existingGitRepo && !options.gitTokenId) {
+                // Only destroy if the update appears to be changing stage type
+                await existingGitRepo.destroy()
+            }
 
             if (options.instanceId) {
                 await stage.addInstanceId(options.instanceId)
@@ -125,6 +165,8 @@ module.exports = {
                 await stage.addDeviceId(options.deviceId)
             } else if (options.deviceGroupId) {
                 await stage.addDeviceGroupId(options.deviceGroupId)
+            } else if (options.gitTokenId) {
+                await stage.addGitRepo(options)
             }
         }
 
@@ -138,11 +180,11 @@ module.exports = {
     },
 
     addPipelineStage: async function (app, pipeline, options) {
-        const idCount = [options.instanceId, options.deviceId, options.deviceGroupId].filter(id => !!id).length
+        const idCount = [options.instanceId, options.deviceId, options.deviceGroupId, options.gitTokenId].filter(id => !!id).length
         if (idCount > 1) {
-            throw new PipelineControllerError('invalid_input', 'Cannot add a pipeline stage with a mixture of instance, device or device group. Only one is permitted', 400)
+            throw new PipelineControllerError('invalid_input', 'Cannot add a pipeline stage with a mixture of instance, device, device group or git token. Only one is permitted', 400)
         } else if (idCount === 0) {
-            throw new PipelineControllerError('invalid_input', 'An instance, device or device group is required when creating a new pipeline stage', 400)
+            throw new PipelineControllerError('invalid_input', 'An instance, device, device group or git token is required when creating a new pipeline stage', 400)
         }
         if (options.instanceId) {
             const instance = await app.db.models.Project.findOne({
@@ -173,6 +215,31 @@ module.exports = {
                 throw new PipelineControllerError('invalid_input', 'Invalid device group')
             }
         }
+        if (options.gitTokenId) {
+            // TODO: code duplication between here and the create path to validate ownership of the gitToken
+            const gitTokenId = app.db.models.GitToken.decodeHashid(options.gitTokenId)
+            let gitToken
+            if (gitTokenId && gitTokenId.length === 1) {
+                // Verify the git token exists in the same team as this pipeline
+                gitToken = await app.db.models.GitToken.findOne({
+                    where: { id: gitTokenId },
+                    include: [
+                        {
+                            model: app.db.models.Team,
+                            include: [{
+                                model: app.db.models.Application,
+                                where: { id: pipeline.ApplicationId }
+                            }],
+                            // Set required to true to ensure we match both token and application ids
+                            required: true
+                        }
+                    ]
+                })
+            }
+            if (!gitToken) {
+                throw new PipelineControllerError('invalid_input', 'Invalid git token')
+            }
+        }
 
         let source
         options.PipelineId = pipeline.id
@@ -183,12 +250,14 @@ module.exports = {
             delete options.source
         }
 
-        // Before we create the stage, we need to check a few things
+        // Before we create the stage, we need to check a few things]
         // 1. When adding a device group
         //   * A device group cannot be the first stage
         //   * There can be multiple device groups but only a device group can follow a device group
         // 2. When adding an instance/device
         //   * A device group cannot be set before an instance or device
+        // 3. When adding a git repo
+        //   * Cannot be first stage
 
         const stages = await pipeline.stages() // stages are a linked list
         const orderedStages = app.db.models.PipelineStage.sortStages(stages) // sort the stages
@@ -210,6 +279,12 @@ module.exports = {
             }
         }
 
+        if (options.gitTokenId) {
+            if (stages.length === 0) {
+                throw new PipelineControllerError('invalid_input', 'A Git Repository cannot be the first stage', 400)
+            }
+        }
+
         const transaction = await app.db.sequelize.transaction()
         try {
             const stage = await app.db.models.PipelineStage.create(options, { transaction })
@@ -219,6 +294,8 @@ module.exports = {
                 await stage.addDeviceId(options.deviceId, { transaction })
             } else if (options.deviceGroupId) {
                 await stage.addDeviceGroupId(options.deviceGroupId, { transaction })
+            } else if (options.gitTokenId) {
+                await stage.addGitRepo(options, { transaction })
             } else {
                 // This should never be reached due to guard at top of function
                 throw new PipelineControllerError('invalid_input', 'Must provide an instanceId, deviceId or deviceGroupId', 400)
@@ -267,10 +344,11 @@ module.exports = {
         const targetInstances = await targetStage.getInstances()
         const targetDevices = await targetStage.getDevices()
         const targetDeviceGroups = await targetStage.getDeviceGroups()
-        const totalTargets = targetInstances.length + targetDevices.length + targetDeviceGroups.length
+        const targetGitRepo = await targetStage.getPipelineStageGitRepo()
+        const totalTargets = targetInstances.length + targetDevices.length + targetDeviceGroups.length + (targetGitRepo ? 1 : 0)
 
         if (totalTargets === 0) {
-            throw new PipelineControllerError('invalid_stage', 'Target stage must have at least one instance, device or device group', 400)
+            throw new PipelineControllerError('invalid_stage', 'Target stage must have at least one instance, device, device group or git repository', 400)
         } else if (targetInstances.length > 1) {
             throw new PipelineControllerError('invalid_stage', 'Deployments are currently only supported for target stages with a single instance, device or device group', 400)
         }
@@ -288,22 +366,36 @@ module.exports = {
         const targetObject = targetInstance || targetDevice || targetDeviceGroup
 
         const sourceType = sourceInstance ? 'instance' : (sourceDevice ? 'device' : (sourceDeviceGroup ? 'device group' : ''))
-        const targetType = targetInstance ? 'instance' : (targetDevice ? 'device' : (targetDeviceGroup ? 'device group' : ''))
-
         const sourceApplication = await app.db.models.Application.byId(sourceObject.ApplicationId)
-        const targetApplication = await app.db.models.Application.byId(targetObject.ApplicationId)
-        if (!sourceApplication || !targetApplication) {
-            throw new PipelineControllerError('invalid_stage', `Source ${sourceType} and target ${targetType} must be associated with an application`, 400)
-        }
-        if (sourceApplication.id !== targetApplication.id || sourceApplication.TeamId !== targetApplication.TeamId) {
-            throw new PipelineControllerError('invalid_stage', `Source ${sourceType} and target ${targetType} must be associated with in the same team application`, 400)
+        if (!sourceApplication) {
+            throw new PipelineControllerError('invalid_stage', `Source ${sourceType} must be associated with an application`, 400)
         }
 
-        if (targetDevice && targetDevice.mode === 'developer') {
-            throw new PipelineControllerError('invalid_target_stage', 'Target device cannot not be in developer mode', 400)
+        if (targetObject) {
+            // Only applies for instance/device/device group targets
+            const targetType = targetInstance ? 'instance' : (targetDevice ? 'device' : (targetDeviceGroup ? 'device group' : ''))
+            const targetApplication = await app.db.models.Application.byId(targetObject.ApplicationId)
+            if (!targetApplication) {
+                throw new PipelineControllerError('invalid_stage', `Target ${targetType} must be associated with an application`, 400)
+            }
+            if (sourceApplication.id !== targetApplication.id || sourceApplication.TeamId !== targetApplication.TeamId) {
+                throw new PipelineControllerError('invalid_stage', `Source ${sourceType} and target ${targetType} must be associated with in the same team application`, 400)
+            }
+            if (targetDevice && targetDevice.mode === 'developer') {
+                throw new PipelineControllerError('invalid_target_stage', 'Target device cannot not be in developer mode', 400)
+            }
         }
 
-        return { sourceInstance, targetInstance, sourceDevice, targetDevice, sourceDeviceGroup, targetDeviceGroup, targetStage }
+        return {
+            sourceInstance,
+            targetInstance,
+            sourceDevice,
+            targetDevice,
+            sourceDeviceGroup,
+            targetDeviceGroup,
+            targetGitRepo,
+            targetStage
+        }
     },
 
     getOrCreateSnapshotForSourceInstance: async function (app, sourceStage, sourceInstance, sourceSnapshotId, deployMeta = { pipeline: null, user: null, targetStage: null }) {
@@ -473,7 +565,7 @@ module.exports = {
             // Update the targetSnapshot of the device
             await targetDevice.update({ targetSnapshotId: sourceSnapshot.id })
 
-            await app.auditLog.Application.application.device.snapshot.deviceTargetSet(user, null, targetDevice.Application, targetDevice, sourceSnapshot)
+            await app.auditLog.Device.device.snapshot.targetSet(user, null, targetDevice, sourceSnapshot)
 
             if (pipeline) {
                 await app.auditLog.Device.device.pipeline.deployed(user, null, targetDevice, pipeline, targetDevice.Application, sourceSnapshot)
