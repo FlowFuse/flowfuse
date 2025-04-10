@@ -631,7 +631,7 @@ export default {
     },
     async mounted () {
         // set the stagetype to device group if the last stage is a device group itself (only permit device groups after a device group)
-        if (!this.allowInstanceSelection) {
+        if (!this.allowInstanceSelection && (this.input.stageType === StageType.INSTANCE || this.input.stageType === StageType.DEVICE)) {
             this.input.stageType = StageType.DEVICEGROUP
         }
         if (this.gitReposEnabled) {

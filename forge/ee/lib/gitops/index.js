@@ -108,11 +108,11 @@ module.exports.init = async function (app) {
             }
             const result = await app.db.controllers.Snapshot.exportSnapshot(snapshot, exportOptions)
             const snapshotExport = app.db.views.ProjectSnapshot.snapshotExport(result)
-            const snapshotFile = path.join(workingDir, repoOptions.path || 'snapshot.json')
+            const snapshotFile = path.join(workingDir, repoOptions.path || 'snapshot.json').replace(/"/g, '')
             await fs.writeFile(snapshotFile, JSON.stringify(snapshotExport, null, 4))
 
             // 6. stage file
-            await execPromised(`git add ${snapshotFile}`, { cwd: workingDir })
+            await execPromised(`git add "${snapshotFile}"`, { cwd: workingDir })
 
             // 7. commit
             await execPromised(`git commit -m "Update snapshot\n\nSnapshot updated by FlowFuse Pipeline '${options.pipeline.name.replace(/"/g, '')}', triggered by ${options.user.username.replace(/"/g, '')}" --author="${author}"`, { cwd: workingDir })
