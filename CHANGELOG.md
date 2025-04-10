@@ -1,3 +1,62 @@
+#### 2.16.0: Release
+
+ - Add stack update instuctions (#5411)
+ - docs: Add note about network policies in kubernetes (#5407)
+ - fix(ci): Adjust detect_changed_files script to run properly against default branch
+ - ci: Replace tj-actions/changed-files with custom approach (#5325)
+ - Fix the env var table for admin view & update the admin views to use ff-page (#5399) @joepavitt
+ - docs: Update stacks documentation (#5414) @ppawlowski
+ - Bump vite from 5.4.16 to 5.4.17 (#5406) @app/dependabot
+ - Nr logs jump to time (#5371) @hardillb
+ - Add guard against loading git tokens if feature unavailable (#5413) @knolleary
+ - Fix formatting on pipeline docs (#5412) @knolleary
+ - Add Git Integration to Pipelines (#5367) @knolleary
+ - Fix closing HTML tags in email (#5410) @hardillb
+ - Update device provisioning docs (#5400) @Steve-Mcl
+ - ci: Send notification on failed `Publish` workflow (#5405) @ppawlowski
+ - copy: Update wording to talk about Remote instances (#5397) @ZJvandeWeg
+ - Support auto provision of device to application (#5394) @Steve-Mcl
+ - Prompt users with "Restart now" dialog when making settings changes (#5374) @joepavitt
+ - Enable resource breach alerts by default in templates and instances (#5363) @Steve-Mcl
+ - Fix intermitent test failure (#5401) @hardillb
+ - Add tabbed view for install instructions per OS (#5377) @joepavitt
+ - Update NR logs API to return time range (#5334) @hardillb
+ - Fixes Pipeline device stage info typo (#5396) @cstns
+ - Block the 3rd party broker access to test.mosquitto.org (#5389) @hardillb
+ - Hide the blueprint step when no blueprints are available (#5391) @cstns
+ - missing team id when loading blueprints on the multi-step forms (#5388) @cstns
+ - Add "Locked" status pill when the Editor is disabled (#5376) @joepavitt
+ - Ensure default stack is selected in create form (#5384) @knolleary
+ - Hide inactive templates in form (#5383) @knolleary
+ - Bump vite from 5.4.14 to 5.4.16 (#5380) @app/dependabot
+ - Multi step form application step (#5364) @cstns
+ - Bump @babel/runtime from 7.26.7 to 7.27.0 (#5378) @app/dependabot
+ - Improve visibility of save changes of instane settings (#5360) @cstns
+ - Fix: Check if msg.is exists before using it (#5375) @joepavitt
+ - Mqtt agent topic prefix (#5342) @hardillb
+ - Bump tar-fs from 2.1.1 to 2.1.2 (#5369) @app/dependabot
+ - UI for device local login (#5362) @Steve-Mcl
+ - Add a new datetime picker (#5355) @cstns
+ - chore: Pin external actions to commit hash (#5359) @ppawlowski
+ - extract tours into a separate module (#5269) @cstns
+ - Add resource capacity breach 75% notifications (#5344) @Steve-Mcl
+ - Multi-step instance setup (#5252) @cstns
+ - Show Node-RED version for Devices and Snapshots (#5337) @hardillb
+ - Fix un-scrollable notifications drawer (#5356) @cstns
+ - Bump sass-loader from 16.0.2 to 16.0.5 (#5328) @app/dependabot
+ - Ensure community catalog is set for devices without inherited settings (#5336) @knolleary
+ - Allow request errors to 3rd party urls to percolate up (#5331) @knolleary
+ - Add "set as target" timeline entry (#5318) @Steve-Mcl
+ - Add CTA to the status badge when instance/device is crashed or in error state (#5322) @Steve-Mcl
+ - Bump xml-crypto from 6.0.0 to 6.0.1 (#5323) @app/dependabot
+ - Bump @babel/core from 7.24.9 to 7.26.9 (#5227) @app/dependabot
+ - Reorganize vuex store in preparation for modules (#5251) @cstns
+ - Bump marked from 12.0.2 to 15.0.7 (#5141) @app/dependabot
+ - Add docs for custom NPM nodes (#5319) @hardillb
+ - Fix event capture for removing team member (#5321) @joepavitt
+ - ci: Add link to pull request in tests failure notification message (#5315) @ppawlowski
+ - Fix npmrc settings merge (#5317) @knolleary
+
 #### 2.15.0: Release
 
  - Sort instance table by date desc by default (#5311) @Steve-Mcl
