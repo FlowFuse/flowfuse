@@ -1,5 +1,5 @@
 <template>
-    <ff-listbox :options="teamOptions" v-model="selection" class="ff-team-selection">
+    <ff-listbox v-if="hasAvailableTeams" :options="teamOptions" v-model="selection" class="ff-team-selection">
         <template #button>
             <ListboxButton>
                 <div v-if="team" class="flex grow items-center">
@@ -79,7 +79,7 @@ export default {
     },
     data () {
         return {
-            selection: null
+            selection: this.team?.slug ?? null
         }
     },
     watch: {
@@ -89,11 +89,6 @@ export default {
             } else {
                 return this.selectTeam({ slug: value })
             }
-        }
-    },
-    mounted () {
-        if (this.team) {
-            this.selection = this.team.slug
         }
     },
     methods: {
