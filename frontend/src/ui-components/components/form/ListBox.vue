@@ -20,7 +20,7 @@
                 leave-to-class="opacity-0"
             >
                 <ListboxOptions class="absolute w-full overflow-auto bg-white py-1 ff-options">
-                    <slot name="options">
+                    <slot name="options" :options="options">
                         <ListboxOption
                             v-for="option in options"
                             v-slot="{ active, selected }"
