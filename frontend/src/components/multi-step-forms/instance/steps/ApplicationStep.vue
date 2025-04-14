@@ -41,7 +41,7 @@
         <template v-else>
             <h2>Create an Application</h2>
 
-            <p>Applications are used to manage and group together your Node-RED instances and devices.</p>
+            <p>Applications are used to manage and group together your Node-RED instances.</p>
 
             <div class="max-w-lg w-full m-auto text-left flex flex-col gap-4">
                 <FormRow
@@ -65,7 +65,26 @@
                         Application Description
                     </template>
                     <template #input>
-                        <textarea v-model="input.description" placeholder="Application Description" class="w-full" />
+                        <textarea v-model="input.description" placeholder="Application Description" class="w-full flex-co" />
+                    </template>
+                </FormRow>
+
+                <FormRow
+                    v-if="instanceFollowUp"
+                    v-model="input.createInstance"
+                    containerClass="none"
+                    wrapper-class="flex-col"
+                    placeholder="Application Description"
+                    data-form="application-description"
+                    type="checkbox"
+                >
+                    <template #default>
+                        Create Node-RED Instance
+                    </template>
+                    <template #append>
+                        <span class="ff-description">
+                            This will create an instance of Node-RED that will be managed in your new Application.
+                        </span>
                     </template>
                 </FormRow>
             </div>
@@ -95,6 +114,11 @@ export default {
         applications: {
             required: true,
             type: Array
+        },
+        instanceFollowUp: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     emits: ['step-updated'],
@@ -108,7 +132,8 @@ export default {
             selection: this.initialState.selection ?? null,
             input: {
                 name: this.initialState?.input?.name ?? '',
-                description: this.initialState?.input?.description ?? ''
+                description: this.initialState?.input?.description ?? '',
+                createInstance: this.initialState?.input?.createInstance ?? true
             }
         }
     },

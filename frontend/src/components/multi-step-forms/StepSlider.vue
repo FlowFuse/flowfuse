@@ -1,12 +1,12 @@
 <template>
     <div class="step-slider">
         <div class="wrapper">
-            <ul class="progress">
+            <ul class="progress" :class="{'multi-step': entries.length > 1, 'single-step': entries.length === 1}">
                 <li v-for="(entry, $key) in entries" :key="$key" class="st" :class="{completed: $key <= currentEntry, disabled: entry.disabled}">
                     <span />
                 </li>
             </ul>
-            <ul class="steps">
+            <ul class="steps just" :class="{'justify-center': entries.length === 1, 'justify-between': entries.length > 1}">
                 <li
                     v-for="(entry, $key) in entries"
                     :key="$key"
@@ -74,14 +74,20 @@ export default {
             left: 0;
             top: 15px;
             height: 4px;
-            width: 99%;
             background: $ff-grey-300;
             transform: translateY(-50%);
             z-index: 1;
-            transition: width 0.3s;
+            //transition: width 0.3s;
             display: flex;
             justify-content: space-between;
             overflow: hidden;
+
+            &.multi-step {
+                width: 99%;
+            }
+            &.single-step {
+                width: 0;
+            }
 
             .st {
                 position: relative;
@@ -112,7 +118,6 @@ export default {
             left: 0;
             top: 5px;
             display: flex;
-            justify-content: space-between;
 
             .step {
                 position: relative;

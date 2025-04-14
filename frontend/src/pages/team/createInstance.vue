@@ -35,7 +35,7 @@
             v-else
             ref="multiStepForm"
             :applications="applications"
-            @instance-created="onInstanceCreated"
+            @form-success-instance="onInstanceCreated"
             @previous-step-state-changed="form.previousButtonState = $event"
             @next-step-state-changed="form.nextButtonState = $event"
             @next-step-label-changed="form.nextStepLabel = $event"
