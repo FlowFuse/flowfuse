@@ -176,7 +176,7 @@ describe('FlowForge - Team Devices', () => {
             })
         })
 
-        describe.only('with a multiple pages page (server side filtering)', () => {
+        describe('with a multiple pages page (server side filtering)', () => {
             it('can filter the device browser by "last seen" values', () => {
                 const secondOfflineDevice = { ...deviceOffline, name: 'device-3', id: 3 }
 

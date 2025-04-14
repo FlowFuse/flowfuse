@@ -159,7 +159,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         })
 
         cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('.ff-option-content.active').should('contain', 'instance-2-1')
+        cy.get('[data-el="listbox-options"] .ff-option-content.active').should('contain', 'instance-2-1')
 
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:last').click()
