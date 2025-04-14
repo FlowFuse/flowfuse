@@ -75,7 +75,7 @@
                     >
                         <label class="mb-2 block w-full">Choose your Template</label>
                         <template v-if="hasTemplates">
-                            <ff-tile-selection v-model="input.template" data-form="project-type">
+                            <ff-tile-selection v-model="input.template" data-form="project-template">
                                 <ff-tile-selection-option
                                     v-for="(template, index) in instanceTemplates"
                                     :key="index"
@@ -98,6 +98,7 @@
                         <template v-if="hasNodeRedVersions">
                             <ff-listbox
                                 v-model="input.nodeREDVersion"
+                                data-el="node-red-listbox"
                                 :options="nodeRedVersions"
                                 :disabled="!input.instanceType || !input.template"
                                 :placeholder="nodeRedVersionPlaceholder"
