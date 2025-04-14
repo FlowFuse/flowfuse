@@ -317,6 +317,12 @@ export default {
 
             this.instanceTypes = instanceTypes.types ?? []
             this.decoratedInstanceTypes = this.decorateInstanceTypes(instanceTypes.types ?? [])
+
+            const enabledTypes = this.decoratedInstanceTypes.filter(type => !type.disabled)
+            if (enabledTypes.length === 1) {
+                // pre-select the instance type if only one available
+                this.input.instanceType = enabledTypes[0].id
+            }
         },
         async getSubscription () {
             if (this.features.billing && !this.team.billing?.unmanaged && !this.team.type.properties?.billing?.disabled) {
