@@ -161,7 +161,8 @@ the remote device.
 
 To further simplify device registration, Provisioning Tokens can be created to allow 
 devices to automatically connect to a team without having to manually register them first.
-The token can also be configured to assign a device directly to a Node-RED instance within the team.
+The token can also be configured to assign a device directly to an Application or a Node-RED
+instance within the team.
 
 ### Device Groups
 

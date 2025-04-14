@@ -15,8 +15,7 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
-import alerts from '../../../services/alerts.js'
-import dialog from '../../../services/dialog.js'
+import Dialog from '../../../services/dialog.js'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment.vue'
 import {
     prepareTemplateForEdit
@@ -36,7 +35,7 @@ export default {
                 text: 'You have unsaved changes. Are you sure you want to leave?',
                 confirmLabel: 'Yes, lose changes'
             }
-            const answer = await dialog.showAsync(dialogOpts)
+            const answer = await Dialog.showAsync(dialogOpts)
             if (answer === 'confirm') {
                 next()
             } else {
@@ -53,7 +52,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated', 'save-button-state'],
+    emits: ['instance-updated', 'save-button-state', 'restart-instance'],
     data () {
         return {
             unsavedChanges: false,
@@ -192,7 +191,20 @@ export default {
                     // wait before we reload the instance so we don't get a blip by returning the old values
                     setTimeout(() => this.$emit('instance-updated'), 1000)
                 })
-                .then(() => alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000))
+                .then(() => {
+                    // is instance running
+                    if (this.project.meta.state === 'running') {
+                        Dialog.show({
+                            header: 'Restart Required',
+                            html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
+                            confirmLabel: 'Restart Now',
+                            cancelLabel: 'Restart Later'
+                        }, () => {
+                            // restart the instance
+                            this.$emit('restart-instance')
+                        })
+                    }
+                })
                 .catch(e => e)
         },
         onFormValidated (hasErrors) {

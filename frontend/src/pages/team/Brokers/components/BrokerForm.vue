@@ -220,14 +220,23 @@ export default {
             if (this.form.host.length === 0) {
                 return false
             }
+            if (this.form.host === 'test.mosquitto.org') {
+                return false
+            }
 
             return true
         },
         formErrors () {
-            return {
-                name: this.form.name.length ? '' : 'Name is mandatory',
-                host: this.form.host.length ? '' : 'Host is mandatory'
+            const errors = {
+                name: this.form.name.length ? '' : 'Name is mandatory'
             }
+
+            if (this.form.host.length === 0) {
+                errors.host = 'Host is mandatory'
+            } else if (this.form.host === 'test.mosquitto.org') {
+                errors.host = 'test.mosquitto.org is not allowed'
+            }
+            return errors
         }
     },
     watch: {
