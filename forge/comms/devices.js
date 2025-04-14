@@ -141,7 +141,7 @@ class DeviceCommsHandler {
                     // The Settings are incorrect
                     sendUpdateCommand = true
                 }
-                if (Object.hasOwn(payload, 'nodeRedVersion')){
+                if (Object.hasOwn(payload, 'nodeRedVersion')) {
                     let editor = await device.getSetting('editor')
                     if (editor) {
                         editor.nodeRedVersion = payload.nodeRedVersion
