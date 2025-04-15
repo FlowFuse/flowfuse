@@ -113,6 +113,15 @@
                 </div>
             </transition>
         </form>
+        <!-- Billing details -->
+        <div v-if="features.billing" class="my-5 text-left" style="padding: 0 60px;">
+            <InstanceChargesTable
+                :project-type="selectedInstanceType"
+                :subscription="subscription"
+                :trialMode="isTrialProjectSelected"
+                :prorationMode="team?.type?.properties?.billing?.proration"
+            />
+        </div>
     </section>
 </template>
 
@@ -124,6 +133,7 @@ import billingApi from '../../../../api/billing.js'
 import instanceTypesApi from '../../../../api/instanceTypes.js'
 import stacksApi from '../../../../api/stacks.js'
 import templatesApi from '../../../../api/templates.js'
+import InstanceChargesTable from '../../../../pages/instance/components/InstanceChargesTable.vue'
 import InstanceCreditBanner from '../../../../pages/instance/components/InstanceCreditBanner.vue'
 import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
 import FfTextInput from '../../../../ui-components/components/form/TextInput.vue'
@@ -133,7 +143,7 @@ import FeatureUnavailableToTeam from '../../../banners/FeatureUnavailableToTeam.
 
 export default {
     name: 'InstanceStep',
-    components: { FeatureUnavailableToTeam, RefreshIcon, CheckCircleIcon, Loading, InstanceCreditBanner, FfListbox, FfTextInput },
+    components: { InstanceChargesTable, FeatureUnavailableToTeam, RefreshIcon, CheckCircleIcon, Loading, InstanceCreditBanner, FfListbox, FfTextInput },
     props: {
         slug: {
             required: true,
@@ -199,6 +209,19 @@ export default {
         hasValidName () {
             return /^[a-zA-Z][a-zA-Z0-9-\s]*$/.test(this.input.name)
         },
+        isTrialProjectSelected () {
+            //  - Team is in trial mode, and
+            //  - Team billing is not configured, or
+            //  - team billing is configured, but they still have an available
+            //     trial instance to create, and they have selected the trial
+            //     instance type
+            return this.team.billing?.trial && (
+                !this.team.billing?.active || (
+                    this.team.billing.trialProjectAllowed &&
+                    this.selectedProjectType?.id === this.settings['user:team:trial-mode:projectType']
+                )
+            )
+        },
         instanceName () {
             return this.input.name.trim().replace(/\s/g, '-').toLowerCase()
         },
@@ -227,6 +250,12 @@ export default {
                 teamTypeRuntimeLimit = this.team.type.properties?.trial?.runtimesLimit
             }
             return (teamTypeRuntimeLimit > 0 && currentRuntimeCount >= teamTypeRuntimeLimit)
+        },
+        selectedInstanceType () {
+            if (this.input.instanceType) {
+                return this.instanceTypes.find(type => type.id === this.input.instanceType)
+            }
+            return null
         }
     },
     watch: {
