@@ -54,7 +54,7 @@ function prefillMultiStepInstanceForm () {
     cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
     // select nr-version
-    cy.get('[data-el="listbox"]').click()
+    cy.get('[data-el="node-red-listbox"]').click()
     cy.get('[data-option="stack 1"]').click()
 
     cy.get('[data-el="next-step"]').click()
@@ -68,10 +68,10 @@ describe('FlowFuse - Deploy Blueprint', () => {
         cy.adminEnableTeamAutoCreate()
     })
 
-    // after(() => {
-    //     cy.adminDisableSignUp()
-    //     cy.adminDisableTeamAutoCreate()
-    // })
+    after(() => {
+        cy.adminDisableSignUp()
+        cy.adminDisableTeamAutoCreate()
+    })
 
     describe('Users with accounts', () => {
         describe('And authenticated', () => {
@@ -327,7 +327,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
                     cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
                     // select nr-version
-                    cy.get('[data-el="listbox"]').click()
+                    cy.get('[data-el="node-red-listbox"]').click()
                     cy.get('[data-option="stack 1"]').click()
 
                     cy.get('[data-el="next-step"]').click()
@@ -400,7 +400,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
                     cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
                     // select nr-version
-                    cy.get('[data-el="listbox"]').click()
+                    cy.get('[data-el="node-red-listbox"]').click()
                     cy.get('[data-option="stack 1"]').click()
 
                     cy.get('[data-el="next-step"]').click()
@@ -484,7 +484,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
                     cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
                     // select nr-version
-                    cy.get('[data-el="listbox"]').click()
+                    cy.get('[data-el="node-red-listbox"]').click()
                     cy.get('[data-option="stack 1"]').click()
 
                     cy.get('[data-el="next-step"]').click()
