@@ -41,7 +41,7 @@ export default {
             type: Array,
             required: true
         },
-        instanceFollowUp: {
+        showInstanceFollowUp: {
             required: false,
             type: Boolean,
             default: false
@@ -83,13 +83,14 @@ export default {
                         slug: APPLICATION_SLUG,
                         applications: this.applications,
                         state: this.form[APPLICATION_SLUG],
-                        instanceFollowUp: this.instanceFollowUp
+                        instanceFollowUp: this.instanceFollowUp,
+                        showInstanceFollowUp: this.showInstanceFollowUp
                     }
                 },
                 {
                     sliderTitle: 'Instance',
                     component: InstanceStep,
-                    hidden: this.shouldHideInstanceSteps,
+                    hidden: !this.instanceFollowUp,
                     bindings: {
                         slug: INSTANCE_SLUG,
                         state: this.form[INSTANCE_SLUG].input
@@ -98,7 +99,7 @@ export default {
                 {
                     sliderTitle: 'Blueprint',
                     component: BlueprintStep,
-                    hidden: this.shouldHideInstanceSteps || this.hasNoBlueprints,
+                    hidden: !this.instanceFollowUp || this.hasNoBlueprints,
                     bindings: {
                         slug: BLUEPRINT_SLUG,
                         state: this.form[BLUEPRINT_SLUG],
@@ -119,12 +120,12 @@ export default {
         hasToCreateAnApplication () {
             return this.applications.length === 0
         },
-        shouldHideInstanceSteps () {
-            if (this.instanceFollowUp) {
-                return !this.form[APPLICATION_SLUG]?.input?.createInstance ?? false
+        instanceFollowUp () {
+            if (this.form[APPLICATION_SLUG]?.input) {
+                return !!this.form[APPLICATION_SLUG]?.input?.createInstance
             }
 
-            return false
+            return true
         }
     },
     watch: {

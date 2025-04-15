@@ -31,7 +31,7 @@
 
         <MultiStepApplicationsInstanceForm
             ref="multiStepForm" :applications="[]"
-            :instance-follow-up="true"
+            :show-instance-follow-up="true"
             last-step-label="Create Application"
             @form-success-application="onApplicationCreated"
             @previous-step-state-changed="form.previousButtonState = $event"

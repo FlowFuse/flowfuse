@@ -70,7 +70,7 @@
                 </FormRow>
 
                 <FormRow
-                    v-if="instanceFollowUp"
+                    v-if="showInstanceFollowUp"
                     v-model="input.createInstance"
                     containerClass="none"
                     wrapper-class="flex-col"
@@ -116,6 +116,11 @@ export default {
             type: Array
         },
         instanceFollowUp: {
+            required: false,
+            type: Boolean,
+            default: false
+        },
+        showInstanceFollowUp: {
             required: false,
             type: Boolean,
             default: false
