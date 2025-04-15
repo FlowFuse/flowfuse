@@ -31,7 +31,7 @@
 
         <MultiStepApplicationsInstanceForm
             ref="multiStepForm" :applications="[]"
-            :show-instance-follow-up="true"
+            :show-instance-follow-up="!isFreeTeamType"
             last-step-label="Create Application"
             @form-success-application="onApplicationCreated"
             @previous-step-state-changed="form.previousButtonState = $event"
@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import MultiStepApplicationsInstanceForm
     from '../../components/multi-step-forms/instance/MultiStepApplicationsInstanceForm.vue'
@@ -66,7 +66,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team'])
+        ...mapState('account', ['features', 'team']),
+        ...mapGetters('account', ['isFreeTeamType'])
     },
     methods: {
         onApplicationCreated (application) {

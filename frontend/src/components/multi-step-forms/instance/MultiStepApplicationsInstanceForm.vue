@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import applicationApi from '../../../api/application.js'
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
@@ -74,6 +74,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['team']),
+        ...mapGetters('account', ['isFreeTeamType']),
         formSteps () {
             return [
                 {
@@ -90,7 +91,7 @@ export default {
                 {
                     sliderTitle: 'Instance',
                     component: InstanceStep,
-                    hidden: !this.instanceFollowUp,
+                    hidden: this.shouldHideInstanceSteps,
                     bindings: {
                         slug: INSTANCE_SLUG,
                         state: this.form[INSTANCE_SLUG].input
@@ -99,7 +100,7 @@ export default {
                 {
                     sliderTitle: 'Blueprint',
                     component: BlueprintStep,
-                    hidden: !this.instanceFollowUp || this.hasNoBlueprints,
+                    hidden: this.shouldHideInstanceSteps || this.hasNoBlueprints,
                     bindings: {
                         slug: BLUEPRINT_SLUG,
                         state: this.form[BLUEPRINT_SLUG],
@@ -126,6 +127,13 @@ export default {
             }
 
             return true
+        },
+        shouldHideInstanceSteps () {
+            if (this.isFreeTeamType) {
+                return true
+            }
+
+            return !this.instanceFollowUp
         }
     },
     watch: {
