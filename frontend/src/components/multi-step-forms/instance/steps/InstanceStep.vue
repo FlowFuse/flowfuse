@@ -112,16 +112,16 @@
                     </div>
                 </div>
             </transition>
+            <!-- Billing details -->
+            <div v-if="features.billing" class="my-5 text-left">
+                <InstanceChargesTable
+                    :project-type="selectedInstanceType"
+                    :subscription="subscription"
+                    :trialMode="isTrialProjectSelected"
+                    :prorationMode="team?.type?.properties?.billing?.proration"
+                />
+            </div>
         </form>
-        <!-- Billing details -->
-        <div v-if="features.billing" class="my-5 text-left" style="padding: 0 60px;">
-            <InstanceChargesTable
-                :project-type="selectedInstanceType"
-                :subscription="subscription"
-                :trialMode="isTrialProjectSelected"
-                :prorationMode="team?.type?.properties?.billing?.proration"
-            />
-        </div>
     </section>
 </template>
 
