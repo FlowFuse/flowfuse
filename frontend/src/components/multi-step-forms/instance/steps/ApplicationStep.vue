@@ -1,5 +1,5 @@
 <template>
-    <section class="ff-select-application-step text-center flex flex-col gap-4 pt-6">
+    <section class="ff-select-application-step text-center flex flex-col gap-4 pt-6" data-el="application-step">
         <template v-if="hasApplications">
             <h2>Choose an Application</h2>
 
@@ -74,8 +74,7 @@
                     v-model="input.createInstance"
                     containerClass="none"
                     wrapper-class="flex-col"
-                    placeholder="Application Description"
-                    data-form="application-description"
+                    data-form="create-instance"
                     type="checkbox"
                 >
                     <template #default>

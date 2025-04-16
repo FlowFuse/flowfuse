@@ -1,5 +1,5 @@
 <template>
-    <section class="ff-blueprint-step text-center flex flex-col gap-4 pt-6" data-step="blueprint">
+    <section class="ff-blueprint-step text-center flex flex-col gap-4 pt-6" data-step="blueprint" data-el="blueprint-step">
         <h2>Select Your Blueprint</h2>
 
         <p>We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</p>
