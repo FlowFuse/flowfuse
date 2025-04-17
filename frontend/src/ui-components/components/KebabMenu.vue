@@ -6,6 +6,7 @@
                 ref="menu"
                 v-click-outside="closeOptions"
                 class="ff-kebab-options"
+                data-el="kebab-options"
                 :style="{
                     position: 'fixed',
                     top: position.top + 'px',
