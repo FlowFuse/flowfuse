@@ -2,7 +2,13 @@
     <div class="step-slider">
         <div class="wrapper">
             <ul class="progress" :class="{'multi-step': entries.length > 1, 'single-step': entries.length === 1}">
-                <li v-for="(entry, $key) in entries" :key="$key" class="st" :class="{completed: $key <= currentEntry, disabled: entry.disabled}">
+                <li
+                    v-for="(entry, $key) in entries"
+                    :key="$key"
+                    class="st"
+                    data-el="slider-step"
+                    :class="{completed: $key <= currentEntry, disabled: entry.disabled}"
+                >
                     <span />
                 </li>
             </ul>
@@ -11,6 +17,7 @@
                     v-for="(entry, $key) in entries"
                     :key="$key"
                     class="step cursor-pointer"
+                    data-el="slider-title"
                     :class="{active: $key === currentEntry, completed: $key <= currentEntry, disabled: entry.disabled}"
                     @click="select($key, entry.disabled)"
                 >

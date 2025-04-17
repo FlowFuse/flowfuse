@@ -1,5 +1,5 @@
 <template>
-    <section class="ff-select-application-step text-center flex flex-col gap-4 pt-6">
+    <section class="ff-select-application-step text-center flex flex-col gap-4 pt-6" data-step="application">
         <template v-if="hasApplications">
             <h2>Choose an Application</h2>
 
