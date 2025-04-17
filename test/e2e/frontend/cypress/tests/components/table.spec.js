@@ -23,12 +23,14 @@ describe('FlowForge - Table Component', () => {
             cy.get('div.ff-view').scrollTo('bottom')
             // ensure the last row is visible
             cy.get('[data-el="devices-browser"] tbody tr:last-child').should('be.visible')
+            cy.get('[data-el="kebab-options"]').should('not.exist')
             // click the kebab menu on the last device
             cy.get('[data-el="devices-browser"] tbody tr:last-child').find('.ff-kebab-menu').eq(0).click()
             // ensure the kebab menu is opened
-            cy.get('[data-el="devices-browser"] tbody tr:last-child td:last-child').find('ul.ff-kebab-options').should('be.visible')
+            cy.get('[data-el="kebab-options"]').should('exist')
+            cy.get('[data-el="kebab-options"]').should('be.visible')
             // ensure the last entry of kebab menu is visible and fully on screen
-            cy.get('[data-el="devices-browser"] tbody tr:last-child td:last-child').find('ul.ff-kebab-options li:last-child').isInViewport()
+            cy.get('[data-el="kebab-options"]').find('li:last-child').isInViewport()
         })
     })
     describe('Checkboxes', () => {
