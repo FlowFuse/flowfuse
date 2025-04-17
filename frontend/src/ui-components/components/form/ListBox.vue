@@ -25,14 +25,14 @@
                     <ListboxOptions
                         v-if="open"
                         data-el="listbox-options"
-                        class="absolute overflow-auto bg-white py-1 ff-options"
+                        class="absolute w-full overflow-auto bg-white py-1 ff-options"
                         :style="{
                             top: position.top + 'px',
                             left: position.left + 'px',
                             width: position.width + 'px'
                         }"
                     >
-                        <slot name="options">
+                        <slot name="options" :options="options">
                             <ListboxOption
                                 v-for="option in options"
                                 v-slot="{ active, selected }"

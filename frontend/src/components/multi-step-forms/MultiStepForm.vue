@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-multi-step-form">
+    <div class="ff-multi-step-form" data-form="multi-step-form">
         <transition name="fade" mode="out-in">
             <div v-if="loadingOverlay" class="loading-overlay">
                 <ff-loading :message="loadingOverlayText" />

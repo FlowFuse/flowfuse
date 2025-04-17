@@ -598,6 +598,11 @@ module.exports = {
             // store original value for later audit log
             // const originalSnapshotId = targetDeviceGroup.targetSnapshotId // TODO: implement device audit logs
 
+            // Get the devices for the group
+            const devices = await targetDeviceGroup.getDevices()
+            // Get a list of the ids
+            const deviceIds = devices.length ? devices.map(d => d.id) : []
+
             // start a transaction
             const transaction = await app.db.sequelize.transaction()
             try {
@@ -607,8 +612,10 @@ module.exports = {
                 // Update the targetSnapshotId on the device group
                 await targetDeviceGroup.update({ targetSnapshotId: sourceSnapshot.id }, { transaction })
 
-                // update all devices targetSnapshotId
-                await app.db.models.Device.update({ targetSnapshotId: sourceSnapshot.id }, { where: { DeviceGroupId: targetDeviceGroup.id }, transaction })
+                if (deviceIds.length > 0) {
+                    // update all devices targetSnapshotId
+                    await app.db.models.Device.update({ targetSnapshotId: sourceSnapshot.id }, { where: { id: deviceIds }, transaction })
+                }
                 // commit the transaction
                 await transaction.commit()
             } catch (error) {
@@ -622,7 +629,8 @@ module.exports = {
             // updates.push('targetSnapshotId', originalSnapshotId, targetDeviceGroup.targetSnapshotId)
             // await app.auditLog.Team.team.device.updated(user, null, targetDeviceGroup.Team, targetDeviceGroup, updates)
 
-            await app.db.controllers.DeviceGroup.sendUpdateCommand(targetDeviceGroup)
+            // Send the update command asynchronously
+            app.db.controllers.DeviceGroup.sendUpdateCommand(targetDeviceGroup)
         } catch (err) {
             throw new PipelineControllerError('unexpected_error', `Error during deploy: ${err.toString()}`, 500, { cause: err })
         }
