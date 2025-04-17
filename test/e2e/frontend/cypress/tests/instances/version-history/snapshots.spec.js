@@ -169,7 +169,7 @@ describe('FlowForge - Instance Snapshots', () => {
 
         // select the snapshot to compare with
         cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"]').click()
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] .ff-options > .ff-option:first').click()
+        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
         // click compare button
         cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').click()
         cy.wait('@fullSnapshot')

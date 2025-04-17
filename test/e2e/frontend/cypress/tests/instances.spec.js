@@ -151,11 +151,18 @@ describe('FlowForge - Instances', () => {
 
             // can't use .select('value') because we're not dealing with a select input
             cy.get('[data-el="stack-selector"]').click()
-            cy.get('[data-el="stack-selector"]').contains('stack 2').click()
-            cy.get('[data-action="update-project"]').should('not.be.disabled') // changes _have_ now been made
+        })
 
-            cy.get('[data-el="stack-selector"]').click()
-            cy.get('[data-el="stack-selector"]').contains('stack 1').click() // re-select
+        cy.get('[data-el="listbox-options"]').contains('stack 2').click()
+
+        cy.get('[data-el="change-project"]').within(($form) => {
+            cy.get('[data-action="update-project"]').should('not.be.disabled') // changes _have_ now been made
+        })
+
+        cy.get('[data-el="stack-selector"]').click()
+        cy.get('[data-el="listbox-options"]').contains('stack 1').click() // re-select
+
+        cy.get('[data-el="change-project"]').within(($form) => {
             cy.get('[data-action="update-project"]').should('be.disabled')
 
             cy.get('[data-form="project-type"]').contains('type2').click()

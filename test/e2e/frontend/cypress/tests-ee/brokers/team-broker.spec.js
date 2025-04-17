@@ -200,7 +200,13 @@ describe('FlowFuse - Brokers', () => {
 
                 cy.get('[data-el="acl-item"]').last().within(() => {
                     cy.get('[data-el="listbox"]').click()
-                    cy.get('[data-option="Subscribe"]').click()
+                })
+            })
+
+            cy.get('[data-el="listbox-options"] [data-option="Subscribe"]').click()
+
+            cy.get('[data-el="create-client-dialog"]').within(() => {
+                cy.get('[data-el="acl-item"]').last().within(() => {
                     cy.get('[data-input="pattern"] input').type('topic/#')
                 })
 
