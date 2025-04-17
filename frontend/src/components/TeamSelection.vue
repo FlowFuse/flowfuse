@@ -23,7 +23,7 @@
                 :key="option.label"
                 :value="option"
                 as="template"
-                class="ff-option"
+                class="ff-option ff-team-selection-option"
                 :class="{'create-new': option.value === 'create-new-team'}"
                 :data-option="option.label"
                 :title="option.label"
@@ -132,37 +132,36 @@ export default {
                 }
             }
         }
+    }
+}
+.ff-options .ff-team-selection-option {
+    background-color: $ff-grey-700;
+    border-color: $ff-grey-800;
+    color: $ff-white;
+    border-bottom: 1px solid #4B5563;
+    display: flex;
+    align-items: center;
+    height: 60px;
 
-        .ff-option {
-            background-color: $ff-grey-700;
-            border-color: $ff-grey-800;
-            color: $ff-white;
-            border-bottom: 1px solid #4B5563;
-            display: flex;
-            align-items: center;
-            height: 60px;
+    &.create-new {
+        background-color: $ff-grey-900;
+    }
 
-            &.create-new {
-                background-color: $ff-grey-900;
-            }
+    .ff-option-content {
+        padding: 16px 16px 16px 22px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        width: 100%;
 
-            .ff-option-content {
-                padding: 16px 16px 16px 22px;
-                display: flex;
-                align-items: center;
-                gap: 15px;
-                width: 100%;
-
-                &.selected {
-                    background: $ff-grey-800;
-                }
-            }
-
-            &:hover {
-                background-color: $ff-grey-800;
-                color: $ff-teal-100;
-            }
+        &.selected {
+            background: $ff-grey-800;
         }
+    }
+
+    &:hover {
+        background-color: $ff-grey-800;
+        color: $ff-teal-100;
     }
 }
 
