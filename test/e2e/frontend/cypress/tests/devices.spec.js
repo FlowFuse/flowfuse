@@ -54,7 +54,7 @@ describe('FlowForge - Team Devices', () => {
             // click kebab menu in row 1
             cy.get('[data-el="devices-browser"] tbody').find('.ff-kebab-menu').eq(0).click()
             // click the 4th option (Delete Device)
-            cy.get('[data-el="devices-browser"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').contains('Delete Device').click()
+            cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').contains('Delete Device').click()
 
             cy.get('.ff-dialog-box').should('be.visible')
             cy.get('.ff-dialog-header').contains('Delete Device')
@@ -291,9 +291,9 @@ describe('FlowForge - Team Devices', () => {
                 // Row
                 cy.contains('tr', 'team2-unassigned-device').within(() => {
                     cy.get('.ff-kebab-menu').click()
-                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-assign-to-instance"]').click()
                 })
             })
+            cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-assign-to-instance"]').click()
 
             // Dialog
             cy.get('[data-el="assign-device-to-instance-dialog"]')
@@ -342,9 +342,9 @@ describe('FlowForge - Team Devices', () => {
                     cy.contains(selectedInstance)
 
                     cy.get('.ff-kebab-menu').click()
-                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-remove-from-instance"]').click()
                 })
             })
+            cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-remove-from-instance"]').click()
 
             // Remove dialog
             cy.get('[data-el="platform-dialog"]')
@@ -368,9 +368,9 @@ describe('FlowForge - Team Devices', () => {
                 // Row
                 cy.contains('tr', 'team2-unassigned-device').within(() => {
                     cy.get('.ff-kebab-menu').click()
-                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-assign-to-instance"]')
                 })
             })
+            cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-assign-to-instance"]')
         })
 
         it('can assign and unassign devices to application', () => {
@@ -383,9 +383,9 @@ describe('FlowForge - Team Devices', () => {
                 // Row
                 cy.contains('tr', 'team2-unassigned-device').within(() => {
                     cy.get('.ff-kebab-menu').click()
-                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-assign-to-application"]').click()
                 })
             })
+            cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-assign-to-application"]').click()
 
             // Dialog
             cy.get('[data-el="assign-device-to-application-dialog"]')
@@ -420,9 +420,9 @@ describe('FlowForge - Team Devices', () => {
                     cy.contains(selectedApplication)
 
                     cy.get('.ff-kebab-menu').click()
-                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-remove-from-application"]').click()
                 })
             })
+            cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-remove-from-application"]').click()
 
             // Remove dialog
             cy.get('[data-el="platform-dialog"]')
@@ -446,9 +446,9 @@ describe('FlowForge - Team Devices', () => {
                 // Row
                 cy.contains('tr', 'team2-unassigned-device').within(() => {
                     cy.get('.ff-kebab-menu').click()
-                    cy.get('.ff-kebab-menu .ff-kebab-options').find('[data-action="device-assign-to-application"]')
                 })
             })
+            cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-assign-to-application"]')
         })
     })
 })
