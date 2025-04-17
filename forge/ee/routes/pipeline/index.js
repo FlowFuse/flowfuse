@@ -643,6 +643,9 @@ module.exports = async function (app) {
         } catch (err) {
             if (repliedEarly) {
                 console.warn('Deploy failed, but response already sent', err)
+                if (err.cause) {
+                    console.warn(err.cause.stack)
+                }
             } else {
                 if (err instanceof ControllerError) {
                     return reply
