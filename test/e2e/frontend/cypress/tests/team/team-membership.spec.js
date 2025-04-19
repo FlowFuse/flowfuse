@@ -94,7 +94,7 @@ describe('FlowForge - Team Membership', () => {
         cy.get('[data-el="members-table"] tbody').find('.ff-kebab-menu').eq(2).click()
 
         // click "member-remove-from-team"
-        cy.get('[data-el="members-table"] tbody .ff-kebab-menu .ff-kebab-options').find('[data-action="member-remove-from-team"]').click()
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="member-remove-from-team"]').click()
 
         cy.get('.ff-dialog-box').should('be.visible')
 

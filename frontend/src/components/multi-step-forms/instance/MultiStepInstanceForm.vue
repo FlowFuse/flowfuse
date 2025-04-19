@@ -17,6 +17,9 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
+import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import instanceApi from '../../../api/instances.js'
 import Alerts from '../../../services/alerts.js'
 import MultiStepForm from '../MultiStepForm.vue'
@@ -39,6 +42,7 @@ export default {
     emits: ['instance-created', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
     data () {
         return {
+            blueprints: [],
             form: {
                 [INSTANCE_SLUG]: { },
                 [BLUEPRINT_SLUG]: { }
@@ -51,6 +55,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         formSteps () {
             return [
                 {
@@ -59,21 +64,26 @@ export default {
                 },
                 {
                     sliderTitle: 'Instance',
+                    component: InstanceStep,
                     bindings: {
                         slug: INSTANCE_SLUG,
                         state: this.form[INSTANCE_SLUG].input
-                    },
-                    component: InstanceStep
+                    }
                 },
                 {
                     sliderTitle: 'Blueprint',
+                    hidden: this.hasNoBlueprints,
+                    component: BlueprintStep,
                     bindings: {
                         slug: BLUEPRINT_SLUG,
-                        state: this.form[BLUEPRINT_SLUG]
-                    },
-                    component: BlueprintStep
+                        state: this.form[BLUEPRINT_SLUG],
+                        blueprints: this.blueprints
+                    }
                 }
             ]
+        },
+        hasNoBlueprints () {
+            return this.blueprints.length === 0
         },
         shouldDisableNextStep () {
             let flag = false
@@ -83,6 +93,18 @@ export default {
                 }
             })
             return flag
+        }
+    },
+    watch: {
+        team: {
+            immediate: true,
+            handler (team) {
+                // we need to get blueprints early on when we load the form in order to be able to hide the blueprints step if
+                // there aren't any
+                if (team) {
+                    this.getBlueprints()
+                }
+            }
         }
     },
     methods: {
@@ -123,6 +145,13 @@ export default {
         },
         goToPreviousStep () {
             this.$refs.multiStepForm.previousStep()
+        },
+        async getBlueprints () {
+            return flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
+                .then(response => {
+                    this.blueprints = response.blueprints
+                })
+                .catch(e => e)
         }
     }
 }
