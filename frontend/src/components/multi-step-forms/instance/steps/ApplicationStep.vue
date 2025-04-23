@@ -75,7 +75,7 @@
                     containerClass="none"
                     wrapper-class="flex-col"
                     placeholder="Application Description"
-                    data-form="application-description"
+                    data-form="create-instance"
                     type="checkbox"
                 >
                     <template #default>
