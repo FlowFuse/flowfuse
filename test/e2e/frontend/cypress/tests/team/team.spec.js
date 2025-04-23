@@ -153,7 +153,7 @@ describe('Navigation', () => {
         cy.login('bob', 'bbPassword')
         cy.home()
 
-        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
+        cy.get('[data-action="team-selection"] .ff-team-selection-name')
             .within(() => {
                 cy.contains('ATeam')
             })
@@ -165,7 +165,7 @@ describe('Navigation', () => {
 
         cy.visit('/team/bteam/applications')
 
-        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
+        cy.get('[data-action="team-selection"] .ff-team-selection-name')
             .within(() => {
                 cy.contains('BTeam')
             })
@@ -180,7 +180,7 @@ describe('Navigation', () => {
         cy.login('bob', 'bbPassword')
         cy.home()
 
-        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
+        cy.get('[data-action="team-selection"] .ff-team-selection-name')
             .within(() => {
                 cy.contains('ATeam')
             })
@@ -190,10 +190,10 @@ describe('Navigation', () => {
         cy.contains('instance-1-1')
         cy.contains('instance-1-2')
 
-        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection').click()
-        cy.get('[data-action="switch-team"]').contains('BTeam').parent().click()
+        cy.get('[data-action="team-selection"] .ff-team-selection-name').click()
+        cy.get('[data-option="BTeam"]').click()
 
-        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
+        cy.get('[data-action="team-selection"] .ff-team-selection-name')
             .within(() => {
                 cy.contains('BTeam')
             })

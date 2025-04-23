@@ -235,7 +235,7 @@
         @device-updated="deviceUpdated"
     >
         <template #description>
-            <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours['first-device']">
+            <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours.firstDevice">
                 Describe your new Remote Instance here, e.g. "Raspberry Pi", "Allen-Bradley PLC", etc.
             </p>
             <p v-else>
@@ -405,14 +405,14 @@ export default {
     },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
-        ...mapState('ux', ['tours']),
+        ...mapState('ux/tours', ['tours']),
         ...mapGetters('account', ['featuresCheck']),
         columns () {
             const columns = [
                 { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenCell) } },
-                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge) } }
+                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge), map: { instanceId: 'id' }, extraProps: { instanceType: 'device' } } }
             ]
 
             if (this.displayingTeam) {

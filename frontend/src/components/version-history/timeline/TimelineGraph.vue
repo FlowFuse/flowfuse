@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { AdjustmentsIcon, CameraIcon, DotsHorizontalIcon, DownloadIcon, PlusIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { AdjustmentsIcon, BadgeCheckIcon, CameraIcon, DotsHorizontalIcon, DownloadIcon, PlusIcon, RefreshIcon } from '@heroicons/vue/outline'
 
 import PipelinesIcon from '../../icons/Pipelines.js'
 import ProjectsIcon from '../../icons/Projects.js'
@@ -47,7 +47,8 @@ export default {
                 'device.pipeline.deployed',
                 'device.project.deployed',
                 'device.snapshot.deployed',
-                'device.snapshot.created'
+                'device.snapshot.created',
+                'device.snapshot.target-set'
             ]
         }
     },
@@ -78,6 +79,8 @@ export default {
                 return RefreshIcon
             case 'project.created':
                 return PlusIcon
+            case 'device.snapshot.target-set':
+                return BadgeCheckIcon
             case 'load-more':
                 return DotsHorizontalIcon
             default:

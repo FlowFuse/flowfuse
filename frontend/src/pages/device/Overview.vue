@@ -12,7 +12,7 @@
                 </InfoCardRow>
                 <InfoCardRow property="Status:">
                     <template #value>
-                        <StatusBadge :status="device.status" />
+                        <StatusBadge :status="device.status" :instanceId="device.id" instanceType="device" />
                     </template>
                 </InfoCardRow>
                 <InfoCardRow property="Agent Version:">
@@ -20,6 +20,14 @@
                         <StatusBadge
                             :status="agentVersionWarning ? 'error' : 'success'"
                             :text="device.agentVersion || 'unknown'" v-ff-tooltip="agentVersionWarning"
+                        />
+                    </template>
+                </InfoCardRow>
+                <InfoCardRow property="Node-RED Version:">
+                    <template #value>
+                        <StatusBadge
+                            :status="nrVersionWarning ? 'error' : 'success'"
+                            :text="device.nrVersion || 'unknown'" v-ff-tooltip="agentVersionWarning"
                         />
                     </template>
                 </InfoCardRow>
@@ -152,6 +160,12 @@ export default {
                     return ''
                 }
                 return 'Devices assigned to an application must be version 1.15 or greater in order to receive snapshots and updates'
+            }
+            return ''
+        },
+        nrVersionWarning: function () {
+            if (!this.device?.nrVersion) {
+                return 'Devices must have connected and initialized to report Node-RED version'
             }
             return ''
         }

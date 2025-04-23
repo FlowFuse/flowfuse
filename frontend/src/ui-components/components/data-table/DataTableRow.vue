@@ -9,7 +9,7 @@
                                 :class="col.class"
                                 :style="col.style"
                                 :highlight="highlightCell === $column"
-                                @mouseup="handleMouseUp"
+                                @click="handleMouseUp"
             >
                 <template v-if="col.component">
                     <component :is="col.component.is" v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}" />
@@ -28,7 +28,7 @@
             </div>
         </ff-data-table-cell>
         <ff-data-table-cell v-if="hasContextMenu" style="width: 50px" @click="$refs.kebab.openOptions()">
-            <ff-kebab-menu ref="kebab" menu-align="right">
+            <ff-kebab-menu ref="kebab">
                 <slot name="context-menu" :row="data" message="hello world" />
             </ff-kebab-menu>
         </ff-data-table-cell>

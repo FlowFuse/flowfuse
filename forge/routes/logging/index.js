@@ -3,6 +3,26 @@ const { getLoggers: getProjectLogger } = require('../../auditLog/project')
 const { getLoggers: getTeamLogger } = require('../../auditLog/team')
 const { Roles } = require('../../lib/roles')
 
+// email alerts and notification settings lookup
+const alertsAndNotifications = {
+    crashed: {
+        email: true,
+        notification: 'instance-crashed'
+    },
+    'safe-mode': {
+        email: true,
+        notification: 'instance-safe-mode'
+    },
+    'resource.cpu': {
+        email: true,
+        notification: 'instance-resource-cpu'
+    },
+    'resource.memory': {
+        email: true,
+        notification: 'instance-resource-memory'
+    }
+}
+
 /** Node-RED Audit Logging backend
  *
  * - /audit
@@ -81,14 +101,20 @@ module.exports = async function (app) {
                 auditEvent
             )
         }
+
+        // handle some special cases: install/remove modules
         if (event === 'nodes.install' && !error) {
             await app.db.controllers.Project.addProjectModule(request.project, auditEvent.module, auditEvent.version)
         } else if (event === 'nodes.remove' && !error) {
             await app.db.controllers.Project.removeProjectModule(request.project, auditEvent.module)
         } else if (event === 'modules.install' && !error) {
             await app.db.controllers.Project.addProjectModule(request.project, auditEvent.module, auditEvent.version || '*')
-        } else if (event === 'crashed' || event === 'safe-mode') {
-            if (app.config.features.enabled('emailAlerts')) {
+        }
+
+        const alertCondition = alertsAndNotifications[event]
+
+        if (alertCondition) {
+            if (alertCondition.email && app.config.features.enabled('emailAlerts')) {
                 const data = event === 'crashed'
                     ? {
                         exitCode: auditEvent.info?.code,
@@ -102,8 +128,7 @@ module.exports = async function (app) {
             // send notification to all members and owners in the team
             const teamMembersAndOwners = await request.project.Team.getTeamMembers([Roles.Member, Roles.Owner])
             if (teamMembersAndOwners && teamMembersAndOwners.length > 0) {
-                const notificationType = event === 'crashed' ? 'instance-crashed' : 'instance-safe-mode'
-                const reference = `${notificationType}:${projectId}`
+                const reference = `${alertCondition.notification}:${projectId}`
                 const data = {
                     instance: {
                         id: projectId,
@@ -114,12 +139,12 @@ module.exports = async function (app) {
                     }
                 }
                 for (const user of teamMembersAndOwners) {
-                    await app.notifications.send(user, notificationType, data, reference, { upsert: true })
+                    await app.notifications.send(user, alertCondition.notification, data, reference, { upsert: true })
                 }
             }
         }
 
-        response.status(200).send()
+        response.status(200).send() // early response
 
         // perform an auto snapshot
         if (event === 'flows.set' && ['full', 'flows', 'nodes'].includes(auditEvent.type)) {

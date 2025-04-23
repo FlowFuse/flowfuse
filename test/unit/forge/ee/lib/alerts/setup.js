@@ -47,6 +47,10 @@ module.exports = async function (config = {
             emailAlerts: {
                 crash: true,
                 safe: true,
+                resource: {
+                    cpu: true,
+                    memory: true
+                },
                 recipients: 'owners'
             }
         },

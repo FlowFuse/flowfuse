@@ -10,12 +10,23 @@
                     <ff-nav-breadcrumb :to="{name: 'Instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
                 </template>
                 <template #status>
-                    <InstanceStatusBadge :status="instance.meta?.state" :optimisticStateChange="instance.optimisticStateChange" :pendingStateChange="instance.pendingStateChange" />
+                    <InstanceStatusBadge
+                        :status="instance.meta?.state"
+                        :optimisticStateChange="instance.optimisticStateChange"
+                        :pendingStateChange="instance.pendingStateChange"
+                        :instanceId="instance.id"
+                        instanceType="instance"
+                    />
                     <router-link v-if="instance.ha?.replicas !== undefined" :to="{name: 'instance-settings-ha', params: { id: instance.id }}" @click.stop>
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" status="high-availability" />
                     </router-link>
                     <router-link v-if="instance.protected?.enabled" :to="{ name: 'instance-settings-protect'}" @click.stop>
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" data-el="protected-pill" status="protected" text="Protected" />
+                    </router-link>
+                    <router-link v-if="instance.settings.disableEditor" :to="{name: 'instance-settings-editor', params: { id: instance.id }}" @click.stop>
+                        <StatusBadge class="ml-2 text-gray-400 cursor-pointer hover:text-blue-600" status="Editor Disabled">
+                            <template #icon><LockClosedIcon class="w-4 h-4" /></template>
+                        </StatusBadge>
                     </router-link>
                 </template>
                 <template #context>
@@ -63,6 +74,7 @@
 </template>
 
 <script>
+import { LockClosedIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
@@ -81,6 +93,7 @@ import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDelet
 import DashboardLink from './components/DashboardLink.vue'
 import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
+
 export default {
     name: 'InstancePage',
     components: {
@@ -92,7 +105,8 @@ export default {
         StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner,
-        InstanceEditorLink
+        InstanceEditorLink,
+        LockClosedIcon
     },
     mixins: [permissionsMixin, instanceMixin, featuresMixin],
     data: function () {

@@ -11,7 +11,8 @@ module.exports = function (app) {
             protocolVersion: { type: 'number' },
             ssl: { type: 'boolean' },
             verifySSL: { type: 'boolean' },
-            clientId: { type: 'string' }
+            clientId: { type: 'string' },
+            topicPrefix: { type: 'array', items: { type: 'string' } }
         },
         additionalProperties: true
     })
@@ -28,7 +29,8 @@ module.exports = function (app) {
                 ssl: result.ssl,
                 verifySSL: result.verifySSL,
                 clientId: result.clientId,
-                state: result.state
+                state: result.state,
+                topicPrefix: result.topicPrefix
             }
             return cleaned
         },
