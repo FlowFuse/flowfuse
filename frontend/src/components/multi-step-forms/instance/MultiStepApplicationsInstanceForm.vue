@@ -52,24 +52,23 @@ export default {
             default: 'Create Instance'
         }
     },
-    emits: ['form-success-application', 'form-success-instance', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
+    emits: ['form-success', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
     data () {
         const startingStep = 0
 
         return {
             form: {
-                [APPLICATION_SLUG]: { },
-                [INSTANCE_SLUG]: { },
-                [BLUEPRINT_SLUG]: { }
+                [APPLICATION_SLUG]: {},
+                [INSTANCE_SLUG]: {},
+                [BLUEPRINT_SLUG]: {}
             },
             formLoading: false,
             loadingText: '',
-            errors: {
-
-            },
+            errors: {},
             startingStep,
             currentStepKey: startingStep,
-            blueprints: []
+            blueprints: [],
+            newApplications: []
         }
     },
     computed: {
@@ -82,7 +81,7 @@ export default {
                     component: ApplicationStep,
                     bindings: {
                         slug: APPLICATION_SLUG,
-                        applications: this.applications,
+                        applications: this.localApplications,
                         state: this.form[APPLICATION_SLUG],
                         instanceFollowUp: this.instanceFollowUp,
                         showInstanceFollowUp: this.showInstanceFollowUp
@@ -94,7 +93,8 @@ export default {
                     hidden: this.shouldHideInstanceSteps,
                     bindings: {
                         slug: INSTANCE_SLUG,
-                        state: this.form[INSTANCE_SLUG].input
+                        state: this.form[INSTANCE_SLUG].input,
+                        initialErrors: this.form[INSTANCE_SLUG].errors
                     }
                 },
                 {
@@ -119,7 +119,7 @@ export default {
             return this.form[currentSlug].hasErrors
         },
         hasToCreateAnApplication () {
-            return this.applications.length === 0
+            return this.localApplications.length === 0
         },
         instanceFollowUp () {
             if (this.form[APPLICATION_SLUG]?.input) {
@@ -134,6 +134,9 @@ export default {
             }
 
             return !this.instanceFollowUp
+        },
+        localApplications () {
+            return [...this.applications, ...this.newApplications]
         }
     },
     watch: {
@@ -156,18 +159,55 @@ export default {
         async onSubmit () {
             this.loadingText = 'Creating a new Instance'
             this.formLoading = true
+            let createdApplication
 
             return new Promise((resolve) => {
                 if (this.hasToCreateAnApplication) {
-                    return applicationApi.createApplication({ ...this.form[APPLICATION_SLUG].input, teamId: this.team.id })
+                    return applicationApi.createApplication({
+                        ...this.form[APPLICATION_SLUG].input,
+                        teamId: this.team.id
+                    })
                         .then(application => {
-                            this.$emit('form-success-application', application)
+                            // pre-select the applications and also adding it to the new applications list immediately after creation
+                            // so that if the instance creation fails in the next step, a subsequent submit won't create a new duplicate
+                            // application but use the newly created one
+                            this.form[APPLICATION_SLUG].selection = application
+                            // delete this.form[APPLICATION_SLUG].input
+                            this.newApplications.push({
+                                ...application,
+                                label: application.name,
+                                counters: {
+                                    instances: 0,
+                                    devices: 0
+                                }
+                            })
+                            createdApplication = application
+
+                            if (!this.instanceFollowUp || this.isFreeTeamType) {
+                                this.$emit('form-success', {
+                                    application
+                                })
+                            }
                             return application
                         })
                         .then(resolve)
                 }
-                return resolve(this.form[APPLICATION_SLUG].selection)
+                createdApplication = this.form[APPLICATION_SLUG].selection
+                return resolve(createdApplication)
             })
+                .catch((err) => {
+                    // catching application related api errors
+                    if (err.response) {
+                        const error = err.response.data.error
+
+                        if (error) {
+                            Alerts.emit('Failed to create the application: ' + error, 'warning', 7500)
+                        } else {
+                            Alerts.emit('Failed to create the application')
+                            console.error(err)
+                        }
+                    }
+                })
                 .then((application) => {
                     if (this.instanceFollowUp && !this.shouldHideInstanceSteps) {
                         return instanceApi.create({
@@ -180,9 +220,25 @@ export default {
                         })
                     }
                 })
+                .catch(err => {
+                    // catching instance related api errors
+                    if (
+                        Object.prototype.hasOwnProperty.call(err, 'response') &&
+                        Object.prototype.hasOwnProperty.call(err.response, 'data')
+                    ) {
+                        if (err.response.data.code === 'invalid_project_name') {
+                            this.form[INSTANCE_SLUG].errors.name = err.response.data.error
+                        }
+                    }
+
+                    const idx = this.formSteps.findIndex(step => step.sliderTitle === 'Instance')
+                    if (idx >= 0) { // step back to the instance step
+                        this.$refs.multiStepForm.selectStep(idx)
+                    }
+                })
                 .then((instance) => {
                     if (instance) {
-                        this.$emit('form-success-instance', instance)
+                        this.$emit('form-success', { application: createdApplication, instance })
                     }
                 })
                 .catch(err => {

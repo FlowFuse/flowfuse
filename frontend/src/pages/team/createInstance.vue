@@ -35,7 +35,7 @@
             v-else
             ref="multiStepForm"
             :applications="applications"
-            @form-success-instance="onInstanceCreated"
+            @form-success="onInstanceCreated"
             @previous-step-state-changed="form.previousButtonState = $event"
             @next-step-state-changed="form.nextButtonState = $event"
             @next-step-label-changed="form.nextStepLabel = $event"
@@ -135,8 +135,8 @@ export default {
                 }
             })
         },
-        onInstanceCreated (instance) {
-            return this.$router.push({ name: 'instance-overview', params: { id: instance.id } })
+        onInstanceCreated (payload) {
+            return this.$router.push({ name: 'instance-overview', params: { id: payload.instance.id } })
         }
     }
 }

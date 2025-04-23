@@ -8,13 +8,14 @@
 
             <div class="ff-instance-name ff-input-wrapper flex flex-col gap-1">
                 <label class="mb-1">Name</label>
-                <div class="ff-input-wrapper flex gap-3 items-center">
+                <div class="ff-input-wrapper flex gap-3 items-center relative mb-4">
                     <ff-text-input
                         v-model="input.name"
                         label="instance-name"
                         :error="errors.name"
                         data-el="instance-name"
                     />
+                    <span v-if="errors.name" class="absolute left-4 top-9 text-red-600 text-sm" data-el="instance-name-error">{{ errors.name }}</span>
                     <ff-button kind="secondary" @click="refreshName">
                         <template #icon>
                             <RefreshIcon />
@@ -112,16 +113,16 @@
                     </div>
                 </div>
             </transition>
-            <!-- Billing details -->
-            <div v-if="features.billing" class="my-5 text-left">
-                <InstanceChargesTable
-                    :project-type="selectedInstanceType"
-                    :subscription="subscription"
-                    :trialMode="isTrialProjectSelected"
-                    :prorationMode="team?.type?.properties?.billing?.proration"
-                />
-            </div>
         </form>
+        <!-- Billing details -->
+        <div v-if="features.billing" class="my-5 text-left" style="padding: 0 60px;">
+            <InstanceChargesTable
+                :project-type="selectedInstanceType"
+                :subscription="subscription"
+                :trialMode="isTrialProjectSelected"
+                :prorationMode="team?.type?.properties?.billing?.proration"
+            />
+        </div>
     </section>
 </template>
 
@@ -143,13 +144,27 @@ import FeatureUnavailableToTeam from '../../../banners/FeatureUnavailableToTeam.
 
 export default {
     name: 'InstanceStep',
-    components: { InstanceChargesTable, FeatureUnavailableToTeam, RefreshIcon, CheckCircleIcon, Loading, InstanceCreditBanner, FfListbox, FfTextInput },
+    components: {
+        InstanceChargesTable,
+        FeatureUnavailableToTeam,
+        RefreshIcon,
+        CheckCircleIcon,
+        Loading,
+        InstanceCreditBanner,
+        FfListbox,
+        FfTextInput
+    },
     props: {
         slug: {
             required: true,
             type: String
         },
         state: {
+            required: false,
+            type: Object,
+            default: () => ({})
+        },
+        initialErrors: {
             required: false,
             type: Object,
             default: () => ({})
@@ -170,10 +185,10 @@ export default {
                 template: this.initialState.template ?? null
             },
             errors: {
-                name: null,
-                instanceType: null,
-                nodeREDVersion: null,
-                template: null
+                name: this.initialErrors.name ?? null,
+                instanceType: this.initialErrors.instanceType ?? null,
+                nodeREDVersion: this.initialErrors.nodeREDVersion ?? null,
+                template: this.initialErrors.template ?? null
             },
             nodeRedVersions: [],
             instanceTypes: [],
@@ -304,8 +319,7 @@ export default {
                     }
                 })
             },
-            deep: true,
-            immediate: true
+            deep: true
         },
         'input.instanceType' () {
             this.input.nodeREDVersion = null
