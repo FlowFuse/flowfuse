@@ -158,7 +158,7 @@ describe('FlowForge - Applications', () => {
                 cy.wait('@createInstance')
 
                 // check that the user get redirected back to the instance step after failed instance creation
-                cy.get('[data-el="instance-step"]').contains('name in use')
+                cy.get('[data-step="instance"]').contains('name in use')
                 cy.get('[data-el="instance-name-error"]').contains('name in use')
 
                 cy.get('[data-el="instance-name"] input').clear()
