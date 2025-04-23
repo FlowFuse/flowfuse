@@ -104,9 +104,8 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const result = app.db.views.Device.device(request.device)
-        const nrVersion = await request.device.getSetting('editor')
-        if (nrVersion) {
-            result.nrVersion = nrVersion.nodeRedVersion
+        if (request.device.nodeRedVersion) {
+            result.nrVersion = request.device.nodeRedVersion
         }
         // ingress-nginx will set a cookie on /api/v1/devices - which will cannot allow to override
         // that of the device-specific cookie. So clear it out.
