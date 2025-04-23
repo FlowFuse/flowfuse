@@ -1,33 +1,46 @@
 /* eslint-disable n/no-process-exit */
 'use strict'
 
-const smtp = require('./environments/smtp.js')
+const fs = require('fs')
+const path = require('path')
+
+const yaml = require('yaml')
+
 const app = require('./environments/standard.js')
+
+const configFile = fs.readFileSync(path.join(process.cwd(), 'etc', 'flowforge.local.yml'), 'utf8')
+let e2eConfig = null
+
+if (configFile) {
+    e2eConfig = yaml.parse(configFile).e2e
+}
 
 ;(async function () {
     const PORT = 3001
-    const smtpConfig = {
-        smtpPort: process.env.SMTP_PORT || 1025,
-        webPort: process.env.SMTP_WEB_PORT || 8025
-    }
+    let emailConfig = null
 
-    if (!process.env.NO_SMTP_SERVER || process.env.NO_SMTP_SERVER === 'false') {
-        await smtp({ smtpPort: smtpConfig.smtpPort, webPort: smtpConfig.webPort })
+    if (e2eConfig && e2eConfig.email && e2eConfig.email.os && e2eConfig.email.os.enabled) {
+        const smtp = require('./environments/smtp')
+
+        await smtp({ smtpPort: e2eConfig.email.os.smtp.port, webPort: e2eConfig.email.os.smtp.web_port })
+        emailConfig = e2eConfig.email.os
+    } else {
+        emailConfig = {
+            enabled: true,
+            debug: true,
+            smtp: {
+                host: 'localhost',
+                port: process.env.SMTP_PORT,
+                secure: false,
+                debug: true
+            }
+        }
     }
 
     const flowforge = await app({}, {
         host: 'localhost',
         port: PORT,
-        email: {
-            enabled: true,
-            debug: true,
-            smtp: {
-                host: process.env.SMTP_HOST || 'localhost',
-                port: smtpConfig.smtpPort,
-                secure: false,
-                debug: true
-            }
-        }
+        email: emailConfig
     })
 
     flowforge.listen({ port: PORT }, function (err, address) {

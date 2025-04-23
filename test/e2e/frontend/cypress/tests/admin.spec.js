@@ -109,7 +109,14 @@ describe('FlowFuse platform admin users', () => {
         cy.get('[data-el="banner-device-as-admin"]').should('exist')
     })
 
-    it('can enable sign up', () => {
+    it('can enable sign up', function () {
+        cy.isEmailEnabled()
+            .then((isEnabled) => {
+                if (!isEnabled) {
+                    this.skip()
+                }
+            })
+
         cy.intercept('GET', '/api/*/settings').as('getSettings')
         cy.intercept('POST', '/account/logout').as('logout')
 
@@ -133,7 +140,14 @@ describe('FlowFuse platform admin users', () => {
         cy.get('[data-el="splash"]').should('not.exist')
     })
 
-    it('can customise the content of the "Sign Up" screen', () => {
+    it('can customise the content of the "Sign Up" screen', function () {
+        cy.isEmailEnabled()
+            .then((isEnabled) => {
+                if (!isEnabled) {
+                    this.skip()
+                }
+            })
+
         cy.intercept('GET', '/api/*/settings').as('getSettings')
 
         cy.visit('/admin/settings/general')

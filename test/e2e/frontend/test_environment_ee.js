@@ -1,23 +1,49 @@
 /* eslint-disable n/no-process-exit */
 'use strict'
 
+const fs = require('fs')
+
+const path = require('path')
+
+const yaml = require('yaml')
+
 const TestModelFactory = require('../../lib/TestModelFactory')
 
-const smtp = require('./environments/smtp')
 const app = require('./environments/standard')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
+const configFile = fs.readFileSync(path.join(process.cwd(), 'etc', 'flowforge.local.yml'), 'utf8')
+let emailConfig = null
+
+if (configFile) {
+    emailConfig = yaml.parse(configFile).e2e
+}
+
 ;(async function () {
     const PORT = 3002
-    const smtpConfig = {
-        smtpPort: process.env.SMTP_PORT || 1026,
-        webPort: process.env.SMTP_WEB_PORT || 8026
-    }
+    let smtpConfig
 
-    if (!process.env.NO_SMTP_SERVER || process.env.NO_SMTP_SERVER === 'false') {
-        await smtp({ smtpPort: smtpConfig.smtpPort, webPort: smtpConfig.webPort })
+    if (emailConfig && emailConfig.email && emailConfig.email.ee && emailConfig.email.ee.enabled) {
+        const smtp = require('./environments/smtp')
+
+        await smtp({
+            smtpPort: emailConfig.email.ee.smtp.port,
+            webPort: emailConfig.email.ee.smtp.web_port
+        })
+        smtpConfig = emailConfig.email.ee
+    } else {
+        smtpConfig = {
+            enabled: true,
+            debug: true,
+            smtp: {
+                host: 'localhost',
+                port: process.env.SMTP_PORT,
+                secure: false,
+                debug: true
+            }
+        }
     }
 
     const flowforge = await app({
@@ -40,16 +66,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
                 }
             }
         },
-        email: {
-            enabled: true,
-            debug: true,
-            smtp: {
-                host: process.env.SMTP_HOST || 'localhost',
-                port: smtpConfig.smtpPort,
-                secure: false,
-                debug: true
-            }
-        },
+        email: smtpConfig,
         broker: {
             url: ':test:',
             teamBroker: {

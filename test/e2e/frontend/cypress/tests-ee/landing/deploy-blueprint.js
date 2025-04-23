@@ -63,15 +63,22 @@ function prefillMultiStepInstanceForm () {
 }
 
 describe('FlowFuse - Deploy Blueprint', () => {
-    before(() => {
+    before(function () {
+        cy.isEmailEnabled()
+            .then((isEnabled) => {
+                if (!isEnabled) {
+                    this.skip()
+                }
+            })
+
         cy.adminEnableSignUp()
         cy.adminEnableTeamAutoCreate()
     })
 
-    // after(() => {
-    //     cy.adminDisableSignUp()
-    //     cy.adminDisableTeamAutoCreate()
-    // })
+    after(() => {
+        cy.adminDisableSignUp()
+        cy.adminDisableTeamAutoCreate()
+    })
 
     describe('Users with accounts', () => {
         describe('And authenticated', () => {
