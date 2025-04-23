@@ -209,7 +209,7 @@ describe('FlowForge - Applications', () => {
         cy.get('[data-action="open-editor"]').should('exist')
     })
 
-    it.only('are not permitted to have a duplicate project name during creation', () => {
+    it('are not permitted to have a duplicate project name during creation', () => {
         cy.request('GET', 'api/v1/teams', { failOnStatusCode: false }).then((response) => {
             let createAppCallCount = 0
             const team = response.body.teams[0]
