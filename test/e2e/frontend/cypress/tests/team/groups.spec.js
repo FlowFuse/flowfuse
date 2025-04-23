@@ -81,9 +81,10 @@ describe('FlowForge - Groups', () => {
             cy.get('[data-dialog="create-group"]').should('be.visible')
             cy.get('[data-dialog="create-group"]').within(() => {
                 cy.get('[data-el="applications-list"]').click()
-                cy.get('[data-el="applications-list"]').within(() => {
-                    cy.get('[data-option="application-1"]').click()
-                })
+            })
+            cy.get('[data-el="listbox-options"]').should('be.visible')
+            cy.get('[data-el="listbox-options"]').contains('application-1').click()
+            cy.get('[data-dialog="create-group"]').within(() => {
                 cy.get('[data-form="name"] input').type('A new group')
                 cy.get('[data-action="dialog-confirm"]').click()
             })
@@ -158,9 +159,10 @@ describe('FlowForge - Groups', () => {
             cy.get('[data-dialog="create-group"]').should('be.visible')
             cy.get('[data-dialog="create-group"]').within(() => {
                 cy.get('[data-el="applications-list"]').click()
-                cy.get('[data-el="applications-list"]').within(() => {
-                    cy.get('[data-option="application-1"]').click()
-                })
+            })
+            cy.get('[data-el="listbox-options"]').should('be.visible')
+            cy.get('[data-el="listbox-options"]').contains('application-1').click()
+            cy.get('[data-dialog="create-group"]').within(() => {
                 cy.get('[data-form="name"] input').type('A new group')
                 cy.get('[data-action="dialog-confirm"]').click()
             })
