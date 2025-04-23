@@ -71,7 +71,6 @@ export default {
     },
     methods: {
         onApplicationCreated (payload) {
-            console.log(payload)
             this.$router.push({ name: 'Application', params: { id: payload.application.id } })
         }
     }
