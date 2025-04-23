@@ -109,65 +109,71 @@ describe('FlowFuse platform admin users', () => {
         cy.get('[data-el="banner-device-as-admin"]').should('exist')
     })
 
-    it('can enable sign up', function () {
-        cy.isEmailEnabled()
-            .then((isEnabled) => {
-                if (!isEnabled) {
-                    this.skip()
-                }
-            })
+    describe('with platform email enabled', () => {
+        before(function () {
+            cy.isEmailEnabled()
+                .then((isEnabled) => {
+                    if (!isEnabled) {
+                        this.skip()
+                    }
+                })
+        })
 
-        cy.intercept('GET', '/api/*/settings').as('getSettings')
-        cy.intercept('POST', '/account/logout').as('logout')
+        beforeEach(() => {
+            cy.login('alice', 'aaPassword')
+            cy.home()
+        })
 
-        cy.visit('/admin/settings/general')
-        cy.wait('@getSettings')
+        after(() => {
+            cy.adminDisableSignUp()
+        })
 
-        // enable sign up
-        cy.get('[data-el="enable-signup"] [data-el="form-row-title"]').click()
+        it('can enable sign up', () => {
+            cy.intercept('GET', '/api/*/settings').as('getSettings')
+            cy.intercept('POST', '/account/logout').as('logout')
 
-        cy.get('[data-action="save-settings"]').click()
+            cy.visit('/admin/settings/general')
+            cy.wait('@getSettings')
 
-        cy.logout()
+            // enable sign up
+            cy.get('[data-el="enable-signup"] [data-el="form-row-title"]').click()
 
-        cy.visit('/')
+            cy.get('[data-action="save-settings"]').click()
 
-        cy.get('[data-action="sign-up"]').click()
+            cy.logout()
 
-        cy.url().should('include', '/account/create')
+            cy.visit('/')
 
-        cy.get('[data-el="banner-text"]').should('not.exist')
-        cy.get('[data-el="splash"]').should('not.exist')
-    })
+            cy.get('[data-action="sign-up"]').click()
 
-    it('can customise the content of the "Sign Up" screen', function () {
-        cy.isEmailEnabled()
-            .then((isEnabled) => {
-                if (!isEnabled) {
-                    this.skip()
-                }
-            })
+            cy.url().should('include', '/account/create')
 
-        cy.intercept('GET', '/api/*/settings').as('getSettings')
+            cy.get('[data-el="banner-text"]').should('not.exist')
+            cy.get('[data-el="splash"]').should('not.exist')
+        })
 
-        cy.visit('/admin/settings/general')
-        cy.wait('@getSettings')
+        it('can customise the content of the "Sign Up" screen', () => {
+            cy.intercept('GET', '/api/*/settings').as('getSettings')
 
-        cy.get('[data-el="banner"]').type('this is banner')
-        cy.get('[data-el="splash"]').type('<h1>Welcome to FlowForge</h1>')
+            cy.visit('/admin/settings/general')
+            cy.wait('@getSettings')
 
-        cy.get('[data-action="save-settings"]').click()
+            cy.get('[data-el="banner"]').type('this is banner')
+            cy.get('[data-el="splash"]').type('<h1>Welcome to FlowForge</h1>')
 
-        cy.logout()
+            cy.get('[data-action="save-settings"]').click()
 
-        cy.visit('/')
+            cy.logout()
 
-        cy.get('[data-action="sign-up"]').click()
+            cy.visit('/')
 
-        cy.url().should('include', '/account/create')
+            cy.get('[data-action="sign-up"]').click()
 
-        cy.get('[data-el="banner-text"]').contains('this is banner')
-        cy.get('[data-el="splash"]').contains('Welcome to FlowForge')
+            cy.url().should('include', '/account/create')
+
+            cy.get('[data-el="banner-text"]').contains('this is banner')
+            cy.get('[data-el="splash"]').contains('Welcome to FlowForge')
+        })
     })
 })
 
