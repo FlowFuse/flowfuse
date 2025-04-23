@@ -8,10 +8,11 @@ const yaml = require('yaml')
 
 const app = require('./environments/standard.js')
 
-const configFile = fs.readFileSync(path.join(process.cwd(), 'etc', 'flowforge.local.yml'), 'utf8')
+const configPath = path.join(process.cwd(), 'etc', 'flowforge.local.yml')
 let e2eConfig = null
 
-if (configFile) {
+if (fs.existsSync(configPath)) {
+    const configFile = fs.readFileSync(configPath, 'utf8')
     e2eConfig = yaml.parse(configFile).e2e
 }
 

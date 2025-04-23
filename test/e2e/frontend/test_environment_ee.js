@@ -14,27 +14,28 @@ const app = require('./environments/standard')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
-const configFile = fs.readFileSync(path.join(process.cwd(), 'etc', 'flowforge.local.yml'), 'utf8')
-let emailConfig = null
+const configPath = path.join(process.cwd(), 'etc', 'flowforge.local.yml')
+let e2eConfig = null
 
-if (configFile) {
-    emailConfig = yaml.parse(configFile).e2e
+if (fs.existsSync(configPath)) {
+    const configFile = fs.readFileSync(configPath, 'utf8')
+    e2eConfig = yaml.parse(configFile).e2e
 }
 
 ;(async function () {
     const PORT = 3002
-    let smtpConfig
+    let emailConfig
 
-    if (emailConfig && emailConfig.email && emailConfig.email.ee && emailConfig.email.ee.enabled) {
+    if (e2eConfig && e2eConfig.email && e2eConfig.email.ee && e2eConfig.email.ee.enabled) {
         const smtp = require('./environments/smtp')
 
         await smtp({
-            smtpPort: emailConfig.email.ee.smtp.port,
-            webPort: emailConfig.email.ee.smtp.web_port
+            smtpPort: e2eConfig.email.ee.smtp.port,
+            webPort: e2eConfig.email.ee.smtp.web_port
         })
-        smtpConfig = emailConfig.email.ee
+        emailConfig = e2eConfig.email.ee
     } else {
-        smtpConfig = {
+        emailConfig = {
             enabled: true,
             debug: true,
             smtp: {
@@ -66,7 +67,7 @@ if (configFile) {
                 }
             }
         },
-        email: smtpConfig,
+        email: emailConfig,
         broker: {
             url: ':test:',
             teamBroker: {
