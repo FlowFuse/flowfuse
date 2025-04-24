@@ -166,7 +166,7 @@ export default {
                 host: '',
                 port: null,
                 protocol: 'mqtt:',
-                protocolVersion: '4',
+                protocolVersion: 4,
                 ssl: 'false',
                 verifySSL: 'true',
                 clientId: '',
