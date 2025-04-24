@@ -27,6 +27,7 @@
 
 .ff-icon-lg {
   width: 24px;
+  width: 24px;
   height: 24px;
   display: inline-block;
 }
@@ -851,7 +852,7 @@ li.ff-list-item {
   height: 100%;
   justify-content: center;
   align-items: flex-start;
-  overflow-y: auto;
+  overflow-y: hidden;
   background-color: rgba($ff-grey-800, 0.3);
   &--open {
     display: flex;
@@ -870,6 +871,8 @@ li.ff-list-item {
   display: flex;
   flex-direction: column;
   background-color: $ff-white;
+  max-height: 85vh;
+  overflow: auto;
   .ff-dialog {
     &-header {
       height: 48px;
@@ -879,10 +882,18 @@ li.ff-list-item {
       padding: 0 $ff-unit-lg;
       color: $ff-white;
       font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    &-subheader {
+      opacity: 0.65;
+      display: block;
     }
     &-content {
       padding: $ff-funit-lg;
-      overflow-y: visible;
+      overflow: auto;
+      max-height: 75vh;
     }
     &-actions {
       display: flex;
@@ -892,6 +903,9 @@ li.ff-list-item {
         margin-left: $ff-funit-md;
       }
     }
+  }
+  &--wide {
+    max-width: 52rem;
   }
 }
 

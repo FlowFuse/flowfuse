@@ -88,6 +88,14 @@ export default {
                 options.deviceGroupId = input.deviceGroupId
             }
 
+            if (input.gitTokenId) {
+                // Git repo - clean up unused settings
+                options.gitTokenId = input.gitTokenId
+                options.url = input.url
+                options.branch = input.branch
+                options.credentialSecret = input.credentialSecret
+            }
+
             await PipelinesAPI.addPipelineStage(this.pipeline.id, options)
             Alerts.emit('Pipeline stage successfully added.', 'confirmation')
 

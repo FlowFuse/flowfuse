@@ -146,7 +146,7 @@ describe('Team - Bill Of Materials', () => {
                 .parent()
                 .within(() => {
                     cy.get('[data-el="versions-list"] button').click()
-                    cy.get('[data-el="versions-list"] button').contains('1 x Instances')
+                    cy.get('[data-el="versions-list"] button').contains('1 x Hosted Instances')
                     cy.get('[data-el="versions-list"]')
                         .within(() => {
                             cy.get('[data-el="instance-item"]').should('have.length', 1)
@@ -161,7 +161,7 @@ describe('Team - Bill Of Materials', () => {
                 .parent()
                 .within(() => {
                     cy.get('[data-el="versions-list"] button').click()
-                    cy.get('[data-el="versions-list"] button').contains('1 x Instances')
+                    cy.get('[data-el="versions-list"] button').contains('1 x Hosted Instances')
                     cy.get('[data-el="versions-list"]')
                         .within(() => {
                             cy.get('[data-el="instance-item"]').should('have.length', 1)
@@ -177,7 +177,7 @@ describe('Team - Bill Of Materials', () => {
                 .parent()
                 .within(() => {
                     cy.get('[data-el="versions-list"] button').click()
-                    cy.get('[data-el="versions-list"] button').contains('1 x Instances')
+                    cy.get('[data-el="versions-list"] button').contains('1 x Hosted Instances')
                     cy.get('[data-el="versions-list"]')
                         .within(() => {
                             cy.get('[data-el="instance-item"]').should('have.length', 1)
@@ -202,7 +202,7 @@ describe('Team - Bill Of Materials', () => {
             cy.get('[data-form="search"] input').type('instance')
             cy.get('[data-el="dependency-item"]').should('have.length', 5)
 
-            cy.contains('x Devices').should('not.exist')
+            cy.contains('x Remote Instances').should('not.exist')
 
             // can search by instance type
             cy.get('[data-form="search"] input').clear()
@@ -252,7 +252,7 @@ describe('Team - Bill Of Materials', () => {
             cy.get('[data-el="dependency-item"]').should('have.length', 2)
         })
 
-        it('should correctly display the status pill for devices and instances', () => {
+        it('should correctly display the status pill for remote instances and hosted instances', () => {
             interceptBom(dependencies)
 
             cy.login('alice', 'aaPassword')

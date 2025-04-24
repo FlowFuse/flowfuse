@@ -20,10 +20,6 @@
                 Some settings are not available until you upgrade your stack. <ff-button size="small" to="general">Upgrade</ff-button>
             </div>
         </div>
-
-        <div class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges || !validateFormInputs()" data-action="save-settings" @click="saveSettings()">Save settings</ff-button>
-        </div>
     </form>
 </template>
 
@@ -38,7 +34,8 @@ import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
-import alerts from '../../../services/alerts.js'
+import Alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 
 export default {
     name: 'LauncherSettings',
@@ -54,7 +51,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'save-button-state', 'restart-instance'],
     data () {
         return {
             mounted: false,
@@ -69,7 +66,6 @@ export default {
             errors: {
                 healthCheckInterval: ''
             }
-
         }
     },
     computed: {
@@ -86,6 +82,12 @@ export default {
                 return true
             }
             return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.12.0')
+        },
+        saveButton () {
+            return {
+                visible: true,
+                disabled: !this.unsavedChanges || !this.validateFormInputs()
+            }
         }
     },
     watch: {
@@ -98,6 +100,12 @@ export default {
         'input.disableAutoSafeMode': function (value) {
             if (this.mounted) {
                 this.validateFormInputs()
+            }
+        },
+        saveButton: {
+            immediate: true,
+            handler (state) {
+                this.$emit('save-button-state', state)
             }
         }
     },
@@ -145,12 +153,23 @@ export default {
                 }
             }
             if (!this.validateFormInputs()) {
-                alerts.emit('Please correct the errors before saving.', 'error')
+                Alerts.emit('Please correct the errors before saving.', 'error')
                 return
             }
             await InstanceApi.updateInstance(this.project.id, { launcherSettings })
             this.$emit('instance-updated')
-            alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
+            // is instance running
+            if (this.project.meta.state === 'running') {
+                Dialog.show({
+                    header: 'Restart Required',
+                    html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
+                    confirmLabel: 'Restart Now',
+                    cancelLabel: 'Restart Later'
+                }, () => {
+                    // restart the instance
+                    this.$emit('restart-instance')
+                })
+            }
         }
     }
 }

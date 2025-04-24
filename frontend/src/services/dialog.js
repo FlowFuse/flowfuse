@@ -8,6 +8,7 @@ const subscriptions = []
  * @param {string} text The dialog text - can include newlines (\n) and they will be formatted properly
  * @param {string} html The dialog html (instead of text - use with caution to avoid XSS)
  * @param {string} confirmLabel The dialog confirm button label
+ * @param {string} cancelLabel The dialog cancel button label
  */
 
 export default {
