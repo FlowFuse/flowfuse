@@ -1,17 +1,36 @@
 <template>
     <div class="mb-3">
-        <SectionTopMenu hero="Settings" info="" />
+        <SectionTopMenu hero="Settings" info="">
+            <template #tools>
+                <ff-button
+                    v-if="tools.saveButton.visible"
+                    :disabled="tools.saveButton.disabled"
+                    class="ff-btn ff-btn--primary"
+                    size="small"
+                    data-el="save-settings-button"
+                    @click="onSaveButtonClick"
+                >
+                    {{ tools.saveButton.label }}
+                </ff-button>
+            </template>
+        </SectionTopMenu>
     </div>
     <div class="flex flex-col sm:flex-row flex-1 overflow-auto">
-        <SectionSideMenu :options="sideNavigation" />
-        <div class="flex-grow overflow-auto">
-            <router-view
-                :project="instance"
-                :instance="instance"
-                @instance-updated="$emit('instance-updated')"
-                @instance-confirm-suspend="$emit('instance-confirm-suspend')"
-                @instance-confirm-delete="$emit('instance-confirm-delete')"
-            />
+        <SectionSideMenu :options="navigation" />
+        <div class="flex-grow">
+            <router-view v-slot="{ Component }">
+                <component
+                    :is="Component"
+                    ref="settingsPage"
+                    :project="instance"
+                    :instance="instance"
+                    @instance-updated="$emit('instance-updated')"
+                    @restart-instance="restartInstance"
+                    @instance-confirm-suspend="$emit('instance-confirm-suspend')"
+                    @instance-confirm-delete="$emit('instance-confirm-delete')"
+                    @save-button-state="onSaveButtonStateChange"
+                />
+            </router-view>
         </div>
     </div>
 </template>
@@ -21,6 +40,7 @@ import { mapState } from 'vuex'
 
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import instanceActionsMixin from '../../../mixins/InstanceActions.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
@@ -29,7 +49,7 @@ export default {
         SectionTopMenu,
         SectionSideMenu
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, instanceActionsMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -40,39 +60,73 @@ export default {
     emits: ['instance-updated', 'instance-confirm-delete', 'instance-confirm-suspend'],
     data () {
         return {
-            sideNavigation: []
+            sideNavigation: [],
+            tools: {
+                saveButton: {
+                    visible: false,
+                    disabled: true,
+                    label: 'Save Changes'
+                }
+            }
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'features', 'settings'])
-    },
-    watch: {
-        teamMembership: 'checkAccess'
-    },
-    mounted () {
-        this.checkAccess()
+        ...mapState('account', ['team', 'teamMembership', 'features', 'settings']),
+        navigation () {
+            const canEditProject = this.hasPermission('project:edit')
+
+            const routes = [
+                { name: 'General', path: { name: 'instance-settings-general' } },
+                { name: 'Environment', path: { name: 'instance-settings-environment' } },
+                {
+                    name: 'High Availability',
+                    path: { name: 'instance-settings-ha' },
+                    hidden: !canEditProject || !!this.features.ha === false
+                },
+                {
+                    name: 'Protect Instance',
+                    path: { name: 'instance-settings-protect' },
+                    hidden: !canEditProject ||
+                        !!this.features?.protectedInstance === false ||
+                        !!this.team?.type?.properties?.features?.protectedInstance === false
+                },
+                { name: 'Editor', path: { name: 'instance-settings-editor' }, hidden: !canEditProject },
+                { name: 'Security', path: { name: 'instance-settings-security' }, hidden: !canEditProject },
+                { name: 'Palette', path: { name: 'instance-settings-palette' }, hidden: !canEditProject },
+                { name: 'Launcher', path: { name: 'instance-settings-launcher' }, hidden: !canEditProject },
+                {
+                    name: 'Alerts',
+                    path: { name: 'instance-settings-alerts' },
+                    hidden: !canEditProject ||
+                        !!this.features?.emailAlerts === false ||
+                        !!this.team?.type?.properties?.features?.emailAlerts === false
+                }
+            ]
+            return routes.map(route => {
+                if (this.$route.name.includes('-editor-')) {
+                    route.path.name = route.path.name.replace('instance-', 'instance-editor-')
+                }
+                return route
+            })
+        }
     },
     methods: {
-        checkAccess: async function () {
-            this.sideNavigation = [
-                { name: 'General', path: './general' },
-                { name: 'Environment', path: './environment' }
-            ]
-            if (this.hasPermission('project:edit')) {
-                if (this.features.ha) {
-                    this.sideNavigation.push({ name: 'High Availability', path: './ha' })
-                }
-                if (this.features.protectedInstance && this.team.type.properties.features?.protectedInstance) {
-                    this.sideNavigation.push({ name: 'Protect Instance', path: './protectInstance' })
-                }
-                this.sideNavigation.push({ name: 'Editor', path: './editor' })
-                this.sideNavigation.push({ name: 'Security', path: './security' })
-                this.sideNavigation.push({ name: 'Palette', path: './palette' })
-                this.sideNavigation.push({ name: 'Launcher', path: './launcher' })
-                if (this.features.emailAlerts && this.team.type.properties.features?.emailAlerts) {
-                    this.sideNavigation.push({ name: 'Alerts', path: './alerts' })
-                }
+        onSaveButtonStateChange (state) {
+            this.tools.saveButton = {
+                ...this.tools.saveButton,
+                ...state
             }
+        },
+        onSaveButtonClick () {
+            if (
+                Object.prototype.hasOwnProperty.call(this.$refs.settingsPage, 'saveSettings') &&
+                typeof this.$refs.settingsPage.saveSettings === 'function'
+            ) {
+                this.$refs.settingsPage.saveSettings()
+            }
+        },
+        restartInstance () {
+            this.instanceRestart(this.instance) // from the InstanceActions mixin
         }
     }
 }

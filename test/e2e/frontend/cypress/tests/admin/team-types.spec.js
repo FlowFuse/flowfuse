@@ -63,7 +63,7 @@ describe('FlowForge - Instance Types', () => {
     it('can successfully delete an inactive instance type', () => {
         cy.get('[data-el="active-types"]').find('.ff-tile-selection-option').its('length').then((activeTypes) => {
             cy.get('[data-el="inactive-types"] tbody .ff-kebab-menu').click()
-            cy.get('[data-el="inactive-types"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(1).click()
+            cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(1).click()
 
             // TODO: Adding local exception until our dialog boxes provide a data attr to use
             // eslint-disable-next-line cypress/require-data-selectors

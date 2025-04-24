@@ -50,6 +50,7 @@
             :instance-status-map="instanceStatusMap"
             :device-status-map="deviceStatusMap"
             :device-group-status-map="deviceGroupStatusMap"
+            :git-repo-status-map="gitRepoStatusMap"
             @stage-deploy-starting="stageDeployStarting"
             @stage-deploy-started="startPollingForDeployStatus"
             @stage-deploy-failed="stageDeployFailed"
@@ -139,10 +140,12 @@ export default {
             instanceStatusMap: new Map(),
             deviceStatusMap: new Map(),
             deviceGroupStatusMap: new Map(),
+            gitRepoStatusMap: new Map(),
             polling: {
                 instances: null,
                 devices: null,
-                deviceGroups: null
+                deviceGroups: null,
+                gitRepos: null
             }
         }
     },
@@ -168,7 +171,7 @@ export default {
         }
     },
     methods: {
-        stageDeployStarting (stage, nextStage) {
+        stageDeployStarting (stage, nextStage, pipeline) {
             // Optimistic flagging of deployment in progress
             if (nextStage.instance?.id) {
                 if (!this.instanceStatusMap.has(nextStage.instance.id)) {
@@ -186,11 +189,19 @@ export default {
                     this.deviceGroupStatusMap.set(nextStageDeviceGroupMapId, {})
                 }
                 this.deviceGroupStatusMap.get(nextStageDeviceGroupMapId).isDeploying = true
+            } else if (nextStage.gitRepo?.gitTokenId) {
+                this.gitRepoStatusMap.set(nextStage.id, {
+                    isDeploying: true,
+                    pipeline,
+                    status: 'pushing',
+                    statusMessage: '',
+                    lastPushAt: Date.now()
+                })
             } else {
                 return console.warn('Deployment starting to stage without an instance, device or device group.')
             }
         },
-        stageDeployFailed (stage, nextStage) {
+        stageDeployFailed (stage, nextStage, pipeline) {
             if (nextStage.instance?.id) {
                 if (this.instanceStatusMap.has(nextStage.instance.id)) {
                     clearInterval(this.polling.instances)
@@ -207,15 +218,20 @@ export default {
                     clearInterval(this.polling.deviceGroups)
                     this.deviceGroupStatusMap.get(nextStageDeviceGroupMapId).isDeploying = false
                 }
+            } else if (nextStage.gitRepo?.gitTokenId) {
+                clearInterval(this.polling.gitRepos)
+                this.gitRepoStatusMap.get(nextStage.id).isDeploying = false
             }
         },
-        startPollingForDeployStatus (stage, nextStage) {
+        startPollingForDeployStatus (stage, nextStage, pipeline) {
             if (nextStage.instance?.id) {
                 this.startPollingForInstanceDeployStatus()
             } else if (nextStage.device?.id) {
                 this.startPollingForDeviceDeployStatus()
             } else if (nextStage.deviceGroup?.id) {
                 this.startPollingForDeviceGroupsDeployStatus()
+            } else if (nextStage.gitRepo?.gitTokenId) {
+                this.startPollingForGitRepoStatus()
             } else {
                 return console.warn('Polling started for stage without an instance, device or device group.')
             }
@@ -231,6 +247,10 @@ export default {
         startPollingForDeviceGroupsDeployStatus () {
             clearInterval(this.polling.deviceGroups)
             this.polling.deviceGroups = setInterval(this.loadDeviceGroupStatus, 5000)
+        },
+        startPollingForGitRepoStatus () {
+            clearInterval(this.polling.gitRepos)
+            this.polling.gitRepos = setInterval(this.loadGitRepoStatus, 1000)
         },
         stageInstanceDeployCompleted () {
             clearInterval(this.polling.instances)
@@ -249,6 +269,10 @@ export default {
             this.polling.deviceGroups = null
 
             Alerts.emit('Deployment of stage successful.', 'confirmation')
+        },
+        stageGitRepoDeployCompleted () {
+            clearInterval(this.polling.gitRepos)
+            this.polling.gitRepos = null
         },
         async stageDeleted (pipeline, stageIndex) {
             pipeline.stages.splice(stageIndex, 1)
@@ -378,6 +402,33 @@ export default {
                 this.deviceGroupStatusMap = deviceGroupsMap
             } catch (err) {
                 console.error(err)
+            }
+        },
+
+        async loadGitRepoStatus () {
+            const promises = []
+            let someDeploying = false
+            this.gitRepoStatusMap.forEach((status, stageId) => {
+                promises.push(PipelineAPI.getPipelineStage(status.pipeline.id, stageId)
+                    .then((stage) => {
+                        const currentStatus = this.gitRepoStatusMap.get(stageId)
+                        if (stage.gitRepo?.status === 'pushing') {
+                            someDeploying = true
+                        } else {
+                            currentStatus.isDeploying = false
+                        }
+                        currentStatus.status = stage.gitRepo?.status
+                        currentStatus.statusMessage = stage.gitRepo?.statusMessage
+                        currentStatus.lastPushAt = stage.gitRepo?.lastPushAt
+                    })
+                    .catch((err) => {
+                        console.error(err)
+                    }))
+            })
+            await Promise.all(promises)
+            if (!someDeploying) {
+                // All done - stopping the polling
+                this.stageGitRepoDeployCompleted()
             }
         }
     }

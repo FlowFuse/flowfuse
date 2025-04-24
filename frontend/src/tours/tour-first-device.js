@@ -1,3 +1,5 @@
+export const id = 'first-device'
+
 export default [
     // {
     //     title: 'Application: Remote Instances',
@@ -78,4 +80,5 @@ export default [
                 }, 100)
             })
         }
-    }]
+    }
+]

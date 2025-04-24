@@ -7,13 +7,11 @@
     <main v-else class="ff-with-status-header h-full w-full overflow-auto flex flex-col">
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
-        <div class="ff-instance-header">
-            <ff-page-header :title="application.name" :tabs="navigation">
-                <template #breadcrumbs>
-                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
-                </template>
-            </ff-page-header>
-        </div>
+        <ff-page-header :title="application.name" :tabs="navigation">
+            <template #breadcrumbs>
+                <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+            </template>
+        </ff-page-header>
         <div class="px-3 py-3 md:px-6 md:py-6 flex-1 overflow-auto h-full w-full flex flex-col">
             <router-view
                 :application="application"

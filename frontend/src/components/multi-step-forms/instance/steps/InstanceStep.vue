@@ -1,17 +1,14 @@
 <template>
-    <section class="instance-step text-center flex flex-col gap-7">
+    <section class="ff-instance-step text-center flex flex-col gap-4 pt-6">
         <h2>Setup Your Instance</h2>
-
-        <p>We have a collection of pre-build flow templates that you can use as a starting point for your Node-RED Instance.</p>
-
         <form class="max-w-2xl m-auto text-left flex flex-col gap-7">
             <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
 
             <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
 
-            <div class="name input-wrapper flex flex-col gap-1">
+            <div class="ff-instance-name ff-input-wrapper flex flex-col gap-1">
                 <label class="mb-1">Name</label>
-                <div class="input-wrapper flex gap-3 items-center">
+                <div class="ff-input-wrapper flex gap-3 items-center">
                     <ff-text-input
                         v-model="input.name"
                         label="instance-name"
@@ -41,9 +38,9 @@
             <transition name="fade" mode="out-in">
                 <Loading v-if="loading" size="small" />
 
-                <div v-else class="flex flex-col gap-1">
-                    <div class="instance-types input-wrapper flex flex-wrap items-stretch">
-                        <label class="mb-2">Choose your Instance Type</label>
+                <div v-else class="flex flex-col gap-4">
+                    <div class="instance-types ff-input-wrapper flex flex-wrap items-stretch" data-group="instance-types">
+                        <label class="w-full mb-2 block">Choose your Instance Type</label>
                         <template v-if="hasInstanceTypes && activeInstanceTypeCount > 0">
                             <InstanceCreditBanner :subscription="subscription" />
                             <ff-tile-selection v-model="input.instanceType" data-form="project-type">
@@ -71,8 +68,12 @@
                         </template>
                     </div>
 
-                    <div v-if="hasMultipleTemplates" class="instance-templates input-wrapper flex flex-wrap items-stretch">
-                        <label class="mb-2">Choose your Template</label>
+                    <div
+                        v-if="hasMultipleTemplates"
+                        class="instance-templates ff-input-wrapper flex flex-wrap items-stretch"
+                        data-group="templates"
+                    >
+                        <label class="mb-2 block w-full">Choose your Template</label>
                         <template v-if="hasTemplates">
                             <ff-tile-selection v-model="input.template" data-form="project-type">
                                 <ff-tile-selection-option
@@ -92,7 +93,7 @@
                         </template>
                     </div>
 
-                    <div class="node-red-version input-wrapper flex flex-col gap-1">
+                    <div class="node-red-version ff-input-wrapper flex flex-col gap-1">
                         <label class="mb-1">Node-RED Version</label>
                         <template v-if="hasNodeRedVersions">
                             <ff-listbox
@@ -165,6 +166,7 @@ export default {
             },
             nodeRedVersions: [],
             instanceTypes: [],
+            decoratedInstanceTypes: [],
             instanceTemplates: [],
             subscription: null,
             loading: true
@@ -174,102 +176,6 @@ export default {
         ...mapState('account', ['features', 'team']),
         activeInstanceTypeCount () {
             return this.decoratedInstanceTypes.filter(instance => !instance.disabled).length
-        },
-        decoratedInstanceTypes () {
-            let instanceTypes = [...this.instanceTypes]
-
-            // Do a first pass of the instance types to disable any not allowed for this team
-            instanceTypes = instanceTypes.map(instanceType => {
-                // Need to combine the projectType billing info with any overrides
-                // from the current teamType
-                const teamTypeInstanceProperties = this.team.type.properties.instances[instanceType.id]
-                const existingInstanceCount = this.team.instanceCountByType?.[instanceType.id] || 0
-                if (this.teamRuntimeLimitReached) {
-                    // The overall limit has been reached
-                    instanceType.disabled = true
-                } else if (teamTypeInstanceProperties) {
-                    if (!teamTypeInstanceProperties.active) {
-                        // This instanceType is disabled for this teamType
-                        instanceType.disabled = true
-                    } else if (teamTypeInstanceProperties.creatable === false) {
-                        // Type is active (it can exist), but not creatable (not allowed to create more) for this team type.
-                        // This can happen follow a change of TeamType where different instance types are available.
-                        // This check treats undefined as true for backwards compatibility
-                        instanceType.disabled = true
-                    } else if (teamTypeInstanceProperties.limit !== null && teamTypeInstanceProperties.limit <= existingInstanceCount) {
-                        // This team has reached the limit of this instance type
-                        instanceType.disabled = true
-                    }
-                }
-                // if (instanceType.disabled) {
-                //     this.activeInstanceTypeCount--
-                // }
-
-                return instanceType
-            })
-
-            if (this.features.billing) {
-                // With billing enabled, do a second pass through the instance types
-                // to populate their billing info
-                instanceTypes = instanceTypes.map(instanceType => {
-                    // Need to combine the projectType billing info with any overrides
-                    // from the current teamType
-                    const teamTypeInstanceProperties = this.team.type.properties.instances[instanceType.id]
-                    let existingInstanceCount = this.team.instanceCountByType?.[instanceType.id] || 0
-                    if (this.team.type.properties.devices?.combinedFreeType === instanceType.id) {
-                        // Need to include device count as they use a combined free allocation
-                        existingInstanceCount += this.team.deviceCount
-                    }
-                    instanceType.price = ''
-                    instanceType.priceInterval = ''
-                    instanceType.currency = ''
-                    instanceType.cost = 0
-                    if (!instanceType.disabled && !this.team.billing?.unmanaged) {
-                        let billingDescription
-                        if (teamTypeInstanceProperties) {
-                            // TeamType provides metadata to use - do not fall back to instanceType
-                            if (existingInstanceCount >= (teamTypeInstanceProperties.free || 0)) {
-                                billingDescription = teamTypeInstanceProperties.description
-                            } else {
-                                // This team is still within its free allowance so clear
-                                // the billingDescription
-                            }
-                        } else {
-                            billingDescription = instanceType.properties?.billingDescription
-                        }
-                        if (billingDescription) {
-                            [instanceType.price, instanceType.priceInterval] = billingDescription.split('/')
-                            instanceType.currency = instanceType.price.replace(/[\d.]+/, '')
-                            instanceType.cost = (Number(instanceType.price.replace(/[^\d.]+/, '')) || 0) * 100
-                        } else {
-                            instanceType.price = ''
-                            instanceType.priceInterval = ''
-                            instanceType.currency = ''
-                            instanceType.cost = 0
-                        }
-                        if (this.team.billing?.trial) {
-                            if (this.team.type.properties?.trial?.instanceType) {
-                                const isTrialProjectType = instanceType.id === this.team.type.properties?.trial?.instanceType
-                                if (!this.team.billing?.active) {
-                                    // No active billing - only allow the trial instance type
-                                    instanceType.disabled = !isTrialProjectType
-                                    // if (instanceType.disabled) {
-                                    //     this.activeInstanceTypeCount--
-                                    // }
-                                }
-                                if (isTrialProjectType && this.team.billing?.trialProjectAllowed) {
-                                    instanceType.price = 'Free Trial'
-                                    instanceType.priceInterval = instanceType.properties?.billingDescription
-                                }
-                            }
-                        }
-                    }
-
-                    return instanceType
-                })
-            }
-
-            return instanceTypes
         },
         filteredProjectTypes () {
             return this.decoratedInstanceTypes.filter(instanceType => !instanceType.disabled)
@@ -393,12 +299,24 @@ export default {
             this.nodeRedVersions = versions.stacks
                 .filter(version => version.active)
                 .map(version => { return { ...version, value: version.id, label: version.label || version.name } })
+            if (this.input.instanceType) {
+                const instanceType = this.getInstanceType(this.input.instanceType)
+                if (instanceType?.defaultStack) {
+                    const version = this.nodeRedVersions.find(version => version.id === instanceType.defaultStack)
+                    if (version) {
+                        this.input.nodeREDVersion = instanceType.defaultStack
+                    } else if (this.nodeRedVersions.length > 0) {
+                        // Default to first in the list; don't force a selection to be made
+                        this.input.nodeREDVersion = this.nodeRedVersions[0]?.id
+                    }
+                }
+            }
         },
         async getInstanceTypes () {
             const instanceTypes = await instanceTypesApi.getInstanceTypes()
 
             this.instanceTypes = instanceTypes.types ?? []
-            this.activeInstanceTypeCount = this.instanceTypes.length
+            this.decoratedInstanceTypes = this.decorateInstanceTypes(instanceTypes.types ?? [])
         },
         async getSubscription () {
             if (this.features.billing && !this.team.billing?.unmanaged && !this.team.type.properties?.billing?.disabled) {
@@ -414,22 +332,122 @@ export default {
                 }
             }
         },
-        async getTemplates () {
-            const templates = await templatesApi.getTemplates()
-            this.instanceTemplates = templates.templates
+        decorateInstanceTypes (instanceTypes) {
+            // TODO this needs to be a computed prop but it's causing too many side effects to be used as is
+
+            // Do a first pass of the instance types to disable any not allowed for this team
+            instanceTypes = instanceTypes.map(instanceType => {
+                // Need to combine the projectType billing info with any overrides
+                // from the current teamType
+                const teamTypeInstanceProperties = this.team.type.properties.instances[instanceType.id]
+                const existingInstanceCount = this.team.instanceCountByType?.[instanceType.id] || 0
+                if (this.teamRuntimeLimitReached) {
+                    // The overall limit has been reached
+                    instanceType.disabled = true
+                } else if (teamTypeInstanceProperties) {
+                    if (!teamTypeInstanceProperties.active) {
+                        // This instanceType is disabled for this teamType
+                        instanceType.disabled = true
+                    } else if (teamTypeInstanceProperties.creatable === false) {
+                        // Type is active (it can exist), but not creatable (not allowed to create more) for this team type.
+                        // This can happen follow a change of TeamType where different instance types are available.
+                        // This check treats undefined as true for backwards compatibility
+                        instanceType.disabled = true
+                    } else if (teamTypeInstanceProperties.limit !== null && teamTypeInstanceProperties.limit <= existingInstanceCount) {
+                        // This team has reached the limit of this instance type
+                        instanceType.disabled = true
+                    }
+                }
+
+                return instanceType
+            })
+
+            if (this.features.billing) {
+                // With billing enabled, do a second pass through the instance types
+                // to populate their billing info
+                instanceTypes = instanceTypes.map(instanceType => {
+                    // Need to combine the projectType billing info with any overrides
+                    // from the current teamType
+                    const teamTypeInstanceProperties = this.team.type.properties.instances[instanceType.id]
+                    let existingInstanceCount = this.team.instanceCountByType?.[instanceType.id] || 0
+                    if (this.team.type.properties.devices?.combinedFreeType === instanceType.id) {
+                        // Need to include device count as they use a combined free allocation
+                        existingInstanceCount += this.team.deviceCount
+                    }
+                    instanceType.price = ''
+                    instanceType.priceInterval = ''
+                    instanceType.currency = ''
+                    instanceType.cost = 0
+                    if (!instanceType.disabled && !this.team.billing?.unmanaged) {
+                        let billingDescription
+                        if (teamTypeInstanceProperties) {
+                            // TeamType provides metadata to use - do not fall back to instanceType
+                            if (existingInstanceCount >= (teamTypeInstanceProperties.free || 0)) {
+                                billingDescription = teamTypeInstanceProperties.description
+                            } else {
+                                // This team is still within its free allowance so clear
+                                // the billingDescription
+                            }
+                        } else {
+                            billingDescription = instanceType.properties?.billingDescription
+                        }
+                        if (billingDescription) {
+                            [instanceType.price, instanceType.priceInterval] = billingDescription.split('/')
+                            instanceType.currency = instanceType.price.replace(/[\d.]+/, '')
+                            instanceType.cost = (Number(instanceType.price.replace(/[^\d.]+/, '')) || 0) * 100
+                        } else {
+                            instanceType.price = ''
+                            instanceType.priceInterval = ''
+                            instanceType.currency = ''
+                            instanceType.cost = 0
+                        }
+                        if (this.team.billing?.trial) {
+                            if (this.team.type.properties?.trial?.instanceType) {
+                                const isTrialProjectType = instanceType.id === this.team.type.properties?.trial?.instanceType
+                                if (!this.team.billing?.active) {
+                                    // No active billing - only allow the trial instance type
+                                    instanceType.disabled = !isTrialProjectType
+                                }
+                                if (isTrialProjectType && this.team.billing?.trialProjectAllowed) {
+                                    instanceType.price = 'Free Trial'
+                                    // instanceType.priceInterval = instanceType.properties?.billingDescription
+                                }
+                            }
+                        }
+                    }
+
+                    return instanceType
+                })
+            }
+
+            return instanceTypes
+        },
+        getTemplates () {
+            return templatesApi.getTemplates()
+                .then((response) => {
+                    const templates = response.templates.filter(template => template.active)
+                    if (templates.length === 1) {
+                        this.input.template = templates[0].id
+                    }
+
+                    this.instanceTemplates = templates
+                })
         },
         refreshName () {
             this.input.name = NameGenerator()
+        },
+        getInstanceType (id) {
+            return this.instanceTypes.find(instanceType => instanceType.id === id)
         }
     }
 }
 </script>
 
 <style scoped lang="scss">
-.instance-step {
+.ff-instance-step {
     form {
-        .name {
-            .input-wrapper {
+        .ff-instance-name {
+            .ff-input-wrapper {
                 button {
                     padding: 5px 10px;
                 }

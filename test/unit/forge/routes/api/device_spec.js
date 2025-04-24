@@ -107,14 +107,14 @@ describe('Device API', async function () {
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
 
+        TestObjects.defaultTeamType = app.defaultTeamType
         TestObjects.Project1 = app.project
+        TestObjects.Application1 = app.application
         TestObjects.provisioningTokens = {
             token1: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 1', TestObjects.ATeam),
-            token2: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.ATeam, TestObjects.Project1)
+            token2: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.ATeam, 'instance', TestObjects.Project1.id),
+            token3: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 3', TestObjects.ATeam, 'application', TestObjects.Application1.hashid)
         }
-
-        TestObjects.defaultTeamType = app.defaultTeamType
-        TestObjects.Application1 = app.application
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
@@ -308,6 +308,34 @@ describe('Device API', async function () {
 
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
             result.instance.should.have.property('id', TestObjects.Project1.id)
+            result.credentials.should.have.property('token')
+        })
+
+        it('creates a device in the team and assigns it to an application using a provisioning token', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: 'aa:bb:cc:dd:ee:ff',
+                    type: 'app device',
+                    team: TestObjects.ATeam.hashid
+                },
+                headers: {
+                    authorization: `Bearer ${TestObjects.provisioningTokens.token3.token}`
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('name', 'aa:bb:cc:dd:ee:ff')
+            result.should.have.property('type', 'app device')
+            result.should.have.property('lastSeenMs', null) // required for device list UI
+            result.should.have.property('links').and.be.an.Object()
+            result.should.have.property('team').and.be.an.Object()
+            result.should.have.property('application').and.be.an.Object()
+            result.should.have.property('credentials').and.be.an.Object()
+
+            result.team.should.have.property('id', TestObjects.ATeam.hashid)
+            result.application.should.have.property('id', TestObjects.Application1.hashid)
             result.credentials.should.have.property('token')
         })
 
@@ -1312,6 +1340,42 @@ describe('Device API', async function () {
                 // Verify the AuthClient has been removed
                 authClient = await app.db.models.AuthClient.findOne({ where: { ownerType: 'device', ownerId: '' + deviceId } })
                 should.not.exist(authClient)
+            })
+            it('can set localAuth for a device', async function () {
+                const device = await createDevice({ name: 'LocalAuthSettingsD1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                await updateSettings(device, TestObjects.tokens.alice, {
+                    security: {
+                        localAuth: {
+                            enabled: true,
+                            user: 'local-user',
+                            pass: '$Password'
+                        }
+                    }
+                })
+
+                const settings = await getSettings(device, TestObjects.tokens.alice)
+                settings.should.have.property('security')
+                settings.security.should.have.property('localAuth')
+                settings.security.localAuth.should.have.property('enabled', true)
+                settings.security.localAuth.should.have.property('user', 'local-user')
+                settings.security.localAuth.should.have.property('pass', true)
+
+                // Verify the deviceLive settings are present and the password is hashed
+                let liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('security')
+                liveSettings.security.should.have.property('localAuth').and.be.an.Object()
+                liveSettings.security.localAuth.should.have.property('user', 'local-user')
+                liveSettings.security.localAuth.should.have.property('pass')
+                liveSettings.security.localAuth.pass.should.not.equal('$Password')
+                compareHash('$Password', liveSettings.security.localAuth.pass).should.be.true()
+
+                // Verify that disabling localAuth resets the enabled flag
+                await updateSettings(device, TestObjects.tokens.alice, { security: { localAuth: { enabled: false } } })
+
+                liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('security')
+                liveSettings.security.should.have.property('localAuth').and.be.an.Object()
+                liveSettings.security.localAuth.should.have.property('enabled', false)
             })
         })
 

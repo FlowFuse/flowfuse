@@ -1326,7 +1326,7 @@ describe('FlowForge - Applications', () => {
                 // open the kebab menu for the first device & verify that the correct dialog is opened for each item
                 MENU_ITEMS.forEach((item) => {
                     cy.get('[data-el="device-tile"]').first().find('[data-el="kebab-menu"]').click()
-                    cy.get('[data-el="device-tile"] .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(item.index)
+                    cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(item.index)
                         .contains(item.label)
                         .click()
                     cy.get(`[data-el="${item.dialogDataEl}"]`).should('exist')

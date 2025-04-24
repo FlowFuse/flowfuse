@@ -132,7 +132,8 @@ module.exports = {
         await deviceGroup.reload()
 
         if (changed) {
-            await this.sendUpdateCommand(app, deviceGroup)
+            // Send the updates asynchronously
+            this.sendUpdateCommand(app, deviceGroup)
         }
         return deviceGroup
     },
@@ -209,8 +210,8 @@ module.exports = {
                 deviceGroup.targetSnapshotId = null
             }
             await deviceGroup.save()
-            // finally, inform the devices an update may be required
-            await this.sendUpdateCommand(app, deviceGroup, actualRemoveDevices)
+            // finally, asynchronously inform the devices an update may be required
+            this.sendUpdateCommand(app, deviceGroup, actualRemoveDevices)
         }
     },
 
@@ -247,44 +248,72 @@ module.exports = {
      * Sends an update to all devices in the group and/or the specified list of devices
      * so that they can determine what/if it needs to be updated
      * NOTE: Since device groups only support application owned devices, this will only send updates to application owned devices
+     *
+     * To avoid triggering a thundering herd, this will send the updates in batches of 10 devices at a time with
+     * a delay of 5 seconds between each batch.
      * @param {forge.db.models.DeviceGroup} [deviceGroup] A device group to send an "update" command to
      * @param {Number[]} [deviceList] A list of device IDs to send an "update" command to
      */
     sendUpdateCommand: async function (app, deviceGroup, deviceList) {
-        if (app.comms) {
-            if (deviceGroup) {
-                const devices = await deviceGroup.getDevices()
-                if (devices?.length) {
-                    // add them to the deviceList if not already present
-                    deviceList = deviceList || []
-                    for (const device of devices) {
-                        if (!deviceList.includes(device.id)) {
-                            deviceList.push(device.id)
+        try {
+            if (app.comms) {
+                if (deviceGroup) {
+                    const devices = await deviceGroup.getDevices()
+                    if (devices?.length) {
+                        // add them to the deviceList if not already present
+                        deviceList = deviceList || []
+                        for (const device of devices) {
+                            if (!deviceList.includes(device.id)) {
+                                deviceList.push(device.id)
+                            }
+                        }
+                    }
+                }
+                if (deviceList?.length) {
+                    const devices = await app.db.models.Device.getAll({}, { id: deviceList })
+                    if (!devices || !devices.devices || devices.devices.length === 0) {
+                        return
+                    }
+                    const licenseActive = app.license.active()
+                    const commands = []
+                    for (const device of devices.devices) {
+                        if (device.ownerType !== 'application') {
+                            continue // ensure we only send updates to application owned devices
+                        }
+                        const payload = {
+                            ownerType: device.ownerType,
+                            application: device.Application?.hashid || null,
+                            snapshot: device.targetSnapshot?.hashid || '0', // '0' means starter snapshot + flows
+                            settings: device.settingsHash || null,
+                            mode: device.mode,
+                            licensed: licenseActive
+                        }
+                        commands.push({
+                            device,
+                            payload
+                        })
+                    }
+
+                    // Send the commands in batches of 10 with a 5 second delay between each batch
+                    // This is to avoid telling lots of devices to call home at the same time.
+                    const batchSize = 10
+                    const delay = 5000
+                    let start = 0
+                    while (start < commands.length) {
+                        const batch = commands.slice(start, start + batchSize)
+                        for (const command of batch) {
+                            app.comms.devices.sendCommand(command.device.Team.hashid, command.device.hashid, 'update', command.payload)
+                        }
+                        start += batchSize
+                        if (start < commands.length) {
+                            await new Promise(resolve => setTimeout(resolve, delay))
                         }
                     }
                 }
             }
-            if (deviceList?.length) {
-                const devices = await app.db.models.Device.getAll({}, { id: deviceList })
-                if (!devices || !devices.devices || devices.devices.length === 0) {
-                    return
-                }
-                const licenseActive = app.license.active()
-                for (const device of devices.devices) {
-                    if (device.ownerType !== 'application') {
-                        continue // ensure we only send updates to application owned devices
-                    }
-                    const payload = {
-                        ownerType: device.ownerType,
-                        application: device.Application?.hashid || null,
-                        snapshot: device.targetSnapshot?.hashid || '0', // '0' means starter snapshot + flows
-                        settings: device.settingsHash || null,
-                        mode: device.mode,
-                        licensed: licenseActive
-                    }
-                    app.comms.devices.sendCommand(device.Team.hashid, device.hashid, 'update', payload)
-                }
-            }
+        } catch (err) {
+            // Do not pass up any errors; log them here
+            app.log.error(`Unexpected error sending command to devices in group ${deviceGroup.hashid}: ${err.message}`)
         }
     },
     DeviceGroupMembershipValidationError

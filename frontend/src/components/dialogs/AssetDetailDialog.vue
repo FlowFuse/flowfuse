@@ -1,5 +1,9 @@
 <template>
-    <ff-dialog ref="dialog" :header="header" confirm-label="Close" :closeOnConfirm="true" data-el="flow-view-dialog" boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]" contentClass="overflow-hidden flex-grow" @confirm="confirm()">
+    <ff-dialog
+        ref="dialog" :header="header" :sub-header="`Node-RED Version: ${nrVersion}`" confirm-label="Close" :closeOnConfirm="true"
+        data-el="flow-view-dialog" boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]"
+        contentClass="overflow-hidden flex-grow" @confirm="confirm()"
+    >
         <template #default>
             <div ref="viewer" data-el="ff-flow-previewer" class="ff-flow-viewer" @click.stop.prevent>
                 Loading...
@@ -44,6 +48,13 @@ export default {
     computed: {
         flow () {
             return this.payload?.flows?.flows || []
+        },
+        nrVersion () {
+            const mods = this.payload?.settings?.modules
+            if (mods) {
+                return mods['node-red'] || 'Unavailable'
+            }
+            return ''
         },
         header () {
             return this.payload?.name || this.title || 'Flow'

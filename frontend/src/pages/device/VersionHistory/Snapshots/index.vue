@@ -240,6 +240,11 @@ export default {
                     }
                 },
                 {
+                    label: 'Node-RED version',
+                    class: ['w-56'],
+                    key: 'modules.node-red'
+                },
+                {
                     label: 'Created By',
                     class: ['w-48 hidden md:table-cell'],
                     component: {
