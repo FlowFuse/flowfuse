@@ -265,7 +265,7 @@ export default {
 
                 this.form = { ...this.form, ...broker }
                 if (broker.topicPrefix) {
-                    this.form.topicPrefix = JSON.parse(broker.topicPrefix)[0]
+                    this.form.topicPrefix = broker.topicPrefix[0]
                 } else {
                     broker.form.topicPrefix = '#'
                 }
