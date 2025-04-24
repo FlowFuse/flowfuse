@@ -3,8 +3,8 @@
         <template #header>
             <ff-page-header title="Teams" />
         </template>
-        <div class="ff-admin-audit">
-            <div>
+        <div class="ff-admin-audit overflow-auto">
+            <div class="overflow-auto">
                 <ff-data-table
                     v-model:search="teamSearch"
                     :columns="columns"

@@ -19,9 +19,9 @@
                 </template>
             </ff-page-header>
         </template>
-        <div class="flex flex-col sm:flex-row">
+        <div class="flex flex-col sm:flex-row h-full overflow-auto">
             <SectionSideMenu :options="sideNavigation" />
-            <div class="flex-grow">
+            <div class="flex-grow overflow-auto">
                 <router-view v-model="editable" :originalEnvVars="original.settings.env ?? []" :editTemplate="true" />
             </div>
         </div>
