@@ -19,7 +19,10 @@ forge:
     requests:
       cpu: 100m
       memory: 16Mi
-
+  projectPodSecurityContext:
+    sysctls:
+      - name: net.ipv4.ping_group_range
+        value: "1000 1000"
 
 postgresql:
   persistence:
