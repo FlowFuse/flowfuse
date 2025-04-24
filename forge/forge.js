@@ -379,7 +379,8 @@ module.exports = async (options = {}) => {
                     '*.hubspotfeedback.com',
                     '*.hsadspixel.net',
                     '*.hsforms.net',
-                    '*.hsforms.com'
+                    '*.hsforms.com',
+                    '*.hsappstatic.net'
                 ]
                 if (contentSecurityPolicy.directives['script-src'] && Array.isArray(contentSecurityPolicy.directives['script-src'])) {
                     contentSecurityPolicy.directives['script-src'].push(...hubspotDomains)

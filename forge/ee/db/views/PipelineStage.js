@@ -18,6 +18,18 @@ module.exports = function (app) {
                     $ref: 'DeviceGroupPipelineSummary'
                 }
             },
+            gitRepo: {
+                type: 'object',
+                properties: {
+                    gitTokenId: { type: 'string' },
+                    url: { type: 'string' },
+                    branch: { type: 'string' },
+                    lastPushAt: { type: 'string' },
+                    status: { type: 'string' },
+                    statusMessage: { type: 'string' },
+                    credentialSecret: { type: 'boolean' }
+                }
+            },
             action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) },
             NextStageId: { type: 'string' }
         }
@@ -42,6 +54,18 @@ module.exports = function (app) {
 
         if (stage.DeviceGroups?.length > 0) {
             filtered.deviceGroups = stage.DeviceGroups.map(app.db.views.DeviceGroup.deviceGroupPipelineSummary)
+        }
+        if (stage.PipelineStageGitRepo) {
+            filtered.gitRepo = {
+                gitTokenId: app.db.models.GitToken.encodeHashid(stage.PipelineStageGitRepo.GitTokenId),
+                url: stage.PipelineStageGitRepo.url,
+                branch: stage.PipelineStageGitRepo.branch,
+                lastPushAt: stage.PipelineStageGitRepo.lastPushAt,
+                status: stage.PipelineStageGitRepo.status,
+                statusMessage: stage.PipelineStageGitRepo.statusMessage,
+                // Never return the secret - but indicate if one is set
+                credentialSecret: !!stage.PipelineStageGitRepo.credentialSecret
+            }
         }
 
         if (stage.NextStageId) {

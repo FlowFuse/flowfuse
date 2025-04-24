@@ -12,6 +12,13 @@ describe('FlowForge - Instance - Settings Environment', () => {
             .then((response) => {
                 instanceId = response.body.projects[1].id
                 cy.visit(`/instance/${instanceId}/settings/environment`)
+                cy.intercept('GET', `/api/v1/projects/${instanceId}`, async (req) => {
+                    req.continue((res) => {
+                        // intercept the request to get the instance status and force "running"
+                        res.body.meta.state = 'running'
+                    })
+                }).as('getInstance')
+                cy.wait('@getInstance')
             })
     })
 
@@ -20,11 +27,11 @@ describe('FlowForge - Instance - Settings Environment', () => {
         cy.get('[data-el="env-vars-table"]').should('be.visible')
         cy.get('[data-el="env-vars-table"] tbody tr').should('have.length', 2)
 
-        cy.get('[data-el="submit"]').should('be.disabled')
+        cy.get('[data-el="save-settings-button"]').should('be.disabled')
 
         cy.get('[data-el="add-variable"]').click()
 
-        cy.get('[data-el="submit"]').should('not.be.disabled')
+        cy.get('[data-el="save-settings-button"]').should('not.be.disabled')
 
         cy.get('[data-el="env-vars-table"] tbody tr').should('have.length', 3)
 
@@ -37,7 +44,7 @@ describe('FlowForge - Instance - Settings Environment', () => {
 
         // can add a visible environment variable
         cy.get('[data-el="add-variable"]').click()
-        cy.get('[data-el="submit"]').should('not.be.disabled')
+        cy.get('[data-el="save-settings-button"]').should('not.be.disabled')
 
         cy.get('[data-el="env-vars-table"] [data-row="row-NEW"]').within(() => {
             cy.get('[data-el="visibility"]').should('exist')
@@ -59,10 +66,14 @@ describe('FlowForge - Instance - Settings Environment', () => {
             cy.get('[data-el="visibility"]').click()
         })
         cy.intercept('PUT', '/api/*/projects/*').as('updateSettings')
-        cy.get('[data-el="submit"]').click()
+        cy.get('[data-el="save-settings-button"]').click()
         cy.wait('@updateSettings')
 
-        cy.get('[data-el="submit"]').should('be.disabled')
+        cy.get('[data-el="platform-dialog"]').should('be.visible')
+        cy.get('[data-el="platform-dialog"]').contains('Restart Required')
+        cy.get('[data-el="platform-dialog"] [data-action="dialog-cancel"]').click()
+
+        cy.get('[data-el="save-settings-button"]').should('be.disabled')
 
         // check that the hidden var name and visibility can't be changed
         cy.get('[data-el="env-vars-table"] [data-row="row-new_password"]').within(() => {
@@ -77,9 +88,13 @@ describe('FlowForge - Instance - Settings Environment', () => {
             cy.get('[data-el="visibility"]').should('not.be.disabled')
             cy.get('[data-el="visibility"]').click()
         })
-        cy.get('[data-el="submit"]').should('not.be.disabled')
-        cy.get('[data-el="submit"]').click()
+        cy.get('[data-el="save-settings-button"]').should('not.be.disabled')
+        cy.get('[data-el="save-settings-button"]').click()
         cy.wait('@updateSettings')
+
+        cy.get('[data-el="platform-dialog"]').should('be.visible')
+        cy.get('[data-el="platform-dialog"]').contains('Restart Required')
+        cy.get('[data-el="platform-dialog"] [data-action="dialog-cancel"]').click()
 
         cy.get('[data-el="env-vars-table"] [data-row="row-new_var"]').within(() => {
             cy.get('[data-el="var-name"] input').should('be.disabled')
@@ -91,11 +106,15 @@ describe('FlowForge - Instance - Settings Environment', () => {
         cy.get('[data-el="env-vars-table"] [data-row="row-new_var"] [data-el="remove"]').click()
         cy.get('[data-el="env-vars-table"] [data-row="row-new_password"] [data-el="remove"]').click()
 
-        cy.get('[data-el="submit"]').should('not.be.disabled')
+        cy.get('[data-el="save-settings-button"]').should('not.be.disabled')
 
-        cy.get('[data-el="submit"]').click()
+        cy.get('[data-el="save-settings-button"]').click()
         cy.wait('@updateSettings')
 
-        cy.get('[data-el="submit"]').should('be.disabled')
+        cy.get('[data-el="platform-dialog"]').should('be.visible')
+        cy.get('[data-el="platform-dialog"]').contains('Restart Required')
+        cy.get('[data-el="platform-dialog"] [data-action="dialog-cancel"]').click()
+
+        cy.get('[data-el="save-settings-button"]').should('be.disabled')
     })
 })
