@@ -32,9 +32,6 @@
                 Upgrade your Node-RED Version to enable this feature
             </div>
         </div>
-        <div class="space-x-4 whitespace-nowrap">
-            <ff-button data-action="new-token" size="small" :disabled="!unsavedChanges" @click="saveSettings()">Save settings</ff-button>
-        </div>
     </form>
     <TokenDialog ref="tokenDialog" data-el="http-token-diag" :project="project" @token-created="newTokenDone" @token-updated="getTokens" />
     <TokenCreated ref="tokenCreated" />
@@ -52,7 +49,7 @@ import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import featuresMixin from '../../../mixins/Features.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
-import alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
 import ExpiryCell from '../../account/components/ExpiryCell.vue'
 import TemplateSettingsSecurity from '../../admin/Template/sections/Security.vue'
@@ -85,7 +82,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'save-button-state', 'restart-instance'],
     data () {
         return {
             unsavedChanges: false,
@@ -126,6 +123,12 @@ export default {
                 return true
             }
             return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.2.0')
+        },
+        saveButton () {
+            return {
+                visible: true,
+                disabled: !this.unsavedChanges
+            }
         }
     },
     watch: {
@@ -152,6 +155,12 @@ export default {
                     this.unsavedChanges = changed
                     this.hasErrors = errors
                 }
+            }
+        },
+        saveButton: {
+            immediate: true,
+            handler (state) {
+                this.$emit('save-button-state', state)
             }
         },
         'editable.settings.httpNodeAuth_type': {
@@ -218,7 +227,18 @@ export default {
             }
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
-            alerts.emit('Instance settings successfully updated. Restart the instance to apply the changes.', 'confirmation', 6000)
+            // is instance running
+            if (this.project.meta.state === 'running') {
+                Dialog.show({
+                    header: 'Restart Required',
+                    html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
+                    confirmLabel: 'Restart Now',
+                    cancelLabel: 'Restart Later'
+                }, () => {
+                // restart the instance
+                    this.$emit('restart-instance')
+                })
+            }
         },
         async getTokens () {
             const response = await InstanceApi.getHTTPTokens(this.project.id)

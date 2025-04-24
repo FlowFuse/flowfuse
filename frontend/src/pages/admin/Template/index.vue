@@ -1,36 +1,34 @@
 <template>
-    <div class="flex flex-col sm:flex-row mb-8 max-w-4xl">
-        <div class="flex-grow">
-            <div class="text-gray-800 text-xl">
-                <router-link class="ff-link font-bold" :to="{path: '/admin/templates'}">Templates</router-link>
-                <!-- <nav-item :icon="icons.breadcrumbSeparator" label="sss"></nav-item> -->
-                <ChevronRightIcon class="ff-icon" />
-                <span v-if="!isNew">{{ template.name }}</span>
-                <span v-if="isNew">Create a new template</span>
+    <ff-page>
+        <template #header>
+            <ff-page-header :title="isNew ? 'Create a new template' : template.name">
+                <template #breadcrumbs>
+                    <ff-nav-breadcrumb :to="{path: '/admin/templates'}">Templates</ff-nav-breadcrumb>
+                </template>
+                <template #tools>
+                    <div class="text-right space-x-4 flex h-8">
+                        <template v-if="!isNew">
+                            <ff-button v-if="unsavedChanges" kind="secondary" class="ml-4" data-el="discard-changes" @click="cancelEdit">Discard changes</ff-button>
+                            <ff-button class="ml-4" :disabled="hasErrors || !unsavedChanges" @click="showSaveTemplateDialog">Save changes</ff-button>
+                        </template>
+                        <template v-else-if="isNew">
+                            <ff-button :to="{ name: 'admin-templates' }" kind="secondary">Cancel</ff-button>
+                            <ff-button :disabled="hasErrors || !createValid" class="ml-4" @click="createTemplate">Create template</ff-button>
+                        </template>
+                    </div>
+                </template>
+            </ff-page-header>
+        </template>
+        <div class="flex flex-col sm:flex-row">
+            <SectionSideMenu :options="sideNavigation" />
+            <div class="flex-grow">
+                <router-view v-model="editable" :originalEnvVars="original.settings.env ?? []" :editTemplate="true" />
             </div>
         </div>
-        <div class="text-right space-x-4 flex h-8">
-            <template v-if="!isNew">
-                <ff-button v-if="unsavedChanges" kind="secondary" class="ml-4" data-el="discard-changes" @click="cancelEdit">Discard changes</ff-button>
-                <ff-button class="ml-4" :disabled="hasErrors || !unsavedChanges" @click="showSaveTemplateDialog">Save changes</ff-button>
-            </template>
-            <template v-else-if="isNew">
-                <ff-button :to="{ name: 'admin-templates' }" kind="secondary">Cancel</ff-button>
-                <ff-button :disabled="hasErrors || !createValid" class="ml-4" @click="createTemplate">Create template</ff-button>
-            </template>
-        </div>
-    </div>
-    <div class="flex flex-col sm:flex-row">
-        <SectionSideMenu :options="sideNavigation" />
-        <div class="flex-grow">
-            <router-view v-model="editable" :editTemplate="true" />
-        </div>
-    </div>
+    </ff-page>
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/solid'
-
 import { mapState } from 'vuex'
 
 import templateApi from '../../../api/templates.js'
@@ -50,8 +48,7 @@ import {
 export default {
     name: 'AdminTemplate',
     components: {
-        SectionSideMenu,
-        ChevronRightIcon
+        SectionSideMenu
     },
     data () {
         return {
@@ -83,10 +80,7 @@ export default {
             unsavedChanges: false,
             modulesChanged: false,
             needsRestart: false,
-            hasErrors: false,
-            icons: {
-                breadcrumbSeparator: ChevronRightIcon
-            }
+            hasErrors: false
         }
     },
     computed: {
@@ -174,6 +168,8 @@ export default {
                                 } else if (original.value !== field.value) {
                                     envChanged = true
                                 } else if (original.policy !== field.policy) {
+                                    envChanged = true
+                                } else if (original.hidden !== field.hidden) {
                                     envChanged = true
                                 }
                             } else {
@@ -285,6 +281,11 @@ export default {
                 this.editable.settings.httpNodeAuth_pass = ''
             }
 
+            if (this.editable.settings.localAuth_enabled !== true) {
+                this.editable.policy.localAuth_user = ''
+                this.editable.policy.localAuth_pass = ''
+            }
+
             templateFields.forEach(field => {
                 setTemplateValue(template.settings, field, this.editable.settings[field])
                 setObjectValue(template.policy, field, this.editable.policy[field])
@@ -296,7 +297,8 @@ export default {
                     template.settings.env.push({
                         name: envField.name.trim(),
                         value: envField.value,
-                        policy: envField.policy
+                        policy: envField.policy,
+                        hidden: envField.hidden
                     })
                 }
             })

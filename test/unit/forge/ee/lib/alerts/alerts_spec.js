@@ -191,6 +191,46 @@ describe('Instance Alerts emails', function () {
             app.postoffice.send.calledOnce.should.be.true()
             app.postoffice.send.firstCall.args[1].should.equal('Crashed-uncaught-exception')
         })
+        it('Resource warning, instance-resource-cpu, via api', async function () {
+            sinon.spy(app.postoffice, 'send')
+            const response = await app.inject({
+                method: 'POST',
+                url: `/logging/${app.TestObjects.instance.id}/audit`,
+                payload: {
+                    event: 'resource.cpu'
+                },
+                headers: {
+                    authorization: `Bearer ${app.TestObjects.tokens.instance}`
+                }
+            })
+            response.statusCode.should.equal(200)
+            inbox.messages.should.have.length(1)
+            inbox.messages[0].html.should.match(/Your FlowFuse Instance .* in Team .* is using more than 75% of its CPU/)
+            inbox.messages[0].text.should.match(/Your FlowFuse Instance .* in Team .* is using more than 75% of its CPU/)
+            // ensure correct template was used
+            app.postoffice.send.calledOnce.should.be.true()
+            app.postoffice.send.firstCall.args[1].should.equal('InstanceResourceCPUExceeded')
+        })
+        it('Resource warning, instance-resource-memory, via api', async function () {
+            sinon.spy(app.postoffice, 'send')
+            const response = await app.inject({
+                method: 'POST',
+                url: `/logging/${app.TestObjects.instance.id}/audit`,
+                payload: {
+                    event: 'resource.memory'
+                },
+                headers: {
+                    authorization: `Bearer ${app.TestObjects.tokens.instance}`
+                }
+            })
+            response.statusCode.should.equal(200)
+            inbox.messages.should.have.length(1)
+            inbox.messages[0].html.should.match(/Your FlowFuse Instance .* in Team .* is using more than 75% of its available memory/)
+            inbox.messages[0].text.should.match(/Your FlowFuse Instance .* in Team .* is using more than 75% of its available memory/)
+            // ensure correct template was used
+            app.postoffice.send.calledOnce.should.be.true()
+            app.postoffice.send.firstCall.args[1].should.equal('InstanceResourceMemoryExceeded')
+        })
         it('Owner notified of safe-mode', async function () {
             await app.auditLog.alerts.generate(app.TestObjects.instance.id, 'safe-mode')
             inbox.messages.should.have.length(1)

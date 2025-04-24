@@ -1,13 +1,16 @@
 <template>
     <div ref="container" class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
         <div class="ff-dialog-box" :class="boxClass">
-            <div class="ff-dialog-header" data-sentry-unmask>{{ header }}</div>
+            <div class="ff-dialog-header" data-sentry-unmask>
+                {{ header }}
+                <span v-if="subHeader" class="ff-dialog-subheader">{{ subHeader }}</span>
+            </div>
             <div ref="content" class="ff-dialog-content" :class="contentClass">
                 <slot></slot>
             </div>
             <div class="ff-dialog-actions">
                 <slot name="actions">
-                    <ff-button v-if="canBeCanceled" kind="secondary" data-action="dialog-cancel" @click="cancel()">Cancel</ff-button>
+                    <ff-button v-if="canBeCanceled" kind="secondary" data-action="dialog-cancel" @click="cancel()">{{ cancelLabel }}</ff-button>
                     <ff-button :kind="kind" data-action="dialog-confirm" :disabled="disablePrimary" @click="confirm()">{{ confirmLabel }}</ff-button>
                 </slot>
             </div>
@@ -23,9 +26,17 @@ export default {
             type: String,
             default: 'Dialog Box'
         },
+        subHeader: {
+            type: String,
+            default: ''
+        },
         confirmLabel: {
             type: String,
             default: 'Confirm'
+        },
+        cancelLabel: {
+            type: String,
+            default: 'Cancel'
         },
         disablePrimary: {
             type: Boolean,

@@ -23,6 +23,24 @@
             </div>
             <LockSetting v-model="editable.policy.emailAlerts_safe" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.emailAlerts_safe" />
         </div>
+        <div class="flex flex-col, sm:flex-row sm:ml-4">
+            <div class="space-y-4 w-full max-w-md sm:mr-8">
+                <FormRow v-model="editable.settings.emailAlerts_resource_cpu" type="checkbox" :disabled="!editTemplate && !editable.policy.emailAlerts_resource_cpu">
+                    Node-RED CPU usage has exceeded 75% for 5 minutes
+                    <template #append><ChangeIndicator :value="editable.changed.settings.emailAlerts_resource_cpu" /></template>
+                </FormRow>
+            </div>
+            <LockSetting v-model="editable.policy.emailAlerts_resource_cpu" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.emailAlerts_resource_cpu" />
+        </div>
+        <div class="flex flex-col, sm:flex-row sm:ml-4">
+            <div class="space-y-4 w-full max-w-md sm:mr-8">
+                <FormRow v-model="editable.settings.emailAlerts_resource_memory" type="checkbox" :disabled="!editTemplate && !editable.policy.emailAlerts_resource_memory">
+                    Node-RED memory usage has exceeded 75% for 5 minutes
+                    <template #append><ChangeIndicator :value="editable.changed.settings.emailAlerts_resource_memory" /></template>
+                </FormRow>
+            </div>
+            <LockSetting v-model="editable.policy.emailAlerts_resource_memory" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.emailAlerts_resource_memory" />
+        </div>
         <FormHeading>Who to notify</FormHeading>
         <div class="flex flex-col sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">

@@ -106,12 +106,29 @@ describe('FlowForge - Library', () => {
             interceptBlueprints(multipleBlueprints)
 
             cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
+            // use a blueprint (Blueprint 2)
             cy.get('[data-el="2"]').contains('Select').click()
 
             cy.window().then((win) => expect(win.location.href).to.contain('instances/create'))
 
-            cy.contains('Create Instance')
-            cy.contains('Blueprint 2')
+            // move along the multi-step form
+            cy.get('[data-el="application-item"]').first().click()
+            cy.get('[data-el="next-step"]').click()
+
+            // select instance type
+            cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()
+
+            // select template
+            cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
+
+            // select nr-version
+            cy.get('[data-form="multi-step-form"] [data-el="listbox"]').click()
+            cy.get('[data-option="stack 1"]').click()
+
+            cy.get('[data-el="next-step"]').click()
+
+            // check that the blueprint we selected tu use earlier is selected
+            cy.get('[data-el="blueprint-tile"].active').contains('Blueprint 2')
         })
 
         it('allows users to preview predefined blueprints', () => {
