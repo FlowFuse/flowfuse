@@ -20,6 +20,9 @@ forge:
       cpu: 100m
       memory: 16Mi
   projectPodSecurityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
     sysctls:
       - name: net.ipv4.ping_group_range
         value: "1000 1000"
