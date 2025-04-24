@@ -15,9 +15,9 @@
             </template>
         </SectionTopMenu>
     </div>
-    <div class="flex flex-col sm:flex-row">
+    <div class="flex flex-col sm:flex-row flex-1 overflow-auto">
         <SectionSideMenu :options="navigation" />
-        <div class="flex-grow">
+        <div class="flex-grow overflow-auto">
             <router-view v-slot="{ Component }">
                 <component
                     :is="Component"

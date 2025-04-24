@@ -1,8 +1,10 @@
 <template>
-    <div class="ff-admin-audit">
-        <div data-el="audit-log">
+    <div class="ff-admin-audit overflow-auto">
+        <div data-el="audit-log" class="overflow-auto flex flex-col">
             <slot name="title" />
-            <AuditLog :entries="logEntries" :associations="associations" />
+            <div class="overflow-auto">
+                <AuditLog :entries="logEntries" :associations="associations" />
+            </div>
         </div>
         <div>
             <SectionTopMenu hero="Filters" />
