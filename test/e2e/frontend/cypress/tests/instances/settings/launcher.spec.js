@@ -43,13 +43,13 @@ describe('FlowFuse - Instance - Settings - Launcher', () => {
         // Change value to < 5000
         getForm().first('div').get('.ff-input > input[type=number]').clear()
         getForm().first('div').get('.ff-input > input[type=number]').type(4999)
-        cy.get('[data-action="save-settings"]').should('be.disabled')
+        cy.get('[data-el="save-settings-button"]').should('be.disabled')
         getForm().first('div').get('[data-el="form-row-error"').contains('Health check interval must be 5000 or greater').should('exist')
 
         // Change value to > 5000
         getForm().first('div').get('.ff-input > input[type=number]').clear()
         getForm().first('div').get('.ff-input > input[type=number]').type(5001)
-        cy.get('[data-action="save-settings"]').should('not.be.disabled')
+        cy.get('[data-el="save-settings-button"]').should('not.be.disabled')
         getForm().first('div').get('[data-el="form-row-error"').should('not.exist')
     })
 
@@ -75,8 +75,12 @@ describe('FlowFuse - Instance - Settings - Launcher', () => {
         const randomBetween6789and9876 = Math.floor(Math.random() * (9876 - 6789 + 1)) + 6789
         getForm().first('div').get('.ff-input > input[type=number]').clear()
         getForm().first('div').get('.ff-input > input[type=number]').type(randomBetween6789and9876)
-        cy.get('[data-action="save-settings"]').click()
+        cy.get('[data-el="save-settings-button"]').click()
         cy.wait('@updateInstance')
+
+        cy.get('[data-el="platform-dialog"]').should('be.visible')
+        cy.get('[data-el="platform-dialog"]').contains('Restart Required')
+        cy.get('[data-el="platform-dialog"] [data-action="dialog-cancel"]').click()
 
         // refresh page
         navigateToInstanceSettings('BTeam', 'instance-2-1')
