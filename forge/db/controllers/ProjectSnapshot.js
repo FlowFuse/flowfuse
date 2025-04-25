@@ -451,9 +451,10 @@ module.exports = {
      * @param {*} device
      * @param {*} user
      * @param {*} options
+     * @param {*} deviceConfig - optional device config to use instead of fetching from db
      */
-    createDeviceSnapshot: async function (app, application, device, user, options) {
-        const deviceConfig = await app.db.controllers.Device.exportConfig(device)
+    createDeviceSnapshot: async function (app, application, device, user, options, deviceConfig = null) {
+        deviceConfig = deviceConfig || await app.db.controllers.Device.exportConfig(device)
 
         const snapshotOptions = {
             name: options.name || '',
