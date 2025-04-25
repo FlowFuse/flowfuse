@@ -37,6 +37,25 @@ module.exports = async function (app) {
     app.post('/state', async (request, reply) => {
         await app.db.controllers.Device.updateState(request.device, request.body)
         if (request.device.isApplicationOwned) {
+            if (request.body.initSnapshot && request.body.state === 'provisioning') {
+                // If the device is in provisioning mode, set the target snapshot to the init snapshot
+                // generate a new snapshot for this device
+                const saneSnapshotOptions = {
+                    name: 'Imported snapshot',
+                    description: 'Imported snapshot during provisioning',
+                    setAsTarget: true
+                }
+                const snapShot = await app.db.controllers.ProjectSnapshot.createDeviceSnapshot(
+                    request.device.Application,
+                    request.device,
+                    { id: null }, // state is transmitted from the device, so we don't have a user id
+                    saneSnapshotOptions,
+                    request.body.initSnapshot // corrected to use request.body.initSnapshot
+                )
+                request.device.set('targetSnapshotId', snapShot.id)
+                await request.device.save()
+            }
+
             if (!request.device.agentVersion || SemVer.lt(request.device.agentVersion, '1.11.0')) {
                 reply.code(409).send({
                     error: 'incorrect-agent-version',
@@ -66,14 +85,17 @@ module.exports = async function (app) {
             })
             return
         }
-        if (request.body.snapshot !== (request.device.targetSnapshot?.hashid || null)) {
-            reply.code(409).send({
-                error: 'incorrect-snapshot',
-                project: request.device.Project?.id || null,
-                snapshot: request.device.targetSnapshot?.hashid || null,
-                settings: request.device.settingsHash || null
-            })
-            return
+        // if provisioning, don't check the snapshot
+        if (request.body.state !== 'provisioning') {
+            if (request.body.snapshot !== (request.device.targetSnapshot?.hashid || null)) {
+                reply.code(409).send({
+                    error: 'incorrect-snapshot',
+                    project: request.device.Project?.id || null,
+                    snapshot: request.device.targetSnapshot?.hashid || null,
+                    settings: request.device.settingsHash || null
+                })
+                return
+            }
         }
         if (request.body.settings !== undefined && request.body.settings !== (request.device.settingsHash || null)) {
             reply.code(409).send({
