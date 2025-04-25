@@ -159,7 +159,6 @@ import FormRow from '../FormRow.vue'
 export default {
     name: 'DeployStageDialog',
     components: {
-        FfListbox,
         FormRow
     },
     props: {
