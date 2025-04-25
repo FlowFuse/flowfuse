@@ -7,7 +7,7 @@
         :loading-overlay="formLoading"
         :loading-overlay-text="loadingText"
         :showFooter="false"
-        last-step-label="Create Instance"
+        :last-step-label="lastStepLabel"
         @previous-step-state-changed="$emit('previous-step-state-changed', $event)"
         @next-step-state-changed="$emit('next-step-state-changed', $event)"
         @next-step-label-changed="$emit('next-step-label-changed', $event)"
@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import applicationApi from '../../../api/application.js'
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
@@ -40,9 +40,19 @@ export default {
         applications: {
             type: Array,
             required: true
+        },
+        showInstanceFollowUp: {
+            required: false,
+            type: Boolean,
+            default: false
+        },
+        lastStepLabel: {
+            required: false,
+            type: String,
+            default: 'Create Instance'
         }
     },
-    emits: ['instance-created', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
+    emits: ['form-success-application', 'form-success-instance', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
     data () {
         const startingStep = 0
 
@@ -64,6 +74,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['team']),
+        ...mapGetters('account', ['isFreeTeamType']),
         formSteps () {
             return [
                 {
@@ -72,12 +83,15 @@ export default {
                     bindings: {
                         slug: APPLICATION_SLUG,
                         applications: this.applications,
-                        state: this.form[APPLICATION_SLUG]
+                        state: this.form[APPLICATION_SLUG],
+                        instanceFollowUp: this.instanceFollowUp,
+                        showInstanceFollowUp: this.showInstanceFollowUp
                     }
                 },
                 {
                     sliderTitle: 'Instance',
                     component: InstanceStep,
+                    hidden: this.shouldHideInstanceSteps,
                     bindings: {
                         slug: INSTANCE_SLUG,
                         state: this.form[INSTANCE_SLUG].input
@@ -86,7 +100,7 @@ export default {
                 {
                     sliderTitle: 'Blueprint',
                     component: BlueprintStep,
-                    hidden: this.hasNoBlueprints,
+                    hidden: this.shouldHideInstanceSteps || this.hasNoBlueprints,
                     bindings: {
                         slug: BLUEPRINT_SLUG,
                         state: this.form[BLUEPRINT_SLUG],
@@ -106,6 +120,20 @@ export default {
         },
         hasToCreateAnApplication () {
             return this.applications.length === 0
+        },
+        instanceFollowUp () {
+            if (this.form[APPLICATION_SLUG]?.input) {
+                return !!this.form[APPLICATION_SLUG]?.input?.createInstance
+            }
+
+            return true
+        },
+        shouldHideInstanceSteps () {
+            if (this.isFreeTeamType) {
+                return true
+            }
+
+            return !this.instanceFollowUp
         }
     },
     watch: {
@@ -132,27 +160,39 @@ export default {
             return new Promise((resolve) => {
                 if (this.hasToCreateAnApplication) {
                     return applicationApi.createApplication({ ...this.form[APPLICATION_SLUG].input, teamId: this.team.id })
+                        .then(application => {
+                            this.$emit('form-success-application', application)
+                            return application
+                        })
                         .then(resolve)
                 }
                 return resolve(this.form[APPLICATION_SLUG].selection)
             })
-                .then((application) => instanceApi.create({
-                    applicationId: application.id,
-                    name: this.form[INSTANCE_SLUG].input.name,
-                    projectType: this.form[INSTANCE_SLUG].input.instanceType,
-                    stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
-                    template: this.form[INSTANCE_SLUG].input.template,
-                    flowBlueprintId: this.form[BLUEPRINT_SLUG].blueprint?.id ?? ''
-                }))
-                .then((response) => this.$emit('instance-created', response))
+                .then((application) => {
+                    if (this.instanceFollowUp && !this.shouldHideInstanceSteps) {
+                        return instanceApi.create({
+                            applicationId: application.id,
+                            name: this.form[INSTANCE_SLUG].input.name,
+                            projectType: this.form[INSTANCE_SLUG].input.instanceType,
+                            stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
+                            template: this.form[INSTANCE_SLUG].input.template,
+                            flowBlueprintId: this.form[BLUEPRINT_SLUG].blueprint?.id ?? ''
+                        })
+                    }
+                })
+                .then((instance) => {
+                    if (instance) {
+                        this.$emit('form-success-instance', instance)
+                    }
+                })
                 .catch(err => {
                     if (err.response) {
                         const error = err.response.data.error
 
                         if (error) {
-                            Alerts.emit('Failed to create instance: ' + error, 'warning', 7500)
+                            Alerts.emit('Failed to create: ' + error, 'warning', 7500)
                         } else {
-                            Alerts.emit('Failed to create instance')
+                            Alerts.emit('Failed to create')
                             console.error(err)
                         }
                     } else {

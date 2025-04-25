@@ -119,14 +119,23 @@ export default {
         }
     },
     watch: {
-        canGoToPreviousStep (value) {
-            this.$emit('previous-step-state-changed', value)
+        canGoToPreviousStep: {
+            immediate: true,
+            handler (value) {
+                this.$emit('previous-step-state-changed', value)
+            }
         },
-        disableNextStep (value) {
-            this.$emit('next-step-state-changed', value)
+        disableNextStep: {
+            immediate: true,
+            handler (value) {
+                this.$emit('next-step-state-changed', value)
+            }
         },
-        nextStepLabel (value) {
-            this.$emit('next-step-label-changed', value)
+        nextStepLabel: {
+            immediate: true,
+            handler  (value) {
+                this.$emit('next-step-label-changed', value)
+            }
         }
     },
     methods: {
