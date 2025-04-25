@@ -6,11 +6,11 @@
                 <label>
                     {{ pipeline.name }}
                 </label>
-                <div v-ff-tooltip:right="'Edit Pipeline Name'">
+                <div v-if="hasPermission('pipeline:edit')" v-ff-tooltip:right="'Edit Pipeline Name'">
                     <PencilAltIcon v-if="!editing.name" class="ml-4 ff-icon ff-clickable" @click="edit" />
                 </div>
             </div>
-            <div class="flex gap-2">
+            <div v-if="hasPermission('pipeline:delete')" class="flex gap-2">
                 <div v-if="!editing.name" v-ff-tooltip:left="'Delete Pipeline'" data-action="delete-pipeline">
                     <TrashIcon class="ff-icon ff-clickable" @click="deletePipeline" />
                 </div>
@@ -61,6 +61,7 @@ import { mapState } from 'vuex'
 
 import ApplicationAPI from '../../api/application.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
+import usePermissions from '../../composables/Permissions.js'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
@@ -103,6 +104,10 @@ export default {
         }
     },
     emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         const pipeline = this.pipeline
         return {

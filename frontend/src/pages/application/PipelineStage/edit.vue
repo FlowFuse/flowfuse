@@ -18,9 +18,11 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { mapState } from 'vuex'
 
 import ApplicationAPI from '../../../api/application.js'
 import PipelinesAPI from '../../../api/pipeline.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
 
@@ -53,6 +55,10 @@ export default {
             required: true
         }
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             icons: {
@@ -60,6 +66,24 @@ export default {
             },
             mounted: false,
             stage: null
+        }
+    },
+    computed: {
+        ...mapState('account', ['team'])
+    },
+    watch: {
+        team: {
+            immediate: true,
+            handler (team) {
+                if (team && !this.hasPermission('pipeline:edit')) {
+                    this.$router.replace({
+                        name: 'ApplicationPipelines',
+                        params: {
+                            id: this.application.id
+                        }
+                    })
+                }
+            }
         }
     },
     async mounted () {
