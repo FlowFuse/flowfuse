@@ -476,7 +476,7 @@ module.exports = {
             // TODO: device snapshot:  is this step necessary?
             if (deviceConfig.credentials) {
                 // TODO: device snapshot:  reconsider when device settings at application level are implemented
-                snapshotOptions.flows.credentials = app.db.controllers.Project.exportCredentials(deviceConfig.credentials || {}, device.credentialSecret, device.credentialSecret)
+                snapshotOptions.flows.credentials = app.db.controllers.Project.exportCredentials(deviceConfig.credentials || {}, deviceConfig.credentialSecret || device.credentialSecret, device.credentialSecret)
             }
         }
         if (deviceConfig.package?.modules) {
