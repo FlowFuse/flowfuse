@@ -12,7 +12,7 @@
                     <span />
                 </li>
             </ul>
-            <ul class="steps just" :class="{'justify-center': entries.length === 1, 'justify-between': entries.length > 1}">
+            <ul class="steps" :class="{'justify-center': entries.length === 1, 'justify-between': entries.length > 1}">
                 <li
                     v-for="(entry, $key) in entries"
                     :key="$key"
@@ -84,7 +84,6 @@ export default {
             background: $ff-grey-300;
             transform: translateY(-50%);
             z-index: 1;
-            //transition: width 0.3s;
             display: flex;
             justify-content: space-between;
             overflow: hidden;
