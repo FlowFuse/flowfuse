@@ -153,7 +153,6 @@ import DeviceApi from '../../api/devices.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
 import SnapshotApi from '../../api/projectSnapshots.js'
 import SnapshotsApi from '../../api/snapshots.js'
-import FfListbox from '../../ui-components/components/form/ListBox.vue'
 import FormRow from '../FormRow.vue'
 
 export default {
