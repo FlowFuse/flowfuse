@@ -50,6 +50,7 @@
         </div>
         <div v-else class="ff-pipeline-stages">
             <PipelineStage v-if="addStageAvailable" @click="addStage" />
+            <p class="text-center text-gray-400 center w-full">No stages in sight just yet!</p>
         </div>
     </div>
 </template>
@@ -127,8 +128,9 @@ export default {
             return this.scopedPipeline.name?.length > 0
         },
         addStageAvailable () {
-            return this.pipeline.stages.length === 0 ||
-                this.pipeline.stages[this.pipeline.stages.length - 1].stageType !== StageType.GITREPO
+            return (this.pipeline.stages.length === 0 ||
+                this.pipeline.stages[this.pipeline.stages.length - 1].stageType !== StageType.GITREPO) &&
+                this.hasPermission('pipeline:edit')
         },
         stagesWithStates () {
             return this.pipeline.stages.map((stage) => {
