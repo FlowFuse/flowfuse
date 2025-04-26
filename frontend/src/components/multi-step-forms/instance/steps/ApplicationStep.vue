@@ -74,7 +74,6 @@
                     v-model="input.createInstance"
                     containerClass="none"
                     wrapper-class="flex-col"
-                    placeholder="Application Description"
                     data-form="create-instance"
                     type="checkbox"
                 >

@@ -33,7 +33,7 @@
             ref="multiStepForm" :applications="[]"
             :show-instance-follow-up="!isFreeTeamType"
             last-step-label="Create Application"
-            @form-success-application="onApplicationCreated"
+            @form-success="onApplicationCreated"
             @previous-step-state-changed="form.previousButtonState = $event"
             @next-step-state-changed="form.nextButtonState = $event"
             @next-step-label-changed="form.nextStepLabel = $event"
@@ -70,8 +70,8 @@ export default {
         ...mapGetters('account', ['isFreeTeamType'])
     },
     methods: {
-        onApplicationCreated (application) {
-            this.$router.push({ name: 'Application', params: { id: application.id } })
+        onApplicationCreated (payload) {
+            this.$router.push({ name: 'Application', params: { id: payload.application.id } })
         }
     }
 }

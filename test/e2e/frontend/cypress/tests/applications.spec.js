@@ -120,59 +120,58 @@ describe('FlowForge - Applications', () => {
             })
         })
 
-        // todo undo when the instance failing fix is applied
-        // it('handles instance creation failing gracefully', () => {
-        //     const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
-        //     const IN_USE_INSTANCE_NAME = 'instance-1-1'
-        //     const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
-        //
-        //     cy.request('GET', 'api/v1/teams').then((response) => {
-        //         const team = response.body.teams[0]
-        //
-        //         cy.visit(`/team/${team.slug}/applications/create`)
-        //
-        //         cy.intercept('POST', '/api/*/applications').as('createApplication')
-        //         cy.intercept('POST', '/api/*/projects').as('createInstance')
-        //
-        //         cy.get('[data-el="next-step"]').should('be.disabled')
-        //
-        //         cy.get('[data-form="application-name"] input').clear()
-        //         cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
-        //
-        //         cy.get('[data-el="next-step"]').should('be.enabled')
-        //         cy.get('[data-el="next-step"]').should('contain', 'Next')
-        //
-        //         cy.get('[data-el="next-step"]').click()
-        //
-        //         cy.get('[data-el="instance-name"] input').clear()
-        //         cy.get('[data-el="instance-name"] input').type(IN_USE_INSTANCE_NAME)
-        //
-        //         cy.get('[data-form="project-type"]').contains('type1').click()
-        //         cy.get('[data-form="project-template"]').contains('template1').click()
-        //
-        //         cy.get('[data-el="node-red-listbox"]').click()
-        //         cy.get('[data-option].ff-option').first().click()
-        //
-        //         cy.get('[data-el="next-step"]').click()
-        //
-        //         cy.wait('@createApplication')
-        //         cy.wait('@createInstance')
-        //
-        //         // check that the user get redirected back to the instance step after failed instance creation
-        //         cy.get('[data-el="instance-step"]').contains('name in use')
-        //         cy.get('[data-el="instance-name-error"]').contains('name in use')
-        //
-        //         cy.get('[data-el="instance-name"] input').clear()
-        //         cy.get('[data-el="instance-name"] input').type(INSTANCE_NAME)
-        //
-        //         cy.get('[data-el="next-step"]').click()
-        //
-        //         cy.wait('@createInstance')
-        //
-        //         cy.contains(APPLICATION_NAME)
-        //         cy.contains(INSTANCE_NAME)
-        //     })
-        // })
+        it('handles instance creation failing gracefully', () => {
+            const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
+            const IN_USE_INSTANCE_NAME = 'instance-1-1'
+            const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
+
+            cy.request('GET', 'api/v1/teams').then((response) => {
+                const team = response.body.teams[0]
+
+                cy.visit(`/team/${team.slug}/applications/create`)
+
+                cy.intercept('POST', '/api/*/applications').as('createApplication')
+                cy.intercept('POST', '/api/*/projects').as('createInstance')
+
+                cy.get('[data-el="next-step"]').should('be.disabled')
+
+                cy.get('[data-form="application-name"] input').clear()
+                cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
+
+                cy.get('[data-el="next-step"]').should('be.enabled')
+                cy.get('[data-el="next-step"]').should('contain', 'Next')
+
+                cy.get('[data-el="next-step"]').click()
+
+                cy.get('[data-el="instance-name"] input').clear()
+                cy.get('[data-el="instance-name"] input').type(IN_USE_INSTANCE_NAME)
+
+                cy.get('[data-form="project-type"]').contains('type1').click()
+                cy.get('[data-form="project-template"]').contains('template1').click()
+
+                cy.get('[data-el="node-red-listbox"]').click()
+                cy.get('[data-option].ff-option').first().click()
+
+                cy.get('[data-el="next-step"]').click()
+
+                cy.wait('@createApplication')
+                cy.wait('@createInstance')
+
+                // check that the user get redirected back to the instance step after failed instance creation
+                cy.get('[data-step="instance"]').contains('name in use')
+                cy.get('[data-el="instance-name-error"]').contains('name in use')
+
+                cy.get('[data-el="instance-name"] input').clear()
+                cy.get('[data-el="instance-name"] input').type(INSTANCE_NAME)
+
+                cy.get('[data-el="next-step"]').click()
+
+                cy.wait('@createInstance')
+
+                cy.contains(APPLICATION_NAME)
+                cy.contains(INSTANCE_NAME)
+            })
+        })
 
         it('should have a back button', () => {
             cy.request('GET', 'api/v1/teams').then((response) => {
@@ -210,25 +209,82 @@ describe('FlowForge - Applications', () => {
         cy.get('[data-action="open-editor"]').should('exist')
     })
 
-    // todo redo, cannot be fixes easily without fixing the application duplication bug
-    // it('are not permitted to have a duplicate project name during creation', () => {
-    //     cy.request('GET', 'api/v1/teams', { failOnStatusCode: false }).then((response) => {
-    //         const team = response.body.teams[0]
-    //
-    //         cy.visit(`/team/${team.slug}/applications/create`)
-    //
-    //         cy.get('[data-form="application-name"] input').clear()
-    //         cy.get('[data-form="application-name"] input').type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
-    //
-    //         cy.get('[data-form="project-name"] input').clear()
-    //         cy.get('[data-form="project-name"] input').type('instance-1-1')
-    //         cy.get('[data-form="project-type"]').contains('type1').click()
-    //
-    //         cy.get('[data-action="create-project"]').click()
-    //
-    //         cy.get('[data-form="project-name"] [data-el="form-row-error"]').contains('name in use')
-    //     })
-    // })
+    it('are not permitted to have a duplicate project name during creation', () => {
+        cy.request('GET', 'api/v1/teams', { failOnStatusCode: false }).then((response) => {
+            let createAppCallCount = 0
+            const team = response.body.teams[0]
+            // we need at least one blueprint to show the blueprints step
+            cy.intercept('GET', '/api/*/flow-blueprints?filter=active&team=*', {
+                meta: {},
+                count: 1,
+                blueprints: [
+                    {
+                        id: 'yJR1DQ9NbK',
+                        active: true,
+                        name: 'My first Blueprint',
+                        description: 'My first team',
+                        category: 'Some other category',
+                        icon: 'cog',
+                        order: 1,
+                        default: false,
+                        externalUrl: 'https://google.com'
+                    }
+                ]
+            }).as('getBlueprints')
+            cy.intercept('POST', '/api/*/applications', req => {
+                createAppCallCount++
+            }).as('createApplication')
+
+            cy.visit(`/team/${team.slug}/applications/create`)
+
+            cy.wait('@getBlueprints')
+
+            cy.get('[data-form="application-name"] input').clear()
+            cy.get('[data-form="application-name"] input').type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
+
+            cy.get('[data-el="next-step"]').click()
+
+            cy.get('[data-el="instance-name"] input').clear()
+            cy.get('[data-el="instance-name"] input').type('instance-1-1')
+            cy.get('[data-form="project-type"]').contains('type1').click()
+            cy.get('[data-form="project-template"]').contains('template1').click()
+
+            cy.get('[data-el="node-red-listbox"]').click()
+            cy.get('[data-option].ff-option').first().click()
+
+            cy.get('[data-el="next-step"]').click()
+
+            cy.get('[data-step="blueprint"]').should('exist')
+
+            cy.get('[data-el="next-step"]').click()
+
+            // checking that the createApp api call was preformed and the application was created
+            cy.wrap(null).then(() => {
+                expect(createAppCallCount).to.eq(1)
+            })
+
+            // should get redirected back to the instance step on failure
+            cy.get('[data-step="instance"]').should('exist')
+
+            cy.get('[data-el="instance-name-error"]').contains('name in use')
+
+            // add a diff in the name
+            cy.get('[data-el="instance-name"] input').type(`-${Math.random().toString(36).substring(2, 7)}`)
+
+            cy.get('[data-el="instance-name-error"]').should('not.exist')
+
+            cy.get('[data-el="next-step"]').click()
+
+            cy.get('[data-step="blueprint"]').should('exist')
+
+            cy.get('[data-el="next-step"]').click()
+
+            // check that createApplication was NOT called a second time
+            cy.wrap(null).then(() => {
+                expect(createAppCallCount).to.eq(1)
+            })
+        })
+    })
 
     it('can be updated', () => {
         const START_ID = Math.random().toString(36).substring(2, 7)
