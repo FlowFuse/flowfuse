@@ -1,5 +1,5 @@
 <template>
-    <template v-if="neverConnected">
+    <template v-if="neverConnected && hasPermission('device:edit')">
         <ff-button kind="secondary" @click="finishSetup">
             <template #icon-left><ExclamationIcon class="ff-icon" /></template>
             Finish Setup
@@ -10,6 +10,7 @@
 
 <script>
 import { ExclamationIcon } from '@heroicons/vue/outline'
+import usePermissions from '../../../../../../../../flowfuse/frontend/src/composables/Permissions.js'
 
 import deviceActionsMixin from '../../../mixins/DeviceActions.js'
 
@@ -39,6 +40,10 @@ export default {
             type: Number,
             default: null
         }
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
     },
     computed: {
         neverConnected () {
