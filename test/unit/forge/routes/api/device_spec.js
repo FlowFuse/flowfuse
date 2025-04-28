@@ -466,6 +466,9 @@ describe('Device API', async function () {
             device.credentials.broker.should.have.property('username')
             device.credentials.broker.should.have.property('password')
 
+            device.should.have.property('meta').and.be.an.Object()
+            device.meta.should.have.property('ffVersion', app.config.version)
+
             const response2 = await app.inject({
                 method: 'POST',
                 url: `/api/v1/devices/${device.id}/generate_credentials`,
