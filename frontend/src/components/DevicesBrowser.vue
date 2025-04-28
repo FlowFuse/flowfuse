@@ -233,6 +233,7 @@
         :teamDeviceCount="teamDeviceCount"
         @device-created="deviceCreated"
         @device-updated="deviceUpdated"
+        @close="deviceEditModalOpened = false"
     >
         <template #description>
             <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours.firstDevice">
