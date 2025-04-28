@@ -37,20 +37,20 @@ module.exports = async function (app) {
     app.post('/state', async (request, reply) => {
         await app.db.controllers.Device.updateState(request.device, request.body)
         if (request.device.isApplicationOwned) {
-            if (request.body.initSnapshot && request.body.state === 'provisioning') {
+            if (request.body.provisioning?.snapshot && request.body.state === 'provisioning') {
                 // If the device is in provisioning mode, set the target snapshot to the init snapshot
                 // generate a new snapshot for this device
-                const saneSnapshotOptions = {
-                    name: 'Imported snapshot',
-                    description: 'Imported snapshot during provisioning',
+                const provisionedSnapshotOptions = {
+                    name: request.body.provisioning.name || 'Imported snapshot',
+                    description: request.body.provisioning.description || 'Snapshot imported during provisioning at ' + new Date().toISOString(),
                     setAsTarget: true
                 }
                 const snapShot = await app.db.controllers.ProjectSnapshot.createDeviceSnapshot(
                     request.device.Application,
                     request.device,
                     { id: null }, // state is transmitted from the device, so we don't have a user id
-                    saneSnapshotOptions,
-                    request.body.initSnapshot // corrected to use request.body.initSnapshot
+                    provisionedSnapshotOptions,
+                    request.body.provisioning.snapshot
                 )
                 request.device.set('targetSnapshotId', snapShot.id)
                 await request.device.save()
