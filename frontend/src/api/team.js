@@ -370,10 +370,11 @@ const getTeamDeviceProvisioningTokens = async (teamId, cursor, limit) => {
  */
 const generateTeamDeviceProvisioningToken = async (teamId, options) => {
     options = options || {}
-    const { name, instance, expiresAt } = options
+    const { name, application, instance, expiresAt } = options
     return client.post(`/api/v1/teams/${teamId}/devices/provisioning`,
         {
             name: name || 'Auto Provisioning Token',
+            application,
             instance,
             expiresAt
         }
@@ -393,9 +394,10 @@ const generateTeamDeviceProvisioningToken = async (teamId, options) => {
  */
 const updateTeamDeviceProvisioningToken = async (teamId, tokenId, options) => {
     options = options || {}
-    const { instance, expiresAt } = options
+    const { application, instance, expiresAt } = options
     return client.put(`/api/v1/teams/${teamId}/devices/provisioning/${tokenId}`,
         {
+            application,
             instance,
             expiresAt
         }
@@ -471,6 +473,17 @@ const getTeamDeviceGroups = (teamId) => {
         .then(res => res.data)
 }
 
+const getGitTokens = async (teamId, cursor) => {
+    const url = paginateUrl(`/api/v1/teams/${teamId}/git/tokens`, cursor)
+    return client.get(url).then(res => res.data)
+}
+
+const createGitToken = async (teamId, token) => {
+    return client.post(`/api/v1/teams/${teamId}/git/tokens`, token).then(res => res.data)
+}
+const deleteGitToken = async (teamId, tokenId) => {
+    return client.delete(`/api/v1/teams/${teamId}/git/tokens/${tokenId}`)
+}
 /**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
@@ -507,5 +520,8 @@ export default {
     bulkDeviceDelete,
     bulkDeviceMove,
     getDependencies,
-    getTeamDeviceGroups
+    getTeamDeviceGroups,
+    getGitTokens,
+    createGitToken,
+    deleteGitToken
 }
