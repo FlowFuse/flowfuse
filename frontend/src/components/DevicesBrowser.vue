@@ -227,7 +227,7 @@
     </div>
 
     <TeamDeviceCreateDialog
-        v-if="team"
+        v-if="team && deviceEditModalOpened"
         ref="teamDeviceCreateDialog"
         :team="team"
         :teamDeviceCount="teamDeviceCount"
@@ -400,7 +400,8 @@ export default {
                 direction: 'desc'
             },
             /** @type { import('../utils/timers.js').PollTimer } */
-            pollTimer: null
+            pollTimer: null,
+            deviceEditModalOpened: false
         }
     },
     computed: {
@@ -580,7 +581,8 @@ export default {
 
         showCreateDeviceDialog () {
             const showApplicationsList = this.displayingTeam
-            this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application, showApplicationsList)
+            this.deviceEditModalOpened = true
+            this.$nextTick(() => this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application, showApplicationsList))
         },
 
         confirmBulkDelete () {
