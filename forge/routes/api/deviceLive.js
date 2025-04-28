@@ -35,25 +35,42 @@ module.exports = async function (app) {
      * If the snapshot doesn't match the target, it will get a 409 (conflict)
      */
     app.post('/state', async (request, reply) => {
+        const isProvisioning = request.device.isApplicationOwned && request.body.provisioning?.deviceConfig && request.body.state === 'provisioning'
         await app.db.controllers.Device.updateState(request.device, request.body)
         if (request.device.isApplicationOwned) {
-            if (request.body.provisioning?.snapshot && request.body.state === 'provisioning') {
+            const device = request.device
+            if (isProvisioning) {
                 // If the device is in provisioning mode, set the target snapshot to the init snapshot
                 // generate a new snapshot for this device
-                const provisionedSnapshotOptions = {
-                    name: request.body.provisioning.name || 'Imported snapshot',
-                    description: request.body.provisioning.description || 'Snapshot imported during provisioning at ' + new Date().toISOString(),
-                    setAsTarget: true
+                const user = request.session?.User || { id: null }
+                try {
+                    const provisionedSnapshotOptions = {
+                        name: request.body.provisioning.name || 'Imported snapshot',
+                        description: request.body.provisioning.description || 'Snapshot imported during provisioning at ' + new Date().toISOString(),
+                        setAsTarget: true,
+                        credentialSecret: request.body.provisioning.credentialSecret || undefined,
+                        deviceConfig: request.body.provisioning.deviceConfig
+                    }
+                    const snapShot = await app.db.controllers.ProjectSnapshot.createDeviceSnapshot(
+                        device.Application,
+                        device,
+                        { id: null }, // state is transmitted from the device, so we don't have a user id
+                        provisionedSnapshotOptions
+                    )
+                    device.set('targetSnapshotId', snapShot.id)
+                    await device.save()
+                    // deliberate 6s delay for effect
+                    await new Promise(resolve => setTimeout(resolve, 6000))
+                    // audit log the creation of the snapshot
+                    await app.auditLog.Application.application.device.snapshot.created(user, null, device.Application, device, snapShot)
+                    await app.auditLog.Device.device.snapshot.created(user, null, device, snapShot)
+                    await app.auditLog.Device.device.snapshot.targetSet(user, null, device, snapShot)
+                } catch (err) {
+                    await app.auditLog.Application.application.device.snapshot.created(user, err, device.Application, device, null)
+                    await app.auditLog.Device.device.snapshot.created(user, err, device, null)
+                } finally {
+                    await app.db.controllers.Device.updateState(request.device, { state: 'offline' }) // Now set the state to offline if we fail to create the snapshot
                 }
-                const snapShot = await app.db.controllers.ProjectSnapshot.createDeviceSnapshot(
-                    request.device.Application,
-                    request.device,
-                    { id: null }, // state is transmitted from the device, so we don't have a user id
-                    provisionedSnapshotOptions,
-                    request.body.provisioning.snapshot
-                )
-                request.device.set('targetSnapshotId', snapShot.id)
-                await request.device.save()
             }
 
             if (!request.device.agentVersion || SemVer.lt(request.device.agentVersion, '1.11.0')) {
@@ -86,7 +103,7 @@ module.exports = async function (app) {
             return
         }
         // if provisioning, don't check the snapshot
-        if (request.body.state !== 'provisioning') {
+        if (!isProvisioning) {
             if (request.body.snapshot !== (request.device.targetSnapshot?.hashid || null)) {
                 reply.code(409).send({
                     error: 'incorrect-snapshot',
