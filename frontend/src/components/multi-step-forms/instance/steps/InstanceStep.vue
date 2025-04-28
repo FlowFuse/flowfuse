@@ -1,5 +1,5 @@
 <template>
-    <section class="ff-instance-step text-center flex flex-col gap-4 pt-6">
+    <section class="ff-instance-step text-center flex flex-col gap-4 pt-6" data-step="instance">
         <h2>Setup Your Instance</h2>
         <form class="max-w-2xl m-auto text-left flex flex-col gap-7">
             <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
@@ -8,13 +8,14 @@
 
             <div class="ff-instance-name ff-input-wrapper flex flex-col gap-1">
                 <label class="mb-1">Name</label>
-                <div class="ff-input-wrapper flex gap-3 items-center">
+                <div class="ff-input-wrapper flex gap-3 items-center relative mb-4">
                     <ff-text-input
                         v-model="input.name"
                         label="instance-name"
                         :error="errors.name"
                         data-el="instance-name"
                     />
+                    <span v-if="errors.name" class="absolute left-4 top-9 text-red-600 text-sm" data-el="instance-name-error">{{ errors.name }}</span>
                     <ff-button kind="secondary" @click="refreshName">
                         <template #icon>
                             <RefreshIcon />
@@ -75,7 +76,7 @@
                     >
                         <label class="mb-2 block w-full">Choose your Template</label>
                         <template v-if="hasTemplates">
-                            <ff-tile-selection v-model="input.template" data-form="project-type">
+                            <ff-tile-selection v-model="input.template" data-form="project-template">
                                 <ff-tile-selection-option
                                     v-for="(template, index) in instanceTemplates"
                                     :key="index"
@@ -98,6 +99,7 @@
                         <template v-if="hasNodeRedVersions">
                             <ff-listbox
                                 v-model="input.nodeREDVersion"
+                                data-el="node-red-listbox"
                                 :options="nodeRedVersions"
                                 :disabled="!input.instanceType || !input.template"
                                 :placeholder="nodeRedVersionPlaceholder"
@@ -112,6 +114,15 @@
                 </div>
             </transition>
         </form>
+        <!-- Billing details -->
+        <div v-if="features.billing" class="my-5 text-left" style="padding: 0 60px;">
+            <InstanceChargesTable
+                :project-type="selectedInstanceType"
+                :subscription="subscription"
+                :trialMode="isTrialProjectSelected"
+                :prorationMode="team?.type?.properties?.billing?.proration"
+            />
+        </div>
     </section>
 </template>
 
@@ -123,6 +134,7 @@ import billingApi from '../../../../api/billing.js'
 import instanceTypesApi from '../../../../api/instanceTypes.js'
 import stacksApi from '../../../../api/stacks.js'
 import templatesApi from '../../../../api/templates.js'
+import InstanceChargesTable from '../../../../pages/instance/components/InstanceChargesTable.vue'
 import InstanceCreditBanner from '../../../../pages/instance/components/InstanceCreditBanner.vue'
 import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
 import FfTextInput from '../../../../ui-components/components/form/TextInput.vue'
@@ -132,13 +144,27 @@ import FeatureUnavailableToTeam from '../../../banners/FeatureUnavailableToTeam.
 
 export default {
     name: 'InstanceStep',
-    components: { FeatureUnavailableToTeam, RefreshIcon, CheckCircleIcon, Loading, InstanceCreditBanner, FfListbox, FfTextInput },
+    components: {
+        InstanceChargesTable,
+        FeatureUnavailableToTeam,
+        RefreshIcon,
+        CheckCircleIcon,
+        Loading,
+        InstanceCreditBanner,
+        FfListbox,
+        FfTextInput
+    },
     props: {
         slug: {
             required: true,
             type: String
         },
         state: {
+            required: false,
+            type: Object,
+            default: () => ({})
+        },
+        initialErrors: {
             required: false,
             type: Object,
             default: () => ({})
@@ -159,10 +185,10 @@ export default {
                 template: this.initialState.template ?? null
             },
             errors: {
-                name: null,
-                instanceType: null,
-                nodeREDVersion: null,
-                template: null
+                name: this.initialErrors.name ?? null,
+                instanceType: this.initialErrors.instanceType ?? null,
+                nodeREDVersion: this.initialErrors.nodeREDVersion ?? null,
+                template: this.initialErrors.template ?? null
             },
             nodeRedVersions: [],
             instanceTypes: [],
@@ -198,6 +224,19 @@ export default {
         hasValidName () {
             return /^[a-zA-Z][a-zA-Z0-9-\s]*$/.test(this.input.name)
         },
+        isTrialProjectSelected () {
+            //  - Team is in trial mode, and
+            //  - Team billing is not configured, or
+            //  - team billing is configured, but they still have an available
+            //     trial instance to create, and they have selected the trial
+            //     instance type
+            return this.team.billing?.trial && (
+                !this.team.billing?.active || (
+                    this.team.billing.trialProjectAllowed &&
+                    this.selectedProjectType?.id === this.settings['user:team:trial-mode:projectType']
+                )
+            )
+        },
         instanceName () {
             return this.input.name.trim().replace(/\s/g, '-').toLowerCase()
         },
@@ -226,6 +265,12 @@ export default {
                 teamTypeRuntimeLimit = this.team.type.properties?.trial?.runtimesLimit
             }
             return (teamTypeRuntimeLimit > 0 && currentRuntimeCount >= teamTypeRuntimeLimit)
+        },
+        selectedInstanceType () {
+            if (this.input.instanceType) {
+                return this.instanceTypes.find(type => type.id === this.input.instanceType)
+            }
+            return null
         }
     },
     watch: {
@@ -274,8 +319,7 @@ export default {
                     }
                 })
             },
-            deep: true,
-            immediate: true
+            deep: true
         },
         'input.instanceType' () {
             this.input.nodeREDVersion = null
@@ -317,6 +361,12 @@ export default {
 
             this.instanceTypes = instanceTypes.types ?? []
             this.decoratedInstanceTypes = this.decorateInstanceTypes(instanceTypes.types ?? [])
+
+            const enabledTypes = this.decoratedInstanceTypes.filter(type => !type.disabled)
+            if (enabledTypes.length === 1) {
+                // pre-select the instance type if only one available
+                this.input.instanceType = enabledTypes[0].id
+            }
         },
         async getSubscription () {
             if (this.features.billing && !this.team.billing?.unmanaged && !this.team.type.properties?.billing?.disabled) {
