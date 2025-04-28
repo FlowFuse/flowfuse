@@ -10,7 +10,8 @@
 
 <script>
 import { ExclamationIcon } from '@heroicons/vue/outline'
-import usePermissions from '../../../../../../../../flowfuse/frontend/src/composables/Permissions.js'
+
+import usePermissions from '../../../composables/Permissions.js'
 
 import deviceActionsMixin from '../../../mixins/DeviceActions.js'
 
