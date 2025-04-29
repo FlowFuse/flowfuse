@@ -140,7 +140,10 @@ if (fs.existsSync(configPath)) {
             instances: { [flowforge.projectTypes[0].hashid]: { active: false } },
             devices: {},
             users: {},
-            features: {}
+            features: {},
+            billing: {
+                disabled: true
+            }
         }
     })
     const freeTeam = await factory.createTeam({

@@ -54,7 +54,7 @@ function prefillMultiStepInstanceForm () {
     cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
     // select nr-version
-    cy.get('[data-form="multi-step-form"] [data-el="listbox"]').click()
+    cy.get('[data-form="multi-step-form"] [data-el="node-red-listbox"]').click()
     cy.get('[data-option="stack 1"]').click()
 
     cy.get('[data-el="next-step"]').click()
@@ -334,7 +334,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
                     cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
                     // select nr-version
-                    cy.get('[data-form="multi-step-form"] [data-el="listbox"]').click()
+                    cy.get('[data-form="multi-step-form"] [data-el="node-red-listbox"]').click()
                     cy.get('[data-option="stack 1"]').click()
 
                     cy.get('[data-el="next-step"]').click()
@@ -407,7 +407,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
                     cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
                     // select nr-version
-                    cy.get('[data-form="multi-step-form"] [data-el="listbox"]').click()
+                    cy.get('[data-form="multi-step-form"] [data-el="node-red-listbox"]').click()
                     cy.get('[data-option="stack 1"]').click()
 
                     cy.get('[data-el="next-step"]').click()
@@ -491,7 +491,7 @@ describe('FlowFuse - Deploy Blueprint', () => {
                     cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
                     // select nr-version
-                    cy.get('[data-form="multi-step-form"] [data-el="listbox"]').click()
+                    cy.get('[data-form="multi-step-form"] [data-el="node-red-listbox"]').click()
                     cy.get('[data-option="stack 1"]').click()
 
                     cy.get('[data-el="next-step"]').click()
