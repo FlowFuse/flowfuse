@@ -91,6 +91,7 @@ import Product from '../../services/product.js'
 
 import ObjectProperties from './Brokers/Hierarchy/components/schema/ObjectProperties.vue'
 
+// eslint-disable-next-line vue/one-component-per-file
 export default {
     name: 'ChangeTeamType',
     components: {
