@@ -15,6 +15,7 @@
 
 <script>
 import ApplicationApi from '../../../api/application.js'
+import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
 export default {
@@ -30,6 +31,11 @@ export default {
             required: true
         }
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data: function () {
         return {
             pipeline: null,
@@ -42,7 +48,11 @@ export default {
         '$route.params.pipelineId': 'fetchData'
     },
     async created () {
-        await this.fetchData()
+        if (this.hasPermission('application:pipeline:list')) {
+            await this.fetchData()
+        } else {
+            return this.$router.push({ name: 'Application', params: this.$route.params })
+        }
     },
     methods: {
         async loadPipeline () {
