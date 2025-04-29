@@ -1,7 +1,7 @@
 module.exports = {
     subject: 'FlowFuse Instance crashed',
     text:
-`Hello {{{ safeName }}},
+`Hello {{{ safeName.text }}},
 
 Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.text }}}" has crashed due to an out of memory error.
 
@@ -40,7 +40,7 @@ You can access the instance and its logs here:
 
 `,
     html:
-`<p>Hello {{{ safeName }}},</p>
+`<p>Hello {{{ safeName.html }}},</p>
 <p>Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.html }}}" has crashed due to an out of memory error.</p>
 
 <p>

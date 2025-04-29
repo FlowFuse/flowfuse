@@ -1,7 +1,7 @@
 module.exports = {
     subject: 'FlowFuse Instance Memory usage exceeded 75%',
     text:
-`Hello {{{ safeName }}},
+`Hello {{{ safeName.text }}},
 
 Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.text }}}" is using more than 75% of its available memory.
 This can cause degraded performance, errors, and crashes.
@@ -41,7 +41,7 @@ You can access the instance and its logs here:
 
 `,
     html:
-`<p>Hello {{{ safeName }}},</p>
+`<p>Hello {{{ safeName.html }}},</p>
 <p>
 Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.html }}}" is using more than 75% of its available memory.
 This can cause degraded performance, errors, and crashes.
