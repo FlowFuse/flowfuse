@@ -18,7 +18,7 @@
             </div>
         </div>
         <div class="actions">
-            <FinishSetupButton v-if="neverConnected" :device="device" />
+            <FinishSetupButton v-if="neverConnected && hasPermission('device:edit')" :device="device" />
             <ff-kebab-menu v-else>
                 <ff-list-item
                     label="Edit Details"
@@ -49,6 +49,7 @@
 <script>
 import FinishSetupButton from '../../../../../components/FinishSetup.vue'
 import StatusBadge from '../../../../../components/StatusBadge.vue'
+import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
 import permissionsMixin from '../../../../../mixins/Permissions.js'
@@ -75,6 +76,10 @@ export default {
         }
     },
     emits: ['device-action'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     computed: {
         neverConnected () {
             return !this.device.lastSeenAt
