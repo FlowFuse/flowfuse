@@ -318,7 +318,7 @@ export default {
                 break
 
             case !this.hasFfUnsClients && this.hasBrokers:
-                this.activeBrokerId = this.brokers[0].id
+                this.activeBrokerId = brokerId ?? this.brokers[0].id
                 break
 
             case this.hasFfUnsClients && !brokerId && !this.isCreationPage:

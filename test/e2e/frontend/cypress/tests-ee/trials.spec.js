@@ -21,23 +21,34 @@ describe('FlowForge - Trial Users', () => {
 
         cy.get('[data-el="empty-state"] [data-action="create-application"]').click()
 
-        cy.get('[data-action="create-project"]').should('be.disabled')
+        cy.get('[data-el="next-step"]').should('be.disabled')
 
         cy.get('[data-form="application-name"] input').clear()
         cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
 
+        cy.get('[data-el="next-step"]').should('be.enabled')
+        cy.get('[data-el="next-step"]').click()
+
         // Pre-fills instance name
-        cy.get('[data-form="project-name"] input').should(($input) => {
+        cy.get('[data-el="instance-name"] input').should(($input) => {
             const projectName = $input.val()
             expect(projectName.length).to.be.above(0)
         })
 
-        cy.get('[data-form="project-name"] input').clear()
-        cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
+        cy.get('[data-el="instance-name"] input').clear()
+        cy.get('[data-el="instance-name"] input').type(INSTANCE_NAME)
 
-        cy.get('[data-action="create-project"]').should('not.be.disabled').click()
+        // pre-select the first project template
+        cy.get('[data-form="project-template"] [data-item="tile-selection-option"]').first().click()
 
-        cy.url().should('include', '/instance/')
+        cy.get('[data-el="node-red-listbox"]').click()
+        cy.get('[data-option].ff-option').first().click()
+
+        cy.get('[data-el="next-step"]').should('be.enabled')
+        cy.get('[data-el="next-step"]').click()
+        cy.get('[data-el="next-step"]').click()
+
+        cy.url().should('include', '/applications/')
     })
 
     it('cannot create a second instance', () => {
