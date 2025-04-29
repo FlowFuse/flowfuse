@@ -57,7 +57,7 @@ This can occur for a number of reasons including:
 
 Possible solutions:
 <ul>
-<li>Selecting a larger instance type</li>
+<li>Upgrade to a larger instance type</li>
 <li>Disabling some nodes to identify a problem area</li>
 <li>When polling external services, ensure you are not polling too frequently as this may cause backpressure leading to memory exhaustion</li>
 <li>Check your flows for large data structures being held in memory, particularly in context</li>

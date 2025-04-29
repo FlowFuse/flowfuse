@@ -57,7 +57,7 @@ This can occur for a number of reasons including:
 
 Possible solutions:
 <ul>
-<li>Selecting a larger instance type</li>
+<li>Upgrade to a larger instance type</li>
 <li>Disabling some nodes to identify a problem area</li>
 <li>Check your flows for loops or functions that are causing high CPU usage</li>
 <li>Check the issue tracker of your contrib nodes</li>

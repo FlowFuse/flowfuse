@@ -12,6 +12,7 @@ This can occur for a number of reasons including:
 - An issue in Node-RED itself
 
 Possible solutions:
+- Upgrade to a larger instance type
 - Look out for async function calls in your function nodes that don't have error handling
 - Check the issue tracker of the node that caused the crash
 - Check the Node-RED issue tracker for similar issues
@@ -53,6 +54,7 @@ This can occur for a number of reasons including:
 
 Possible solutions:
 <ul>
+<li>Upgrade to a larger instance type</li>
 <li>Look out for async function calls in your function nodes that don't have error handling</li>
 <li>Check the issue tracker of the node that caused the crash</li>
 <li>Check the Node-RED issue tracker for similar issues</li>
