@@ -60,7 +60,7 @@ Possible solutions:
 <li>Check the issue tracker of your contrib nodes</li>
 </ul>
 
-CTA: <a href="{{{ ctaChangeTypeUrl }}}">Select a larger instance type</a>
+CTA: <a href="{{{ ctaChangeTypeUrl }}}">Upgrade my instance</a>
 </p>
 
 

@@ -12,7 +12,7 @@ This can occur for a number of reasons including:
 - An issue in a third-party library or node
 
 Possible solutions:
-- Select a larger instance type
+- Upgrade to a larger instance type
 - Disabling some nodes to identify a problem area
 - Check your flows for loops or functions that are causing high CPU usage
 - Check the issue tracker of your contrib nodes
@@ -64,7 +64,7 @@ Possible solutions:
 <li>Check the instance logs for clues and errors</li>
 </ul>
 
-CTA: <a href="{{{ ctaChangeTypeUrl }}}">Select a larger instance type</a>
+CTA: <a href="{{{ ctaChangeTypeUrl }}}">Upgrade my instance</a>
 </p>
 
 

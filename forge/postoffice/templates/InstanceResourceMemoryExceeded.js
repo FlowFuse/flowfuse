@@ -12,7 +12,7 @@ This can occur for a number of reasons including:
 - An issue in a third-party library or node
 
 Possible solutions:
-- Select a larger instance type
+- Upgrade to a larger instance type
 - Disabling some nodes to identify a problem area
 - When polling external services, ensure you are not polling too frequently as this may cause backpressure leading to memory exhaustion
 - Check your flows for large data structures being held in memory, particularly in context
@@ -64,7 +64,7 @@ Possible solutions:
 <li>Check the issue tracker of your contrib nodes</li>
 </ul>
 
-CTA: <a href="{{{ ctaChangeTypeUrl }}}">Select a larger instance type</a>
+CTA: <a href="{{{ ctaChangeTypeUrl }}}">Upgrade my instance</a>
 </p>
 
 {{#if log.html}}
