@@ -405,14 +405,14 @@ describe('Projects API (EE)', function () {
             body.should.have.property('count')
             body.should.have.property('timeline')
         })
-        it('Viewer should not be able to access project history (403)', async function () {
+        it('Viewer should be able to access project history (200)', async function () {
             // 403: Forbidden - The user does not have permission to access the resource
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/projects/${TestObjects.instanceOne.id}/history`,
                 cookies: { sid: TestObjects.tokens.dave }
             })
-            response.statusCode.should.equal(403)
+            response.statusCode.should.equal(200)
         })
         it('Non member should not be able to access project history (404)', async function () {
             // 404: Not Found - The requested resource could not be found
