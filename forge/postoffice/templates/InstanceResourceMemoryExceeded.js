@@ -1,21 +1,24 @@
 module.exports = {
     subject: 'FlowFuse Instance Memory usage exceeded 75%',
     text:
-`Hello
+`Hello {{{ safeName }}},
 
 Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.text }}}" is using more than 75% of its available memory.
+This can cause degraded performance, errors, and crashes.
 
 This can occur for a number of reasons including:
-- incorrect instance size for your workload
-- an issue in your flows or functions holding onto memory
-- an issue in a third-party library or node
+- Needing a larger instance size for your workload
+- An issue in your flows or functions holding onto memory
+- An issue in a third-party library or node
 
 Possible solutions:
-- upgrading to a larger instance type
-- try disabling some nodes to see if the problem settles down after a restart
-- when polling external services, ensure you are not polling too frequently as this may cause backpressure leading to memory exhaustion
-- check your flows for large data structures being held in memory, particularly in context
-- check the issue tracker of your contrib nodes
+- Select a larger instance type
+- Disabling some nodes to identify a problem area
+- When polling external services, ensure you are not polling too frequently as this may cause backpressure leading to memory exhaustion
+- Check your flows for large data structures being held in memory, particularly in context
+- Check the issue tracker of your contrib nodes
+
+Upgrade my instance: {{{ ctaChangeTypeUrl }}}
 
 {{#if log.text}}
 ------------------------------------------------------
@@ -38,26 +41,31 @@ You can access the instance and its logs here:
 
 `,
     html:
-`<p>Hello</p>
-<p>Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.html }}}" is using more than 75% of its available memory.</p>
+`<p>Hello {{{ safeName }}},</p>
+<p>
+Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.html }}}" is using more than 75% of its available memory.
+This can cause degraded performance, errors, and crashes.
+</p>
 
 <p>
 This can occur for a number of reasons including:
 <ul>
-<li>incorrect instance size for your workload</li>
-<li>an issue in your flows holding onto memory</li>
-<li>an issue in a third-party library or node</li>
+<li>Needing a larger instance size for your workload</li>
+<li>An issue in your flows holding onto memory</li>
+<li>An issue in a third-party library or node</li>
 </ul>
 
 Possible solutions:
 <ul>
-<li>try selecting a larger instance type</li>
-<li>try disabling some nodes to see if the problem settles down after a restart</li>
-<li>when polling external services, ensure you are not polling too frequently as this may cause backpressure leading to memory exhaustion</li>
-<li>check your flows for large data structures being held in memory, particularly in context</li>
-<li>check the issue tracker of your contrib nodes</li>
-</p>
+<li>Selecting a larger instance type</li>
+<li>Disabling some nodes to identify a problem area</li>
+<li>When polling external services, ensure you are not polling too frequently as this may cause backpressure leading to memory exhaustion</li>
+<li>Check your flows for large data structures being held in memory, particularly in context</li>
+<li>Check the issue tracker of your contrib nodes</li>
+</ul>
 
+CTA: <a href="{{{ ctaChangeTypeUrl }}}">Select a larger instance type</a>
+</p>
 
 {{#if log.html}}
 <p>

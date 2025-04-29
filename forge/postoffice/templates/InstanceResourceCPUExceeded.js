@@ -1,21 +1,24 @@
 module.exports = {
     subject: 'FlowFuse Instance CPU exceeded 75%',
     text:
-`Hello
+`Hello {{{ safeName }}},
 
 Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.text }}}" is using more than 75% of its CPU.
+This can cause degraded performance, errors, and crashes.
 
 This can occur for a number of reasons including:
-- incorrect instance size for your workload
-- an issue in your flows or functions causing high CPU usage
-- an issue in a third-party library or node
+- Needing a larger instance size for your workload
+- An issue in your flows or functions causing high CPU usage
+- An issue in a third-party library or node
 
 Possible solutions:
-- upgrading to a larger instance type
-- try disabling some nodes to see if the problem settles down after a restart
-- check your flows for loops or functions that are causing high CPU usage
-- check the issue tracker of your contrib nodes
-- check the instance logs for clues and errors
+- Select a larger instance type
+- Disabling some nodes to identify a problem area
+- Check your flows for loops or functions that are causing high CPU usage
+- Check the issue tracker of your contrib nodes
+- Check the instance logs for clues and errors
+
+Upgrade my instance: {{{ ctaChangeTypeUrl }}}
 
 {{#if log.text}}
 ------------------------------------------------------
@@ -38,24 +41,30 @@ You can access the instance and its logs here:
 
 `,
     html:
-`<p>Hello</p>
-<p>Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.html }}}" is using more than 75% of its CPU.</p>
+`<p>Hello {{{ safeName }}},</p>
+<p>
+Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.html }}}" is using more than 75% of its CPU.
+This can cause degraded performance, errors, and crashes.
+</p>
 
 <p>
 This can occur for a number of reasons including:
 <ul>
-<li>incorrect instance size for your workload</li>
-<li>an issue in your flows or functions holding that are causing high CPU usage</li>
-<li>an issue in a third-party library or node</li>
+<li>Needing a larger instance size for your workload</li>
+<li>An issue in your flows or functions holding that are causing high CPU usage</li>
+<li>An issue in a third-party library or node</li>
 </ul>
 
 Possible solutions:
 <ul>
-<li>try selecting a larger instance type</li>
-<li>try disabling some nodes to see if the problem settles down after a restart</li>
-<li>check your flows for loops or functions that are causing high CPU usage</li>
-<li>check the issue tracker of your contrib nodes</li>
-<li>check the instance logs for clues and errors</li>
+<li>Selecting a larger instance type</li>
+<li>Disabling some nodes to identify a problem area</li>
+<li>Check your flows for loops or functions that are causing high CPU usage</li>
+<li>Check the issue tracker of your contrib nodes</li>
+<li>Check the instance logs for clues and errors</li>
+</ul>
+
+CTA: <a href="{{{ ctaChangeTypeUrl }}}">Select a larger instance type</a>
 </p>
 
 
