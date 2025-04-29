@@ -815,7 +815,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
             cy.get('[data-el="protected-marker"]').should('exist')
-            cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('have.class', 'ff-disabled')
+            cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('not.exist')
         })
 
         cy.logout()
