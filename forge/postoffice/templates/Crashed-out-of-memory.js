@@ -6,7 +6,7 @@ module.exports = {
 Your FlowFuse Instance "{{{ name }}}" in Team "{{{ teamName.text }}}" has crashed due to an out of memory error.
 
 This can occur for a number of reasons including:
-- Incorrect instance size for your workload
+- Needing a larger instance size for your workload
 - An issue in your flows or functions holding onto memory
 - An issue in a third-party library or node
 
@@ -46,7 +46,7 @@ You can access the instance and its logs here:
 <p>
 This can occur for a number of reasons including:
 <ul>
-<li>Incorrect instance size for your workload</li>
+<li>Needing a larger instance size for your workload</li>
 <li>An issue in your flows holding onto memory</li>
 <li>An issue in a third-party library or node</li>
 </ul>

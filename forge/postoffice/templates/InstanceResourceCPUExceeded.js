@@ -51,7 +51,7 @@ This can cause degraded performance, errors, and crashes.
 This can occur for a number of reasons including:
 <ul>
 <li>Needing a larger instance size for your workload</li>
-<li>An issue in your flows or functions holding that are causing high CPU usage</li>
+<li>An issue in your flows or functions causing high CPU usage</li>
 <li>An issue in a third-party library or node</li>
 </ul>
 
