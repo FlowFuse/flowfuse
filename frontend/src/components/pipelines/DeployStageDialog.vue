@@ -56,20 +56,14 @@
                     <FormRow data-form="snapshot" containerClass="w-full">
                         Source Snapshot
                         <template #input>
-                            <ff-dropdown
+                            <ff-listbox
                                 v-if="hasSnapshots"
                                 v-model="input.selectedSnapshotId"
+                                :options="snapshotOptions"
                                 placeholder="Select a snapshot"
                                 data-form="snapshot-select"
                                 class="w-full"
-                            >
-                                <ff-dropdown-option
-                                    v-for="snapshot in snapshotOptions"
-                                    :key="snapshot.value"
-                                    :label="snapshot.label"
-                                    :value="snapshot.value"
-                                />
-                            </ff-dropdown>
+                            />
                             <div v-else class="error-banner">
                                 There are no snapshots to choose from for this stage's
                                 <template v-if="stage.stageType == StageType.INSTANCE">

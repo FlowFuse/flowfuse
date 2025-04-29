@@ -122,7 +122,10 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
             instances: { [flowforge.projectTypes[0].hashid]: { active: false } },
             devices: {},
             users: {},
-            features: {}
+            features: {},
+            billing: {
+                disabled: true
+            }
         }
     })
     const freeTeam = await factory.createTeam({
