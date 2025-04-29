@@ -451,10 +451,16 @@ module.exports = {
      * @param {*} device
      * @param {*} user
      * @param {*} options
-     * @param {*} deviceConfig - optional device config to use instead of fetching from db
+     * @param {String} options.name - name of the snapshot
+     * @param {String} options.description - description of the snapshot
+     * @param {String} [options.credentialSecret] - secret to decrypt deviceConfig credentials with (if any)
+     * @param {Object} [options.deviceConfig] - a set of flows, credentials and packages to use instead of fetching from remote instance
+     * @param {Object} [options.deviceConfig.flows] - device flows to use for the snapshot
+     * @param {Object} [options.deviceConfig.credentials] - device flows credentials to use for the snapshot
+     * @param {Object} [options.deviceConfig.package] - device package to use for the snapshot
      */
-    createDeviceSnapshot: async function (app, application, device, user, options, deviceConfig = null) {
-        deviceConfig = deviceConfig || await app.db.controllers.Device.exportConfig(device)
+    createDeviceSnapshot: async function (app, application, device, user, options) {
+        const deviceConfig = options.deviceConfig || await app.db.controllers.Device.exportConfig(device)
 
         const snapshotOptions = {
             name: options.name || '',
@@ -476,7 +482,8 @@ module.exports = {
             // TODO: device snapshot:  is this step necessary?
             if (deviceConfig.credentials) {
                 // TODO: device snapshot:  reconsider when device settings at application level are implemented
-                snapshotOptions.flows.credentials = app.db.controllers.Project.exportCredentials(deviceConfig.credentials || {}, deviceConfig.credentialSecret || device.credentialSecret, device.credentialSecret)
+                const srcSecret = options.credentialSecret || device.credentialSecret
+                snapshotOptions.flows.credentials = app.db.controllers.Project.exportCredentials(deviceConfig.credentials || {}, srcSecret, device.credentialSecret)
             }
         }
         if (deviceConfig.package?.modules) {
