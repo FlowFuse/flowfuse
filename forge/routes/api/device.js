@@ -368,8 +368,6 @@ module.exports = async function (app) {
                 response.meta = {
                     ffVersion: app.config.version
                 }
-                // here, I may wish to include a flag or object that lets the provisioned device know this FF backend supports
-                // importing existing flows/modules from the device being provisioned
                 reply.send(response)
             } finally {
                 if (app.license.active() && app.billing) {
