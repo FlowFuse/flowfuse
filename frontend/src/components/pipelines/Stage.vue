@@ -10,6 +10,7 @@
             </div>
             <div class="ff-pipeline-actions">
                 <span
+                    v-if="hasPermission('pipeline:edit')"
                     v-ff-tooltip:right="'Edit Pipeline Stage'"
                     data-action="stage-edit"
                     @click="edit"
@@ -20,6 +21,7 @@
                     />
                 </span>
                 <span
+                    v-if="hasPermission('pipeline:delete')"
                     v-ff-tooltip:right="'Delete Pipeline Stage'"
                     data-action="stage-delete"
                     @click="deleteStage"
@@ -30,6 +32,7 @@
                     />
                 </span>
                 <span
+                    v-if="hasPermission('pipeline:edit')"
                     v-ff-tooltip:right="'Run Pipeline Stage'"
                     data-action="stage-run"
                     :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying }"
@@ -191,6 +194,7 @@ import { ExclamationIcon, LockClosedIcon, PencilAltIcon, PlayIcon, PlusCircleIco
 import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 
 import StatusBadge from '../../components/StatusBadge.vue'
+import usePermissions from '../../composables/Permissions.js'
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
 import Alerts from '../../services/alerts.js'
@@ -248,6 +252,10 @@ export default {
         }
     },
     emits: ['stage-deleted', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     computed: {
         stageIndex () {
             return this.pipeline.stages.indexOf(this.stage)

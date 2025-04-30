@@ -9,9 +9,20 @@
                     <img alt="info" src="../../../images/pictograms/pipeline_red.png">
                 </template>
                 <template #helptext>
-                    <p>DevOps Pipelines are used to link multiple Node-RED instances together in a deployment pipeline.</p>
-                    <p>This is normally used to define "Development" instances, where you can test your new flows without fear or breaking "Production" environments, and then, when you're ready, deploy your changes with a single click</p>
-                    <p>Get started by choosing an <router-link :to="{name: 'Team'}">Application</router-link> to build your first DevOps Pipeline in.</p>
+                    <p>
+                        DevOps Pipelines are used to link multiple Node-RED instances together in a deployment
+                        pipeline.
+                    </p>
+                    <p>
+                        This is normally used to define "Development" instances, where you can test your new flows
+                        without fear or breaking "Production" environments, and then, when you're ready, deploy your
+                        changes with a single click
+                    </p>
+                    <p>
+                        Get started by choosing an
+                        <router-link :to="{name: 'Team'}">Application</router-link>
+                        to build your first DevOps Pipeline in.
+                    </p>
                 </template>
             </ff-page-header>
         </template>
@@ -81,6 +92,7 @@ import { mapGetters } from 'vuex'
 
 import pipelineAPI from '../../../api/pipeline.js'
 import EmptyState from '../../../components/EmptyState.vue'
+import usePermissions from '../../../composables/Permissions.js'
 
 import TeamPipeline from './components/TeamPipeline.vue'
 
@@ -90,6 +102,11 @@ export default {
         SearchIcon,
         EmptyState,
         TeamPipeline
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
     },
     data () {
         return {
@@ -115,6 +132,13 @@ export default {
         }
     },
     mounted () {
+        if (!this.hasPermission('application:pipeline:list')) {
+            return this.$router.push({
+                name: 'Applications',
+                params: this.$route.params
+            })
+        }
+
         if (this.featuresCheck.devOpsPipelinesFeatureEnabled) {
             this.getPipelines()
         }
