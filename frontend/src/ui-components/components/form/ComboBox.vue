@@ -24,6 +24,7 @@
                     <ComboboxOptions
                         v-if="open && filteredOptions.length"
                         class="absolute ff-options"
+                        data-el="options"
                         :style="{
                             top: position.top + 'px',
                             left: position.left + 'px',
