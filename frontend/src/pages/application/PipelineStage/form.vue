@@ -87,19 +87,21 @@
 
         <!-- Instance/Device -->
         <div class="flex space-x-4">
-            <FormRow
-                v-if="input.stageType === StageType.INSTANCE"
-                v-model="input.instanceId"
-                :options="instanceOptions"
-                data-form="stage-instance"
-                :placeholder="instanceDropdownPlaceholder"
-                :disabled="instanceDropdownDisabled"
-                class="flex-grow"
-            >
+            <form-row v-if="input.stageType === StageType.INSTANCE" container-class="w-full">
                 <template #default>
                     Choose Hosted Instance
                 </template>
-            </FormRow>
+                <template #input>
+                    <ff-combobox
+                        v-model="input.instanceId"
+                        class="w-full flex-grow max-w-sm"
+                        :options="instanceOptions"
+                        :disabled="instanceDropdownDisabled"
+                        data-form="stage-instance"
+                        placeholder="Choose Instance"
+                    />
+                </template>
+            </form-row>
 
             <FormRow
                 v-else-if="input.stageType === StageType.DEVICE"
