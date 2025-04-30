@@ -59,8 +59,7 @@ module.exports = async function (app) {
                     )
                     device.set('targetSnapshotId', snapShot.id)
                     await device.save()
-                    // deliberate 6s delay for effect
-                    await new Promise(resolve => setTimeout(resolve, 6000))
+
                     // audit log the creation of the snapshot
                     await app.auditLog.Application.application.device.snapshot.created(user, null, device.Application, device, snapShot)
                     await app.auditLog.Device.device.snapshot.created(user, null, device, snapShot)
