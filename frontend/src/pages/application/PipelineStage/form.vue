@@ -527,6 +527,11 @@ export default {
                 return acc
             }, new Set())
 
+            // exclude this stage's deviceId from the list of devices in use
+            if (this.input.deviceId) {
+                deviceIdsInUse.delete(this.input.deviceId)
+            }
+
             return this.applicationDevices.filter((device) => {
                 return !deviceIdsInUse.has(device.id) || device.id === this.input.deviceId
             })
