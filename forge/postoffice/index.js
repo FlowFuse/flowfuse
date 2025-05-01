@@ -194,8 +194,9 @@ module.exports = fp(async function (app, _opts) {
      */
     async function send (user, templateName, context) {
         const forgeURL = app.config.base_url
+        const ctaChangeTypeUrl = `${context.url}/settings/change-type`
         const template = templates[templateName] || loadTemplate(templateName)
-        const templateContext = { forgeURL, user, ...context }
+        const templateContext = { forgeURL, ctaChangeTypeUrl, user, ...context }
         templateContext.safeName = sanitizeText(user.name || 'user')
         if (templateContext.teamName) {
             templateContext.teamName = sanitizeText(templateContext.teamName)
