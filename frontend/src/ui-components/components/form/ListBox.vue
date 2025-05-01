@@ -2,7 +2,7 @@
     <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox" :by="compareOptions">
         <div class="relative">
             <ListboxButton
-                ref="listboxButton"
+                ref="trigger"
                 class="w-full rounded-md bg-white flex justify-between ff-button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
                 @click="() => { $nextTick(() => { updatePosition(); open = true }) }"
@@ -67,6 +67,8 @@ import {
 } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 
+import BoxOptionsMixin from '../../../mixins/BoxOptionsMixin.js'
+
 export default {
     name: 'ff-listbox',
     components: {
@@ -76,6 +78,7 @@ export default {
         ListboxOption,
         ListboxOptions
     },
+    mixins: [BoxOptionsMixin],
     props: {
         modelValue: {
             required: false,
@@ -119,12 +122,6 @@ export default {
         }
     },
     emits: ['update:modelValue'],
-    data () {
-        return {
-            position: { top: 0, left: 0, width: 0 },
-            open: false
-        }
-    },
     computed: {
         value: {
             get () {
@@ -147,40 +144,9 @@ export default {
             return this.selectedOption ? this.selectedOption[this.labelKey] : this.placeholder
         }
     },
-    mounted () {
-        document.addEventListener('click', this.handleClickOutside)
-        window.addEventListener('resize', this.updatePosition)
-        window.addEventListener('scroll', this.updatePosition, true)
-    },
-    beforeUnmount () {
-        document.removeEventListener('click', this.handleClickOutside)
-        window.removeEventListener('resize', this.updatePosition)
-        window.removeEventListener('scroll', this.updatePosition, true)
-    },
     methods: {
         compareOptions (modelValue, optionValue) {
             return modelValue === optionValue[this.valueKey]
-        },
-        handleClickOutside (e) {
-            if (
-                this.$refs.listboxButton.value &&
-                this.$refs.listboxButton.value.$el &&
-                !this.$refs.listboxButton.value.$el.contains(e.target)
-            ) {
-                close()
-            }
-        },
-        updatePosition () {
-            if (!this.$refs.listboxButton || !this.$refs.listboxButton.$el) return
-            const rect = this.$refs.listboxButton.$el.getBoundingClientRect()
-            this.position = {
-                top: rect.bottom + window.scrollY,
-                left: rect.left + window.scrollX,
-                width: rect.width
-            }
-        },
-        close () {
-            open.value = false
         }
     }
 }
