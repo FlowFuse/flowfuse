@@ -102,19 +102,24 @@
                 </template>
             </form-row>
 
-            <FormRow
+            <form-row
                 v-else-if="input.stageType === StageType.DEVICE"
-                v-model="input.deviceId"
-                :options="deviceOptions"
+                container-class="w-full"
                 data-form="stage-device"
-                :placeholder="deviceDropdownPlaceholder"
-                :disabled="deviceDropdownDisabled"
-                class="flex-grow"
             >
                 <template #default>
                     Choose Remote Instance
                 </template>
-            </FormRow>
+                <template #input>
+                    <ff-combobox
+                        v-model="input.deviceId"
+                        class="w-full flex-grow max-w-sm ff-combobox"
+                        :options="deviceOptions"
+                        :disabled="deviceDropdownDisabled"
+                        placeholder="Choose Remote Instance"
+                    />
+                </template>
+            </form-row>
 
             <!-- Device Group -->
             <FormRow
