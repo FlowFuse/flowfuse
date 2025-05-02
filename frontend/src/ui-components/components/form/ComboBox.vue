@@ -120,7 +120,7 @@ export default {
                     }
 
                     return opt === this.modelValue
-                })
+                }) ?? null
             },
             set (val) {
                 let payload = val?.[this.valueKey] ?? val
