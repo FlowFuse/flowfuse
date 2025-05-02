@@ -80,7 +80,6 @@ export default {
     emits: ['device-action'],
     setup () {
         const { hasPermission } = usePermissions()
-        
         return { hasPermission }
     },
     computed: {
