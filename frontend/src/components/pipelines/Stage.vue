@@ -362,8 +362,16 @@ export default {
         deleteStage () {
             try {
                 // client-side validation of pipeline stages before hitting the API
-                const futureStages = this.pipeline.stages.filter((s) => s.id !== this.stage.id)
-                pipelineValidation.validateStages(futureStages)
+                const orderedStages = this.pipeline.stages.filter((s) => s.id !== this.stage.id)
+                // Update the previous stage to point to the next stage when this model is deleted
+                // e.g. A -> B -> C to A -> C when B is deleted
+                const previousStage = orderedStages.find(s => s.NextStageId === this.stage.id)
+                // remap nextid to the next stage id
+                if (previousStage) {
+                    previousStage.NextStageId = this.stage.NextStageId ?? null
+                }
+                const orderedStagesProposed = orderedStages.filter(s => s.id !== this.stage.id)
+                pipelineValidation.validateStages(orderedStagesProposed)
             } catch (error) {
                 Alerts.emit(error.message, 'warning')
                 return
