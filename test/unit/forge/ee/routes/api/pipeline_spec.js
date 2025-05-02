@@ -1374,6 +1374,16 @@ describe('Pipelines API', function () {
         })
 
         describe('When there is a pipeline after', function () {
+            beforeEach(async () => {
+                // spies
+                sinon.spy(app.db.controllers.Pipeline, 'deletePipelineStage')
+                sinon.spy(app.db.models.PipelineStage, 'validateStages')
+            })
+            afterEach(async () => {
+                app.db.controllers.Pipeline.deletePipelineStage.restore()
+                app.db.models.PipelineStage.validateStages.restore()
+            })
+
             it('should set the previousStages nextStage to null', async function () {
                 const pipelineId = TestObjects.pipeline.hashid
 
@@ -1389,13 +1399,44 @@ describe('Pipelines API', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
+                should(app.db.controllers.Pipeline.deletePipelineStage.calledOnce).equal(true, 'deletePipelineStage should have been called')
+                should(app.db.models.PipelineStage.validateStages.calledOnce).equal(true, 'validateStages should have been called')
+
+                response.statusCode.should.equal(200)
                 const body = await response.json()
                 body.should.have.property('status', 'okay')
-                response.statusCode.should.equal(200)
 
                 const stageOne = await TestObjects.stageOne.reload()
 
                 should(stageOne.NextStageId).equal(null)
+            })
+
+            it('should fail to delete first stage due to final state of pipeline being an invalid configuration', async function () {
+                const pipelineId = TestObjects.pipeline.hashid
+
+                // 1 (instance) -> 2 (device group) --> attempt to delete 1
+                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: TestObjects.deviceGroupTwo.id, source: TestObjects.stageOne.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
+                await TestObjects.stageOne.reload()
+
+                should(TestObjects.stageOne.NextStageId).equal(TestObjects.stageTwo.id)
+
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${TestObjects.stageOne.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                should(app.db.controllers.Pipeline.deletePipelineStage.calledOnce).equal(true, 'deletePipelineStage should have been called')
+                should(app.db.models.PipelineStage.validateStages.calledOnce).equal(true, 'validateStages should have been called')
+                should(app.db.models.PipelineStage.validateStages.threw()).equal(true, 'validateStages should have thrown an error')
+
+                response.statusCode.should.equal(400)
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_input')
+
+                const stageOne = await TestObjects.stageOne.reload()
+
+                should(stageOne.NextStageId).equal(TestObjects.stageTwo.id, 'stageOne should still point to stageTwo')
             })
         })
     })
