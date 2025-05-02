@@ -120,7 +120,7 @@ export default {
                     }
 
                     return opt === this.modelValue
-                }) ?? null
+                })
             },
             set (val) {
                 let payload = val?.[this.valueKey] ?? val
@@ -158,9 +158,12 @@ export default {
     },
     methods: {
         compareOptions (modelValue, optionValue) {
-            return this.returnModel
-                ? modelValue?.[this.valueKey] === optionValue?.[this.valueKey]
-                : modelValue === optionValue?.[this.valueKey]
+            if (!modelValue) return
+
+            modelValue = modelValue?.[this.valueKey] ?? modelValue
+            optionValue = optionValue?.[this.valueKey] ?? optionValue
+
+            return modelValue === optionValue
         }
     }
 }
