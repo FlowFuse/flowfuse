@@ -1295,7 +1295,7 @@ describe('Pipelines API', function () {
 
         it('should destroy the pipeline stage, but not touch the assigned device group', async function () {
             const pipelineId = TestObjects.pipelineDeviceGroups.hashid
-            const stageId = TestObjects.pipelineDeviceGroupsStageOne.hashid
+            const stageId = TestObjects.pipelineDeviceGroupsStageTwo.hashid
             const deviceGroupId = TestObjects.deviceGroupOne.hashid
 
             const response = await app.inject({
