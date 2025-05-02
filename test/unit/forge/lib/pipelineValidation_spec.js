@@ -5,7 +5,7 @@ const path = require('path')
 
 const { validateStages } = require('../../../../forge/lib/pipelineValidation')
 
-describe.only('Pipeline Validation', function () {
+describe('Pipeline Validation', function () {
     describe('File Sync', function () {
         it('pipelineValidation.js files in frontend and backend should be identical', function () {
             const frontendPath = path.join(__dirname, '../../../../frontend/src/utils/pipelineValidation.js')
