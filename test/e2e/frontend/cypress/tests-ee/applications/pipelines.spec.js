@@ -59,9 +59,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"]').should('be.visible')
@@ -78,9 +78,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] .ff-option').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] .ff-option').click()
 
         // Last stage should have 'do nothing' as an option
         cy.get('[data-form="stage-action"] .ff-listbox').click()
@@ -135,9 +135,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-name"] input[type="text"]').type(`Stage 1 for ${PIPELINE_NAME}`)
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"]').should('be.visible')
@@ -158,14 +158,14 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
             expect(stageName).to.equal(`Stage 1 for ${PIPELINE_NAME}`)
         })
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"] .ff-option-content.active').should('contain', 'instance-2-1')
+        cy.get('[data-form="stage-instance"] .ff-combobox input').should('have.value', 'instance-2-1')
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
 
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:last').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:last').click()
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"] .ff-option-content.active').should('contain', 'instance-2-with-devices')
+        cy.get('[data-form="stage-instance"] .ff-combobox input').should('have.value', 'instance-2-with-devices')
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
 
         // First stage should not have 'do nothing' as an option
         cy.get('[data-form="stage-action"] .ff-listbox').click()
@@ -206,9 +206,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
 
         // Select Instance for Stage 1
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:first').click()
 
         // Select "Create new Snapshot"
         cy.get('[data-form="stage-action"] .ff-listbox').click()
@@ -224,9 +224,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"]').should('be.visible')
@@ -294,9 +294,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"]').should('be.visible')
@@ -331,9 +331,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
             cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
 
-            cy.get('[data-form="stage-instance"] .ff-listbox').click()
-            cy.get('[data-el="listbox-options"]').should('be.visible')
-            cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+            cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+            cy.get('[data-el="options"]').should('be.visible')
+            cy.get('[data-el="options"] > .ff-option:first').click()
 
             cy.get('[data-form="stage-action"] .ff-listbox').click()
             cy.get('[data-el="listbox-options"]').should('be.visible')
@@ -425,9 +425,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"]').should('be.visible')
@@ -513,9 +513,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"]').should('be.visible')
@@ -628,9 +628,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"]').should('be.visible')
@@ -693,9 +693,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"]').should('be.visible')
@@ -780,9 +780,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 1')
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"]').should('be.visible')
@@ -797,9 +797,9 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get('[data-form="stage-name"] input[type="text"]').type('Stage 2')
 
-        cy.get('[data-form="stage-instance"] .ff-listbox').click()
-        cy.get('[data-el="listbox-options"]').should('be.visible')
-        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
+        cy.get('[data-form="stage-instance"] .ff-combobox button').click()
+        cy.get('[data-el="options"]').should('be.visible')
+        cy.get('[data-el="options"] > .ff-option:first').click()
 
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"]').should('be.visible')
@@ -815,7 +815,7 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
             cy.get('[data-el="protected-marker"]').should('exist')
-            cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('have.class', 'ff-disabled')
+            cy.get('[data-el="ff-pipeline-stage"]:first [data-action="stage-run"]').should('not.exist')
         })
 
         cy.logout()

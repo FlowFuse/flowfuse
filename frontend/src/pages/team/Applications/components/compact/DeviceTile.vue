@@ -18,7 +18,7 @@
             </div>
         </div>
         <div class="actions">
-            <FinishSetupButton v-if="neverConnected" :device="device" />
+            <FinishSetupButton v-if="neverConnected && hasPermission('device:edit')" :device="device" />
             <ff-kebab-menu v-else-if="shouldDisplayKebabMenu">
                 <ff-list-item
                     v-if="hasPermission('device:edit')"
@@ -80,7 +80,7 @@ export default {
     emits: ['device-action'],
     setup () {
         const { hasPermission } = usePermissions()
-
+        
         return { hasPermission }
     },
     computed: {

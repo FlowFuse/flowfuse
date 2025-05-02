@@ -169,6 +169,26 @@ Cypress.Commands.add('clearBrowserData', () => {
     })
 })
 
+Cypress.Commands.add('isEmailEnabled', () => {
+    cy.login('alice', 'aaPassword')
+
+    cy.visit('/admin/settings/email')
+
+    // wait for the page to render
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(2000)
+
+    // eslint-disable-next-line cypress/require-data-selectors
+    return cy.get('body').then(($body) => {
+        const isDisabled = $body.text().includes('Email is not currently configured for the platform.')
+
+        cy.logout()
+        cy.clearBrowserData()
+
+        return cy.wrap(!isDisabled)
+    })
+})
+
 // Convenience commands that use an admin user to change global platform settings
 Cypress.Commands.add('adminEnableSignUp', () => {
     cy.login('alice', 'aaPassword')

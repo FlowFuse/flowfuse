@@ -15,6 +15,7 @@
 
 <script>
 import ApplicationApi from '../../../api/application.js'
+import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
 export default {
@@ -30,6 +31,11 @@ export default {
             required: true
         }
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data: function () {
         return {
             pipeline: null,
@@ -42,7 +48,11 @@ export default {
         '$route.params.pipelineId': 'fetchData'
     },
     async created () {
-        await this.fetchData()
+        if (this.hasPermission('application:pipeline:list')) {
+            await this.fetchData()
+        } else {
+            return this.$router.push({ name: 'Application', params: this.$route.params })
+        }
     },
     methods: {
         async loadPipeline () {
@@ -63,7 +73,17 @@ export default {
             }
 
             try {
-                this.devices = (await ApplicationApi.getApplicationDevices(this.application.id)).devices
+                // Need to load all devices in the application - which could be more than a single page
+                const devices = []
+                let cursor
+                do {
+                    const deviceData = await ApplicationApi.getApplicationDevices(this.application.id, cursor)
+                    cursor = deviceData?.meta?.next_cursor
+                    if (deviceData?.devices) {
+                        devices.push(deviceData?.devices)
+                    }
+                } while (cursor)
+                this.devices = devices.flat()
             } catch (err) {
                 this.devices = []
                 Alerts.emit('Failed to load Remote Instances', 'warning')
