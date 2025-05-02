@@ -308,6 +308,10 @@ module.exports = {
                  * @param {[]} stages The stages to order
                  */
                 sortStages: function (stages) {
+                    // if there is only one stage, return it
+                    if (stages.length === 1) {
+                        return stages
+                    }
                     // Must ensure the stages are listed in the correct order
                     const stagesById = {}
                     const backReferences = {}
