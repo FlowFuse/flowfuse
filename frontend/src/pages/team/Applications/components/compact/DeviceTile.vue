@@ -19,18 +19,20 @@
         </div>
         <div class="actions">
             <FinishSetupButton v-if="neverConnected && hasPermission('device:edit')" :device="device" />
-            <ff-kebab-menu v-else>
+            <ff-kebab-menu v-else-if="shouldDisplayKebabMenu">
                 <ff-list-item
+                    v-if="hasPermission('device:edit')"
                     label="Edit Details"
                     @click.stop="$emit('device-action',{action: 'edit', id: device.id})"
                 />
                 <ff-list-item
-                    v-if="(displayingTeam || displayingApplication)"
+                    v-if="(displayingTeam || displayingApplication) && hasPermission('device:edit')"
                     label="Remove from Application"
                     data-action="device-remove-from-application"
                     @click.stop="$emit('device-action',{action: 'removeFromApplication', id: device.id})"
                 />
                 <ff-list-item
+                    v-if="hasPermission('device:edit')"
                     kind="danger"
                     label="Regenerate Configuration"
                     @click.stop="$emit('device-action',{action: 'updateCredentials', id: device.id})"
@@ -83,11 +85,10 @@ export default {
     computed: {
         neverConnected () {
             return !this.device.lastSeenAt
-        }
-    },
-    methods: {
-        finishSetup () {
-            this.deviceAction('updateCredentials')
+        },
+        shouldDisplayKebabMenu () {
+            return this.hasPermission('device:edit') ||
+            this.hasPermission('device:delete')
         }
     }
 }
