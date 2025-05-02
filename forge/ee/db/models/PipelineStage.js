@@ -3,6 +3,7 @@ const {
 } = require('sequelize')
 
 const { KEY_HA, KEY_PROTECTED, KEY_SETTINGS } = require('../../../db/models/ProjectSettings')
+const pipelineValidation = require('../../../lib/pipelineValidation')
 
 const SNAPSHOT_ACTIONS = {
     // Any changes to this list *must* be made via migration.
@@ -335,6 +336,10 @@ module.exports = {
                         pointer = stagesById[backReferences[pointer.id]]
                     }
                     return orderedStages
+                },
+                validateStages: function (stages) {
+                    const orderedStages = self.sortStages(stages)
+                    return pipelineValidation.validateStages(orderedStages)
                 }
             }
         }
