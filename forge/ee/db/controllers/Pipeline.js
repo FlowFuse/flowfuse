@@ -23,34 +23,34 @@ module.exports = {
         // NOTE: validation is mostly taken care of in the model layer (see models PipelineStage validate methods)
         // however since we are destroying a stage (not adding/modifying), we need to explicitly validate the pipeline this time
 
-        // Check if the stage is the first stage in the pipeline
-        const stages = await pipeline.stages()
-        const orderedStages = app.db.models.PipelineStage.sortStages(stages)
-
-        // const rules = getPipelineRules(orderedStages)
-        const orderedStagesWithStageRemoved = orderedStages.filter(s => s.id !== stage.id)
+        const transaction = await app.db.sequelize.transaction()
         try {
-            if (orderedStagesWithStageRemoved.length > 0) {
-                validateStages(orderedStagesWithStageRemoved) // will throw if invalid
+            // Check if the stage is the first stage in the pipeline
+            const stages = await pipeline.stages()
+            const orderedStages = app.db.models.PipelineStage.sortStages(stages)
+            // Update the previous stage to point to the next stage when this model is deleted
+            // e.g. A -> B -> C to A -> C when B is deleted
+            const previousStage = orderedStages.find(s => s.NextStageId === stage.id)
+            // remap nextid to the next stage id
+            if (previousStage) {
+                previousStage.NextStageId = stage.NextStageId ?? null
             }
+
+            const orderedStagesProposed = orderedStages.filter(s => s.id !== stage.id)
+            if (orderedStagesProposed.length > 0) {
+                validateStages(orderedStagesProposed) // will throw if invalid
+            }
+
+            if (previousStage) {
+                await previousStage.save({ transaction })
+            }
+            await stage.destroy({ transaction })
+            await transaction.commit()
         } catch (err) {
+            // Rollback transaction if it exists
+            await transaction.rollback()
             throw new PipelineControllerError('invalid_input', err.message, err.statusCode || 400, { cause: err })
         }
-
-        // Update the previous stage to point to the next stage when this model is deleted
-        // e.g. A -> B -> C to A -> C when B is deleted
-        const previousStage = await app.db.models.PipelineStage.byNextStage(stageId)
-        if (previousStage) {
-            if (stage.NextStageId) {
-                previousStage.NextStageId = stage.NextStageId
-            } else {
-                previousStage.NextStageId = null
-            }
-
-            await previousStage.save()
-        }
-
-        await stage.destroy()
     },
     /**
      * Update a pipeline stage
@@ -168,15 +168,9 @@ module.exports = {
             } else {
                 // hosted/remote instance
                 // If a device group is set before this stage, that is an error
-                const nonDeviceGroupStagesPrior = priorStages.filter(s => (s.DeviceGroups?.length ?? 0) > 0)
-                if (nonDeviceGroupStagesPrior.length > 0) {
+                const deviceGroupsInStagesPrior = priorStages.filter(s => (s.DeviceGroups?.length ?? 0) > 0)
+                if (deviceGroupsInStagesPrior.length > 0) {
                     throw new PipelineControllerError('invalid_input', 'This stage cannot contain an instance as a Device Group is set in a prior stage', 400)
-                }
-                // If any device group exists after this stage, they must all be device groups
-                const deviceGroupStagesLater = laterStages.filter(s => (s.DeviceGroups?.length ?? 0) > 0)
-                const nonDeviceGroupStagesLater = laterStages.filter(s => (s.DeviceGroups?.length ?? 0) === 0)
-                if (deviceGroupStagesLater.length > 0 && nonDeviceGroupStagesLater.length > 0) {
-                    throw new PipelineControllerError('invalid_input', 'This stage can only contain Device Group stages', 400)
                 }
             }
 
