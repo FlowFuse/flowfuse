@@ -9,7 +9,49 @@ class PipelineControllerError extends ControllerError {
 }
 
 module.exports = {
+    deletePipelineStage: async function (app, pipeline, stageId) {
+        /** @type {import('../../../lib/pipelineValidation').validateStages} */
+        const validateStages = app.db.models.PipelineStage.validateStages
+        const stage = await app.db.models.PipelineStage.byId(stageId)
+        if (!stage) {
+            throw new PipelineControllerError('not_found', 'Pipeline stage not found', 404)
+        }
+        if (stage.PipelineId !== pipeline.id) {
+            throw new PipelineControllerError('not_found', 'Pipeline stage not found', 404)
+        }
 
+        // NOTE: validation is mostly taken care of in the model layer (see models PipelineStage validate methods)
+        // however since we are destroying a stage (not adding/modifying), we need to explicitly validate the pipeline this time
+
+        // Check if the stage is the first stage in the pipeline
+        const stages = await pipeline.stages()
+        const orderedStages = app.db.models.PipelineStage.sortStages(stages)
+
+        // const rules = getPipelineRules(orderedStages)
+        const orderedStagesWithStageRemoved = orderedStages.filter(s => s.id !== stage.id)
+        try {
+            if (orderedStagesWithStageRemoved.length > 0) {
+                validateStages(orderedStagesWithStageRemoved) // will throw if invalid
+            }
+        } catch (err) {
+            throw new PipelineControllerError('invalid_input', err.message, err.statusCode || 400, { cause: err })
+        }
+
+        // Update the previous stage to point to the next stage when this model is deleted
+        // e.g. A -> B -> C to A -> C when B is deleted
+        const previousStage = await app.db.models.PipelineStage.byNextStage(stageId)
+        if (previousStage) {
+            if (stage.NextStageId) {
+                previousStage.NextStageId = stage.NextStageId
+            } else {
+                previousStage.NextStageId = null
+            }
+
+            await previousStage.save()
+        }
+
+        await stage.destroy()
+    },
     /**
      * Update a pipeline stage
      * @param {*} app The application instance
