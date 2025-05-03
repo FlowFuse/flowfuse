@@ -20,7 +20,7 @@ values they provide.
 Configuring SSO on FlowFuse Cloud requires co-ordinating tasks between the customer and
 FlowFuse Cloud administrators.
 
-**All changes must be made via a Change Request in the CloudProject repository - even if you are actioning it directly.**
+**All changes must be made via a [Production Change Request](https://github.com/FlowFuse/CloudProject/issues/new?assignees=&labels=change-request&projects=&template=change-request.yml&title=Change%3A+) in the CloudProject repository - even if you are actioning it directly.**
 
 When a customer requests SSO to be setup for their users, we require the following information:
 
