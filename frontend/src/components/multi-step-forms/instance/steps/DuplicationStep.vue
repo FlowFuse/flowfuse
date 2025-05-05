@@ -15,21 +15,8 @@
                                 </ff-button>
                             </div>
                         </div>
-                        <p>{{ selectedApplication.label }}</p>
-                        <p v-if="selectedApplication.description">{{ selectedApplication.description }}</p>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="title">
-                            <label>Instance Type</label>
-                            <div class="actions">
-                                <ff-button v-ff-tooltip="'Edit'" size="small" kind="tertiary" @click="goToStep(1)">
-                                    <PencilIcon class="ff-icon ff-icon-sm" />
-                                </ff-button>
-                            </div>
-                        </div>
-                        <p>{{ selectedInstanceType.name }}</p>
-                        <p>{{ selectedInstanceType.description }}</p>
+                        <p data-el="application-name">{{ selectedApplication.label }}</p>
+                        <p v-if="selectedApplication.description" data-el="application-description">{{ selectedApplication.description }}</p>
                     </div>
 
                     <div class="form-group">
@@ -44,7 +31,20 @@
                                 </ff-button>
                             </div>
                         </div>
-                        <p>{{ instanceSelection.name }}</p>
+                        <p data-el="instance-name">{{ instanceSelection.name }}</p>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="title">
+                            <label>Instance Type</label>
+                            <div class="actions">
+                                <ff-button v-ff-tooltip="'Edit'" size="small" kind="tertiary" @click="goToStep(1)">
+                                    <PencilIcon class="ff-icon ff-icon-sm" />
+                                </ff-button>
+                            </div>
+                        </div>
+                        <p data-el="instance-type-name">{{ selectedInstanceType.name }}</p>
+                        <p data-el="instance-type-description">{{ selectedInstanceType.description }}</p>
                     </div>
 
                     <div class="form-group">
@@ -56,7 +56,7 @@
                                 </ff-button>
                             </div>
                         </div>
-                        <p>{{ selectedNodeRedVersion.label }}</p>
+                        <p data-el="node-red-version">{{ selectedNodeRedVersion?.label }}</p>
                     </div>
 
                     <div v-if="instanceTemplates.length > 1" class="form-group">
@@ -68,7 +68,7 @@
                                 </ff-button>
                             </div>
                         </div>
-                        <p>{{ selectedTemplate.name }}</p>
+                        <p data-el="template-name">{{ selectedTemplate.name }}</p>
                     </div>
 
                     <div class="form-group">

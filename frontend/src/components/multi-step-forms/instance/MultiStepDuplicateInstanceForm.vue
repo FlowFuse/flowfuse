@@ -22,6 +22,7 @@ import { mapState } from 'vuex'
 import instanceApi from '../../../api/instances.js'
 import teamApi from '../../../api/team.js'
 import Alerts from '../../../services/alerts.js'
+import NameGenerator from '../../../utils/name-generator/index.js'
 import MultiStepForm from '../MultiStepForm.vue'
 
 import ApplicationStep from './steps/ApplicationStep.vue'
@@ -175,7 +176,7 @@ export default {
         prefillForm () {
             const input = {
                 instanceType: this.instance.projectType.id,
-                name: this.instance.name + '-COPY',
+                name: NameGenerator(),
                 nodeREDVersion: this.instance.stack.id,
                 template: this.instance.template.id
             }
