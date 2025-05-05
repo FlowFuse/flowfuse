@@ -19,7 +19,6 @@ import ApplicationPipelineStageEdit from './PipelineStage/edit.vue'
 import ApplicationPipelines from './Pipelines.vue'
 import ApplicationSettings from './Settings.vue'
 import ApplicationSnapshots from './Snapshots.vue'
-import ApplicationCreateInstance from './createInstance.vue'
 import ApplicationIndex from './index.vue'
 
 export default [
@@ -152,28 +151,8 @@ export default [
             }
         ]
     },
-    { // sunsetting, use application-create-instance for creation
-        path: ':id/instances/create',
-        name: 'ApplicationCreateInstance',
-        component: ApplicationCreateInstance,
-        props: route => ({
-            sourceInstanceId: route.query.sourceInstanceId
-        }),
-        meta: {
-            title: 'Application - Instances - Create',
-            menu: {
-                type: 'back',
-                backTo: ({ query, params }) => {
-                    return {
-                        label: 'Back',
-                        to: { name: 'ApplicationInstances', params, query }
-                    }
-                }
-            }
-        }
-    },
     {
-        path: ':id/instances/create-step',
+        path: ':id/instances/create',
         name: 'application-create-instance',
         component: ApplicationCreateInstanceMultiStep,
         meta: {
