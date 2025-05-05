@@ -158,7 +158,7 @@ export default {
     },
     methods: {
         compareOptions (modelValue, optionValue) {
-            if (!modelValue) return
+            if (modelValue == null) return
 
             modelValue = modelValue?.[this.valueKey] ?? modelValue
             optionValue = optionValue?.[this.valueKey] ?? optionValue
