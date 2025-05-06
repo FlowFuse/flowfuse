@@ -207,17 +207,22 @@ export default {
                     }
                 })
             }
+        },
+        team: {
+            immediate: true,
+            handler (team) {
+                if (team) {
+                    this.getSubscription()
+                        .then(() => this.getInstanceTypes())
+                        .then(() => this.getNodeRedVersions())
+                        .then(() => this.getTemplates())
+                        .catch(e => e)
+                        .finally(() => {
+                            this.loading = false
+                        })
+                }
+            }
         }
-    },
-    async mounted () {
-        this.getSubscription()
-            .then(() => this.getInstanceTypes())
-            .then(() => this.getNodeRedVersions())
-            .then(() => this.getTemplates())
-            .catch(e => e)
-            .finally(() => {
-                this.loading = false
-            })
     },
     methods: {
         async getInstanceTypes () {

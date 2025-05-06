@@ -102,16 +102,27 @@ export default {
         }
     },
     watch: {
-
-    },
-    mounted () {
-        this.getApplications()
-            .then(() => this.getInstance())
-            .then(() => this.prefillForm())
-            .catch(e => e)
-            .finally(() => {
-                this.loading = false
-            })
+        instance: {
+            immediate: true,
+            handler (instance) {
+                if (!instance) {
+                    this.getInstance()
+                        .then(() => {
+                            // workaround for the fact that the team might not be loaded,
+                            // eg team not
+                            if (!this.team) {
+                                return this.$store.dispatch('account/setTeam', this.instance.team.slug)
+                            }
+                        })
+                        .then(() => this.getApplications())
+                        .then(() => this.prefillForm())
+                        .catch(e => e)
+                        .finally(() => {
+                            this.loading = false
+                        })
+                }
+            }
+        }
     },
     methods: {
         updateForm (payload) {
@@ -172,6 +183,7 @@ export default {
         },
         async getInstance () {
             this.instance = await instanceApi.getInstance(this.$route.params.id)
+            console.log(this.instance)
         },
         prefillForm () {
             const input = {
