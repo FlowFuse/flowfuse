@@ -158,9 +158,12 @@ export default {
     },
     methods: {
         compareOptions (modelValue, optionValue) {
-            return this.returnModel
-                ? modelValue?.[this.valueKey] === optionValue?.[this.valueKey]
-                : modelValue === optionValue?.[this.valueKey]
+            if (modelValue == null) return
+
+            modelValue = modelValue?.[this.valueKey] ?? modelValue
+            optionValue = optionValue?.[this.valueKey] ?? optionValue
+
+            return modelValue === optionValue
         }
     }
 }

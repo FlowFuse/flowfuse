@@ -28,8 +28,8 @@ export default {
         handleClickOutside (e) {
             if (
                 this.$refs.trigger.value &&
-            this.$refs.trigger.value.$el &&
-            !this.$refs.trigger.value.$el.contains(e.target)
+                this.$refs.trigger.value.$el &&
+                !this.$refs.trigger.value.$el.contains(e.target)
             ) {
                 close()
             }

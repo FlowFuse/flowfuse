@@ -126,15 +126,9 @@ module.exports = {
             } else {
                 // hosted/remote instance
                 // If a device group is set before this stage, that is an error
-                const nonDeviceGroupStagesPrior = priorStages.filter(s => (s.DeviceGroups?.length ?? 0) > 0)
-                if (nonDeviceGroupStagesPrior.length > 0) {
+                const deviceGroupStagesPrior = priorStages.filter(s => (s.DeviceGroups?.length ?? 0) > 0)
+                if (deviceGroupStagesPrior.length > 0) {
                     throw new PipelineControllerError('invalid_input', 'This stage cannot contain an instance as a Device Group is set in a prior stage', 400)
-                }
-                // If any device group exists after this stage, they must all be device groups
-                const deviceGroupStagesLater = laterStages.filter(s => (s.DeviceGroups?.length ?? 0) > 0)
-                const nonDeviceGroupStagesLater = laterStages.filter(s => (s.DeviceGroups?.length ?? 0) === 0)
-                if (deviceGroupStagesLater.length > 0 && nonDeviceGroupStagesLater.length > 0) {
-                    throw new PipelineControllerError('invalid_input', 'This stage can only contain Device Group stages', 400)
                 }
             }
 
