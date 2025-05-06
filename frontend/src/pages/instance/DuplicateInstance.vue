@@ -41,7 +41,7 @@
         </template>
 
         <MultiStepDuplicateInstanceForm
-            v-if="instance"
+            v-if="instance && team"
             ref="multiStepForm"
             last-step-label="Create Instance"
             :instance="instance"
@@ -77,6 +77,11 @@ export default {
     },
     mounted () {
         this.getInstance()
+            .then(() => {
+                if (!this.team) {
+                    this.$store.dispatch('account/setTeam', this.instance.team.slug)
+                }
+            }).catch(e => e)
     },
     methods: {
         onInstanceCreated (instance) {
