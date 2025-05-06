@@ -590,6 +590,7 @@ describe('Device API', async function () {
             result.should.have.property('type', 'something')
             result.should.have.property('links')
             result.should.have.property('team')
+            result.should.have.property('localLoginEnabled')
             result.should.not.have.property('accessToken')
 
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
