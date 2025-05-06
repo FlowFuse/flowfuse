@@ -104,6 +104,9 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const result = app.db.views.Device.device(request.device)
+        const securitySettings = await request.device.getSetting('security')
+        result.localLoginEnabled = securitySettings?.localAuth?.enabled || false
+
         if (request.device.nodeRedVersion) {
             result.nrVersion = request.device.nodeRedVersion
         }
