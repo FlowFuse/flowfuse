@@ -53,7 +53,16 @@
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
-                    <ff-button kind="secondary" data-nav="copy-project" @click="showDuplicateInstanceDialog()">Duplicate Instance</ff-button>
+                    <ff-button
+                        kind="secondary"
+                        data-nav="copy-project"
+                        :to="{
+                            name: 'instance-duplicate',
+                            params: { id: instance.id, team_slug: team.slug },
+                        }"
+                    >
+                        Duplicate Instance
+                    </ff-button>
                 </div>
             </div>
         </template>
@@ -188,13 +197,6 @@ export default {
         },
         showChangeStackDialog () {
             this.$refs.changeStackDialog.show(this.instance)
-        },
-        showDuplicateInstanceDialog () {
-            this.$router.push({
-                name: 'ApplicationCreateInstance',
-                params: { id: this.instance.application.id, team_slug: this.team.slug },
-                query: { sourceInstanceId: this.instance.id }
-            })
         },
         showImportInstanceDialog () {
             this.$refs.importInstanceDialog.show(this.instance)
