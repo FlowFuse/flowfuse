@@ -38,6 +38,10 @@ export default {
     name: 'MultiStepDuplicateInstanceForm',
     components: { MultiStepForm },
     props: {
+        instance: {
+            type: Object,
+            required: true
+        }
     },
     emits: ['instance-created', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
     data () {
@@ -49,7 +53,6 @@ export default {
                 [DUPLICATION_SLUG]: { }
             },
             formLoading: false,
-            instance: null,
             loadingText: '',
             errors: {
 
@@ -106,7 +109,6 @@ export default {
     },
     mounted () {
         this.getApplications()
-            .then(() => this.getInstance())
             .then(() => this.prefillForm())
             .catch(e => e)
             .finally(() => {
@@ -169,9 +171,6 @@ export default {
                     }
                 }
             })
-        },
-        async getInstance () {
-            this.instance = await instanceApi.getInstance(this.$route.params.id)
         },
         prefillForm () {
             const input = {
