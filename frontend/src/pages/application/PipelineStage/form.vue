@@ -87,33 +87,39 @@
 
         <!-- Instance/Device -->
         <div class="flex space-x-4">
-            <FormRow
-                v-if="input.stageType === StageType.INSTANCE"
-                v-model="input.instanceId"
-                :options="instanceOptions"
-                data-form="stage-instance"
-                :placeholder="instanceDropdownPlaceholder"
-                :disabled="instanceDropdownDisabled"
-                class="flex-grow"
-            >
+            <form-row v-if="input.stageType === StageType.INSTANCE" container-class="w-full" data-form="stage-instance">
                 <template #default>
                     Choose Hosted Instance
                 </template>
-            </FormRow>
+                <template #input>
+                    <ff-combobox
+                        v-model="input.instanceId"
+                        class="w-full flex-grow max-w-sm ff-combobox"
+                        :options="instanceOptions"
+                        :disabled="instanceDropdownDisabled"
+                        placeholder="Choose Instance"
+                    />
+                </template>
+            </form-row>
 
-            <FormRow
+            <form-row
                 v-else-if="input.stageType === StageType.DEVICE"
-                v-model="input.deviceId"
-                :options="deviceOptions"
+                container-class="w-full"
                 data-form="stage-device"
-                :placeholder="deviceDropdownPlaceholder"
-                :disabled="deviceDropdownDisabled"
-                class="flex-grow"
             >
                 <template #default>
                     Choose Remote Instance
                 </template>
-            </FormRow>
+                <template #input>
+                    <ff-combobox
+                        v-model="input.deviceId"
+                        class="w-full flex-grow max-w-sm ff-combobox"
+                        :options="deviceOptions"
+                        :disabled="deviceDropdownDisabled"
+                        placeholder="Choose Remote Instance"
+                    />
+                </template>
+            </form-row>
 
             <!-- Device Group -->
             <FormRow
@@ -520,6 +526,11 @@ export default {
 
                 return acc
             }, new Set())
+
+            // exclude this stage's deviceId from the list of devices in use
+            if (this.input.deviceId) {
+                deviceIdsInUse.delete(this.input.deviceId)
+            }
 
             return this.applicationDevices.filter((device) => {
                 return !deviceIdsInUse.has(device.id) || device.id === this.input.deviceId

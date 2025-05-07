@@ -18,6 +18,7 @@ import FFDataTableRow from './components/data-table/DataTableRow.vue'
 
 // Form Elements
 import FFCheckbox from './components/form/Checkbox.vue'
+import FFCombobox from './components/form/ComboBox.vue'
 import FFDropdown from './components/form/Dropdown.vue'
 import FFDropdownOption from './components/form/DropdownOption.vue'
 import FFListbox from './components/form/ListBox.vue'
@@ -54,6 +55,7 @@ export default {
     FFTextInput,
     FFDropdown,
     FFListbox,
+    FFCombobox,
     FFDropdownOption,
     FFCheckbox,
     FFToggleSwitch,

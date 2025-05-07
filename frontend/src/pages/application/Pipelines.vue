@@ -23,6 +23,8 @@
         </template>
         <template #tools>
             <ff-button
+
+                v-if="hasPermission('pipeline:create')"
                 data-action="pipeline-add"
                 :to="{
                     name: 'CreatePipeline',
@@ -150,7 +152,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'teamMembership']),
+        ...mapState('account', ['features', 'teamMembership', 'team']),
         featureEnabled () {
             return this.features['devops-pipelines']
         }

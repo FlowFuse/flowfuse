@@ -590,6 +590,7 @@ describe('Device API', async function () {
             result.should.have.property('type', 'something')
             result.should.have.property('links')
             result.should.have.property('team')
+            result.should.have.property('localLoginEnabled')
             result.should.not.have.property('accessToken')
 
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
@@ -619,6 +620,34 @@ describe('Device API', async function () {
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
             result.should.not.have.property('instance')
             result.should.not.have.property('application')
+        })
+
+        it('provides device details - assigned application (with local login enabled)', async function () {
+            // const device = await createDevice({ name: 'LocalAuthEnabledDevice', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const device = await createDevice({ name: 'LocalAuthEnabledDevice', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ editor: { nodeRedVersion: 'next' } })
+            dbDevice.setApplication(TestObjects.Application1)
+            await dbDevice.save()
+
+            await updateSettings(device, TestObjects.tokens.alice, {
+                security: {
+                    localAuth: {
+                        enabled: true,
+                        user: 'local-user',
+                        pass: '$Password'
+                    }
+                }
+            })
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${dbDevice.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const result = response.json()
+            result.should.have.property('name', 'LocalAuthEnabledDevice')
+            result.should.have.property('localLoginEnabled', true)
         })
 
         // GET /api/v1/devices/:deviceId
