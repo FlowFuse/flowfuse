@@ -2,7 +2,7 @@
     <template v-if="pendingTeamChange">
         <Loading />
     </template>
-    <div v-else-if="canAccessTeam && team">
+    <template v-else-if="canAccessTeam && team">
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
             <TeamSuspendedBanner v-if="team.suspended" :team="team" />
@@ -10,10 +10,10 @@
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
         <router-view />
-    </div>
-    <div v-else-if="!canAccessTeam">
+    </template>
+    <template v-else-if="!canAccessTeam">
         <TeamInstances :dashboard-role-only="true" />
-    </div>
+    </template>
 </template>
 
 <script>
