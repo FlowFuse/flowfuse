@@ -17,7 +17,7 @@ module.exports = {
             where: {
                 lastSeenAt: null,
                 TeamId: {
-                    [Op.in]: literal('(SELECT `TeamId` FROM `Devices` GROUP BY `TeamId` HAVING COUNT(*) = SUM(CASE WHEN `lastSeenAt` IS NULL THEN 1 ELSE 0 END))')
+                    [Op.in]: literal('(SELECT "TeamId" FROM "Devices" GROUP BY "TeamId" HAVING COUNT(*) = SUM(CASE WHEN "lastSeenAt" IS NULL THEN 1 ELSE 0 END))')
                 }
             },
             include: {
