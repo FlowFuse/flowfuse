@@ -186,6 +186,7 @@ module.exports = fp(async function (app, _opts) {
         const ctaChangeTypeUrl = `${context.url}/settings/change-type`
         const template = templates[templateName] || loadTemplate(templateName)
         const templateContext = { forgeURL, ctaChangeTypeUrl, user, ...context }
+        templateContext.support = /^https:\/\/(app.flowfuse.com|forge.flowfuse.dev)/g.test(forgeURL) ? 'https://flowfuse.com/support/' : null
         templateContext.safeName = sanitizeText(user.name || 'user')
         if (templateContext.teamName) {
             templateContext.teamName = sanitizeText(templateContext.teamName)
