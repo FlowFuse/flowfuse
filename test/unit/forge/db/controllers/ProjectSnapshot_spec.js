@@ -329,6 +329,54 @@ describe('ProjectSnapshot controller', function () {
             decrypted.should.have.property('key', 'value')
         })
 
+        it('creates a snapshot of a device passed in via options', async function () {
+            const user = await app.db.models.User.byUsername('alice')
+            const options = {
+                name: 'snapshot1',
+                description: 'a snapshot'
+            }
+            const application = app.TestObjects.application1
+            const team = app.TestObjects.team1
+            const device = await factory.createDevice({ name: 'device-1' }, team, null, application)
+            // get db Device with all associations
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            // Ensure device has credentialSecret
+            await dbDevice.refreshAuthTokens()
+
+            // pass in the device config via options
+            options.name = 'snapshotWithFlowsCredsModules'
+            options.description = 'a snapshot with flows, creds and modules'
+            options.credentialSecret = 'new-secret'
+            options.deviceConfig = {
+                flows: [{ id: '123', type: 'newNode' }],
+                credentials: encryptCreds(
+                    crypto.createHash('sha256').update(options.credentialSecret).digest(),
+                    { key: 'value' }
+                ),
+                package: {
+                    modules: {
+                        foo: '1.2.3'
+                    }
+                }
+            }
+
+            const snapshot = await app.db.controllers.ProjectSnapshot.createDeviceSnapshot(application, dbDevice, user, options)
+            snapshot.should.have.property('name', 'snapshotWithFlowsCredsModules')
+            snapshot.should.have.property('description', 'a snapshot with flows, creds and modules')
+            snapshot.should.have.property('settings')
+            // Ensure modules is empty as none has been provided
+            snapshot.settings.should.have.only.keys('settings', 'env', 'modules')
+            snapshot.settings.modules.should.have.only.keys('foo')
+            snapshot.should.have.property('flows')
+            snapshot.flows.should.have.only.keys('flows', 'credentials')
+            snapshot.flows.flows.should.have.length(1)
+            snapshot.flows.flows[0].should.have.property('id', '123')
+
+            const keyHash = crypto.createHash('sha256').update(snapshot.credentialSecret).digest()
+            const decrypted = decryptCreds(keyHash, snapshot.flows.credentials)
+            decrypted.should.have.property('key', 'value')
+        })
+
         describe('auto snapshots', function () {
             it('throws an error when deviceAutoSnapshot feature is not enabled', async function () {
                 const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
