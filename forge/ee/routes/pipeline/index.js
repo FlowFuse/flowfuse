@@ -445,36 +445,23 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const stageId = request.params.stageId
-
-            const stage = await app.db.models.PipelineStage.byId(stageId)
-            if (!stage) {
-                return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-            }
-
-            if (stage.PipelineId !== request.pipeline.id) {
-                return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-            }
-
-            // Update the previous stage to point to the next stage when this model is deleted
-            // e.g. A -> B -> C to A -> C when B is deleted
-            const previousStage = await app.db.models.PipelineStage.byNextStage(stageId)
-            if (previousStage) {
-                if (stage.NextStageId) {
-                    previousStage.NextStageId = stage.NextStageId
-                } else {
-                    previousStage.NextStageId = null
-                }
-
-                await previousStage.save()
-            }
-
-            await stage.destroy()
+            await app.db.controllers.Pipeline.deletePipelineStage(
+                request.pipeline,
+                request.params.stageId
+            )
 
             // TODO - Audit log entry?
 
             reply.send({ status: 'okay' })
         } catch (err) {
+            if (err instanceof ControllerError) {
+                return reply
+                    .code(err.statusCode || 400)
+                    .send({
+                        code: err.code || 'unexpected_error',
+                        error: err.error || err.message
+                    })
+            }
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })

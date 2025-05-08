@@ -9,7 +9,49 @@ class PipelineControllerError extends ControllerError {
 }
 
 module.exports = {
+    deletePipelineStage: async function (app, pipeline, stageId) {
+        /** @type {import('../../../lib/pipelineValidation').validateStages} */
+        const validateStages = app.db.models.PipelineStage.validateStages
+        const stage = await app.db.models.PipelineStage.byId(stageId)
+        if (!stage) {
+            throw new PipelineControllerError('not_found', 'Pipeline stage not found', 404)
+        }
+        if (stage.PipelineId !== pipeline.id) {
+            throw new PipelineControllerError('not_found', 'Pipeline stage not found', 404)
+        }
 
+        // NOTE: validation is mostly taken care of in the model layer (see models PipelineStage validate methods)
+        // however since we are destroying a stage (not adding/modifying), we need to explicitly validate the pipeline this time
+
+        const transaction = await app.db.sequelize.transaction()
+        try {
+            // Check if the stage is the first stage in the pipeline
+            const stages = await pipeline.stages()
+            const orderedStages = app.db.models.PipelineStage.sortStages(stages)
+            // Update the previous stage to point to the next stage when this model is deleted
+            // e.g. A -> B -> C to A -> C when B is deleted
+            const previousStage = orderedStages.find(s => s.NextStageId === stage.id)
+            // remap nextid to the next stage id
+            if (previousStage) {
+                previousStage.NextStageId = stage.NextStageId ?? null
+            }
+
+            const orderedStagesProposed = orderedStages.filter(s => s.id !== stage.id)
+            if (orderedStagesProposed.length > 0) {
+                validateStages(orderedStagesProposed) // will throw if invalid
+            }
+
+            if (previousStage) {
+                await previousStage.save({ transaction })
+            }
+            await stage.destroy({ transaction })
+            await transaction.commit()
+        } catch (err) {
+            // Rollback transaction if it exists
+            await transaction.rollback()
+            throw new PipelineControllerError('invalid_input', err.message, err.statusCode || 400, { cause: err })
+        }
+    },
     /**
      * Update a pipeline stage
      * @param {*} app The application instance
