@@ -78,7 +78,7 @@
                         <ExportInstanceComponents id="exportSettings" v-model="copyParts" class="mt-2" />
                     </div>
 
-                    <div v-if="features.billing" class="my-5 text-left" style="padding: 0 60px;">
+                    <div v-if="features.billing" class="my-5 text-left">
                         <InstanceChargesTable
                             :project-type="selectedInstanceType"
                             :subscription="subscription"
@@ -100,6 +100,9 @@ import billingApi from '../../../../api/billing.js'
 import instanceTypesApi from '../../../../api/instanceTypes.js'
 import stacksApi from '../../../../api/stacks.js'
 import templatesApi from '../../../../api/templates.js'
+import {
+    useInstanceFormHelper
+} from '../../../../composables/Components/multi-step-forms/instance/InstanceFormHelper.js'
 
 import ExportInstanceComponents from '../../../../pages/instance/components/ExportImportComponents.vue'
 import InstanceChargesTable from '../../../../pages/instance/components/InstanceChargesTable.vue'
@@ -223,8 +226,9 @@ export default {
     methods: {
         async getInstanceTypes () {
             const instanceTypes = await instanceTypesApi.getInstanceTypes()
+            const { decorateInstanceTypes } = useInstanceFormHelper()
 
-            this.instanceTypes = instanceTypes.types ?? []
+            this.instanceTypes = decorateInstanceTypes(instanceTypes.types ?? [])
         },
         async getSubscription () {
             if (this.features?.billing && !this.team?.billing?.unmanaged && !this.team?.type.properties?.billing?.disabled) {
