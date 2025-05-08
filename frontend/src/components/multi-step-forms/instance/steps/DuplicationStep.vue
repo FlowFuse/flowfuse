@@ -152,6 +152,7 @@ export default {
                 envVars: 'all'
             },
             instanceTemplates: [],
+            instanceTypes: [],
             loading: true,
             nodeRedVersions: [],
             subscription: null
@@ -245,6 +246,13 @@ export default {
             this.nodeRedVersions = versions.stacks
                 .filter(version => version.active)
                 .map(version => { return { ...version, value: version.id, label: version.label || version.name } })
+
+            if (!this.nodeRedVersions.find(v => v.id === this.instanceSelection.nodeREDVersion)) {
+                // intended prop mutation to allow the node RED version to default to the selected instance type nodeRED version
+                // if not available (either deleted or deprecated)
+                // eslint-disable-next-line vue/no-mutating-props
+                this.instanceSelection.nodeREDVersion = this.selectedInstanceType.defaultStack
+            }
         },
         getTemplates () {
             return templatesApi.getTemplates()
