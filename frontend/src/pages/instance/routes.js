@@ -5,6 +5,7 @@
 import InstanceAssets from './Assets.vue'
 import InstanceAuditLog from './AuditLog.vue'
 import InstanceRemoteInstances from './Devices.vue'
+import DuplicateInstance from './DuplicateInstance.vue'
 import InstanceLogs from './Logs.vue'
 import InstanceOverview from './Overview.vue'
 import InstanceSettings from './Settings/index.vue'
@@ -89,14 +90,27 @@ export default [
     },
     {
         path: '/instance/:id/:remaining*',
-        redirect: to => {
-            return { name: 'instance-overview', params: { id: to.params.id } }
-        },
-        name: 'Instance',
-        component: Instance,
-        meta: {
-            title: 'Instance - Overview'
-        },
-        children
+        children: [
+            {
+                path: '',
+                redirect: to => {
+                    return { name: 'instance-overview', params: { id: to.params.id } }
+                },
+                name: 'Instance',
+                component: Instance,
+                meta: {
+                    title: 'Instance - Overview'
+                },
+                children
+            },
+            {
+                path: 'duplicate',
+                name: 'instance-duplicate',
+                component: DuplicateInstance,
+                meta: {
+                    title: 'Instance - Duplicate'
+                }
+            }
+        ]
     }
 ]
