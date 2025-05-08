@@ -466,6 +466,9 @@ describe('Device API', async function () {
             device.credentials.broker.should.have.property('username')
             device.credentials.broker.should.have.property('password')
 
+            device.should.have.property('meta').and.be.an.Object()
+            device.meta.should.have.property('ffVersion', app.config.version)
+
             const response2 = await app.inject({
                 method: 'POST',
                 url: `/api/v1/devices/${device.id}/generate_credentials`,
@@ -2182,6 +2185,66 @@ describe('Device API', async function () {
                 }
             })
             response.statusCode.should.equal(401)
+        })
+        it('device checks in with provisioning snapshot for import', async function () {
+            const device = await createDevice({ name: 'ad_with_snap', type: 'ad_with_snap_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ editor: { nodeRedVersion: 'latest' } })
+            dbDevice.setApplication(TestObjects.Application1)
+            await dbDevice.save()
+
+            const body = {
+                state: 'provisioning',
+                agentVersion: '3.2.0',
+                provisioning: {
+                    credentialSecret: '3d6c68dbebfcd0b6a0a8aa957513f776f3c737417446d565319c2df48a858c7b',
+                    name: "Snapshot imported from 'flows.json' at " + new Date().toISOString(),
+                    description: "Flows imported from 'flows.json' at " + new Date().toISOString(),
+                    deviceConfig: {
+                        flows: [{ id: '123456', type: 'tab' }],
+                        credentials: { $: '652a275cf5e2e03332fc7790dcef4b16MNZ7PPkr3JUoClbwMyDaUMunn5vLxEXNMusWIwuZFE1pwtiY3uxQ08H5W6PxspvBfoptQ5bf3o3k3aDAriGVmSX4eg==' },
+                        package: {
+                            modules: { 'node-red-contrib-test': '1.0.0' },
+                            version: '0.0.1',
+                            name: 'node-red-project',
+                            description: 'A Node-RED Project'
+                        }
+                    }
+                }
+            }
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/live/state`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`
+                },
+                payload: body
+            })
+            response.statusCode.should.equal(200)
+
+            await dbDevice.reload()
+
+            // find the snapshot with name body.name & check the devices targetSnapshotId is set to it
+            const snapshot = await app.db.models.ProjectSnapshot.findOne({ where: { name: body.provisioning.name } })
+            should.exist(snapshot)
+            snapshot.should.have.property('id')
+
+            // ensure the snapshot has the correct modules
+            snapshot.settings.modules['node-red-contrib-test'].should.equal('1.0.0')
+
+            // ensure the credentials and secret were regenerated
+            snapshot.should.have.property('credentialSecret')
+            snapshot.credentialSecret.should.not.equal(body.provisioning.credentialSecret)
+
+            snapshot.should.have.property('flows')
+            snapshot.flows.should.have.property('credentials')
+            snapshot.flows.credentials.should.have.property('$')
+            snapshot.flows.credentials.$.should.not.equal(body.provisioning.deviceConfig.credentials.$)
+
+            // since device has just been provisioned, it will not be running yet so it gets marked as offline
+            dbDevice.state.should.equal('offline')
+            dbDevice.targetSnapshotId.should.equal(snapshot.id) // targetSnapshotId should be set to the snapshot created
         })
         it('device downloads settings', async function () {
             await setupProjectWithSnapshot(true)
