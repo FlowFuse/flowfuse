@@ -129,7 +129,7 @@ jobs:
       - name: Run UI Unit Tests
         run: npm run test:unit:frontend
       - name: Run UI E2E (Cypress) Tests - OS
-        uses: cypress-io/github-action@108b8684ae52e735ff7891524cbffbcd4be5b19f # v6.7.16
+        uses: cypress-io/github-action@0ee1130f05f69098ab5c560bd198fecf5a14d75b # v6.9.0
         with:
           install: false
           config-file: config/cypress-os.config.js
@@ -141,7 +141,7 @@ jobs:
           SMTP_PORT: '1025'
           SMTP_WEB_PORT: '8025'
       - name: Run UI E2E (Cypress) Tests - EE
-        uses: cypress-io/github-action@108b8684ae52e735ff7891524cbffbcd4be5b19f # v6.7.16
+        uses: cypress-io/github-action@0ee1130f05f69098ab5c560bd198fecf5a14d75b # v6.9.0
         with:
             install: false
             config-file: config/cypress-ee.config.js
