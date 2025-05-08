@@ -201,6 +201,7 @@ import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
 import daysSince from '../../utils/daysSince.js'
+import pipelineValidation from '../../utils/pipelineValidation.js'
 
 import IconDeviceGroupSolid from '../icons/DeviceGroupSolid.js'
 import IconDeviceSolid from '../icons/DeviceSolid.js'
@@ -359,6 +360,23 @@ export default {
         },
 
         deleteStage () {
+            try {
+                // client-side validation of pipeline stages before hitting the API
+                const orderedStages = [...this.pipeline.stages]
+                // Update the previous stage to point to the next stage when this model is deleted
+                // e.g. A -> B -> C to A -> C when B is deleted
+                const previousStage = orderedStages.find(s => s.NextStageId === this.stage.id)
+                // remap nextid to the next stage id
+                if (previousStage) {
+                    previousStage.NextStageId = this.stage.NextStageId ?? null
+                }
+                const orderedStagesProposed = orderedStages.filter(s => s.id !== this.stage.id)
+                pipelineValidation.validateStages(orderedStagesProposed)
+            } catch (error) {
+                Alerts.emit(error.message, 'warning')
+                return
+            }
+
             const msg = {
                 header: 'Delete Pipeline Stage',
                 kind: 'danger',

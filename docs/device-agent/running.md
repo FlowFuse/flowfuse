@@ -63,8 +63,10 @@ Web UI Options
 
 Setup command
 
-  -o, --otc string   Setup device using a one time code
-  -u, --ff-url url   URL of FlowFuse. Required for setup
+  -o, --otc string    Setup device using a one time code
+  --otc-no-start      Do not start the agent after setup
+  --otc-no-import     Do not ask to import Node-RED flows during setup
+  -u, --ff-url url    URL of FlowFuse. Required for setup
 
 Global Options
 
