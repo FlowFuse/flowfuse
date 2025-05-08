@@ -269,6 +269,45 @@ module.exports = async function (app) {
         })
     })
 
+    if (app.config.blueprintImport?.export) {
+        app.get('/export-public', {
+            config: {
+                allowAnonymous: true,
+            },
+            schema: {
+                summary: 'Export one or more Blueprints',
+                tags: ['Flow Blueprints'],
+                query: {
+                    id: { type: 'array', items: { type: 'string' } }
+                },
+                response: {
+                    200: {
+                        type: 'object',
+                        allOf: [{ $ref: 'FlowBlueprintExport' }],
+                        properties: {
+                            count: { type: 'integer' }
+                        }
+                    },
+                    '4xx': {
+                        $ref: 'APIError'
+                    }
+                }
+            }
+        }, async (request, reply) => {
+            let where = {}
+            if (request.query.id && typeof request.query.id === 'string') {
+                where = { id: app.db.models.FlowTemplate.decodeHashid(request.query.id)[0] }
+            } else if (request.query.id && Array.isArray(request.query.id)) {
+                where = { id: request.query.id.map(i => app.db.models.FlowTemplate.decodeHashid(i)[0]) }
+            }
+            const flowTemplates = await app.db.models.FlowTemplate.getAll({}, where)
+            reply.send({
+                blueprints: flowTemplates.templates.map(bp => app.db.views.FlowTemplate.flowBlueprintExport(bp)),
+                count: flowTemplates.templates.length
+            })
+        })
+    }
+
     app.post('/import', {
         preHandler: app.needsPermission('flow-blueprint:create'),
         schema: {
