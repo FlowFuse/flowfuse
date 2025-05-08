@@ -1,3 +1,54 @@
+#### 2.17.0: Release
+
+ - Bump cypress-io/github-action from 6.7.16 to 6.9.0 (#5500)
+ - Bump docker/build-push-action from 6.15.0 to 6.16.0 (#5475)
+ - Bump actions/download-artifact from 4.2.1 to 4.3.0 (#5476)
+ - Bump codecov/codecov-action from 5.4.0 to 5.4.2 (#5451)
+ - Fixed charges table on the instance duplication overview step (#5504) @cstns
+ - Fix Instance duplication form cold starts (#5507) @cstns
+ - Default to the Instance Type's default stack if the original instance’s stack is deprecated (#5510) @cstns
+ - Alter the duplicate instance page breadcrumbs (#5506) @cstns
+ - Multi step instance form duplicate instance (#5499) @cstns
+ - Import snapshot during OTC setup (#5473) @Steve-Mcl
+ - Clear redirectUrl when hitting the oauth account/complete route (#5511) @knolleary
+ - Validate pipeline stages before deletion (#5494) @Steve-Mcl
+ - Improve visibility of local access of remote instance (#5502) @Steve-Mcl
+ - Replace dropdown with a combobox to simplify device selection in pipeline setup (#5485) @Steve-Mcl
+ - Fix combobox selector behavior when losing focus (#5498) @cstns
+ - Update SSO enablement docs to require Change Request to be raised (#5497) @knolleary
+ - Hide applications device tile kebab menu for unauthorized users (#5471) @cstns
+ - Fix editing pipeline stage when a device group exists in later stages (#5496) @Steve-Mcl
+ - Fixe indentation in the BoxOptionMixin (#5493) @cstns
+ - Prevent team library api call for unauthorized users (#5468) @cstns
+ - Resource Email improvements (#5480) @Steve-Mcl
+ - Add a new ComboBox component (#5481) @cstns
+ - E2e tests external broker (#5460) @cstns
+ - Handle team device create dialog state externally to prevent unnecessary api calls part 2 (#5472) @cstns
+ - Hide pipeline actionable items and guard routes based on user's permissions (#5465) @cstns
+ - Handle the TeamDeviceCreateDialog state externally to prevent unnecessary api calls (#5470) @cstns
+ - Modify device loading logic to get all app devices (#5479) @Steve-Mcl
+ - Hide the device Finish setup Call to Action from users without permissions (#5474) @cstns
+ - Run the e2e smtp servers only when configured to do so (#5457) @cstns
+ - Grant timeline access to viewer roles (#5469) @cstns
+ - Handle instance creation failure garacefully when creating new applications (#5455) @cstns
+ - Fix the deployStageDialog selector not overflowing properly (#5466) @cstns
+ - Add multi step form on application creation (#5438) @cstns
+ - Fix third party broker redirect (#5462) @cstns
+ - Fix overflowing device last seen badge (#5458) @cstns
+ - Ensure all devices are loaded when working with device group membership (#5448) @knolleary
+ - Update Device docs about offline access (#5446) @hardillb
+ - Fix styling of team select (#5447) @knolleary
+ - Fix clipped kebab menu (#5445) @cstns
+ - Schedule meeting to upgarde to enterprise (#5421) @cstns
+ - Bump http-proxy-middleware from 2.0.6 to 2.0.9 (#5441) @app/dependabot
+ - Throttle notifications sent to Device Group members (#5437) @knolleary
+ - Replace the team selection drowpdown with the listbox component (#5057) @cstns
+ - Ensure Device Node-RED version is populated on status update (#5431) @hardillb
+ - Make Team & TeamType optional for TeamBroker Clients (#5435) @hardillb
+ - Bump actions/setup-node from 4.3.0 to 4.4.0 (#5432) @app/dependabot
+ - Bump esbuild, @vitejs/plugin-vue, @vitest/coverage-istanbul and vitest (#5379) @app/dependabot
+ - Do not reset stage type if it is already valid (#5422) @knolleary
+
 #### 2.16.0: Release
 
  - Add stack update instuctions (#5411)
