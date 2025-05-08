@@ -227,9 +227,7 @@ export default {
             const instanceTypes = await instanceTypesApi.getInstanceTypes()
             const { decorateInstanceTypes } = useInstanceFormHelper()
 
-            decorateInstanceTypes(instanceTypes.types ?? [])
-
-            this.instanceTypes = instanceTypes.types ?? []
+            this.instanceTypes = decorateInstanceTypes(instanceTypes.types ?? [])
         },
         async getSubscription () {
             if (this.features?.billing && !this.team?.billing?.unmanaged && !this.team?.type.properties?.billing?.disabled) {
