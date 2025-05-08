@@ -36,15 +36,14 @@
                             v-slot="{ active, selected }"
                             :key="option[valueKey]"
                             :value="option"
+                            :data-option="option[labelKey]"
                             class="ff-option"
                         >
-                            <li>
-                                <slot name="option" :option="option" :selected="selected" :active="active">
-                                    <div class="ff-option-content" :class="{ selected, active }">
-                                        {{ option[labelKey] }}
-                                    </div>
-                                </slot>
-                            </li>
+                            <slot name="option" :option="option" :selected="selected" :active="active">
+                                <div class="ff-option-content" :class="{ selected, active }">
+                                    {{ option[labelKey] }}
+                                </div>
+                            </slot>
                         </ComboboxOption>
                     </ComboboxOptions>
                 </teleport>
