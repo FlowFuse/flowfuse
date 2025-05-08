@@ -69,7 +69,7 @@
                                     <div class="ff-option-content" :class="{ selected, active }">
                                         <div class="flex justify-between mb-2">
                                             <span>{{ option.label }}</span>
-                                            <span v-if="option.user.username" class="text-gray-400">{{ option.user.username }}</span>
+                                            <span v-if="option.user && option.user.username" class="text-gray-400">{{ option.user.username }}</span>
                                         </div>
                                         <p class="pl-5 text-italic text-gray-400">
                                             {{ option.description }}
