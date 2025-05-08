@@ -272,7 +272,7 @@ module.exports = async function (app) {
     if (app.config.blueprintImport?.export) {
         app.get('/export-public', {
             config: {
-                allowAnonymous: true,
+                allowAnonymous: true
             },
             schema: {
                 summary: 'Export one or more Blueprints',
