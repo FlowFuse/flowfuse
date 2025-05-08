@@ -37,6 +37,7 @@
                         :is-last-sibling="key === Object.keys(hierarchy).length-1"
                         :is-root="true"
                         :selected-segment="selectedSegment"
+                        :filter-term="filterTerm"
                         @segment-selected="$emit('segment-selected', $event)"
                         @segment-state-changed="toggleSegmentVisibility"
                     />
