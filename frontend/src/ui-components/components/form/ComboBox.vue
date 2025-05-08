@@ -155,7 +155,11 @@ export default {
             const query = this.query?.toLowerCase()
             if (!query) return this.options.map(normalize)
 
-            // Helper to get nested value
+            // Helper function to retrieve a nested value from an object using a dot-separated path.
+            // Parameters:
+            // - obj: The object to traverse.
+            // - path: A string representing the dot-separated keys (e.g., "key1.key2.key3").
+            // Returns: The value at the specified path, or undefined if any key in the path is missing.
             const getNestedValue = (obj, path) => {
                 return path.split('.').reduce((acc, key) => acc?.[key], obj)
             }
