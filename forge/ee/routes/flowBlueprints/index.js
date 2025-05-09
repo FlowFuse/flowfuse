@@ -294,7 +294,7 @@ module.exports = async function (app) {
                 }
             }
         }, async (request, reply) => {
-            let where = {}
+            let where = { active: true }
             if (request.query.id && typeof request.query.id === 'string') {
                 where = { id: app.db.models.FlowTemplate.decodeHashid(request.query.id)[0] }
             } else if (request.query.id && Array.isArray(request.query.id)) {
