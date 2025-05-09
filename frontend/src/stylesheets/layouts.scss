@@ -717,6 +717,7 @@ $nav_height: 60px;
         left: 0;
         background: $ff-color--context-menu;
         border-right: 1px solid $ff-color--border;
+        overflow: auto;
 
         .ff-main-navigation {
             .ff-menu-groups {
