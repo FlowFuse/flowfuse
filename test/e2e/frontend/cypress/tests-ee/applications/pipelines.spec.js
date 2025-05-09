@@ -350,10 +350,10 @@ describe('FlowForge - Application - DevOps Pipelines', () => {
 
             cy.get('[data-el="deploy-stage-dialog"].ff-dialog-container--open').should('be.visible')
             cy.get('[data-el="deploy-stage-dialog"].ff-dialog-container--open').within(() => {
-                cy.get('[data-form="snapshot-select"]').click()
+                cy.get('[data-form="snapshot-select"] button').click()
             })
 
-            cy.get(`[data-el="listbox-options"] [data-option="Snapshot 2 for ${PIPELINE_NAME} test"]`).click()
+            cy.get(`[data-el="options"] [data-option="Snapshot 2 for ${PIPELINE_NAME} test"]`).click()
 
             cy.get('[data-el="deploy-stage-dialog"].ff-dialog-container--open').within(() => {
                 /* eslint-disable cypress/require-data-selectors */
