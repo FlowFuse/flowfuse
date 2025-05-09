@@ -206,7 +206,7 @@ That filename is set to be ignored by git so it won't be accidentally committed.
 If you are developing locally and need to enable external email sending, you can either:
 
  - Setup a local test SMTP server. For example, the Nodemailer project provides a
-   useful app that does the job: https://nodemailer.com/app/
+   useful app that does the job: https://github.com/nodemailer/nodemailer-app/releases
  - Alternatively, set the `email.debug` option to `true` in your configuration file
    and the app will print all emails to its log.
 

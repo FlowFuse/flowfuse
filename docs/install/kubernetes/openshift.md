@@ -165,7 +165,7 @@ postgresql:
       runAsUser: <project-uid>
 EOF
 ```
-A full list of all the configuration options can be found in the [Helm Chart README](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md#configuration-values).
+A full list of all the configuration options can be found in the [Helm Chart README](https://github.com/FlowFuse/helm/blob/main/helm/flowfuse/README.md#configuration-values).
 
 ### Label Nodes
 
@@ -217,7 +217,7 @@ Once you have finished setting up the admin user there are some [Kubernetes spec
 ## Upgrade
 
 All technical aspects of the upgrade process of Flowfuse application running on Kubernetes and managed by Helm chart are maintained in our repository.
-Please refer to the [Flowfuse Helm Chart documentation](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md#upgrading-chart) for more details
+Please refer to the [Flowfuse Helm Chart documentation](https://github.com/FlowFuse/helm/blob/main/helm/flowfuse/README.md#upgrading-chart) for more details
 about the upgrade process.
 
 ## Common Questions
@@ -246,7 +246,7 @@ forge:
 
 Apply changes with [platform startup command](#start-flowfuse-platform).
 
-Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowforge#mqtt-broker) for more details about the parameters that can be configured for the MQTT broker.
+Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse#mqtt-broker) for more details about the parameters that can be configured for the MQTT broker.
 
 </details>
 
@@ -270,6 +270,6 @@ forge:
 
 Apply changes with [platform startup command](#start-flowfuse-platform).
 
-Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowforge#file-storage) for more details about the parameters that can be configured for the File Storage.
+Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse#file-storage) for more details about the parameters that can be configured for the File Storage.
 
 </details>

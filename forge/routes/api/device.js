@@ -235,7 +235,13 @@ module.exports = async function (app) {
                     type: 'object',
                     allOf: [{ $ref: 'Device' }],
                     properties: {
-                        credentials: { type: 'object', additionalProperties: true }
+                        credentials: { type: 'object', additionalProperties: true },
+                        meta: {
+                            type: 'object',
+                            properties: {
+                                ffVersion: { type: 'string' }
+                            }
+                        }
                     }
                 },
                 '4xx': {
@@ -257,6 +263,9 @@ module.exports = async function (app) {
                     app.auditLog.Device.device.credentials.generated(0, null, device)
                     const response = app.db.views.Device.device(device)
                     response.credentials = credentials
+                    response.meta = {
+                        ffVersion: app.config.version
+                    }
                     return reply.send(response)
                 } else {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -359,6 +368,9 @@ module.exports = async function (app) {
                 }
                 const response = app.db.views.Device.device(device)
                 response.credentials = credentials
+                response.meta = {
+                    ffVersion: app.config.version
+                }
                 reply.send(response)
             } finally {
                 if (app.license.active() && app.billing) {
