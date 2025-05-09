@@ -10,7 +10,7 @@ async function fetch (app) {
         for (const blueprint of blueprints.data.blueprints) {
             const existingBlueprint = existingBlueprints.templates.find(b => b.name === blueprint.name)
             if (existingBlueprint) {
-                app.log.info(`Blueprint ${blueprint.name} already exists`)
+                app.log.info(`Blueprint ${blueprint.name} already exists, skipping`)
                 // await app.db.models.FlowTemplate.update(existingBlueprint.id, blueprint)
             } else {
                 blueprint.order = 0
