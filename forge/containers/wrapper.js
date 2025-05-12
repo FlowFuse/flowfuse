@@ -305,5 +305,14 @@ module.exports = {
         } else {
             throw new Error('Driver does not implement Broker API ')
         }
+    },
+    resources: async (project) => {
+        if (this._driver.resources) {
+            value = await this._driver.resources(project)
+            return value
+        } else {
+            throw new Error('Driver does not implement resources API ')
+        }
+        
     }
 }

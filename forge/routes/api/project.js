@@ -1188,6 +1188,44 @@ module.exports = async function (app) {
     })
 
     /**
+     * 
+     * @name /api/v1/projects/:id/resources
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:instanceId/resources', {
+        preHandler: app.needsPermission('project:read'),
+        schema: {
+            summary: 'Returns resource usage history for an Instance',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'array'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const resources = await app.containers.resources(request.project)
+            reply.send(resources)
+        } catch (err) {
+            console.log(err)
+            reply.code(500).send({ code: 'unknown_error', error: 'unknown error' })
+        }
+    })
+
+    /**
      * Merge env vars from 2 arrays.
      *
      * NOTE: When a var is found in both, currentVars will take precedence
