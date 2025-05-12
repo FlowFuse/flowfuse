@@ -442,7 +442,7 @@ module.exports = {
             values.push({
                 ts: (endTime - ((itemsCount - i) * 10 * 1000)),
                 cpu: Math.random(),
-                ps: (Math.random() * 256),
+                ps: (Math.random() * 256)
             })
         }
         return values

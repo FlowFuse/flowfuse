@@ -1188,7 +1188,7 @@ module.exports = async function (app) {
     })
 
     /**
-     * 
+     *
      * @name /api/v1/projects/:id/resources
      * @memberof forge.routes.api.project
      */
@@ -1220,7 +1220,6 @@ module.exports = async function (app) {
             const resources = await app.containers.resources(request.project)
             reply.send(resources)
         } catch (err) {
-            console.log(err)
             reply.code(500).send({ code: 'unknown_error', error: 'unknown error' })
         }
     })

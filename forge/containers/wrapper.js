@@ -308,11 +308,9 @@ module.exports = {
     },
     resources: async (project) => {
         if (this._driver.resources) {
-            value = await this._driver.resources(project)
-            return value
+            return this._driver.resources(project)
         } else {
             throw new Error('Driver does not implement resources API ')
         }
-        
     }
 }
