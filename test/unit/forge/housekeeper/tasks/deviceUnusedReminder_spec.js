@@ -1,3 +1,4 @@
+const { Op } = require('sequelize')
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
@@ -14,14 +15,26 @@ describe('Device Unused Reminder Task', function () {
         sinon.stub(app.postoffice, 'send').callsFake(() => {
             return Promise.resolve()
         })
+        sinon.stub(app.log, 'info')
+        sinon.stub(app.log, 'warn')
     })
 
     after(async function () {
         await app.close()
     })
 
-    beforeEach(async function () {
+    afterEach(async function () {
         await app.db.models.Device.destroy({ where: {} })
+        // delete any team not named ATeam
+        await app.db.models.Team.destroy({ where: { name: { [Op.ne]: 'ATeam' } } })
+        // delete all users except alice
+        await app.db.models.User.destroy({ where: { email: { [Op.ne]: 'alice@example.com' } } })
+        // unsuspend alice
+        app.user.suspended = false
+        await app.user.save()
+        // reset spies
+        app.log.info.reset()
+        app.log.warn.reset()
         app.postoffice.send.resetHistory()
     })
 
@@ -44,12 +57,6 @@ describe('Device Unused Reminder Task', function () {
         const device1 = await app.factory.createDevice({ name: 'app-dev-1' }, app.team, null, app.application)
         const device2 = await app.factory.createDevice({ name: 'app-dev-2' }, app.team, null, app.application)
         const device3 = await app.factory.createDevice({ name: 'app-dev-3' }, app.team, null, app.application)
-        device1.lastSeenAt = null
-        device2.lastSeenAt = null
-        device3.lastSeenAt = null
-        device3.createdAt = new Date()
-        await device1.save()
-        await device2.save()
 
         // Force device3 to be created before 14 days ago. Ref: https://github.com/sequelize/sequelize/issues/3759#issuecomment-1580202535
         await forceUpdateDeviceCreatedAt(device3, device3.createdAt.getDate() - 16)
@@ -81,11 +88,9 @@ describe('Device Unused Reminder Task', function () {
     it('should not send email if team has any used devices', async function () {
         // create a new device and add it to team
         const device1 = await app.factory.createDevice({ name: 'app-dev-1' }, app.team, null, app.application)
-        const device2 = await app.factory.createDevice({ name: 'app-dev-2' }, app.team, null, app.application)
+        await app.factory.createDevice({ name: 'app-dev-2' }, app.team, null, app.application)
         device1.lastSeenAt = new Date()
-        device2.lastSeenAt = null
         await device1.save()
-        await device2.save()
 
         // run the task
         await unusedDeviceReminderTask.run(app)
@@ -97,8 +102,6 @@ describe('Device Unused Reminder Task', function () {
         // create a new device and add it to team
         const device1 = await app.factory.createDevice({ name: 'app-dev-1' }, app.team, null, app.application)
         const device2 = await app.factory.createDevice({ name: 'app-dev-2' }, app.team, null, app.application)
-        device1.lastSeenAt = null
-        device2.lastSeenAt = null
         await forceUpdateDeviceCreatedAt(device1, device1.createdAt.getDate() - 16)
         await forceUpdateDeviceCreatedAt(device2, device2.createdAt.getDate() - 16)
 
@@ -106,5 +109,83 @@ describe('Device Unused Reminder Task', function () {
         await unusedDeviceReminderTask.run(app)
         // check that send was not called
         app.postoffice.send.called.should.be.false()
+    })
+
+    it('should not send email for unused devices where team is suspended', async function () {
+        // create team b and bob
+        const teamB = await app.factory.createTeam({ name: 'BTeam' })
+        const userBob = await app.factory.createUser({
+            username: 'bob',
+            name: 'Bob Fett',
+            email: 'bob@example.com',
+            password: 'bbPassword'
+        })
+        await teamB.addUser(userBob, { through: { role: app.factory.Roles.Roles.Owner } })
+        await app.factory.createDevice({ name: 'app-dev-1' }, teamB, null, app.application)
+
+        // suspend team b
+        teamB.suspended = true
+        await teamB.save()
+
+        // run the task
+        await unusedDeviceReminderTask.run(app)
+        // check that send was not called
+        app.postoffice.send.called.should.be.false()
+    })
+
+    it('should not send email for unused devices to users who are suspended', async function () {
+        // add new owner to team
+        const userBob = await app.factory.createUser({
+            username: 'bob',
+            name: 'Bob Fett',
+            email: 'bob@example.com',
+            password: 'bbPassword'
+        })
+        userBob.suspended = true
+        await userBob.save()
+        await app.team.addUser(userBob, { through: { role: app.factory.Roles.Roles.Owner } })
+        await app.factory.createDevice({ name: 'app-dev-1' }, app.team, null, app.application)
+
+        // run the task
+        await unusedDeviceReminderTask.run(app)
+
+        // check that only alice was sent an email
+        app.postoffice.send.calledOnce.should.be.true()
+        app.postoffice.send.firstCall.args[0].should.be.an.Object()
+        app.postoffice.send.firstCall.args[0].email.should.equal('alice@example.com')
+    })
+
+    it('should not send any emails when all users are suspended', async function () {
+        const device = await app.factory.createDevice({ name: 'app-dev-1' }, app.team, null, app.application)
+
+        // suspend all users in the team
+        app.user.suspended = true
+        await app.user.save()
+
+        await unusedDeviceReminderTask.run(app)
+        app.postoffice.send.called.should.be.false()
+
+        // should have logged a message ~ No active team owners found for device <hashid> (<name>) in team <hashid> (<name>)
+        app.log.warn.calledWith(`No active team owners found for device ${device.hashid} (app-dev-1) in team ${app.team.hashid} (${app.team.name})`).should.be.true()
+    })
+
+    it('should not send any email when team trial has ended', async function () {
+        await app.factory.createDevice({ name: 'app-dev-1' }, app.team, null, app.application)
+
+        // stub app.db.models.Subscription.byTeamId so that it returns a subscription with trialStatus = ENDED
+        sinon.stub(app.db.models.Subscription, 'byTeamId').callsFake(async () => {
+            return {
+                trialStatus: app.db.models.Subscription.TRIAL_STATUS.ENDED
+            }
+        })
+
+        await unusedDeviceReminderTask.run(app)
+        app.postoffice.send.called.should.be.false()
+
+        // app.db.models.Subscription should have been called with the team id
+        app.db.models.Subscription.byTeamId.calledWith(app.team.id).should.be.true()
+
+        // should have logged a message about skipping the team
+        app.log.info.calledWith(`Skip sending unused device reminder to users of team ${app.team.hashid} (${app.team.name}) because it is expired`).should.be.true()
     })
 })
