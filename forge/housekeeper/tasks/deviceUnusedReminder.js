@@ -40,31 +40,53 @@ module.exports = {
         if (recentUnusedDevices.length === 0) {
             return // No unused devices found
         }
-        const uniqueTeamIds = [...new Set(recentUnusedDevices.map(device => device.TeamId))]
+        const uniqueTeams = new Map()
+        for (const device of recentUnusedDevices) {
+            if (!uniqueTeams.has(device.TeamId)) {
+                uniqueTeams.set(device.TeamId, device.Team)
+            }
+        }
+        // filter out any teams that are expired
+        if (app.license.active() && app.billing) {
+            for (const [teamId, team] of uniqueTeams) {
+                const subscription = await team.getSubscription()
+                if (subscription && subscription.trialStatus === app.db.models.Subscription.TRIAL_STATUS.ENDED) {
+                    app.log.info(`Skip sending unused device reminder to users of team ${team.hashid} (${team.name}) because it is expired`)
+                    uniqueTeams.delete(teamId)
+                }
+            }
+        }
+        if (uniqueTeams.size === 0) {
+            return // No teams found
+        }
 
-        const teamFilter = {
+        const uniqueTeamIds = Array.from(uniqueTeams.keys())
+
+        const userFilter = {
             TeamId: {
                 [Op.in]: uniqueTeamIds
             },
             role: Roles.Owner
         }
-        const users = (await app.db.models.TeamMember.findAll({ where: teamFilter, include: app.db.models.User }))
+        const users = (await app.db.models.TeamMember.findAll({ where: userFilter, include: app.db.models.User }))
 
         for (const device of recentUnusedDevices) {
-            const deviceTeamOwners = users.filter(user => user.TeamId === device.TeamId).map(user => user.User)
+            const deviceTeamOwners = users.filter(user => user.TeamId === device.TeamId).map(user => user.User).filter(user => !user.suspended)
             if (!deviceTeamOwners || deviceTeamOwners.length === 0) {
-                app.log.warn(`No team owners found for device ${device.id} in team ${device.TeamId}`)
+                app.log.warn(`No active team owners found for device ${device.hashid} (${device.name}) in team ${device.Team.hashid} (${device.Team.name})`)
                 continue // should not happen
             }
-            deviceTeamOwners.forEach(user => {
-                app.postoffice.send(user, 'DeviceUnusedReminder', {
-                    deviceName: sanitizeText(device.name),
-                    createdOn: device.createdAt.toDateString(),
-                    teamName: device.Team?.name || 'Unnamed Team',
-                    url: `${app.config.base_url}/device/${device.hashid}`,
-                    reminderSentAt: new Date()
-                })
-            })
+            for (const user of deviceTeamOwners) {
+                if (device.Team) {
+                    app.postoffice.send(user, 'DeviceUnusedReminder', {
+                        deviceName: sanitizeText(device.name),
+                        createdOn: device.createdAt.toDateString(),
+                        teamName: device.Team?.name || 'Unnamed Team',
+                        url: `${app.config.base_url}/device/${device.hashid}`,
+                        reminderSentAt: new Date()
+                    })
+                }
+            }
         }
     }
 }
