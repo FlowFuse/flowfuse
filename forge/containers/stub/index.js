@@ -440,6 +440,7 @@ module.exports = {
         const itemsCount = 2520
         for (let i = 0; i < itemsCount; i++) {
             values.push({
+                src: '43ab',
                 ts: (endTime - ((itemsCount - i) * 10 * 1000)),
                 cpu: Math.random(),
                 ps: (Math.random() * 256)
