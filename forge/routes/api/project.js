@@ -1205,7 +1205,25 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    type: 'array'
+                    type: 'object',
+                    properties: {
+                        meta: { $ref: 'PaginationMeta' },
+                        resources: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    src: { type: 'string' },
+                                    ps: { type: 'number' },
+                                    cpu: { type: 'number' },
+                                    hs: { type: 'number' },
+                                    hu: { type: 'number' },
+                                    ts: { type: 'number' }
+                                }
+                            }
+                        },
+                        count: { type: 'number' }
+                    }
                 },
                 '4xx': {
                     $ref: 'APIError'
