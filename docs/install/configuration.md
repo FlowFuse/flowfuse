@@ -294,7 +294,16 @@ These settings enable per team Node-RED private catalogue generation
 
 Option        | Description
 --------------|------------
-`npmRegistry.enabled` | Enables NPM Registry support. Default: false
+`npmRegistry.enabled` | Enables NPM Registry support. Default: `false`
 `npmRegistry.url` | The URL for the Verdaccio NPM Registry. Default: none
 `npmRegistry.admin.username` | Username for Verdaccio admin user
 `npmRegistry.admin.password` | Password for Verdaccio admin user
+
+
+## BluePrint Updates
+
+For Licenses instances these options control how new BluePrints are imported
+
+`blueprintImport.enabled` | Enables the import of new BluePrints from FlowFuse. Default: `true`
+`blueprintImport.export` | Enables the API endpoint to export the local BluePrints. Default: `false`
+`blueprintImport.url` | The URL to import BluePrints from. Default: `https://app.flowfuse.com/api/v1/flow-blueprints/export-public`
