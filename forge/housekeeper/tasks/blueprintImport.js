@@ -10,12 +10,21 @@ async function fetch (app) {
         for (const blueprint of blueprints.data.blueprints) {
             const existingBlueprint = existingBlueprints.templates.find(b => b.name === blueprint.name)
             if (existingBlueprint) {
-                app.log.info(`Blueprint ${blueprint.name} already exists, skipping`)
+                app.log.info(`Blueprint ${blueprint.name} already exists, checking if imported`)
                 // await app.db.models.FlowTemplate.update(existingBlueprint.id, blueprint)
+                if (existingBlueprint.importedId === blueprint.id) {
+                    existingBlueprint.modules = blueprint.modules
+                    existingBlueprint.flows = blueprint.flows
+                    existingBlueprint.description = blueprint.description
+                    existingBlueprint.category = blueprint.category
+                    existingBlueprint.icon = blueprint.icon
+                }
             } else {
                 blueprint.order = 0
                 blueprint.default = false
                 blueprint.active = true
+                blueprint.importedId = blueprint.id
+                blueprint.id = undefined
                 app.log.info(`Creating new blueprint ${blueprint.name}`)
                 await app.db.models.FlowTemplate.create(blueprint)
             }

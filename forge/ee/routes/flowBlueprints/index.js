@@ -277,9 +277,6 @@ module.exports = async function (app) {
             schema: {
                 summary: 'Export one or more Blueprints',
                 tags: ['Flow Blueprints'],
-                query: {
-                    id: { type: 'array', items: { type: 'string' } }
-                },
                 response: {
                     200: {
                         type: 'object',
@@ -294,15 +291,10 @@ module.exports = async function (app) {
                 }
             }
         }, async (request, reply) => {
-            let where = { active: true }
-            if (request.query.id && typeof request.query.id === 'string') {
-                where = { id: app.db.models.FlowTemplate.decodeHashid(request.query.id)[0] }
-            } else if (request.query.id && Array.isArray(request.query.id)) {
-                where = { id: request.query.id.map(i => app.db.models.FlowTemplate.decodeHashid(i)[0]) }
-            }
-            const flowTemplates = await app.db.models.FlowTemplate.getAll({}, where)
+            const flowTemplates = await app.db.models.FlowTemplate.getAll({}, { active: true })
+            const modified = flowTemplates.templates.map(bp => app.db.views.FlowTemplate.flowBlueprintExport(bp, true))
             reply.send({
-                blueprints: flowTemplates.templates.map(bp => app.db.views.FlowTemplate.flowBlueprintExport(bp)),
+                blueprints: modified,
                 count: flowTemplates.templates.length
             })
         })
