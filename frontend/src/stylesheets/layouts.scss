@@ -197,6 +197,8 @@ $nav_height: 60px;
     flex-direction: row;
 
     .ff-view {
+        display: flex;
+        flex-direction: column;
         position: relative;
         overflow-y: auto;
         overflow-x: hidden;
