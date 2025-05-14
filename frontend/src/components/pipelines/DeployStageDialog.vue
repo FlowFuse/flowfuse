@@ -56,14 +56,36 @@
                     <FormRow data-form="snapshot" containerClass="w-full">
                         Source Snapshot
                         <template #input>
-                            <ff-listbox
+                            <ff-combobox
                                 v-if="hasSnapshots"
                                 v-model="input.selectedSnapshotId"
                                 :options="snapshotOptions"
+                                :extend-search-keys="['description', 'user.username']"
                                 placeholder="Select a snapshot"
                                 data-form="snapshot-select"
                                 class="w-full"
-                            />
+                            >
+                                <template #option="{ option, selected, active }">
+                                    <div class="ff-option-content" :class="{ selected, active }">
+                                        <div class="flex justify-between mb-2">
+                                            <span>{{ option.label }}</span>
+                                            <span v-if="option.user && option.user.username" class="text-gray-400">{{ option.user.username }}</span>
+                                        </div>
+                                        <p class="pl-5 text-italic text-gray-400 mb-4">
+                                            {{ option.description }}
+                                        </p>
+                                        <p v-if="option.createdAt" class="pl-5 text-gray-400 text-sm">
+                                            <span>Created </span>
+                                            <span
+                                                v-ff-tooltip:bottom="new Date(option.createdAt).toDateString() + ' - ' + new Date(option.createdAt).toLocaleTimeString()"
+                                                class="underline hover:no-underline"
+                                            >
+                                                {{ daysSince(option.createdAt, true) }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </template>
+                            </ff-combobox>
                             <div v-else class="error-banner">
                                 There are no snapshots to choose from for this stage's
                                 <template v-if="stage.stageType == StageType.INSTANCE">
@@ -153,6 +175,7 @@ import DeviceApi from '../../api/devices.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
 import SnapshotApi from '../../api/projectSnapshots.js'
 import SnapshotsApi from '../../api/snapshots.js'
+import daysSince from '../../utils/daysSince.js'
 import FormRow from '../FormRow.vue'
 
 export default {
@@ -169,6 +192,7 @@ export default {
     emits: ['deploy-stage'],
     setup () {
         return {
+            daysSince,
             show (target) {
                 this.target = target
 
@@ -213,7 +237,11 @@ export default {
 
                 return {
                     value: snapshot.id,
-                    label: `${snapshot.name}${isActive ? ' (active)' : ''}`
+                    label: `${snapshot.name}${isActive ? ' (active)' : ''}`,
+                    id: snapshot.id,
+                    description: snapshot?.description ?? null,
+                    user: snapshot?.user ?? null,
+                    createdAt: snapshot?.createdAt ?? null
                 }
             })
         },
