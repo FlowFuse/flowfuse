@@ -1,6 +1,6 @@
 <template>
     <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-    <div class="ff-team-library mb-14">
+    <div class="ff-team-library">
         <SectionTopMenu hero="Team Library" info="Centralized management of common Javascript functions and Node-RED flows for your team." />
         <div v-if="isSharedLibraryFeatureEnabled" class="breadcrumbs-wrapper">
             <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
