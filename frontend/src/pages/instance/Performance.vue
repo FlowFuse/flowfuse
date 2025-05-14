@@ -7,7 +7,7 @@
             </div>
         </template>
     </SectionTopMenu>
-    <v-chart v-if="chartOptions" class="chart" :option="chartOptions" autoresize />
+    <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize />
 </template>
 
 <script>
@@ -16,7 +16,6 @@ import { LineChart } from 'echarts/charts'
 import {
     GridComponent,
     LegendComponent,
-    ToolboxComponent,
     TooltipComponent
 } from 'echarts/components'
 import { use } from 'echarts/core'
@@ -41,10 +40,6 @@ export default {
         instance: {
             required: true,
             type: Object
-        },
-        isVisitingAdmin: {
-            required: false,
-            type: Boolean
         }
     },
     setup () {
@@ -53,7 +48,6 @@ export default {
             LineChart,
             TooltipComponent,
             LegendComponent,
-            ToolboxComponent,
             GridComponent
         ])
     },
@@ -87,11 +81,6 @@ export default {
                     right: '4%',
                     bottom: '3%',
                     containLabel: true
-                },
-                toolbox: {
-                    feature: {
-                        saveAsImage: {}
-                    }
                 },
                 xAxis: this.xAxis,
                 yAxis: this.yAxis,
