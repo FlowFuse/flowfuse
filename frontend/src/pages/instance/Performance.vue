@@ -163,7 +163,12 @@ export default {
         },
         yAxis () {
             return {
-                type: 'value'
+                type: 'value',
+                axisLabel: {
+                    formatter: function (value) {
+                        return `${value}%`
+                    }
+                }
             }
         }
     },
