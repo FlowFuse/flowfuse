@@ -14,7 +14,8 @@
 
     <empty-state v-else>
         <template #header>
-            <span>Something went wrong!</span>
+            <span v-if="!isInstanceRunning">The Hosted Instance must be running</span>
+            <span v-else>Something went wrong!</span>
         </template>
         <template #message>
             <p>Could not load your instance resources.</p>
@@ -174,6 +175,9 @@ export default {
         },
         filteredResources () {
             return this.resources.filter(res => res.cpu && res.ts)
+        },
+        isInstanceRunning () {
+            return this.instance.meta.state === 'running'
         }
     },
     mounted () {
@@ -187,13 +191,17 @@ export default {
     },
     methods: {
         getResources () {
-            return instancesApi.getResources(this.instance.id)
-                .then(response => {
-                    this.resources = response.resources
-                })
-                .catch(e => {
-                    this.error = e
-                })
+            if (this.isInstanceRunning) {
+                return instancesApi.getResources(this.instance.id)
+                    .then(response => {
+                        this.resources = response.resources
+                    })
+                    .catch(e => {
+                        this.error = e
+                    })
+            }
+
+            return Promise.reject(new Error('Instance is not running.'))
         }
     }
 }
