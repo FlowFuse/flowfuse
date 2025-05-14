@@ -7,17 +7,16 @@
             </div>
         </template>
     </SectionTopMenu>
-    <div>
-        <v-chart class="chart" :option="chartOptions" autoresize />
-    </div>
+    <v-chart v-if="chartOptions" class="chart" :option="chartOptions" autoresize />
 </template>
 
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
-import { PieChart } from 'echarts/charts'
+import { LineChart } from 'echarts/charts'
 import {
+    GridComponent,
     LegendComponent,
-    TitleComponent,
+    ToolboxComponent,
     TooltipComponent
 } from 'echarts/components'
 import { use } from 'echarts/core'
@@ -35,7 +34,7 @@ export default {
         VChart
     },
     provide: {
-        [THEME_KEY]: 'dark'
+        [THEME_KEY]: 'light'
     },
     inheritAttrs: false,
     props: {
@@ -51,51 +50,90 @@ export default {
     setup () {
         use([
             CanvasRenderer,
-            PieChart,
-            TitleComponent,
+            LineChart,
             TooltipComponent,
-            LegendComponent
+            LegendComponent,
+            ToolboxComponent,
+            GridComponent
         ])
     },
     data () {
         return {
-            resources: [],
-            chartOptions: {
-                title: {
-                    text: 'Traffic Sources',
-                    left: 'center'
-                },
+            resources: []
+        }
+    },
+    computed: {
+        chartOptions () {
+            return {
                 tooltip: {
-                    trigger: 'item',
-                    formatter: '{a} <br/>{b} : {c} ({d}%)'
+                    trigger: 'axis',
+                    formatter: function (params) {
+                        const timestamp = Number(params[0].axisValue)
+                        const date = new Date(timestamp)
+                        const formattedDate = date.toLocaleString()
+
+                        let content = `${formattedDate}<br/>`
+                        params.forEach(item => {
+                            content += `${item.seriesName}: ${item.data.toFixed()}%<br/>`
+                        })
+                        return content
+                    }
                 },
                 legend: {
-                    orient: 'vertical',
-                    left: 'left',
-                    data: ['Direct', 'Email', 'Ad Networks', 'Video Ads', 'Search Engines']
+                    data: ['CPU']
                 },
-                series: [
-                    {
-                        name: 'Traffic Sources',
-                        type: 'pie',
-                        radius: '55%',
-                        center: ['50%', '60%'],
-                        data: [
-                            { value: 335, name: 'Direct' },
-                            { value: 310, name: 'Email' },
-                            { value: 234, name: 'Ad Networks' },
-                            { value: 135, name: 'Video Ads' },
-                            { value: 1548, name: 'Search Engines' }
-                        ],
-                        emphasis: {
-                            itemStyle: {
-                                shadowBlur: 10,
-                                shadowOffsetX: 0,
-                                shadowColor: 'rgba(0, 0, 0, 0.5)'
-                            }
-                        }
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
                     }
-                ]
+                },
+                xAxis: this.xAxis,
+                yAxis: this.yAxis,
+                series: this.series
+            }
+        },
+        series () {
+            return [
+                this.cpuSeries
+            ]
+        },
+        cpuSeries () {
+            return {
+                name: 'CPU',
+                type: 'line',
+                stack: 'Total',
+                data: this.resources.map(res => {
+                    if (this.instance.stack?.properties?.cpu) {
+                        // scaling down to match stack cpu allocation
+                        return (res.cpu / this.instance.stack.properties.cpu) * 100
+                    }
+
+                    return res.cpu
+                })
+            }
+        },
+        xAxis () {
+            return {
+                type: 'category',
+                boundaryGap: false,
+                data: this.resources.map(res => res.ts),
+                axisLabel: {
+                    formatter: function (value) {
+                        const date = new Date(Number(value))
+                        return date.toLocaleDateString()
+                    }
+                }
+            }
+        },
+        yAxis () {
+            return {
+                type: 'value'
             }
         }
     },
@@ -111,6 +149,6 @@ export default {
 
 <style scoped lang="scss">
 .chart {
-    height: 100vh;
+    max-height: 450px;
 }
 </style>
