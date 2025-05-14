@@ -124,3 +124,9 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+.ff-admin-audit .ff-accordion {
+    margin-bottom: 12px;
+}
+</style>
