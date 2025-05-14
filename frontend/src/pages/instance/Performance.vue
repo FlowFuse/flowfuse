@@ -15,6 +15,8 @@
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
 
+import instancesApi from '../../api/instances.js'
+
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 export default {
     name: 'InstancePerformance',
@@ -32,6 +34,18 @@ export default {
             required: false,
             type: Boolean
         }
+    },
+    data () {
+        return {
+            resources: []
+        }
+    },
+    mounted () {
+        instancesApi.getResources(this.instance.id)
+            .then(response => {
+                this.resources = response.resources
+            })
+            .catch(e => e)
     }
 }
 </script>
