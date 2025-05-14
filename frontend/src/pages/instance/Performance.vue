@@ -7,13 +7,27 @@
             </div>
         </template>
     </SectionTopMenu>
-    <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize />
+
+    <ff-loading v-if="loading" />
+
+    <v-chart v-else-if="!error" class="chart" :option="chartOptions" renderer="canvas" autoresize />
+
+    <empty-state v-else>
+        <template #header>
+            <span>Something went wrong!</span>
+        </template>
+        <template #message>
+            <p>Could not load your instance resources.</p>
+        </template>
+    </empty-state>
 </template>
 
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
 import { LineChart } from 'echarts/charts'
 import {
+    DataZoomComponent,
+    DataZoomInsideComponent,
     GridComponent,
     LegendComponent,
     TooltipComponent
@@ -23,11 +37,15 @@ import { CanvasRenderer } from 'echarts/renderers'
 import VChart, { THEME_KEY } from 'vue-echarts'
 
 import instancesApi from '../../api/instances.js'
+import EmptyState from '../../components/EmptyState.vue'
+import FfLoading from '../../components/Loading.vue'
 
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 export default {
     name: 'InstancePerformance',
     components: {
+        EmptyState,
+        FfLoading,
         SectionTopMenu,
         ChipIcon,
         VChart
@@ -45,6 +63,8 @@ export default {
     setup () {
         use([
             CanvasRenderer,
+            DataZoomComponent,
+            DataZoomInsideComponent,
             LineChart,
             TooltipComponent,
             LegendComponent,
@@ -53,7 +73,9 @@ export default {
     },
     data () {
         return {
-            resources: []
+            resources: [],
+            loading: true,
+            error: null
         }
     },
     computed: {
@@ -84,7 +106,23 @@ export default {
                 },
                 xAxis: this.xAxis,
                 yAxis: this.yAxis,
-                series: this.series
+                series: this.series,
+                dataZoom: [
+                    {
+                        type: 'slider', // visible scrollbar
+                        show: true,
+                        xAxisIndex: 0,
+                        start: 80, // starting window (e.g., show last 20%)
+                        end: 100
+                    },
+                    {
+                        type: 'inside', // scroll with mouse or touch
+                        xAxisIndex: 0,
+                        start: 80,
+                        end: 100
+                    }
+                ]
+
             }
         },
         series () {
@@ -130,11 +168,22 @@ export default {
         }
     },
     mounted () {
-        instancesApi.getResources(this.instance.id)
-            .then(response => {
-                this.resources = response.resources
+        this.getResources()
+            .catch(e => {
+                this.error = e
             })
-            .catch(e => e)
+            .finally(() => {
+                this.loading = false
+            })
+    },
+    methods: {
+        getResources () {
+            return instancesApi.getResources(this.instance.id)
+                .then(response => {
+                    this.resources = response.resources
+                })
+                .catch(e => e)
+        }
     }
 }
 </script>
