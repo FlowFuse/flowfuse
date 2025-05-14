@@ -19,7 +19,7 @@ describe('FlowForge - Table Component', () => {
             cy.visit('team/ateam/devices')
             cy.wait(['@getDevices'])
             // scroll to the bottom of the page
-            cy.get('[data-el="devices-section"]').scrollTo('bottom')
+            cy.get('[data-el="devices-section"]').parent().scrollTo('bottom')
             // ensure the last row is visible
             cy.get('[data-el="devices-browser"] tbody tr:last-child').should('be.visible')
             cy.get('[data-el="kebab-options"]').should('not.exist')
