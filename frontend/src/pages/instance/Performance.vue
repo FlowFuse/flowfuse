@@ -191,7 +191,9 @@ export default {
                 .then(response => {
                     this.resources = response.resources
                 })
-                .catch(e => e)
+                .catch(e => {
+                    this.error = e
+                })
         }
     }
 }
