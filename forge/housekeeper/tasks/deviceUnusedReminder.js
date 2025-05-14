@@ -51,7 +51,6 @@ module.exports = {
             for (const [teamId, team] of uniqueTeams) {
                 const subscription = await team.getSubscription()
                 if (subscription && subscription.trialStatus === app.db.models.Subscription.TRIAL_STATUS.ENDED) {
-                    app.log.info(`Skip sending unused device reminder to users of team ${team.hashid} (${team.name}) because it is expired`)
                     uniqueTeams.delete(teamId)
                 }
             }

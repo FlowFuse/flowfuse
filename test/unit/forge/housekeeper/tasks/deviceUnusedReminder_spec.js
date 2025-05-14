@@ -33,7 +33,6 @@ describe('Device Unused Reminder Task', function () {
         app.user.suspended = false
         await app.user.save()
         // reset spies
-        app.log.info.reset()
         app.log.warn.reset()
         app.postoffice.send.resetHistory()
     })
@@ -184,8 +183,5 @@ describe('Device Unused Reminder Task', function () {
 
         // app.db.models.Subscription should have been called with the team id
         app.db.models.Subscription.byTeamId.calledWith(app.team.id).should.be.true()
-
-        // should have logged a message about skipping the team
-        app.log.info.calledWith(`Skip sending unused device reminder to users of team ${app.team.hashid} (${app.team.name}) because it is expired`).should.be.true()
     })
 })
