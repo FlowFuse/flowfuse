@@ -140,6 +140,7 @@ export default {
                 { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasAMinimumTeamRoleOf(Roles.Member) },
                 { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
                 { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
+                { label: 'Performance', to: { name: 'instance-performance', params: { id: this.instance.id } }, tag: 'instance-performance' },
                 { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
             ]
         },
