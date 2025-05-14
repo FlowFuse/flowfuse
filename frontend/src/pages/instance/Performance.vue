@@ -8,12 +8,21 @@
         </template>
     </SectionTopMenu>
     <div>
-        <h1>Chart goes here</h1>
+        <v-chart class="chart" :option="chartOptions" autoresize />
     </div>
 </template>
 
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
+import { PieChart } from 'echarts/charts'
+import {
+    LegendComponent,
+    TitleComponent,
+    TooltipComponent
+} from 'echarts/components'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import VChart, { THEME_KEY } from 'vue-echarts'
 
 import instancesApi from '../../api/instances.js'
 
@@ -22,7 +31,11 @@ export default {
     name: 'InstancePerformance',
     components: {
         SectionTopMenu,
-        ChipIcon
+        ChipIcon,
+        VChart
+    },
+    provide: {
+        [THEME_KEY]: 'dark'
     },
     inheritAttrs: false,
     props: {
@@ -35,9 +48,55 @@ export default {
             type: Boolean
         }
     },
+    setup () {
+        use([
+            CanvasRenderer,
+            PieChart,
+            TitleComponent,
+            TooltipComponent,
+            LegendComponent
+        ])
+    },
     data () {
         return {
-            resources: []
+            resources: [],
+            chartOptions: {
+                title: {
+                    text: 'Traffic Sources',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b} : {c} ({d}%)'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    data: ['Direct', 'Email', 'Ad Networks', 'Video Ads', 'Search Engines']
+                },
+                series: [
+                    {
+                        name: 'Traffic Sources',
+                        type: 'pie',
+                        radius: '55%',
+                        center: ['50%', '60%'],
+                        data: [
+                            { value: 335, name: 'Direct' },
+                            { value: 310, name: 'Email' },
+                            { value: 234, name: 'Ad Networks' },
+                            { value: 135, name: 'Video Ads' },
+                            { value: 1548, name: 'Search Engines' }
+                        ],
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }
+                ]
+            }
         }
     },
     mounted () {
@@ -51,5 +110,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
+.chart {
+    height: 100vh;
+}
 </style>
