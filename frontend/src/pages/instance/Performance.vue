@@ -109,12 +109,15 @@ export default {
                 type: 'line',
                 stack: 'Total',
                 data: this.resources.map(res => {
+                    // first responses might not contain relevant info
+                    const cpu = res.cpu ?? 0
+
                     if (this.instance.stack?.properties?.cpu) {
                         // scaling down to match stack cpu allocation
-                        return (res.cpu / this.instance.stack.properties.cpu) * 100
+                        return (cpu / this.instance.stack.properties.cpu) * 100
                     }
 
-                    return res.cpu
+                    return cpu
                 })
             }
         },
