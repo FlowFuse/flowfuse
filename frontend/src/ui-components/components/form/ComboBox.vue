@@ -105,7 +105,9 @@ export default {
             type: Boolean,
             default: false
         },
-        extendSearchKeys: { // additional keys to search through the given options ['otherKey', 'other.nested.key']
+        extendSearchKeys: {
+            // Additional keys to search through in the provided options, e.g. ['otherKey', 'other.nested.key'].
+            // By default, the search is performed on the value of `this.labelKey`, which defaults to 'label'.
             type: Array,
             default: () => ([]),
             required: false
