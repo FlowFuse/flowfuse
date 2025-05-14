@@ -90,7 +90,7 @@ export default {
 
                         let content = `${formattedDate}<br/>`
                         params.forEach(item => {
-                            content += `${item.seriesName}: ${item.data.toFixed()}%<br/>`
+                            content += `${item.seriesName}: ${item.data.toFixed(2)}%<br/>`
                         })
                         return content
                     }
@@ -112,7 +112,8 @@ export default {
                         type: 'slider', // visible scrollbar
                         show: true,
                         xAxisIndex: 0,
-                        start: 80, // starting window (e.g., show last 20%)
+                        // starting window (e.g., show last 20% if number of entries is over 100)
+                        start: this.filteredResources.length < 100 ? 0 : 80,
                         end: 100
                     },
                     {
@@ -135,7 +136,7 @@ export default {
                 name: 'CPU',
                 type: 'line',
                 stack: 'Total',
-                data: this.resources.map(res => {
+                data: this.filteredResources.map(res => {
                     // first responses might not contain relevant info
                     const cpu = res.cpu ?? 0
 
@@ -152,7 +153,7 @@ export default {
             return {
                 type: 'category',
                 boundaryGap: false,
-                data: this.resources.map(res => res.ts),
+                data: this.filteredResources.map(res => res.ts),
                 axisLabel: {
                     formatter: function (value) {
                         const date = new Date(Number(value))
@@ -170,6 +171,9 @@ export default {
                     }
                 }
             }
+        },
+        filteredResources () {
+            return this.resources.filter(res => res.cpu && res.ts)
         }
     },
     mounted () {
