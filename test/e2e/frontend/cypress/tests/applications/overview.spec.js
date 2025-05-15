@@ -350,7 +350,7 @@ describe('FlowForge - Applications', () => {
                 })
         })
 
-        it.only('doesn\'t display the instance kebab menu for non-owner users', () => {
+        it('doesn\'t display the instance kebab menu for non-owner users', () => {
             cy.intercept(
                 'GET',
                 '/api/*/teams/*/user',
