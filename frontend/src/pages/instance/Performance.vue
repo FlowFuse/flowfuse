@@ -36,12 +36,14 @@ import {
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import VChart, { THEME_KEY } from 'vue-echarts'
+import { mapState } from 'vuex'
 
 import instancesApi from '../../api/instances.js'
 import EmptyState from '../../components/EmptyState.vue'
 import FfLoading from '../../components/Loading.vue'
 
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import usePermissions from '../../composables/Permissions.js'
 export default {
     name: 'InstancePerformance',
     components: {
@@ -62,6 +64,7 @@ export default {
         }
     },
     setup () {
+        const { hasPermission } = usePermissions()
         use([
             CanvasRenderer,
             DataZoomComponent,
@@ -71,6 +74,10 @@ export default {
             LegendComponent,
             GridComponent
         ])
+
+        return {
+            hasPermission
+        }
     },
     data () {
         return {
@@ -80,6 +87,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         chartOptions () {
             return {
                 tooltip: {
@@ -142,7 +150,6 @@ export default {
                         end: 100
                     }
                 ]
-
             }
         },
         series () {
@@ -196,6 +203,19 @@ export default {
         },
         isInstanceRunning () {
             return this.instance.meta.state === 'running'
+        }
+    },
+    watch: {
+        team: {
+            immediate: true,
+            handler (team) {
+                if (team && !this.hasPermission('project:read')) {
+                    this.$router.push({
+                        name: 'instance-overview',
+                        params: this.$route.params
+                    })
+                }
+            }
         }
     },
     mounted () {
