@@ -1242,6 +1242,13 @@ module.exports = async function (app) {
         }
     })
 
+    app.get('/:instanceId/resources/stream', {
+        preHandler: app.needsPermission('project:read'),
+        websocket: true
+    }, async (socket, request) => {
+        await app.containers.resourcesStream(request.project, socket.socket)
+    })
+
     /**
      * Merge env vars from 2 arrays.
      *
