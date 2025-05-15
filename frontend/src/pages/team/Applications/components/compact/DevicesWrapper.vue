@@ -123,18 +123,7 @@ export default {
             this.devices = devices
         }
     },
-    mounted () {
-        this.fetchAllDeviceStatuses()
-    },
     methods: {
-        openDevice (device) {
-            this.$router.push({
-                name: 'Device',
-                params: {
-                    id: device.id
-                }
-            })
-        },
         onDeviceAction ({ action, id }) {
             this.deviceEditModalOpened = true
             this.$nextTick(() => this.deviceAction(action, id))
