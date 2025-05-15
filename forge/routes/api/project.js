@@ -1187,6 +1187,11 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     *
+     * @name /api/v1/projects/check-name
+     * @memberof forge.routes.api.project
+     */
     app.post('/check-name', {
         preHandler: app.needsPermission('project:create'),
         config: {
