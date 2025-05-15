@@ -35,6 +35,7 @@ import {
 } from 'echarts/components'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import SemVer from 'semver'
 import VChart, { THEME_KEY } from 'vue-echarts'
 import { mapState } from 'vuex'
 
@@ -209,7 +210,11 @@ export default {
         team: {
             immediate: true,
             handler (team) {
-                if (team && !this.hasPermission('project:read')) {
+                // Performance Tab only available for:
+                // - Launcher 1.13.0+
+                const validLauncher = SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=1.13.0')
+
+                if (team && (!this.hasPermission('project:read') || !validLauncher)) {
                     this.$router.push({
                         name: 'instance-overview',
                         params: this.$route.params
