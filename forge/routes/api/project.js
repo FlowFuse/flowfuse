@@ -1187,6 +1187,60 @@ module.exports = async function (app) {
         }
     })
 
+    app.post('/check-name', {
+        preHandler: app.needsPermission('project:create'),
+        config: {
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 5,
+                    timeWindow: 30000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
+        },
+        schema: {
+            summary: 'Check if a project name is available',
+            tags: ['Instances'],
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        available: { type: 'boolean' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const name = request.body.name
+        if (!name) {
+            reply.code(400).send({ code: 'invalid_name', error: 'Invalid name' })
+            return
+        }
+        const safeName = name.trime().toLowerCase()
+        if (app.db.models.Project.BANNED_NAME_LIST.includes(safeName)) {
+            reply.status(409).send({ code: 'invalid_project_name', error: 'name not allowed' })
+        }
+
+        if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
+            reply.status(409).send({ code: 'invalid_project_name', error: 'name not allowed' })
+        }
+
+        if (await app.db.models.Project.isNameUsed(safeName)) {
+            reply.status(409).send({ code: 'invalid_project_name', error: 'name in use' })
+        }
+        reply.send({ available: true })
+    })
+
     /**
      * Merge env vars from 2 arrays.
      *
