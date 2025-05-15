@@ -115,7 +115,25 @@ export default {
                         xAxisIndex: 0,
                         // starting window (e.g., show last 20% if number of entries is over 100)
                         start: this.filteredResources.length < 100 ? 0 : 80,
-                        end: 100
+                        end: 100,
+                        labelFormatter: (value) => {
+                            const ts = this.filteredResources[value]?.ts ?? 0
+                            const date = new Date(Number(ts))
+                            return `{label|${date.toLocaleDateString()} ${date.toLocaleTimeString()}}`
+                        },
+                        textStyle: {
+                            color: '#333',
+                            fontSize: 12,
+                            rich: {
+                                label: {
+                                    borderColor: 'grey',
+                                    backgroundColor: 'white',
+                                    borderWidth: 1,
+                                    borderRadius: 4,
+                                    padding: [4, 6]
+                                }
+                            }
+                        }
                     },
                     {
                         type: 'inside', // scroll with mouse or touch
