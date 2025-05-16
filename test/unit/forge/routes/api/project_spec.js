@@ -2697,12 +2697,17 @@ describe('Project API', function () {
     })
 
     describe('Check Project Name', function () {
+        let testProject
+        before(async function () {
+            testProject = await createInstance(false)
+        })
+
         it('Should reject name', async function () {
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/projects/check-name',
                 payload: {
-                    name: `${TestObjects.project1.name}`
+                    name: `${testProject.name}`
                 },
                 cookies: { sid: TestObjects.tokens.bob }
             })
@@ -2715,7 +2720,7 @@ describe('Project API', function () {
                 method: 'POST',
                 url: '/api/v1/projects/check-name',
                 payload: {
-                    name: `${TestObjects.project1.name}-dupe`
+                    name: `${testProject.name}-dupe`
                 },
                 cookies: { sid: TestObjects.tokens.bob }
             })
@@ -2741,7 +2746,7 @@ describe('Project API', function () {
                 method: 'POST',
                 url: '/api/v1/projects/check-name',
                 payload: {
-                    name: `${TestObjects.project1.name}-dave`
+                    name: `${testProject.name}-dave`
                 },
                 cookies: { sid: TestObjects.tokens.dave }
             })
