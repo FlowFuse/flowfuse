@@ -22,7 +22,7 @@
                     </ff-button>
                 </div>
                 <div class="details ml-3 flex flex-col gap-3">
-                    <span v-if="errors.name" class="left-4 top-9 text-red-600 text-sm" data-el="instance-name-error">{{ errors.name }}</span>
+                    <span v-if="errors.name && input.name.length > 0" class="left-4 top-9 text-red-600 text-sm" data-el="instance-name-error">{{ errors.name }}</span>
                     <p v-if="hasValidName" class="flex gap-2 text-green-600 items-center">
                         <CheckCircleIcon class=" ff-icon-sm" />
                         <span>Your instance hostname will be "<i>{{ instanceName }}</i>".</span>
@@ -273,51 +273,10 @@ export default {
     },
     watch: {
         input: {
-            handler (input) {
-                let hasErrors = false
-                let template = null
-
-                if (!this.hasValidName) {
-                    this.errors.name = 'Invalid instance name.'
-                } else { this.errors.name = null }
-
-                if (!this.input.instanceType) {
-                    this.errors.instanceType = 'Instance Type is mandatory'
-                } else { this.errors.instanceType = null }
-
-                if (!this.input.nodeREDVersion) {
-                    this.errors.nodeREDVersion = 'NodeRED Version is mandatory'
-                } else { this.errors.nodeREDVersion = null }
-
-                if (this.hasMultipleTemplates && !this.input.template) {
-                    this.errors.template = 'Template is mandatory'
-                } else { this.errors.template = null }
-
-                Object.keys(this.errors).forEach(key => {
-                    if (this.errors[key] !== null) {
-                        hasErrors = true
-                    }
-                })
-
-                if (this.hasMultipleTemplates) {
-                    template = input.template ?? null
-                } else {
-                    template = input.template ?? this.instanceTemplates[0]?.id ?? null
-                }
-
-                this.$emit('step-updated', {
-                    [this.slug]: {
-                        input: {
-                            ...(input ?? {}),
-                            template,
-                            name: this.instanceName
-                        },
-                        hasErrors,
-                        errors: this.errors
-                    }
-                })
-            },
-            deep: true
+            deep: true,
+            handler () {
+                this.updateParent()
+            }
         },
         'input.instanceType' () {
             this.input.nodeREDVersion = null
@@ -334,6 +293,12 @@ export default {
                         this.errors.name = 'Instance name already in use.'
                     })
             }, 500)
+        },
+        'input.errors': {
+            deep: true,
+            handler: function () {
+                this.updateParent()
+            }
         }
     },
     async mounted () {
@@ -410,6 +375,50 @@ export default {
         },
         getInstanceType (id) {
             return this.instanceTypes.find(instanceType => instanceType.id === id)
+        },
+        updateParent () {
+            let hasErrors = false
+            let template = null
+
+            if (!this.hasValidName) {
+                // this.errors.name = 'Invalid instance name.'
+            } else { this.errors.name = null }
+
+            if (!this.input.instanceType) {
+                this.errors.instanceType = 'Instance Type is mandatory'
+            } else { this.errors.instanceType = null }
+
+            if (!this.input.nodeREDVersion) {
+                this.errors.nodeREDVersion = 'NodeRED Version is mandatory'
+            } else { this.errors.nodeREDVersion = null }
+
+            if (this.hasMultipleTemplates && !this.input.template) {
+                this.errors.template = 'Template is mandatory'
+            } else { this.errors.template = null }
+
+            Object.keys(this.errors).forEach(key => {
+                if (this.errors[key] !== null) {
+                    hasErrors = true
+                }
+            })
+
+            if (this.hasMultipleTemplates) {
+                template = this.input.template ?? null
+            } else {
+                template = this.input.template ?? this.instanceTemplates[0]?.id ?? null
+            }
+
+            this.$emit('step-updated', {
+                [this.slug]: {
+                    input: {
+                        ...(this.input ?? {}),
+                        template,
+                        name: this.instanceName
+                    },
+                    hasErrors,
+                    errors: this.errors
+                }
+            })
         }
     }
 }
