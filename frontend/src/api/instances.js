@@ -199,6 +199,11 @@ const checkCustomHostnameStatus = async (instanceId) => {
     })
 }
 
+const nameCheck = async (instanceName) => {
+    return client.post('/api/v1/projects/check-name', { name: instanceName })
+        .then(res => res.data)
+}
+
 export default {
     create,
     getInstance,
@@ -225,5 +230,6 @@ export default {
     disableProtectedMode,
     setCustomHostname,
     clearCustomHostname,
-    checkCustomHostnameStatus
+    checkCustomHostnameStatus,
+    nameCheck
 }

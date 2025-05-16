@@ -15,7 +15,6 @@
                         :error="errors.name"
                         data-el="instance-name"
                     />
-                    <span v-if="errors.name" class="absolute left-4 top-9 text-red-600 text-sm" data-el="instance-name-error">{{ errors.name }}</span>
                     <ff-button kind="secondary" @click="refreshName">
                         <template #icon>
                             <RefreshIcon />
@@ -23,12 +22,10 @@
                     </ff-button>
                 </div>
                 <div class="details ml-3 flex flex-col gap-3">
+                    <span v-if="errors.name" class="left-4 top-9 text-red-600 text-sm" data-el="instance-name-error">{{ errors.name }}</span>
                     <p v-if="hasValidName" class="flex gap-2 text-green-600 items-center">
                         <CheckCircleIcon class=" ff-icon-sm" />
                         <span>Your instance hostname will be "<i>{{ instanceName }}</i>".</span>
-                    </p>
-                    <p v-else class="text-sm text-red-600">
-                        {{ errors.name }}
                     </p>
                     <p class="opacity-50 text-sm">
                         The instance name is used to access the editor, so it must be suitable for use in a URL. It is not currently possible to rename the instance after it has been created.
@@ -132,6 +129,7 @@ import { mapState } from 'vuex'
 
 import billingApi from '../../../../api/billing.js'
 import instanceTypesApi from '../../../../api/instanceTypes.js'
+import instancesApi from '../../../../api/instances.js'
 import stacksApi from '../../../../api/stacks.js'
 import templatesApi from '../../../../api/templates.js'
 import {
@@ -141,6 +139,7 @@ import InstanceChargesTable from '../../../../pages/instance/components/Instance
 import InstanceCreditBanner from '../../../../pages/instance/components/InstanceCreditBanner.vue'
 import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
 import FfTextInput from '../../../../ui-components/components/form/TextInput.vue'
+import { debounce } from '../../../../utils/eventHandling.js'
 import NameGenerator from '../../../../utils/name-generator/index.js'
 import Loading from '../../../Loading.vue'
 import FeatureUnavailableToTeam from '../../../banners/FeatureUnavailableToTeam.vue'
@@ -229,7 +228,7 @@ export default {
             return this.instanceTemplates.length > 0
         },
         hasValidName () {
-            return /^[a-zA-Z][a-zA-Z0-9-\s]*$/.test(this.input.name)
+            return /^[a-zA-Z][a-zA-Z0-9-\s]*$/.test(this.input.name) && !this.errors.name
         },
         isTrialProjectSelected () {
             //  - Team is in trial mode, and
@@ -323,6 +322,18 @@ export default {
         'input.instanceType' () {
             this.input.nodeREDVersion = null
             this.getNodeRedVersions()
+        },
+        'input.name': {
+            immediate: true,
+            handler: debounce(function (value) {
+                instancesApi.nameCheck(value)
+                    .then(res => {
+                        this.errors.name = null
+                    })
+                    .catch(e => {
+                        this.errors.name = 'Instance name already in use.'
+                    })
+            }, 500)
         }
     },
     async mounted () {
