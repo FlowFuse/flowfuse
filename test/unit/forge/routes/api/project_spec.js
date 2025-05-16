@@ -40,6 +40,7 @@ describe('Project API', function () {
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
+        TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave vader', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
 
         // ATeam create in setup()
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
@@ -55,11 +56,13 @@ describe('Project API', function () {
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
+        await TestObjects.CTeam.addUser(TestObjects.dave, { through: { role: Roles.Viewer } })
 
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
+        await login('dave', 'ddPassword')
 
         // TestObjects.tokens.alice = (await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.alice)).token
         TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
@@ -2690,6 +2693,61 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.statusCode.should.equal(404)
+        })
+    })
+
+    describe('Check Project Name', function () {
+        it('Should reject name', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects/check-name',
+                payload: {
+                    name: `${TestObjects.project1.name}`
+                },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(409)
+            const json = response.json()
+            json.should.have.property('error', 'name in use')
+        })
+        it('Should allow name', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects/check-name',
+                payload: {
+                    name: `${TestObjects.project1.name}-dupe`
+                },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.have.property('available', true)
+        })
+        it('Should reject baned name', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects/check-name',
+                payload: {
+                    name: 'mqtt'
+                },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(409)
+            const json = response.json()
+            json.should.have.property('error', 'name not allowed')
+        })
+        it('User not an Owner of any team', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects/check-name',
+                payload: {
+                    name: `${TestObjects.project1.name}-dave`
+                },
+                cookies: { sid: TestObjects.tokens.dave }
+            })
+            response.statusCode.should.equal(403)
+            const json = response.json()
+            json.should.have.property('code', 'unauthorized')
         })
     })
 })
