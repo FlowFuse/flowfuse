@@ -1193,16 +1193,18 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.post('/check-name', {
-        preHandler: async (app, request, reply) => {
+        preHandler: async (request, reply) => {
             if (request.session.User) {
-                const teams = request.session.User.getTeams()
+                const teams = await request.session.User.getTeams()
                 if (teams.length > 0) {
                     for (const team of teams) {
                         const teamMembership = await request.session.User.getTeamMembership(team.id)
                         if (teamMembership && teamMembership.role === Roles.Owner) {
-                            break
+                            return
                         }
                     }
+                    reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+                    throw new Error()
                 } else {
                     reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                     throw new Error()
@@ -1249,17 +1251,20 @@ module.exports = async function (app) {
             reply.code(400).send({ code: 'invalid_name', error: 'Invalid name' })
             return
         }
-        const safeName = name.trime().toLowerCase()
+        const safeName = name.trim().toLowerCase()
         if (app.db.models.Project.BANNED_NAME_LIST.includes(safeName)) {
-            reply.status(409).send({ code: 'invalid_project_name', error: 'name not allowed' })
+            reply.code(409).send({ code: 'invalid_project_name', error: 'name not allowed' })
+            return
         }
 
         if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
-            reply.status(409).send({ code: 'invalid_project_name', error: 'name not allowed' })
+            reply.code(409).send({ code: 'invalid_project_name', error: 'name not allowed' })
+            return
         }
 
         if (await app.db.models.Project.isNameUsed(safeName)) {
-            reply.status(409).send({ code: 'invalid_project_name', error: 'name in use' })
+            reply.code(409).send({ code: 'invalid_project_name', error: 'name in use' })
+            return
         }
         reply.send({ available: true })
     })
