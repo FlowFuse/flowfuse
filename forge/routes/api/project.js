@@ -1193,7 +1193,25 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.post('/check-name', {
-        preHandler: app.needsPermission('project:create'),
+        preHandler: async (app, request, reply) => {
+            if (request.session.User) {
+                const teams = request.session.User.getTeams()
+                if (teams.length > 0) {
+                    for (const team of teams) {
+                        const teamMembership = await request.session.User.getTeamMembership(team.id)
+                        if (teamMembership && teamMembership.role === Roles.Owner) {
+                            break
+                        }
+                    }
+                } else {
+                    reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+                    throw new Error()
+                }
+            } else {
+                reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+                throw new Error()
+            }
+        },
         config: {
             rateLimit: app.config.rate_limits
                 ? {
