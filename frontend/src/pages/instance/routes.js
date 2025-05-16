@@ -8,6 +8,7 @@ import InstanceRemoteInstances from './Devices.vue'
 import DuplicateInstance from './DuplicateInstance.vue'
 import InstanceLogs from './Logs.vue'
 import InstanceOverview from './Overview.vue'
+import InstancePerformance from './Performance.vue'
 import InstanceSettings from './Settings/index.vue'
 import InstanceSettingsRoutes from './Settings/routes.js'
 import VersionHistory from './VersionHistory/index.vue'
@@ -76,6 +77,14 @@ const children = [
             return { name: 'instance-version-history-timeline', params: { id: to.params.id } }
         },
         children: [...VersionHistoryRoutes]
+    },
+    {
+        path: 'performance',
+        name: 'instance-performance',
+        component: InstancePerformance,
+        meta: {
+            title: 'Instance - Performance'
+        }
     }
 ]
 
