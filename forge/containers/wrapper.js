@@ -312,5 +312,12 @@ module.exports = {
         } else {
             throw new Error('Driver does not implement resources API ')
         }
+    },
+    resourcesStream: async (project, socket) => {
+        if (this._driver.resourcesStream) {
+            return this._driver.resourcesStream(project, socket)
+        } else {
+            throw new Error('Driver does not implement resourcesStream API ')
+        }
     }
 }
