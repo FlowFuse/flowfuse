@@ -294,7 +294,7 @@ const getters = {
                             icon: ChartBarIcon,
                             disabled: requiresBilling,
                             featureUnavailable: !features.isPerformanceFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isPerformanceFeatureEnabledForPlatform
                         }
                     ]
                 },

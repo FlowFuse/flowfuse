@@ -28,7 +28,7 @@ export default {
         },
         formattedCPUUtilization () {
             // 2 dp
-            return Math.round(this.cpuUtilization * 100) / 100
+            return this.cpuUtilization.toFixed(2)
         }
     }
 }
