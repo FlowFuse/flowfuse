@@ -105,13 +105,9 @@ export default {
                         return content
                     }
                 },
-                legend: {
-                    data: ['CPU']
-                },
                 grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
+                    left: '0%',
+                    right: '0%',
                     containLabel: true
                 },
                 xAxis: this.xAxis,
@@ -130,6 +126,7 @@ export default {
                             const date = new Date(Number(ts))
                             return `{label|${date.toLocaleDateString()} ${date.toLocaleTimeString()}}`
                         },
+                        moveHandleSize: 12,
                         textStyle: {
                             color: '#333',
                             fontSize: 12,
@@ -184,20 +181,21 @@ export default {
                 axisLabel: {
                     formatter: function (value) {
                         const date = new Date(Number(value))
-                        return date.toLocaleDateString()
+                        return date.toLocaleTimeString()
                     }
                 }
             }
         },
         yAxis () {
-            return {
+            return [{
                 type: 'value',
+                position: 'right',
                 axisLabel: {
                     formatter: function (value) {
                         return `${value}%`
                     }
                 }
-            }
+            }]
         },
         filteredResources () {
             return this.resources.filter(res => res.cpu && res.ts)
