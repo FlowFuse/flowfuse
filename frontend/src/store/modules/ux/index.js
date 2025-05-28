@@ -1,7 +1,7 @@
 import {
-    BookOpenIcon, ChatIcon, ChevronLeftIcon, ChipIcon, CogIcon, CollectionIcon,
-    ColorSwatchIcon, CurrencyDollarIcon, DatabaseIcon,
-    DesktopComputerIcon, LockClosedIcon, RssIcon,
+    BookOpenIcon, ChartBarIcon, ChatIcon, ChevronLeftIcon, ChipIcon, CogIcon,
+    CollectionIcon, ColorSwatchIcon, CurrencyDollarIcon,
+    DatabaseIcon, DesktopComputerIcon, LockClosedIcon, RssIcon,
     TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
 } from '@heroicons/vue/outline'
 
@@ -285,6 +285,15 @@ const getters = {
                             icon: RssIcon,
                             disabled: requiresBilling,
                             featureUnavailable: !features.isMqttBrokerFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
+                        },
+                        {
+                            label: 'Performance',
+                            to: { name: 'team-performance', params: { team_slug: team.slug } },
+                            tag: 'team-performance',
+                            icon: ChartBarIcon,
+                            disabled: requiresBilling,
+                            featureUnavailable: !features.isPerformanceFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
                         }
                     ]
