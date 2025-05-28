@@ -59,7 +59,7 @@
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <div>
+        <div class="flex flex-col flex-1">
             <router-view
                 :instance="instance"
                 :is-visiting-admin="isVisitingAdmin"
@@ -76,6 +76,7 @@
 <script>
 import { LockClosedIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import SemVer from 'semver'
 import { mapState } from 'vuex'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
@@ -83,6 +84,7 @@ import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import InstanceActionsButton from '../../components/instance/ActionButton.vue'
+import usePermissions from '../../composables/Permissions.js'
 
 import featuresMixin from '../../mixins/Features.js'
 import instanceMixin from '../../mixins/Instance.js'
@@ -109,6 +111,13 @@ export default {
         LockClosedIcon
     },
     mixins: [permissionsMixin, instanceMixin, featuresMixin],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return {
+            hasPermission
+        }
+    },
     data: function () {
         return {
             mounted: false,
@@ -120,6 +129,10 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership', 'team']),
         navigation () {
+            // Performance Tab only available for:
+            // - Launcher 1.13.0+
+            const performanceTabLauncherVersion = SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=1.13.0')
+
             if (!this.instance.id) return []
             let versionHistoryRoute
             if (!this.isTimelineFeatureEnabled) {
@@ -140,6 +153,12 @@ export default {
                 { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasAMinimumTeamRoleOf(Roles.Member) },
                 { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
                 { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
+                {
+                    label: 'Performance',
+                    to: { name: 'instance-performance', params: { id: this.instance.id } },
+                    tag: 'instance-performance',
+                    hidden: !this.hasPermission('project:read') || !performanceTabLauncherVersion
+                },
                 { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
             ]
         },

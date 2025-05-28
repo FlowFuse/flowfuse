@@ -199,6 +199,12 @@ const checkCustomHostnameStatus = async (instanceId) => {
     })
 }
 
+const getResources = async (instanceId) => {
+    return client.get(`/api/v1/projects/${instanceId}/resources`).then(res => {
+        return res.data
+    })
+}
+
 export default {
     create,
     getInstance,
@@ -225,5 +231,6 @@ export default {
     disableProtectedMode,
     setCustomHostname,
     clearCustomHostname,
-    checkCustomHostnameStatus
+    checkCustomHostnameStatus,
+    getResources
 }
