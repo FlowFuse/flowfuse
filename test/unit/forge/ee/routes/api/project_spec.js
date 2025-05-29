@@ -649,6 +649,14 @@ describe('Projects API (EE)', function () {
 
             const factory = new TestModelFactory(app)
 
+            app.config.features.register('instanceResources', true, true)
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
+            const defaultTeamTypeProperties = defaultTeamType.properties
+            defaultTeamTypeProperties.features.instanceResources = true
+            defaultTeamType.properties = defaultTeamTypeProperties
+            await defaultTeamType.save()
+
+
             TestObjects.factory = factory
 
             TestObjects.instanceOne = app.instance
