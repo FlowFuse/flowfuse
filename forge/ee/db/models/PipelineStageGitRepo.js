@@ -117,12 +117,67 @@ module.exports = {
                             this.statusMessage = err.message
                             await this.save()
 
-                            app.log.warn(`Failed to deploy pipeline stage ${M.PipelineStage.encodeHashid(this.PipelineStageId)}: ${err.message}`)
+                            app.log.warn(`Failed to deploy pipeline stage ${M.PipelineStage.encodeHashid(this.PipelineStageId)} (push): ${err.message}`)
                             if (!err.code) {
                                 app.log.error(err)
                             }
                         }
                     })
+                },
+
+                /**
+                 * @param {Object} options.targetObject
+                 * @param {Object} options.user
+                 * @param {Object} options.pipeline
+                 */
+                pull: async function (options) {
+                    this.lastPullAt = Date.now()
+                    this.status = 'pulling'
+                    this.statusMessage = ''
+                    await this.save()
+                    try {
+                        const gitToken = await this.getGitToken()
+                        let sourceFilename = this.pullPath
+                        if (!sourceFilename) {
+                            sourceFilename = this.lastPushPath
+                        }
+                        if (!sourceFilename) {
+                            sourceFilename = this.pushPath
+                        }
+                        if (!sourceFilename) {
+                            throw new Error('No source filename to pull from')
+                        }
+                        const snapshotContent = await app.gitops.pullFromRepository({
+                            token: gitToken.token,
+                            url: this.url,
+                            branch: this.pullBranch || this.branch,
+                            path: sourceFilename
+                        }, options)
+                        // snapshotContent is a JSON representation of the snapshot. We need to convert it to a
+                        // ProjectSnapshot object - but not save it to the database as it will get copied to a new
+                        // ProjectSnapshot object for the target of the deployment.
+                        const snapshot = app.db.models.ProjectSnapshot.build({
+                            name: snapshotContent.name,
+                            description: snapshotContent.description,
+                            credentialSecret: this.credentialSecret,
+                            flows: snapshotContent.flows,
+                            settings: snapshotContent.settings
+                        })
+                        this.status = 'success'
+                        this.statusMessage = ''
+                        await this.save()
+                        return snapshot
+                    } catch (err) {
+                        this.status = 'error'
+                        this.statusMessage = err.message
+                        await this.save()
+
+                        app.log.warn(`Failed to deploy pipeline stage ${M.PipelineStage.encodeHashid(this.PipelineStageId)} (pull): ${err.message}`)
+                        if (!err.code) {
+                            app.log.error(err)
+                        }
+                        return null
+                    }
                 }
             }
         }
