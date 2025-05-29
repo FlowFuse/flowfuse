@@ -1,4 +1,4 @@
-This repository "flowfuse" is is a full stack project.
+This repository "flowfuse" is a full stack project.
 
 Its backend code is in the `forge` folder and the frontend in the `frontend` folder, written entirely in JavaScript.
 
