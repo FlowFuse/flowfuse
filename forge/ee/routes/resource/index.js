@@ -4,6 +4,19 @@ module.exports = async function (app) {
     app.config.features.register('instanceResources', true, true)
 
     app.addHook('preHandler', projectShared.defaultPreHandler.bind(null, app))
+
+    app.addHook('preHandler', async (request, reply) => {
+        if (!request.project) {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            return
+        }
+        const teamType = await request.project.Team.getTeamType()
+        if (!teamType.getFeatureProperty('instanceResources', false)) {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            return // eslint-disable-line no-useless-return
+        }
+    })
+
     /**
      *
      * @name /api/v1/projects/:id/resources

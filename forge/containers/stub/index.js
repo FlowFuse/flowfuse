@@ -446,7 +446,7 @@ module.exports = {
                 ps: (Math.random() * 256)
             })
         }
-        
+
         return {
             meta: {},
             resources: values,

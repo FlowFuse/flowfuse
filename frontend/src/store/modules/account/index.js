@@ -227,7 +227,9 @@ const getters = {
 
             isGitIntegrationFeatureEnabledForPlatform: !!state.features?.gitIntegration,
 
-            isInstanceResourcesFeatureEnabledForPlatform: !!state.features?.instanceResources
+            // Instance Resources
+            isInstanceResourcesFeatureEnabledForPlatform: !!state.features?.instanceResources,
+            isInstanceResourcesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.instanceResources
         }
         return {
             ...preCheck,
