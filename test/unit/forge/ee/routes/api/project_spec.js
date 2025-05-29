@@ -656,7 +656,6 @@ describe('Projects API (EE)', function () {
             defaultTeamType.properties = defaultTeamTypeProperties
             await defaultTeamType.save()
 
-
             TestObjects.factory = factory
 
             TestObjects.instanceOne = app.instance
