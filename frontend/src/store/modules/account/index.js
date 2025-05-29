@@ -225,7 +225,9 @@ const getters = {
             // DevOps Pipelines
             devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines'],
 
-            isGitIntegrationFeatureEnabledForPlatform: !!state.features?.gitIntegration
+            isGitIntegrationFeatureEnabledForPlatform: !!state.features?.gitIntegration,
+
+            isInstanceResourcesFeatureEnabledForPlatform: !!state.features?.instanceResources
         }
         return {
             ...preCheck,

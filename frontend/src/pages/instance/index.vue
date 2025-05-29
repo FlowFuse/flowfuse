@@ -157,7 +157,7 @@ export default {
                     label: 'Performance',
                     to: { name: 'instance-performance', params: { id: this.instance.id } },
                     tag: 'instance-performance',
-                    hidden: !this.hasPermission('project:read') || !performanceTabLauncherVersion
+                    hidden: !this.hasPermission('project:read') || !performanceTabLauncherVersion || !this.isInstanceResourcesFeatureEnabledForPlatform
                 },
                 { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
             ]
