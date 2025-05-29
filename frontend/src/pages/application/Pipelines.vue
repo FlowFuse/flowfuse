@@ -251,7 +251,7 @@ export default {
                 this.startPollingForDeviceGroupsDeployStatus()
                 pollingStarted = true
             }
-            if (nextStage.gitRepo?.gitTokenId|| stage.gitRepo?.gitTokenId) {
+            if (nextStage.gitRepo?.gitTokenId || stage.gitRepo?.gitTokenId) {
                 this.startPollingForGitRepoStatus()
                 pollingStarted = true
             }
