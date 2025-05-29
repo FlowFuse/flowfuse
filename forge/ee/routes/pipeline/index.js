@@ -528,7 +528,8 @@ module.exports = async function (app) {
             // A blank action is okay if the stage is a git repo.
             // TODO: would it be cleaner to have a GIT Action? Not sure as it only applies to the one stage type.
             const gitRepo = await sourceStage?.getPipelineStageGitRepo()
-            if (!gitRepo && sourceStage?.sourceStage?.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.NONE) {
+
+            if (!gitRepo && sourceStage?.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.NONE) {
                 // Nothing to do
                 reply.code(200).send({ status: 'okay' })
                 return
