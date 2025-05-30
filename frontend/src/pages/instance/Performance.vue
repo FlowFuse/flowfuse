@@ -259,9 +259,9 @@ export default {
             return SemVer.satisfies(nrLauncherVersion, minVersion)
         },
         featureAvailable () {
-            return false // this.isInstanceResourcesFeatureEnabledForPlatform &&
-            // this.isInstanceResourcesFeatureEnabledForTeam &&
-            // this.launcherSatisfiesVersion
+            return this.isInstanceResourcesFeatureEnabledForPlatform &&
+                this.isInstanceResourcesFeatureEnabledForTeam &&
+                this.launcherSatisfiesVersion
         }
     },
     mounted () {
