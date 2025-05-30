@@ -255,6 +255,9 @@ module.exports = async function (app) {
                     gitTokenId: { type: 'string' },
                     url: { type: 'string' },
                     branch: { type: 'string' },
+                    pullBranch: { type: 'string' },
+                    pushPath: { type: 'string' },
+                    pullPath: { type: 'string' },
                     credentialSecret: { type: 'string' },
                     source: { type: 'string' }
                 }
@@ -281,6 +284,9 @@ module.exports = async function (app) {
             gitTokenId,
             url,
             branch,
+            pullBranch,
+            pushPath,
+            pullPath,
             credentialSecret
         } = request.body
         let stage
@@ -295,6 +301,9 @@ module.exports = async function (app) {
                 gitTokenId,
                 url,
                 branch,
+                pullBranch,
+                pushPath,
+                pullPath,
                 credentialSecret
             }
             if (request.body.source) {
@@ -359,6 +368,9 @@ module.exports = async function (app) {
                     gitTokenId: { type: 'string' },
                     url: { type: 'string' },
                     branch: { type: 'string' },
+                    pullBranch: { type: 'string' },
+                    pushPath: { type: 'string' },
+                    pullPath: { type: 'string' },
                     credentialSecret: { type: 'string' },
                     source: { type: 'string' }
                 }
@@ -384,6 +396,9 @@ module.exports = async function (app) {
                 gitTokenId: request.body.gitTokenId,
                 url: request.body.url,
                 branch: request.body.branch,
+                pullBranch: request.body.pullBranch,
+                pushPath: request.body.pushPath,
+                pullPath: request.body.pullPath,
                 credentialSecret: request.body.credentialSecret
             }
 
@@ -510,8 +525,11 @@ module.exports = async function (app) {
             const sourceStage = await app.db.models.PipelineStage.byId(
                 request.params.stageId
             )
+            // A blank action is okay if the stage is a git repo.
+            // TODO: would it be cleaner to have a GIT Action? Not sure as it only applies to the one stage type.
+            const gitRepo = await sourceStage?.getPipelineStageGitRepo()
 
-            if (sourceStage?.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.NONE) {
+            if (!gitRepo && sourceStage?.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.NONE) {
                 // Nothing to do
                 reply.code(200).send({ status: 'okay' })
                 return
@@ -524,6 +542,7 @@ module.exports = async function (app) {
                 targetDevice,
                 sourceDeviceGroup,
                 targetDeviceGroup,
+                sourceGitRepo,
                 targetGitRepo,
                 targetStage
             } = await app.db.controllers.Pipeline.validateSourceStageForDeploy(
@@ -566,6 +585,11 @@ module.exports = async function (app) {
             } else if (sourceDeviceGroup) {
                 sourceSnapshot = await app.db.controllers.Pipeline.getSnapshotForSourceDeviceGroup(sourceDeviceGroup)
                 sourceDeployed = sourceDeviceGroup
+            } else if (sourceGitRepo) {
+                sourceSnapshot = await sourceGitRepo.pull()
+                if (!sourceSnapshot) {
+                    throw new ControllerError('deploy_failed', sourceGitRepo.statusMessage || 'Failed to pull from Git repository')
+                }
             } else {
                 throw new Error('No source device or instance found.')
             }

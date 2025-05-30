@@ -17,6 +17,7 @@
             <AnimIconRestarting v-if="status === 'restarting'" class="w-4 h-4" />
             <AnimIconInstalling v-if="status === 'importing'" class="w-4 h-4" />
             <AnimIconPushing v-if="status === 'pushing'" class="w-4 h-4" />
+            <AnimIconPulling v-if="status === 'pulling'" class="w-4 h-4" />
             <AnimIconStarting v-if="status === 'starting'" class="w-4 h-4" />
             <CloudUploadIcon v-if="status === 'loading'" class="w-4 h-4" />
             <AnimIconInstalling v-if="status === 'installing' || status === 'updating'" class="w-3 h-3" />
@@ -43,6 +44,7 @@ import {
 
 import {
     AnimIconInstalling,
+    AnimIconPulling,
     AnimIconPushing,
     AnimIconRestarting,
     AnimIconStarting
@@ -63,6 +65,7 @@ export default {
         RefreshIcon,
         AnimIconInstalling,
         AnimIconPushing,
+        AnimIconPulling,
         AnimIconRestarting,
         AnimIconStarting
     },

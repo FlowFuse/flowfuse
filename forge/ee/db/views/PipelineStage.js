@@ -24,7 +24,11 @@ module.exports = function (app) {
                     gitTokenId: { type: 'string' },
                     url: { type: 'string' },
                     branch: { type: 'string' },
+                    pullBranch: { type: 'string' },
+                    pushPath: { type: 'string' },
+                    pullPath: { type: 'string' },
                     lastPushAt: { type: 'string' },
+                    lastPullAt: { type: 'string' },
                     status: { type: 'string' },
                     statusMessage: { type: 'string' },
                     credentialSecret: { type: 'boolean' }
@@ -60,7 +64,11 @@ module.exports = function (app) {
                 gitTokenId: app.db.models.GitToken.encodeHashid(stage.PipelineStageGitRepo.GitTokenId),
                 url: stage.PipelineStageGitRepo.url,
                 branch: stage.PipelineStageGitRepo.branch,
+                pullBranch: stage.PipelineStageGitRepo.pullBranch,
+                pushPath: stage.PipelineStageGitRepo.pushPath,
+                pullPath: stage.PipelineStageGitRepo.pullPath,
                 lastPushAt: stage.PipelineStageGitRepo.lastPushAt,
+                lastPullAt: stage.PipelineStageGitRepo.lastPullAt,
                 status: stage.PipelineStageGitRepo.status,
                 statusMessage: stage.PipelineStageGitRepo.statusMessage,
                 // Never return the secret - but indicate if one is set

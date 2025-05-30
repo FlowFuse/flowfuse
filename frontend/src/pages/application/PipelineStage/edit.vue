@@ -129,6 +129,9 @@ export default {
                 options.gitTokenId = input.gitTokenId
                 options.url = input.url
                 options.branch = input.branch
+                options.pullBranch = input.pullBranch
+                options.pullPath = input.pullPath
+                options.pushPath = input.pushPath
                 if (input.credentialSecret) {
                     // Only pass back a non-blank value. This avoids overwriting
                     // the existing value

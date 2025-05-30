@@ -128,9 +128,7 @@ export default {
             return this.scopedPipeline.name?.length > 0
         },
         addStageAvailable () {
-            return (this.pipeline.stages.length === 0 ||
-                this.pipeline.stages[this.pipeline.stages.length - 1].stageType !== StageType.GITREPO) &&
-                this.hasPermission('pipeline:edit')
+            return this.hasPermission('pipeline:edit')
         },
         stagesWithStates () {
             return this.pipeline.stages.map((stage) => {
@@ -238,10 +236,11 @@ export default {
             return false
         },
         nextStageAvailable (stage, $index) {
-            if (stage.type === StageType.GITREPO) {
-                return false
-            }
             const endofPipeline = ($index >= this.pipeline.stages.length - 1)
+            if (!endofPipeline && stage.stageType === StageType.GITREPO) {
+                // A git repo stage can pull as long as it is not the last stage
+                return true
+            }
             if (stage.action !== StageAction.NONE && !endofPipeline) {
                 // we are mid-pipeline
                 const nextStage = this.pipeline.stages[$index + 1]

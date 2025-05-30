@@ -34,7 +34,7 @@ const pipelineStageRules = {
         canBeFirst: true,
         canBeLast: true,
         canPrecede: ['*'],
-        canFollow: ['INSTANCE', 'DEVICE'],
+        canFollow: ['INSTANCE', 'DEVICE', 'GITHUB_REPO'],
         mustBeLast: false,
         canBeMoreThanOne: true
     },
@@ -44,7 +44,7 @@ const pipelineStageRules = {
         canBeFirst: true,
         canBeLast: true,
         canPrecede: ['*'],
-        canFollow: ['INSTANCE', 'DEVICE'],
+        canFollow: ['INSTANCE', 'DEVICE', 'GITHUB_REPO'],
         mustBeLast: false,
         canBeMoreThanOne: true
     },
@@ -54,19 +54,19 @@ const pipelineStageRules = {
         canBeFirst: false,
         canBeLast: true,
         canPrecede: ['DEVICE_GROUP', 'GITHUB_REPO'],
-        canFollow: ['DEVICE_GROUP', 'INSTANCE', 'DEVICE'],
+        canFollow: ['DEVICE_GROUP', 'INSTANCE', 'DEVICE', 'GITHUB_REPO'],
         canBeMoreThanOne: true,
         mustBeLast: false
     },
     GITHUB_REPO: {
         type: 'GITHUB_REPO',
         description: 'Git Repository',
-        canBeFirst: false,
+        canBeFirst: true,
         canBeLast: true,
-        canFollow: ['INSTANCE', 'DEVICE', 'DEVICE_GROUP'],
-        canPrecede: [],
-        mustBeLast: true,
-        canBeMoreThanOne: false
+        canFollow: ['*'],
+        canPrecede: ['*'],
+        mustBeLast: false,
+        canBeMoreThanOne: true
     }
 }
 // freeze the rules so they cannot be modified
@@ -87,7 +87,7 @@ const getPipelineStageRule = (stage) => {
         return pipelineStageRules.DEVICE
     } else if (stage.Instances?.length || stage.instance || stage.stageType === 'instance') {
         return pipelineStageRules.INSTANCE
-    } else if (stage.PipelineStageGitRepo?.gitTokenId || stage.gitRepo?.gitTokenId || stage.stageType === 'git-repo') {
+    } else if (stage.PipelineStageGitRepo?.GitTokenId || stage.gitRepo?.GitTokenId || stage.stageType === 'git-repo') {
         return pipelineStageRules.GITHUB_REPO
     }
     return null
