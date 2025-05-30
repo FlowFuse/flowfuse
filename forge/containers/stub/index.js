@@ -429,5 +429,28 @@ module.exports = {
     getBrokerAgentState: async (broker) => {
         return { connected: true, error: '' }
     },
-    sendBrokerAgentCommand: async (broker, command) => {}
+    sendBrokerAgentCommand: async (broker, command) => {},
+
+    // Resources API
+    resources: async (project) => {
+        const values = [
+
+        ]
+        const endTime = Date.now()
+        const itemsCount = 2520
+        for (let i = 0; i < itemsCount; i++) {
+            values.push({
+                src: '43ab',
+                ts: (endTime - ((itemsCount - i) * 10 * 1000)),
+                cpu: Math.random(),
+                ps: (Math.random() * 256)
+            })
+        }
+
+        return {
+            meta: {},
+            resources: values,
+            count: itemsCount
+        }
+    }
 }

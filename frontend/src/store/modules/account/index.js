@@ -225,7 +225,11 @@ const getters = {
             // DevOps Pipelines
             devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines'],
 
-            isGitIntegrationFeatureEnabledForPlatform: !!state.features?.gitIntegration
+            isGitIntegrationFeatureEnabledForPlatform: !!state.features?.gitIntegration,
+
+            // Instance Resources
+            isInstanceResourcesFeatureEnabledForPlatform: !!state.features?.instanceResources,
+            isInstanceResourcesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.instanceResources
         }
         return {
             ...preCheck,
@@ -241,7 +245,8 @@ const getters = {
             isExternalMqttBrokerFeatureEnabled: preCheck.isExternalMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
             devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
             isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups,
-            isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration
+            isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration,
+            isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam
         }
     }
 }

@@ -623,4 +623,104 @@ describe('Projects API (EE)', function () {
             })
         })
     })
+
+    describe('Project Resources', function () {
+        const TestObjects = { tokens: {} }
+
+        let app
+        const sandbox = sinon.createSandbox()
+
+        async function login (username, password) {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username, password, remember: false }
+            })
+            response.cookies.should.have.length(1)
+            response.cookies[0].should.have.property('name', 'sid')
+            TestObjects.tokens[username] = response.cookies[0].value
+        }
+
+        before(async function () {
+            app = await setup()
+            sandbox.stub(app.log, 'info')
+            sandbox.stub(app.log, 'warn')
+            sandbox.stub(app.log, 'error')
+
+            const factory = new TestModelFactory(app)
+
+            app.config.features.register('instanceResources', true, true)
+            const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
+            const defaultTeamTypeProperties = defaultTeamType.properties
+            defaultTeamTypeProperties.features.instanceResources = true
+            defaultTeamType.properties = defaultTeamTypeProperties
+            await defaultTeamType.save()
+
+            TestObjects.factory = factory
+
+            TestObjects.instanceOne = app.instance
+            await TestObjects.instanceOne.updateSetting('credentialSecret', crypto.randomBytes(32).toString('hex'))
+
+            TestObjects.instanceTwo = await TestObjects.factory.createInstance(
+                { name: 'instance-two' },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+
+            TestObjects.team = app.team
+            TestObjects.application = app.application
+            TestObjects.stack = app.stack
+            TestObjects.template = app.template
+            TestObjects.projectType = app.projectType
+
+            TestObjects.alice = await app.db.models.User.byUsername('alice')
+            TestObjects.bob = await TestObjects.factory.createUser({ admin: false, username: 'bob', name: 'Bob Solo', email: 'bob@example.com', password: 'bbPassword' })
+            TestObjects.chris = await TestObjects.factory.createUser({ admin: false, username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
+            TestObjects.dave = await TestObjects.factory.createUser({ admin: false, username: 'dave', name: 'Dave Vader', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
+
+            await TestObjects.team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            await TestObjects.team.addUser(TestObjects.chris, { through: { role: Roles.Member } })
+            await TestObjects.team.addUser(TestObjects.dave, { through: { role: Roles.Viewer } })
+
+            TestObjects.elvis = await TestObjects.factory.createUser({ admin: false, username: 'elvis', name: 'Elvis Dooku', email: 'elvis@example.com', email_verified: true, password: 'eePassword' })
+            const team2 = await TestObjects.factory.createTeam({ name: 'PTeam' })
+            await team2.addUser(TestObjects.elvis, { through: { role: Roles.Member } })
+
+            await login('alice', 'aaPassword')
+            await login('bob', 'bbPassword')
+            await login('chris', 'ccPassword')
+            await login('dave', 'ddPassword')
+            await login('elvis', 'eePassword')
+        })
+
+        after(async function () {
+            await app.close()
+        })
+
+        it('should return the project resources', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${TestObjects.instanceOne.id}/resources`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(200)
+            const body = response.json()
+            body.should.have.property('meta')
+            body.should.have.property('resources').and.be.an.Array()
+            body.should.have.property('count')
+        })
+        it('should not return the project resources', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${TestObjects.instanceOne.id}/resources`,
+                cookies: { sid: TestObjects.tokens.elvis }
+            })
+
+            response.statusCode.should.equal(404)
+        })
+    })
 })
