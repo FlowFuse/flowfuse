@@ -243,10 +243,14 @@ export default {
                 return true
             }
 
+            // If httpAdminRoot is not set (or '/'), then we can use launcher 1.13 or later.
+            // Otherwise, we need launcher 2.18 or later due to a bug fix for handling httpAdminRoot in the resource API
+            let minVersion = '>=1.13'
+            if (this.instance?.settings?.httpAdminRoot && this.instance.settings.httpAdminRoot !== '/') {
+                minVersion = '>=2.18.0'
+            }
             const nrLauncherVersion = SemVer.coerce(this.instance?.meta?.versions?.launcher)
-            // TODO: this is the semver check that was added in the original PR - but that's an ancient launcher version.
-            // TODO: check this shouldn't actually be 2.18.0
-            return SemVer.satisfies(nrLauncherVersion, '>=1.13.0')
+            return SemVer.satisfies(nrLauncherVersion, minVersion)
         },
         featureAvailable () {
             return this.isInstanceResourcesFeatureEnabledForPlatform &&
