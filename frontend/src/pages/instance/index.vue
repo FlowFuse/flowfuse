@@ -76,7 +76,6 @@
 <script>
 import { LockClosedIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import SemVer from 'semver'
 import { mapState } from 'vuex'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
@@ -129,10 +128,6 @@ export default {
     computed: {
         ...mapState('account', ['teamMembership', 'team']),
         navigation () {
-            // Performance Tab only available for:
-            // - Launcher 1.13.0+
-            const performanceTabLauncherVersion = SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=1.13.0')
-
             if (!this.instance.id) return []
             let versionHistoryRoute
             if (!this.isTimelineFeatureEnabled) {
@@ -153,12 +148,7 @@ export default {
                 { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasAMinimumTeamRoleOf(Roles.Member) },
                 { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
                 { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
-                {
-                    label: 'Performance',
-                    to: { name: 'instance-performance', params: { id: this.instance.id } },
-                    tag: 'instance-performance',
-                    hidden: !this.hasPermission('project:read') || !performanceTabLauncherVersion || !this.isInstanceResourcesFeatureEnabledForPlatform || !this.isInstanceResourcesFeatureEnabledForTeam
-                },
+                { label: 'Performance', to: { name: 'instance-performance', params: { id: this.instance.id } }, tag: 'instance-performance' },
                 { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
             ]
         },
