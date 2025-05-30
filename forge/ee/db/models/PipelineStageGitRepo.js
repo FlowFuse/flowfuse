@@ -94,7 +94,7 @@ module.exports = {
                         try {
                             const gitToken = await this.getGitToken()
                             let targetFilename = this.pushPath
-                            if (options.sourceObject?.name) {
+                            if (!targetFilename && options.sourceObject?.name) {
                                 targetFilename = 'snapshot-' + options.sourceObject.name + '.json'
                             }
                             if (!targetFilename) {

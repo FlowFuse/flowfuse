@@ -588,7 +588,7 @@ module.exports = async function (app) {
             } else if (sourceGitRepo) {
                 sourceSnapshot = await sourceGitRepo.pull()
                 if (!sourceSnapshot) {
-                    throw new Error(sourceGitRepo.statusMessage || 'Failed to pull from Git repository')
+                    throw new ControllerError('deploy_failed', sourceGitRepo.statusMessage || 'Failed to pull from Git repository')
                 }
             } else {
                 throw new Error('No source device or instance found.')

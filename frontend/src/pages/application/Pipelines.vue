@@ -236,6 +236,8 @@ export default {
             }
             if (stage.gitRepo?.gitTokenId) {
                 clearInterval(this.polling.gitRepos)
+                // Trigger one final update of status to ensure the state is updated
+                this.loadGitRepoStatus()
                 this.gitRepoStatusMap.get(stage.id).isDeploying = false
             }
         },
