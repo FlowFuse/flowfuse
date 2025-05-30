@@ -230,6 +230,7 @@ const getters = {
             // Instance Resources
             isInstanceResourcesFeatureEnabledForPlatform: !!state.features?.instanceResources,
             isInstanceResourcesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.instanceResources
+
         }
         return {
             ...preCheck,
