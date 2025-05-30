@@ -9,10 +9,10 @@
         </template>
 
         <div id="team-bom">
-            <template v-if="!featuresCheck.isPerformanceFeatureEnabled">
+            <template v-if="!featuresCheck.isInstanceResourcesFeatureEnabled">
                 <div class="banner-wrapper">
-                    <FeatureUnavailable v-if="!featuresCheck.isBOMFeatureEnabledForPlatform" />
-                    <FeatureUnavailableToTeam v-else-if="!featuresCheck.isBOMFeatureEnabledForTeam" />
+                    <FeatureUnavailable v-if="!featuresCheck.isInstanceResourcesFeatureEnabledForPlatform" />
+                    <FeatureUnavailableToTeam v-else-if="!featuresCheck.isInstanceResourcesFeatureEnabledForTeam" />
                 </div>
 
                 <EmptyState>
@@ -70,6 +70,7 @@ import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.v
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import DeploymentName from '../../application/components/cells/DeploymentName.vue'
+import InstanceStatusBadge from '../../instance/components/InstanceStatusBadge.vue'
 
 import CPUUtilizationCell from './components/CPUUtilizationCell.vue'
 
@@ -99,26 +100,39 @@ export default {
                     component: {
                         is: markRaw(DeploymentName)
                     }
-                },
-                {
+                }, {
+                    label: 'Status',
+                    class: ['w-44'],
+                    key: 'status',
+                    sortable: true,
+                    component: {
+                        is: markRaw(InstanceStatusBadge),
+                        map: { instanceId: 'id' },
+                        extraProps: { instanceType: 'instance' }
+                    }
+                }, {
                     label: 'CPU Utilization',
                     key: 'cpuUtilization',
                     class: ['w-full', 'max-w-40'],
+                    sortable: true,
                     component: {
                         is: markRaw(CPUUtilizationCell)
                     }
                 }
-            ],
-            cpuUtilization: {}
+            ]
         }
     },
     computed: {
         ...mapGetters('account', ['featuresCheck', 'team']),
         rows () {
             return this.instances.map(instance => ({
-                id: instance.id,
+                instanceId: instance.id,
                 name: instance.name,
-                cpuUtilization: this.cpuUtilization[instance.id] || (Math.random() * 100)
+                status: instance.status,
+                connected: instance.performance?.connected,
+                error: instance.performance?.error,
+                cpuUtilization: instance.performance?.cpuUtilization,
+                featureSupported: instance.performance?.featureSupported
             }))
         },
         hasInstances () {
@@ -126,7 +140,7 @@ export default {
         }
     },
     mounted () {
-        if (this.featuresCheck.isPerformanceFeatureEnabled) {
+        if (this.featuresCheck.isInstanceResourcesFeatureEnabled) {
             this.loadInstances()
         }
     },
@@ -136,6 +150,9 @@ export default {
             teamApi.getTeamInstances(this.team.id)
                 .then(res => {
                     this.instances = res.projects
+                    this.instances.forEach(instance => {
+                        this.connectToLiveData(instance)
+                    })
                 })
                 .catch(e => e)
                 .finally(() => {
@@ -146,7 +163,43 @@ export default {
             this.$router.push({
                 name: 'Instance',
                 params: {
-                    id: instance.id
+                    id: instance.instanceId
+                }
+            })
+        },
+        connectToLiveData (instance) {
+            instance.performance = {
+                connected: false,
+                error: null,
+                cpuUtilization: null,
+                featureSupported: true
+            }
+            const uri = `/api/v1/projects/${instance.id}/resources/stream`
+            const ws = new WebSocket(uri)
+            ws.addEventListener('open', (event) => {
+                instance.performance.connected = true
+            })
+            ws.addEventListener('message', async (event) => {
+                // extract event.data and convert from Blob to text
+                const data = JSON.parse(await event.data.text())
+                // check for error
+                if (data.err) {
+                    instance.performance.error = data.err
+                } else {
+                    instance.performance.cpuUtilization = data.cpu
+                }
+            })
+            ws.addEventListener('error', (event) => {
+                console.error('event error')
+                console.error(event)
+                instance.performance.error = 'Error fetching live data. Please try again later.'
+            })
+            ws.addEventListener('close', (event) => {
+                this.connected = false
+                if (!instance.performance.error) {
+                    // if we cannot connect, and see no error, the Websocket isn't supported
+                    instance.performance.connected = false
+                    instance.performance.featureSupported = false
                 }
             })
         }

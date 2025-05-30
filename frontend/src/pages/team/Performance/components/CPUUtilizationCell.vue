@@ -1,18 +1,50 @@
 <template>
-    <div class="w-full h-full flex gap-2 items-center">
-        <div class="ff-cpu-bar">
-            <div class="ff-cpu-bar--fill" :style="{ width: cpuUtilization + '%' }" :class="fillClass" />
+    <div v-if="error">
+        <div class="text-sm text-red-500">
+            {{ error }}
         </div>
-        <label class="ff-cpu-bar--label">{{ formattedCPUUtilization }}%</label>
+    </div>
+    <div v-else-if="featureSupported" class="w-full h-full">
+        <div v-if="connected && !cpuUtilization">
+            <div class="text-sm text-gray-500">
+                Connecting...
+            </div>
+        </div>
+        <div v-else class="w-full h-full flex gap-2 items-center">
+            <div class="ff-cpu-bar">
+                <div class="ff-cpu-bar--fill" :style="{ width: cpuUtilization + '%' }" :class="fillClass" />
+            </div>
+            <label class="ff-cpu-bar--label">{{ formattedCPUUtilization }}%</label>
+        </div>
+    </div>
+    <div v-else class="text-sm text-gray-500">
+        Live data view not supported for this instance. Please upgrade the Instance's Node-RED version.
     </div>
 </template>
 
 <script>
+
 export default {
     name: 'CPUUtilizationCell',
     props: {
+        instanceId: {
+            type: String,
+            required: true
+        },
+        connected: {
+            type: Boolean,
+            required: true
+        },
+        error: {
+            type: String,
+            default: null
+        },
         cpuUtilization: {
             type: Number,
+            default: null
+        },
+        featureSupported: {
+            type: Boolean,
             required: true
         }
     },
@@ -30,6 +62,7 @@ export default {
             // 2 dp
             return this.cpuUtilization.toFixed(2)
         }
+
     }
 }
 </script>

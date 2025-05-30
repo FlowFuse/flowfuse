@@ -293,8 +293,8 @@ const getters = {
                             tag: 'team-performance',
                             icon: ChartBarIcon,
                             disabled: requiresBilling,
-                            featureUnavailable: !features.isPerformanceFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isPerformanceFeatureEnabledForPlatform
+                            featureUnavailable: !features.isInstanceResourcesFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isInstanceResourcesFeatureEnabledForPlatform
                         }
                     ]
                 },
