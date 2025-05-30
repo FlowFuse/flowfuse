@@ -30,9 +30,17 @@
                 </div>
             </template>
             <template #tools>
-                <ff-button size="small" kind="secondary" @click="getResources">
-                    <template #icon><RefreshIcon /></template>
-                </ff-button>
+                <div class="flex items-center gap-2">
+                    <div class="ff-socket-status">
+                        <div class="ff-socket-status-icon" :class="{ 'ff-socket-status-icon-connected': wsConnected, 'ff-socket-status-icon-disconnected': !wsConnected }" />
+                        <div class="ff-socket-status-text">
+                            {{ wsConnected ? 'Connected to Live Data' : 'Unable to connect to Live Data' }}
+                        </div>
+                    </div>
+                    <ff-button v-if="!wsConnected" size="small" kind="secondary" @click="getResources">
+                        <template #icon><RefreshIcon /></template>
+                    </ff-button>
+                </div>
             </template>
         </SectionTopMenu>
 
@@ -125,7 +133,8 @@ export default {
         return {
             resources: [],
             loading: true,
-            error: null
+            error: null,
+            wsConnected: false
         }
     },
     computed: {
@@ -267,6 +276,9 @@ export default {
     mounted () {
         if (this.featureAvailable) {
             this.getResources()
+                .then(() => {
+                    this.connectToLiveData()
+                })
                 .catch(e => {
                     this.error = e
                 })
@@ -295,6 +307,29 @@ export default {
             }
 
             return Promise.reject(new Error('Instance is not running.'))
+        },
+        connectToLiveData () {
+            if (this.wsConnected) {
+                return
+            }
+            const uri = `/api/v1/projects/${this.instance.id}/resources/stream`
+            const ws = new WebSocket(uri)
+            ws.addEventListener('open', () => {
+                this.wsConnected = true
+            })
+            ws.addEventListener('message', async (event) => {
+                const data = JSON.parse(await event.data.text())
+                this.resources.push({
+                    ts: Date.now(),
+                    cpu: data.cpu
+                })
+            })
+            ws.addEventListener('error', (event) => {
+                this.wsConnected = false
+            })
+            ws.addEventListener('close', () => {
+                this.wsConnected = false
+            })
         }
     }
 }
@@ -303,5 +338,26 @@ export default {
 <style scoped lang="scss">
 .chart {
     max-height: 450px;
+}
+
+.ff-socket-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ff-socket-status-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: $ff-grey-500;
+}
+
+.ff-socket-status-icon-connected {
+    background-color: $ff-green-500;
+}
+
+.ff-socket-status-icon-disconnected {
+    background-color: $ff-red-500;
 }
 </style>
