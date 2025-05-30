@@ -1,30 +1,57 @@
 <template>
-    <SectionTopMenu>
-        <template #hero>
-            <div class="flex items-center gap-2">
-                <ChipIcon class="ff-icon ff-icon-md text-gray-800" />
-                <div class="text-gray-800 text-xl font-medium whitespace-nowrap">CPU Utilisation</div>
-            </div>
-        </template>
-    </SectionTopMenu>
+    <div class="banner-wrapper">
+        <FeatureUnavailable v-if="!isInstanceResourcesFeatureEnabledForPlatform" />
+        <FeatureUnavailableToTeam v-else-if="!isInstanceResourcesFeatureEnabledForTeam" />
+        <FeatureUnavailable
+            v-else-if="!launcherSatisfiesVersion"
+            message="Update your instance to the latest version to enable this feature"
+            :only-custom-message="true"
+        />
+    </div>
+    <template v-if="!featureAvailable">
+        <empty-state>
+            <template #header>
+                Performance Insights
+            </template>
+            <template #message>
+                <p>See real-time information on how your instance is performing</p>
+            </template>
+        </empty-state>
+    </template>
+    <template v-else>
+        <SectionTopMenu>
+            <template #hero>
+                <div class="flex items-center gap-2">
+                    <ChipIcon class="ff-icon ff-icon-md text-gray-800" />
+                    <div class="text-gray-800 text-xl font-medium whitespace-nowrap">CPU Utilisation</div>
+                </div>
+            </template>
+            <template #tools>
+                <ff-button size="small" kind="secondary" @click="getResources">
+                    <template #icon><RefreshIcon /></template>
+                </ff-button>
+            </template>
+        </SectionTopMenu>
 
-    <ff-loading v-if="loading" />
+        <ff-loading v-if="loading" />
 
-    <v-chart v-else-if="!error" class="chart" :option="chartOptions" renderer="canvas" autoresize />
+        <v-chart v-else-if="!error" class="chart" :option="chartOptions" renderer="canvas" autoresize />
 
-    <empty-state v-else>
-        <template #header>
-            <span v-if="!isInstanceRunning">The Hosted Instance must be running</span>
-            <span v-else>Something went wrong!</span>
-        </template>
-        <template #message>
-            <p>Could not load your instance resources.</p>
-        </template>
-    </empty-state>
+        <empty-state v-else>
+            <template #header>
+                <span v-if="!isInstanceRunning">The Hosted Instance must be running</span>
+                <span v-else-if="resources.length === 0">Waiting for resource data</span>
+                <span v-else>Something went wrong!</span>
+            </template>
+            <template #message>
+                <p>Could not load your instance resources.</p>
+            </template>
+        </empty-state>
+    </template>
 </template>
 
 <script>
-import { ChipIcon } from '@heroicons/vue/outline'
+import { ChipIcon, RefreshIcon } from '@heroicons/vue/outline'
 import { LineChart } from 'echarts/charts'
 import {
     DataZoomComponent,
@@ -42,9 +69,13 @@ import { mapState } from 'vuex'
 import instancesApi from '../../api/instances.js'
 import EmptyState from '../../components/EmptyState.vue'
 import FfLoading from '../../components/Loading.vue'
-
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
+import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
+
 import usePermissions from '../../composables/Permissions.js'
+import featuresMixin from '../../mixins/Features.js'
+
 export default {
     name: 'InstancePerformance',
     components: {
@@ -52,8 +83,12 @@ export default {
         FfLoading,
         SectionTopMenu,
         ChipIcon,
-        VChart
+        RefreshIcon,
+        VChart,
+        FeatureUnavailable,
+        FeatureUnavailableToTeam
     },
+    mixins: [featuresMixin],
     provide: {
         [THEME_KEY]: 'light'
     },
@@ -202,33 +237,35 @@ export default {
         },
         isInstanceRunning () {
             return this.instance.meta.state === 'running'
-        }
-    },
-    watch: {
-        team: {
-            immediate: true,
-            handler (team) {
-                // Performance Tab only available for:
-                // - Launcher 1.13.0+
-                const validLauncher = SemVer.satisfies(SemVer.coerce(this.instance?.meta?.versions?.launcher), '>=1.13.0')
-
-                if (team && (!this.hasPermission('project:read') || !validLauncher)) {
-                    this.$router.push({
-                        name: 'instance-overview',
-                        params: this.$route.params
-                    })
-                }
+        },
+        launcherSatisfiesVersion () {
+            if (!this.isInstanceRunning) {
+                return true
             }
+
+            const nrLauncherVersion = SemVer.coerce(this.instance?.meta?.versions?.launcher)
+            // TODO: this is the semver check that was added in the original PR - but that's an ancient launcher version.
+            // TODO: check this shouldn't actually be 2.18.0
+            return SemVer.satisfies(nrLauncherVersion, '>=1.13.0')
+        },
+        featureAvailable () {
+            return this.isInstanceResourcesFeatureEnabledForPlatform &&
+                this.isInstanceResourcesFeatureEnabledForTeam &&
+                this.launcherSatisfiesVersion
         }
     },
     mounted () {
-        this.getResources()
-            .catch(e => {
-                this.error = e
-            })
-            .finally(() => {
-                this.loading = false
-            })
+        if (this.featureAvailable) {
+            this.getResources()
+                .catch(e => {
+                    this.error = e
+                })
+                .finally(() => {
+                    this.loading = false
+                })
+        } else {
+            this.loading = false
+        }
     },
     methods: {
         getResources () {
@@ -236,6 +273,11 @@ export default {
                 return instancesApi.getResources(this.instance.id)
                     .then(response => {
                         this.resources = response.resources
+                        if (this.resources.length === 0) {
+                            this.error = 'Waiting for resource data'
+                        } else {
+                            this.error = null
+                        }
                     })
                     .catch(e => {
                         this.error = e
