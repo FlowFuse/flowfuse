@@ -13,8 +13,11 @@
             <template #header>
                 Performance Insights
             </template>
+            <template #img>
+                <img src="../../images/empty-states/instance-performance.png" alt="pipelines-logo">
+            </template>
             <template #message>
-                <p>See real-time information on how your instance is performing</p>
+                <p>Monitor your Hosted Instance's CPU usage over time, enabling you to optimize for performance and discover potential problems before they occur.</p>
             </template>
         </empty-state>
     </template>
@@ -39,9 +42,12 @@
 
         <empty-state v-else>
             <template #header>
-                <span v-if="!isInstanceRunning">The Hosted Instance must be running</span>
+                <span v-if="!isInstanceRunning">The Hosted Instance must be running in order to view performance data.</span>
                 <span v-else-if="resources.length === 0">Waiting for resource data</span>
                 <span v-else>Something went wrong!</span>
+            </template>
+            <template #img>
+                <img src="../../images/empty-states/instance-performance.png" alt="pipelines-logo">
             </template>
             <template #message>
                 <p>Could not load your instance resources.</p>
@@ -249,9 +255,9 @@ export default {
             return SemVer.satisfies(nrLauncherVersion, '>=1.13.0')
         },
         featureAvailable () {
-            return this.isInstanceResourcesFeatureEnabledForPlatform &&
-                this.isInstanceResourcesFeatureEnabledForTeam &&
-                this.launcherSatisfiesVersion
+            return false // this.isInstanceResourcesFeatureEnabledForPlatform &&
+            // this.isInstanceResourcesFeatureEnabledForTeam &&
+            // this.launcherSatisfiesVersion
         }
     },
     mounted () {
