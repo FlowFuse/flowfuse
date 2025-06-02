@@ -676,7 +676,7 @@ export default {
             }
         },
         'input.pushPath' (newPushPath, oldPushPath) {
-            if (newPushPath === '') {
+            if (newPushPath === '' && this.isFirstStage) {
                 this.errors.pushPath = 'Please enter a valid filename'
             } else {
                 this.errors.pushPath = ''
