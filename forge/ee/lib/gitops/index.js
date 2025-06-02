@@ -1,4 +1,5 @@
 const { exec } = require('node:child_process')
+const { existsSync } = require('node:fs')
 const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
@@ -6,6 +7,33 @@ const { promisify } = require('node:util')
 const execPromised = promisify(exec)
 
 const axios = require('axios')
+
+async function cloneRepository (url, branch, workingDir) {
+    try {
+        await execPromised(`git clone -b ${branch} --depth 1 --single-branch ${url.toString()} .`, { cwd: workingDir })
+    } catch (err) {
+        const output = err.stdout + err.stderr
+        // Token does not have access to clone the repo
+        if (/unable to access/.test(output)) {
+            const result = new Error('Permission denied')
+            result.code = 'invalid_token'
+            result.cause = err
+            throw result
+        }
+        // Remote branch does not exist
+        if (/Could not find remote branch|Remote branch .+ not found/.test(output)) {
+            const result = new Error('Branch not found')
+            result.code = 'invalid_branch'
+            throw result
+        }
+        // Fallback - try to extract the 'fatal' line from the output
+        const m = /fatal: (.*)/.exec(output)
+        if (m) {
+            throw new Error('Failed to clone repository: ' + m[1])
+        }
+        throw new Error('Failed to clone repository')
+    }
+}
 
 module.exports.init = async function (app) {
     // Check if git is installed
@@ -67,30 +95,7 @@ module.exports.init = async function (app) {
             workingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowfuse-git-repo-'))
 
             // 3. clone repo
-            try {
-                await execPromised(`git clone -b ${branch} --depth 1 --single-branch ${url.toString()} .`, { cwd: workingDir })
-            } catch (err) {
-                const output = err.stdout + err.stderr
-                // Token does not have access to clone the repo
-                if (/unable to access/.test(output)) {
-                    const result = new Error('Permission denied')
-                    result.code = 'invalid_token'
-                    result.cause = err
-                    throw result
-                }
-                // Remote branch does not exist
-                if (/Could not find remote branch|Remote branch .+ not found/.test(output)) {
-                    const result = new Error('Branch not found')
-                    result.code = 'invalid_branch'
-                    throw result
-                }
-                // Fallback - try to extract the 'fatal' line from the output
-                const m = /fatal: (.*)/.exec(output)
-                if (m) {
-                    throw new Error('Failed to clone repository: ' + m[1])
-                }
-                throw new Error('Failed to clone repository')
-            }
+            await cloneRepository(url, branch, workingDir)
 
             // 4. set username/email
             await execPromised('git config user.email "no-reply@flowfuse.com"', { cwd: workingDir })
@@ -143,7 +148,53 @@ module.exports.init = async function (app) {
         }
     }
 
+    /**
+     * Push a snapshot to a git repository
+     * @param {Object} repoOptions
+     * @param {String} repoOptions.token
+     * @param {String} repoOptions.url
+     * @param {String} repoOptions.branch
+     */
+    async function pullFromRepository (repoOptions) {
+        let workingDir
+        try {
+            const token = repoOptions.token
+            const branch = repoOptions.branch || 'main'
+            if (!/^https:\/\/github.com/i.test(repoOptions.url)) {
+                throw new Error('Only GitHub repositories are supported')
+            }
+            const url = new URL(repoOptions.url)
+            url.username = 'x-access-token'
+            url.password = token
+
+            workingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowfuse-git-repo-'))
+
+            // 3. clone repo
+            await cloneRepository(url, branch, workingDir)
+
+            const snapshotFile = path.join(workingDir, repoOptions.path || 'snapshot.json').replace(/"/g, '')
+
+            if (!existsSync(snapshotFile)) {
+                throw new Error('Snapshot file not found in repository')
+            }
+
+            try {
+                const snapshotContent = await fs.readFile(snapshotFile, 'utf8')
+                const snapshot = JSON.parse(snapshotContent)
+                return snapshot
+            } catch (err) {
+                throw new Error('Failed to read snapshot file: ' + err.message)
+            }
+        } finally {
+            if (workingDir) {
+                try {
+                    await fs.rm(workingDir, { recursive: true, force: true })
+                } catch (err) {}
+            }
+        }
+    }
     return {
-        pushToRepository
+        pushToRepository,
+        pullFromRepository
     }
 }

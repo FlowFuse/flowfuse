@@ -201,7 +201,10 @@ module.exports = {
                     if (existingRepoStage) {
                         existingRepoStage.GitTokenId = GitTokenId
                         existingRepoStage.url = gitOptions.url
-                        existingRepoStage.branch = gitOptions.branch
+                        existingRepoStage.branch = gitOptions.branch || ''
+                        existingRepoStage.pullBranch = gitOptions.pullBranch || ''
+                        existingRepoStage.pushPath = gitOptions.pushPath || ''
+                        existingRepoStage.pullPath = gitOptions.pullPath || ''
                         if (gitOptions.credentialSecret) {
                             existingRepoStage.credentialSecret = gitOptions.credentialSecret
                         }
@@ -210,7 +213,10 @@ module.exports = {
                         await this.createPipelineStageGitRepo({
                             GitTokenId,
                             url: gitOptions.url,
-                            branch: gitOptions.branch,
+                            branch: gitOptions.branch || '',
+                            pullBranch: gitOptions.pullBranch || '',
+                            pushPath: gitOptions.pushPath || '',
+                            pullPath: gitOptions.pullPath || '',
                             credentialSecret: gitOptions.credentialSecret
                         }, options)
                     }
