@@ -197,6 +197,8 @@ $nav_height: 60px;
     flex-direction: row;
 
     .ff-view {
+        display: flex;
+        flex-direction: column;
         position: relative;
         overflow-y: auto;
         overflow-x: hidden;
@@ -717,6 +719,7 @@ $nav_height: 60px;
         left: 0;
         background: $ff-color--context-menu;
         border-right: 1px solid $ff-color--border;
+        overflow: auto;
 
         .ff-main-navigation {
             .ff-menu-groups {

@@ -14,7 +14,8 @@ const MQTT_CLIENT_DEFAULT_ALLOWANCE = {
 class LicenseDetails {
     constructor (license, claims) {
         // this.license = license;
-        this.id = claims.id
+        // For a period of time, the license generator flow set the id as licenseId instead of id. We handle both here.
+        this.id = claims.id || claims.licenseId
         this.version = claims.ver || ''
         this.note = claims.note
         this.organisation = claims.sub

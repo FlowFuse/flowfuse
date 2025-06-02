@@ -390,6 +390,12 @@ export default {
                 branch: stage.gitRepo?.branch,
                 credentialSecret: stage.gitRepo?.credentialSecret ? '__PLACEHOLDER__' : ''
             },
+            original: {
+                stageType: stage.stageType || StageType.INSTANCE,
+                deviceId: stage.devices?.[0].id,
+                instanceId: stage.instances?.[0].id,
+                deviceGroupId: stage.deviceGroups?.[0].id
+            },
             newDeviceGroupInput: {
                 name: '',
                 description: ''
@@ -496,7 +502,7 @@ export default {
             }, new Set())
 
             return this.instances.filter((instance) => {
-                return !instanceIdsInUse.has(instance.id) || instance.id === this.input.instanceId
+                return !instanceIdsInUse.has(instance.id) || (this.isEdit && instance.id === this.original.instanceId)
             })
         },
         instanceOptions () {
@@ -528,12 +534,13 @@ export default {
             }, new Set())
 
             // exclude this stage's deviceId from the list of devices in use
-            if (this.input.deviceId) {
-                deviceIdsInUse.delete(this.input.deviceId)
+            if (this.original.stageType === StageType.DEVICE && this.original.deviceId) {
+                deviceIdsInUse.delete(this.original.deviceId)
             }
 
+            // return only devices that are not in use by any stage, or the original deviceId if editing
             return this.applicationDevices.filter((device) => {
-                return !deviceIdsInUse.has(device.id) || device.id === this.input.deviceId
+                return !deviceIdsInUse.has(device.id) || (this.isEdit && device.id === this.original.deviceId)
             })
         },
         deviceOptions () {
@@ -567,7 +574,7 @@ export default {
             }, new Set())
 
             return this.deviceGroups.filter((deviceGroup) => {
-                return !deviceGroupIdsInUse.has(deviceGroup.id) || deviceGroup.id === this.input.deviceGroupId
+                return !deviceGroupIdsInUse.has(deviceGroup.id) || (this.isEdit && deviceGroup.id === this.original.deviceGroupId)
             })
         },
         deviceGroupOptions () {
@@ -654,6 +661,10 @@ export default {
                 }
             })
         }
+        this.original.stageType = this.input.stageType
+        this.original.deviceId = this.input.deviceId
+        this.original.instanceId = this.input.instanceId
+        this.original.deviceGroupId = this.input.deviceGroupId
     },
     methods: {
         async submit () {
