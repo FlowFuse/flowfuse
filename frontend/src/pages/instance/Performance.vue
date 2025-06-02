@@ -46,7 +46,7 @@
 
         <ff-loading v-if="loading" />
 
-        <v-chart v-else-if="!error" class="chart" :option="chartOptions" renderer="canvas" autoresize />
+        <v-chart v-else-if="!error" class="chart" :option="chartOptions" renderer="canvas" autoresize @datazoom="onDataZoom" />
 
         <empty-state v-else>
             <template #header>
@@ -134,7 +134,11 @@ export default {
             resources: [],
             loading: true,
             error: null,
-            wsConnected: false
+            wsConnected: false,
+            zoom: {
+                start: 80,
+                end: 100
+            }
         }
     },
     computed: {
@@ -169,8 +173,8 @@ export default {
                         show: true,
                         xAxisIndex: 0,
                         // starting window (e.g., show last 20% if number of entries is over 100)
-                        start: this.filteredResources.length < 100 ? 0 : 80,
-                        end: 100,
+                        start: this.filteredResources.length < 100 ? 0 : this.zoom.start,
+                        end: this.zoom.end,
                         labelFormatter: (value) => {
                             const ts = this.filteredResources[value]?.ts ?? 0
                             const date = new Date(Number(ts))
@@ -346,6 +350,10 @@ export default {
             ws.addEventListener('close', () => {
                 this.wsConnected = false
             })
+        },
+        onDataZoom (event) {
+            this.zoom.start = event.start
+            this.zoom.end = event.end
         }
     }
 }
