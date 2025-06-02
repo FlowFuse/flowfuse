@@ -117,6 +117,9 @@ export default {
                 options.gitTokenId = input.gitTokenId
                 options.url = input.url
                 options.branch = input.branch
+                options.pullBranch = input.pullBranch
+                options.pullPath = input.pullPath
+                options.pushPath = input.pushPath
                 options.credentialSecret = input.credentialSecret
             }
 

@@ -15,6 +15,9 @@
                 <template v-if="stage.stageType === StageType.DEVICEGROUP">
                     use the group's target snapshot from "{{ stage.name }}" and
                 </template>
+                <template v-else-if="stage.stageType === StageType.GITREPO">
+                    pull the snapshot from the configured Git repository and
+                </template>
                 <template v-else-if="stage.action === StageAction.CREATE_SNAPSHOT">
                     create a new snapshot in "{{ stage.name }}" and
                 </template>
@@ -24,11 +27,11 @@
                 <template v-else-if="stage.action === StageAction.PROMPT">
                     use the snapshot selected below from "{{ stage.name }}" and
                 </template>
-                <template v-if="target?.stageType !== StageType.GITREPO">
-                    copy over all flows, nodes, environment variables and credentials to "{{ target?.name }}".
+                <template v-if="target?.stageType === StageType.GITREPO">
+                    push it to the configured Git repository.
                 </template>
                 <template v-else>
-                    push it to the configured Git repository.
+                    copy over all flows, nodes, environment variables and credentials to "{{ target?.name }}".
                 </template>
             </p>
             <template v-if="target?.stageType === StageType.DEVICEGROUP">
@@ -241,6 +244,9 @@ export default {
             this.$refs.dialog.close()
         },
         fetchData: async function () {
+            if (this.stage.stageType === StageType.GITREPO) {
+                return
+            }
             this.loadingSnapshots = true
 
             if (this.stage.stageType === StageType.DEVICE) {
