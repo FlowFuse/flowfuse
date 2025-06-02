@@ -138,7 +138,8 @@ export default {
             zoom: {
                 start: 80,
                 end: 100
-            }
+            },
+            ws: null
         }
     },
     computed: {
@@ -293,6 +294,11 @@ export default {
             this.loading = false
         }
     },
+    beforeUnmount () {
+        if (this.ws) {
+            this.ws.close()
+        }
+    },
     methods: {
         getResources () {
             if (this.isInstanceRunning) {
@@ -330,11 +336,11 @@ export default {
                 return
             }
             const uri = `/api/v1/projects/${this.instance.id}/resources/stream`
-            const ws = new WebSocket(uri)
-            ws.addEventListener('open', () => {
+            this.ws = new WebSocket(uri)
+            this.ws.addEventListener('open', () => {
                 this.wsConnected = true
             })
-            ws.addEventListener('message', async (event) => {
+            this.ws.addEventListener('message', async (event) => {
                 const data = JSON.parse(await event.data.text())
                 // does the data contain a cpu key?
                 if (Object.prototype.hasOwnProperty.call(data, 'cpu')) {
@@ -344,10 +350,10 @@ export default {
                     })
                 }
             })
-            ws.addEventListener('error', (event) => {
+            this.ws.addEventListener('error', (event) => {
                 this.wsConnected = false
             })
-            ws.addEventListener('close', () => {
+            this.ws.addEventListener('close', () => {
                 this.wsConnected = false
             })
         },
