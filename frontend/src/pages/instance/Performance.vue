@@ -51,14 +51,14 @@
         <empty-state v-else>
             <template #header>
                 <span v-if="!isInstanceRunning">The Hosted Instance must be running in order to view performance data.</span>
-                <span v-else-if="resources.length === 0">Waiting for resource data</span>
+                <span v-else-if="resources.length === 0">No CPU Data Found</span>
                 <span v-else>Something went wrong!</span>
             </template>
             <template #img>
                 <img src="../../images/empty-states/instance-performance.png" alt="pipelines-logo">
             </template>
             <template #message>
-                <p>Could not load your instance resources.</p>
+                <p>{{ error }}</p>
             </template>
         </empty-state>
     </template>
@@ -294,9 +294,22 @@ export default {
             if (this.isInstanceRunning) {
                 return instancesApi.getResources(this.instance.id)
                     .then(response => {
-                        this.resources = response.resources
-                        if (this.resources.length === 0) {
+                        if (response.resources.length === 0) {
                             this.error = 'Waiting for resource data'
+                        } else if (response.resources.length > 0) {
+                            let hasCPU = false
+                            // sanity check we have "cpu" in the resources
+                            for (const resource of response.resources) {
+                                if (Object.prototype.hasOwnProperty.call(resource, 'cpu')) {
+                                    hasCPU = true
+                                    break
+                                }
+                            }
+                            if (!hasCPU) {
+                                this.error = 'CPU Utilization data is not available for this instance'
+                            } else {
+                                this.resources = response.resources
+                            }
                         } else {
                             this.error = null
                         }
@@ -319,10 +332,13 @@ export default {
             })
             ws.addEventListener('message', async (event) => {
                 const data = JSON.parse(await event.data.text())
-                this.resources.push({
-                    ts: Date.now(),
-                    cpu: data.cpu
-                })
+                // does the data contain a cpu key?
+                if (Object.prototype.hasOwnProperty.call(data, 'cpu')) {
+                    this.resources.push({
+                        ts: Date.now(),
+                        cpu: data.cpu
+                    })
+                }
             })
             ws.addEventListener('error', (event) => {
                 this.wsConnected = false
