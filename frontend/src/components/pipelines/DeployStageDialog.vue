@@ -67,18 +67,18 @@
                             >
                                 <template #option="{ option, selected, active }">
                                     <div class="ff-option-content" :class="{ selected, active }">
-                                        <div class="flex justify-between mb-2">
+                                        <div class="flex justify-between mb-1">
                                             <span>{{ option.label }}</span>
                                             <span v-if="option.user && option.user.username" class="text-gray-400">{{ option.user.username }}</span>
                                         </div>
-                                        <p class="pl-5 text-italic text-gray-400 mb-4">
+                                        <p class="text-italic text-gray-400 mb-1">
                                             {{ option.description }}
                                         </p>
-                                        <p v-if="option.createdAt" class="pl-5 text-gray-400 text-sm">
+                                        <p v-if="option.createdAt" class="text-gray-400 text-sm">
                                             <span>Created </span>
                                             <span
                                                 v-ff-tooltip:bottom="new Date(option.createdAt).toDateString() + ' - ' + new Date(option.createdAt).toLocaleTimeString()"
-                                                class="underline hover:no-underline"
+                                                class=""
                                             >
                                                 {{ daysSince(option.createdAt, true) }}
                                             </span>
