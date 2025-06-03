@@ -69,7 +69,6 @@ There are four types of stage to chose from:
 4. **Git Repository** - a remote GitHub repository.
     -  This stage currently only supports:
        - Repositories hosted on GitHub.com
-       - Pushing snapshots to the repostitory; pulling snapshots back from the respository will be added in a future release
 
 ### Actions
 
@@ -104,7 +103,15 @@ When a Device Group stage is triggered, it will push the current active snapshot
 
 #### Git Repository stage
 
-Currently, the Git Repository stage can only be the last stage of a pipeline. It supports pushing a snapshot to the git repository, but support for pulling it back will come in a future release.
+Git Repository stages can be used to push and pull snapshots from a GitHub hosted repository. The stage can be configured with
+the branch to push/pull from as well as the filename to use for the snapshot.
+
+If a filename is not configured, it will generate the filename when pushing to the repository based on the name of Instance, Device
+or Device Group that provided the snapshot.
+
+When pulling from a repository, if the stage has not previously been used to push to the repository, the filename is a required property.
+
+It is also possible to configure the stage with different branches for the push and pull actions. This enables a GitHub-based review process as part of the pipeline; using a Pull Request process to review and approve the changes before merging between the two branches.
 
 #### Deploy to Devices
 

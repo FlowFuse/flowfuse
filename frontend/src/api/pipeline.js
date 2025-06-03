@@ -82,6 +82,9 @@ const addPipelineStage = async (pipelineId, stage) => {
         options.gitTokenId = stage.gitTokenId
         options.url = stage.url
         options.branch = stage.branch
+        options.pullBranch = stage.pullBranch
+        options.pushPath = stage.pushPath
+        options.pullPath = stage.pullPath
         options.credentialSecret = stage.credentialSecret
         delete options.instanceId
         delete options.deviceGroupId

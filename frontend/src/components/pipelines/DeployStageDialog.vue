@@ -15,6 +15,9 @@
                 <template v-if="stage.stageType === StageType.DEVICEGROUP">
                     use the group's target snapshot from "{{ stage.name }}" and
                 </template>
+                <template v-else-if="stage.stageType === StageType.GITREPO">
+                    pull the snapshot from the configured Git repository and
+                </template>
                 <template v-else-if="stage.action === StageAction.CREATE_SNAPSHOT">
                     create a new snapshot in "{{ stage.name }}" and
                 </template>
@@ -24,11 +27,11 @@
                 <template v-else-if="stage.action === StageAction.PROMPT">
                     use the snapshot selected below from "{{ stage.name }}" and
                 </template>
-                <template v-if="target?.stageType !== StageType.GITREPO">
-                    copy over all flows, nodes, environment variables and credentials to "{{ target?.name }}".
+                <template v-if="target?.stageType === StageType.GITREPO">
+                    push it to the configured Git repository.
                 </template>
                 <template v-else>
-                    push it to the configured Git repository.
+                    copy over all flows, nodes, environment variables and credentials to "{{ target?.name }}".
                 </template>
             </p>
             <template v-if="target?.stageType === StageType.DEVICEGROUP">
@@ -56,14 +59,36 @@
                     <FormRow data-form="snapshot" containerClass="w-full">
                         Source Snapshot
                         <template #input>
-                            <ff-listbox
+                            <ff-combobox
                                 v-if="hasSnapshots"
                                 v-model="input.selectedSnapshotId"
                                 :options="snapshotOptions"
+                                :extend-search-keys="['description', 'user.username']"
                                 placeholder="Select a snapshot"
                                 data-form="snapshot-select"
                                 class="w-full"
-                            />
+                            >
+                                <template #option="{ option, selected, active }">
+                                    <div class="ff-option-content" :class="{ selected, active }">
+                                        <div class="flex justify-between mb-1">
+                                            <span>{{ option.label }}</span>
+                                            <span v-if="option.user && option.user.username" class="text-gray-400">{{ option.user.username }}</span>
+                                        </div>
+                                        <p class="text-italic text-gray-400 mb-1">
+                                            {{ option.description }}
+                                        </p>
+                                        <p v-if="option.createdAt" class="text-gray-400 text-sm">
+                                            <span>Created </span>
+                                            <span
+                                                v-ff-tooltip:bottom="new Date(option.createdAt).toDateString() + ' - ' + new Date(option.createdAt).toLocaleTimeString()"
+                                                class=""
+                                            >
+                                                {{ daysSince(option.createdAt, true) }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </template>
+                            </ff-combobox>
                             <div v-else class="error-banner">
                                 There are no snapshots to choose from for this stage's
                                 <template v-if="stage.stageType == StageType.INSTANCE">
@@ -153,6 +178,7 @@ import DeviceApi from '../../api/devices.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
 import SnapshotApi from '../../api/projectSnapshots.js'
 import SnapshotsApi from '../../api/snapshots.js'
+import daysSince from '../../utils/daysSince.js'
 import FormRow from '../FormRow.vue'
 
 export default {
@@ -169,6 +195,7 @@ export default {
     emits: ['deploy-stage'],
     setup () {
         return {
+            daysSince,
             show (target) {
                 this.target = target
 
@@ -213,7 +240,11 @@ export default {
 
                 return {
                     value: snapshot.id,
-                    label: `${snapshot.name}${isActive ? ' (active)' : ''}`
+                    label: `${snapshot.name}${isActive ? ' (active)' : ''}`,
+                    id: snapshot.id,
+                    description: snapshot?.description ?? null,
+                    user: snapshot?.user ?? null,
+                    createdAt: snapshot?.createdAt ?? null
                 }
             })
         },
@@ -241,6 +272,9 @@ export default {
             this.$refs.dialog.close()
         },
         fetchData: async function () {
+            if (this.stage.stageType === StageType.GITREPO) {
+                return
+            }
             this.loadingSnapshots = true
 
             if (this.stage.stageType === StageType.DEVICE) {
