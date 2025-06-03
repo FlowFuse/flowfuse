@@ -296,7 +296,9 @@ curl -ks -w "\n" -XPOST \
                         "staticAssets":true,
                         "bom":true,
                         "projectHistory":true,
-                        "teamBroker":true
+                        "teamBroker":true,
+                        "gitIntegration": true,
+                        "instanceResources":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
