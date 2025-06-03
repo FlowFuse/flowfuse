@@ -285,16 +285,22 @@ export default {
         'input.name': {
             immediate: true,
             handler: debounce(function (value) {
-                instancesApi.nameCheck(value)
-                    .then(res => {
-                        this.errors.name = null
-                    })
-                    .catch(e => {
-                        this.errors.name = 'Instance name already in use.'
-                    })
+                const allowedCharacters = /^([a-zA-Z0-9-]+)(:\d+)?(\/[^\s<>"'#]*)?$/
+
+                if (allowedCharacters.test(value)) {
+                    instancesApi.nameCheck(value)
+                        .then(res => {
+                            this.errors.name = null
+                        })
+                        .catch(e => {
+                            this.errors.name = 'Instance name already in use.'
+                        })
+                } else {
+                    this.errors.name = 'Invalid character in use.'
+                }
             }, 500)
         },
-        'input.errors': {
+        errors: {
             deep: true,
             handler: function () {
                 this.updateParent()
