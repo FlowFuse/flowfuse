@@ -229,6 +229,8 @@ export default {
                         if (err.response.data.code === 'invalid_project_name') {
                             this.form[INSTANCE_SLUG].errors.name = err.response.data.error
                         }
+                        const error = err.response.data.error
+                        Alerts.emit('Failed to create the application: ' + error, 'warning', 7500)
                     }
 
                     const idx = this.formSteps.findIndex(step => step.sliderTitle === 'Instance')
