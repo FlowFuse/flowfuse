@@ -25,6 +25,9 @@ module.exports = async function (settings = {}, config = {}) {
         broker: {
             url: ':test:'
         },
+        blueprintImport: {
+            enabled: false
+        },
         ...config
     }
 
