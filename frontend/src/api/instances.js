@@ -202,6 +202,7 @@ const checkCustomHostnameStatus = async (instanceId) => {
 const nameCheck = async (instanceName) => {
     return client.post('/api/v1/projects/check-name', { name: instanceName })
         .then(res => res.data)
+}
 
 const getResources = async (instanceId) => {
     return client.get(`/api/v1/projects/${instanceId}/resources`).then(res => {
