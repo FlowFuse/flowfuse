@@ -42,7 +42,7 @@ module.exports = {
     // and on a random day of the week.
     schedule: `${randomInt(0, 59)} ${randomInt(0, 23)} * * ${randomInt(0, 6)}`,
     run: async function (app) {
-        if (app.license.active() && app.config.blueprintImport.enabled) {
+        if (app.license.active() && app.config.blueprintImport?.enabled !== false) {
             await fetch(app)
         }
     }
