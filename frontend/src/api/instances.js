@@ -236,6 +236,6 @@ export default {
     setCustomHostname,
     clearCustomHostname,
     checkCustomHostnameStatus,
-    nameCheck
+    nameCheck,
     getResources
 }
