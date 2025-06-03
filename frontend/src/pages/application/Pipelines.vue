@@ -202,6 +202,16 @@ export default {
             } else {
                 return console.warn('Deployment starting to stage without an instance, device or device group.')
             }
+            if (stage.gitRepo?.gitTokenId) {
+                // This is a pull from the repo
+                this.gitRepoStatusMap.set(stage.id, {
+                    isDeploying: true,
+                    pipeline,
+                    status: 'pulling',
+                    statusMessage: '',
+                    lastPushAt: Date.now()
+                })
+            }
         },
         stageDeployFailed (stage, nextStage, pipeline) {
             if (nextStage.instance?.id) {
@@ -224,17 +234,30 @@ export default {
                 clearInterval(this.polling.gitRepos)
                 this.gitRepoStatusMap.get(nextStage.id).isDeploying = false
             }
+            if (stage.gitRepo?.gitTokenId) {
+                clearInterval(this.polling.gitRepos)
+                // Trigger one final update of status to ensure the state is updated
+                this.loadGitRepoStatus()
+                this.gitRepoStatusMap.get(stage.id).isDeploying = false
+            }
         },
         startPollingForDeployStatus (stage, nextStage, pipeline) {
+            let pollingStarted = false
             if (nextStage.instance?.id) {
                 this.startPollingForInstanceDeployStatus()
+                pollingStarted = true
             } else if (nextStage.device?.id) {
                 this.startPollingForDeviceDeployStatus()
+                pollingStarted = true
             } else if (nextStage.deviceGroup?.id) {
                 this.startPollingForDeviceGroupsDeployStatus()
-            } else if (nextStage.gitRepo?.gitTokenId) {
+                pollingStarted = true
+            }
+            if (nextStage.gitRepo?.gitTokenId || stage.gitRepo?.gitTokenId) {
                 this.startPollingForGitRepoStatus()
-            } else {
+                pollingStarted = true
+            }
+            if (!pollingStarted) {
                 return console.warn('Polling started for stage without an instance, device or device group.')
             }
         },
@@ -414,7 +437,7 @@ export default {
                 promises.push(PipelineAPI.getPipelineStage(status.pipeline.id, stageId)
                     .then((stage) => {
                         const currentStatus = this.gitRepoStatusMap.get(stageId)
-                        if (stage.gitRepo?.status === 'pushing') {
+                        if (stage.gitRepo?.status === 'pushing' || stage.gitRepo?.status === 'pulling') {
                             someDeploying = true
                         } else {
                             currentStatus.isDeploying = false

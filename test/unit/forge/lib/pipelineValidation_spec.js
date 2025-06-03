@@ -38,7 +38,7 @@ describe('Pipeline Validation', function () {
                 pls.Instances = stageType === 'instance' ? [{}] : undefined
                 pls.Devices = stageType === 'device' ? [{}] : undefined
                 pls.DeviceGroups = stageType === 'device-group' ? [{}] : undefined
-                pls.PipelineStageGitRepo = stageType === 'git-repo' ? { gitTokenId: 'abc123' } : undefined
+                pls.PipelineStageGitRepo = stageType === 'git-repo' ? { GitTokenId: 'abc123' } : undefined
             }
             if (clientSideProps) {
                 pls.instance = stageType === 'instance' ? {} : undefined
@@ -142,9 +142,9 @@ describe('Pipeline Validation', function () {
                 ;(() => validateStages(stages)).should.throw(/A Device Group Pipeline stage cannot be the first stage/)
             })
 
-            it('should fail: git repo as the first stage', function () {
+            it('should pass: git repo as the first stage', function () {
                 const stages = [createServerSideStage('git-repo')]
-                ;(() => validateStages(stages)).should.throw(/A Git Repository Pipeline stage cannot be the first stage/)
+                validateStages(stages).should.be.true()
             })
 
             it('should fail: device group -> instance', function () {
@@ -165,31 +165,31 @@ describe('Pipeline Validation', function () {
                 ;(() => validateStages(stages)).should.throw(/A Device Group Pipeline stage cannot precede a Remote Instance/)
             })
 
-            it('should fail: git repo -> instance', function () {
+            it('should pass: git repo -> instance', function () {
                 const stages = [
                     createServerSideStage('instance', 'id1', 'Instance 1'),
                     createServerSideStage('git-repo', 'id2', 'Git Repo 1'),
                     createServerSideStage('instance', 'id3', 'Instance 2')
                 ]
-                ;(() => validateStages(stages)).should.throw(/A Git Repository Pipeline stage must be the last stage/)
+                validateStages(stages).should.be.true()
             })
 
-            it('should fail: git repo -> device', function () {
+            it('should pass: git repo -> device', function () {
                 const stages = [
                     createServerSideStage('instance', 'id1', 'Instance 1'),
                     createServerSideStage('git-repo', 'id2', 'Git Repo 1'),
                     createServerSideStage('device', 'id3', 'Device 1')
                 ]
-                ;(() => validateStages(stages)).should.throw(/A Git Repository Pipeline stage must be the last stage/)
+                validateStages(stages).should.be.true()
             })
 
-            it('should fail: git repo -> device group', function () {
+            it('should pass: git repo -> device group', function () {
                 const stages = [
                     createServerSideStage('instance', 'id1', 'Instance 1'),
                     createServerSideStage('git-repo', 'id2', 'Git Repo 1'),
                     createServerSideStage('device-group', 'id3', 'Device Group 1')
                 ]
-                ;(() => validateStages(stages)).should.throw(/A Git Repository Pipeline stage must be the last stage/)
+                validateStages(stages).should.be.true()
             })
         })
         describe('Client Side Pipeline stages', function () {
@@ -282,9 +282,9 @@ describe('Pipeline Validation', function () {
                 ;(() => validateStages(stages)).should.throw(/A Device Group Pipeline stage cannot be the first stage/)
             })
 
-            it('should fail: git repo as the first stage', function () {
+            it('should pass: git repo as the first stage', function () {
                 const stages = [createClientSideStage('git-repo')]
-                ;(() => validateStages(stages)).should.throw(/A Git Repository Pipeline stage cannot be the first stage/)
+                validateStages(stages).should.be.true()
             })
 
             it('should fail: device group -> instance', function () {
@@ -305,31 +305,31 @@ describe('Pipeline Validation', function () {
                 ;(() => validateStages(stages)).should.throw(/A Device Group Pipeline stage cannot precede a Remote Instance/)
             })
 
-            it('should fail: git repo -> instance', function () {
+            it('should pass: git repo -> instance', function () {
                 const stages = [
                     createClientSideStage('instance', 'id1', 'Instance 1'),
                     createClientSideStage('git-repo', 'id2', 'Git Repo 1'),
                     createClientSideStage('instance', 'id3', 'Instance 2')
                 ]
-                ;(() => validateStages(stages)).should.throw(/A Git Repository Pipeline stage must be the last stage/)
+                validateStages(stages).should.be.true()
             })
 
-            it('should fail: git repo -> device', function () {
+            it('should pass: git repo -> device', function () {
                 const stages = [
                     createClientSideStage('instance', 'id1', 'Instance 1'),
                     createClientSideStage('git-repo', 'id2', 'Git Repo 1'),
                     createClientSideStage('device', 'id3', 'Device 1')
                 ]
-                ;(() => validateStages(stages)).should.throw(/A Git Repository Pipeline stage must be the last stage/)
+                validateStages(stages).should.be.true()
             })
 
-            it('should fail: git repo -> device group', function () {
+            it('should pass: git repo -> device group', function () {
                 const stages = [
                     createClientSideStage('instance', 'id1', 'Instance 1'),
                     createClientSideStage('git-repo', 'id2', 'Git Repo 1'),
                     createClientSideStage('device-group', 'id3', 'Device Group 1')
                 ]
-                ;(() => validateStages(stages)).should.throw(/A Git Repository Pipeline stage must be the last stage/)
+                validateStages(stages).should.be.true()
             })
         })
     })
