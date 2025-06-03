@@ -127,7 +127,7 @@ export default {
     flex-direction: row;
     gap: 12px;
     overflow: auto;
-    height: 100%;
+    //height: 100%;
 }
 
 @media screen and (max-width: $ff-screen-md) {

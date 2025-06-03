@@ -11,7 +11,7 @@
             </template>
         </main-title>
 
-        <div class="space-y-3 overflow-auto flex flex-col h-full">
+        <div class="space-y-3 overflow-auto flex flex-col">
             <ff-text-input
                 v-model="filterTerm"
                 class="ff-data-table--search"
@@ -265,6 +265,11 @@ export default {
         border: 1px solid $ff-grey-200;
         overflow: auto;
         height: 100%;
+    }
+}
+@media screen and (max-width: $ff-screen-md) {
+    .unified-namespace-hierarchy {
+        min-width: 100%;
     }
 }
 </style>
