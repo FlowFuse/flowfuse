@@ -518,7 +518,7 @@ export default {
                         this.input.url &&
                         this.errors.url === '' &&
                         this.input.credentialSecret &&
-                        (!this.isFirstStage || this.input.pushPath !== '')
+                        (!this.isFirstStage || this.input.pushPath)
                     )
                     : true
                 ) &&
@@ -676,7 +676,7 @@ export default {
             }
         },
         'input.pushPath' (newPushPath, oldPushPath) {
-            if (newPushPath === '') {
+            if (newPushPath === '' && this.isFirstStage) {
                 this.errors.pushPath = 'Please enter a valid filename'
             } else {
                 this.errors.pushPath = ''
