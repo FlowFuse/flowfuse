@@ -85,4 +85,26 @@ describe('License Loader', function () {
         const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
         licenseDetails.should.have.property('tier', 'teams')
     })
+    it('should load a license with licenseId rather than id', async function () {
+        // {
+        // "licenseId": "766f544a-6296-46ab-9115-c0fd469688e7",
+        // "ver": "2024-03-04",
+        // "iss": "FlowForge Inc.",
+        // "sub": "Acme Customer",
+        // "nbf": 1748476800,
+        // "exp": 33336921600,
+        // "note": "Development-mode Only. Not for production",
+        // "users": 150,
+        // "teams": 50,
+        // "instances": 50,
+        // "mqttClients": 10,
+        // "tier": "enterprise",
+        // "dev": true
+        // }
+        const TEST_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlSWQiOiI3NjZmNTQ0YS02Mjk2LTQ2YWItOTExNS1jMGZkNDY5Njg4ZTciLCJ2ZXIiOiIyMDI0LTAzLTA0IiwiaXNzIjoiRmxvd0ZvcmdlIEluYy4iLCJzdWIiOiJBY21lIEN1c3RvbWVyIiwibmJmIjoxNzQ4NDc2ODAwLCJleHAiOjMzMzM2OTIxNjAwLCJub3RlIjoiRGV2ZWxvcG1lbnQtbW9kZSBPbmx5LiBOb3QgZm9yIHByb2R1Y3Rpb24iLCJ1c2VycyI6MTUwLCJ0ZWFtcyI6NTAsImluc3RhbmNlcyI6NTAsIm1xdHRDbGllbnRzIjoxMCwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTc0ODUzMzM5OX0.o2K4a5cTSXmblLeZAKoL__cKfKfMk-fIWkscQw6YfRUns91mEPn3Sq7R_qvfYPKlbj5k2SQ65n9C5b6ErMHerw'
+        const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
+        licenseDetails.should.have.property('organisation', 'Acme Customer')
+        licenseDetails.should.have.property('id', '766f544a-6296-46ab-9115-c0fd469688e7')
+        licenseDetails.expired.should.false()
+    })
 })
