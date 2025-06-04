@@ -4,7 +4,7 @@ const { randomInt } = require('../utils')
 
 async function fetch (app) {
     try {
-        const url = app.config.blueprintImport.url || 'https://app.flowfuse.com/api/v1/flow-blueprints/export-public'
+        const url = app.config.blueprintImport?.url || 'https://app.flowfuse.com/api/v1/flow-blueprints/export-public'
         const blueprints = await axios.get(url, {})
         const existingBlueprints = await app.db.models.FlowTemplate.getAll()
         for (const blueprint of blueprints.data.blueprints) {
