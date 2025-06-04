@@ -144,6 +144,10 @@ export default {
     computed: {
         value: {
             get () {
+                if (this.hasCustomValue && this.customValue) {
+                    return this.customValue
+                }
+
                 return this.options.find(opt => {
                     if (Object.prototype.hasOwnProperty.call(opt, this.valueKey)) {
                         return opt[this.valueKey] === this.modelValue
@@ -200,11 +204,11 @@ export default {
                 .map(normalize)
         },
         customValue () {
-            const ranOutOfAvailableOptions = this.filteredOptions.filter(option => option.value.includes(this.query)).length === 0
+            const noMatchingOptions = this.filteredOptions.filter(option => option.value.includes(this.query)).length === 0
             const hasQuery = this.query !== ''
 
-            return (hasQuery && ranOutOfAvailableOptions)
-                ? { [this.valueKey]: null, [this.labelKey]: this.query }
+            return (hasQuery && noMatchingOptions)
+                ? { [this.valueKey]: this.query, [this.labelKey]: this.query }
                 : null
         }
     },
