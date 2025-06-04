@@ -22,7 +22,7 @@
             >
                 <teleport to="body">
                     <ComboboxOptions
-                        v-if="open && filteredOptions.length"
+                        v-if="open && (filteredOptions.length || hasCustomValue)"
                         class="absolute ff-options"
                         data-el="options"
                         :style="{
@@ -31,6 +31,18 @@
                             width: position.width + 'px'
                         }"
                     >
+                        <ComboboxOption
+                            v-if="hasCustomValue && customValue"
+                            v-slot="{ active, selected }"
+                            :value="customValue"
+                            class="ff-option"
+                        >
+                            <slot name="option" :option="customValue" :selected="selected" :active="active">
+                                <div class="ff-option-content" :class="{ selected, active }">
+                                    {{ customValuePreLabel }} "{{ query }}"
+                                </div>
+                            </slot>
+                        </ComboboxOption>
                         <ComboboxOption
                             v-for="option in filteredOptions"
                             v-slot="{ active, selected }"
@@ -111,6 +123,16 @@ export default {
             type: Array,
             default: () => ([]),
             required: false
+        },
+        hasCustomValue: {
+            required: false,
+            type: Boolean,
+            default: false
+        },
+        customValuePreLabel: {
+            required: false,
+            type: String,
+            default: 'Create'
         }
     },
     emits: ['update:modelValue'],
@@ -176,6 +198,9 @@ export default {
                     })
                 })
                 .map(normalize)
+        },
+        customValue () {
+            return this.query === '' ? null : { [this.valueKey]: null, [this.labelKey]: this.query }
         }
     },
     methods: {
