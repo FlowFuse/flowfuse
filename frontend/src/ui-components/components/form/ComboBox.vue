@@ -200,7 +200,12 @@ export default {
                 .map(normalize)
         },
         customValue () {
-            return this.query === '' ? null : { [this.valueKey]: null, [this.labelKey]: this.query }
+            const ranOutOfAvailableOptions = this.filteredOptions.filter(option => option.value.includes(this.query)).length === 0
+            const hasQuery = this.query !== ''
+
+            return (hasQuery && ranOutOfAvailableOptions)
+                ? { [this.valueKey]: null, [this.labelKey]: this.query }
+                : null
         }
     },
     methods: {
