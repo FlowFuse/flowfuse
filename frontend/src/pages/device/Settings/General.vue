@@ -21,7 +21,7 @@
     </form>
 
     <!-- Node-RED Version -->
-    <form v-if="deviceOwnerType === 'application'" class="my-6 space-y-6" @submit.prevent.stop>
+    <form v-if="canChangeNodeRedVersion" class="my-6 space-y-6" @submit.prevent.stop>
         <FormHeading class="pb-2">
             Change Node-RED Version
             <span class="italic text-md px-2 text-gray-400">({{ displayNrVersion }})</span>
@@ -129,6 +129,7 @@ import { mapState } from 'vuex'
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import usePermissions from '../../../composables/Permissions.js'
 
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
@@ -193,6 +194,9 @@ export default {
     },
     computed: {
         ...mapState('account', ['teamMembership']),
+        canChangeNodeRedVersion () {
+            return this.deviceOwnerType === 'application' && this.hasPermission('device:edit')
+        },
         deviceOwnerType () {
             return this.device?.ownerType || ''
         },
