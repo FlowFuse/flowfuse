@@ -19,6 +19,33 @@
             Name
         </FormRow>
     </form>
+
+    <!-- Node-RED Version -->
+    <form v-if="deviceOwnerType === 'application'" class="my-6 space-y-6" @submit.prevent.stop>
+        <FormHeading class="pb-2">
+            Change Node-RED Version
+            <span class="italic text-md px-2 text-gray-400">({{ displayNrVersion }})</span>
+        </FormHeading>
+
+        <div ref="updateStack" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+            <div class="flex-grow">
+                <p class="max-w-sm">
+                    Changing the Remote Instance Node-RED Version requires the remote instance to be restarted.
+                    The flows will not be running while this happens.
+                </p>
+            </div>
+            <div class="min-w-fit flex-shrink-0 flex-col gap-5">
+                <ff-button
+                    data-action="change-stack"
+                    kind="secondary"
+                    @click="showChangeNrDialog()"
+                >
+                    Change Node-RED Version
+                </ff-button>
+            </div>
+        </div>
+    </form>
+
     <form class="mt-12 space-y-6">
         <FormHeading>
             <template #default>
@@ -62,6 +89,38 @@
             </ul>
         </template>
     </form>
+
+    <!-- Node-RED Version Form -->
+    <ff-dialog
+        ref="changeNrVersionDialog"
+        header="Change Node-RED Version"
+        data-el="change-nr-version-dialog"
+        @confirm="changeNrVersion"
+        :disablePrimary="original.nodeRedVersion === input.nodeRedVersion"
+    >
+        <template #default>
+            <FormRow containerClass="max-w-md" wrapperClass="max-w-md">
+                Node-RED Version
+                <template #description>
+                    Clear this field to use the Node-RED version specified in the Remote Instance's active snapshot. Defaults to 'latest' if the snapshot does not specify a version.
+                </template>
+                <template #input>
+                    <div class="flex flex-wrap">
+                        <ff-combobox
+                            v-model="input.nodeRedVersion"
+                            :options="nodeRedVersionOptions"
+                            :extend-search-keys="['description', 'user.username']"
+                            :hasCustomValue="true"
+                            custom-value-pre-label="Use"
+                            placeholder="Select or type in a new NodeRED version"
+                            data-form="nodered-select"
+                            class="w-full"
+                        />
+                    </div>
+                </template>
+            </FormRow>
+        </template>
+    </ff-dialog>
 </template>
 
 <script>
@@ -87,11 +146,41 @@ export default {
             },
             input: {
                 deviceId: '',
-                deviceName: ''
+                deviceName: '',
+                nodeRedVersion: ''
             },
             original: {
-                deviceName: ''
-            }
+                deviceName: '',
+                nodeRedVersion: ''
+            },
+            availableNrVersions: [
+                '3.1.0',
+                '3.1.1',
+                '3.1.2',
+                '3.1.3',
+                '3.1.4',
+                '3.1.5',
+                '3.1.6',
+                '3.1.7',
+                '3.1.8',
+                '3.1.9',
+                '3.1.10',
+                '3.1.11',
+                '3.1.12',
+                '3.1.13',
+                '3.1.14',
+                '3.1.15',
+                '4.0.0',
+                '4.0.1',
+                '4.0.2',
+                '4.0.3',
+                '4.0.4',
+                '4.0.5',
+                '4.0.6',
+                '4.0.7',
+                '4.0.8'
+
+            ]
         }
     },
     watch: {
@@ -104,6 +193,14 @@ export default {
     },
     computed: {
         ...mapState('account', ['teamMembership']),
+        deviceOwnerType () {
+            return this.device?.ownerType || ''
+        },
+        displayNrVersion () {
+            return this.original.nodeRedVersion.length
+                ? this.original.nodeRedVersion
+                : 'Using snapshot version'
+        },
         hasApplication () {
             return this.device?.ownerType === 'application' && this.device.application
         },
@@ -112,6 +209,22 @@ export default {
         },
         notAssigned () {
             return !this.hasApplication && !this.hasInstance
+        },
+        nodeRedVersionOptions () {
+            return [
+                {
+                    label: 'Use Snapshot Node-RED Version',
+                    value: '<<snapshot-version>>'
+                },
+                {
+                    label: 'Latest',
+                    value: 'latest'
+                },
+                ...this.availableNrVersions.map(value => ({
+                    label: value,
+                    value
+                }))
+            ]
         }
     },
     mounted () {
@@ -131,10 +244,16 @@ export default {
             this.editing.deviceName = false
             this.input.deviceName = this.original.deviceName
         },
-        fetchData () {
+        async fetchData () {
             if (this.device) {
                 this.input.deviceId = this.device.id
                 this.input.deviceName = this.device.name
+
+                const settings = await deviceApi.getSettings(this.device.id)
+                if (settings.editor?.nodeRedVersion) {
+                    this.input.nodeRedVersion = settings.editor.nodeRedVersion
+                    this.original.nodeRedVersion = settings.editor.nodeRedVersion
+                }
             }
         },
         unassign () {
@@ -165,6 +284,26 @@ export default {
         },
         assign () {
             this.$emit('assign-device')
+        },
+        showChangeNrDialog () {
+            this.$refs.changeNrVersionDialog.show()
+        },
+        changeNrVersion () {
+            const settings = {}
+            let nodeRedVersion = (this.input.nodeRedVersion || '').trim() || undefined
+            if (nodeRedVersion === '<<snapshot-version>>') {
+                nodeRedVersion = ''
+            }
+            settings.editor = {
+                nodeRedVersion
+            }
+            deviceApi.updateSettings(this.device.id, settings)
+
+            this.$emit('device-updated')
+            Alerts.emit('Device settings successfully updated.', 'confirmation', 6000)
+
+            this.input.nodeRedVersion = nodeRedVersion
+            this.original.nodeRedVersion = nodeRedVersion
         }
     },
     components: {
