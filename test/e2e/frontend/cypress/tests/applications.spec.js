@@ -122,8 +122,9 @@ describe('FlowForge - Applications', () => {
 
         it('handles instance creation failing gracefully', () => {
             const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
-            const IN_USE_INSTANCE_NAME = 'instance-1-1'
+            const IN_USE_INSTANCE_NAME = 'instance-1-9'
             const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
+            let supposedToFail = true
 
             cy.request('GET', 'api/v1/teams').then((response) => {
                 const team = response.body.teams[0]
@@ -131,7 +132,15 @@ describe('FlowForge - Applications', () => {
                 cy.visit(`/team/${team.slug}/applications/create`)
 
                 cy.intercept('POST', '/api/*/applications').as('createApplication')
-                cy.intercept('POST', '/api/*/projects').as('createInstance')
+                cy.intercept('POST', '/api/*/projects', req => {
+                    if (supposedToFail) {
+                        supposedToFail = false
+                        return req.reply({
+                            statusCode: 400,
+                            body: { code: 'unexpected_error', error: 'Something happened!' }
+                        })
+                    } else req.continue()
+                }).as('createInstance')
 
                 cy.get('[data-el="next-step"]').should('be.disabled')
 
@@ -157,9 +166,16 @@ describe('FlowForge - Applications', () => {
                 cy.wait('@createApplication')
                 cy.wait('@createInstance')
 
+                cy.intercept('POST', '/api/*/projects').as('createInstance')
+
+                // we need to wait for the notification to appear otherwise cypress will click on it off-screen and break the UI
+                // eslint-disable-next-line cypress/no-unnecessary-waiting
+                cy.wait(1000)
+
+                cy.contains('Something happened!')
+                cy.get('[data-el="notification-alert"] span.ff-notification-toast--close').click()
                 // check that the user get redirected back to the instance step after failed instance creation
-                cy.get('[data-step="instance"]').contains('name in use')
-                cy.get('[data-el="instance-name-error"]').contains('name in use')
+                cy.get('[data-step="instance"]').should('exist')
 
                 cy.get('[data-el="instance-name"] input').clear()
                 cy.get('[data-el="instance-name"] input').type(INSTANCE_NAME)
@@ -211,7 +227,6 @@ describe('FlowForge - Applications', () => {
 
     it('are not permitted to have a duplicate project name during creation', () => {
         cy.request('GET', 'api/v1/teams', { failOnStatusCode: false }).then((response) => {
-            let createAppCallCount = 0
             const team = response.body.teams[0]
             // we need at least one blueprint to show the blueprints step
             cy.intercept('GET', '/api/*/flow-blueprints?filter=active&team=*', {
@@ -231,9 +246,7 @@ describe('FlowForge - Applications', () => {
                     }
                 ]
             }).as('getBlueprints')
-            cy.intercept('POST', '/api/*/applications', req => {
-                createAppCallCount++
-            }).as('createApplication')
+            cy.intercept('POST', '/api/*/applications').as('createApplication')
 
             cy.visit(`/team/${team.slug}/applications/create`)
 
@@ -244,34 +257,27 @@ describe('FlowForge - Applications', () => {
 
             cy.get('[data-el="next-step"]').click()
 
+            cy.get('[data-el="instance-name-error"]').should('not.exist')
+
             cy.get('[data-el="instance-name"] input').clear()
             cy.get('[data-el="instance-name"] input').type('instance-1-1')
+
+            cy.get('[data-el="instance-name-error"]').should('exist')
+            cy.get('[data-el="next-step"]').should('be.disabled')
+
+            // add a diff in the name
+            cy.get('[data-el="instance-name"] input').type(`-${Math.random().toString(36).substring(2, 7)}`)
+
+            cy.get('[data-el="next-step"]').should('be.disabled')
+
+            // select remainder mandatory options
             cy.get('[data-form="project-type"]').contains('type1').click()
             cy.get('[data-form="project-template"]').contains('template1').click()
 
             cy.get('[data-el="node-red-listbox"]').click()
             cy.get('[data-option].ff-option').first().click()
 
-            cy.get('[data-el="next-step"]').click()
-
-            cy.get('[data-step="blueprint"]').should('exist')
-
-            cy.get('[data-el="next-step"]').click()
-
-            // checking that the createApp api call was preformed and the application was created
-            cy.wrap(null).then(() => {
-                expect(createAppCallCount).to.eq(1)
-            })
-
-            // should get redirected back to the instance step on failure
-            cy.get('[data-step="instance"]').should('exist')
-
-            cy.get('[data-el="instance-name-error"]').contains('name in use')
-
-            // add a diff in the name
-            cy.get('[data-el="instance-name"] input').type(`-${Math.random().toString(36).substring(2, 7)}`)
-
-            cy.get('[data-el="instance-name-error"]').should('not.exist')
+            cy.get('[data-el="next-step"]').should('not.be.disabled')
 
             cy.get('[data-el="next-step"]').click()
 
@@ -279,10 +285,8 @@ describe('FlowForge - Applications', () => {
 
             cy.get('[data-el="next-step"]').click()
 
-            // check that createApplication was NOT called a second time
-            cy.wrap(null).then(() => {
-                expect(createAppCallCount).to.eq(1)
-            })
+            // check that we've been redirected to the application instances page
+            cy.get('[data-el="cloud-instances"]').should('exist')
         })
     })
 
