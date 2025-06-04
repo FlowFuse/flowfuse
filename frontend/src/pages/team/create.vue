@@ -67,7 +67,7 @@
                         <p>To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
                     </div>
                     <ff-button @click="sendContact()">
-                        Talk to sales
+                        Talk to Sales
                     </ff-button>
                 </template>
             </form>
