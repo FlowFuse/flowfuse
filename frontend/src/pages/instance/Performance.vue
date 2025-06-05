@@ -218,13 +218,23 @@ export default {
                 data: this.filteredResources.map(res => {
                     // first responses might not contain relevant info
                     const cpu = res.cpu ?? 0
+                    const capGraph = (val) => {
+                        switch (true) {
+                        case val <= 0:
+                            return 0
+                        case val >= 150:
+                            return 150
+                        default:
+                            return val
+                        }
+                    }
 
                     if (this.instance.stack?.properties?.cpu) {
                         // scaling down to match stack cpu allocation
-                        return (cpu / this.instance.stack.properties.cpu) * 100
+                        return capGraph((cpu / this.instance.stack.properties.cpu) * 100)
                     }
 
-                    return cpu
+                    return capGraph(cpu)
                 })
             }
         },
