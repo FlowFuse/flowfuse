@@ -92,11 +92,13 @@
 
     <!-- Node-RED Version Form -->
     <ff-dialog
+        v-if="isChangeNrVersionModalOpen"
         ref="changeNrVersionDialog"
         header="Change Node-RED Version"
         data-el="change-nr-version-dialog"
         @confirm="changeNrVersion"
-        :disablePrimary="original.nodeRedVersion === input.nodeRedVersion"
+        @cancel="closeChangeNrDialog"
+        :disablePrimary="isNrVersionModalButtonDisabled"
     >
         <template #default>
             <FormRow containerClass="max-w-md" wrapperClass="max-w-md">
@@ -109,13 +111,19 @@
                         <ff-combobox
                             v-model="input.nodeRedVersion"
                             :options="nodeRedVersionOptions"
-                            :extend-search-keys="['description', 'user.username']"
                             :hasCustomValue="true"
                             custom-value-pre-label="Use"
                             placeholder="Select or type in a new NodeRED version"
                             data-form="nodered-select"
                             class="w-full"
                         />
+                        <span
+                            v-if="!hasValidCustomNodeRedVersion.status"
+                            class="ff-error-inline text-red-500"
+                            data-el="error-nr-version"
+                        >
+                            {{ hasValidCustomNodeRedVersion.message }}
+                        </span>
                     </div>
                 </template>
             </FormRow>
@@ -129,11 +137,12 @@ import { mapState } from 'vuex'
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
-import usePermissions from '../../../composables/Permissions.js'
 
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
+
+const semVer = require('semver')
 
 export default {
     name: 'DeviceSettings',
@@ -145,6 +154,7 @@ export default {
             editing: {
                 deviceName: false
             },
+            isChangeNrVersionModalOpen: false,
             input: {
                 deviceId: '',
                 deviceName: '',
@@ -184,6 +194,11 @@ export default {
             ]
         }
     },
+    setup () {
+        return {
+            semVer
+        }
+    },
     watch: {
         device: {
             handler () {
@@ -214,11 +229,14 @@ export default {
         notAssigned () {
             return !this.hasApplication && !this.hasInstance
         },
+        isNrVersionModalButtonDisabled () {
+            return this.original.nodeRedVersion === this.input.nodeRedVersion || !this.hasValidCustomNodeRedVersion.status
+        },
         nodeRedVersionOptions () {
             return [
                 {
                     label: 'Use Snapshot Node-RED Version',
-                    value: '<<snapshot-version>>'
+                    value: '<<use-snapshot-version>>'
                 },
                 {
                     label: 'Latest',
@@ -229,12 +247,35 @@ export default {
                     value
                 }))
             ]
+        },
+        hasValidCustomNodeRedVersion () {
+            const nodeRedVersion = (this.input.nodeRedVersion || '')
+            const validVersions = ['', 'latest', 'next', '<<use-snapshot-version>>', this.original.nodeRedVersion]
+
+            if (validVersions.includes(nodeRedVersion) || this.semVer.valid(nodeRedVersion)) {
+                return {
+                    status: true,
+                    message: ''
+                }
+            } else {
+                return {
+                    status: false,
+                    message: 'Invalid version'
+                }
+            }
         }
     },
     mounted () {
         this.fetchData()
     },
     methods: {
+        closeChangeNrDialog () {
+            this.$refs.changeNrVersionDialog.close()
+            this.$nextTick(() => {
+                this.isChangeNrVersionModalOpen = false
+                this.input.nodeRedVersion = this.original.nodeRedVersion
+            })
+        },
         editDevice () {
             this.original.deviceName = this.input.deviceName
             this.editing.deviceName = true
@@ -290,12 +331,15 @@ export default {
             this.$emit('assign-device')
         },
         showChangeNrDialog () {
-            this.$refs.changeNrVersionDialog.show()
+            this.isChangeNrVersionModalOpen = true
+            this.$nextTick(() => {
+                this.$refs.changeNrVersionDialog.show()
+            })
         },
         changeNrVersion () {
             const settings = {}
             let nodeRedVersion = (this.input.nodeRedVersion || '').trim() || undefined
-            if (nodeRedVersion === '<<snapshot-version>>') {
+            if (nodeRedVersion === '<<use-snapshot-version>>') {
                 nodeRedVersion = ''
             }
             settings.editor = {
