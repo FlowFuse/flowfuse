@@ -221,10 +221,10 @@ export default {
 
                     if (this.instance.stack?.properties?.cpu) {
                         // scaling down to match stack cpu allocation
-                        return (cpu / this.instance.stack.properties.cpu) * 100
+                        return this.capGraph((cpu / this.instance.stack.properties.cpu) * 100)
                     }
 
-                    return cpu
+                    return this.capGraph(cpu)
                 })
             }
         },
@@ -360,6 +360,16 @@ export default {
         onDataZoom (event) {
             this.zoom.start = event.start
             this.zoom.end = event.end
+        },
+        capGraph (val) {
+            switch (true) {
+            case val <= 0:
+                return 0
+            case val >= 150:
+                return 150
+            default:
+                return val
+            }
         }
     }
 }
