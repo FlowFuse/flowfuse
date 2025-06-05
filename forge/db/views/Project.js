@@ -261,6 +261,20 @@ module.exports = function (app) {
         }
     })
     function dashboardInstanceSummary (project) {
+        const settings = project.settings || {}
+
+        if (project.ProjectSettings[0]) {
+            const projectSettings = project.ProjectSettings[0]?.value
+
+            if (projectSettings.palette?.modules?.find(module => module.name === '@flowfuse/node-red-dashboard')) {
+                settings.dashboard2UI = '/dashboard'
+            }
+
+            if (Object.prototype.hasOwnProperty.call(projectSettings, 'disableEditor')) {
+                settings.disableEditor = projectSettings.disableEditor
+            }
+        }
+
         const result = {
             id: project.id,
             name: project.name,
@@ -271,7 +285,11 @@ module.exports = function (app) {
             application: app.db.views.Application.applicationSummary(project.Application),
             flowLastUpdatedAt: project.flowLastUpdatedAt,
             status: project.state,
-            settings: project.settings
+            settings
+        }
+
+        if (project.meta) {
+            result.meta = project.meta
         }
 
         return result

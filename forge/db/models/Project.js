@@ -577,6 +577,40 @@ module.exports = {
                             }
                         ]
                     })
+                },
+                byTeamForSearch: async (teamId, query) => {
+                    const queryObject = {
+                        include: [
+                            {
+                                model: M.Team,
+                                where: { id: teamId },
+                                attributes: ['hashid', 'id', 'name', 'slug']
+                            },
+                            {
+                                model: M.ProjectType,
+                                attributes: ['hashid', 'id', 'name']
+                            },
+                            {
+                                model: M.ProjectSettings,
+                                attributes: ['id', 'key', 'value', 'ProjectId'],
+                                where: { key: 'settings' }
+                            },
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id', 'name']
+                            }
+                        ],
+                        where: {
+                            [Op.or]: [
+                                where(
+                                    fn('lower', col('Project.name')),
+                                    { [Op.like]: `%${query.toLowerCase()}%` }
+                                )
+                            ]
+                        }
+                    }
+
+                    return this.findAll(queryObject)
                 }
             }
         }
