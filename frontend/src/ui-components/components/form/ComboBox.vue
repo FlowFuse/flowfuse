@@ -22,7 +22,7 @@
             >
                 <teleport to="body">
                     <ComboboxOptions
-                        v-if="open && filteredOptions.length"
+                        v-if="open && (filteredOptions.length || hasCustomValue)"
                         class="absolute ff-options"
                         data-el="options"
                         :style="{
@@ -32,17 +32,30 @@
                         }"
                     >
                         <ComboboxOption
+                            v-if="hasCustomValue && customValue"
+                            v-slot="{ active, selected }"
+                            :value="customValue"
+                            class="ff-option"
+                        >
+                            <slot name="option" :option="customValue" :selected="selected" :active="active">
+                                <div class="ff-option-content" :class="{ selected, active }">
+                                    {{ customValuePreLabel }} "{{ query }}"
+                                </div>
+                            </slot>
+                        </ComboboxOption>
+                        <ComboboxOption
                             v-for="option in filteredOptions"
                             v-slot="{ active, selected }"
                             :key="option[valueKey]"
                             :value="option"
+                            :data-option="option[labelKey]"
                             class="ff-option"
                         >
-                            <li>
+                            <slot name="option" :option="option" :selected="selected" :active="active">
                                 <div class="ff-option-content" :class="{ selected, active }">
                                     {{ option[labelKey] }}
                                 </div>
-                            </li>
+                            </slot>
                         </ComboboxOption>
                     </ComboboxOptions>
                 </teleport>
@@ -103,6 +116,23 @@ export default {
         returnModel: {
             type: Boolean,
             default: false
+        },
+        extendSearchKeys: {
+            // Additional keys to search through in the provided options, e.g. ['otherKey', 'other.nested.key'].
+            // By default, the search is performed on the value of `this.labelKey`, which defaults to 'label'.
+            type: Array,
+            default: () => ([]),
+            required: false
+        },
+        hasCustomValue: {
+            required: false,
+            type: Boolean,
+            default: false
+        },
+        customValuePreLabel: {
+            required: false,
+            type: String,
+            default: 'Create'
         }
     },
     emits: ['update:modelValue'],
@@ -139,21 +169,38 @@ export default {
         filteredOptions () {
             // Convert primitive or mixed options into a consistent object format
             const normalize = opt => ({
+                ...opt,
                 [this.labelKey]: opt?.[this.labelKey] ?? opt,
                 [this.valueKey]: opt?.[this.valueKey] ?? opt,
                 unavailable: opt.unavailable || opt.disabled || false
             })
 
             const query = this.query?.toLowerCase()
+            if (!query) return this.options.map(normalize)
+
+            // Helper function to retrieve a nested value from an object using a dot-separated path.
+            // Parameters:
+            // - obj: The object to traverse.
+            // - path: A string representing the dot-separated keys (e.g., "key1.key2.key3").
+            // Returns: The value at the specified path, or undefined if any key in the path is missing.
+            const getNestedValue = (obj, path) => {
+                return path.split('.').reduce((acc, key) => acc?.[key], obj)
+            }
 
             return this.options
                 .filter(opt => {
-                    if (!query) return true
-
                     const label = opt?.[this.labelKey]?.toString().toLowerCase() ?? opt.toString().toLowerCase()
-                    return label.includes(query)
+                    if (label.includes(query)) return true
+
+                    return this.extendSearchKeys.some(key => {
+                        const val = getNestedValue(opt, key)
+                        return typeof val === 'string' && val.toLowerCase().includes(query)
+                    })
                 })
                 .map(normalize)
+        },
+        customValue () {
+            return this.query === '' ? null : { [this.valueKey]: null, [this.labelKey]: this.query }
         }
     },
     methods: {
