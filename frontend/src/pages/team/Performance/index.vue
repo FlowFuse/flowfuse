@@ -35,7 +35,7 @@
                     <ff-data-table
                         data-el="instances-table" :columns="columns" :rows="rows"
                         :show-search="true" search-placeholder="Search Hosted Instances..."
-                        :rows-selectable="true" initialSortKey="cpuUtilization" initialSortOrder="desc"
+                        :rows-selectable="true" initialSortKey="status" initialSortOrder="asc"
                         @row-selected="openInstance"
                     />
                 </div>
@@ -119,7 +119,8 @@ export default {
                         is: markRaw(CPUUtilizationCell)
                     }
                 }
-            ]
+            ],
+            webSockets: []
         }
     },
     computed: {
@@ -129,10 +130,10 @@ export default {
                 instanceId: instance.id,
                 name: instance.name,
                 status: instance.status,
-                connected: instance.performance?.connected,
+                connected: !!instance.performance?.connected,
                 error: instance.performance?.error,
                 cpuUtilization: instance.performance?.cpuUtilization,
-                featureSupported: instance.performance?.featureSupported
+                featureSupported: !!instance.performance?.featureSupported
             }))
         },
         hasInstances () {
@@ -144,6 +145,16 @@ export default {
             this.loadInstances()
         }
     },
+    beforeUnmount () {
+        this.webSockets.forEach(ws => {
+            try {
+                ws.close()
+            } catch (_) {
+                // Ignore errors when closing websockets
+            }
+        })
+        this.webSockets = []
+    },
     methods: {
         loadInstances () {
             this.loading = true
@@ -151,7 +162,9 @@ export default {
                 .then(res => {
                     this.instances = res.projects
                     this.instances.forEach(instance => {
-                        this.connectToLiveData(instance)
+                        if (instance.status === 'running') {
+                            this.connectToLiveData(instance)
+                        }
                     })
                 })
                 .catch(e => e)
@@ -202,6 +215,7 @@ export default {
                     instance.performance.featureSupported = false
                 }
             })
+            this.webSockets.push(ws)
         }
     }
 }

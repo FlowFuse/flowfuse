@@ -17,6 +17,11 @@
             <label class="ff-cpu-bar--label">{{ formattedCPUUtilization }}%</label>
         </div>
     </div>
+    <div v-else-if="status !== 'running'">
+        <div class="text-sm text-gray-500">
+            Live data unavailable
+        </div>
+    </div>
     <div v-else class="text-sm text-gray-500">
         Live data view not supported for this instance. Please upgrade the Instance's Node-RED version.
     </div>
@@ -28,6 +33,10 @@ export default {
     name: 'CPUUtilizationCell',
     props: {
         instanceId: {
+            type: String,
+            required: true
+        },
+        status: {
             type: String,
             required: true
         },
