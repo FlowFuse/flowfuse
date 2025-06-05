@@ -1,3 +1,46 @@
+#### 2.18.0: Release
+
+ - Bump docker/build-push-action from 6.17.0 to 6.18.0 (#5568)
+ - Bump cypress-io/github-action from 6.9.2 to 6.10.0 (#5567)
+ - Bump codecov/codecov-action from 5.4.2 to 5.4.3 (#5547)
+ - Bump aws-actions/configure-aws-credentials from 4.2.0 to 4.2.1 (#5546)
+ - Bump cypress-io/github-action from 6.9.0 to 6.9.2 (#5545)
+ - Bump docker/build-push-action from 6.16.0 to 6.17.0 (#5544)
+ - Bump aws-actions/configure-aws-credentials from 4.1.0 to 4.2.0 (#5532)
+ - Update references to helm chart to new name (#5522)
+ - Cap instance performance graph (#5588) @cstns
+ - Team Performance UI (#5555) @joepavitt
+ - Align the create team enterprise form with the billing upgrade form (#5539) @cstns
+ - Fix Broker page overflows and remove the topic inspector load more button (#5576) @cstns
+ - Add transaction ID mismatch check in assistant API response (#5581) @Steve-Mcl
+ - Project name check (#5542) @hardillb
+ - Alter the ComboBox to support custom values (#5585) @cstns
+ - Ensure Blueprint import uses default URL (#5584) @hardillb
+ - Fix the Change Team Type page alignment (#5582) @cstns
+ - Disable blueprint import in e2e tests to avoid clash (#5574) @knolleary
+ - Blueprint auto import (#5519) @hardillb
+ - Enable `instanceResources` and `gitIntegration` on pre-staging (#5572) @ppawlowski
+ - Allow blank filename for git stages that are not the first (#5566) @knolleary
+ - Bump tar-fs from 2.1.2 to 2.1.3 (#5569) @app/dependabot
+ - Add CPU/Memory Usage API endpoint and Stub Driver (#5528) @hardillb
+ - Add more context to the snapshot selector in the pipeline stages (#5517) @cstns
+ - Add support for Git Pull in pipeline (#5558) @knolleary
+ - ci: Ensure NR instances have unique names across all pre-staging environments (#5563) @ppawlowski
+ - UI: Ensure Node-RED Logs render at full width (#5564) @joepavitt
+ - Update license loader to handle licenseId field (#5562) @knolleary
+ - Add initial copilot instructions for project setup and guidelines (#5560) @Steve-Mcl
+ - docs: Update self-hosted on aws with terraform docs (#5557) @ppawlowski
+ - Fix permitting reselection of device/instance/group when editing (#5552) @Steve-Mcl
+ - Remove redundant devices call from the applications page (#5541) @cstns
+ - Full Height Pages (#5345) @cstns
+ - Scroll the side menu when needed (#5516) @cstns
+ - Remove extra info logging when running unused devices housekeeper task (#5534) @Steve-Mcl
+ - Email reminder for unused devices (#5513) @Steve-Mcl
+ - Ensure SSO managed memberships cannot be modified (#5531) @knolleary
+ - Improve the grid layout of the Blueprint tiles (#5530) @joepavitt
+ - Fix broken link (#5521) @hardillb
+ - Highlight search matches when filtering broker topics (#5518) @cstns
+
 #### 2.17.0: Release
 
  - Bump cypress-io/github-action from 6.7.16 to 6.9.0 (#5500)
