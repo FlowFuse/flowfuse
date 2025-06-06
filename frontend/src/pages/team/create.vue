@@ -9,8 +9,8 @@
         </template>
         <ff-loading v-if="redirecting" message="Redirecting to Stripe..." />
         <ff-loading v-else-if="loading" message="Creating Team..." />
-        <div v-else class="m-auto max-w-5xl" :class="presetTeamType ? 'flex flex-col gap-4 sm:flex-row sm:gap-0' : 'space-y-6 max-w-4xl m-auto'">
-            <div v-if="presetTeamType" class="w-full max-w-lg">
+        <div v-else :class="presetTeamType ? 'flex flex-col gap-4 sm:flex-row sm:gap-0' : 'space-y-6 mb-5'">
+            <div v-if="presetTeamType" class="w-full">
                 <team-type-tile class="m-auto" :team-type="presetTeamType" :enableCTA="false" />
             </div>
             <form>
@@ -67,7 +67,7 @@
                         <p>To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
                     </div>
                     <ff-button @click="sendContact()">
-                        Contact Sales
+                        Talk to Sales
                     </ff-button>
                 </template>
             </form>
@@ -79,18 +79,22 @@
 import { ChevronLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
-import billingApi from '../../api/billing.js'
 import teamApi from '../../api/team.js'
 import teamTypesApi from '../../api/teamTypes.js'
 import teamsApi from '../../api/teams.js'
 import FormRow from '../../components/FormRow.vue'
 
 import TeamTypeTile from '../../components/TeamTypeTile.vue'
-import Alerts from '../../services/alerts.js'
+import { useHubspotHelper } from '../../composables/Hubspot.js'
 import slugify from '../../utils/slugify.js'
 
 export default {
     name: 'CreateTeam',
+    setup () {
+        const { talkToSalesCalendarModal } = useHubspotHelper()
+
+        return { talkToSalesCalendarModal }
+    },
     data () {
         return {
             mounted: false,
@@ -255,15 +259,7 @@ export default {
             }, 200)
         },
         sendContact: async function () {
-            if (this.input.teamType) {
-                billingApi.sendTeamTypeContact(this.user, this.input.teamType, 'Create Team').then(() => {
-                    this.$router.go(-1)
-                    Alerts.emit('Thanks for getting in touch. We will contact you soon regarding your request.', 'info', 15000)
-                }).catch(err => {
-                    Alerts.emit('Something went wrong with the request. Please try again or contact support for help.', 'info', 15000)
-                    console.error('Failed to submit hubspot form: ', err)
-                })
-            }
+            this.talkToSalesCalendarModal(this.user)
         }
     },
     components: {

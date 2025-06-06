@@ -14,6 +14,7 @@ import LibraryRoutes from './Library/routes.js'
 import TeamMembersMembers from './Members/General.vue'
 import TeamMembersInvitations from './Members/Invitations.vue'
 import TeamMembers from './Members/index.vue'
+import TeamPerformance from './Performance/index.vue'
 import TeamPipelines from './Pipelines/index.vue'
 import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
@@ -197,6 +198,14 @@ export default [
                         component: DeviceGroups,
                         meta: {
                             title: 'Team - Groups'
+                        }
+                    },
+                    {
+                        name: 'team-performance',
+                        path: 'performance',
+                        component: TeamPerformance,
+                        meta: {
+                            title: 'Team - Performance'
                         }
                     }
                 ]
