@@ -269,6 +269,37 @@ module.exports = async function (app) {
         })
     })
 
+    if (app.config.blueprintImport?.export) {
+        app.get('/export-public', {
+            config: {
+                allowAnonymous: true
+            },
+            schema: {
+                summary: 'Export one or more Blueprints',
+                tags: ['Flow Blueprints'],
+                response: {
+                    200: {
+                        type: 'object',
+                        allOf: [{ $ref: 'FlowBlueprintExport' }],
+                        properties: {
+                            count: { type: 'integer' }
+                        }
+                    },
+                    '4xx': {
+                        $ref: 'APIError'
+                    }
+                }
+            }
+        }, async (request, reply) => {
+            const flowTemplates = await app.db.models.FlowTemplate.getAll({}, { active: true })
+            const modified = flowTemplates.templates.map(bp => app.db.views.FlowTemplate.flowBlueprintExport(bp, true))
+            reply.send({
+                blueprints: modified,
+                count: flowTemplates.templates.length
+            })
+        })
+    }
+
     app.post('/import', {
         preHandler: app.needsPermission('flow-blueprint:create'),
         schema: {

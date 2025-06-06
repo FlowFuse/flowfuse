@@ -31,6 +31,20 @@
                         />
                     </template>
                 </InfoCardRow>
+                <InfoCardRow v-if="nrLocalLoginOptionPossible" property="Node-RED Local Login:">
+                    <template #value>
+                        <div class="flex items-center space-x-2">
+                            <StatusBadge
+                                :status="nrLocalLoginEnabled ? 'error' : 'success'"
+                                :text="nrLocalLoginEnabled ? 'enabled' : 'disabled'"
+                                v-ff-tooltip="nrLocalLoginEnabledWarning"
+                            />
+                            <router-link to="settings/security" class="flex items-center">
+                                <CogIcon class="w-5 h-5 text-gray-500" />
+                            </router-link>
+                        </div>
+                    </template>
+                </InfoCardRow>
             </template>
         </InfoCard>
         <InfoCard header="Deployment:">
@@ -108,7 +122,7 @@
 <script>
 
 // utilities
-import { CheckCircleIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, CogIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
 
 // api
 import semver from 'semver'
@@ -128,6 +142,7 @@ export default {
     props: ['device'],
     components: {
         CheckCircleIcon,
+        CogIcon,
         ExclamationIcon,
         WifiIcon,
         InfoCard,
@@ -154,6 +169,14 @@ export default {
         deviceOwnerType: function () {
             return this.device?.ownerType || ''
         },
+        nrLocalLoginEnabled: function () {
+            return this.nrLocalLoginOptionPossible && this.device?.localLoginEnabled
+        },
+        nrLocalLoginOptionPossible: function () {
+            // support for local login was added in 3.2.0
+            // and is only available for application devices
+            return this.deviceOwnerType === 'application' && semver.gte(this.device.agentVersion, '3.2.0')
+        },
         agentVersionWarning: function () {
             if (this.deviceOwnerType === 'application') {
                 if (this.device?.agentVersion && semver.gte(this.device.agentVersion, '1.15.0')) {
@@ -162,6 +185,15 @@ export default {
                 return 'Devices assigned to an application must be version 1.15 or greater in order to receive snapshots and updates'
             }
             return ''
+        },
+        nrLocalLoginEnabledWarning: function () {
+            if (!this.nrLocalLoginOptionPossible) {
+                return ''
+            }
+            if (this.nrLocalLoginEnabled) {
+                return 'Local login is enabled. Users can edit the remote instance flows without using FlowFuse. This is not recommended.'
+            }
+            return 'Local login is disabled. Users must use FlowFuse to edit the remote instance flows. This is the recommended setting.'
         },
         nrVersionWarning: function () {
             if (!this.device?.nrVersion) {

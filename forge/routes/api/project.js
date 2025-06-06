@@ -1188,6 +1188,88 @@ module.exports = async function (app) {
     })
 
     /**
+     *
+     * @name /api/v1/projects/check-name
+     * @memberof forge.routes.api.project
+     */
+    app.post('/check-name', {
+        preHandler: async (request, reply) => {
+            if (request.session.User) {
+                const teams = await request.session.User.getTeams()
+                if (teams.length > 0) {
+                    for (const team of teams) {
+                        const teamMembership = await request.session.User.getTeamMembership(team.id)
+                        if (teamMembership && teamMembership.role === Roles.Owner) {
+                            return
+                        }
+                    }
+                    reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+                    throw new Error()
+                } else {
+                    reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+                    throw new Error()
+                }
+            } else {
+                reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
+                throw new Error()
+            }
+        },
+        config: {
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 5,
+                    timeWindow: 30000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
+        },
+        schema: {
+            summary: 'Check if a project name is available',
+            tags: ['Instances'],
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        available: { type: 'boolean' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const name = request.body.name
+        if (!name) {
+            reply.code(400).send({ code: 'invalid_name', error: 'Invalid name' })
+            return
+        }
+        const safeName = name.trim().toLowerCase()
+        if (app.db.models.Project.BANNED_NAME_LIST.includes(safeName)) {
+            reply.code(409).send({ code: 'invalid_project_name', error: 'name not allowed' })
+            return
+        }
+
+        if (/^[a-zA-Z][a-zA-Z0-9-]*$/.test(safeName) === false) {
+            reply.code(409).send({ code: 'invalid_project_name', error: 'name not allowed' })
+            return
+        }
+
+        if (await app.db.models.Project.isNameUsed(safeName)) {
+            reply.code(409).send({ code: 'invalid_project_name', error: 'name in use' })
+            return
+        }
+        reply.send({ available: true })
+    })
+
+    /**
      * Merge env vars from 2 arrays.
      *
      * NOTE: When a var is found in both, currentVars will take precedence

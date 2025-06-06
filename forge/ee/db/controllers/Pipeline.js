@@ -9,7 +9,49 @@ class PipelineControllerError extends ControllerError {
 }
 
 module.exports = {
+    deletePipelineStage: async function (app, pipeline, stageId) {
+        /** @type {import('../../../lib/pipelineValidation').validateStages} */
+        const validateStages = app.db.models.PipelineStage.validateStages
+        const stage = await app.db.models.PipelineStage.byId(stageId)
+        if (!stage) {
+            throw new PipelineControllerError('not_found', 'Pipeline stage not found', 404)
+        }
+        if (stage.PipelineId !== pipeline.id) {
+            throw new PipelineControllerError('not_found', 'Pipeline stage not found', 404)
+        }
 
+        // NOTE: validation is mostly taken care of in the model layer (see models PipelineStage validate methods)
+        // however since we are destroying a stage (not adding/modifying), we need to explicitly validate the pipeline this time
+
+        const transaction = await app.db.sequelize.transaction()
+        try {
+            // Check if the stage is the first stage in the pipeline
+            const stages = await pipeline.stages()
+            const orderedStages = app.db.models.PipelineStage.sortStages(stages)
+            // Update the previous stage to point to the next stage when this model is deleted
+            // e.g. A -> B -> C to A -> C when B is deleted
+            const previousStage = orderedStages.find(s => s.NextStageId === stage.id)
+            // remap nextid to the next stage id
+            if (previousStage) {
+                previousStage.NextStageId = stage.NextStageId ?? null
+            }
+
+            const orderedStagesProposed = orderedStages.filter(s => s.id !== stage.id)
+            if (orderedStagesProposed.length > 0) {
+                validateStages(orderedStagesProposed) // will throw if invalid
+            }
+
+            if (previousStage) {
+                await previousStage.save({ transaction })
+            }
+            await stage.destroy({ transaction })
+            await transaction.commit()
+        } catch (err) {
+            // Rollback transaction if it exists
+            await transaction.rollback()
+            throw new PipelineControllerError('invalid_input', err.message, err.statusCode || 400, { cause: err })
+        }
+    },
     /**
      * Update a pipeline stage
      * @param {*} app The application instance
@@ -89,17 +131,6 @@ module.exports = {
                     }
                 }
             } else if (options.gitTokenId) {
-                if (orderedStages.length === 0) {
-                    // this should never be reached but here for completeness
-                    throw new PipelineControllerError('invalid_input', 'A Git Repository cannot be the first stage', 400)
-                }
-                // if the first stage is the same as the stage being updated, then it's the first stage
-                if (firstStage && firstStage.id === stage.id) {
-                    throw new PipelineControllerError('invalid_input', 'A Git Repository cannot be the first stage', 400)
-                }
-                if (laterStages && laterStages.length) {
-                    throw new PipelineControllerError('invalid_input', 'This stage cannot be a Git Repository as it is not the last stage', 400)
-                }
                 // TODO: code duplication between here and the create path to validate ownership of the gitToken
                 const gitTokenId = app.db.models.GitToken.decodeHashid(options.gitTokenId)
                 let gitToken
@@ -273,12 +304,6 @@ module.exports = {
             }
         }
 
-        if (options.gitTokenId) {
-            if (stages.length === 0) {
-                throw new PipelineControllerError('invalid_input', 'A Git Repository cannot be the first stage', 400)
-            }
-        }
-
         const transaction = await app.db.sequelize.transaction()
         try {
             const stage = await app.db.models.PipelineStage.create(options, { transaction })
@@ -327,9 +352,10 @@ module.exports = {
         const sourceInstances = await sourceStage.getInstances()
         const sourceDevices = await sourceStage.getDevices()
         const sourceDeviceGroups = await sourceStage.getDeviceGroups()
-        const totalSources = sourceInstances.length + sourceDevices.length + sourceDeviceGroups.length
+        const sourceGitRepo = await sourceStage.getPipelineStageGitRepo()
+        const totalSources = sourceInstances.length + sourceDevices.length + sourceDeviceGroups.length + (sourceGitRepo ? 1 : 0)
         if (totalSources === 0) {
-            throw new PipelineControllerError('invalid_stage', 'Source stage must have at least one instance or device', 400)
+            throw new PipelineControllerError('invalid_stage', 'Source stage must have at least one instance, device, device group or git repo', 400)
         }
         if (totalSources > 1) {
             throw new PipelineControllerError('invalid_stage', 'Deployments are currently only supported for source stages with a single instance or device', 400)
@@ -360,12 +386,17 @@ module.exports = {
         const targetObject = targetInstance || targetDevice || targetDeviceGroup
 
         const sourceType = sourceInstance ? 'instance' : (sourceDevice ? 'device' : (sourceDeviceGroup ? 'device group' : ''))
-        const sourceApplication = await app.db.models.Application.byId(sourceObject.ApplicationId)
-        if (!sourceApplication) {
-            throw new PipelineControllerError('invalid_stage', `Source ${sourceType} must be associated with an application`, 400)
+
+        let sourceApplication
+        // Anything but a git repo must be associated with an application
+        if (sourceObject) {
+            sourceApplication = await app.db.models.Application.byId(sourceObject.ApplicationId)
+            if (!sourceApplication) {
+                throw new PipelineControllerError('invalid_stage', `Source ${sourceType} must be associated with an application`, 400)
+            }
         }
 
-        if (targetObject) {
+        if (sourceObject && targetObject) {
             // Only applies for instance/device/device group targets
             const targetType = targetInstance ? 'instance' : (targetDevice ? 'device' : (targetDeviceGroup ? 'device group' : ''))
             const targetApplication = await app.db.models.Application.byId(targetObject.ApplicationId)
@@ -387,6 +418,7 @@ module.exports = {
             targetDevice,
             sourceDeviceGroup,
             targetDeviceGroup,
+            sourceGitRepo,
             targetGitRepo,
             targetStage
         }

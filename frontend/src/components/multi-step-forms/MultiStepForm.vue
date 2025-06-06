@@ -23,6 +23,7 @@
                     v-bind="currentStep.bindings"
                     v-model="payload"
                     @step-updated="$emit('step-updated', $event, currentStepKey)"
+                    @go-to-step="selectStep"
                 />
             </transition>
         </section>

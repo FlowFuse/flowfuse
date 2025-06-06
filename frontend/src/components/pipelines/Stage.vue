@@ -132,11 +132,23 @@
             <template v-if="stage.stageType == StageType.GITREPO">
                 <div class="ff-pipeline-stage-row">
                     <label>Branch:</label>
-                    <span>{{ stage.gitRepo?.branch || 'main' }}</span>
+                    <div>
+                        <template v-if="!stage.gitRepo?.pullBranch || stage.gitRepo?.pullBranch === stage.gitRepo?.branch">
+                            <div>{{ stage.gitRepo?.branch || 'main' }}</div>
+                        </template>
+                        <template v-else>
+                            <div>{{ stage.gitRepo?.branch || 'main' }} (push)</div>
+                            <div>{{ stage.gitRepo?.pullBranch || 'main' }} (pull)</div>
+                        </template>
+                    </div>
                 </div>
-                <div class="ff-pipeline-stage-row">
+                <div v-if="!isFirstStage" class="ff-pipeline-stage-row">
                     <label>Last Pushed:</label>
                     <span v-ff-tooltip="stage.state?.lastPushAt || stage.gitRepo?.lastPushAt ||'Never'">{{ (stage.state?.lastPushAt || stage.gitRepo?.lastPushAt) ? daysSince((stage.state?.lastPushAt || stage.gitRepo?.lastPushAt)) : 'Never' }}</span>
+                </div>
+                <div class="ff-pipeline-stage-row">
+                    <label>Last Pulled:</label>
+                    <span v-ff-tooltip="stage.state?.lastPullAt || stage.gitRepo?.lastPullAt ||'Never'">{{ (stage.state?.lastPullAt || stage.gitRepo?.lastPullAt) ? daysSince((stage.state?.lastPullAt || stage.gitRepo?.lastPullAt)) : 'Never' }}</span>
                 </div>
                 <div v-if="stage.state?.status" class="ff-pipeline-stage-row">
                     <label>Status:</label>
@@ -148,7 +160,7 @@
                 </div>
             </template>
 
-            <div v-if="playEnabled" class="ff-pipeline-stage-row">
+            <div v-if="playEnabled && stage.stageType !== StageType.GITREPO" class="ff-pipeline-stage-row">
                 <label>Deploy Action:</label>
                 <span>
                     <template v-if="stage.stageType === StageType.DEVICEGROUP">
@@ -201,6 +213,7 @@ import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
 import daysSince from '../../utils/daysSince.js'
+import pipelineValidation from '../../utils/pipelineValidation.js'
 
 import IconDeviceGroupSolid from '../icons/DeviceGroupSolid.js'
 import IconDeviceSolid from '../icons/DeviceSolid.js'
@@ -257,6 +270,9 @@ export default {
         return { hasPermission }
     },
     computed: {
+        isFirstStage () {
+            return this.stageIndex === 0
+        },
         stageIndex () {
             return this.pipeline.stages.indexOf(this.stage)
         },
@@ -323,7 +339,6 @@ export default {
                 await PipelineAPI.deployPipelineStage(this.pipeline.id, this.stage.id, sourceSnapshot?.id)
             } catch (error) {
                 this.$emit('stage-deploy-failed')
-
                 if (error.response?.data?.error) {
                     return Alerts.emit(error.response.data.error, 'warning')
                 }
@@ -359,6 +374,23 @@ export default {
         },
 
         deleteStage () {
+            try {
+                // client-side validation of pipeline stages before hitting the API
+                const orderedStages = [...this.pipeline.stages]
+                // Update the previous stage to point to the next stage when this model is deleted
+                // e.g. A -> B -> C to A -> C when B is deleted
+                const previousStage = orderedStages.find(s => s.NextStageId === this.stage.id)
+                // remap nextid to the next stage id
+                if (previousStage) {
+                    previousStage.NextStageId = this.stage.NextStageId ?? null
+                }
+                const orderedStagesProposed = orderedStages.filter(s => s.id !== this.stage.id)
+                pipelineValidation.validateStages(orderedStagesProposed)
+            } catch (error) {
+                Alerts.emit(error.message, 'warning')
+                return
+            }
+
             const msg = {
                 header: 'Delete Pipeline Stage',
                 kind: 'danger',
