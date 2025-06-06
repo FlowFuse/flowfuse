@@ -1,7 +1,7 @@
 <template>
     <ff-page>
         <ff-loading v-if="loading" message="Updating Team..." />
-        <div v-else class="m-auto">
+        <div v-else>
             <form class="space-y-6">
                 <div>
                     <FormHeading>Change your team type</FormHeading>
@@ -61,7 +61,7 @@
                         </template>
                         <template v-else>
                             <ff-button :disabled="!formValid" data-action="contact-sales" @click="sendContact()">
-                                Contact Sales
+                                Talk to sales
                             </ff-button>
                         </template>
                         <ff-button kind="secondary" data-action="cancel-change-team-type" @click="$router.back()">
@@ -83,14 +83,21 @@ import instanceTypesApi from '../../api/instanceTypes.js'
 import teamApi from '../../api/team.js'
 import teamTypesApi from '../../api/teamTypes.js'
 import FormHeading from '../../components/FormHeading.vue'
+import { useHubspotHelper } from '../../composables/Hubspot.js'
 
 import Alerts from '../../services/alerts.js'
 import Product from '../../services/product.js'
 
+// eslint-disable-next-line vue/one-component-per-file
 export default {
     name: 'ChangeTeamType',
     components: {
         FormHeading
+    },
+    setup () {
+        const { talkToSalesCalendarModal } = useHubspotHelper()
+
+        return { talkToSalesCalendarModal }
     },
     data () {
         return {
@@ -303,15 +310,7 @@ export default {
             }
         },
         sendContact: async function () {
-            if (this.input.teamType) {
-                billingApi.sendTeamTypeContact(this.user, this.input.teamType, 'Team: ' + this.team.name).then(() => {
-                    this.$router.push({ name: 'Team', params: { team_slug: this.team.slug } })
-                    Alerts.emit('Thanks for getting in touch. We will contact you soon regarding your request.', 'info', 15000)
-                }).catch(err => {
-                    Alerts.emit('Something went wrong with the request. Please try again or contact support for help.', 'info', 15000)
-                    console.error('Failed to submit hubspot form: ', err)
-                })
-            }
+            this.talkToSalesCalendarModal(this.user)
         }
     }
 }

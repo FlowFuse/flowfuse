@@ -23,31 +23,42 @@ describe('FlowForge - Applications', () => {
                 cy.intercept('POST', '/api/*/applications').as('createApplication')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
                 cy.intercept('GET', '/api/*/stacks*').as('loadStacks')
-                cy.get('[data-action="create-project"]').should('be.disabled')
+                cy.get('[data-el="next-step"]').should('be.disabled')
 
                 cy.get('[data-form="application-name"] input').clear()
                 cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
-                cy.get('[data-form="application-description"] input').clear()
-                cy.get('[data-form="application-description"] input').type(APPLICATION_DESCRIPTION)
+                cy.get('[data-form="application-description"] textarea').clear()
+                cy.get('[data-form="application-description"] textarea').type(APPLICATION_DESCRIPTION)
+
+                cy.get('[data-el="next-step"]').should('be.enabled')
+                cy.get('[data-el="next-step"]').click()
 
                 // Pre-fills name
-                cy.get('[data-form="project-name"] input').should(($input) => {
+                cy.get('[data-el="instance-name"] input').should(($input) => {
                     const projectName = $input.val()
                     expect(projectName.length).to.be.above(0)
                 })
 
-                cy.get('[data-form="project-name"] input').clear()
-                cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
-                cy.get('[data-action="create-project"]').should('be.disabled')
+                cy.get('[data-el="instance-name"] input').clear()
+                cy.get('[data-el="instance-name"] input').type(INSTANCE_NAME)
+                cy.get('[data-el="next-step"]').should('be.disabled')
 
                 cy.get('[data-form="project-type"]').contains('type1').click()
-                cy.get('[data-action="create-project"]').should('not.be.disabled') // stack is auto selected
+                cy.get('[data-form="project-template"]').contains('template1').click()
+
+                cy.get('[data-el="next-step"]').should('be.disabled')
 
                 cy.wait('@loadStacks')
 
-                cy.get('[data-form="project-template"]').should('exist') // template section visible for create
+                cy.get('[data-form="project-template"]').should('exist')
 
-                cy.get('[data-action="create-project"]').should('not.be.disabled').click()
+                cy.get('[data-el="next-step"]').should('be.disabled')
+
+                cy.get('[data-el="node-red-listbox"]').click()
+                cy.get('[data-option].ff-option').first().click()
+
+                cy.get('[data-el="next-step"]').should('be.enabled')
+                cy.get('[data-el="next-step"]').click()
 
                 cy.wait('@createApplication')
                 cy.wait('@createInstance')
@@ -55,7 +66,7 @@ describe('FlowForge - Applications', () => {
                 cy.contains(APPLICATION_NAME)
                 cy.contains(INSTANCE_NAME)
 
-                cy.url().should('include', '/instance/')
+                cy.url().should('include', '/applications/')
 
                 // now navigate to the Applications view and check the description is present alongside the application name
                 cy.visit(`/team/${team.slug}/applications`)
@@ -65,7 +76,7 @@ describe('FlowForge - Applications', () => {
             })
         })
 
-        it('without error', () => {
+        it('without an instance', () => {
             const ID = Math.random().toString(36).substring(2, 7)
             const APPLICATION_NAME = `new-application-${ID}`
             const APPLICATION_DESCRIPTION = `new-description-${ID}`
@@ -78,20 +89,28 @@ describe('FlowForge - Applications', () => {
                 cy.intercept('POST', '/api/*/applications').as('createApplication')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
                 cy.intercept('GET', '/api/*/stacks*').as('loadStacks')
-                cy.get('[data-action="create-project"]').should('be.disabled')
-
-                cy.get('[data-form="project-name"] input').should('be.visible')
-
-                cy.get('[data-form="create-instance"] span.checkbox').click()
-
-                cy.get('[data-form="project-name"] input').should('not.exist')
+                cy.get('[data-el="next-step"]').should('be.disabled')
+                cy.get('[data-el="next-step"]').should('contain', 'Next')
 
                 cy.get('[data-form="application-name"] input').clear()
                 cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
-                cy.get('[data-form="application-description"] input').clear()
-                cy.get('[data-form="application-description"] input').type(APPLICATION_DESCRIPTION)
+                cy.get('[data-form="application-description"] textarea').clear()
+                cy.get('[data-form="application-description"] textarea').type(APPLICATION_DESCRIPTION)
 
-                cy.get('[data-action="create-project"]').should('be.enabled').click()
+                cy.get('[data-el="slider-step"]').should('have.length', 2)
+                cy.get('[data-el="slider-title"]').should('to.contain', 'Application')
+                cy.get('[data-el="slider-title"]').should('to.contain', 'Instance')
+
+                cy.get('[data-form="create-instance"] span.checkbox').click()
+
+                cy.get('[data-el="slider-step"]').should('have.length', 1)
+                cy.get('[data-el="slider-title"]').should('to.contain', 'Application')
+
+                cy.get('[data-el="next-step"]').should('be.enabled')
+                cy.get('[data-el="next-step"]').should('contain', 'Create Application')
+
+                cy.get('[data-el="next-step"]').should('be.enabled')
+                cy.get('[data-el="next-step"]').click()
 
                 cy.wait('@createApplication')
 
@@ -103,8 +122,9 @@ describe('FlowForge - Applications', () => {
 
         it('handles instance creation failing gracefully', () => {
             const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
-            const IN_USE_INSTANCE_NAME = 'instance-1-1'
+            const IN_USE_INSTANCE_NAME = 'instance-1-9'
             const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
+            let supposedToFail = true
 
             cy.request('GET', 'api/v1/teams').then((response) => {
                 const team = response.body.teams[0]
@@ -112,28 +132,55 @@ describe('FlowForge - Applications', () => {
                 cy.visit(`/team/${team.slug}/applications/create`)
 
                 cy.intercept('POST', '/api/*/applications').as('createApplication')
-                cy.intercept('POST', '/api/*/projects').as('createInstance')
+                cy.intercept('POST', '/api/*/projects', req => {
+                    if (supposedToFail) {
+                        supposedToFail = false
+                        return req.reply({
+                            statusCode: 400,
+                            body: { code: 'unexpected_error', error: 'Something happened!' }
+                        })
+                    } else req.continue()
+                }).as('createInstance')
 
-                cy.get('[data-action="create-project"]').should('be.disabled')
+                cy.get('[data-el="next-step"]').should('be.disabled')
 
                 cy.get('[data-form="application-name"] input').clear()
                 cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
 
-                cy.get('[data-form="project-name"] input').clear()
-                cy.get('[data-form="project-name"] input').type(IN_USE_INSTANCE_NAME)
+                cy.get('[data-el="next-step"]').should('be.enabled')
+                cy.get('[data-el="next-step"]').should('contain', 'Next')
+
+                cy.get('[data-el="next-step"]').click()
+
+                cy.get('[data-el="instance-name"] input').clear()
+                cy.get('[data-el="instance-name"] input').type(IN_USE_INSTANCE_NAME)
 
                 cy.get('[data-form="project-type"]').contains('type1').click()
-                cy.get('[data-action="create-project"]').click()
+                cy.get('[data-form="project-template"]').contains('template1').click()
+
+                cy.get('[data-el="node-red-listbox"]').click()
+                cy.get('[data-option].ff-option').first().click()
+
+                cy.get('[data-el="next-step"]').click()
 
                 cy.wait('@createApplication')
                 cy.wait('@createInstance')
 
-                cy.get('[data-form="project-name"]').contains('name in use')
+                cy.intercept('POST', '/api/*/projects').as('createInstance')
 
-                cy.get('[data-form="project-name"] input').clear()
-                cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
+                // we need to wait for the notification to appear otherwise cypress will click on it off-screen and break the UI
+                // eslint-disable-next-line cypress/no-unnecessary-waiting
+                cy.wait(1000)
 
-                cy.get('[data-action="create-project"]').click()
+                cy.contains('Something happened!')
+                cy.get('[data-el="notification-alert"] span.ff-notification-toast--close').click()
+                // check that the user get redirected back to the instance step after failed instance creation
+                cy.get('[data-step="instance"]').should('exist')
+
+                cy.get('[data-el="instance-name"] input').clear()
+                cy.get('[data-el="instance-name"] input').type(INSTANCE_NAME)
+
+                cy.get('[data-el="next-step"]').click()
 
                 cy.wait('@createInstance')
 
@@ -181,19 +228,65 @@ describe('FlowForge - Applications', () => {
     it('are not permitted to have a duplicate project name during creation', () => {
         cy.request('GET', 'api/v1/teams', { failOnStatusCode: false }).then((response) => {
             const team = response.body.teams[0]
+            // we need at least one blueprint to show the blueprints step
+            cy.intercept('GET', '/api/*/flow-blueprints?filter=active&team=*', {
+                meta: {},
+                count: 1,
+                blueprints: [
+                    {
+                        id: 'yJR1DQ9NbK',
+                        active: true,
+                        name: 'My first Blueprint',
+                        description: 'My first team',
+                        category: 'Some other category',
+                        icon: 'cog',
+                        order: 1,
+                        default: false,
+                        externalUrl: 'https://google.com'
+                    }
+                ]
+            }).as('getBlueprints')
+            cy.intercept('POST', '/api/*/applications').as('createApplication')
 
             cy.visit(`/team/${team.slug}/applications/create`)
+
+            cy.wait('@getBlueprints')
 
             cy.get('[data-form="application-name"] input').clear()
             cy.get('[data-form="application-name"] input').type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
 
-            cy.get('[data-form="project-name"] input').clear()
-            cy.get('[data-form="project-name"] input').type('instance-1-1')
+            cy.get('[data-el="next-step"]').click()
+
+            cy.get('[data-el="instance-name-error"]').should('not.exist')
+
+            cy.get('[data-el="instance-name"] input').clear()
+            cy.get('[data-el="instance-name"] input').type('instance-1-1')
+
+            cy.get('[data-el="instance-name-error"]').should('exist')
+            cy.get('[data-el="next-step"]').should('be.disabled')
+
+            // add a diff in the name
+            cy.get('[data-el="instance-name"] input').type(`-${Math.random().toString(36).substring(2, 7)}`)
+
+            cy.get('[data-el="next-step"]').should('be.disabled')
+
+            // select remainder mandatory options
             cy.get('[data-form="project-type"]').contains('type1').click()
+            cy.get('[data-form="project-template"]').contains('template1').click()
 
-            cy.get('[data-action="create-project"]').click()
+            cy.get('[data-el="node-red-listbox"]').click()
+            cy.get('[data-option].ff-option').first().click()
 
-            cy.get('[data-form="project-name"] [data-el="form-row-error"]').contains('name in use')
+            cy.get('[data-el="next-step"]').should('not.be.disabled')
+
+            cy.get('[data-el="next-step"]').click()
+
+            cy.get('[data-step="blueprint"]').should('exist')
+
+            cy.get('[data-el="next-step"]').click()
+
+            // check that we've been redirected to the application instances page
+            cy.get('[data-el="cloud-instances"]').should('exist')
         })
     })
 

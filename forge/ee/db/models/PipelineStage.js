@@ -3,6 +3,7 @@ const {
 } = require('sequelize')
 
 const { KEY_HA, KEY_PROTECTED, KEY_SETTINGS } = require('../../../db/models/ProjectSettings')
+const pipelineValidation = require('../../../lib/pipelineValidation')
 
 const SNAPSHOT_ACTIONS = {
     // Any changes to this list *must* be made via migration.
@@ -200,7 +201,10 @@ module.exports = {
                     if (existingRepoStage) {
                         existingRepoStage.GitTokenId = GitTokenId
                         existingRepoStage.url = gitOptions.url
-                        existingRepoStage.branch = gitOptions.branch
+                        existingRepoStage.branch = gitOptions.branch || ''
+                        existingRepoStage.pullBranch = gitOptions.pullBranch || ''
+                        existingRepoStage.pushPath = gitOptions.pushPath || ''
+                        existingRepoStage.pullPath = gitOptions.pullPath || ''
                         if (gitOptions.credentialSecret) {
                             existingRepoStage.credentialSecret = gitOptions.credentialSecret
                         }
@@ -209,7 +213,10 @@ module.exports = {
                         await this.createPipelineStageGitRepo({
                             GitTokenId,
                             url: gitOptions.url,
-                            branch: gitOptions.branch,
+                            branch: gitOptions.branch || '',
+                            pullBranch: gitOptions.pullBranch || '',
+                            pushPath: gitOptions.pushPath || '',
+                            pullPath: gitOptions.pullPath || '',
                             credentialSecret: gitOptions.credentialSecret
                         }, options)
                     }
@@ -308,6 +315,10 @@ module.exports = {
                  * @param {[]} stages The stages to order
                  */
                 sortStages: function (stages) {
+                    // if there is only one stage, return it
+                    if (stages.length === 1) {
+                        return stages
+                    }
                     // Must ensure the stages are listed in the correct order
                     const stagesById = {}
                     const backReferences = {}
@@ -331,6 +342,10 @@ module.exports = {
                         pointer = stagesById[backReferences[pointer.id]]
                     }
                     return orderedStages
+                },
+                validateStages: function (stages) {
+                    const orderedStages = self.sortStages(stages)
+                    return pipelineValidation.validateStages(orderedStages)
                 }
             }
         }

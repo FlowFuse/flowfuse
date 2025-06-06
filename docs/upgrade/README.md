@@ -75,7 +75,7 @@ Details for how to setup a AWS EFS backed StorageClass can be found on the aws-e
 > **⚠️**  Breaking changes introduced!
 
 Together with new application features, this **release 2.0.0 introduces breaking changes** in Flowfuse Helm chart.
-If you are managing your local Flowfuse instance using our [Helm Chart](https://github.com/FlowFuse/helm/tree/main/helm/flowforge), please refer to the [upgrade](../install/kubernetes/README.md#upgrade) section of the Kubernetes installation guide or the Helm Chart [README.md](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md#upgrading-chart) for more details.
+If you are managing your local Flowfuse instance using our [Helm Chart](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse), please refer to the [upgrade](../install/kubernetes/README.md#upgrade) section of the Kubernetes installation guide or the Helm Chart [README.md](https://github.com/FlowFuse/helm/blob/main/helm/flowfuse/README.md#upgrading-chart) for more details.
 
 
 ### Upgrading to 1.10

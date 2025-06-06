@@ -5,8 +5,10 @@
 import InstanceAssets from './Assets.vue'
 import InstanceAuditLog from './AuditLog.vue'
 import InstanceRemoteInstances from './Devices.vue'
+import DuplicateInstance from './DuplicateInstance.vue'
 import InstanceLogs from './Logs.vue'
 import InstanceOverview from './Overview.vue'
+import InstancePerformance from './Performance.vue'
 import InstanceSettings from './Settings/index.vue'
 import InstanceSettingsRoutes from './Settings/routes.js'
 import VersionHistory from './VersionHistory/index.vue'
@@ -75,6 +77,14 @@ const children = [
             return { name: 'instance-version-history-timeline', params: { id: to.params.id } }
         },
         children: [...VersionHistoryRoutes]
+    },
+    {
+        path: 'performance',
+        name: 'instance-performance',
+        component: InstancePerformance,
+        meta: {
+            title: 'Instance - Performance'
+        }
     }
 ]
 
@@ -89,14 +99,27 @@ export default [
     },
     {
         path: '/instance/:id/:remaining*',
-        redirect: to => {
-            return { name: 'instance-overview', params: { id: to.params.id } }
-        },
-        name: 'Instance',
-        component: Instance,
-        meta: {
-            title: 'Instance - Overview'
-        },
-        children
+        children: [
+            {
+                path: '',
+                redirect: to => {
+                    return { name: 'instance-overview', params: { id: to.params.id } }
+                },
+                name: 'Instance',
+                component: Instance,
+                meta: {
+                    title: 'Instance - Overview'
+                },
+                children
+            },
+            {
+                path: 'duplicate',
+                name: 'instance-duplicate',
+                component: DuplicateInstance,
+                meta: {
+                    title: 'Instance - Duplicate'
+                }
+            }
+        ]
     }
 ]

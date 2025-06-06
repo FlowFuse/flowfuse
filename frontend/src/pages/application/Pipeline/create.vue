@@ -52,10 +52,12 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { mapState } from 'vuex'
 
 import ApplicationsAPI from '../../../api/application.js'
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
 export default {
@@ -71,6 +73,10 @@ export default {
             required: true
         }
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             icons: {
@@ -84,8 +90,24 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         submitEnabled () {
             return this.input.name?.length > 0
+        }
+    },
+    watch: {
+        team: {
+            immediate: true,
+            handler (team) {
+                if (team && !this.hasPermission('pipeline:create')) {
+                    this.$router.replace({
+                        name: 'ApplicationPipelines',
+                        params: {
+                            id: this.application.id
+                        }
+                    })
+                }
+            }
         }
     },
     async mounted () {

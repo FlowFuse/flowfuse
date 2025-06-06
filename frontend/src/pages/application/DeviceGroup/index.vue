@@ -154,8 +154,18 @@ export default {
                 this.applicationInstances = []
                 this.deviceGroup = await ApplicationApi.getDeviceGroup(applicationId, this.$route.params.deviceGroupId)
                 this.application = await ApplicationApi.getApplication(applicationId)
-                const deviceData = await ApplicationApi.getApplicationDevices(applicationId)
-                this.applicationDevices = deviceData?.devices
+
+                // Need to load all devices in the application - which could be more than a single page
+                const devices = []
+                let cursor
+                do {
+                    const deviceData = await ApplicationApi.getApplicationDevices(applicationId, cursor)
+                    cursor = deviceData?.meta?.next_cursor
+                    if (deviceData?.devices) {
+                        devices.push(deviceData?.devices)
+                    }
+                } while (cursor)
+                this.applicationDevices = devices.flat()
 
                 this.$store.dispatch('account/setTeam', this.application.team.slug)
             } catch (err) {

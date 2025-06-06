@@ -3,6 +3,7 @@
         ref="dialog" :header="device ? 'Update Remote Instance' : 'Add Remote Instance'"
         :confirm-label="device ? 'Update' : 'Add'" :disable-primary="!formValid" data-el="team-device-create-dialog"
         @confirm="confirm()"
+        @cancel="close"
     >
         <template #default>
             <slot name="description" />
@@ -66,7 +67,7 @@ export default {
             required: true
         }
     },
-    emits: ['deviceUpdated', 'deviceCreating', 'deviceCreated'],
+    emits: ['deviceUpdated', 'deviceCreating', 'deviceCreated', 'closed'],
     setup () {
         return {
             show (device, instance, application, showApplicationsList = false) {
@@ -128,7 +129,7 @@ export default {
                 const currency = price.replace(/[\d.]+/, '')
                 const cost = (Number(price.replace(/[^\d.]+/, '')) || 0) * 100
                 return {
-                    name: 'Device',
+                    name: 'Remote Instance',
                     currency,
                     cost,
                     priceInterval
@@ -180,6 +181,7 @@ export default {
                 devicesApi.updateDevice(this.device.id, opts).then((response) => {
                     this.$emit('deviceUpdated', response)
                     alerts.emit('Device successfully updated.', 'confirmation')
+                    this.close()
                 }).catch(err => {
                     console.error(err.response.data)
                     if (err.response.data) {
@@ -223,6 +225,7 @@ export default {
                             alerts.emit('Device successfully created.', 'confirmation')
                         })
                     }
+                    this.close()
                 }).catch(err => {
                     this.team.deviceCount--
                     this.$emit('deviceCreated', null)
@@ -236,6 +239,9 @@ export default {
                     }
                 })
             }
+        },
+        close () {
+            this.$emit('closed')
         }
     }
 }

@@ -15,7 +15,8 @@ export default {
                 kind: null,
                 canBeCanceled: true,
                 onConfirm: null,
-                onCancel: null
+                onCancel: null,
+                boxClass: null
             }
         }
     },
@@ -34,7 +35,8 @@ export default {
                 kind: null,
                 canBeCanceled: true,
                 onConfirm: null,
-                onCancel: null
+                onCancel: null,
+                boxClass: null
             }
         },
         showDialogHandler (msg, onConfirm, onCancel) {
@@ -54,6 +56,7 @@ export default {
                 if (Object.prototype.hasOwnProperty.call(msg, 'canBeCanceled')) {
                     this.dialog.canBeCanceled = msg.canBeCanceled
                 }
+                this.dialog.boxClass = msg.boxClass
             }
             this.dialog.onConfirm = onConfirm
             this.dialog.onCancel = onCancel

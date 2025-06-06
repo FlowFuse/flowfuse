@@ -25,6 +25,9 @@ module.exports = async function (settings = {}, config = {}) {
         broker: {
             url: ':test:'
         },
+        blueprintImport: {
+            enabled: false
+        },
         ...config
     }
 
@@ -74,7 +77,7 @@ module.exports = async function (settings = {}, config = {}) {
     // Platform Setup
     const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
     const stack = await factory.createStack({ name: 'stack1', label: 'stack 1' }, projectType)
-    await factory.createStack({ name: 'stack2', label: 'stack 2' }, projectType)
+    const stack2 = await factory.createStack({ name: 'stack2', label: 'stack 2' }, projectType)
 
     // Unused templates and project types
     await factory.createProjectTemplate({ name: 'template2' }, userAlice)
@@ -137,7 +140,7 @@ module.exports = async function (settings = {}, config = {}) {
     // Application and Instances
     const application1 = await factory.createApplication({ name: 'application-1' }, team1)
     await factory.createInstance({ name: 'instance-1-1' }, application1, stack, template, projectType)
-    await factory.createInstance({ name: 'instance-1-2' }, application1, stack, template, projectType, { start: false })
+    await factory.createInstance({ name: 'instance-1-2' }, application1, stack2, template, projectType, { start: false })
 
     /// Team 2
     const team2 = await factory.createTeam({ name: 'BTeam' })

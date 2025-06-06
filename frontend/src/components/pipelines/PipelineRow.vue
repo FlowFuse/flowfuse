@@ -6,11 +6,11 @@
                 <label>
                     {{ pipeline.name }}
                 </label>
-                <div v-ff-tooltip:right="'Edit Pipeline Name'">
+                <div v-if="hasPermission('pipeline:edit')" v-ff-tooltip:right="'Edit Pipeline Name'">
                     <PencilAltIcon v-if="!editing.name" class="ml-4 ff-icon ff-clickable" @click="edit" />
                 </div>
             </div>
-            <div class="flex gap-2">
+            <div v-if="hasPermission('pipeline:delete')" class="flex gap-2">
                 <div v-if="!editing.name" v-ff-tooltip:left="'Delete Pipeline'" data-action="delete-pipeline">
                     <TrashIcon class="ff-icon ff-clickable" @click="deletePipeline" />
                 </div>
@@ -50,6 +50,7 @@
         </div>
         <div v-else class="ff-pipeline-stages">
             <PipelineStage v-if="addStageAvailable" @click="addStage" />
+            <p class="text-center text-gray-400 center w-full">No stages in sight just yet!</p>
         </div>
     </div>
 </template>
@@ -61,6 +62,7 @@ import { mapState } from 'vuex'
 
 import ApplicationAPI from '../../api/application.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
+import usePermissions from '../../composables/Permissions.js'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
@@ -103,6 +105,10 @@ export default {
         }
     },
     emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         const pipeline = this.pipeline
         return {
@@ -122,8 +128,7 @@ export default {
             return this.scopedPipeline.name?.length > 0
         },
         addStageAvailable () {
-            return this.pipeline.stages.length === 0 ||
-                this.pipeline.stages[this.pipeline.stages.length - 1].stageType !== StageType.GITREPO
+            return this.hasPermission('pipeline:edit')
         },
         stagesWithStates () {
             return this.pipeline.stages.map((stage) => {
@@ -231,10 +236,11 @@ export default {
             return false
         },
         nextStageAvailable (stage, $index) {
-            if (stage.type === StageType.GITREPO) {
-                return false
-            }
             const endofPipeline = ($index >= this.pipeline.stages.length - 1)
+            if (!endofPipeline && stage.stageType === StageType.GITREPO) {
+                // A git repo stage can pull as long as it is not the last stage
+                return true
+            }
             if (stage.action !== StageAction.NONE && !endofPipeline) {
                 // we are mid-pipeline
                 const nextStage = this.pipeline.stages[$index + 1]

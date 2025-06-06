@@ -33,7 +33,11 @@ describe('Flow Blueprints API', function () {
     }
 
     before(async function () {
-        app = await setup()
+        app = await setup({
+            blueprintImport: {
+                export: true
+            }
+        })
         sandbox.stub(app.log, 'info')
         sandbox.stub(app.log, 'warn')
         sandbox.stub(app.log, 'error')
@@ -698,6 +702,16 @@ describe('Flow Blueprints API', function () {
             const body = response.json()
             body.should.have.property('count', 1)
             body.blueprints[0].name.should.equal('Default (new)')
+        })
+        it('Public Export with no authentication', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/flow-blueprints/export-public'
+            })
+            const body = response.json()
+            response.should.have.property('statusCode', 200)
+            body.should.have.property('count')
+            body.should.have.property('blueprints')
         })
     })
 })

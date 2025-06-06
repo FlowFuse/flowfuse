@@ -133,6 +133,8 @@ module.exports = fp(async function (app, _opts) {
     await registerTask(require('./tasks/telemetryMetrics'))
     await registerTask(require('./tasks/expireInvites'))
     await registerTask(require('./tasks/inviteReminder'))
+    await registerTask(require('./tasks/blueprintImport'))
+    await registerTask(require('./tasks/deviceUnusedReminder'))
 
     app.addHook('onReady', async () => {
         let promise = Promise.resolve()

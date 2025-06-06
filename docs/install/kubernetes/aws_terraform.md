@@ -194,7 +194,7 @@ terraform -chdir=ses apply -var-file=../terraform.tfvars
 To get the IAM role ARN created by the SES module and required during [FlowFuse platform configuration](/docs/install/configuration.md#aws-ses-email), run the following command:
 
 ```bash
-terraform -chdir=ses output flowfuse_ses_role_arn
+terraform -chdir=eks output flowfuse_role_arn
 ```
 
 ## Step 5: Deploy Nginx Ingress Controller

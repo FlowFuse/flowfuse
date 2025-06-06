@@ -13,7 +13,7 @@ function prefillMultiStepForm () {
     cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
     // select nr-version
-    cy.get('[data-form="multi-step-form"] [data-el="listbox"]').click()
+    cy.get('[data-form="multi-step-form"] [data-el="node-red-listbox"]').click()
     cy.get('[data-option="stack 1"]').click()
 
     cy.get('[data-el="next-step"]').click()
@@ -116,11 +116,12 @@ describe('FlowForge - Blueprints', () => {
         // select the second blueprint
         cy.get('[data-group="blueprints"]')
             .eq(1)
+            .find('[data-el="blueprint-tile"]')
             .first()
             .click()
 
         // check our newly selected blueprint is now selected
-        cy.get('[data-el="blueprint-tile"].active').contains(multipleBlueprints.blueprints[2].name)
+        cy.get('[data-el="blueprint-tile"].active').contains(multipleBlueprints.blueprints[1].name)
     })
 
     it('are included in the POST request when creating an Instance', () => {
@@ -142,6 +143,8 @@ describe('FlowForge - Blueprints', () => {
                 cy.get('[data-el="blueprints-wrapper"]').contains(defaultBlueprint.name)
 
                 cy.get('[data-el="blueprint-tile"]').click()
+                cy.get('[data-el="next-step"]').click()
+
                 cy.get('[data-el="next-step"]').click()
 
                 return cy.wait('@createInstance')

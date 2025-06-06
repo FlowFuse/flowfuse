@@ -1,5 +1,5 @@
 <template>
-    <div class="topic-schema" :class="{collapsed: isSchemaCollapsed}">
+    <div class="topic-schema">
         <template v-if="schema === null">
             <p class="text-center opacity-50">
                 No schema defined
@@ -18,10 +18,6 @@
                 <b>Schema</b>:
                 <object-properties v-if="schemaType === 'object'" :properties="schema.properties" />
                 <array-properties v-else-if="schemaType === 'array'" :items="schema.items" />
-                <button v-if="isSchemaCollapsible" class="show-more" @click="isSchemaExtended = !isSchemaExtended">
-                    <template v-if="isSchemaCollapsed">Show More</template>
-                    <template v-else>Show Less</template>
-                </button>
             </section>
         </template>
     </div>
@@ -51,11 +47,7 @@ export default {
                 'object',
                 'array',
                 'bin'
-            ],
-            schemaContainerMaxHeight: 400,
-            schemaContainerHeight: 0,
-            isSchemaExtended: false,
-            resizeObserver: null
+            ]
         }
     },
     computed: {
@@ -85,55 +77,6 @@ export default {
             default:
                 return ''
             }
-        },
-        isSchemaCollapsible () {
-            return this.schemaContainerHeight > this.schemaContainerMaxHeight
-        },
-        isSchemaCollapsed () {
-            if (this.isSchemaExtended === true) {
-                return false
-            }
-            return this.isSchemaCollapsible
-        }
-    },
-    mounted () {
-        this.updateResizeObserver()
-    },
-    updated () {
-        this.updateResizeObserver()
-    },
-    methods: {
-        updateHeight () {
-            return new Promise(resolve => {
-                // we need to schedule the height request before the next repaint to avoid a ResizeObserver loop
-                requestAnimationFrame(() => {
-                    this.schemaContainerHeight = this.$refs.schemaContainer?.scrollHeight || 0
-                })
-                resolve()
-            })
-        },
-        observeHeightChanges () {
-            return new Promise(resolve => {
-                if (!this.$refs.schemaContainer) return
-
-                this.resizeObserver = new ResizeObserver(() => {
-                    this.updateHeight()
-                })
-
-                this.resizeObserver.observe(this.$refs.schemaContainer)
-                resolve()
-            })
-        },
-        updateResizeObserver () {
-            return new Promise((resolve) => {
-                if (this.resizeObserver) {
-                    this.resizeObserver.disconnect()
-                }
-                resolve()
-            })
-                .then(() => this.updateHeight())
-                .then(() => this.observeHeightChanges())
-                .catch(e => e)
         }
     }
 }
@@ -148,7 +91,7 @@ export default {
     padding: 10px 6px;
     font-size: 0.875rem;
     line-height: 1.25rem;
-    overflow: hidden;
+    overflow: auto;
     position: relative;
 
     .topic-schema-unknown {
@@ -158,8 +101,6 @@ export default {
     }
 
     .schema-container {
-        overflow: hidden;
-
         .show-more {
             position: absolute;
             bottom: 0;
@@ -169,6 +110,7 @@ export default {
     }
 
     &.collapsed {
+        overflow: hidden;
         box-shadow: inset 0 -30px 20px -20px rgba(49, 46, 129, 0.2);
         padding-bottom: 35px;
 
