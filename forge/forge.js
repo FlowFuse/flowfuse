@@ -1,3 +1,4 @@
+// Fake change to trigger tests
 const crypto = require('crypto')
 
 const cookie = require('@fastify/cookie')
