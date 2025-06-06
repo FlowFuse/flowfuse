@@ -107,6 +107,7 @@ module.exports = function (app) {
             mode: { type: 'string' },
             isDeploying: { type: 'boolean' },
             links: { $ref: 'LinksMeta' },
+            application: { $ref: 'Application' },
             mostRecentAuditLogCreatedAt: { type: 'string' },
             mostRecentAuditLogEvent: { type: 'string' }
         }
@@ -118,7 +119,7 @@ module.exports = function (app) {
             $ref: 'DeviceSummary'
         }
     })
-    function deviceSummary (device, { includeEditor = false } = {}) {
+    function deviceSummary (device, { includeEditor = false, includeApplication = false } = {}) {
         if (device) {
             const result = device.toJSON ? device.toJSON() : device
             const filtered = {
@@ -139,6 +140,11 @@ module.exports = function (app) {
             if (device.get('mostRecentAuditLogEvent')) {
                 filtered.mostRecentAuditLogEvent = device.get('mostRecentAuditLogEvent')
             }
+
+            if (includeApplication) {
+                filtered.application = app.db.views.Application.applicationSummary(device.Application)
+            }
+
             return filtered
         } else {
             return null
