@@ -597,11 +597,12 @@ module.exports = {
                             },
                             {
                                 model: M.Application,
-                                attributes: ['hashid', 'id', 'name']
+                                attributes: ['hashid', 'id', 'name'],
+                                required: true
                             }
                         ],
                         where: {
-                            [Op.or]: [
+                            [Op.and]: [
                                 where(
                                     fn('lower', col('Project.name')),
                                     { [Op.like]: `%${query.toLowerCase()}%` }

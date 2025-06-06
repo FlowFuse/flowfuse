@@ -208,19 +208,32 @@ module.exports = async function (app) {
             request.teamId,
             request.query.query?.trim()
         )
+        const devices = await app.db.models.Device.byTeamForSearch(
+            request.teamId,
+            request.query.query?.trim()
+        )
 
-        const results = await Promise.all(instances.map(async (instance) => {
-            const plainInstance = instance.get({ plain: true })
+        const instanceResults = await Promise.all(instances.map(async (instance) => {
+            const summary = app.db.views.Project.dashboardInstanceSummary(instance)
             const state = await instance.liveState()
 
-            return { ...plainInstance, ...state }
+            return { ...summary, ...state, instanceType: 'hosted' }
         }))
 
-        // const results = await Promise.all(instances.map(async (instance) => instance.get({ plain: true })))
+        const deviceResults = await Promise.all(devices.map(async (device) => {
+            const plainDevice = app.db.views.Device.deviceSummary(device,
+                {
+                    includeApplication: true
+                })
+            return { ...plainDevice, instanceType: 'remote' }
+        }))
 
         reply.send({
             count: instances.length ?? 0,
-            results: app.db.views.Project.dashboardInstancesSummaryList(results)
+            results: [
+                ...instanceResults,
+                ...deviceResults
+            ]
         })
     })
 }

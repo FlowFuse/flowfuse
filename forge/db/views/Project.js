@@ -379,6 +379,7 @@ module.exports = function (app) {
         instanceStatusList,
         projectSummary,
         userProjectList,
+        dashboardInstanceSummary,
         dashboardInstancesSummaryList
     }
 }
