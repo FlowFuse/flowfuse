@@ -285,4 +285,62 @@ describe('Search API', function () {
         result.count.should.equal(6)
         result.results.should.have.length(6)
     })
+
+    it('returns 400 if team query param is missing', async function () {
+        const response = await app.inject({
+            method: 'GET',
+            url: '/api/v1/search/instances',
+            query: { query: 'abc' }
+        })
+        response.statusCode.should.equal(400)
+        const result = response.json()
+        result.should.have.property('code', 'FST_ERR_VALIDATION') // Adjusted expected code
+        result.should.have.property('message', 'querystring must have required property \'team\'') // Match actual message
+    })
+
+    it('returns 403 if user lacks permission to search the team', async function () {
+        const teamHashId = app.db.models.Team.encodeHashid(TestObjects.BTeam.id)
+        const response = await app.inject({
+            method: 'GET',
+            url: '/api/v1/search/instances',
+            query: { team: teamHashId, query: 'abc' },
+            cookies: { sid: TestObjects.tokens.dave } // Non-team member
+        })
+        response.statusCode.should.equal(403)
+        const result = response.json()
+        result.should.have.property('code', 'unauthorized')
+        result.should.have.property('error', 'unauthorized')
+    })
+
+    it('returns hosted and remote instances for valid team and query', async function () {
+        const teamHashId = app.db.models.Team.encodeHashid(TestObjects.BTeam.id)
+        const response = await app.inject({
+            method: 'GET',
+            url: '/api/v1/search/instances',
+            query: { team: teamHashId, query: 'instance' },
+            cookies: { sid: TestObjects.tokens.bob } // Team member
+        })
+        response.statusCode.should.equal(200)
+        const result = response.json()
+        result.count.should.be.greaterThan(0)
+        result.results.should.be.an.Array()
+        result.results.forEach(item => {
+            item.should.have.property('instanceType')
+            ;['hosted', 'remote'].should.containEql(item.instanceType)
+        })
+    })
+
+    it('returns empty results for valid team but blank query', async function () {
+        const teamHashId = app.db.models.Team.encodeHashid(TestObjects.BTeam.id)
+        const response = await app.inject({
+            method: 'GET',
+            url: '/api/v1/search/instances',
+            query: { team: teamHashId, query: '' },
+            cookies: { sid: TestObjects.tokens.bob } // Team member
+        })
+        response.statusCode.should.equal(200)
+        const result = response.json()
+        result.count.should.equal(0)
+        result.results.should.have.length(0)
+    })
 })

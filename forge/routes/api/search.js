@@ -204,6 +204,13 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        if (request.query.query.length === 0) {
+            return reply.send({
+                count: 0,
+                results: []
+            })
+        }
+
         const instances = await app.db.models.Project.byTeamForSearch(
             request.teamId,
             request.query.query?.trim()
