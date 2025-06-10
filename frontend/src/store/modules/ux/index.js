@@ -1,7 +1,7 @@
 import {
-    BookOpenIcon, ChatIcon, ChevronLeftIcon, ChipIcon, CogIcon, CollectionIcon,
-    ColorSwatchIcon, CurrencyDollarIcon, DatabaseIcon,
-    DesktopComputerIcon, LockClosedIcon, RssIcon,
+    BookOpenIcon, ChartBarIcon, ChatIcon, ChevronLeftIcon, ChipIcon, CogIcon,
+    CollectionIcon, ColorSwatchIcon, CurrencyDollarIcon,
+    DatabaseIcon, DesktopComputerIcon, LockClosedIcon, RssIcon,
     TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
 } from '@heroicons/vue/outline'
 
@@ -10,6 +10,8 @@ import PipelinesIcon from '../../../components/icons/Pipelines.js'
 import ProjectsIcon from '../../../components/icons/Projects.js'
 import usePermissions from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
+
+import tours from './tours/index.js'
 
 const initialState = () => ({
     leftDrawer: {
@@ -20,12 +22,6 @@ const initialState = () => ({
         state: false,
         component: null
     },
-    tours: {
-        welcome: false,
-        education: false,
-        'first-device': false
-    },
-    completeTours: {},
     mainNav: {
         context: 'team',
         backToButton: null
@@ -38,10 +34,6 @@ const initialState = () => ({
 
 const meta = {
     persistence: {
-        tours: {
-            storage: 'localStorage'
-            // clearOnLogout: true (cleared by default)
-        },
         isNewlyCreatedUser: {
             storage: 'localStorage'
         },
@@ -56,9 +48,6 @@ const state = initialState
 const getters = {
     hiddenLeftDrawer: (state, getters) => {
         return state.leftDrawer.component?.name === 'MainNav' && getters.mainNavContext.length === 0
-    },
-    shouldShowEducationModal: (state) => {
-        return state.tours.education
     },
     mainNavContexts: function (state, getters, rootState, rootGetters) {
         const { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } = usePermissions()
@@ -297,6 +286,15 @@ const getters = {
                             disabled: requiresBilling,
                             featureUnavailable: !features.isMqttBrokerFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
+                        },
+                        {
+                            label: 'Performance',
+                            to: { name: 'team-performance', params: { team_slug: team.slug } },
+                            tag: 'team-performance',
+                            icon: ChartBarIcon,
+                            disabled: requiresBilling,
+                            featureUnavailable: !features.isInstanceResourcesFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isInstanceResourcesFeatureEnabledForPlatform
                         }
                     ]
                 },
@@ -460,22 +458,8 @@ const mutations = {
     setMainNavBackButton (state, button) {
         state.mainNav.backToButton = button
     },
-    activateTour (state, tour) {
-        state.tours[tour] = true
-    },
     setNewlyCreatedUser (state, payload) {
         state.isNewlyCreatedUser = payload
-    },
-    deactivateTour (state, tour) {
-        state.tours[tour] = false
-        state.completeTours[tour] = true
-    },
-    resetTours (state) {
-        Object.keys(state.tours)
-            .forEach(key => {
-                state.tours[key] = false
-            })
-        state.completeTours = {}
     },
     setUserAction (state, { action, payload }) {
         if (Object.prototype.hasOwnProperty.call(state.userActions, action)) {
@@ -512,15 +496,6 @@ const actions = {
     setNewlyCreatedUser ({ commit }) {
         commit('setNewlyCreatedUser', true)
     },
-    activateTour ({ commit }, tour) {
-        commit('activateTour', tour)
-    },
-    deactivateTour ({ commit, state }, tour) {
-        commit('deactivateTour', tour)
-    },
-    resetTours ({ commit }) {
-        commit('resetTours')
-    },
     validateUserAction ({ commit }, action) {
         commit('setUserAction', { action, payload: true })
     },
@@ -535,6 +510,7 @@ const actions = {
 
 export default {
     namespaced: true,
+    modules: { tours },
     state,
     initialState: initialState(),
     getters,

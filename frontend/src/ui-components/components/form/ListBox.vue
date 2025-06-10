@@ -2,8 +2,10 @@
     <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox" :by="compareOptions">
         <div class="relative">
             <ListboxButton
+                ref="trigger"
                 class="w-full rounded-md bg-white flex justify-between ff-button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
+                @click="() => { $nextTick(() => { updatePosition(); open = true }) }"
             >
                 <input type="text" hidden="hidden" :value="selectedLabel">
                 <slot name="button">
@@ -19,26 +21,38 @@
                 leave-from-class="opacity-100"
                 leave-to-class="opacity-0"
             >
-                <ListboxOptions class="absolute w-full overflow-auto bg-white py-1 ff-options">
-                    <slot name="options">
-                        <ListboxOption
-                            v-for="option in options"
-                            v-slot="{ active, selected }"
-                            :key="option[labelKey]"
-                            :value="option"
-                            as="template"
-                            class="ff-option"
-                            :data-option="option[labelKey]"
-                            :title="optionTitleKey ? option[optionTitleKey] : null"
-                        >
-                            <li>
-                                <div class="ff-option-content" :class="{selected, active}">
-                                    {{ option[labelKey] }}
-                                </div>
-                            </li>
-                        </ListboxOption>
-                    </slot>
-                </ListboxOptions>
+                <teleport to="body">
+                    <ListboxOptions
+                        v-if="open"
+                        data-el="listbox-options"
+                        class="absolute w-full overflow-auto bg-white py-1 ff-options"
+                        :style="{
+                            top: position.top + 'px',
+                            left: position.left + 'px',
+                            width: position.width + 'px'
+                        }"
+                    >
+                        <slot name="options" :options="options">
+                            <ListboxOption
+                                v-for="option in options"
+                                v-slot="{ active, selected }"
+                                :key="option[labelKey]"
+                                :value="option"
+                                as="template"
+                                class="ff-option"
+                                :data-option="option[labelKey]"
+                                :title="optionTitleKey ? option[optionTitleKey] : null"
+                                @click="close"
+                            >
+                                <li>
+                                    <div class="ff-option-content" :class="{selected, active}">
+                                        {{ option[labelKey] }}
+                                    </div>
+                                </li>
+                            </ListboxOption>
+                        </slot>
+                    </ListboxOptions>
+                </teleport>
             </transition>
         </div>
     </Listbox>
@@ -53,6 +67,8 @@ import {
 } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 
+import BoxOptionsMixin from '../../../mixins/BoxOptionsMixin.js'
+
 export default {
     name: 'ff-listbox',
     components: {
@@ -62,11 +78,12 @@ export default {
         ListboxOption,
         ListboxOptions
     },
+    mixins: [BoxOptionsMixin],
     props: {
         modelValue: {
             required: false,
             default: null,
-            type: [Number, Object, String, null]
+            type: [Boolean, Number, Object, String, null]
         },
         options: {
             required: false,
@@ -105,10 +122,6 @@ export default {
         }
     },
     emits: ['update:modelValue'],
-    data () {
-        return {
-        }
-    },
     computed: {
         value: {
             get () {
@@ -136,7 +149,6 @@ export default {
             return modelValue === optionValue[this.valueKey]
         }
     }
-
 }
 </script>
 
@@ -170,7 +182,15 @@ export default {
     }
   }
 
-  .ff-options {
+  &[data-headlessui-state="open"] {
+    button {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+}
+
+.ff-options {
     background: $ff-grey-50;
     box-shadow: 0 6px 9px 0 #00000038;
     max-height: 14rem;
@@ -181,47 +201,39 @@ export default {
     border-right: 1px solid $ff-grey-200;
     border-bottom: 1px solid $ff-grey-200;
     &:focus-visible, &:focus {
-      outline: none;
+        outline: none;
     }
 
     .ff-option {
-      border-bottom: 1px solid $ff-grey-200;
-      background-color: $ff-grey-50;
-      cursor: pointer;
+        border-bottom: 1px solid $ff-grey-200;
+        background-color: $ff-grey-50;
+        cursor: pointer;
 
-      &:last-of-type {
-        border-bottom: none;
-      }
-
-      .ff-option-content {
-        padding: $ff-unit-sm $ff-unit-md;
-        border: 1px solid transparent;
-
-        &.selected {
-          background-color: $ff-grey-200;
+        &:last-of-type {
+            border-bottom: none;
         }
-        &.active {
-          border: 1px solid $ff-indigo-300;
-        }
-        &.selected.active {
-          border-color: transparent;
-        }
-      }
 
-      &:hover {
-        background-color: $ff-grey-200;
-          .ff-option-content.active {
-              border-color: transparent
-          }
-      }
+        .ff-option-content {
+            padding: $ff-unit-sm $ff-unit-md;
+            border: 1px solid transparent;
+
+            &.selected {
+                background-color: $ff-grey-200;
+            }
+            &.active {
+                border: 1px solid $ff-indigo-300;
+            }
+            &.selected.active {
+                border-color: transparent;
+            }
+        }
+
+        &:hover {
+            background-color: $ff-grey-200;
+            .ff-option-content.active {
+                border-color: transparent
+            }
+        }
     }
-  }
-
-  &[data-headlessui-state="open"] {
-    button {
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-    }
-  }
 }
 </style>

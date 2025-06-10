@@ -71,6 +71,22 @@
                             <ff-listbox id="verifySSL" v-model="form.verifySSL" :options="booleanOptions" data-select="verifySSL" />
                         </div>
                     </div>
+
+                    <div class="flex gap-3 md:flex-nowrap flex-wrap">
+                        <FormRow
+                            v-model="form.topicPrefix"
+                            type="text"
+                            name="topicPrefix"
+                            placeholder="#"
+                            class="port flex-1"
+                            container-class="max-w"
+                            data-input="topicPrefix"
+                        >
+                            <template #default>
+                                Topic Wildcard
+                            </template>
+                        </FormRow>
+                    </div>
                 </section>
 
                 <section class="credentials space-y-3 flex-1 max-w-sm">
@@ -150,14 +166,15 @@ export default {
                 host: '',
                 port: null,
                 protocol: 'mqtt:',
-                protocolVersion: '4',
+                protocolVersion: 4,
                 ssl: 'false',
                 verifySSL: 'true',
                 clientId: '',
                 credentials: {
                     username: '',
                     password: ''
-                }
+                },
+                topicPrefix: '#'
             },
             protocolOptions: [
                 {
@@ -172,15 +189,15 @@ export default {
             protocolVersionOptions: [
                 {
                     label: '3.0',
-                    value: '3'
+                    value: 3
                 },
                 {
                     label: '3.1',
-                    value: '4'
+                    value: 4
                 },
                 {
                     label: '5.0',
-                    value: '5'
+                    value: 5
                 }
             ],
             booleanOptions: [
@@ -203,14 +220,23 @@ export default {
             if (this.form.host.length === 0) {
                 return false
             }
+            if (this.form.host === 'test.mosquitto.org') {
+                return false
+            }
 
             return true
         },
         formErrors () {
-            return {
-                name: this.form.name.length ? '' : 'Name is mandatory',
-                host: this.form.host.length ? '' : 'Host is mandatory'
+            const errors = {
+                name: this.form.name.length ? '' : 'Name is mandatory'
             }
+
+            if (this.form.host.length === 0) {
+                errors.host = 'Host is mandatory'
+            } else if (this.form.host === 'test.mosquitto.org') {
+                errors.host = 'test.mosquitto.org is not allowed'
+            }
+            return errors
         }
     },
     watch: {
@@ -222,6 +248,8 @@ export default {
     methods: {
         onSubmit () {
             const payload = { ...this.form }
+
+            payload.topicPrefix = [this.form.topicPrefix]
 
             if (!payload.port) {
                 payload.port = 1883
@@ -236,6 +264,11 @@ export default {
                 broker.verifySSL = broker.verifySSL.toString()
 
                 this.form = { ...this.form, ...broker }
+                if (broker.topicPrefix) {
+                    this.form.topicPrefix = broker.topicPrefix[0]
+                } else {
+                    broker.form.topicPrefix = '#'
+                }
             }
         }
     }

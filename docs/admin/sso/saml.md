@@ -20,13 +20,18 @@ values they provide.
 Configuring SSO on FlowFuse Cloud requires co-ordinating tasks between the customer and
 FlowFuse Cloud administrators.
 
+**All changes must be made via a [Production Change Request](https://github.com/FlowFuse/CloudProject/issues/new?assignees=&labels=change-request&projects=&template=change-request.yml&title=Change%3A+) in the CloudProject repository - even if you are actioning it directly.**
+
 When a customer requests SSO to be setup for their users, we require the following information:
 
+1. Confirm the customer's entitlement for SSO enablement. It is only available to *Enterprise* tier customers.
 1. The email domain that will be covered by the configuration. Note that each SSO configuration can only be applied to a single domain. If a customer has multiple domains, each one will require its own SSO configuration. [Issue #5011](https://github.com/FlowFuse/flowfuse/issues/5011) has been raised to make this more flexible in the future.
 2. Whether it is SAML or LDAP based SSO
 3. What Identify Provider they are using for their SSO.
 
-Once this information has been provided, we can then create a draft SSO configuration in the Admin/Settings/SSO section. The configuration should not be marked as active yet.
+Once this information has been provided, create a Change Request issue in the CloudProject repository recording this information.
+
+We can then create a draft SSO configuration in the Admin/Settings/SSO section. The configuration should not be marked as active yet.
 
 From the draft configuration, the values of `ACS URL` and `Entity ID / Issuer` can be given to the customer. These values will be required by their Identify Provider. Refer to the provider-specific documentation for how those values get applied.
 

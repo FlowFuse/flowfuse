@@ -8,7 +8,16 @@ describe('AccessToken controller', function () {
     let AccessTokenController
     /** @type {import('../../../../lib/TestModelFactory')} */
     let factory
-    const TestObjects = {}
+    const TestObjects = {
+        alice: null,
+        team: null,
+        project: null,
+        application: null,
+        device: null,
+        stack: null,
+        template: null,
+        projectType: null
+    }
 
     before(async function () {
         app = await setup()
@@ -16,9 +25,28 @@ describe('AccessToken controller', function () {
         AccessTokenController = app.db.controllers.AccessToken
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.team = await app.db.models.Team.byName('ATeam')
-        TestObjects.project = await app.db.models.Project.create({ name: 'project', type: '', url: '' })
-        await TestObjects.team.addProject(TestObjects.project)
-        TestObjects.application = app.application
+        TestObjects.template = await factory.createProjectTemplate(
+            { name: 'template1', settings: {}, policy: {} },
+            TestObjects.alice
+        )
+        TestObjects.projectType = await factory.createProjectType({
+            name: 'projectType1',
+            description: 'default project type',
+            properties: {
+                billingProductId: 'product_123',
+                billingPriceId: 'price_123'
+            }
+        })
+        TestObjects.stack = await factory.createStack({ name: 'stack1' }, TestObjects.projectType)
+        TestObjects.application = await factory.createApplication({ name: 'application-1' }, TestObjects.team)
+        TestObjects.project = await factory.createInstance(
+            { name: 'project' },
+            TestObjects.application,
+            TestObjects.stack,
+            TestObjects.template,
+            TestObjects.projectType,
+            { start: false }
+        )
         TestObjects.device = await factory.createDevice({ name: 'device' }, TestObjects.team, null, TestObjects.application)
     })
 
@@ -71,7 +99,7 @@ describe('AccessToken controller', function () {
     describe('Device Provisioning Tokens', function () {
         it('creates a provisioning token for a team', async function () {
             ;(await app.db.models.AccessToken.count()).should.equal(0)
-            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 1', TestObjects.team, null, Date.now() + 5000)
+            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 1', TestObjects.team, null, null, Date.now() + 5000)
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             result.should.have.property('token')
 
@@ -85,7 +113,7 @@ describe('AccessToken controller', function () {
 
         it('creates a provisioning token for a teams project', async function () {
             ;(await app.db.models.AccessToken.count()).should.equal(0)
-            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.team, TestObjects.project, Date.now() + 5000)
+            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.team, 'instance', TestObjects.project.id, Date.now() + 5000)
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             result.should.have.property('token')
 
@@ -97,9 +125,23 @@ describe('AccessToken controller', function () {
             token.should.have.property('id') // AccessToken table now has an id column
         })
 
+        it('creates a provisioning token for a teams application', async function () {
+            ;(await app.db.models.AccessToken.count()).should.equal(0)
+            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 3', TestObjects.team, 'application', TestObjects.application.hashid, Date.now() + 5000)
+            ;(await app.db.models.AccessToken.count()).should.equal(1)
+            result.should.have.property('token')
+
+            const token = await AccessTokenController.getOrExpire(result.token)
+            should.exist(token)
+            token.should.have.property('scope', ['device:provision', 'name:Provisioning Token 3', 'application:' + TestObjects.application.hashid])
+            token.should.have.property('ownerId', '' + TestObjects.team.id)
+            token.should.have.property('ownerType', 'team')
+            token.should.have.property('id') // AccessToken table now has an id column
+        })
+
         it('edits a provisioning token to set the project', async function () {
             ;(await app.db.models.AccessToken.count()).should.equal(0)
-            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token', TestObjects.team, null, Date.now() + 5000)
+            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token', TestObjects.team, null, null, Date.now() + 5000)
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             result.should.have.property('token')
 
@@ -107,16 +149,50 @@ describe('AccessToken controller', function () {
             should.exist(token)
             token.should.have.property('scope', ['device:provision', 'name:Provisioning Token'])
 
-            await AccessTokenController.updateTokenForTeamDeviceProvisioning(token, TestObjects.project) // update the token to have a project
+            await AccessTokenController.updateTokenForTeamDeviceProvisioning(token, 'instance', TestObjects.project.id) // update the token to have a project
             ;(await app.db.models.AccessToken.count()).should.equal(1) // should still have only 1 token
             const editedToken = await AccessTokenController.getOrExpire(result.token)
             should.exist(editedToken)
             editedToken.should.have.property('scope', ['device:provision', 'name:Provisioning Token', 'project:' + TestObjects.project.id])
         })
 
+        it('edits a provisioning token to set the application', async function () {
+            ;(await app.db.models.AccessToken.count()).should.equal(0)
+            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token', TestObjects.team, null, null, Date.now() + 5000)
+            ;(await app.db.models.AccessToken.count()).should.equal(1)
+            result.should.have.property('token')
+
+            const token = await AccessTokenController.getOrExpire(result.token)
+            should.exist(token)
+            token.should.have.property('scope', ['device:provision', 'name:Provisioning Token'])
+
+            await AccessTokenController.updateTokenForTeamDeviceProvisioning(token, 'application', TestObjects.application.hashid) // update the token to have a application
+            ;(await app.db.models.AccessToken.count()).should.equal(1) // should still have only 1 token
+            const editedToken = await AccessTokenController.getOrExpire(result.token)
+            should.exist(editedToken)
+            editedToken.should.have.property('scope', ['device:provision', 'name:Provisioning Token', 'application:' + TestObjects.application.hashid])
+        })
+
+        it('edits a provisioning token to remove the application', async function () {
+            ;(await app.db.models.AccessToken.count()).should.equal(0)
+            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token', TestObjects.team, 'application', TestObjects.application.hashid, Date.now() + 5000)
+            ;(await app.db.models.AccessToken.count()).should.equal(1)
+            result.should.have.property('token')
+
+            const token = await AccessTokenController.getOrExpire(result.token)
+            should.exist(token)
+            token.should.have.property('scope', ['device:provision', 'name:Provisioning Token', 'application:' + TestObjects.application.hashid])
+
+            await AccessTokenController.updateTokenForTeamDeviceProvisioning(token, null, null) // update the token to have a project
+            ;(await app.db.models.AccessToken.count()).should.equal(1) // should still have only 1 token
+            const editedToken = await AccessTokenController.getOrExpire(result.token)
+            should.exist(editedToken)
+            editedToken.should.have.property('scope', ['device:provision', 'name:Provisioning Token'])
+        })
+
         it('edits a provisioning token to remove the project', async function () {
             ;(await app.db.models.AccessToken.count()).should.equal(0)
-            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token', TestObjects.team, TestObjects.project, Date.now() + 5000)
+            const result = await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token', TestObjects.team, 'instance', TestObjects.project.id, Date.now() + 5000)
             ;(await app.db.models.AccessToken.count()).should.equal(1)
             result.should.have.property('token')
 

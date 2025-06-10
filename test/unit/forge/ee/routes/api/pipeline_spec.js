@@ -774,6 +774,42 @@ describe('Pipelines API', function () {
         })
 
         describe('With a new instance', function () {
+            it('Should be possible to change stage when a group is present later in the chain', async function () {
+                // Setup a pipeline with A (instance) -> B (device) -> C (device group)
+                // and then change A to D (instanceTwo)
+
+                const pipelineId = TestObjects.pipeline.hashid
+
+                // add a device stage
+                const stage2 = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceId: TestObjects.deviceOne.id, source: TestObjects.stageOne.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
+
+                // add a device group stage at the end of the pipeline
+                const newDeviceGroup = await TestObjects.factory.createApplicationDeviceGroup({ name: 'device-group-s3' }, app.application)
+                await TestObjects.factory.createPipelineStage({ name: 'stage-three', deviceGroupId: newDeviceGroup.hashid, source: stage2.hashid, action: 'use_latest_snapshot' }, TestObjects.pipeline)
+                // add a device group stage at the end of the pipeline
+
+                // get id of stage to modify
+                const stageId = TestObjects.stageOne.hashid
+
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
+                    payload: {
+                        instanceId: TestObjects.instanceTwo.id
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+
+                })
+
+                const body = await response.json()
+
+                body.should.have.property('id')
+                body.should.have.property('instances')
+                body.instances.should.have.length(1)
+                body.instances[0].should.have.property('name', 'instance-two')
+
+                response.statusCode.should.equal(200)
+            })
             it('Should unassign the old instance and assign the new one', async function () {
                 const pipelineId = TestObjects.pipeline.hashid
                 const stageId = TestObjects.stageOne.hashid
@@ -1295,7 +1331,7 @@ describe('Pipelines API', function () {
 
         it('should destroy the pipeline stage, but not touch the assigned device group', async function () {
             const pipelineId = TestObjects.pipelineDeviceGroups.hashid
-            const stageId = TestObjects.pipelineDeviceGroupsStageOne.hashid
+            const stageId = TestObjects.pipelineDeviceGroupsStageTwo.hashid
             const deviceGroupId = TestObjects.deviceGroupOne.hashid
 
             const response = await app.inject({
@@ -1374,6 +1410,16 @@ describe('Pipelines API', function () {
         })
 
         describe('When there is a pipeline after', function () {
+            beforeEach(async () => {
+                // spies
+                sinon.spy(app.db.controllers.Pipeline, 'deletePipelineStage')
+                sinon.spy(app.db.models.PipelineStage, 'validateStages')
+            })
+            afterEach(async () => {
+                app.db.controllers.Pipeline.deletePipelineStage.restore()
+                app.db.models.PipelineStage.validateStages.restore()
+            })
+
             it('should set the previousStages nextStage to null', async function () {
                 const pipelineId = TestObjects.pipeline.hashid
 
@@ -1389,13 +1435,44 @@ describe('Pipelines API', function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
+                should(app.db.controllers.Pipeline.deletePipelineStage.calledOnce).equal(true, 'deletePipelineStage should have been called')
+                should(app.db.models.PipelineStage.validateStages.calledOnce).equal(true, 'validateStages should have been called')
+
+                response.statusCode.should.equal(200)
                 const body = await response.json()
                 body.should.have.property('status', 'okay')
-                response.statusCode.should.equal(200)
 
                 const stageOne = await TestObjects.stageOne.reload()
 
                 should(stageOne.NextStageId).equal(null)
+            })
+
+            it('should fail to delete first stage due to final state of pipeline being an invalid configuration', async function () {
+                const pipelineId = TestObjects.pipeline.hashid
+
+                // 1 (instance) -> 2 (device group) --> attempt to delete 1
+                TestObjects.stageTwo = await TestObjects.factory.createPipelineStage({ name: 'stage-two', deviceGroupId: TestObjects.deviceGroupTwo.id, source: TestObjects.stageOne.hashid, action: 'use_active_snapshot' }, TestObjects.pipeline)
+                await TestObjects.stageOne.reload()
+
+                should(TestObjects.stageOne.NextStageId).equal(TestObjects.stageTwo.id)
+
+                const response = await app.inject({
+                    method: 'DELETE',
+                    url: `/api/v1/pipelines/${pipelineId}/stages/${TestObjects.stageOne.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+
+                should(app.db.controllers.Pipeline.deletePipelineStage.calledOnce).equal(true, 'deletePipelineStage should have been called')
+                should(app.db.models.PipelineStage.validateStages.calledOnce).equal(true, 'validateStages should have been called')
+                should(app.db.models.PipelineStage.validateStages.threw()).equal(true, 'validateStages should have thrown an error')
+
+                response.statusCode.should.equal(400)
+                const body = await response.json()
+                body.should.have.property('code', 'invalid_input')
+
+                const stageOne = await TestObjects.stageOne.reload()
+
+                should(stageOne.NextStageId).equal(TestObjects.stageTwo.id, 'stageOne should still point to stageTwo')
             })
         })
     })
@@ -3041,34 +3118,37 @@ describe('Pipelines API', function () {
             body.should.have.property('count', 3)
             body.pipelines.should.have.length(3)
 
-            body.pipelines[0].should.have.property('name', 'new-pipeline')
-            body.pipelines[0].should.have.property('stages')
+            const p1 = body.pipelines.find(p => p.name === 'new-pipeline')
+            should.exist(p1)
+            p1.should.have.property('stages')
 
-            body.pipelines[0].stages.should.have.length(1)
-            body.pipelines[0].stages[0].should.have.property('name', 'stage-one')
+            p1.stages.should.have.length(1)
+            p1.stages[0].should.have.property('name', 'stage-one')
 
-            body.pipelines[0].stages[0].instances.should.have.length(1)
-            body.pipelines[0].stages[0].instances[0].should.have.property('name', 'project1')
+            p1.stages[0].instances.should.have.length(1)
+            p1.stages[0].instances[0].should.have.property('name', 'project1')
 
-            body.pipelines[1].should.have.property('name', 'new-pipeline-devices')
+            const p2 = body.pipelines.find(p => p.name === 'new-pipeline-devices')
+            should.exist(p2)
 
-            body.pipelines[1].stages.should.have.length(1)
-            body.pipelines[1].stages[0].should.have.property('name', 'stage-one-devices')
+            p2.stages.should.have.length(1)
+            p2.stages[0].should.have.property('name', 'stage-one-devices')
 
-            body.pipelines[1].stages[0].devices.should.have.length(1)
-            body.pipelines[1].stages[0].devices[0].should.have.property('name', 'device-a')
+            p2.stages[0].devices.should.have.length(1)
+            p2.stages[0].devices[0].should.have.property('name', 'device-a')
 
-            body.pipelines[2].should.have.property('name', 'new-pipeline-device-groups')
+            const p3 = body.pipelines.find(p => p.name === 'new-pipeline-device-groups')
+            should.exist(p3)
 
-            body.pipelines[2].stages.should.have.length(2)
-            body.pipelines[2].stages[0].should.have.property('name', 'stage-one-instance') // first stage is an instance
-            body.pipelines[2].stages[1].should.have.property('name', 'stage-two-device-group') // second stage is a device group
+            p3.stages.should.have.length(2)
+            p3.stages[0].should.have.property('name', 'stage-one-instance') // first stage is an instance
+            p3.stages[1].should.have.property('name', 'stage-two-device-group') // second stage is a device group
 
-            body.pipelines[2].stages[0].instances.should.have.length(1)
-            body.pipelines[2].stages[0].instances[0].should.have.property('name', 'project1')
+            p3.stages[0].instances.should.have.length(1)
+            p3.stages[0].instances[0].should.have.property('name', 'project1')
 
-            body.pipelines[2].stages[1].deviceGroups.should.have.length(1)
-            body.pipelines[2].stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
+            p3.stages[1].deviceGroups.should.have.length(1)
+            p3.stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
 
             response.statusCode.should.equal(200)
         })
@@ -3087,38 +3167,41 @@ describe('Pipelines API', function () {
             body.should.have.property('count', 3)
             body.pipelines.should.have.length(3)
 
-            body.pipelines[0].should.have.property('name', 'new-pipeline')
-            body.pipelines[0].should.have.property('stages')
-            body.pipelines[0].should.have.property('application')
-            body.pipelines[0].application.should.have.property('name', TestObjects.application.name)
+            const p1 = body.pipelines.find(p => p.name === 'new-pipeline')
+            should.exist(p1)
+            p1.should.have.property('stages')
+            p1.should.have.property('application')
+            p1.application.should.have.property('name', TestObjects.application.name)
 
-            body.pipelines[0].stages.should.have.length(1)
-            body.pipelines[0].stages[0].should.have.property('name', 'stage-one')
+            p1.stages.should.have.length(1)
+            p1.stages[0].should.have.property('name', 'stage-one')
 
-            body.pipelines[0].stages[0].instances.should.have.length(1)
-            body.pipelines[0].stages[0].instances[0].should.have.property('name', 'project1')
+            p1.stages[0].instances.should.have.length(1)
+            p1.stages[0].instances[0].should.have.property('name', 'project1')
 
-            body.pipelines[1].should.have.property('name', 'new-pipeline-devices')
-            body.pipelines[1].should.have.property('application')
+            const p2 = body.pipelines.find(p => p.name === 'new-pipeline-devices')
+            should.exist(p2)
+            p2.should.have.property('application')
 
-            body.pipelines[1].stages.should.have.length(1)
-            body.pipelines[1].stages[0].should.have.property('name', 'stage-one-devices')
+            p2.stages.should.have.length(1)
+            p2.stages[0].should.have.property('name', 'stage-one-devices')
 
-            body.pipelines[1].stages[0].devices.should.have.length(1)
-            body.pipelines[1].stages[0].devices[0].should.have.property('name', 'device-a')
+            p2.stages[0].devices.should.have.length(1)
+            p2.stages[0].devices[0].should.have.property('name', 'device-a')
 
-            body.pipelines[2].should.have.property('name', 'new-pipeline-device-groups')
-            body.pipelines[2].should.have.property('application')
+            const p3 = body.pipelines.find(p => p.name === 'new-pipeline-device-groups')
+            should.exist(p3)
+            p3.should.have.property('application')
 
-            body.pipelines[2].stages.should.have.length(2)
-            body.pipelines[2].stages[0].should.have.property('name', 'stage-one-instance') // first stage is an instance
-            body.pipelines[2].stages[1].should.have.property('name', 'stage-two-device-group') // second stage is a device group
+            p3.stages.should.have.length(2)
+            p3.stages[0].should.have.property('name', 'stage-one-instance') // first stage is an instance
+            p3.stages[1].should.have.property('name', 'stage-two-device-group') // second stage is a device group
 
-            body.pipelines[2].stages[0].instances.should.have.length(1)
-            body.pipelines[2].stages[0].instances[0].should.have.property('name', 'project1')
+            p3.stages[0].instances.should.have.length(1)
+            p3.stages[0].instances[0].should.have.property('name', 'project1')
 
-            body.pipelines[2].stages[1].deviceGroups.should.have.length(1)
-            body.pipelines[2].stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
+            p3.stages[1].deviceGroups.should.have.length(1)
+            p3.stages[1].deviceGroups[0].should.have.property('name', 'device-group-a')
         })
     })
 

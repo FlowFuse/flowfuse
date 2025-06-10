@@ -181,22 +181,18 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux', ['toggleLeftDrawer', 'activateTour']),
+        ...mapActions('ux', ['toggleLeftDrawer']),
         openEducationModal () {
-            this.activateTour('education')
-            product.capture('clicked-open-education-modal')
+            this.$store.dispatch('ux/tours/openModal', 'education')
+                .then(() => product.capture('clicked-open-education-modal'))
+                .catch(e => e)
         },
         startWelcomeTour () {
-            return this.$store.dispatch('ux/resetTours')
+            return this.$store.dispatch('ux/tours/resetTours')
                 // it's unfortunate that we can't redirect premium users straight to the application device page, but we
                 // don't have available applications at this moment in time so they'll get redirected twice
                 .then(() => this.$router.push({ name: 'Applications' }))
-                .then(() => {
-                    // breathing room for the page, instances and devices to load for the tour to work properly
-                    setTimeout(() => {
-                        this.$store.dispatch('ux/activateTour', 'welcome')
-                    }, 1000)
-                })
+                .then(() => this.$store.dispatch('ux/tours/presentTour'))
         }
     }
 }

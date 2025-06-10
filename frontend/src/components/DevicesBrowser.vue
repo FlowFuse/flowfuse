@@ -227,15 +227,16 @@
     </div>
 
     <TeamDeviceCreateDialog
-        v-if="team"
+        v-if="team && deviceEditModalOpened"
         ref="teamDeviceCreateDialog"
         :team="team"
         :teamDeviceCount="teamDeviceCount"
         @device-created="deviceCreated"
         @device-updated="deviceUpdated"
+        @close="deviceEditModalOpened = false"
     >
         <template #description>
-            <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours['first-device']">
+            <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours.firstDevice">
                 Describe your new Remote Instance here, e.g. "Raspberry Pi", "Allen-Bradley PLC", etc.
             </p>
             <p v-else>
@@ -400,12 +401,13 @@ export default {
                 direction: 'desc'
             },
             /** @type { import('../utils/timers.js').PollTimer } */
-            pollTimer: null
+            pollTimer: null,
+            deviceEditModalOpened: false
         }
     },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
-        ...mapState('ux', ['tours']),
+        ...mapState('ux/tours', ['tours']),
         ...mapGetters('account', ['featuresCheck']),
         columns () {
             const columns = [
@@ -580,7 +582,8 @@ export default {
 
         showCreateDeviceDialog () {
             const showApplicationsList = this.displayingTeam
-            this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application, showApplicationsList)
+            this.deviceEditModalOpened = true
+            this.$nextTick(() => this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application, showApplicationsList))
         },
 
         confirmBulkDelete () {

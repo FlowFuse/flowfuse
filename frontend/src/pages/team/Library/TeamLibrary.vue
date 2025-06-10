@@ -1,6 +1,6 @@
 <template>
     <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-    <div class="ff-team-library mb-14">
+    <div class="ff-team-library">
         <SectionTopMenu hero="Team Library" info="Centralized management of common Javascript functions and Node-RED flows for your team." />
         <div v-if="isSharedLibraryFeatureEnabled" class="breadcrumbs-wrapper">
             <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
@@ -65,6 +65,7 @@ import CodePreviewer from '../../../components/CodePreviewer.vue'
 import EmptyState from '../../../components/EmptyState.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FlowViewer from '../../../components/flow-viewer/FlowViewer.vue'
+import usePermissions from '../../../composables/Permissions.js'
 import formatDateMixin from '../../../mixins/DateTime.js'
 import featuresMixin from '../../../mixins/Features.js'
 import Alerts from '../../../services/alerts.js'
@@ -83,6 +84,11 @@ export default {
         SectionTopMenu
     },
     mixins: [formatDateMixin, featuresMixin],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             breadcrumbs: [],
@@ -111,14 +117,13 @@ export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership'])
     },
-    created () {
-        this.$watch(
-            () => this.$route.params,
-            () => {
-                this.pathChanged(this.$route.params.entryPath || [])
+    watch: {
+        '$route.params': {
+            immediate: true,
+            handler (params) {
+                this.pathChanged(params.entryPath || [])
             }
-        )
-        this.pathChanged(this.$route.params.entryPath || [])
+        }
     },
     methods: {
         entrySelected (entry) {
@@ -152,7 +157,7 @@ export default {
             this.loadEntry(pathArray.filter((entry) => entry))
         },
         async loadEntry (entryPathArray) {
-            if (!this.isSharedLibraryFeatureEnabled) {
+            if (!this.isSharedLibraryFeatureEnabled || !this.hasPermission('library:entry:list')) {
                 return
             }
 

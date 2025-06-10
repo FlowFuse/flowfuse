@@ -21,7 +21,7 @@ jobs:
       run_ui_tests: ${{ steps.changed-files.outputs.ui_changed }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
       - name: Find changed files
@@ -37,12 +37,12 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
       with:
         node-version: ${{ matrix.node-version }}
     - name: Install Dependencies
@@ -54,7 +54,7 @@ jobs:
     - name: Run forge system tests
       run: npm run cover:system
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         flags: backend
@@ -81,12 +81,12 @@ jobs:
           - 5432:5432
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Setup NodeJS ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
@@ -121,7 +121,7 @@ jobs:
           --env MP_SMTP_AUTH_ALLOW_INSECURE=1
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Install Dependencies
         run: npm ci
       - name: Run Linting Tests
@@ -129,7 +129,7 @@ jobs:
       - name: Run UI Unit Tests
         run: npm run test:unit:frontend
       - name: Run UI E2E (Cypress) Tests - OS
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@615dcf65299b63c35268d795f4dfb79532388f64 # v6.10.0
         with:
           install: false
           config-file: config/cypress-os.config.js
@@ -141,7 +141,7 @@ jobs:
           SMTP_PORT: '1025'
           SMTP_WEB_PORT: '8025'
       - name: Run UI E2E (Cypress) Tests - EE
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@615dcf65299b63c35268d795f4dfb79532388f64 # v6.10.0
         with:
             install: false
             config-file: config/cypress-ee.config.js
@@ -152,7 +152,7 @@ jobs:
           SMTP_HOST: 'localhost'
           SMTP_PORT: '1025'
           SMTP_WEB_PORT: '8025'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
           name: cypress-output
@@ -174,7 +174,7 @@ jobs:
     steps:
     - name: Map users  
       id: map-actor-to-slack
-      uses: icalia-actions/map-github-actor@v0.0.2
+      uses: icalia-actions/map-github-actor@e568d1dd6023e406a1db36db4e1e0b92d9dd7824 # v0.0.2
       with:
         actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
         default-mapping: C067BD0377F
@@ -196,7 +196,7 @@ jobs:
         fi
 
     - name: Send notification
-      uses: slackapi/slack-github-action@v2.0.0
+      uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_GHBOT_TOKEN }}

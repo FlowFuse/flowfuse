@@ -3,6 +3,7 @@ const {
 } = require('sequelize')
 
 const { KEY_HA, KEY_PROTECTED, KEY_SETTINGS } = require('../../../db/models/ProjectSettings')
+const pipelineValidation = require('../../../lib/pipelineValidation')
 
 const SNAPSHOT_ACTIONS = {
     // Any changes to this list *must* be made via migration.
@@ -137,6 +138,7 @@ module.exports = {
         this.belongsToMany(M.Project, { through: M.PipelineStageInstance, as: 'Instances', otherKey: 'InstanceId' })
         this.belongsToMany(M.Device, { through: M.PipelineStageDevice, as: 'Devices' })
         this.belongsToMany(M.DeviceGroup, { through: M.PipelineStageDeviceGroup, as: 'DeviceGroups' })
+        this.hasOne(M.PipelineStageGitRepo, { onDelete: 'CASCADE' })
         this.hasOne(M.PipelineStage, { as: 'NextStage', foreignKey: 'NextStageId', allowNull: true })
     },
     finders: function (M) {
@@ -190,6 +192,34 @@ module.exports = {
                     }
 
                     await this.addDeviceGroup(deviceGroup, options)
+                },
+                async addGitRepo (gitOptions, options = {}) {
+                    // Both create/update paths will have already validated this gitTokenId belongs to the
+                    // appropriate team
+                    const GitTokenId = M.GitToken.decodeHashid(gitOptions.gitTokenId)
+                    const existingRepoStage = await this.getPipelineStageGitRepo()
+                    if (existingRepoStage) {
+                        existingRepoStage.GitTokenId = GitTokenId
+                        existingRepoStage.url = gitOptions.url
+                        existingRepoStage.branch = gitOptions.branch || ''
+                        existingRepoStage.pullBranch = gitOptions.pullBranch || ''
+                        existingRepoStage.pushPath = gitOptions.pushPath || ''
+                        existingRepoStage.pullPath = gitOptions.pullPath || ''
+                        if (gitOptions.credentialSecret) {
+                            existingRepoStage.credentialSecret = gitOptions.credentialSecret
+                        }
+                        await existingRepoStage.save(options)
+                    } else {
+                        await this.createPipelineStageGitRepo({
+                            GitTokenId,
+                            url: gitOptions.url,
+                            branch: gitOptions.branch || '',
+                            pullBranch: gitOptions.pullBranch || '',
+                            pushPath: gitOptions.pushPath || '',
+                            pullPath: gitOptions.pullPath || '',
+                            credentialSecret: gitOptions.credentialSecret
+                        }, options)
+                    }
                 }
             },
             static: {
@@ -213,7 +243,8 @@ module.exports = {
                             {
                                 association: 'DeviceGroups',
                                 attributes: ['hashid', 'id', 'name', 'description']
-                            }
+                            },
+                            'PipelineStageGitRepo'
                         ]
                     })
                 },
@@ -265,7 +296,8 @@ module.exports = {
                                 ]
                             },
                             devicesInclude,
-                            deviceGroupsInclude
+                            deviceGroupsInclude,
+                            'PipelineStageGitRepo'
                         ]
                     })
                 },
@@ -283,6 +315,10 @@ module.exports = {
                  * @param {[]} stages The stages to order
                  */
                 sortStages: function (stages) {
+                    // if there is only one stage, return it
+                    if (stages.length === 1) {
+                        return stages
+                    }
                     // Must ensure the stages are listed in the correct order
                     const stagesById = {}
                     const backReferences = {}
@@ -306,6 +342,10 @@ module.exports = {
                         pointer = stagesById[backReferences[pointer.id]]
                     }
                     return orderedStages
+                },
+                validateStages: function (stages) {
+                    const orderedStages = self.sortStages(stages)
+                    return pipelineValidation.validateStages(orderedStages)
                 }
             }
         }

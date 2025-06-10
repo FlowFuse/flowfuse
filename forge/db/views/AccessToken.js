@@ -6,7 +6,8 @@ module.exports = function (app) {
             id: { type: 'string' },
             name: { type: 'string' },
             team: { type: 'string', nullable: true },
-            instance: { type: 'string' },
+            application: { type: 'string', nullable: true },
+            instance: { type: 'string', nullable: true },
             expiresAt: { type: 'string', nullable: true },
             targetSnapshot: { type: 'string' }
         }

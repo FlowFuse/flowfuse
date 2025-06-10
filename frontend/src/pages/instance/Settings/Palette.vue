@@ -4,9 +4,6 @@
         <TemplateSectionCatalogue v-model="editable" :editTemplate="false" :readOnly="!catalogueEditable" :project="project" />
         <TemplateSectionNPM v-model="editable" :editTemplate="false" :readOnly="!npmEditable" :project="project" />
         <TemplatePaletteModulesEditor v-model="editable" :editTemplate="false" :readOnly="!paletteEditable" :project="project" />
-        <div class="space-x-4 whitespace-nowrap">
-            <ff-button size="small" :disabled="!unsavedChanges && !modulesChanged" @click="saveSettings()">Save settings</ff-button>
-        </div>
     </form>
 </template>
 
@@ -18,7 +15,7 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
-import alerts from '../../../services/alerts.js'
+import Dialog from '../../../services/dialog.js'
 import TemplateSectionCatalogue from '../../admin/Template/sections/Catalogues.vue'
 import TemplateSectionNPM from '../../admin/Template/sections/NPMRegistry.vue'
 import TemplateSettingsPalette from '../../admin/Template/sections/Palette.vue'
@@ -48,11 +45,10 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'save-button-state', 'restart-instance'],
     data () {
         return {
-            unsavedChanges: false,
-            modulesChanged: false,
+            // unsavedChanges: false,
             mounted: false,
             editable: {
                 name: '',
@@ -68,7 +64,6 @@ export default {
                 errors: {}
             },
             original: {}
-
         }
     },
     computed: {
@@ -88,34 +83,68 @@ export default {
         },
         npmEditable () {
             return this.editable?.policy.palette_npmrc
+        },
+        saveButton () {
+            // todo not working properly from the get-go
+            return {
+                visible: true,
+                disabled: !this.unsavedChanges && !this.unsavedModules
+            }
+        },
+        unsavedChanges () {
+            let flag = false
+            if (this.project.template) {
+                templateFields.forEach(field => {
+                    if (field !== 'palette_modules') {
+                        let current = null
+                        if (Object.prototype.hasOwnProperty.call(this.editable?.settings ?? {}, field)) {
+                            current = this.editable?.settings[field]
+                        }
+
+                        let original = null
+                        if (Object.prototype.hasOwnProperty.call(this.original?.settings ?? {}, field)) {
+                            original = this.original?.settings[field]
+                        }
+
+                        if (typeof current === 'object') {
+                            current = JSON.stringify(current)
+                        }
+
+                        if (typeof original === 'object') {
+                            original = JSON.stringify(original)
+                        }
+                        if (current !== original) {
+                            flag = true
+                        }
+                    }
+                })
+            }
+
+            return flag
+        },
+        comparedPaletteModules () {
+            if (!this.mounted || !this.project) {
+                return false
+            }
+            return comparePaletteModules(this.editable.settings.palette_modules, this.original.settings.palette_modulesMap || {})
+        },
+        unsavedModules () {
+            if (!this.mounted || !this.project) {
+                return false
+            }
+
+            return this.comparedPaletteModules.changed
+        },
+        hasErrors () {
+            return this.comparedPaletteModules.errors
         }
     },
     watch: {
         project: 'getSettings',
-        editable: {
-            deep: true,
-            handler (v) {
-                if (this.project.template) {
-                    let changed = false
-                    templateFields.forEach(field => {
-                        if (field !== 'palette_modules') {
-                            // this.editable.changed.settings[field] = this.editable.settings[field] != this.original.settings[field]
-                            changed = changed || (this.editable.settings[field] !== this.original.settings[field])
-                        }
-                    })
-                    this.unsavedChanges = changed
-                }
-            }
-        },
-        'editable.settings.palette_modules': {
-            deep: true,
-            handler (v) {
-                if (!this.mounted || !this.project) {
-                    return // not yet mounted or no project
-                }
-                const result = comparePaletteModules(v, this.original.settings.palette_modulesMap || {})
-                this.modulesChanged = result.changed
-                this.hasErrors = result.errors
+        saveButton: {
+            immediate: true,
+            handler (state) {
+                this.$emit('save-button-state', state)
             }
         }
     },
@@ -161,7 +190,18 @@ export default {
             })
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
-            alerts.emit('Instance successfully updated.', 'confirmation')
+            // is instance running
+            if (this.project.meta.state === 'running') {
+                Dialog.show({
+                    header: 'Restart Required',
+                    html: '<p>Instance settings have been successfully updated, but the Instance must be restarted for these settings to take effect.</p><p>Would you like to restart the Instance now?</p>',
+                    confirmLabel: 'Restart Now',
+                    cancelLabel: 'Restart Later'
+                }, () => {
+                    // restart the instance
+                    this.$emit('restart-instance')
+                })
+            }
         }
     }
 }

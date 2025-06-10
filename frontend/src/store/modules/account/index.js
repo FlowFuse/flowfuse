@@ -83,6 +83,9 @@ const getters = {
     team (state) {
         return state.team
     },
+    isFreeTeamType (state) {
+        return !!(state.team?.type?.properties?.billing?.disabled)
+    },
     teamMembership (state) {
         return state.teamMembership
     },
@@ -149,6 +152,7 @@ const getters = {
     featuresCheck: (state) => {
         const preCheck = {
             // Instances
+            // deprecated, use the isFreeTeamType getter
             isHostedInstancesEnabledForTeam: ((state) => {
                 if (!state.team) {
                     return false
@@ -219,7 +223,14 @@ const getters = {
             isExternalMqttBrokerFeatureEnabledForPlatform: !!state.features?.externalBroker,
 
             // DevOps Pipelines
-            devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines']
+            devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines'],
+
+            isGitIntegrationFeatureEnabledForPlatform: !!state.features?.gitIntegration,
+
+            // Instance Resources
+            isInstanceResourcesFeatureEnabledForPlatform: !!state.features?.instanceResources,
+            isInstanceResourcesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.instanceResources
+
         }
         return {
             ...preCheck,
@@ -234,7 +245,9 @@ const getters = {
             // external broker must be enabled for platform, and share the same team-level feature flag as the team broker
             isExternalMqttBrokerFeatureEnabled: preCheck.isExternalMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
             devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
-            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups
+            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups,
+            isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration,
+            isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam
         }
     }
 }

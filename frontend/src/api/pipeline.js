@@ -6,7 +6,8 @@ import client from './client.js'
 export const StageType = Object.freeze({
     INSTANCE: 'instance',
     DEVICE: 'device',
-    DEVICEGROUP: 'device-group'
+    DEVICEGROUP: 'device-group',
+    GITREPO: 'git-repo'
 })
 
 export const getStageType = (stage) => {
@@ -16,6 +17,8 @@ export const getStageType = (stage) => {
         return StageType.DEVICE
     } else if (stage.deviceGroup) {
         return StageType.DEVICEGROUP
+    } else if (stage.gitRepo) {
+        return StageType.GITREPO
     }
     return null
 }
@@ -73,6 +76,19 @@ const addPipelineStage = async (pipelineId, stage) => {
     }
     if (stage.source) {
         options.source = stage.source
+    }
+    if (stage.gitTokenId) {
+        // Tidy up options for git-repo stages
+        options.gitTokenId = stage.gitTokenId
+        options.url = stage.url
+        options.branch = stage.branch
+        options.pullBranch = stage.pullBranch
+        options.pushPath = stage.pushPath
+        options.pullPath = stage.pullPath
+        options.credentialSecret = stage.credentialSecret
+        delete options.instanceId
+        delete options.deviceGroupId
+        delete options.deployToDevices
     }
     return client.post(`/api/v1/pipelines/${pipelineId}/stages`, options)
         .then(res => {

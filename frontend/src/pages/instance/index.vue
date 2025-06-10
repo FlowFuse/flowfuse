@@ -23,6 +23,11 @@
                     <router-link v-if="instance.protected?.enabled" :to="{ name: 'instance-settings-protect'}" @click.stop>
                         <StatusBadge class="ml-2 text-gray-400 hover:text-blue-600" data-el="protected-pill" status="protected" text="Protected" />
                     </router-link>
+                    <router-link v-if="instance.settings.disableEditor" :to="{name: 'instance-settings-editor', params: { id: instance.id }}" @click.stop>
+                        <StatusBadge class="ml-2 text-gray-400 cursor-pointer hover:text-blue-600" status="Editor Disabled">
+                            <template #icon><LockClosedIcon class="w-4 h-4" /></template>
+                        </StatusBadge>
+                    </router-link>
                 </template>
                 <template #context>
                     Application:
@@ -54,7 +59,7 @@
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <div>
+        <div class="flex flex-col flex-1">
             <router-view
                 :instance="instance"
                 :is-visiting-admin="isVisitingAdmin"
@@ -69,6 +74,7 @@
 </template>
 
 <script>
+import { LockClosedIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
@@ -77,6 +83,7 @@ import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import InstanceActionsButton from '../../components/instance/ActionButton.vue'
+import usePermissions from '../../composables/Permissions.js'
 
 import featuresMixin from '../../mixins/Features.js'
 import instanceMixin from '../../mixins/Instance.js'
@@ -87,6 +94,7 @@ import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDelet
 import DashboardLink from './components/DashboardLink.vue'
 import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
+
 export default {
     name: 'InstancePage',
     components: {
@@ -98,9 +106,17 @@ export default {
         StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner,
-        InstanceEditorLink
+        InstanceEditorLink,
+        LockClosedIcon
     },
     mixins: [permissionsMixin, instanceMixin, featuresMixin],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return {
+            hasPermission
+        }
+    },
     data: function () {
         return {
             mounted: false,
@@ -132,6 +148,7 @@ export default {
                 { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasAMinimumTeamRoleOf(Roles.Member) },
                 { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
                 { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
+                { label: 'Performance', to: { name: 'instance-performance', params: { id: this.instance.id } }, tag: 'instance-performance' },
                 { label: 'Settings', to: { name: 'instance-settings', params: { id: this.instance.id } }, tag: 'instance-settings' }
             ]
         },

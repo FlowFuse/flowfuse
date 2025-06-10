@@ -14,9 +14,11 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { mapState } from 'vuex'
 
 import ApplicationAPI from '../../../api/application.js'
 import PipelinesAPI from '../../../api/pipeline.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
 
@@ -50,12 +52,34 @@ export default {
             required: true
         }
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             icons: {
                 chevronLeft: ChevronLeftIcon
             },
             mounted: false
+        }
+    },
+    computed: {
+        ...mapState('account', ['team'])
+    },
+    watch: {
+        team: {
+            immediate: true,
+            handler (team) {
+                if (team && !this.hasPermission('pipeline:create')) {
+                    this.$router.replace({
+                        name: 'ApplicationPipelines',
+                        params: {
+                            id: this.application.id
+                        }
+                    })
+                }
+            }
         }
     },
     async mounted () {
@@ -86,6 +110,17 @@ export default {
                 }
             } else {
                 options.deviceGroupId = input.deviceGroupId
+            }
+
+            if (input.gitTokenId) {
+                // Git repo - clean up unused settings
+                options.gitTokenId = input.gitTokenId
+                options.url = input.url
+                options.branch = input.branch
+                options.pullBranch = input.pullBranch
+                options.pullPath = input.pullPath
+                options.pushPath = input.pushPath
+                options.credentialSecret = input.credentialSecret
             }
 
             await PipelinesAPI.addPipelineStage(this.pipeline.id, options)

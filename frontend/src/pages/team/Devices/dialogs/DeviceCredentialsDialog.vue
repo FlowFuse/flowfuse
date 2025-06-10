@@ -14,13 +14,53 @@
                 <template v-if="hasCredentials">
                     <template v-if="otc">
                         <label class="block font-bold mb-2">Install Device Agent</label>
-                        <p>Run this command on the hardware where you want your Remote Instance to run:</p>
-                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">npm install -g @flowfuse/device-agent</pre>
-                        <div class="flex flex-row justify-end space-x-2 -mt-1">
-                            <ff-button kind="tertiary" size="small" @click="copy('npm install -g @flowfuse/device-agent')">
-                                <template #icon-right><ClipboardCopyIcon /></template>
-                                <span class="">Copy</span>
-                            </ff-button>
+                        <div class="mb-4">
+                            <ul class="grid grid-cols-3 space-x-2">
+                                <li
+                                    v-for="os in ['Windows', 'MacOS', 'Linux']"
+                                    :key="os"
+                                    class="p-4 mb-2 border rounded bg-white border-gray-200 cursor-pointer flex items-center justify-center space-x-2"
+                                    :class="{ 'border-blue-600': selectedOS === os }"
+                                    @click.stop="selectedOS = os"
+                                >
+                                    <img :src="osIcons[os]" class="w-5 h-5" :alt="os + ' icon'">
+                                    <span>{{ os }}</span>
+                                </li>
+                            </ul>
+                            <div class="grid grid-cols-1 gap-4">
+                                <div class="p-2 border rounded bg-gray-50">
+                                    <template v-if="selectedOS === 'Windows'">
+                                        <p>Open Command Prompt or PowerShell as administrator and run:</p>
+                                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">npm install -g @flowfuse/device-agent</pre>
+                                        <div class="flex flex-row justify-end space-x-2 -mt-1">
+                                            <ff-button kind="tertiary" size="small" @click="copy('npm install -g @flowfuse/device-agent')">
+                                                <template #icon-right><ClipboardCopyIcon /></template>
+                                                <span class="">Copy</span>
+                                            </ff-button>
+                                        </div>
+                                    </template>
+                                    <template v-if="selectedOS === 'MacOS'">
+                                        <p>Open Terminal and run:</p>
+                                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">sudo npm install -g @flowfuse/device-agent</pre>
+                                        <div class="flex flex-row justify-end space-x-2 -mt-1">
+                                            <ff-button kind="tertiary" size="small" @click="copy('sudo npm install -g @flowfuse/device-agent')">
+                                                <template #icon-right><ClipboardCopyIcon /></template>
+                                                <span class="">Copy</span>
+                                            </ff-button>
+                                        </div>
+                                    </template>
+                                    <template v-if="selectedOS === 'Linux'">
+                                        <p>Open Terminal and run:</p>
+                                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">sudo npm install -g @flowfuse/device-agent</pre>
+                                        <div class="flex flex-row justify-end space-x-2 -mt-1">
+                                            <ff-button kind="tertiary" size="small" @click="copy('sudo npm install -g @flowfuse/device-agent')">
+                                                <template #icon-right><ClipboardCopyIcon /></template>
+                                                <span class="">Copy</span>
+                                            </ff-button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                         <p class="text-gray-600 italic text-sm">
                             Note: For more detailed instructions on installing the Device Agent, checkout the documentation <a href="https://flowfuse.com/docs/device-agent/" target="_blank">here</a>.
@@ -101,6 +141,9 @@ import { ClipboardCopyIcon, DocumentDownloadIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../../api/devices.js'
+import LinuxIcon from '../../../../assets/icons/linux.svg'
+import MacOSIcon from '../../../../assets/icons/macos.svg'
+import WindowsIcon from '../../../../assets/icons/windows.svg'
 import { downloadData } from '../../../../composables/Download.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
 import Alerts from '../../../../services/alerts.js'
@@ -115,7 +158,13 @@ export default {
     props: ['team'],
     data () {
         return {
-            device: null
+            device: null,
+            selectedOS: 'Windows', // Default selected OS
+            osIcons: {
+                Windows: WindowsIcon,
+                MacOS: MacOSIcon,
+                Linux: LinuxIcon
+            }
         }
     },
     methods: {

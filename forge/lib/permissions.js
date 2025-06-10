@@ -126,7 +126,7 @@ const Permissions = {
      */
 
     // Projects
-    'project:history': { description: 'View Hosted Instances project history', role: Roles.Member },
+    'project:history': { description: 'View Hosted Instances project history', role: Roles.Viewer },
 
     // Application
     'application:bom': { description: 'Get the Application Bill of Materials', role: Roles.Owner },
@@ -199,7 +199,14 @@ const Permissions = {
 
     // Team Packages
     'team:packages:read': { description: 'List Teams Private Packages', role: Roles.Member },
-    'team:packages:manage': { description: 'Manage Teams Private Packages', role: Roles.Owner }
+    'team:packages:manage': { description: 'Manage Teams Private Packages', role: Roles.Owner },
+
+    // Team Git Tokens
+    'team:git:tokens:list': { description: 'List Teams Git Tokens', role: Roles.Owner },
+    'team:git:tokens:create': { description: 'List Teams Git Tokens', role: Roles.Owner },
+    'team:git:tokens:edit': { description: 'Edit Teams Git Tokens', role: Roles.Owner },
+    'team:git:tokens:delete': { description: 'Edit Teams Git Tokens', role: Roles.Owner }
+
 }
 
 module.exports = {

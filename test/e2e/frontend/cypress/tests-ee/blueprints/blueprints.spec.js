@@ -1,24 +1,25 @@
 import multipleBlueprints from '../../fixtures/blueprints/multiple-blueprints.json'
 import singleBlueprint from '../../fixtures/blueprints/single-blueprint.json'
 
-const canPreviewBlueprintByClickingTheBlueprintTile = () => {
-    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('not.be.visible')
-    cy.get('[data-action="click-small-blueprint-tile"]').should('exist')
-    cy.get('[data-action="click-small-blueprint-tile"]').click()
-    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('be.visible')
-    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').within(() => {
-        cy.get('[data-action="dialog-confirm"]').click()
-    })
-}
+function prefillMultiStepForm () {
+    // move along the multi-step form
+    cy.get('[data-el="application-item"]').first().click()
+    cy.get('[data-el="next-step"]').click()
 
-const canPreviewBlueprintByClickingThePreviewBlueprintButton = () => {
-    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('not.be.visible')
-    cy.get('[data-action="blueprint-actions"]').should('exist')
-    cy.get('[data-action="blueprint-actions"]').contains('Preview Blueprint').click()
-    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').should('be.visible')
-    cy.get('[data-el="flow-view-dialog"].preview-main-blueprint').within(() => {
-        cy.get('[data-action="dialog-confirm"]').click()
-    })
+    // select instance type
+    cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()
+
+    // select template
+    cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
+
+    // select nr-version
+    cy.get('[data-form="multi-step-form"] [data-el="node-red-listbox"]').click()
+    cy.get('[data-option="stack 1"]').click()
+
+    cy.get('[data-el="next-step"]').click()
+
+    cy.get('[data-group="blueprints"]').should('exist')
+    cy.get('[data-group="blueprints"]').contains(singleBlueprint.blueprints[0].name)
 }
 
 describe('FlowForge - Blueprints', () => {
@@ -86,73 +87,51 @@ describe('FlowForge - Blueprints', () => {
         })
     })
 
-    it('cannot change Blueprint if only 1 is available be used when creating an Instance', () => {
-        cy.intercept('GET', '/api/*/flow-blueprints*', singleBlueprint).as('getFlowBlueprints')
-        cy.visit('/team/ateam/instances/create')
-
-        cy.get('[data-form="blueprint"]').should('exist')
-        cy.get('[data-form="blueprint"]').contains(singleBlueprint.blueprints[0].name)
-
-        canPreviewBlueprintByClickingTheBlueprintTile()
-
-        cy.get('[data-action="blueprint-actions"]').should('not.exist')
-
-        cy.get('[data-form="project-name"]').should('exist')
-        cy.get('[data-form="project-type"]').should('exist')
-    })
-
     it('can change Blueprint if more than 1 are available when creating an Instance', () => {
         cy.intercept('GET', '/api/*/flow-blueprints*', multipleBlueprints).as('getFlowBlueprints')
         cy.visit('/team/ateam/instances/create')
 
-        cy.get('[data-form="blueprint"]').should('exist')
-        cy.get('[data-form="blueprint"]').contains(multipleBlueprints.blueprints[0].name)
+        prefillMultiStepForm()
 
-        canPreviewBlueprintByClickingTheBlueprintTile()
-        canPreviewBlueprintByClickingThePreviewBlueprintButton()
-
-        cy.get('[data-action="blueprint-actions"]').should('exist')
-        cy.get('[data-action="blueprint-actions"]').contains('Choose a different Blueprint').click()
+        cy.get('[data-step="blueprint"]').contains('Select Your Blueprint')
+        cy.get('[data-el="blueprints-wrapper"]').should('exist')
 
         // check we have two blueprint groups
-        cy.get('[data-form="blueprint-group"]')
+        cy.get('[data-group="blueprints"]')
             .its('length')
             .should('eq', 2)
         // and one blueprint in the first group, and 2 in the second
-        cy.get('[data-form="blueprint-group"]')
+        cy.get('[data-group="blueprints"]')
             .first()
             .find('[data-el="blueprint-tile"]')
             .its('length')
             .should('eq', 1)
 
-        cy.get('[data-form="blueprint-group"]')
+        cy.get('[data-group="blueprints"]')
             .eq(1)
             .find('[data-el="blueprint-tile"]')
             .its('length')
             .should('eq', 2)
 
         // select the second blueprint
-        cy.get('[data-form="blueprint-group"]')
+        cy.get('[data-group="blueprints"]')
             .eq(1)
-            .find('[data-el="blueprint-tile"] [data-action="select-blueprint"]')
+            .find('[data-el="blueprint-tile"]')
             .first()
             .click()
 
-        cy.get('[data-el=blueprint-selector-dialog]').within(() => {
-            cy.get('[data-action="dialog-confirm"]').click()
-        })
-
-        // check our newly selected blueprint is now in the blueprint preview with the CreateInstance form
-        cy.get('[data-form="blueprint"]').contains(multipleBlueprints.blueprints[1].name)
+        // check our newly selected blueprint is now selected
+        cy.get('[data-el="blueprint-tile"].active').contains(multipleBlueprints.blueprints[1].name)
     })
 
     it('are included in the POST request when creating an Instance', () => {
-        const INSTANCE_NAME = 'test-instance'
         let defaultBlueprint = null
         cy.intercept('POST', '/api/*/projects', 'success').as('createInstance')
         cy.intercept('GET', '/api/*/flow-blueprints*', singleBlueprint).as('getFlowBlueprints')
 
         cy.visit('/team/ateam/instances/create')
+
+        prefillMultiStepForm()
 
         cy.wait('@getFlowBlueprints')
             .then(({ response }) => {
@@ -160,28 +139,13 @@ describe('FlowForge - Blueprints', () => {
                 const blueprints = response.body.blueprints
                 defaultBlueprint = blueprints.find((blueprint) => blueprint.default) || blueprints[0]
 
-                cy.get('[data-form="blueprint"]').should('exist')
-                cy.get('[data-form="blueprint"]').contains(defaultBlueprint.name)
+                cy.get('[data-el="blueprints-wrapper"]').should('exist')
+                cy.get('[data-el="blueprints-wrapper"]').contains(defaultBlueprint.name)
 
-                canPreviewBlueprintByClickingTheBlueprintTile()
+                cy.get('[data-el="blueprint-tile"]').click()
+                cy.get('[data-el="next-step"]').click()
 
-                // fill out form
-
-                // select application
-                cy.get('[data-form="application-id"]').click()
-                cy.get('[data-form="application-id"] .ff-options').should('be.visible')
-                cy.get('[data-form="application-id"] .ff-options > .ff-option').first().click()
-
-                // give instance a name
-                cy.get('[data-form="project-name"] input').clear()
-                cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
-
-                // select instance type
-                cy.get('[data-form="project-type"]').contains('type1').click()
-
-                cy.get('[data-form="project-template"]').should('exist') // template section visible for create
-
-                cy.get('[data-action="create-project"]').should('not.be.disabled').click()
+                cy.get('[data-el="next-step"]').click()
 
                 return cy.wait('@createInstance')
             })

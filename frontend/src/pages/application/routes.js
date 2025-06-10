@@ -1,6 +1,7 @@
 import store from '../../store/index.js'
 
 import ApplicationActivity from './Activity.vue'
+import ApplicationCreateInstanceMultiStep from './CreateInstanceMultiStep.vue'
 import Dependencies from './Dependencies/Dependencies.vue'
 import ApplicationDeviceGroupSettingsEnvironment from './DeviceGroup/Settings/Environment.vue'
 import ApplicationDeviceGroupSettingsGeneral from './DeviceGroup/Settings/General.vue'
@@ -18,10 +19,7 @@ import ApplicationPipelineStageEdit from './PipelineStage/edit.vue'
 import ApplicationPipelines from './Pipelines.vue'
 import ApplicationSettings from './Settings.vue'
 import ApplicationSnapshots from './Snapshots.vue'
-import ApplicationCreateInstance from './createInstance.vue'
 import ApplicationIndex from './index.vue'
-
-// import account vuex store
 
 export default [
     {
@@ -155,11 +153,8 @@ export default [
     },
     {
         path: ':id/instances/create',
-        name: 'ApplicationCreateInstance',
-        component: ApplicationCreateInstance,
-        props: route => ({
-            sourceInstanceId: route.query.sourceInstanceId
-        }),
+        name: 'application-create-instance',
+        component: ApplicationCreateInstanceMultiStep,
         meta: {
             title: 'Application - Instances - Create',
             menu: {

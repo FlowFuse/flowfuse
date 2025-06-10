@@ -59,6 +59,15 @@
                 >
                     <template #icon><IconDeviceGroupSolid /></template>
                 </ff-tile-selection-option>
+                <ff-tile-selection-option
+                    v-if="gitReposEnabled"
+                    label="Git Repository"
+                    :value="StageType.GITREPO"
+                    description=""
+                    color="#e46133"
+                >
+                    <template #icon><IconGit /></template>
+                </ff-tile-selection-option>
             </ff-tile-selection>
         </div>
 
@@ -76,33 +85,39 @@
 
         <!-- Instance/Device -->
         <div class="flex space-x-4">
-            <FormRow
-                v-if="input.stageType === StageType.INSTANCE"
-                v-model="input.instanceId"
-                :options="instanceOptions"
-                data-form="stage-instance"
-                :placeholder="instanceDropdownPlaceholder"
-                :disabled="instanceDropdownDisabled"
-                class="flex-grow"
-            >
+            <form-row v-if="input.stageType === StageType.INSTANCE" container-class="w-full" data-form="stage-instance">
                 <template #default>
                     Choose Hosted Instance
                 </template>
-            </FormRow>
+                <template #input>
+                    <ff-combobox
+                        v-model="input.instanceId"
+                        class="w-full flex-grow max-w-sm ff-combobox"
+                        :options="instanceOptions"
+                        :disabled="instanceDropdownDisabled"
+                        placeholder="Choose Instance"
+                    />
+                </template>
+            </form-row>
 
-            <FormRow
+            <form-row
                 v-else-if="input.stageType === StageType.DEVICE"
-                v-model="input.deviceId"
-                :options="deviceOptions"
+                container-class="w-full"
                 data-form="stage-device"
-                :placeholder="deviceDropdownPlaceholder"
-                :disabled="deviceDropdownDisabled"
-                class="flex-grow"
             >
                 <template #default>
                     Choose Remote Instance
                 </template>
-            </FormRow>
+                <template #input>
+                    <ff-combobox
+                        v-model="input.deviceId"
+                        class="w-full flex-grow max-w-sm ff-combobox"
+                        :options="deviceOptions"
+                        :disabled="deviceDropdownDisabled"
+                        placeholder="Choose Remote Instance"
+                    />
+                </template>
+            </form-row>
 
             <!-- Device Group -->
             <FormRow
@@ -118,7 +133,88 @@
                     Choose Device Group
                 </template>
             </FormRow>
-
+            <div v-else-if="input.stageType === StageType.GITREPO" class="w-full space-y-4">
+                <FormRow
+                    v-model="input.gitTokenId"
+                    :options="gitTokens"
+                    data-form="stage-repo-tokens"
+                    class="flex-grow"
+                >
+                    <template #default>
+                        Choose Git Token
+                    </template>
+                    <template #description>
+                        This token is used to authenticate with the GitHub API. To manage your tokens, go to <strong>Team Settings -> Integrations</strong>.
+                    </template>
+                </FormRow>
+                <FormRow
+                    v-model="input.url"
+                    :error="errors.url"
+                    type="text"
+                    data-form="stage-repo-url"
+                    placeholder="e.g. https://github.com/[org]/[repo]"
+                >
+                    <template #default>
+                        Repository URL
+                    </template>
+                    <template #description>
+                        Only GitHub hosted repositories are currently supported.
+                    </template>
+                </FormRow>
+                <FormRow
+                    v-model="input.pushPath"
+                    :error="errors.pushPath"
+                    type="text"
+                    data-form="stage-repo-pushPath"
+                    :placeholder="isFirstStage ? 'e.g. snapshot.json' : 'Generate filename from source stage'"
+                >
+                    <template #default>
+                        Snapshot Filename
+                    </template>
+                    <template #description>
+                        The filename to use for the snapshot. <span v-if="!isFirstStage">If left blank, the name will be generated from the source stage when pushing to the repository.</span>
+                    </template>
+                </FormRow>
+                <FormRow
+                    v-model="input.branch"
+                    type="text"
+                    data-form="stage-repo-branch"
+                    placeholder="default: main"
+                >
+                    <template #default>
+                        Push Branch
+                    </template>
+                    <template #description>
+                        The branch to push snapshots to. The branch must already exist on the repository.
+                    </template>
+                </FormRow>
+                <FormRow
+                    v-model="input.pullBranch"
+                    type="text"
+                    data-form="stage-repo-pull-branch"
+                    :placeholder="'default: ' + (input.branch || 'main')"
+                >
+                    <template #default>
+                        Pull Branch
+                    </template>
+                    <template #description>
+                        The branch to pull snapshots from. If not set it will use the Push Branch. The branch must already exist on the repository.
+                    </template>
+                </FormRow>
+                <FormRow
+                    v-model="input.credentialSecret"
+                    type="password"
+                    data-form="stage-repo-password"
+                >
+                    <template #default>
+                        Flow Credentials Key
+                    </template>
+                    <template #description>
+                        This is a secret token used to encrypt flow credentials when pushed to the repository. You will need to provide
+                        this key when importing the snapshot into another instance.
+                    </template>
+                </FormRow>
+            </div>
             <div v-else class="text-sm text-gray-500">Please select a stage type</div>
 
             <div
@@ -146,7 +242,7 @@
 
         <!-- Action -->
         <FormRow
-            v-if="input.stageType !== StageType.DEVICEGROUP"
+            v-if="input.stageType !== StageType.DEVICEGROUP && input.stageType !== StageType.GITREPO"
             v-model="input.action"
             :options="actionOptions"
             data-form="stage-action"
@@ -184,7 +280,7 @@
                             When a device Pipeline stage type is triggered an Device Snapshot is deployed to the next stage. You can configure how this stage picks what snapshot to deploy.
                         </p>
                         <p>
-                            <b>Use Active Snapshot:</b> Will use the snapshot currently active on the device. The deploy will fail is there is no active snapshot.
+                            <b>Use Active Snapshot:</b> Will use the snapshot currently active on the device. The deploy will fail if there is no active snapshot.
                         </p>
                         <p>
                             <b>Use Latest Device Snapshot:</b> Uses the most recent snapshot created from the device. The deploy will fail if no snapshot exists.
@@ -249,11 +345,14 @@ import { InformationCircleIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import { StageAction, StageType } from '../../../api/pipeline.js'
+import teamApi from '../../../api/team.js'
 
 import FormRow from '../../../components/FormRow.vue'
+
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import IconDeviceGroupSolid from '../../../components/icons/DeviceGroupSolid.js'
 import IconDeviceSolid from '../../../components/icons/DeviceSolid.js'
+import IconGit from '../../../components/icons/Git.js'
 import IconNodeRedSolid from '../../../components/icons/NodeRedSolid.js'
 
 export default {
@@ -264,6 +363,7 @@ export default {
         FormRow,
         IconDeviceGroupSolid,
         IconDeviceSolid,
+        IconGit,
         IconNodeRedSolid
     },
     props: {
@@ -310,12 +410,30 @@ export default {
                 deviceGroupId: stage.deviceGroups?.[0].id, // API supports multiple devices per stage but UI only exposes one
                 action: stage?.action || 'none',
                 deployToDevices: stage.deployToDevices || false,
-                stageType: stage.stageType || StageType.INSTANCE
+                stageType: stage.stageType || StageType.INSTANCE,
+                gitTokenId: stage.gitRepo?.gitTokenId,
+                url: stage.gitRepo?.url,
+                branch: stage.gitRepo?.branch,
+                pullBranch: stage.gitRepo?.pullBranch,
+                pushPath: stage.gitRepo?.pushPath,
+                pullPath: stage.gitRepo?.pullPath,
+                credentialSecret: stage.gitRepo?.credentialSecret ? '__PLACEHOLDER__' : ''
+            },
+            original: {
+                stageType: stage.stageType || StageType.INSTANCE,
+                deviceId: stage.devices?.[0].id,
+                instanceId: stage.instances?.[0].id,
+                deviceGroupId: stage.deviceGroups?.[0].id
             },
             newDeviceGroupInput: {
                 name: '',
                 description: ''
-            }
+            },
+            errors: {
+                url: '',
+                pushPath: ''
+            },
+            gitTokens: []
         }
     },
     computed: {
@@ -379,14 +497,31 @@ export default {
                 this.input.deviceId !== this.stage.devices?.[0].id ||
                 this.input.deviceGroupId !== this.stage.deviceGroups?.[0].id ||
                 (this.input.stageType !== StageType.DEVICEGROUP && this.input.action !== this.stage.action) ||
-                (this.input.stageType !== StageType.DEVICEGROUP && this.input.deployToDevices !== this.stage.deployToDevices)
+                (this.input.stageType !== StageType.DEVICEGROUP && this.input.deployToDevices !== this.stage.deployToDevices) ||
+                (this.input.stageType === StageType.GITREPO && (
+                    this.input.url !== this.stage.gitRepo?.url ||
+                    this.input.branch !== this.stage.gitRepo?.branch ||
+                    this.input.pullBranch !== this.stage.gitRepo?.pullBranch ||
+                    this.input.pushPath !== this.stage.gitRepo?.pushPath ||
+                    this.input.gitTokenId !== this.stage.gitRepo?.gitTokenId ||
+                    (this.input.credentialSecret !== '' && this.input.credentialSecret !== '__PLACEHOLDER__')
+                ))
             )
         },
         submitEnabled () {
             return this.formDirty &&
-                (this.input.instanceId || this.input.deviceId || this.input.deviceGroupId) &&
+                (this.input.instanceId || this.input.deviceId || this.input.deviceGroupId || this.input.gitTokenId) &&
                 this.input.name &&
-                (this.input.stageType === StageType.DEVICEGROUP ? true : this.input.action) &&
+                ((this.input.stageType === StageType.DEVICEGROUP || this.input.stageType === StageType.GITREPO) ? true : this.input.action) &&
+                (this.input.stageType === StageType.GITREPO
+                    ? (
+                        this.input.url &&
+                        this.errors.url === '' &&
+                        this.input.credentialSecret &&
+                        (!this.isFirstStage || this.input.pushPath)
+                    )
+                    : true
+                ) &&
                 (this.input.deviceGroupId === 'new' ? this.newDeviceGroupInput.name !== '' : true)
         },
         instancesNotInUse () {
@@ -399,7 +534,7 @@ export default {
             }, new Set())
 
             return this.instances.filter((instance) => {
-                return !instanceIdsInUse.has(instance.id) || instance.id === this.input.instanceId
+                return !instanceIdsInUse.has(instance.id) || (this.isEdit && instance.id === this.original.instanceId)
             })
         },
         instanceOptions () {
@@ -430,8 +565,14 @@ export default {
                 return acc
             }, new Set())
 
+            // exclude this stage's deviceId from the list of devices in use
+            if (this.original.stageType === StageType.DEVICE && this.original.deviceId) {
+                deviceIdsInUse.delete(this.original.deviceId)
+            }
+
+            // return only devices that are not in use by any stage, or the original deviceId if editing
             return this.applicationDevices.filter((device) => {
-                return !deviceIdsInUse.has(device.id) || device.id === this.input.deviceId
+                return !deviceIdsInUse.has(device.id) || (this.isEdit && device.id === this.original.deviceId)
             })
         },
         deviceOptions () {
@@ -465,7 +606,7 @@ export default {
             }, new Set())
 
             return this.deviceGroups.filter((deviceGroup) => {
-                return !deviceGroupIdsInUse.has(deviceGroup.id) || deviceGroup.id === this.input.deviceGroupId
+                return !deviceGroupIdsInUse.has(deviceGroup.id) || (this.isEdit && deviceGroup.id === this.original.deviceGroupId)
             })
         },
         deviceGroupOptions () {
@@ -489,7 +630,9 @@ export default {
 
             return 'Choose Application Level Device Group'
         },
-
+        gitReposEnabled () {
+            return this.features?.gitIntegration && this.team?.type.properties.features?.gitIntegration
+        },
         actionOptions () {
             const type = this.input.stageType === StageType.DEVICE ? 'device' : 'instance'
 
@@ -508,6 +651,9 @@ export default {
             }
 
             return options
+        },
+        repoStageHasCredentialSecret () {
+            return this.stage.gitRepo?.credentialSecret
         }
     },
     watch: {
@@ -519,16 +665,45 @@ export default {
 
             // If not, reset to the stages original action (if available)
             this.input.action = this.stage?.action && this.actionOptions.some((option) => option.value === this.stage.action) ? this.stage.action : null
+        },
+        'input.url' (newUrl, oldUrl) {
+            if (newUrl === '') {
+                this.errors.url = ''
+            } else if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(newUrl)) {
+                this.errors.url = 'Please enter a valid GitHub repository URL'
+            } else {
+                this.errors.url = ''
+            }
+        },
+        'input.pushPath' (newPushPath, oldPushPath) {
+            if (newPushPath === '' && this.isFirstStage) {
+                this.errors.pushPath = 'Please enter a valid filename'
+            } else {
+                this.errors.pushPath = ''
+            }
         }
     },
     created () {
         this.StageType = StageType
     },
-    mounted () {
+    async mounted () {
         // set the stagetype to device group if the last stage is a device group itself (only permit device groups after a device group)
-        if (!this.allowInstanceSelection) {
+        if (!this.allowInstanceSelection && (this.input.stageType === StageType.INSTANCE || this.input.stageType === StageType.DEVICE)) {
             this.input.stageType = StageType.DEVICEGROUP
         }
+        if (this.gitReposEnabled) {
+            const tokens = await teamApi.getGitTokens(this.team.id)
+            this.gitTokens = tokens.tokens.map((token) => {
+                return {
+                    label: token.name,
+                    value: token.id
+                }
+            })
+        }
+        this.original.stageType = this.input.stageType
+        this.original.deviceId = this.input.deviceId
+        this.original.instanceId = this.input.instanceId
+        this.original.deviceGroupId = this.input.deviceGroupId
     },
     methods: {
         async submit () {
@@ -538,15 +713,19 @@ export default {
             // Always clear any leftover newDeviceGroup input
             delete this.input.newDeviceGroup
 
+            // TODO: refactor this sanitization of this.input
             if (this.input.stageType === StageType.INSTANCE) {
                 this.input.deviceId = null
                 this.input.deviceGroupId = null
+                this.input.gitTokenId = null
             } else if (this.input.stageType === StageType.DEVICE) {
                 this.input.deviceGroupId = null
                 this.input.instanceId = null
+                this.input.gitTokenId = null
             } else if (this.input.stageType === StageType.DEVICEGROUP) {
                 this.input.instanceId = null
                 this.input.deviceId = null
+                this.input.gitTokenId = null
 
                 this.input.action = StageAction.PROMPT // default to PROMPT (not used for device groups)
 
@@ -556,6 +735,15 @@ export default {
                         name: this.newDeviceGroupInput.name,
                         description: this.newDeviceGroupInput.description
                     }
+                }
+            } else if (this.input.stageType === StageType.GITREPO) {
+                this.input.instanceId = null
+                this.input.deviceId = null
+                this.input.deviceGroupId = null
+                this.input.action = StageAction.NONE // default to NONE (not used for git repos)
+                if (this.repoStageHasCredentialSecret && (!this.input.credentialSecret || this.input.credentialSecret === '__PLACEHOLDER__')) {
+                    // Don't send back a blank/placeholder value to avoid overwriting the existing value
+                    delete this.input.credentialSecret
                 }
             }
 

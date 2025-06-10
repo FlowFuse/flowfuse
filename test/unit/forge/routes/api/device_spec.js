@@ -107,14 +107,14 @@ describe('Device API', async function () {
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
 
+        TestObjects.defaultTeamType = app.defaultTeamType
         TestObjects.Project1 = app.project
+        TestObjects.Application1 = app.application
         TestObjects.provisioningTokens = {
             token1: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 1', TestObjects.ATeam),
-            token2: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.ATeam, TestObjects.Project1)
+            token2: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 2', TestObjects.ATeam, 'instance', TestObjects.Project1.id),
+            token3: await AccessTokenController.createTokenForTeamDeviceProvisioning('Provisioning Token 3', TestObjects.ATeam, 'application', TestObjects.Application1.hashid)
         }
-
-        TestObjects.defaultTeamType = app.defaultTeamType
-        TestObjects.Application1 = app.application
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
@@ -311,6 +311,34 @@ describe('Device API', async function () {
             result.credentials.should.have.property('token')
         })
 
+        it('creates a device in the team and assigns it to an application using a provisioning token', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: 'aa:bb:cc:dd:ee:ff',
+                    type: 'app device',
+                    team: TestObjects.ATeam.hashid
+                },
+                headers: {
+                    authorization: `Bearer ${TestObjects.provisioningTokens.token3.token}`
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('name', 'aa:bb:cc:dd:ee:ff')
+            result.should.have.property('type', 'app device')
+            result.should.have.property('lastSeenMs', null) // required for device list UI
+            result.should.have.property('links').and.be.an.Object()
+            result.should.have.property('team').and.be.an.Object()
+            result.should.have.property('application').and.be.an.Object()
+            result.should.have.property('credentials').and.be.an.Object()
+
+            result.team.should.have.property('id', TestObjects.ATeam.hashid)
+            result.application.should.have.property('id', TestObjects.Application1.hashid)
+            result.credentials.should.have.property('token')
+        })
+
         it('should not provision a device for a different team', async function () {
             const response = await app.inject({
                 method: 'POST',
@@ -438,6 +466,9 @@ describe('Device API', async function () {
             device.credentials.broker.should.have.property('username')
             device.credentials.broker.should.have.property('password')
 
+            device.should.have.property('meta').and.be.an.Object()
+            device.meta.should.have.property('ffVersion', app.config.version)
+
             const response2 = await app.inject({
                 method: 'POST',
                 url: `/api/v1/devices/${device.id}/generate_credentials`,
@@ -562,6 +593,7 @@ describe('Device API', async function () {
             result.should.have.property('type', 'something')
             result.should.have.property('links')
             result.should.have.property('team')
+            result.should.have.property('localLoginEnabled')
             result.should.not.have.property('accessToken')
 
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
@@ -591,6 +623,34 @@ describe('Device API', async function () {
             result.team.should.have.property('id', TestObjects.ATeam.hashid)
             result.should.not.have.property('instance')
             result.should.not.have.property('application')
+        })
+
+        it('provides device details - assigned application (with local login enabled)', async function () {
+            // const device = await createDevice({ name: 'LocalAuthEnabledDevice', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const device = await createDevice({ name: 'LocalAuthEnabledDevice', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ editor: { nodeRedVersion: 'next' } })
+            dbDevice.setApplication(TestObjects.Application1)
+            await dbDevice.save()
+
+            await updateSettings(device, TestObjects.tokens.alice, {
+                security: {
+                    localAuth: {
+                        enabled: true,
+                        user: 'local-user',
+                        pass: '$Password'
+                    }
+                }
+            })
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${dbDevice.hashid}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const result = response.json()
+            result.should.have.property('name', 'LocalAuthEnabledDevice')
+            result.should.have.property('localLoginEnabled', true)
         })
 
         // GET /api/v1/devices/:deviceId
@@ -1312,6 +1372,42 @@ describe('Device API', async function () {
                 // Verify the AuthClient has been removed
                 authClient = await app.db.models.AuthClient.findOne({ where: { ownerType: 'device', ownerId: '' + deviceId } })
                 should.not.exist(authClient)
+            })
+            it('can set localAuth for a device', async function () {
+                const device = await createDevice({ name: 'LocalAuthSettingsD1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                await updateSettings(device, TestObjects.tokens.alice, {
+                    security: {
+                        localAuth: {
+                            enabled: true,
+                            user: 'local-user',
+                            pass: '$Password'
+                        }
+                    }
+                })
+
+                const settings = await getSettings(device, TestObjects.tokens.alice)
+                settings.should.have.property('security')
+                settings.security.should.have.property('localAuth')
+                settings.security.localAuth.should.have.property('enabled', true)
+                settings.security.localAuth.should.have.property('user', 'local-user')
+                settings.security.localAuth.should.have.property('pass', true)
+
+                // Verify the deviceLive settings are present and the password is hashed
+                let liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('security')
+                liveSettings.security.should.have.property('localAuth').and.be.an.Object()
+                liveSettings.security.localAuth.should.have.property('user', 'local-user')
+                liveSettings.security.localAuth.should.have.property('pass')
+                liveSettings.security.localAuth.pass.should.not.equal('$Password')
+                compareHash('$Password', liveSettings.security.localAuth.pass).should.be.true()
+
+                // Verify that disabling localAuth resets the enabled flag
+                await updateSettings(device, TestObjects.tokens.alice, { security: { localAuth: { enabled: false } } })
+
+                liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('security')
+                liveSettings.security.should.have.property('localAuth').and.be.an.Object()
+                liveSettings.security.localAuth.should.have.property('enabled', false)
             })
         })
 
@@ -2089,6 +2185,66 @@ describe('Device API', async function () {
                 }
             })
             response.statusCode.should.equal(401)
+        })
+        it('device checks in with provisioning snapshot for import', async function () {
+            const device = await createDevice({ name: 'ad_with_snap', type: 'ad_with_snap_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.updateSettings({ editor: { nodeRedVersion: 'latest' } })
+            dbDevice.setApplication(TestObjects.Application1)
+            await dbDevice.save()
+
+            const body = {
+                state: 'provisioning',
+                agentVersion: '3.2.0',
+                provisioning: {
+                    credentialSecret: '3d6c68dbebfcd0b6a0a8aa957513f776f3c737417446d565319c2df48a858c7b',
+                    name: "Snapshot imported from 'flows.json' at " + new Date().toISOString(),
+                    description: "Flows imported from 'flows.json' at " + new Date().toISOString(),
+                    deviceConfig: {
+                        flows: [{ id: '123456', type: 'tab' }],
+                        credentials: { $: '652a275cf5e2e03332fc7790dcef4b16MNZ7PPkr3JUoClbwMyDaUMunn5vLxEXNMusWIwuZFE1pwtiY3uxQ08H5W6PxspvBfoptQ5bf3o3k3aDAriGVmSX4eg==' },
+                        package: {
+                            modules: { 'node-red-contrib-test': '1.0.0' },
+                            version: '0.0.1',
+                            name: 'node-red-project',
+                            description: 'A Node-RED Project'
+                        }
+                    }
+                }
+            }
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.id}/live/state`,
+                headers: {
+                    authorization: `Bearer ${device.credentials.token}`
+                },
+                payload: body
+            })
+            response.statusCode.should.equal(200)
+
+            await dbDevice.reload()
+
+            // find the snapshot with name body.name & check the devices targetSnapshotId is set to it
+            const snapshot = await app.db.models.ProjectSnapshot.findOne({ where: { name: body.provisioning.name } })
+            should.exist(snapshot)
+            snapshot.should.have.property('id')
+
+            // ensure the snapshot has the correct modules
+            snapshot.settings.modules['node-red-contrib-test'].should.equal('1.0.0')
+
+            // ensure the credentials and secret were regenerated
+            snapshot.should.have.property('credentialSecret')
+            snapshot.credentialSecret.should.not.equal(body.provisioning.credentialSecret)
+
+            snapshot.should.have.property('flows')
+            snapshot.flows.should.have.property('credentials')
+            snapshot.flows.credentials.should.have.property('$')
+            snapshot.flows.credentials.$.should.not.equal(body.provisioning.deviceConfig.credentials.$)
+
+            // since device has just been provisioned, it will not be running yet so it gets marked as offline
+            dbDevice.state.should.equal('offline')
+            dbDevice.targetSnapshotId.should.equal(snapshot.id) // targetSnapshotId should be set to the snapshot created
         })
         it('device downloads settings', async function () {
             await setupProjectWithSnapshot(true)

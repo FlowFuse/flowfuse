@@ -2,6 +2,7 @@
  * This file is currently naively copied from the projects test coverage
  * As such some tests may be out of date
  */
+
 describe('FlowForge - Instances', () => {
     function navigateToInstances (teamName) {
         cy.request('GET', '/api/v1/user/teams')
@@ -150,11 +151,18 @@ describe('FlowForge - Instances', () => {
 
             // can't use .select('value') because we're not dealing with a select input
             cy.get('[data-el="stack-selector"]').click()
-            cy.get('[data-el="stack-selector"]').contains('stack 2').click()
-            cy.get('[data-action="update-project"]').should('not.be.disabled') // changes _have_ now been made
+        })
 
-            cy.get('[data-el="stack-selector"]').click()
-            cy.get('[data-el="stack-selector"]').contains('stack 1').click() // re-select
+        cy.get('[data-el="listbox-options"]').contains('stack 2').click()
+
+        cy.get('[data-el="change-project"]').within(($form) => {
+            cy.get('[data-action="update-project"]').should('not.be.disabled') // changes _have_ now been made
+        })
+
+        cy.get('[data-el="stack-selector"]').click()
+        cy.get('[data-el="listbox-options"]').contains('stack 1').click() // re-select
+
+        cy.get('[data-el="change-project"]').within(($form) => {
             cy.get('[data-action="update-project"]').should('be.disabled')
 
             cy.get('[data-form="project-type"]').contains('type2').click()
@@ -188,14 +196,12 @@ describe('FlowForge - Instances', () => {
     })
 
     it('can be copied', () => {
-        // TODO needs work as currently lands user on Project Overview rather than Index View
         cy.intercept('GET', '/api/*/projects/*').as('getInstance')
         cy.intercept('POST', '/api/*/projects').as('createProject')
-        cy.intercept('GET', '/api/*/applications/*/instances').as('getApplicationInstances')
 
         cy.visit('/')
 
-        navigateToInstance('ATeam', 'instance-1-1')
+        navigateToInstance('ATeam', 'instance-1-2')
 
         cy.wait('@getInstance')
 
@@ -203,22 +209,36 @@ describe('FlowForge - Instances', () => {
         cy.get('[data-nav="general"]').click()
         cy.get('[data-nav="copy-project"]').click()
 
+        cy.get('[data-step="duplication"]').should('exist')
+
         // Does not use same name
         cy.get('[data-form="project-name"] input').should(($input) => {
             const projectName = $input.val()
             expect(projectName).not.to.be.equal('instance-1-1')
         })
 
-        cy.get('[data-action="create-project"]').click()
+        cy.get('[data-el="application-name"]').contains('application-1')
+
+        // not present if the application doesn't have a description
+        cy.get('[data-el="application-description"]').should('not.exist')
+
+        cy.get('[data-el="instance-name"]').should('not.contain', 'instance-1-2')
+
+        cy.get('[data-el="instance-type-name"]').contains('type1')
+        cy.get('[data-el="instance-type-description"]').contains('project type description')
+
+        cy.get('[data-el="node-red-version"]').contains('stack 2')
+        cy.get('[data-el="template-name"]').contains('template1')
+
+        cy.get('[data-el="next-step"]').click()
+
         cy.wait('@createProject')
-
-        cy.wait('@getApplicationInstances')
-
-        cy.get('[data-el="cloud-instances"] tr:last').click()
-
         cy.wait('@getInstance')
 
-        cy.contains('type1 / stack 1')
+        cy.contains('Application: application-1')
+
+        cy.contains('type1 / stack 2')
+        cy.contains('template1')
     })
 
     it('can be created', () => {
@@ -253,29 +273,27 @@ describe('FlowForge - Instances', () => {
         navigateToInstances('ATeam')
         cy.get('[data-action="create-project"]').click()
 
-        cy.wait('@getProjectTypes')
-        cy.url().should('include', '/ateam/instances/create')
+        // move along the multi-step form
+        cy.get('[data-el="application-item"]').first().click()
+        cy.get('[data-el="next-step"]').click()
 
-        cy.get('[data-action="create-project"]').should('be.disabled')
-
-        // select application
-        cy.get('[data-form="application-id"] [data-el="dropdown"]').click()
-        cy.get('[data-form="application-id"] [data-el="dropdown"] .ff-options').should('be.visible')
-        cy.get('[data-form="application-id"] [data-el="dropdown"] .ff-options > .ff-option:first').click()
-
-        // give instance a name
-        cy.get('[data-form="project-name"] input').clear()
-        cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
+        // set the new instance name
+        cy.get('[data-el="instance-name"] input').clear()
+        cy.get('[data-el="instance-name"] input').type(INSTANCE_NAME)
 
         // select instance type
-        cy.get('[data-form="project-type"]').contains('type1').click()
+        cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()
 
-        // disabled instance types should not be visible
-        cy.get('[data-form="project-type"]').contains('Disabled Instance Type').should('not.exist')
+        // select template
+        cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
-        cy.get('[data-form="project-template"]').should('exist') // template section visible for create
+        // select nr-version
+        cy.get('[data-form="multi-step-form"] [data-el="node-red-listbox"]').click()
+        cy.get('[data-option="stack 1"]').click()
 
-        cy.get('[data-action="create-project"]').should('not.be.disabled').click()
+        cy.get('[data-el="next-step"]').click()
+
+        cy.wait('@getProjectTypes')
 
         cy.wait('@createInstance')
             .then((interception) => {

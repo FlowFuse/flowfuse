@@ -31,7 +31,9 @@ module.exports = function (app) {
             deviceGroup: {
                 nullable: true,
                 allOf: [{ $ref: 'DeviceGroupSummary' }]
-            }
+            },
+            nrVersion: { type: 'string' },
+            localLoginEnabled: { type: 'boolean' }
         }
     })
 
