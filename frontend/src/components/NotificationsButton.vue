@@ -44,7 +44,7 @@ export default {
 .notifications-button-wrapper {
 
   .notifications-button {
-    color: $ff-grey-900;
+    color: $ff-grey-800;
     display: flex;
     align-items: center;
     flex: 1;
