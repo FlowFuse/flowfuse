@@ -12,9 +12,9 @@
         </div>
         <div v-else class="w-full h-full flex gap-2 items-center">
             <div class="ff-cpu-bar">
-                <div class="ff-cpu-bar--fill" :style="{ width: cpuUtilization + '%' }" :class="fillClass" />
+                <div class="ff-cpu-bar--fill" :style="{ width: formattedCPUUtilization + '%' }" :class="fillClass" />
             </div>
-            <label class="ff-cpu-bar--label">{{ formattedCPUUtilization }}%</label>
+            <label class="ff-cpu-bar--label">{{ formattedCPUUtilization }}% {{ stackCpuScale }}</label>
         </div>
     </div>
     <div v-else-if="status !== 'running'">
@@ -55,6 +55,10 @@ export default {
         featureSupported: {
             type: Boolean,
             required: true
+        },
+        stackCpuScale: {
+            type: [Number, null],
+            required: true
         }
     },
     computed: {
@@ -68,8 +72,14 @@ export default {
             return 'low'
         },
         formattedCPUUtilization () {
-            // 2 dp
-            return this.cpuUtilization.toFixed(2)
+            const cpu = this.cpuUtilization ?? 0
+
+            if (this.stackCpuScale) {
+                // scaling down to match stack cpu allocation
+                return (cpu / this.stackCpuScale).toFixed(2)
+            }
+
+            return cpu.toFixed(2)
         }
 
     }
