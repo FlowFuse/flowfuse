@@ -28,9 +28,9 @@
                 :title="option.label"
             >
                 <li>
-                    <div class="ff-option-content" :class="{selected, active}">
-                        <component v-if="option.icon" :is="PlusIcon" class="ff-icon transition-fade&#45;&#45;color" />
-                        <span>{{ option.label }}</span>
+                    <div class="ff-option-content truncate" :class="{selected, active}">
+                        <component v-if="option.icon" :is="PlusIcon" class="ff-icon transition-fade" />
+                        <span class="truncate">{{ option.label }}</span>
                     </div>
                 </li>
             </ListboxOption>
@@ -125,7 +125,9 @@ export default {
             }
             .icon {
                 svg {
-                    color: $ff-white;
+                    color: $ff-grey-800;
+                    width: 80%;
+                    padding-left: 10px;
                 }
             }
         }

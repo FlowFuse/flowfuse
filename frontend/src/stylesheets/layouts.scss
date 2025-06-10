@@ -410,7 +410,15 @@ $nav_height: 60px;
     }
     .ff-desktop-navigation-right {
         & > * {
-            border-left: 1px solid $ff-grey-500;
+            position: relative;
+            &:after {
+                position: absolute;
+                content: '';
+                width: 1px;
+                height: 15px;
+                background: $ff-color--border;
+                top: 40%;
+            }
         }
     }
     .ff-mobile-navigation-right {

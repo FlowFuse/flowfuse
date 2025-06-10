@@ -45,12 +45,12 @@
         </div>
         <div class="hidden lg:flex items-stretch ff-desktop-navigation-right" data-el="desktop-nav-right">
             <ff-team-selection data-action="team-selection" />
-            <div class="px-4 flex flex-col justify-center" v-if="showInviteButton">
-                <ff-button kind="secondary" type="anchor" :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }">
-                    <template #icon-left><UserAddIcon /></template>
-                    Invite Members
-                </ff-button>
-            </div>
+            <!--            <div class="px-4 flex flex-col justify-center" v-if="showInviteButton">-->
+            <!--                <ff-button kind="secondary" type="anchor" :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }">-->
+            <!--                    <template #icon-left><UserAddIcon /></template>-->
+            <!--                    Invite Members-->
+            <!--                </ff-button>-->
+            <!--            </div>-->
             <!-- Desktop: User Options -->
             <NotificationsButton />
             <ff-dropdown
@@ -146,10 +146,10 @@ export default {
                     onclick: this.signOut
                 }
             ].filter(option => !option.hidden)
-        },
-        showInviteButton () {
-            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
         }
+        // showInviteButton () {
+        //     return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
+        // }
     },
     watch: {
         notifications: {
