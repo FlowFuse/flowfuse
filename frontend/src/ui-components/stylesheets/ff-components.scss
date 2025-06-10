@@ -357,8 +357,9 @@ li.ff-list-item {
       background-color: $ff-grey-50;
       border-bottom: 1px solid $ff-grey-200;
       cursor: pointer;
+      transition: ease-in-out .3s;
       &:hover {
-        background-color: $ff-grey-200;
+        background-color: $ff-grey-100;
       }
     }
     &.ff-dropdown-options--full-width {

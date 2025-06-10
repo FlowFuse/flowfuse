@@ -437,7 +437,7 @@ $nav_height: 60px;
         }
         .ff-dropdown-options {
             width: 100%;
-            border-color: $ff-grey-500;
+            border-color: $ff-color--border;
             border-right: 0;
         }
     }
@@ -479,9 +479,6 @@ $nav_height: 60px;
             border-bottom: none;
         }
     }
-    .ff-dropdown-option:last-child {
-        border-top: 2px solid $ff-red-600;
-    }
 }
 
 
@@ -490,16 +487,6 @@ $nav_height: 60px;
     .ff-nav-item {
         &:hover {
             cursor: pointer;
-            svg {
-                fill: $ff-teal-100;
-                &.hollow {
-                    fill: none;
-                    stroke: $ff-teal-100;
-                }
-            }
-            label {
-                color: $ff-teal-100;
-            }
         }
     }
 }
@@ -510,7 +497,7 @@ $nav_height: 60px;
     display: grid;
     grid-template-columns: 20px 1fr;
     svg {
-        fill: $ff-white;
+        fill: $ff-grey-500;
         width: 20px;
     }
     svg.hollow {
@@ -519,7 +506,7 @@ $nav_height: 60px;
     }
     label {
         margin-left: 12px;
-        color: $ff-white;
+        color: $ff-grey-800;
         white-space: nowrap;
         pointer-events: none;
     }
@@ -558,7 +545,6 @@ $nav_height: 60px;
         -webkit-transition: $transition_time width;
         .router-link-active {
             li {
-                background-color: $ff-grey-600;
                 label {
                     color: $ff-teal-300;
                 }
@@ -575,7 +561,6 @@ $nav_height: 60px;
     // nested menu options, including router-link highlighting
     .ff-side-navigation--nested {
         width: 0;
-        background-color: $ff-grey-600;
         overflow: hidden;
         .ff-nested-title {
             color: $ff-teal-300;
@@ -588,7 +573,6 @@ $nav_height: 60px;
         }
         .ff-nav-item {
             padding: 12px 16px;
-            background-color: $ff-grey-600;
         }
         .router-link-active {
             li {
@@ -648,8 +632,7 @@ $nav_height: 60px;
     .ff-nav-item {
         display: flex;
         justify-content: space-between;
-        background-color: $ff-grey-700;
-        border-bottom: 1px solid $ff-grey-600;
+        border-bottom: 1px solid $ff-color--border;
     }
     .disabled {
         pointer-events: none;
