@@ -586,9 +586,30 @@ module.exports = async function (app) {
                 sourceSnapshot = await app.db.controllers.Pipeline.getSnapshotForSourceDeviceGroup(sourceDeviceGroup)
                 sourceDeployed = sourceDeviceGroup
             } else if (sourceGitRepo) {
+                // sourceSnapshot from a gitRepo is, by default, a memory-only snapshot as it will be cloned
+                // when deploying to an instance or git repo
                 sourceSnapshot = await sourceGitRepo.pull()
                 if (!sourceSnapshot) {
                     throw new ControllerError('deploy_failed', sourceGitRepo.statusMessage || 'Failed to pull from Git repository')
+                }
+                if (targetDevice || targetDeviceGroup) {
+                    // These targets expect the snapshot to be persistent - so save it to the db first
+                    // To do that, the snapshot needs to have an owner - which will depend on who it is deploying to
+                    if (targetDevice) {
+                        // Use the target device as the owner
+                        sourceSnapshot.DeviceId = targetDevice.id
+                    } else if (targetDeviceGroup) {
+                        const dgDevices = await targetDeviceGroup.getDevices()
+                        if (dgDevices.length > 0) {
+                            sourceSnapshot.DeviceId = dgDevices[0].id
+                        } else {
+                            // TODO: edge case we don't have any devices in the group
+                            // so we can't assign an owner of the snapshot.
+                        }
+                    }
+                    // Attach the user who triggered the deploy as the user/owner of the snapshot
+                    sourceSnapshot.UserId = user.id
+                    await sourceSnapshot.save()
                 }
             } else {
                 throw new Error('No source device or instance found.')
