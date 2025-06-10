@@ -355,7 +355,7 @@ $nav_height: 60px;
     .ff-header--mobile-toggle {
         padding: 16px;
         svg {
-            fill: white;
+            fill: $ff-grey-800;
             min-width: 24px;
         }
         &.active {
@@ -389,6 +389,8 @@ $nav_height: 60px;
             align-items: center;
             margin-left: -2px;
             position: relative;
+            transition: ease-in-out .1s;
+            object-fit: contain;
             .ff-notification-pill {
                 font-size: 0.65rem;
                 padding: 0px 6px;
@@ -398,6 +400,15 @@ $nav_height: 60px;
                 bottom: -9px;
                 line-height: 0.85rem;
                 right: 0;
+            }
+            &:hover {
+                will-change: transform ;
+                transform: scale(1.25) translateZ(0); /* Using slight adjustments to whole values */
+                backface-visibility: hidden;
+                perspective: 1000px;
+                stroke-width: 1.5px;
+                shape-rendering: geometricPrecision;
+                text-rendering: geometricPrecision;
             }
         }
     }
@@ -447,23 +458,14 @@ $nav_height: 60px;
             width: 100%;
             border-color: $ff-color--border;
             border-right: 0;
-        }
-    }
-    .ff-team-selection {
-        ul {
-            top: 100%;
-            left: 0;
-        }
-        .ff-dropdown-option {
-            padding: 0;
-            .ff-nav-item {
-                background-color: $ff-grey-700;
-            }
-            &:last-child {
-                border-top: inherit;
-                .ff-nav-item {
-                    background-color: $ff-grey-800;
-                }
+            
+            .ff-dropdown-option {
+                &:hover {
+                    label, svg {
+                        color: $ff-indigo-700;
+                        fill: $ff-indigo-700;
+                    }
+                }   
             }
         }
     }

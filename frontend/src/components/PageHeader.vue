@@ -8,7 +8,7 @@
             </transition>
         </i>
         <!-- FlowFuse Logo -->
-        <router-link :to="homeLink">
+        <router-link :to="homeLink" class="min-w-min">
             <img class="ff-logo" src="/ff-logo--wordmark--light.svg">
         </router-link>
         <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
@@ -45,18 +45,23 @@
         </div>
         <div class="hidden lg:flex items-stretch ff-desktop-navigation-right" data-el="desktop-nav-right">
             <ff-team-selection data-action="team-selection" />
-            <!--            <div class="px-4 flex flex-col justify-center" v-if="showInviteButton">-->
-            <!--                <ff-button kind="secondary" type="anchor" :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }">-->
-            <!--                    <template #icon-left><UserAddIcon /></template>-->
-            <!--                    Invite Members-->
-            <!--                </ff-button>-->
-            <!--            </div>-->
+            <div class="pl-2 pr-4 flex flex-col justify-center" v-if="showInviteButton">
+                <ff-button
+                    kind="secondary"
+                    type="anchor"
+                    class="ml-5"
+                    :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }"
+                >
+                    <template #icon-left><UserAddIcon /></template>
+                    Invite Members
+                </ff-button>
+            </div>
             <!-- Desktop: User Options -->
             <NotificationsButton />
             <ff-dropdown
                 v-if="user"
                 :show-chevron="false"
-                class="ff-navigation ff-user-options "
+                class="ff-navigation ff-user-options"
                 options-align="right"
                 data-action="user-options"
                 data-cy="user-options"
@@ -146,10 +151,10 @@ export default {
                     onclick: this.signOut
                 }
             ].filter(option => !option.hidden)
+        },
+        showInviteButton () {
+            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
         }
-        // showInviteButton () {
-        //     return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
-        // }
     },
     watch: {
         notifications: {

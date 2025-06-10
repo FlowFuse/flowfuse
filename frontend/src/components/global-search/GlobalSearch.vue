@@ -278,6 +278,8 @@ export default {
     display: flex;
     flex: 1;
     justify-content: flex-end;
+    max-width: 100%;
+    padding-left: 55px;
 
     .content-wrapper {
         position: relative;
@@ -285,11 +287,13 @@ export default {
         display: flex;
         flex-direction: column;
         gap: 10px;
+        width: 100%;
 
         .search-wrapper {
             display: flex;
             gap: 5px;
             align-items: center;
+            width: 100%;
 
             .mobile-search {
                 display: none;
@@ -306,6 +310,7 @@ export default {
             .input-wrapper {
                 flex: 1;
                 position: relative;
+                width: 100%;
 
                 .ff-icon-sm.close,
                 .ff-icon-sm.search {
@@ -328,7 +333,8 @@ export default {
                     padding: 6px 27px;
                     background: $ff-grey-50;
                     border-color: $ff-color--border;
-                    min-width: 20vw;
+                    //min-width: 20vw;
+                    width: 100%;
 
                     &.overlay-input {
                         display: none;

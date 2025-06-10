@@ -53,20 +53,30 @@ export default {
     height: 100%;
     padding: 18px;
     position: relative;
-    transition: ease-in-out .3s;
 
     > * {
       pointer-events: none;
-    }
-
-    &:hover {
-      color: $ff-grey-500;
     }
 
     svg {
       flex: 1;
       width: 24px;
       height: 24px;
+      transition: ease-in-out .1s;
+      object-fit: contain;
+    }
+
+    &:hover {
+      svg {
+        will-change: transform ;
+        color: $ff-indigo-600;
+        transform: scale(1.25) translateZ(0); /* Using slight adjustments to whole values */
+        backface-visibility: hidden;
+        perspective: 1000px;
+        stroke-width: 1.5px;
+        shape-rendering: geometricPrecision;
+        text-rendering: geometricPrecision;
+      }
     }
 
     .ff-notification-pill {
@@ -78,6 +88,5 @@ export default {
       background-color: $ff-red-500;
     }
   }
-
 }
 </style>

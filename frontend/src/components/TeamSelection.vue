@@ -81,11 +81,19 @@ export default {
         }
     },
     watch: {
-        selection (value) {
-            if (value === 'create-new-team') {
-                return this.createTeam()
-            } else {
-                return this.selectTeam({ slug: value })
+        selection: {
+            immediate: true,
+            handler (value) {
+                if (!this.selection) {
+                    this.selection = this.$route.params.team_slug
+                    return
+                }
+
+                if (value === 'create-new-team') {
+                    return this.createTeam()
+                } else {
+                    return this.selectTeam({ slug: value })
+                }
             }
         }
     },
@@ -120,7 +128,7 @@ export default {
             border: none;
 
             button {
-                padding-left: 13px;
+                padding: 0;
 
             }
             .icon {
