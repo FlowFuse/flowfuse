@@ -44,16 +44,19 @@
                 >
                     <template #icon><SearchIcon /></template>
                 </ff-text-input>
-                <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-                <ul v-if="filteredApplications.length > 0" class="ff-applications-list mb-14" data-el="applications-list">
-                    <li v-for="application in filteredApplications" :key="application.id" data-el="application-item">
+                <ul v-if="filteredApplications.length > 0" class="ff-applications-list relative" data-el="applications-list">
+                    <transition-group name="fade-slide">
                         <ApplicationListItem
+                            v-for="application in filteredApplications"
+                            :key="application.id"
+                            data-el="application-item"
                             :application="application"
                             :search-query="filterTerm"
+                            :is-searching="isSearching"
                             @instance-deleted="fetchData(false)"
                             @device-deleted="fetchData(false)"
                         />
-                    </li>
+                    </transition-group>
                 </ul>
                 <p v-else class="no-results">
                     No Data Found. Try Another Search.
@@ -104,10 +107,12 @@ import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
 import { mapGetters, mapState } from 'vuex'
 
+import searchApi from '../../../api/search.js'
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
+import { debounce } from '../../../utils/eventHandling.js'
 
 import ApplicationListItem from './components/Application.vue'
 
@@ -128,6 +133,8 @@ export default {
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
             ],
             filterTerm: '',
+            debouncedFilterTerm: '',
+            isSearching: false,
             tour: null
         }
     },
@@ -144,26 +151,26 @@ export default {
             })
         },
         filteredApplications () {
-            if (this.filterTerm) {
+            if (this.debouncedFilterTerm) {
                 return this.applicationsList
                     .filter(app => {
                         const filteredInstances = app.instances.filter(instance => {
                             return [
-                                instance.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
-                                instance.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                                instance?.name?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase()),
+                                instance?.id?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase())
                             ].includes(true)
                         })
                         const filteredDevices = app.devices.filter(device => {
                             return [
-                                device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
-                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
-                                device.type.toLowerCase().includes(this.filterTerm.toLowerCase())
+                                device?.name?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase()),
+                                device?.id?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase()),
+                                device?.type?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase())
                             ].includes(true)
                         })
 
                         return [
-                            app.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
-                            app.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            app?.name?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase()),
+                            app?.id?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase()),
                             filteredInstances.length > 0,
                             filteredDevices.length > 0
                         ].includes(true)
@@ -171,15 +178,15 @@ export default {
                     .map(app => {
                         const filteredInstances = app.instances.filter(instance => {
                             return [
-                                instance.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
-                                instance.id.toLowerCase().includes(this.filterTerm.toLowerCase())
+                                instance.name?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase()),
+                                instance.id?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase())
                             ].includes(true)
                         })
                         const filteredDevices = app.devices.filter(device => {
                             return [
-                                device.name.toLowerCase().includes(this.filterTerm.toLowerCase()),
-                                device.id.toLowerCase().includes(this.filterTerm.toLowerCase()),
-                                device.type.toLowerCase().includes(this.filterTerm.toLowerCase())
+                                device.name?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase()),
+                                device.id?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase()),
+                                device.type?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase())
                             ].includes(true)
                         })
 
@@ -223,6 +230,29 @@ export default {
                     this.dispatchTour()
                 }
             }
+        },
+        filterTerm (filterTerm) {
+            this.isSearching = true
+            debounce(async (filterTerm) => {
+                if (filterTerm.length === 0) {
+                    this.isSearching = false
+                    this.debouncedFilterTerm = filterTerm
+                    return
+                }
+
+                const searchInstances = await searchApi.searchInstances(this.team.id, filterTerm)
+                searchInstances.results.forEach(instance => {
+                    if (instance.instanceType === 'hosted') {
+                        this.applications.get(instance.application.id).instances.set(instance.id, instance)
+                    }
+
+                    if (instance.instanceType === 'remote') {
+                        this.applications.get(instance.application.id).devices.set(instance.id, instance)
+                    }
+                })
+                this.debouncedFilterTerm = filterTerm
+                this.isSearching = false
+            }, 500)(filterTerm)
         }
     },
     async mounted () {
@@ -250,7 +280,12 @@ export default {
             if (this.team.id) {
                 const applicationsMap = new Map()
 
-                const applicationsPromise = teamApi.getTeamApplications(this.team.id, { includeApplicationSummary: true })
+                const applicationsPromise = teamApi.getTeamApplications(this.team.id,
+                    {
+                        includeApplicationSummary: true,
+                        associationsLimit: 3
+                    }
+                )
 
                 const applications = (await applicationsPromise).applications
                 applications.forEach((applicationData) => {
@@ -377,5 +412,36 @@ export default {
 .no-results {
   text-align: center;
   color: $ff-grey-400;
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active,
+.fade-slide-move {
+    transition: all 0.3s ease;
+}
+
+.fade-slide-enter-from {
+    opacity: 0;
+    transform: translateX(30px);
+}
+
+.fade-slide-enter-to {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.fade-slide-leave-from {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.fade-slide-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+}
+
+/* Optional: animate reordered items */
+.fade-slide-move {
+    transition: transform 0.3s ease;
 }
 </style>
