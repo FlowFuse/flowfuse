@@ -14,7 +14,7 @@
             <div class="ff-cpu-bar">
                 <div class="ff-cpu-bar--fill" :style="{ width: formattedCPUUtilization + '%' }" :class="fillClass" />
             </div>
-            <label class="ff-cpu-bar--label">{{ formattedCPUUtilization }}% {{ stackCpuScale }}</label>
+            <label class="ff-cpu-bar--label">{{ formattedCPUUtilization }}%</label>
         </div>
     </div>
     <div v-else-if="status !== 'running'">
