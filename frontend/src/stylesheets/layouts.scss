@@ -259,17 +259,7 @@ $nav_height: 60px;
     position: relative;
     display: flex;
     justify-content: space-between;
-    background-color: $ff-grey-800;
     min-width: $sidenav_width;
-    svg {
-        &:hover {
-            fill: $ff-teal-300;
-            cursor: pointer;
-        }
-        &.active {
-            fill: $ff-teal-300;
-        }
-    }
     .ff-dropdown-options {
         position: absolute;
         min-width: $sidenav_width;
@@ -295,11 +285,11 @@ $nav_height: 60px;
     label {
         font-size: 0.7rem;
         line-height: 0.7rem;
-        color: $ff-grey-300;
+        color: $ff-grey-500;
         margin-left: 0;
     }
     h5 {
-        color: white;
+        color: $ff-grey-800;
         white-space: nowrap;
     }
 }
@@ -347,14 +337,14 @@ $nav_height: 60px;
 }
 .ff-header {
     z-index: 110;
-    background-color: $ff-grey-800;
+    background-color: $ff-white;
     height: $nav_height;
-    border-bottom: 2px solid $ff-red-500;
+    border-bottom: 1px solid $ff-color--border;
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: fixed;
-    width: 100%;
+    width: 100%; 
     img.ff-logo {
         padding: 20px;
         height: $nav_height;
@@ -386,6 +376,8 @@ $nav_height: 60px;
     }
     .ff-navigation {
         position: absolute;
+        display: flex;
+        flex-direction: column;
         top: 100%;
         margin-top: 2px;
         img {
@@ -428,31 +420,23 @@ $nav_height: 60px;
         }
     }
     .ff-dropdown {
-        height: calc(#{$nav_height} - 2px);
         color: white;
         min-width: $sidenav_width;
         position: relative;
         top: 0;
         margin-top: 0;
         .ff-dropdown-selected {
-            height: 100%;
+            background: none;
             padding: 16px 16px 16px 24px;
             display: flex;
+            flex: 1;
             justify-content: space-between;
             align-items: center;
             border: none;
-            background-color: $ff-grey-800;
             border-radius: 0;
-            &:hover {
-                background-color: $ff-grey-700;
-            }
-        }
-        &.ff-dropdown--open .ff-dropdown-selected {
-            background-color: $ff-grey-700;
         }
         .ff-dropdown-options {
             width: 100%;
-            margin-top: 2px;
             border-color: $ff-grey-500;
             border-right: 0;
         }
@@ -561,10 +545,8 @@ $nav_height: 60px;
 }
 
 .ff-navigation {
-    background-color: $ff-grey-700;
     position: fixed;
     left: -$sidenav_width;
-    height: 100%;
     z-index: 10;
     transition: 0.3s left, 0.3s right;
     -webkit-transition: 0.3s left, 0.3s right;

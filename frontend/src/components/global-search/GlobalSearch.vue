@@ -18,7 +18,7 @@
                     </transition>
                     <input
                         type="text"
-                        placeholder="Search your team (CTRL + K)"
+                        placeholder="Search through your team (CTRL + K)"
                         @focusin="focusSearch"
                         @click="focusSearch"
                     >
@@ -309,7 +309,7 @@ export default {
 
                 .ff-icon-sm.close,
                 .ff-icon-sm.search {
-                    color: white;
+                    color: $ff-grey-400;
                     position: absolute;
                     z-index: 1;
                     top: 8px;
@@ -326,8 +326,8 @@ export default {
                 input {
                     color: transparent;
                     padding: 6px 27px;
-                    background: $ff-grey-700;
-                    border-color: $ff-grey-500;
+                    background: $ff-grey-50;
+                    border-color: $ff-color--border;
                     min-width: 20vw;
 
                     &.overlay-input {

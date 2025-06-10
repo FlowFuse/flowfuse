@@ -3,7 +3,6 @@
         <template #button>
             <ListboxButton>
                 <div v-if="team" class="flex grow items-center">
-                    <img alt="team-icon" :src="team.avatar" class="ff-avatar">
                     <div class="ff-team-selection-name">
                         <label>TEAM:</label>
                         <h5>{{ team.name }}</h5>
@@ -118,7 +117,6 @@ export default {
 .ff-team-selection {
     &.ff-listbox {
         button {
-            background: $ff-grey-800;
             border-radius: 0;
             border: none;
 

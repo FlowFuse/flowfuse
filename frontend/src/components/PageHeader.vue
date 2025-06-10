@@ -9,7 +9,7 @@
         </i>
         <!-- FlowFuse Logo -->
         <router-link :to="homeLink">
-            <img class="ff-logo" src="/ff-logo--wordmark--dark.png">
+            <img class="ff-logo" src="/ff-logo--wordmark--light.svg">
         </router-link>
         <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
@@ -43,7 +43,7 @@
                 @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
             />
         </div>
-        <div class="hidden lg:flex ff-desktop-navigation-right" data-el="desktop-nav-right">
+        <div class="hidden lg:flex items-stretch ff-desktop-navigation-right" data-el="desktop-nav-right">
             <ff-team-selection data-action="team-selection" />
             <div class="px-4 flex flex-col justify-center" v-if="showInviteButton">
                 <ff-button kind="secondary" type="anchor" :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }">
@@ -55,7 +55,8 @@
             <NotificationsButton />
             <ff-dropdown
                 v-if="user"
-                class="ff-navigation ff-user-options hidden lg:flex xl:flex md:flex sm:flex"
+                :show-chevron="false"
+                class="ff-navigation ff-user-options "
                 options-align="right"
                 data-action="user-options"
                 data-cy="user-options"

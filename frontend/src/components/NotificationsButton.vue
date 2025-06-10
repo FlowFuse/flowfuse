@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import { MailIcon } from '@heroicons/vue/solid'
+import { MailIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
@@ -44,7 +44,7 @@ export default {
 .notifications-button-wrapper {
 
   .notifications-button {
-    color: white;
+    color: $ff-grey-900;
     display: flex;
     align-items: center;
     flex: 1;
@@ -53,13 +53,14 @@ export default {
     height: 100%;
     padding: 18px;
     position: relative;
+    transition: ease-in-out .3s;
 
     > * {
       pointer-events: none;
     }
 
     &:hover {
-      background-color: $ff-grey-700;
+      color: $ff-grey-500;
     }
 
     svg {
