@@ -10,23 +10,20 @@
                 </ff-button>
 
                 <div class="input-wrapper">
-                    <SearchIconSolid class="ff-icon-sm mobile-search" @click="focusSearch" />
+                    <!--                    <SearchIconSolid class="ff-icon-sm mobile-search" @click="focusSearch" />-->
 
                     <transition name="primary-fade" mode="out-in">
                         <SpinnerIcon v-if="loading" class="ff-icon-sm search" />
                         <SearchIcon v-else class="ff-icon-sm search" />
                     </transition>
-                    <input
-                        type="text"
-                        placeholder="Search through your team (CTRL + K)"
-                        @focusin="focusSearch"
-                        @click="focusSearch"
-                    >
+
+                    <SearchTrigger @interacted="focusSearch" />
 
                     <input
                         ref="input"
                         v-model="query"
                         class="overlay-input iterable"
+                        :class="{'has-results': hasResults}"
                         type="text"
                         placeholder="Search your team (CTRL + K)"
                     >
@@ -108,7 +105,6 @@
 
 <script>
 import { ChipIcon, ClockIcon, SearchIcon, TemplateIcon, XIcon } from '@heroicons/vue/outline'
-import { SearchIcon as SearchIconSolid } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -120,10 +116,12 @@ import PipelinesIcon from '../icons/Pipelines.js'
 import ProjectsIcon from '../icons/Projects.js'
 
 import ResultSection from './components/ResultSection.vue'
+import SearchTrigger from './components/SearchTrigger.vue'
 
 export default {
     name: 'GlobalSearch',
     components: {
+        SearchTrigger,
         InstanceStatusBadge,
         ResultSection,
         SearchIcon,
@@ -133,8 +131,7 @@ export default {
         ProjectsIcon,
         ChipIcon,
         ClockIcon,
-        PipelinesIcon,
-        SearchIconSolid
+        PipelinesIcon
     },
     data () {
         return {
@@ -309,6 +306,8 @@ export default {
 
             .input-wrapper {
                 flex: 1;
+                display: flex;
+                flex-direction: column;
                 position: relative;
                 width: 100%;
 
@@ -330,10 +329,9 @@ export default {
 
                 input {
                     color: transparent;
-                    padding: 6px 27px;
+                    padding: 5px 27px;
                     background: $ff-grey-50;
                     border-color: $ff-color--border;
-                    //min-width: 20vw;
                     width: 100%;
 
                     &.overlay-input {
@@ -370,10 +368,10 @@ export default {
             position: fixed;
             width: 60vw;
             background: white;
-            top: 10px;
+            top: 15px;
             left: 20vw;
             z-index: 120;
-            border: 1px solid $ff-grey-500;
+            border: none;
             border-radius: 5px;
 
             .search-wrapper {
@@ -392,6 +390,12 @@ export default {
 
                         &.overlay-input {
                             display: block;
+                            transition: ease-in-out .3s;
+
+                            &.has-results {
+                                border-bottom-left-radius: 0;
+                                border-bottom-right-radius: 0;
+                            }
                         }
                     }
                 }
@@ -422,6 +426,10 @@ export default {
 
 @media screen and (max-width: 1023px) {
     #global-search {
+
+        input.qwe {
+            background: red !important;
+        }
         &.focused {
             .content-wrapper {
                 width: 100%;
@@ -431,9 +439,12 @@ export default {
                 border-top-right-radius: 0;
 
                 .search-wrapper {
+                    margin: 5px;
+                    padding-right: 10px;
                     .close-button {
                         display: block;
                     }
+
                 }
             }
         }
@@ -454,6 +465,14 @@ export default {
                 input {
                     display: none;
                 }
+
+                input {
+                    &.has-results {
+                        border-bottom-left-radius: 5px !important;
+                        border-bottom-right-radius: 5px !important;
+                    }
+                }
+
             }
         }
 
