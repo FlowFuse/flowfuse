@@ -77,23 +77,16 @@ export default {
     },
     data () {
         return {
-            selection: this.team?.slug ?? null
+            selection: this.$route.params.team_slug ?? null,
+            loaded: false
         }
     },
     watch: {
-        selection: {
-            immediate: true,
-            handler (value) {
-                if (!this.selection) {
-                    this.selection = this.$route.params.team_slug
-                    return
-                }
-
-                if (value === 'create-new-team') {
-                    return this.createTeam()
-                } else {
-                    return this.selectTeam({ slug: value })
-                }
+        selection (value) {
+            if (value === 'create-new-team') {
+                return this.createTeam()
+            } else {
+                return this.selectTeam({ slug: value })
             }
         }
     },
