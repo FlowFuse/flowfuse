@@ -24,24 +24,29 @@
         </div>
         <!-- Mobile: User Options -->
         <div class="ff-navigation ff-navigation-right" :class="{'open': mobileUserOptionsOpen}" data-action="user-options">
-            <nav-item
-                v-for="option in navigationOptions" :key="option.label"
-                :label="option.label" :icon="option.icon" :notifications="option.notifications"
-                @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"
-            />
+            <ul>
+                <nav-item
+                    v-for="option in navigationOptions" :key="option.label"
+                    :label="option.label" :icon="option.icon" :notifications="option.notifications"
+                    :class="option.class ?? ''"
+                    @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"
+                />
+            </ul>
         </div>
         <!-- Mobile: Team Selection -->
         <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen, 'without-divider': !canCreateTeam}" data-action="team-selection">
-            <nav-item
-                v-for="team in teams" :key="team.name"
-                :label="team.name" :avatar="team.avatar"
-                @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"
-            />
-            <nav-item
-                v-if="canCreateTeam"
-                label="Create New Team" :icon="plusIcon"
-                @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
-            />
+            <ul>
+                <nav-item
+                    v-for="team in teams" :key="team.name"
+                    :label="team.name" :avatar="team.avatar"
+                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"
+                />
+                <nav-item
+                    v-if="canCreateTeam"
+                    label="Create New Team" :icon="plusIcon"
+                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
+                />
+            </ul>
         </div>
         <div class="hidden lg:flex items-stretch ff-desktop-navigation-right" data-el="desktop-nav-right">
             <ff-team-selection data-action="team-selection" />
@@ -72,8 +77,18 @@
                     </div>
                 </template>
                 <template #default>
-                    <ff-dropdown-option v-for="option in navigationOptions" :key="option.label" @click="option.onclick(option.onclickparams)">
-                        <nav-item :label="option.label" :icon="option.icon" :notifications="option.notifications" :data-nav="option.tag" />
+                    <ff-dropdown-option
+                        v-for="option in navigationOptions"
+                        :key="option.label"
+                        :class="option.class ?? ''"
+                        @click="option.onclick(option.onclickparams)"
+                    >
+                        <nav-item
+                            :label="option.label"
+                            :icon="option.icon"
+                            :notifications="option.notifications"
+                            :data-nav="option.tag"
+                        />
                     </ff-dropdown-option>
                 </template>
             </ff-dropdown>
@@ -148,7 +163,8 @@ export default {
                     label: 'Sign Out',
                     icon: LogoutIcon,
                     tag: 'sign-out',
-                    onclick: this.signOut
+                    onclick: this.signOut,
+                    class: 'danger'
                 }
             ].filter(option => !option.hidden)
         },
