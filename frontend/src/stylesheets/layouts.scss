@@ -391,6 +391,7 @@ $nav_height: 60px;
             position: relative;
             transition: ease-in-out .1s;
             object-fit: contain;
+            will-change: transform;
             .ff-notification-pill {
                 font-size: 0.65rem;
                 padding: 0px 6px;
@@ -402,7 +403,6 @@ $nav_height: 60px;
                 right: 0;
             }
             &:hover {
-                will-change: transform ;
                 transform: scale(1.25) translateZ(0); /* Using slight adjustments to whole values */
                 backface-visibility: hidden;
                 perspective: 1000px;
