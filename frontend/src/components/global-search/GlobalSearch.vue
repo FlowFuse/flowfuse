@@ -276,7 +276,6 @@ export default {
     flex: 1;
     justify-content: flex-end;
     max-width: 100%;
-    padding-left: 55px;
 
     .content-wrapper {
         position: relative;
@@ -426,7 +425,7 @@ export default {
 
 @media screen and (max-width: 1023px) {
     #global-search {
-
+        padding: 0px;
         input.qwe {
             background: red !important;
         }

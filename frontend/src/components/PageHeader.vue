@@ -8,7 +8,7 @@
             </transition>
         </i>
         <!-- FlowFuse Logo -->
-        <router-link :to="homeLink" class="min-w-min">
+        <router-link :to="homeLink" class="min-w-min" style="width: 250px;">
             <img class="ff-logo" src="/ff-logo--wordmark--light.svg">
         </router-link>
         <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
