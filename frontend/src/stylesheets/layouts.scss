@@ -633,6 +633,10 @@ $nav_height: 60px;
                     fill: $ff-red-700;
                 }   
             }
+            &.create {
+                background: $ff-grey-100;
+                border-bottom: none;
+            }
         }
 
         &.without-divider {

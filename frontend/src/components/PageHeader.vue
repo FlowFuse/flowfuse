@@ -16,14 +16,19 @@
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
             <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
             <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
-                <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen">
+                <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="toggleMobileTeamSelectionMenu">
             </i>
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
                 <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen">
             </i>
         </div>
         <!-- Mobile: User Options -->
-        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileUserOptionsOpen}" data-action="user-options">
+        <div
+            v-click-outside="closeUserOptions"
+            class="ff-navigation ff-navigation-right"
+            :class="{'open': mobileUserOptionsOpen}"
+            data-action="user-options"
+        >
             <ul>
                 <nav-item
                     v-for="option in navigationOptions" :key="option.label"
@@ -34,7 +39,12 @@
             </ul>
         </div>
         <!-- Mobile: Team Selection -->
-        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen, 'without-divider': !canCreateTeam}" data-action="team-selection">
+        <div
+            v-click-outside="closeTeamSelection"
+            class="ff-navigation ff-navigation-right"
+            :class="{'open': mobileTeamSelectionOpen, 'without-divider': !canCreateTeam}"
+            data-action="team-selection"
+        >
             <ul>
                 <nav-item
                     v-for="team in teams" :key="team.name"
@@ -44,6 +54,7 @@
                 <nav-item
                     v-if="canCreateTeam"
                     label="Create New Team" :icon="plusIcon"
+                    class="create"
                     @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
                 />
             </ul>
@@ -215,6 +226,23 @@ export default {
                 // don't have available applications at this moment in time so they'll get redirected twice
                 .then(() => this.$router.push({ name: 'Applications' }))
                 .then(() => this.$store.dispatch('ux/tours/presentTour'))
+        },
+        toggleMobileTeamSelectionMenu () {
+            this.mobileTeamSelectionOpen = !this.mobileTeamSelectionOpen
+        },
+        closeTeamSelection () {
+            if (this.mobileTeamSelectionOpen) {
+                this.$nextTick(() => {
+                    this.mobileTeamSelectionOpen = false
+                })
+            }
+        },
+        closeUserOptions () {
+            if (this.mobileUserOptionsOpen) {
+                this.$nextTick(() => {
+                    this.mobileUserOptionsOpen = false
+                })
+            }
         }
     }
 }
