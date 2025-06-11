@@ -805,9 +805,11 @@ $nav_height: 60px;
     #ff-app {
         #left-drawer {
             left: -$sidenav_width;
-            box-shadow: 6px 0 12px rgba(0, 0, 0, 0.2);
+            transition: ease-in-out .3s;
+            will-change: box-shadow;
 
             &.active {
+                box-shadow: 6px 0 12px rgba(0, 0, 0, 0.2);
                 left: 0;
             }
         }
