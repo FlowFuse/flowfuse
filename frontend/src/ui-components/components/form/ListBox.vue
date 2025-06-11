@@ -3,7 +3,7 @@
         <div class="relative">
             <ListboxButton
                 ref="trigger"
-                class="w-full rounded-md bg-white flex justify-between ff-button"
+                class="w-full rounded-md flex justify-between ff-button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
                 @click="() => { $nextTick(() => { updatePosition(); open = true }) }"
             >
