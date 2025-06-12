@@ -37,11 +37,11 @@ describe('FlowForge - Application - Device Groups', () => {
         it('can navigate to the /device-groups page with EE license', () => {
             // // provide the device groups fixture
             // cy.intercept('GET', '/api/*/applications/*/device-groups', groups).as('getDeviceGroups')
-            cy.visit(`/team/${team.slug}/applications/${application.id}`) // open the application page
+            cy.visit(`/team/${team.slug}/projects/${application.id}`) // open the application page
             // navigate to the device groups tab
             cy.get('[data-nav="application-devices-groups-overview"]').should('exist').click()
             // check the url is correct
-            cy.url().should('include', `/applications/${application.id}/device-groups`)
+            cy.url().should('include', `/projects/${application.id}/device-groups`)
             // check the device groups are displayed
             cy.get('[data-el="device-groups-table"] tbody').find('tr').should('have.length', 1)
             // check the column data is present & correct
@@ -73,7 +73,7 @@ describe('FlowForge - Application - Device Groups', () => {
 
             cy.url().should('include', '/devices')
 
-            cy.visit(`/team/${team.slug}/applications/${application.id}/device-groups`)
+            cy.visit(`/team/${team.slug}/projects/${application.id}/device-groups`)
 
             cy.url().should('include', '/instances')
         })
@@ -81,18 +81,18 @@ describe('FlowForge - Application - Device Groups', () => {
 
     describe('Device Group', () => {
         it('can navigate to the /device-group/xxxxxxxx/devices page with EE license', () => {
-            cy.visit(`/team/${team.slug}/applications/${application.id}`) // open the application page
+            cy.visit(`/team/${team.slug}/projects/${application.id}`) // open the application page
             // navigate to the device groups tab
             cy.get('[data-nav="application-devices-groups-overview"]').should('exist').click()
             // check the url is correct
-            cy.url().should('include', `/applications/${application.id}/device-groups`)
+            cy.url().should('include', `/projects/${application.id}/device-groups`)
 
             // the page should show a list of device groups and the rows should be clickable
             // click on the first row
             cy.get('[data-el="device-groups-table"] tbody').find('tr').eq(0).click()
 
             // the url should match /application/${application.id}/device-group/<alphanumeric-id>/devices
-            cy.url().should('match', new RegExp(`/applications/${application.id}/device-group/[a-zA-Z0-9]+/devices`))
+            cy.url().should('match', new RegExp(`/projects/${application.id}/device-group/[a-zA-Z0-9]+/devices`))
 
             // check the target snapshot is displayed upper right
             cy.get('[data-el="device-group-target-snapshot"]').should('exist')
@@ -114,18 +114,18 @@ describe('FlowForge - Application - Device Groups', () => {
             cy.intercept('GET', '/api/*/applications/*/devices', applicationDevices).as('getApplicationDevices')
 
             // open the application page
-            cy.visit(`/team/${team.slug}/applications/${application.id}`)
+            cy.visit(`/team/${team.slug}/projects/${application.id}`)
             // navigate to the device groups tab
             cy.get('[data-nav="application-devices-groups-overview"]').should('exist').click()
             // check the url is correct
-            cy.url().should('include', `/applications/${application.id}/device-groups`)
+            cy.url().should('include', `/projects/${application.id}/device-groups`)
 
             // the page should show a list of device groups and the rows should be clickable
             // click on the first row
             cy.get('[data-el="device-groups-table"] tbody').find('tr').eq(0).click()
 
             // the url should match /application/${application.id}/device-group/<alphanumeric-id>/devices
-            cy.url().should('match', new RegExp(`/applications/${application.id}/device-group/[a-zA-Z0-9]+/devices`))
+            cy.url().should('match', new RegExp(`/projects/${application.id}/device-group/[a-zA-Z0-9]+/devices`))
 
             // check the target snapshot is displayed upper right
             cy.get('[data-el="device-group-target-snapshot"]').should('exist')

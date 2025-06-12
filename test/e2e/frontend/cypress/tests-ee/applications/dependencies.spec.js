@@ -18,13 +18,13 @@ describe('FlowForge - Application - Dependencies', () => {
                 )
 
                 if (instances.length) {
-                    cy.intercept('GET', '/api/*/applications/*/instances/status', {
+                    cy.intercept('GET', '/api/*/projects/*/instances/status', {
                         count: instances.length,
                         instances
                     }).as('getStatuses')
                 }
                 if (statuses.length) {
-                    cy.intercept('GET', '/api/*/applications/*/instances', {
+                    cy.intercept('GET', '/api/*/projects/*/instances', {
                         count: statuses.length,
                         instances: statuses
                     }).as('getInstances')
@@ -36,7 +36,7 @@ describe('FlowForge - Application - Dependencies', () => {
                 application = response.body.applications.find(
                     (app) => app.name === projectName
                 )
-                cy.visit(`/team/${team.slug}/applications/${application.id}/instances`)
+                cy.visit(`/team/${team.slug}/projects/${application.id}/instances`)
 
                 if (instances.length) {
                     cy.wait('@getStatuses')
@@ -54,12 +54,12 @@ describe('FlowForge - Application - Dependencies', () => {
             cy.intercept('GET', '/api/*/applications/*').as('getApplication')
 
             cy.login('bob', 'bbPassword')
-            cy.home()
+            // cy.home()
             navigateToApplication('BTeam', 'application-2')
         })
 
         it('owners should have access to the dependencies tab but won\'t have access to the feature if the team feature is not enabled', () => {
-            cy.visit(`/team/${team.slug}/applications/${application.id}`)
+            cy.visit(`/team/${team.slug}/projects/${application.id}`)
             cy.get('[data-nav="application-dependencies"]').click()
 
             cy.get('[data-el="page-banner-feature-unavailable-to-team"]').contains('This feature is not available for your current Team. Please upgrade your Team in order to use it.')
@@ -69,11 +69,11 @@ describe('FlowForge - Application - Dependencies', () => {
         it('members should not have access to the dependencies tab and page', () => {
             cy.intercept('GET', '/api/*/teams/*/user', { role: 40 }).as('getTeamRole')
 
-            cy.visit(`/team/${team.slug}/applications/${application.id}`)
+            cy.visit(`/team/${team.slug}/projects/${application.id}`)
 
             cy.get('[data-nav="application-dependencies"]').should('not.exist')
 
-            cy.visit(`/team/${team.slug}/applications/${application.id}/dependencies`)
+            cy.visit(`/team/${team.slug}/projects/${application.id}/dependencies`)
 
             cy.url().should('not.include', '/dependencies')
             cy.url().should('include', '/instances')

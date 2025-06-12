@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-describe('FlowForge - Team Overview (Home) - With License', () => {
+describe('FlowForge - Team Projects - With License', () => {
     function navigateToTeam (teamName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
@@ -7,7 +7,7 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                     (team) => team.name === teamName
                 )
 
-                return cy.visit(`/team/${team.slug}/applications`)
+                return cy.visit(`/team/${team.slug}/projects`)
             })
     }
 

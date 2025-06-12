@@ -1,4 +1,4 @@
-describe('FlowForge - Applications - With Billing', () => {
+describe('FlowForge - Projects - With Billing', () => {
     beforeEach(() => {
         cy.enableBilling()
     })
@@ -14,7 +14,7 @@ describe('FlowForge - Applications - With Billing', () => {
         cy.request('GET', 'api/v1/teams').then((response) => {
             const team = response.body.teams[0]
 
-            cy.visit(`/team/${team.slug}/applications/create`)
+            cy.visit(`/team/${team.slug}/projects/create`)
 
             cy.get('[data-el="next-step"]').should('be.disabled')
 
@@ -49,7 +49,7 @@ describe('FlowForge - Applications - With Billing', () => {
             cy.get('[data-el="next-step"]').should('not.be.disabled').click()
             cy.get('[data-el="next-step"]').should('not.be.disabled').click()
 
-            cy.url().should('include', '/applications/')
+            cy.url().should('include', '/projects/')
         })
     })
 
@@ -61,7 +61,7 @@ describe('FlowForge - Applications - With Billing', () => {
         cy.request('GET', 'api/v1/teams').then((response) => {
             const team = response.body.teams[0]
 
-            cy.visit(`/team/${team.slug}/applications/create`)
+            cy.visit(`/team/${team.slug}/projects/create`)
 
             cy.get('[data-form="application-name"] input').clear()
             cy.get('[data-form="application-name"] input').type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
@@ -110,7 +110,7 @@ describe('FlowForge - Applications - With Billing', () => {
         cy.request('GET', 'api/v1/teams').then((response) => {
             const team = response.body.teams[0]
 
-            cy.visit(`/team/${team.slug}/applications/create`)
+            cy.visit(`/team/${team.slug}/projects/create`)
 
             cy.get('[data-form="application-name"] input').clear()
             cy.get('[data-form="application-name"] input').type(`new-application-${Math.random().toString(36).substring(2, 7)}`)
