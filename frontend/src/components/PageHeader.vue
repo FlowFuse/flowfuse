@@ -8,45 +8,66 @@
             </transition>
         </i>
         <!-- FlowFuse Logo -->
-        <router-link :to="homeLink">
-            <img class="ff-logo" src="/ff-logo--wordmark--dark.png">
+        <router-link :to="homeLink" class="min-w-min" style="width: 250px;">
+            <img class="ff-logo" src="/ff-logo--wordmark--light.svg">
         </router-link>
         <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
             <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
             <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
-                <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="mobileTeamSelectionOpen = !mobileTeamSelectionOpen">
+                <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="toggleMobileTeamSelectionMenu">
             </i>
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
                 <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen">
             </i>
         </div>
         <!-- Mobile: User Options -->
-        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileUserOptionsOpen}" data-action="user-options">
-            <nav-item
-                v-for="option in navigationOptions" :key="option.label"
-                :label="option.label" :icon="option.icon" :notifications="option.notifications"
-                @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"
-            />
+        <div
+            v-click-outside="closeUserOptions"
+            class="ff-navigation ff-navigation-right"
+            :class="{'open': mobileUserOptionsOpen}"
+            data-action="user-options"
+        >
+            <ul>
+                <nav-item
+                    v-for="option in navigationOptions" :key="option.label"
+                    :label="option.label" :icon="option.icon" :notifications="option.notifications"
+                    :class="option.class ?? ''"
+                    @click="mobileUserOptionsOpen = false; option.onclick(option.onclickparams)"
+                />
+            </ul>
         </div>
         <!-- Mobile: Team Selection -->
-        <div class="ff-navigation ff-navigation-right" :class="{'open': mobileTeamSelectionOpen, 'without-divider': !canCreateTeam}" data-action="team-selection">
-            <nav-item
-                v-for="team in teams" :key="team.name"
-                :label="team.name" :avatar="team.avatar"
-                @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"
-            />
-            <nav-item
-                v-if="canCreateTeam"
-                label="Create New Team" :icon="plusIcon"
-                @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
-            />
+        <div
+            v-click-outside="closeTeamSelection"
+            class="ff-navigation ff-navigation-right"
+            :class="{'open': mobileTeamSelectionOpen, 'without-divider': !canCreateTeam}"
+            data-action="team-selection"
+        >
+            <ul>
+                <nav-item
+                    v-for="team in teams" :key="team.name"
+                    :label="team.name" :avatar="team.avatar"
+                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"
+                />
+                <nav-item
+                    v-if="canCreateTeam"
+                    label="Create New Team" :icon="plusIcon"
+                    class="create"
+                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
+                />
+            </ul>
         </div>
-        <div class="hidden lg:flex ff-desktop-navigation-right" data-el="desktop-nav-right">
+        <div class="hidden lg:flex items-stretch ff-desktop-navigation-right" data-el="desktop-nav-right">
             <ff-team-selection data-action="team-selection" />
-            <div class="px-4 flex flex-col justify-center" v-if="showInviteButton">
-                <ff-button kind="secondary" type="anchor" :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }">
+            <div class="pl-2 pr-4 flex flex-col justify-center" v-if="showInviteButton">
+                <ff-button
+                    kind="secondary"
+                    type="anchor"
+                    class="ml-5"
+                    :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }"
+                >
                     <template #icon-left><UserAddIcon /></template>
                     Invite Members
                 </ff-button>
@@ -55,7 +76,8 @@
             <NotificationsButton />
             <ff-dropdown
                 v-if="user"
-                class="ff-navigation ff-user-options hidden lg:flex xl:flex md:flex sm:flex"
+                :show-chevron="false"
+                class="ff-navigation ff-user-options"
                 options-align="right"
                 data-action="user-options"
                 data-cy="user-options"
@@ -66,8 +88,18 @@
                     </div>
                 </template>
                 <template #default>
-                    <ff-dropdown-option v-for="option in navigationOptions" :key="option.label" @click="option.onclick(option.onclickparams)">
-                        <nav-item :label="option.label" :icon="option.icon" :notifications="option.notifications" :data-nav="option.tag" />
+                    <ff-dropdown-option
+                        v-for="option in navigationOptions"
+                        :key="option.label"
+                        :class="option.class ?? ''"
+                        @click="option.onclick(option.onclickparams)"
+                    >
+                        <nav-item
+                            :label="option.label"
+                            :icon="option.icon"
+                            :notifications="option.notifications"
+                            :data-nav="option.tag"
+                        />
                     </ff-dropdown-option>
                 </template>
             </ff-dropdown>
@@ -142,7 +174,8 @@ export default {
                     label: 'Sign Out',
                     icon: LogoutIcon,
                     tag: 'sign-out',
-                    onclick: this.signOut
+                    onclick: this.signOut,
+                    class: 'danger'
                 }
             ].filter(option => !option.hidden)
         },
@@ -193,6 +226,23 @@ export default {
                 // don't have available applications at this moment in time so they'll get redirected twice
                 .then(() => this.$router.push({ name: 'Applications' }))
                 .then(() => this.$store.dispatch('ux/tours/presentTour'))
+        },
+        toggleMobileTeamSelectionMenu () {
+            this.mobileTeamSelectionOpen = !this.mobileTeamSelectionOpen
+        },
+        closeTeamSelection () {
+            if (this.mobileTeamSelectionOpen) {
+                this.$nextTick(() => {
+                    this.mobileTeamSelectionOpen = false
+                })
+            }
+        },
+        closeUserOptions () {
+            if (this.mobileUserOptionsOpen) {
+                this.$nextTick(() => {
+                    this.mobileUserOptionsOpen = false
+                })
+            }
         }
     }
 }
