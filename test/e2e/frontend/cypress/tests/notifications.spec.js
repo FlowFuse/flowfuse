@@ -301,7 +301,7 @@ describe('FlowForge - Notifications', () => {
 
                 cy.get('[data-el="generic-notification"]').contains('Platform Wide Notification').click()
                 cy.wait('@markInvitationRead')
-                cy.url().should('match', /applications\/application-id\/instances/i)
+                cy.url().should('match', /projects\/application-id\/instances/i)
             })
         })
     })
