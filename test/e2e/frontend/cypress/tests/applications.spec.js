@@ -1,6 +1,7 @@
 describe('FlowForge - Applications', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
+        cy.intercept('GET', '/api/v1/teams/*/applications*').as('getTeamApplications')
 
         cy.login('alice', 'aaPassword')
         cy.home()
@@ -18,7 +19,7 @@ describe('FlowForge - Applications', () => {
             cy.request('GET', 'api/v1/teams').then((response) => {
                 const team = response.body.teams[0]
 
-                cy.visit(`/team/${team.slug}/applications/create`)
+                cy.visit(`/team/${team.slug}/projects/create`)
 
                 cy.intercept('POST', '/api/*/applications').as('createApplication')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
@@ -66,10 +67,10 @@ describe('FlowForge - Applications', () => {
                 cy.contains(APPLICATION_NAME)
                 cy.contains(INSTANCE_NAME)
 
-                cy.url().should('include', '/applications/')
+                cy.url().should('include', '/projects/')
 
-                // now navigate to the Applications view and check the description is present alongside the application name
-                cy.visit(`/team/${team.slug}/applications`)
+                // now navigate to the Projects view and check the description is present alongside the project name
+                cy.visit(`/team/${team.slug}/projects`)
                 // div.ff-application-list--app should have the app name and description
                 cy.get('[data-action="view-application"]').contains(APPLICATION_NAME)
                 cy.get('[data-action="view-application"]').contains(APPLICATION_DESCRIPTION)
@@ -84,7 +85,7 @@ describe('FlowForge - Applications', () => {
             cy.request('GET', 'api/v1/teams').then((response) => {
                 const team = response.body.teams[0]
 
-                cy.visit(`/team/${team.slug}/applications/create`)
+                cy.visit(`/team/${team.slug}/projects/create`)
 
                 cy.intercept('POST', '/api/*/applications').as('createApplication')
                 cy.intercept('POST', '/api/*/projects').as('createInstance')
@@ -116,7 +117,7 @@ describe('FlowForge - Applications', () => {
 
                 cy.contains(APPLICATION_NAME)
 
-                cy.url().should('include', '/applications/')
+                cy.url().should('include', '/projects/')
             })
         })
 
@@ -129,7 +130,7 @@ describe('FlowForge - Applications', () => {
             cy.request('GET', 'api/v1/teams').then((response) => {
                 const team = response.body.teams[0]
 
-                cy.visit(`/team/${team.slug}/applications/create`)
+                cy.visit(`/team/${team.slug}/projects/create`)
 
                 cy.intercept('POST', '/api/*/applications').as('createApplication')
                 cy.intercept('POST', '/api/*/projects', req => {
@@ -193,16 +194,16 @@ describe('FlowForge - Applications', () => {
             cy.request('GET', 'api/v1/teams').then((response) => {
                 const team = response.body.teams[0]
 
-                cy.visit(`/team/${team.slug}/applications/create`)
+                cy.visit(`/team/${team.slug}/projects/create`)
 
-                cy.url().should('contain', '/applications/create')
+                cy.url().should('contain', '/projects/create')
 
                 cy.get('[data-nav="back"]').should('exist')
                 cy.get('[data-nav="back"]').contains('Back to Dashboard')
 
                 cy.get('[data-nav="back"]').click()
 
-                cy.url().should('match', /^.*\/team\/.*\/applications/)
+                cy.url().should('match', /^.*\/team\/.*\/projects/)
             })
         })
     })
@@ -212,7 +213,7 @@ describe('FlowForge - Applications', () => {
 
         cy.visit('/')
 
-        cy.get('[data-nav="team-applications"]')
+        cy.get('[data-nav="team-projects"]').click()
 
         cy.wait('@getTeamApplications')
 
@@ -248,7 +249,7 @@ describe('FlowForge - Applications', () => {
             }).as('getBlueprints')
             cy.intercept('POST', '/api/*/applications').as('createApplication')
 
-            cy.visit(`/team/${team.slug}/applications/create`)
+            cy.visit(`/team/${team.slug}/projects/create`)
 
             cy.wait('@getBlueprints')
 
@@ -313,7 +314,7 @@ describe('FlowForge - Applications', () => {
 
                 cy.visit('/')
 
-                cy.get('[data-nav="team-applications"]')
+                cy.get('[data-nav="team-projects"]').click()
 
                 cy.wait('@getTeamApplications')
 
@@ -337,7 +338,7 @@ describe('FlowForge - Applications', () => {
                 // Name updated on application page
                 cy.get('[data-el="page-name"]').contains(UPDATED_APPLICATION_NAME)
 
-                cy.get('[data-nav="team-applications"]').click()
+                cy.get('[data-nav="team-projects"]').click()
 
                 // Name updated on team page
                 cy.wait('@getTeamApplications')
@@ -347,7 +348,7 @@ describe('FlowForge - Applications', () => {
                 cy.contains(START_APPLICATION_DESCRIPTION).should('not.exist')
 
                 // now navigate to the Applications view and check the UPDATED description is present alongside the application name
-                cy.visit(`/team/${team.slug}/applications`)
+                cy.visit(`/team/${team.slug}/projects`)
                 // div.ff-application-list--app should have the app name and description
                 cy.get('[data-action="view-application"]').contains(UPDATED_APPLICATION_NAME)
                 cy.get('[data-action="view-application"]').contains(UPDATED_APPLICATION_DESCRIPTION)
@@ -372,7 +373,7 @@ describe('FlowForge - Applications', () => {
                 cy.intercept('GET', '/api/*/applications/*').as('getApplication')
 
                 const application = response.body
-                cy.visit(`/team/${team.slug}/applications/${application.id}/settings`)
+                cy.visit(`/team/${team.slug}/projects/${application.id}/settings`)
                 cy.wait('@getApplication')
 
                 cy.get('[data-el="delete-application-dialog"]').should('not.be.visible')
@@ -394,7 +395,7 @@ describe('FlowForge - Applications', () => {
 
                 cy.wait('@deleteProject')
 
-                cy.url().should('include', `/team/${team.slug}/applications`)
+                cy.url().should('include', `/team/${team.slug}/projects`)
             })
     })
 
@@ -414,7 +415,7 @@ describe('FlowForge - Applications', () => {
             .then(() => {
                 // find an application with instances
                 const application = applications.find(app => app.instances.length > 1)
-                cy.visit(`/team/${team.slug}/applications/${application.id}/settings`)
+                cy.visit(`/team/${team.slug}/projects/${application.id}/settings`)
 
                 // check that the delete application button is disabled
                 cy.get('[data-action="delete-application"]').should('be.disabled')
@@ -422,7 +423,7 @@ describe('FlowForge - Applications', () => {
             .then(() => {
                 // find an application with instances
                 const application = applications.find(app => app.instances.length === 0)
-                cy.visit(`/team/${team.slug}/applications/${application.id}/settings`)
+                cy.visit(`/team/${team.slug}/projects/${application.id}/settings`)
 
                 // check that the delete application button is not disabled
                 cy.get('[data-action="delete-application"]').should('not.be.disabled')
@@ -431,6 +432,7 @@ describe('FlowForge - Applications', () => {
 
     it('should display the back button when creating an instance from the application page', () => {
         cy.visit('/')
+        cy.get('[data-nav="team-projects"]').click()
         cy.get('[data-action="view-application"]').first().click()
 
         cy.get('[data-action="create-instance"]').should('exist')
@@ -441,7 +443,7 @@ describe('FlowForge - Applications', () => {
         cy.get('[data-nav="back"]').contains('Back')
         cy.get('[data-nav="back"]').click()
 
-        cy.url().should('match', /^.*\/team\/.*\/applications\/.*\/instances/)
+        cy.url().should('match', /^.*\/team\/.*\/projects\/.*\/instances/)
     })
 })
 
