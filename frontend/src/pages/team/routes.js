@@ -8,6 +8,7 @@ import TeamBilling from './Billing.vue'
 import BrokersRoutes from './Brokers/routes.js'
 import DeviceGroups from './DeviceGroups/index.vue'
 import TeamDevices from './Devices/index.vue'
+import TeamHome from './Home/index.vue'
 import TeamInstances from './Instances.vue'
 import Library from './Library/index.vue'
 import LibraryRoutes from './Library/routes.js'
@@ -34,7 +35,7 @@ export default [
         children: [
             {
                 path: ':team_slug',
-                redirect: { name: 'Applications' },
+                redirect: { name: 'team-home' },
                 name: 'Team',
                 component: Team,
                 meta: {
@@ -42,6 +43,11 @@ export default [
                 },
                 children: [
                     ...BrokersRoutes,
+                    {
+                        path: 'home',
+                        name: 'team-home',
+                        component: TeamHome
+                    },
                     {
                         path: 'applications',
                         children: [
@@ -174,7 +180,7 @@ export default [
                     {
                         name: 'team-overview',
                         path: 'overview',
-                        redirect: { name: 'Applications' }
+                        redirect: { name: 'team-home' }
                     },
                     {
                         name: 'team-pipelines',
