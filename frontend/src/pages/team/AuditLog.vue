@@ -66,7 +66,7 @@ export default {
             },
             scopeList: [
                 { name: 'Team', id: 'team' },
-                { name: 'Applications', id: 'application' },
+                { name: 'team-projects', id: 'application' },
                 { name: 'Instances', id: 'project' },
                 { name: 'Devices', id: 'device' }
             ]

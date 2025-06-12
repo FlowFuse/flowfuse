@@ -124,7 +124,7 @@ export default {
     },
     mounted () {
         if (!this.hasPermission('team:bom')) {
-            this.$router.push({ name: 'Applications' })
+            this.$router.push({ name: 'team-projects' })
         }
         if (this.featuresCheck.isBOMFeatureEnabled) {
             this.getTeamDependencies()

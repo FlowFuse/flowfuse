@@ -111,7 +111,7 @@ export default {
         sectionRoute () {
             switch (this.resultType) {
             case 'application':
-                return { name: 'Applications', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
+                return { name: 'team-projects', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
             case 'instance':
                 return { name: 'Instances', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
             case 'device':

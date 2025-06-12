@@ -25,8 +25,8 @@ export default [
     {
         path: ':id',
         redirect: function () {
-            const features = store.getters['account/featuresCheck']
-            if (features.isHostedInstancesEnabledForTeam) {
+            const isFreeTeamType = store.getters['account/isFreeTeamType']
+            if (!isFreeTeamType) {
                 return { name: 'ApplicationInstances' }
             } else {
                 return { name: 'ApplicationDevices' }

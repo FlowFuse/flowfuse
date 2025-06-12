@@ -77,7 +77,7 @@ export default {
         backToButton () {
             const defaultBackToRoute = {
                 label: 'Back to Dashboard',
-                to: { name: 'Applications', params: { team_slug: this.team?.slug } },
+                to: { name: 'team-projects', params: { team_slug: this.team?.slug } },
                 tag: 'back',
                 icon: ChevronLeftIcon
             }

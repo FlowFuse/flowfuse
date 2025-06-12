@@ -72,7 +72,7 @@
                         <p>
                             Instances are managed in FlowFuse via <ff-team-link
                                 class="ff-link"
-                                :to="{name:'Applications', params: {team_slug: team.slug}}"
+                                :to="{name:'team-projects', params: {team_slug: team.slug}}"
                             >
                                 Applications
                             </ff-team-link>.

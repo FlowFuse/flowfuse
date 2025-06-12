@@ -12,7 +12,7 @@
         </Teleport>
         <ff-page-header :title="deviceGroup?.name" :tabs="navigation">
             <template #breadcrumbs>
-                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Applications', params: {team_slug: team.slug}}">
+                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'team-projects', params: {team_slug: team.slug}}">
                     Applications
                 </ff-nav-breadcrumb>
                 <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Application', params: {team_slug: team.slug, id: application.id}}">

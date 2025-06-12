@@ -8,6 +8,7 @@ import TeamBilling from './Billing.vue'
 import BrokersRoutes from './Brokers/routes.js'
 import DeviceGroups from './DeviceGroups/index.vue'
 import TeamDevices from './Devices/index.vue'
+import TeamHome from './Home/index.vue'
 import TeamInstances from './Instances.vue'
 import Library from './Library/index.vue'
 import LibraryRoutes from './Library/routes.js'
@@ -34,7 +35,7 @@ export default [
         children: [
             {
                 path: ':team_slug',
-                redirect: { name: 'Applications' },
+                redirect: { name: 'team-home' },
                 name: 'Team',
                 component: Team,
                 meta: {
@@ -43,14 +44,22 @@ export default [
                 children: [
                     ...BrokersRoutes,
                     {
-                        path: 'applications',
+                        name: 'team-home',
+                        path: 'home',
+                        component: TeamHome,
+                        meta: {
+                            title: 'Team - Home'
+                        }
+                    },
+                    {
+                        path: 'projects',
                         children: [
                             {
-                                name: 'Applications',
+                                name: 'team-projects',
                                 path: '',
                                 component: TeamApplications,
                                 meta: {
-                                    title: 'Team - Applications'
+                                    title: 'Team - Projects'
                                 }
                             },
                             {
@@ -174,7 +183,7 @@ export default [
                     {
                         name: 'team-overview',
                         path: 'overview',
-                        redirect: { name: 'Applications' }
+                        redirect: { name: 'team-projects' }
                     },
                     {
                         name: 'team-pipelines',

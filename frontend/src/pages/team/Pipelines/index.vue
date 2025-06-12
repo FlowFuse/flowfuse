@@ -134,7 +134,7 @@ export default {
     mounted () {
         if (!this.hasPermission('application:pipeline:list')) {
             return this.$router.push({
-                name: 'Applications',
+                name: 'team-projects',
                 params: this.$route.params
             })
         }

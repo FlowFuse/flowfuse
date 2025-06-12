@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Instances">
                 <template #custom-breadcrumbs>
-                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'team-projects', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
                     <ff-nav-breadcrumb v-if="team" :to="{name: 'Application', params: {id: application.id}}">
                         {{ application.name }}
                     </ff-nav-breadcrumb>
