@@ -64,7 +64,7 @@ describe('FlowFuse platform invitees', () => {
 
         cy.get('[data-action="team-selection"]').should('be.visible')
         // should have navigated to the team dashboard
-        cy.url().should('include', '/team/bteam/applications')
+        cy.url().should('include', '/team/bteam/home')
     })
 })
 
