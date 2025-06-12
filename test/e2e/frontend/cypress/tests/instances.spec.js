@@ -31,6 +31,7 @@ describe('FlowForge - Instances', () => {
 
     beforeEach(() => {
         cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
+        cy.intercept('GET', '/api/v1/teams/*/applications*').as('getTeamApplications')
 
         cy.login('alice', 'aaPassword')
         cy.home()
@@ -44,7 +45,7 @@ describe('FlowForge - Instances', () => {
 
         cy.visit('/')
 
-        cy.get('[data-nav="team-applications"]')
+        cy.get('[data-nav="team-projects"]').click()
 
         cy.wait('@getTeamApplications')
 
@@ -123,7 +124,7 @@ describe('FlowForge - Instances', () => {
 
                 cy.wait('@deleteInstance')
 
-                cy.url().should('include', `/applications/${application.id}/instances`)
+                cy.url().should('include', `/projects/${application.id}/instances`)
             })
     })
 
@@ -198,8 +199,6 @@ describe('FlowForge - Instances', () => {
     it('can be copied', () => {
         cy.intercept('GET', '/api/*/projects/*').as('getInstance')
         cy.intercept('POST', '/api/*/projects').as('createProject')
-
-        cy.visit('/')
 
         navigateToInstance('ATeam', 'instance-1-2')
 
@@ -314,6 +313,6 @@ describe('FlowForge - Instances', () => {
         navigateToInstances('ATeam')
 
         cy.get('[data-action="create-project"]').click()
-        cy.url().should('include', '/ateam/applications/create')
+        cy.url().should('include', '/ateam/projects/create')
     })
 })
