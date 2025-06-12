@@ -76,7 +76,7 @@ export default {
 
             if (this.stackCpuScale) {
                 // scaling down to match stack cpu allocation
-                return (cpu / this.stackCpuScale).toFixed(2)
+                return ((cpu / this.stackCpuScale) * 100).toFixed(2)
             }
 
             return cpu.toFixed(2)
