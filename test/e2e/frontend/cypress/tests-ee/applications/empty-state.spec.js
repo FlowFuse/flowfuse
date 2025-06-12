@@ -15,7 +15,7 @@ describe('FlowForge - Application - Empty State', () => {
                 applications: []
             })
         }).as('getTeamApplicationsStatus')
-        cy.home()
+        cy.visit('team/bteam/applications')
     })
 
     it('is shown when a user navigates to the Applications view and has no applications', () => {
