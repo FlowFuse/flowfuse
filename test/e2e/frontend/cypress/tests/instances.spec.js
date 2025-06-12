@@ -44,7 +44,7 @@ describe('FlowForge - Instances', () => {
 
         cy.visit('/')
 
-        cy.get('[data-nav="team-applications"]')
+        cy.get('[data-nav="team-applications"]').click()
 
         cy.wait('@getTeamApplications')
 

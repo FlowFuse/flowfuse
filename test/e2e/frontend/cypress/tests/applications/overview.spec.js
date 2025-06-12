@@ -24,7 +24,7 @@ describe('FlowForge - Applications', () => {
 
     describe('Listing', () => {
         it('shows a list of cloud hosted instances', () => {
-            cy.home()
+            cy.visit('team/bteam/applications')
 
             navigateToApplication('BTeam', 'application-2')
 
@@ -67,7 +67,7 @@ describe('FlowForge - Applications', () => {
                 })
             ).as('getApplication')
 
-            cy.visit('/')
+            cy.visit('team/bteam/applications')
 
             cy.wait('@getApplication')
             cy.wait('@getAppStatuses')
@@ -153,7 +153,7 @@ describe('FlowForge - Applications', () => {
                 })
             ).as('getApplication')
 
-            cy.visit('/')
+            cy.visit('team/ateam/applications')
 
             cy.wait('@getApplication')
             cy.wait('@getAppStatuses')
@@ -268,7 +268,7 @@ describe('FlowForge - Applications', () => {
                 )
             ).as('getApplication')
 
-            cy.visit('/')
+            cy.visit('team/bteam/applications')
 
             cy.wait('@getApplication')
             cy.wait('@getAppStatuses')
@@ -330,7 +330,7 @@ describe('FlowForge - Applications', () => {
                 })
             ).as('getApplication')
 
-            cy.visit('/')
+            cy.visit('team/bteam/applications')
 
             cy.wait('@getApplication')
             cy.wait('@getAppStatuses')
@@ -357,7 +357,7 @@ describe('FlowForge - Applications', () => {
                 { role: 30 }
             ).as('getTeamRole')
 
-            cy.visit('/')
+            cy.visit('team/bteam/applications')
             cy.wait('@getTeamRole')
 
             cy.get('[data-el="kebab-menu"]').should('not.exist')
@@ -420,7 +420,7 @@ describe('FlowForge - Applications', () => {
                     }
                 ).as('getApplication')
 
-                cy.home()
+                cy.visit('team/bteam/applications')
 
                 cy.wait('@getAppStatuses')
                 cy.wait('@getApplication')
@@ -791,7 +791,7 @@ describe('FlowForge - Applications', () => {
                     }
                 ).as('getApplication')
 
-                cy.home()
+                cy.visit('team/bteam/applications')
 
                 cy.wait('@getAppStatuses')
                 cy.wait('@getApplication')
@@ -982,17 +982,12 @@ describe('FlowForge - Applications', () => {
                     }
                 }).as('getApplication')
 
-                cy.intercept('GET', '/api/*/applications/1/instances*', {
-                    count: 0,
-                    instances
-                }).as('getApplicationInstances')
-
                 cy.intercept('GET', '/api/*/applications/1/devices*', {
                     count: 5,
                     devices
                 }).as('getApplicationDevices')
 
-                cy.home()
+                cy.visit('team/bteam/applications')
 
                 cy.wait('@getAppStatuses')
                 cy.wait('@getApplications')
@@ -1001,7 +996,6 @@ describe('FlowForge - Applications', () => {
                 cy.get('[data-el="has-more-tile"]').click()
 
                 cy.wait('@getApplication')
-                cy.wait('@getApplicationInstances')
                 cy.wait('@getApplicationDevices')
 
                 cy.get('[data-form="search"]').should('exist')
@@ -1135,7 +1129,7 @@ describe('FlowForge - Applications', () => {
                     instances: []
                 }).as('getSomeStatuses')
 
-                cy.home()
+                cy.visit('/team/ateam/applications')
 
                 cy.wait('@getAppStatuses')
                 cy.wait('@getApplications')
@@ -1228,7 +1222,7 @@ describe('FlowForge - Applications', () => {
                     }
                 ).as('getAppStatuses')
 
-                cy.visit('/')
+                cy.visit('/team/bteam/applications')
 
                 cy.wait('@getApplications')
                 cy.wait('@getAppStatuses')
@@ -1291,7 +1285,7 @@ describe('FlowForge - Applications', () => {
                     }
                 ).as('getAppStatuses')
 
-                cy.visit('/')
+                cy.visit('/team/bteam/applications')
 
                 cy.wait('@getApplications')
                 cy.wait('@getAppStatuses')
