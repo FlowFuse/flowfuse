@@ -603,6 +603,33 @@ module.exports = {
                             await device.save()
                         })
                     }
+                },
+                byTeamForSearch: async (teamId, query) => {
+                    const queryObject = {
+                        include: [
+                            {
+                                model: M.Team,
+                                where: { id: teamId },
+                                attributes: ['hashid', 'id', 'name', 'slug']
+                            },
+                            {
+                                model: M.Application,
+                                required: true,
+                                attributes: ['hashid', 'id', 'name']
+                            }
+                        ],
+                        where: {
+                            [Op.and]: [
+                                where(
+                                    fn('lower', col('Device.name')),
+                                    { [Op.like]: `%${query.toLowerCase()}%` }
+                                )
+                            ]
+
+                        }
+                    }
+
+                    return this.findAll(queryObject)
                 }
             }
         }
