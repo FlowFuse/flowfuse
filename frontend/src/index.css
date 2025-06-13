@@ -194,6 +194,30 @@
         @apply border-dashed;
         @apply text-green-700;
     }
+    .forge-minimal-status-error,
+    .forge-minimal-status-crashed,
+    .forge-minimal-status-suspended{
+        @apply bg-red-600;
+    }
+    .forge-minimal-status-stopped {
+        @apply bg-gray-700;
+    }
+    .forge-minimal-status-info {
+        @apply bg-gray-800;
+    }
+    .forge-minimal-status-safe {
+        @apply bg-yellow-500;
+    }
+    .forge-minimal-status-warning {
+        @apply bg-yellow-800;
+    }
+    .forge-minimal-status-success,
+    .forge-minimal-status-connected,
+    .forge-minimal-status-running,
+    .forge-minimal-status-importing,
+    .forge-minimal-status-starting{
+        @apply bg-green-600;
+    }
     
     .forge-badge-devmode {
         @apply bg-purple-100;

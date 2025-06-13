@@ -1,19 +1,19 @@
 <template>
     <ff-button
         v-if="!hidden"
-        kind="secondary"
+        :kind="minimalView ? 'tertiary' : 'secondary'"
         data-action="open-dashboard"
         :disabled="buttonDisabled"
         class="whitespace-nowrap"
         @click="openDashboard"
     >
-        <template v-if="showText" #icon-left>
+        <template v-if="showText && !minimalView" #icon-left>
             <ChartPieIcon />
         </template>
         <template v-else #icon>
             <ChartPieIcon />
         </template>
-        <template v-if="showText">
+        <template v-if="showText && !minimalView">
             Dashboard
         </template>
     </ff-button>
@@ -48,6 +48,10 @@ export default {
         showText: {
             type: Boolean,
             default: true
+        },
+        minimalView: {
+            type: Boolean,
+            default: false
         }
     },
     computed: {

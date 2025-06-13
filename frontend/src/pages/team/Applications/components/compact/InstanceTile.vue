@@ -2,6 +2,7 @@
     <div class="instance-tile">
         <div class="status">
             <InstanceStatusBadge
+                v-if="!minimalView"
                 :status="localInstance.meta?.state"
                 text=""
                 :pendingStateChange="localInstance.pendingStateChange"
@@ -9,6 +10,7 @@
                 :instanceId="localInstance.id"
                 instanceType="instance"
             />
+            <InstanceMinimalStatusBadge v-else :status="localInstance.meta?.state" />
         </div>
         <div class="details">
             <div class="detail-wrapper">
@@ -43,6 +45,7 @@
                 :instance="instance"
                 :disabled="!editorAvailable"
                 :show-text="showButtonLabels"
+                :minimal-view="minimalView"
             />
 
             <InstanceEditorLink
@@ -52,6 +55,7 @@
                 :url="instance.url"
                 :instance="instance"
                 :show-text="showButtonLabels"
+                :minimal-view="minimalView"
             />
 
             <ff-kebab-menu v-if="shouldDisplayKebabMenu" @click.stop>
@@ -95,6 +99,7 @@ import FfKebabMenu from '../../../../../ui-components/components/KebabMenu.vue'
 import { InstanceStateMutator } from '../../../../../utils/InstanceStateMutator.js'
 import DashboardLink from '../../../../instance/components/DashboardLink.vue'
 import InstanceEditorLink from '../../../../instance/components/EditorLink.vue'
+import InstanceMinimalStatusBadge from '../../../../instance/components/InstanceMinimalStatusBadge.vue'
 import InstanceStatusBadge from '../../../../instance/components/InstanceStatusBadge.vue'
 
 export default {
@@ -104,7 +109,8 @@ export default {
         FfKebabMenu,
         InstanceStatusBadge,
         InstanceStatusPolling,
-        InstanceEditorLink
+        InstanceEditorLink,
+        InstanceMinimalStatusBadge
     },
     mixins: [AuditMixin, permissionsMixin, instanceActionsMixin],
     props: {
@@ -115,6 +121,10 @@ export default {
         showButtonLabels: {
             type: Boolean,
             default: true
+        },
+        minimalView: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['delete-instance'],

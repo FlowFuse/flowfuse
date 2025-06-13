@@ -16,7 +16,19 @@ module.exports = {
             'forge-log-entry-level-info',
             'forge-log-entry-level-warn',
             'forge-log-entry-level-error',
-            'forge-log-entry-level-system'
+            'forge-log-entry-level-system',
+            'forge-minimal-status-error',
+            'forge-minimal-status-crashed',
+            'forge-minimal-status-suspended',
+            'forge-minimal-status-stopped',
+            'forge-minimal-status-info',
+            'forge-minimal-status-safe',
+            'forge-minimal-status-warning',
+            'forge-minimal-status-success',
+            'forge-minimal-status-connected',
+            'forge-minimal-status-running',
+            'forge-minimal-status-importing',
+            'forge-minimal-status-starting'
         ]
     },
     darkMode: false, // or 'media' or 'class'

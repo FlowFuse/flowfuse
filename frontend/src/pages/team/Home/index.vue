@@ -20,11 +20,14 @@
                                 <ProjectsIcon class="ff-icon-lg" />
                             </template>
 
-                            <AtAGlanceInstanceStats type-of-instances="hosted" :stats="{}" @clicked="onGlanceClick" />
+                            <AtAGlanceInstanceStats
+                                class="mb-5"
+                                type-of-instances="hosted"
+                                :stats="{}"
+                                @clicked="onGlanceClick"
+                            />
 
-                            <div>
-                                recently modified
-                            </div>
+                            <RecentlyModified :instances="instances" />
                         </DashboardSection>
 
                         <DashboardSection title="Remote Instances">
@@ -32,11 +35,13 @@
                                 <ChipIcon class="ff-icon-lg" />
                             </template>
 
-                            <AtAGlanceInstanceStats type-of-instances="remote" :stats="{}" @clicked="onGlanceClick" />
+                            <AtAGlanceInstanceStats
+                                class="mb-5"
+                                type-of-instances="remote"
+                                :stats="{}" @clicked="onGlanceClick"
+                            />
 
-                            <div>
-                                recently modified
-                            </div>
+                            <RecentlyModified :instances="devices" />
                         </DashboardSection>
                     </section>
 
@@ -64,16 +69,37 @@ import AuditLog from '../../../components/audit-log/AuditLog.vue'
 import ProjectsIcon from '../../../components/icons/Projects.js'
 
 import AtAGlanceInstanceStats from './components/AtAGlanceInstanceStats.vue'
-
 import DashboardSection from './components/DashboardSection.vue'
+import RecentlyModified from './components/RecentlyModified.vue'
 
 export default {
     name: 'TeamHome',
-    components: { AtAGlanceInstanceStats, AuditLog, DashboardSection, ChipIcon, ProjectsIcon, DatabaseIcon },
+    components: { RecentlyModified, AtAGlanceInstanceStats, AuditLog, DashboardSection, ChipIcon, ProjectsIcon, DatabaseIcon },
     data () {
         return {
             loading: true,
-            logEntries: []
+            logEntries: [],
+            instances: [
+                { id: 1, name: 'something-foo', url: 'https://reddit.com', meta: { state: 'running' } },
+                {
+                    id: 2,
+                    name: 'another-bar',
+                    url: 'http:/google.com',
+                    meta: { state: 'running' },
+                    settings: {
+                        dashboard2UI: '/dashboard'
+                    }
+                }
+            ],
+            devices: [
+                { id: 1, name: 'foo-this', url: 'https://reddit.com', meta: { state: 'running' } },
+                {
+                    id: 2,
+                    name: 'bar-that',
+                    url: 'http:/google.com',
+                    meta: { state: 'running' }
+                }
+            ]
         }
     },
     computed: {
