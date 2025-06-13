@@ -20,28 +20,26 @@
                                 <ProjectsIcon class="ff-icon-lg" />
                             </template>
 
-                            <div>
-                                at a glance stats
-                            </div>
+                            <AtAGlanceInstanceStats type-of-instances="hosted" :stats="{}" @clicked="onGlanceClick" />
 
                             <div>
                                 recently modified
                             </div>
                         </DashboardSection>
+
                         <DashboardSection title="Remote Instances">
                             <template #icon>
                                 <ChipIcon class="ff-icon-lg" />
                             </template>
 
-                            <div>
-                                at a glance stats
-                            </div>
+                            <AtAGlanceInstanceStats type-of-instances="remote" :stats="{}" @clicked="onGlanceClick" />
 
                             <div>
                                 recently modified
                             </div>
                         </DashboardSection>
                     </section>
+
                     <DashboardSection title="Recent Activity" class="overflow-auto">
                         <template #icon>
                             <DatabaseIcon class="ff-icon-lg" />
@@ -65,11 +63,13 @@ import AuditLog from '../../../components/audit-log/AuditLog.vue'
 
 import ProjectsIcon from '../../../components/icons/Projects.js'
 
+import AtAGlanceInstanceStats from './components/AtAGlanceInstanceStats.vue'
+
 import DashboardSection from './components/DashboardSection.vue'
 
 export default {
     name: 'TeamHome',
-    components: { AuditLog, DashboardSection, ChipIcon, ProjectsIcon, DatabaseIcon },
+    components: { AtAGlanceInstanceStats, AuditLog, DashboardSection, ChipIcon, ProjectsIcon, DatabaseIcon },
     data () {
         return {
             loading: true,
@@ -92,6 +92,9 @@ export default {
                 .then((response) => {
                     this.logEntries = response.log
                 })
+        },
+        onGlanceClick (payload) {
+            console.log(payload)
         }
     }
 }
