@@ -2,4 +2,12 @@
     display: grid;
     grid-template-columns: 2fr minmax(min-content, 240px);
     gap: 24px;
+    
+    &.full-width {
+        display: flex;
+        grid-template-columns: none;
+        gap: 0;
+        
+        
+    }
 }
