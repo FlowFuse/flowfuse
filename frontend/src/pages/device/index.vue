@@ -35,7 +35,7 @@
                     button (size difference is caused by odd padding in the toggle button, which though not visible
                     is still there and affects the button height in this div group)
                 -->
-                <div class="space-x-2 flex align-center" style="height: 34px;">
+                <div class="flex align-center gap-2" style="height: 34px;">
                     <template v-if="isDevModeAvailable">
                         <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
                         <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
