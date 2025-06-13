@@ -22,6 +22,7 @@
                         v-if="otc"
                         :selected-o-s="selectedOS"
                         :otc-command="otcCommand"
+                        :installation-method="installationMethod"
                         :device="device"
                         :credentials="credentials"
                         @select-os="selectedOS = $event"
@@ -57,8 +58,8 @@ export default {
     name: 'DeviceCredentialsDialog',
     components: {
         InstallationMethodSelector,
-        OtcInstallSection,
-        ManualInstall
+        ManualInstall,
+        OtcInstallSection
     },
     props: ['team'],
     setup () {

@@ -32,8 +32,9 @@ export default {
 <style scoped lang="scss">
 .installation-method-selector {
     display: flex;
-    gap: 20px;
+    gap: 50px;
     margin-bottom: 15px;
+    position: relative;
 
     .ff-method-option {
         flex: 1;
@@ -45,6 +46,16 @@ export default {
 
         &.active {
             border-color: $ff-indigo-500;
+        }
+
+        &:first-of-type:after {
+            content: 'or';
+            position: absolute;
+            top: 5%;
+            left: 49%;
+            font-style: italic;
+            font-size: $ff-funit-sm;
+            color: $ff-grey-500;
         }
     }
 }
