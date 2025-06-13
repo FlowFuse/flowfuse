@@ -69,10 +69,9 @@ Cypress.Commands.add('home', (username, password) => {
     cy.wait('@getTeam')
     cy.wait('@getTeams')
     cy.wait('@getTeamRole')
-    cy.wait('@getTeamApplications')
     cy.wait('@getInvitations')
 
-    cy.url().should('include', '/applications')
+    cy.url().should('include', '/home')
 })
 
 Cypress.Commands.add('enableBilling', () => {

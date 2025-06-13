@@ -72,7 +72,7 @@ describe('FlowForge - Auth', () => {
         // click "login"
         cy.get('[data-action="login"]').click()
         // check where we are
-        cy.url().should('include', '/applications')
+        cy.url().should('include', '/home')
     })
     it('prevent long password', () => {
         cy.visit('')

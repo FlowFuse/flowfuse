@@ -7,7 +7,7 @@ describe('FlowForge - Brokers Hierarchy', () => {
 
             cy.get('[data-nav="team-broker"]').should('not.exist')
             cy.visit('team/ateam/brokers/team-broker/hierarchy')
-            cy.url().should('include', 'team/ateam/applications')
+            cy.url().should('include', 'team/ateam/home')
         })
 
         it('should have the brokers menu entry hidden and route guard for dashboard roles', () => {

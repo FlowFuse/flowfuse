@@ -1,6 +1,7 @@
 describe('FlowForge - Applications', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
+        cy.intercept('/api/*/teams/*/applications*').as('getTeamApplications')
 
         cy.login('alice', 'aaPassword')
         cy.home()
@@ -212,7 +213,7 @@ describe('FlowForge - Applications', () => {
 
         cy.visit('/')
 
-        cy.get('[data-nav="team-applications"]')
+        cy.get('[data-nav="team-applications"]').click()
 
         cy.wait('@getTeamApplications')
 
@@ -313,7 +314,7 @@ describe('FlowForge - Applications', () => {
 
                 cy.visit('/')
 
-                cy.get('[data-nav="team-applications"]')
+                cy.get('[data-nav="team-applications"]').click()
 
                 cy.wait('@getTeamApplications')
 
@@ -431,6 +432,8 @@ describe('FlowForge - Applications', () => {
 
     it('should display the back button when creating an instance from the application page', () => {
         cy.visit('/')
+        cy.get('[data-nav="team-applications"]').click()
+
         cy.get('[data-action="view-application"]').first().click()
 
         cy.get('[data-action="create-instance"]').should('exist')
