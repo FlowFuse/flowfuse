@@ -12,6 +12,12 @@
                     </p>
                 </template>
                 <template v-else>
+                    <InstallationMethodSelector
+                        :selected-method="installationMethod"
+                        :installation-methods="installationMethods"
+                        @select-method="installationMethod = $event"
+                    />
+
                     <OtcInstallSection
                         v-if="otc"
                         :selected-o-s="selectedOS"
@@ -42,12 +48,15 @@ import { mapState } from 'vuex'
 
 import deviceApi from '../../../../api/devices.js'
 
+import InstallationMethodSelector from './components/DeviceCredentialsDialog/InstallationMethodSelector.vue'
+
 import ManualInstall from './components/DeviceCredentialsDialog/ManualInstall.vue'
 import OtcInstallSection from './components/DeviceCredentialsDialog/OtcInstallSection.vue'
 
 export default {
     name: 'DeviceCredentialsDialog',
     components: {
+        InstallationMethodSelector,
         OtcInstallSection,
         ManualInstall
     },
@@ -63,7 +72,18 @@ export default {
     data () {
         return {
             device: null,
-            selectedOS: 'Windows' // Default selected OS
+            selectedOS: 'Windows', // Default selected OS,
+            installationMethod: 'script',
+            installationMethods: [
+                {
+                    slug: 'script',
+                    label: 'Install via Script'
+                },
+                {
+                    slug: 'npm',
+                    label: 'Install via NPM'
+                }
+            ]
         }
     },
     methods: {
