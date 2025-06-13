@@ -11,7 +11,7 @@
                         be able to reconnect until it has been given its new configuration.
                     </p>
                 </template>
-                <template v-if="hasCredentials">
+                <template v-else>
                     <template v-if="otc">
                         <label class="block font-bold mb-2">Install Device Agent</label>
                         <div class="mb-4">
@@ -86,40 +86,11 @@
 
                         <details class="mt-4">
                             <summary class="mt-6 cursor-pointer">Show manual setup instructions</summary>
-                            <p class="mt-4">
-                                Place the below configuration on your device.
-                                See the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">Device Agent documentation</a> for instructions on how to do this.
-                            </p>
-                            <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
-                            <div class="flex flex-row justify-end space-x-2 -mt-1">
-                                <ff-button kind="tertiary" size="small" class="ml-4" @click="downloadCredentials()">
-                                    <template #icon-right><DocumentDownloadIcon /></template>
-                                    <span class="">Download</span>
-                                </ff-button>
-                                <ff-button kind="tertiary" size="small" @click="copy(credentials)">
-                                    <template #icon-right><ClipboardCopyIcon /></template>
-                                    <span class="">Copy</span>
-                                </ff-button>
-                            </div>
+                            <ManualInstall class="mt-4" :credentials="credentials" :device="device" />
                         </details>
                     </template>
-                    <template v-else>
-                        <p>
-                            Place the below configuration on your device.
-                            See the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">Device Agent documentation</a> for instructions on how to do this.
-                        </p>
-                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
-                        <div class="flex flex-row justify-end space-x-2 -mt-1">
-                            <ff-button kind="tertiary" size="small" class="ml-4" @click="downloadCredentials()">
-                                <template #icon-right><DocumentDownloadIcon /></template>
-                                <span class="">Download</span>
-                            </ff-button>
-                            <ff-button kind="tertiary" size="small" @click="copy(credentials)">
-                                <template #icon-right><ClipboardCopyIcon /></template>
-                                <span class="">Copy</span>
-                            </ff-button>
-                        </div>
-                    </template>
+
+                    <ManualInstall v-else :credentials="credentials" :device="device" />
                 </template>
             </form>
         </template>
@@ -136,23 +107,23 @@
 </template>
 
 <script>
-// import devicesApi from '../../../../api/devices'
-import { ClipboardCopyIcon, DocumentDownloadIcon } from '@heroicons/vue/outline'
+import { ClipboardCopyIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../../api/devices.js'
 import LinuxIcon from '../../../../assets/icons/linux.svg'
 import MacOSIcon from '../../../../assets/icons/macos.svg'
 import WindowsIcon from '../../../../assets/icons/windows.svg'
-import { downloadData } from '../../../../composables/Download.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
 import Alerts from '../../../../services/alerts.js'
+
+import ManualInstall from './components/DeviceCredentialsDialog/ManualInstall.vue'
 
 export default {
     name: 'DeviceCredentialsDialog',
     components: {
-        ClipboardCopyIcon,
-        DocumentDownloadIcon
+        ManualInstall,
+        ClipboardCopyIcon
     },
     mixins: [clipboardMixin],
     props: ['team'],
@@ -168,9 +139,6 @@ export default {
         }
     },
     methods: {
-        downloadCredentials () {
-            downloadData(this.credentials, `device-${this.device.id}.yml`)
-        },
         async regenerateCredentials () {
             const creds = await deviceApi.generateCredentials(this.device.id)
             this.device.credentials = creds
