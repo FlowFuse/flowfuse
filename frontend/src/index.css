@@ -199,8 +199,9 @@
     .forge-minimal-status-suspended{
         @apply bg-red-600;
     }
-    .forge-minimal-status-stopped {
-        @apply bg-gray-700;
+    .forge-minimal-status-stopped,
+    .forge-minimal-status-offline{
+        @apply bg-gray-600;
     }
     .forge-minimal-status-info {
         @apply bg-gray-800;

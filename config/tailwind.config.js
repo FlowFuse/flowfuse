@@ -21,6 +21,7 @@ module.exports = {
             'forge-minimal-status-crashed',
             'forge-minimal-status-suspended',
             'forge-minimal-status-stopped',
+            'forge-minimal-status-offline',
             'forge-minimal-status-info',
             'forge-minimal-status-safe',
             'forge-minimal-status-warning',

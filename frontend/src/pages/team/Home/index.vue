@@ -40,7 +40,7 @@
                                 <InstanceStat state="not-running" type="remote" @clicked="onGlanceClick" />
                             </div>
 
-                            <RecentlyModified :instances="devices" />
+                            <RecentlyModifiedDevices />
                         </DashboardSection>
                     </section>
 
@@ -70,10 +70,11 @@ import ProjectsIcon from '../../../components/icons/Projects.js'
 import DashboardSection from './components/DashboardSection.vue'
 import InstanceStat from './components/InstanceStat.vue'
 import RecentlyModified from './components/RecentlyModified.vue'
+import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
 
 export default {
     name: 'TeamHome',
-    components: { InstanceStat, RecentlyModified, AuditLog, DashboardSection, ChipIcon, ProjectsIcon, DatabaseIcon },
+    components: { InstanceStat, RecentlyModified, AuditLog, DashboardSection, ChipIcon, ProjectsIcon, DatabaseIcon, RecentlyModifiedDevices },
     data () {
         return {
             loading: true,
@@ -88,15 +89,6 @@ export default {
                     settings: {
                         dashboard2UI: '/dashboard'
                     }
-                }
-            ],
-            devices: [
-                { id: 1, name: 'foo-this', url: 'https://reddit.com', meta: { state: 'running' } },
-                {
-                    id: 2,
-                    name: 'bar-that',
-                    url: 'http:/google.com',
-                    meta: { state: 'running' }
                 }
             ]
         }
