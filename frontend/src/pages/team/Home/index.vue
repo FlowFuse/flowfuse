@@ -9,13 +9,13 @@
             </ff-page-header>
         </template>
 
-        <div id="team-dashboard" class="page-wrapper overflow-auto">
+        <div id="team-dashboard" class="page-wrapper overflow-auto" :data-team="team.slug">
             <transition name="fade" mode="out-in">
                 <ff-loading v-if="loading" message="Loading Dashboard..." />
 
                 <div v-else class="ff-team-dashboard">
                     <section class="flex gap-3 mb-3">
-                        <DashboardSection title="Hosted Instances">
+                        <DashboardSection title="Hosted Instances" type="hosted">
                             <template #icon>
                                 <ProjectsIcon class="ff-icon-lg" />
                             </template>
@@ -29,7 +29,7 @@
                             <RecentlyModified :instances="instances" />
                         </DashboardSection>
 
-                        <DashboardSection title="Remote Instances">
+                        <DashboardSection title="Remote Instances" type="remote">
                             <template #icon>
                                 <ChipIcon class="ff-icon-lg" />
                             </template>
@@ -44,7 +44,7 @@
                         </DashboardSection>
                     </section>
 
-                    <DashboardSection title="Recent Activity" class="overflow-auto">
+                    <DashboardSection title="Recent Activity" class="overflow-auto" type="audit">
                         <template #icon>
                             <DatabaseIcon class="ff-icon-lg" />
                         </template>
