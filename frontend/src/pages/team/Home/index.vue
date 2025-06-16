@@ -20,12 +20,11 @@
                                 <ProjectsIcon class="ff-icon-lg" />
                             </template>
 
-                            <AtAGlanceInstanceStats
-                                class="mb-5"
-                                type-of-instances="hosted"
-                                :stats="{}"
-                                @clicked="onGlanceClick"
-                            />
+                            <div class="flex gap-2 mb-5">
+                                <InstanceStat state="running" type="hosted" @clicked="onGlanceClick" />
+                                <InstanceStat state="error" type="hosted" @clicked="onGlanceClick" />
+                                <InstanceStat state="not-running" type="hosted" @clicked="onGlanceClick" />
+                            </div>
 
                             <RecentlyModified :instances="instances" />
                         </DashboardSection>
@@ -35,11 +34,11 @@
                                 <ChipIcon class="ff-icon-lg" />
                             </template>
 
-                            <AtAGlanceInstanceStats
-                                class="mb-5"
-                                type-of-instances="remote"
-                                :stats="{}" @clicked="onGlanceClick"
-                            />
+                            <div class="flex gap-2 mb-5">
+                                <InstanceStat state="running" type="remote" @clicked="onGlanceClick" />
+                                <InstanceStat state="error" type="remote" @clicked="onGlanceClick" />
+                                <InstanceStat state="not-running" type="remote" @clicked="onGlanceClick" />
+                            </div>
 
                             <RecentlyModified :instances="devices" />
                         </DashboardSection>
@@ -68,13 +67,13 @@ import AuditLog from '../../../components/audit-log/AuditLog.vue'
 
 import ProjectsIcon from '../../../components/icons/Projects.js'
 
-import AtAGlanceInstanceStats from './components/AtAGlanceInstanceStats.vue'
 import DashboardSection from './components/DashboardSection.vue'
+import InstanceStat from './components/InstanceStat.vue'
 import RecentlyModified from './components/RecentlyModified.vue'
 
 export default {
     name: 'TeamHome',
-    components: { RecentlyModified, AtAGlanceInstanceStats, AuditLog, DashboardSection, ChipIcon, ProjectsIcon, DatabaseIcon },
+    components: { InstanceStat, RecentlyModified, AuditLog, DashboardSection, ChipIcon, ProjectsIcon, DatabaseIcon },
     data () {
         return {
             loading: true,

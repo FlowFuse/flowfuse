@@ -484,6 +484,16 @@ const createGitToken = async (teamId, token) => {
 const deleteGitToken = async (teamId, tokenId) => {
     return client.delete(`/api/v1/teams/${teamId}/git/tokens/${tokenId}`)
 }
+
+const getTeamInstanceCounts = async (teamId, states, type) => {
+    const params = new URLSearchParams()
+    states.forEach(state => params.append('state', state))
+    params.append('instanceType', type)
+
+    return client.get(`/api/v1/teams/${teamId}/instance-counts?${params.toString()}`)
+        .then(res => res.data)
+}
+
 /**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
@@ -500,6 +510,7 @@ export default {
     getTeamInstancesList,
     getTeamDashboards,
     getTeamMembers,
+    getTeamInstanceCounts,
     changeTeamMemberRole,
     removeTeamMember,
     getTeamInvitations,
