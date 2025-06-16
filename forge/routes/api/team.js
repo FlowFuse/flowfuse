@@ -918,4 +918,87 @@ module.exports = async function (app) {
             .map(row => row.join(','))
             .join('\r\n'))
     })
+
+    /**
+     * Get the team instance counts
+     * @name /api/v1/teams/:teamId/instance-counts
+     * @memberof forge.routes.api.team
+     */
+    app.get('/:teamId/instance-counts', {
+        preHandler: [
+            app.needsPermission('team:read'),
+            async (request, reply) => {
+                const validInstanceTypes = ['remote', 'hosted']
+                const validStates = ['starting', 'stopping', 'restarting', 'suspending', 'rollback', 'importing',
+                    'error', 'crashed', 'stopped', 'suspended', 'warning', 'connected', 'info', 'success', 'pushing', 'pulling',
+                    'loading', 'installing', 'safe', 'protected', 'running', ''] // empty state is required for the remote instances not-running query
+
+                if (!validInstanceTypes.includes(request.query.instanceType)) {
+                    return reply.code(400).send({
+                        code: 'invalid_instance_type',
+                        error: 'Invalid instance type provided'
+                    })
+                }
+
+                if (!Array.isArray(request.query.state) || request.query.state.length === 0) {
+                    return reply.code(400).send({
+                        code: 'invalid_state',
+                        error: 'State parameter must be a string or non-empty array'
+                    })
+                }
+                for (const state of request.query.state) {
+                    if (!validStates.includes(state)) {
+                        return reply.code(400).send({
+                            code: 'invalid_state',
+                            error: `Invalid state value: ${state}`
+                        })
+                    }
+                }
+            }
+        ],
+        schema: {
+            summary: 'Get team remote/hosted instance counts counts',
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            query: {
+                instanceType: { type: 'string' },
+                state: {
+                    type: 'array',
+                    items: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        counter: { type: 'number' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const model = request.query.instanceType === 'hosted'
+                ? app.db.models.Project
+                : app.db.models.Device
+
+            const counter = await model.countByState(request.query.state, request.team.id)
+
+            reply.send({ counter })
+        } catch (err) {
+            // Handle any errors that occur
+            const response = {
+                code: err.code || 'unexpected_error',
+                error: err.toString()
+            }
+            reply.code(400).send(response)
+        }
+    })
 }

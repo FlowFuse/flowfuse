@@ -603,6 +603,16 @@ module.exports = {
                             await device.save()
                         })
                     }
+                },
+                countByState: async (states, teamId) => {
+                    return this.count({
+                        where: {
+                            [Op.or]: states.map(state => ({
+                                state,
+                                TeamId: teamId
+                            }))
+                        }
+                    })
                 }
             }
         }

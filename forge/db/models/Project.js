@@ -577,6 +577,16 @@ module.exports = {
                             }
                         ]
                     })
+                },
+                countByState: async (states, teamId) => {
+                    return this.count({
+                        where: {
+                            [Op.or]: states.map(state => ({
+                                state,
+                                TeamId: teamId
+                            }))
+                        }
+                    })
                 }
             }
         }

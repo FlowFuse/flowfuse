@@ -1250,4 +1250,153 @@ describe('Team API', function () {
             response.statusCode.should.equal(409)
         })
     })
+
+    describe('Get team instance counts', async function () {
+        it('returns instance count for hosted instanceType and state', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
+                cookies: { sid: TestObjects.tokens.alice },
+                query: {
+                    instanceType: 'hosted',
+                    state: ['running', 'stopped']
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('counter')
+            if (typeof result.counter !== 'number') {
+                throw new Error('Expected result.counter to be a number')
+            }
+        })
+
+        it('returns instance count for remote instanceType and state', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
+                cookies: { sid: TestObjects.tokens.alice },
+                query: {
+                    instanceType: 'remote',
+                    state: ['running', 'stopped']
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('counter')
+            if (typeof result.counter !== 'number') {
+                throw new Error('Expected result.counter to be a number')
+            }
+        })
+
+        it('returns an instance count even if the state is passed in as a string', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
+                cookies: { sid: TestObjects.tokens.alice },
+                query: {
+                    instanceType: 'remote',
+                    state: 'running'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('counter')
+            if (typeof result.counter !== 'number') {
+                throw new Error('Expected result.counter to be a number')
+            }
+        })
+
+        it('returns error for invalid instanceType', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
+                cookies: { sid: TestObjects.tokens.alice },
+                query: {
+                    instanceType: 'invalidType',
+                    state: ['running']
+                }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_instance_type')
+        })
+
+        it('returns error for invalid state value', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
+                cookies: { sid: TestObjects.tokens.alice },
+                query: {
+                    instanceType: 'hosted',
+                    state: ['invalidState']
+                }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_state')
+            if (!result.error || !/invalid state value/i.test(result.error)) {
+                throw new Error('Expected error to match "invalid state value"')
+            }
+        })
+
+        it('returns error if state query is missing or invalid', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
+                cookies: { sid: TestObjects.tokens.alice },
+                query: {
+                    instanceType: 'hosted'
+                }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_state')
+            if (!result.error || !/state parameter must be a string or non-empty array/i.test(result.error)) {
+                throw new Error('Expected error to match "state parameter must be a string or non-empty array"')
+            }
+        })
+
+        it('returns error if instanceType query is missing', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
+                cookies: { sid: TestObjects.tokens.alice },
+                query: {
+                    state: ['running']
+                }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_instance_type')
+            if (!result.error || !/invalid instance type provided/i.test(result.error)) {
+                throw new Error('Expected error to match "invalid instance type provided"')
+            }
+        })
+
+        it('handles unexpected error in the catch block', async function () {
+            // Mocking the model to simulate an error
+            const originalCountByState = app.db.models.Project.countByState
+            app.db.models.Project.countByState = async () => {
+                throw new Error('Unexpected database error')
+            }
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
+                cookies: { sid: TestObjects.tokens.alice },
+                query: {
+                    instanceType: 'hosted',
+                    state: ['running']
+                }
+            })
+
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'unexpected_error')
+            result.error.should.match(/Unexpected database error/)
+
+            // Restore the original method
+            app.db.models.Project.countByState = originalCountByState
+        })
+    })
 })
