@@ -68,25 +68,23 @@ describe('FlowFuse platform admin users', () => {
         // Not a member of BTeam
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
 
-        cy.contains('Welcome Home!')
+        cy.get('[data-nav="team-applications"]').click()
 
-        // cy.wait('@getTeamApplications')
-        //
-        // cy.get('[data-el="banner-team-as-admin"]').should('exist')
-        //
-        // cy.get('[data-action="view-application"]').contains('application-2').click()
-        //
-        // cy.wait('@getApplication')
-        // cy.wait('@getApplicationInstances')
-        //
-        // cy.get('[data-el="banner-team-as-admin"]').should('exist')
-        // cy.get('[data-action="open-editor"]').should('have.attr', 'disabled')
-        //
-        // cy.get('[data-el="cloud-instances"] tr').contains('instance-2-1').click()
-        //
-        // cy.wait('@getInstance')
-        //
-        // cy.get('[data-el="banner-project-as-admin"]').should('exist')
+        cy.get('[data-el="banner-team-as-admin"]').should('exist')
+
+        cy.get('[data-action="view-application"]').contains('application-2').click()
+
+        cy.wait('@getApplication')
+        cy.wait('@getApplicationInstances')
+
+        cy.get('[data-el="banner-team-as-admin"]').should('exist')
+        cy.get('[data-action="open-editor"]').should('have.attr', 'disabled')
+
+        cy.get('[data-el="cloud-instances"] tr').contains('instance-2-1').click()
+
+        cy.wait('@getInstance')
+
+        cy.get('[data-el="banner-project-as-admin"]').should('exist')
     })
 
     it("can view devices from teams they're not a member of", () => {
@@ -97,21 +95,19 @@ describe('FlowFuse platform admin users', () => {
         cy.visit('/admin/overview')
 
         cy.get('[data-nav="admin-teams"]').click()
-        cy.wait('@getTeams')
 
         // Not a member of BTeam
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
-        cy.contains('Welcome Home!')
 
-        // cy.wait('@getTeamApplications')
-        //
-        // cy.get('[data-nav="team-devices"]').click()
-        // cy.wait('@getDevices')
-        //
-        // cy.get('[data-el="devices-browser"]').contains('team2-unassigned-device').click()
-        // cy.wait('@getDevice')
-        //
-        // cy.get('[data-el="banner-device-as-admin"]').should('exist')
+        cy.get('[data-nav="team-applications"]').click()
+
+        cy.get('[data-nav="team-devices"]').click()
+        cy.wait('@getDevices')
+
+        cy.get('[data-el="devices-browser"]').contains('team2-unassigned-device').click()
+        cy.wait('@getDevice')
+
+        cy.get('[data-el="banner-device-as-admin"]').should('exist')
     })
 
     describe('with platform email enabled', () => {
@@ -189,8 +185,9 @@ describe('FlowFuse platform non-admin users', () => {
     })
 
     it('can login in', () => {
-        cy.contains('Welcome Home!')
-        // cy.url().should('include', '/applications')
+        cy.contains('Home')
+
+        cy.url().should('include', '/team/ateam/home')
     })
 
     it('cannot view the "Admin Settings" in user options', () => {
