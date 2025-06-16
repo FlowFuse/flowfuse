@@ -579,6 +579,10 @@ module.exports = {
                     })
                 },
                 countByState: async (states, teamId) => {
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
+
                     return this.count({
                         where: {
                             [Op.or]: states.map(state => ({
