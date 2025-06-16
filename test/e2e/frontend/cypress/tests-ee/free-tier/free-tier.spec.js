@@ -14,10 +14,14 @@ describe('FlowFuse EE - Free Tier', () => {
     })
 
     it('redirects to /application/devices after creating an Application when Hosted Instances are not enabled', () => {
-        cy.contains('Welcome Home!')
-        // cy.get('[data-action="create-application"]').first().click()
-        // cy.get('[data-form="application-name"] input[type="text"]').type('My Application')
-        // cy.get('[data-el="next-step"]').click()
-        // cy.url().should('include', '/devices')
+        cy.get('[data-team="ffeam"]')
+        cy.contains('Home')
+
+        cy.get('[data-nav="team-applications"]').click()
+
+        cy.get('[data-action="create-application"]').first().click()
+        cy.get('[data-form="application-name"] input[type="text"]').type('My Application')
+        cy.get('[data-el="next-step"]').click()
+        cy.url().should('include', '/devices')
     })
 })

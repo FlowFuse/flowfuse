@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-box">
+    <div class="ff-box" :data-el="`dashboard-section-${type}`">
         <div class="ff-box-header">
             <span v-if="$slots.icon" class="icon">
                 <slot name="icon" />
@@ -24,6 +24,10 @@ export default {
             type: String,
             required: false,
             default: null
+        },
+        type: {
+            type: String,
+            required: true
         }
     }
 }
