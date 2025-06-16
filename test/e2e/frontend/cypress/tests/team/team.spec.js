@@ -158,25 +158,25 @@ describe('Navigation', () => {
                 cy.contains('ATeam')
             })
 
-        cy.contains('Welcome Home!')
+        cy.get('[data-team="ateam"]')
+        cy.contains('Home')
+        cy.get('[data-el="dashboard-section-hosted"] .ff-box-title').contains('Hosted Instances')
+        cy.get('[data-el="dashboard-section-remote"] .ff-box-title').contains('Remote Instances')
+        cy.get('[data-el="dashboard-section-audit"] .ff-box-title').contains('Recent Activity')
 
-        // cy.contains('application-1')
-        //
-        // cy.get('[data-nav="team-instances"]').click()
-        // cy.contains('instance-1-1')
-        // cy.contains('instance-1-2')
-        //
-        // cy.visit('/team/bteam/applications')
-        //
-        // cy.get('[data-action="team-selection"] .ff-team-selection-name')
-        //     .within(() => {
-        //         cy.contains('BTeam')
-        //     })
-        // cy.contains('application-2')
-        //
-        // cy.get('[data-nav="team-instances"]').click()
-        // cy.contains('instance-2-1')
-        // cy.contains('instance-2-with-devices')
+        cy.get('[data-nav="team-instances"]').click() // navigate away from the homepage on the same team
+
+        cy.visit('/team/bteam')
+
+        cy.get('[data-action="team-selection"] .ff-team-selection-name')
+            .within(() => {
+                cy.contains('BTeam')
+            })
+        cy.get('[data-team="bteam"]')
+        cy.contains('Home')
+        cy.get('[data-el="dashboard-section-hosted"] .ff-box-title').contains('Hosted Instances')
+        cy.get('[data-el="dashboard-section-remote"] .ff-box-title').contains('Remote Instances')
+        cy.get('[data-el="dashboard-section-audit"] .ff-box-title').contains('Recent Activity')
     })
 
     it('correctly changes the team when manually selecting a different team', () => {
@@ -188,25 +188,21 @@ describe('Navigation', () => {
                 cy.contains('ATeam')
             })
 
-        cy.contains('Welcome Home!')
-        // cy.contains('application-1')
-        //
-        // cy.get('[data-nav="team-instances"]').click()
-        // cy.contains('instance-1-1')
-        // cy.contains('instance-1-2')
-        //
-        // cy.get('[data-action="team-selection"] .ff-team-selection-name').click()
-        // cy.get('[data-option="BTeam"]').click()
-        //
-        // cy.get('[data-action="team-selection"] .ff-team-selection-name')
-        //     .within(() => {
-        //         cy.contains('BTeam')
-        //     })
-        // cy.contains('application-2')
-        //
-        // cy.get('[data-nav="team-instances"]').click()
-        // cy.contains('instance-2-1')
-        // cy.contains('instance-2-with-devices')
+        cy.get('[data-team="ateam"]')
+        cy.contains('Home')
+        cy.get('[data-el="dashboard-section-hosted"] .ff-box-title').contains('Hosted Instances')
+        cy.get('[data-el="dashboard-section-remote"] .ff-box-title').contains('Remote Instances')
+        cy.get('[data-el="dashboard-section-audit"] .ff-box-title').contains('Recent Activity')
+        cy.get('[data-nav="team-instances"]').click() // navigate away from the homepage on the same team
+
+        cy.get('[data-action="team-selection"] .ff-team-selection-name').click()
+        cy.get('[data-option="BTeam"]').click()
+
+        cy.get('[data-team="bteam"]')
+        cy.contains('Home')
+        cy.get('[data-el="dashboard-section-hosted"] .ff-box-title').contains('Hosted Instances')
+        cy.get('[data-el="dashboard-section-remote"] .ff-box-title').contains('Remote Instances')
+        cy.get('[data-el="dashboard-section-audit"] .ff-box-title').contains('Recent Activity')
     })
 
     it('should display the back button when creating a team', () => {
