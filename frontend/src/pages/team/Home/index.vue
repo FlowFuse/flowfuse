@@ -26,7 +26,7 @@
                                 <InstanceStat state="not-running" type="hosted" @clicked="onGlanceClick" />
                             </div>
 
-                            <RecentlyModified :instances="instances" />
+                            <RecentlyModifiedInstances :instances="instances" />
                         </DashboardSection>
 
                         <DashboardSection title="Remote Instances">
@@ -69,12 +69,21 @@ import ProjectsIcon from '../../../components/icons/Projects.js'
 
 import DashboardSection from './components/DashboardSection.vue'
 import InstanceStat from './components/InstanceStat.vue'
-import RecentlyModified from './components/RecentlyModified.vue'
 import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
+import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
 
 export default {
     name: 'TeamHome',
-    components: { InstanceStat, RecentlyModified, AuditLog, DashboardSection, ChipIcon, ProjectsIcon, DatabaseIcon, RecentlyModifiedDevices },
+    components: {
+        InstanceStat,
+        RecentlyModifiedInstances,
+        AuditLog,
+        DashboardSection,
+        ChipIcon,
+        ProjectsIcon,
+        DatabaseIcon,
+        RecentlyModifiedDevices
+    },
     data () {
         return {
             loading: true,
