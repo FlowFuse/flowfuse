@@ -120,7 +120,7 @@ export default {
                 })
         },
         onGlanceClick (payload) {
-            console.log(payload)
+            // console.log(payload)
         }
     }
 }
