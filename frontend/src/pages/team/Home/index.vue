@@ -113,7 +113,7 @@ export default {
     },
     methods: {
         getRecentActivity () {
-            return TeamAPI.getTeamAuditLog(this.team.id, { }, null, 200)
+            return TeamAPI.getTeamAuditLog(this.team.id, { }, null, 50)
                 .then((response) => {
                     this.logEntries = response.log
                 })
