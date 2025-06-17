@@ -311,13 +311,43 @@ module.exports = async function (app) {
      *  - the Team Instances view
      *  - team/Devices/dialogs/CreateProvisionTokenDialog.vue
      *  - team/Settings/Devices.vue
+     *  - team/Home/components/RecentlyModifiedInstances.vue
      */
     app.get('/:teamId/projects', {
-        preHandler: app.needsPermission('team:projects:list')
+        preHandler: app.needsPermission('team:projects:list'),
+        query: {
+            limit: {
+                type: 'number',
+                nullable: true
+            },
+            includeMeta: {
+                type: 'boolean',
+                nullable: true,
+                default: false
+            },
+            orderByMostRecentFlows: {
+                type: 'boolean',
+                nullable: true,
+                default: false
+            }
+        }
     }, async (request, reply) => {
-        const projects = await app.db.models.Project.byTeam(request.params.teamId, { includeSettings: true })
+        const includeMeta = request.query.includeMeta
+        const limit = request.query.limit
+        const orderByMostRecentFlows = request.query.orderByMostRecentFlows
+
+        const projects = await app.db.models.Project.byTeam(request.params.teamId, {
+            includeSettings: true,
+            limit,
+            includeMeta,
+            orderByMostRecentFlows
+        })
+
         if (projects) {
-            let result = await app.db.views.Project.instancesList(projects, { includeSettings: true })
+            let result = await app.db.views.Project.instancesList(projects, {
+                includeSettings: true,
+                includeMeta
+            })
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed

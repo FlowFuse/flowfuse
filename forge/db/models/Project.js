@@ -490,7 +490,15 @@ module.exports = {
                         include
                     })
                 },
-                byTeam: async (teamIdOrHash, { query = null, instanceId = null, includeAssociations = true, includeSettings = false } = {}) => {
+                byTeam: async (teamIdOrHash, {
+                    query = null,
+                    instanceId = null,
+                    includeAssociations = true,
+                    includeSettings = false,
+                    includeMeta = false,
+                    limit = null,
+                    orderByMostRecentFlows = false
+                } = {}) => {
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
@@ -529,8 +537,23 @@ module.exports = {
                         })
                     }
 
+                    if (includeMeta) {
+                        include.push({
+                            model: M.StorageFlow,
+                            attributes: ['id', 'updatedAt', 'flow', 'ProjectId']
+                        })
+                    }
+
                     const queryObject = {
                         include
+                    }
+
+                    if (limit !== null) {
+                        queryObject.limit = limit
+                    }
+
+                    if (includeMeta && orderByMostRecentFlows) {
+                        queryObject.order = [[{ model: M.StorageFlow }, 'updatedAt', 'DESC']]
                     }
 
                     if (instanceId) {
@@ -541,6 +564,7 @@ module.exports = {
                             { [Op.like]: `%${query.toLowerCase()}%` }
                         )
                     }
+
                     return this.findAll(queryObject)
                 },
                 getProjectTeamId: async (id) => {
