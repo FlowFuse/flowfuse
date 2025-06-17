@@ -203,7 +203,7 @@
     .forge-minimal-status-suspended,
     .forge-minimal-status-info,
     .forge-minimal-status-offline{
-        @apply bg-gray-600;
+        @apply bg-gray-500;
     }
     .forge-minimal-status-success,
     .forge-minimal-status-connected,
