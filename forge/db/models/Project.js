@@ -585,10 +585,14 @@ module.exports = {
 
                     return this.count({
                         where: {
-                            [Op.or]: states.map(state => ({
-                                state,
-                                TeamId: teamId
-                            }))
+                            ...(states.length > 0
+                                ? {
+                                    [Op.or]: states.map(state => ({
+                                        state,
+                                        TeamId: teamId
+                                    }))
+                                }
+                                : { TeamId: teamId })
                         }
                     })
                 }

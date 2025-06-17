@@ -1339,7 +1339,7 @@ describe('Team API', function () {
             }
         })
 
-        it('returns error if state query is missing or invalid', async function () {
+        it('returns all instances if state query is missing or empty', async function () {
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
@@ -1348,11 +1348,11 @@ describe('Team API', function () {
                     instanceType: 'hosted'
                 }
             })
-            response.statusCode.should.equal(400)
+            response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.property('code', 'invalid_state')
-            if (!result.error || !/state parameter must be a string or non-empty array/i.test(result.error)) {
-                throw new Error('Expected error to match "state parameter must be a string or non-empty array"')
+            result.should.have.property('counter')
+            if (typeof result.counter !== 'number') {
+                throw new Error('Expected result.counter to be a number')
             }
         })
 
