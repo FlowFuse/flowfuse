@@ -1,5 +1,5 @@
 <template>
-    <span :class="['forge-minimal-status-' + status]" class="minimal-status" />
+    <span :class="{['forge-minimal-status-' + status]: true, 'animate-pulse': isTransitoryStatus }" class="minimal-status" />
 </template>
 
 <script>
@@ -35,13 +35,15 @@ export default {
         }
     },
     computed: {
-        badgeColor () {
-            switch (true) {
-            case this.status === 'error':
-                return 'red'
-            default:
-                return 'gray'
-            }
+        isTransitoryStatus () {
+            return [
+                'starting',
+                'stopping',
+                'restarting',
+                'suspending',
+                'importing',
+                'installing'
+            ].includes(this.status)
         }
     }
 }
@@ -53,5 +55,6 @@ export default {
     height: 10px;
     width: 10px;
     border-radius: 50%;
+    transition: ease-in-out .3s;
 }
 </style>
