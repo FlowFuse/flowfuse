@@ -230,7 +230,7 @@ $nav_height: 60px;
     position: absolute;
     right: 12px;
     top: $nav_height + 12px;
-    z-index: 10;
+    z-index: 130;
     min-width: 350px;
 }
 
@@ -259,17 +259,7 @@ $nav_height: 60px;
     position: relative;
     display: flex;
     justify-content: space-between;
-    background-color: $ff-grey-800;
     min-width: $sidenav_width;
-    svg {
-        &:hover {
-            fill: $ff-teal-300;
-            cursor: pointer;
-        }
-        &.active {
-            fill: $ff-teal-300;
-        }
-    }
     .ff-dropdown-options {
         position: absolute;
         min-width: $sidenav_width;
@@ -295,11 +285,11 @@ $nav_height: 60px;
     label {
         font-size: 0.7rem;
         line-height: 0.7rem;
-        color: $ff-grey-300;
+        color: $ff-grey-500;
         margin-left: 0;
     }
     h5 {
-        color: white;
+        color: $ff-grey-800;
         white-space: nowrap;
     }
 }
@@ -347,16 +337,17 @@ $nav_height: 60px;
 }
 .ff-header {
     z-index: 110;
-    background-color: $ff-grey-800;
+    background-color: $ff-white;
     height: $nav_height;
-    border-bottom: 2px solid $ff-red-500;
+    border-bottom: 1px solid $ff-color--border;
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: fixed;
-    width: 100%;
+    width: 100%; 
     img.ff-logo {
-        padding: 20px;
+        padding-top: 18px;
+        padding-bottom: 18px;
         height: $nav_height;
         &:hover {
             cursor: pointer;
@@ -365,7 +356,7 @@ $nav_height: 60px;
     .ff-header--mobile-toggle {
         padding: 16px;
         svg {
-            fill: white;
+            fill: $ff-grey-800;
             min-width: 24px;
         }
         &.active {
@@ -381,13 +372,15 @@ $nav_height: 60px;
         }
         &.active {
             cursor: pointer;
-            background-color: $ff-grey-700;
+            background-color: $ff-grey-100;
         }
     }
     .ff-navigation {
         position: absolute;
+        display: flex;
+        flex-direction: column;
         top: 100%;
-        margin-top: 2px;
+        //margin-top: 2px;
         img {
             padding: 0;
             margin-right: 9px;
@@ -397,6 +390,9 @@ $nav_height: 60px;
             align-items: center;
             margin-left: -2px;
             position: relative;
+            transition: ease-in-out .1s;
+            object-fit: contain;
+            will-change: transform;
             .ff-notification-pill {
                 font-size: 0.65rem;
                 padding: 0px 6px;
@@ -407,6 +403,14 @@ $nav_height: 60px;
                 line-height: 0.85rem;
                 right: 0;
             }
+            &:hover {
+                transform: scale(1.25) translateZ(0); /* Using slight adjustments to whole values */
+                backface-visibility: hidden;
+                perspective: 1000px;
+                stroke-width: 1.5px;
+                shape-rendering: geometricPrecision;
+                text-rendering: geometricPrecision;
+            }
         }
     }
     .ff-border-left {
@@ -415,10 +419,33 @@ $nav_height: 60px;
     }
     .ff-navigation-right {
         height: 100%;
+        ul {
+            background: $ff-white;
+            border: 1px solid $ff-color--border;
+            
+            .ff-nav-item {
+                transition: ease-in-out .3s;
+                &:hover {
+                    background: $ff-grey-100;
+                    label, svg {
+                        color: $ff-indigo-700;
+                        fill: $ff-indigo-700;
+                    }
+                }
+            }
+        }
     }
     .ff-desktop-navigation-right {
         & > * {
-            border-left: 1px solid $ff-grey-500;
+            position: relative;
+            &:after {
+                position: absolute;
+                content: '';
+                width: 1px;
+                height: 15px;
+                background: $ff-color--border;
+                top: 40%;
+            }
         }
     }
     .ff-mobile-navigation-right {
@@ -428,50 +455,33 @@ $nav_height: 60px;
         }
     }
     .ff-dropdown {
-        height: calc(#{$nav_height} - 2px);
         color: white;
         min-width: $sidenav_width;
         position: relative;
         top: 0;
         margin-top: 0;
         .ff-dropdown-selected {
-            height: 100%;
+            background: none;
             padding: 16px 16px 16px 24px;
             display: flex;
+            flex: 1;
             justify-content: space-between;
             align-items: center;
             border: none;
-            background-color: $ff-grey-800;
             border-radius: 0;
-            &:hover {
-                background-color: $ff-grey-700;
-            }
-        }
-        &.ff-dropdown--open .ff-dropdown-selected {
-            background-color: $ff-grey-700;
         }
         .ff-dropdown-options {
             width: 100%;
-            margin-top: 2px;
-            border-color: $ff-grey-500;
+            border-color: $ff-color--border;
             border-right: 0;
-        }
-    }
-    .ff-team-selection {
-        ul {
-            top: 100%;
-            left: 0;
-        }
-        .ff-dropdown-option {
-            padding: 0;
-            .ff-nav-item {
-                background-color: $ff-grey-700;
-            }
-            &:last-child {
-                border-top: inherit;
-                .ff-nav-item {
-                    background-color: $ff-grey-800;
-                }
+            
+            .ff-dropdown-option {
+                &:hover {
+                    label, svg {
+                        color: $ff-indigo-700;
+                        fill: $ff-indigo-700;
+                    }
+                }   
             }
         }
     }
@@ -493,10 +503,14 @@ $nav_height: 60px;
         max-height: initial;
         .ff-dropdown-option {
             border-bottom: none;
+            
+            &.danger {
+                label, svg {
+                    color: $ff-red-700;
+                    fill: $ff-red-700;
+                }
+            }
         }
-    }
-    .ff-dropdown-option:last-child {
-        border-top: 2px solid $ff-red-600;
     }
 }
 
@@ -506,16 +520,6 @@ $nav_height: 60px;
     .ff-nav-item {
         &:hover {
             cursor: pointer;
-            svg {
-                fill: $ff-teal-100;
-                &.hollow {
-                    fill: none;
-                    stroke: $ff-teal-100;
-                }
-            }
-            label {
-                color: $ff-teal-100;
-            }
         }
     }
 }
@@ -526,7 +530,7 @@ $nav_height: 60px;
     display: grid;
     grid-template-columns: 20px 1fr;
     svg {
-        fill: $ff-white;
+        fill: $ff-grey-500;
         width: 20px;
     }
     svg.hollow {
@@ -535,7 +539,7 @@ $nav_height: 60px;
     }
     label {
         margin-left: 12px;
-        color: $ff-white;
+        color: $ff-grey-800;
         white-space: nowrap;
         pointer-events: none;
     }
@@ -561,10 +565,8 @@ $nav_height: 60px;
 }
 
 .ff-navigation {
-    background-color: $ff-grey-700;
     position: fixed;
     left: -$sidenav_width;
-    height: 100%;
     z-index: 10;
     transition: 0.3s left, 0.3s right;
     -webkit-transition: 0.3s left, 0.3s right;
@@ -576,7 +578,6 @@ $nav_height: 60px;
         -webkit-transition: $transition_time width;
         .router-link-active {
             li {
-                background-color: $ff-grey-600;
                 label {
                     color: $ff-teal-300;
                 }
@@ -593,7 +594,6 @@ $nav_height: 60px;
     // nested menu options, including router-link highlighting
     .ff-side-navigation--nested {
         width: 0;
-        background-color: $ff-grey-600;
         overflow: hidden;
         .ff-nested-title {
             color: $ff-teal-300;
@@ -606,7 +606,6 @@ $nav_height: 60px;
         }
         .ff-nav-item {
             padding: 12px 16px;
-            background-color: $ff-grey-600;
         }
         .router-link-active {
             li {
@@ -628,8 +627,17 @@ $nav_height: 60px;
     &.ff-navigation-right {
         left: initial;
         right: -$sidenav_width;
-        .ff-nav-item:last-child {
-            border-top: 2px solid $ff-red-600;
+        .ff-nav-item {
+            &.danger {
+                label, svg {
+                    color: $ff-red-700;
+                    fill: $ff-red-700;
+                }   
+            }
+            &.create {
+                background: $ff-grey-100;
+                border-bottom: none;
+            }
         }
 
         &.without-divider {
@@ -666,8 +674,7 @@ $nav_height: 60px;
     .ff-nav-item {
         display: flex;
         justify-content: space-between;
-        background-color: $ff-grey-700;
-        border-bottom: 1px solid $ff-grey-600;
+        border-bottom: 1px solid $ff-color--border;
     }
     .disabled {
         pointer-events: none;
@@ -704,7 +711,7 @@ $nav_height: 60px;
             display: none;
         }
         img.ff-logo {
-            padding: 16px;
+            padding: 18px;
         }
     }
 }
@@ -798,9 +805,11 @@ $nav_height: 60px;
     #ff-app {
         #left-drawer {
             left: -$sidenav_width;
-            box-shadow: 6px 0 12px rgba(0, 0, 0, 0.2);
+            transition: ease-in-out .3s;
+            will-change: box-shadow;
 
             &.active {
+                box-shadow: 6px 0 12px rgba(0, 0, 0, 0.2);
                 left: 0;
             }
         }

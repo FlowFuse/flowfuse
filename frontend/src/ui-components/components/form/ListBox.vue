@@ -3,7 +3,7 @@
         <div class="relative">
             <ListboxButton
                 ref="trigger"
-                class="w-full rounded-md bg-white flex justify-between ff-button"
+                class="w-full rounded-md flex justify-between ff-button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
                 @click="() => { $nextTick(() => { updatePosition(); open = true }) }"
             >
@@ -194,7 +194,7 @@ export default {
     background: $ff-grey-50;
     box-shadow: 0 6px 9px 0 #00000038;
     max-height: 14rem;
-    z-index: 100;
+    z-index: 200;
     overflow-y: auto;
     padding: 0;
     border-left: 1px solid $ff-grey-200;

@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import { MailIcon } from '@heroicons/vue/solid'
+import { MailIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
@@ -44,7 +44,7 @@ export default {
 .notifications-button-wrapper {
 
   .notifications-button {
-    color: white;
+    color: $ff-grey-800;
     display: flex;
     align-items: center;
     flex: 1;
@@ -58,14 +58,25 @@ export default {
       pointer-events: none;
     }
 
-    &:hover {
-      background-color: $ff-grey-700;
-    }
-
     svg {
       flex: 1;
       width: 24px;
       height: 24px;
+      transition: ease-in-out .1s;
+      object-fit: contain;
+    }
+
+    &:hover {
+      svg {
+        will-change: transform ;
+        color: $ff-indigo-600;
+        transform: scale(1.25) translateZ(0); /* Using slight adjustments to whole values */
+        backface-visibility: hidden;
+        perspective: 1000px;
+        stroke-width: 1.5px;
+        shape-rendering: geometricPrecision;
+        text-rendering: geometricPrecision;
+      }
     }
 
     .ff-notification-pill {
@@ -77,6 +88,5 @@ export default {
       background-color: $ff-red-500;
     }
   }
-
 }
 </style>

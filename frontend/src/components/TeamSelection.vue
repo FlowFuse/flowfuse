@@ -3,7 +3,6 @@
         <template #button>
             <ListboxButton>
                 <div v-if="team" class="flex grow items-center">
-                    <img alt="team-icon" :src="team.avatar" class="ff-avatar">
                     <div class="ff-team-selection-name">
                         <label>TEAM:</label>
                         <h5>{{ team.name }}</h5>
@@ -29,10 +28,9 @@
                 :title="option.label"
             >
                 <li>
-                    <div class="ff-option-content" :class="{selected, active}">
-                        <img alt="team-icon" v-if="option.avatar" :src="option.avatar" class="ff-avatar">
-                        <component v-if="option.icon" :is="PlusIcon" class="ff-icon transition-fade&#45;&#45;color" />
-                        <span>{{ option.label }}</span>
+                    <div class="ff-option-content truncate" :class="{selected, active}">
+                        <component v-if="option.icon" :is="PlusIcon" class="ff-icon transition-fade" />
+                        <span class="truncate">{{ option.label }}</span>
                     </div>
                 </li>
             </ListboxOption>
@@ -67,7 +65,7 @@ export default {
         teamOptions () {
             return [
                 ...this.teams.map(team => {
-                    return { label: team.name, value: team.slug, avatar: team.avatar }
+                    return { label: team.name, value: team.slug }
                 }),
                 (
                     this.canCreateTeam
@@ -79,7 +77,8 @@ export default {
     },
     data () {
         return {
-            selection: this.team?.slug ?? null
+            selection: this.$route.params.team_slug ?? null,
+            loaded: false
         }
     },
     watch: {
@@ -118,50 +117,48 @@ export default {
 .ff-team-selection {
     &.ff-listbox {
         button {
-            background: $ff-grey-800;
             border-radius: 0;
             border: none;
 
             button {
-                padding-left: 13px;
+                padding: 0;
 
             }
             .icon {
                 svg {
-                    color: $ff-white;
+                    color: $ff-grey-800;
+                    width: 80%;
+                    padding-left: 10px;
                 }
             }
         }
     }
 }
 .ff-options .ff-team-selection-option {
-    background-color: $ff-grey-700;
-    border-color: $ff-grey-800;
-    color: $ff-white;
-    border-bottom: 1px solid #4B5563;
+    border-color: $ff-color--border;
+    color: $ff-grey-800;
+    border-bottom: 1px solid $ff-color--border;
     display: flex;
     align-items: center;
-    height: 60px;
 
     &.create-new {
-        background-color: $ff-grey-900;
+        background-color: $ff-grey-200;
     }
 
     .ff-option-content {
-        padding: 16px 16px 16px 22px;
+        padding: 12px 12px 12px 18px;
         display: flex;
         align-items: center;
         gap: 15px;
         width: 100%;
 
         &.selected {
-            background: $ff-grey-800;
+            background: $ff-grey-200;
         }
     }
 
     &:hover {
-        background-color: $ff-grey-800;
-        color: $ff-teal-100;
+        background-color: $ff-grey-100;
     }
 }
 
