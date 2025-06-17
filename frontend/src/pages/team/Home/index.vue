@@ -26,7 +26,7 @@
                                 <InstanceStat state="not-running" type="hosted" @clicked="onGlanceClick" />
                             </div>
 
-                            <RecentlyModifiedInstances :instances="instances" />
+                            <RecentlyModifiedInstances />
                         </DashboardSection>
 
                         <DashboardSection title="Remote Instances" type="remote">
@@ -87,19 +87,7 @@ export default {
     data () {
         return {
             loading: true,
-            logEntries: [],
-            instances: [
-                { id: 1, name: 'something-foo', url: 'https://reddit.com', meta: { state: 'running' } },
-                {
-                    id: 2,
-                    name: 'another-bar',
-                    url: 'http:/google.com',
-                    meta: { state: 'running' },
-                    settings: {
-                        dashboard2UI: '/dashboard'
-                    }
-                }
-            ]
+            logEntries: []
         }
     },
     computed: {

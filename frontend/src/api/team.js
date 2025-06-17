@@ -176,6 +176,22 @@ const getTeamInstancesList = async (teamId) => {
     return list
 }
 
+const getInstances = async (teamId, {
+    limit = 20,
+    includeMeta = false,
+    orderByMostRecentFlows = false
+} = {}) => {
+    const params = new URLSearchParams()
+
+    params.append('limit', limit.toString())
+
+    if (includeMeta) params.append('includeMeta', includeMeta.toString())
+    if (orderByMostRecentFlows) params.append('orderByMostRecentFlows', orderByMostRecentFlows.toString())
+
+    return await client.get(`/api/v1/teams/${teamId}/projects?${params.toString()}`)
+        .then(res => res.data)
+}
+
 const getTeamMembers = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/members`).then(res => {
         return res.data
@@ -508,6 +524,7 @@ export default {
     getTeamApplicationsAssociationsStatuses,
     getTeamInstances,
     getTeamInstancesList,
+    getInstances,
     getTeamDashboards,
     getTeamMembers,
     getTeamInstanceCounts,

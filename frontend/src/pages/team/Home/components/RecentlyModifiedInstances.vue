@@ -10,15 +10,35 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
+import teamAPI from '../../../../api/team.js'
 import InstanceTile from '../../Applications/components/compact/InstanceTile.vue'
 
 export default {
-    name: 'RecentlyModified',
+    name: 'RecentlyModifiedInstances',
     components: { InstanceTile },
-    props: {
-        instances: {
-            required: true,
-            type: Array
+    data () {
+        return {
+            instances: []
+        }
+    },
+    computed: {
+        ...mapGetters('account', ['team'])
+    },
+    mounted () {
+        this.getInstances()
+    },
+    methods: {
+        getInstances () {
+            return teamAPI.getInstances(this.team.id, {
+                limit: 4,
+                includeMeta: true,
+                orderByMostRecentFlows: true
+            })
+                .then(res => {
+                    this.instances = res.projects
+                })
         }
     }
 }
