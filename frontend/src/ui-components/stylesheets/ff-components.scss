@@ -134,6 +134,9 @@
       background-color: $ff-color--highlight;
       color: $ff-white;
     }
+    &[disabled=""] {
+      background-color: transparent !important;
+    }
   }
   &--danger {
     color: $ff-white;
