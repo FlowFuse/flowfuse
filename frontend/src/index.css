@@ -195,12 +195,12 @@
         @apply text-green-700;
     }
     .forge-minimal-status-error,
-    .forge-minimal-status-crashed,
-    .forge-minimal-status-suspended{
+    .forge-minimal-status-crashed{
         @apply bg-red-600;
     }
     .forge-minimal-status-stopped,
     .forge-minimal-status-suspended,
+    .forge-minimal-status-suspending,
     .forge-minimal-status-info,
     .forge-minimal-status-offline{
         @apply bg-gray-500;
