@@ -940,18 +940,14 @@ module.exports = async function (app) {
                     })
                 }
 
-                if (!Array.isArray(request.query.state) || request.query.state.length === 0) {
-                    return reply.code(400).send({
-                        code: 'invalid_state',
-                        error: 'State parameter must be a string or non-empty array'
-                    })
-                }
-                for (const state of request.query.state) {
-                    if (!validStates.includes(state)) {
-                        return reply.code(400).send({
-                            code: 'invalid_state',
-                            error: `Invalid state value: ${state}`
-                        })
+                if (Array.isArray(request.query.state)) {
+                    for (const state of request.query.state) {
+                        if (!validStates.includes(state)) {
+                            return reply.code(400).send({
+                                code: 'invalid_state',
+                                error: `Invalid state value: ${state}`
+                            })
+                        }
                     }
                 }
             }
@@ -968,7 +964,8 @@ module.exports = async function (app) {
                 instanceType: { type: 'string' },
                 state: {
                     type: 'array',
-                    items: { type: 'string' }
+                    items: { type: 'string' },
+                    default: []
                 }
             },
             response: {
