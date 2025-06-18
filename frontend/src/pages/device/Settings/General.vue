@@ -113,7 +113,7 @@
                             :options="nodeRedVersionOptions"
                             :hasCustomValue="true"
                             custom-value-pre-label="Use"
-                            placeholder="Select or type in a new NodeRED version"
+                            placeholder="Select or type in a new Node-RED version"
                             data-form="nodered-select"
                             class="w-full"
                         />
@@ -245,7 +245,9 @@ export default {
                 ...this.availableNrVersions.map(value => ({
                     label: value,
                     value
-                }))
+                })).sort((a, b) => {
+                    return -1 * semVer.compare(a.value, b.value)
+                })
             ]
         },
         hasValidCustomNodeRedVersion () {
