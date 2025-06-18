@@ -395,7 +395,7 @@ export default {
             } else { this.errors.instanceType = null }
 
             if (!this.input.nodeREDVersion) {
-                this.errors.nodeREDVersion = 'NodeRED Version is mandatory'
+                this.errors.nodeREDVersion = 'Node-RED Version is mandatory'
             } else { this.errors.nodeREDVersion = null }
 
             if (this.hasMultipleTemplates && !this.input.template) {
