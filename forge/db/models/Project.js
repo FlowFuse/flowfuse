@@ -593,7 +593,8 @@ module.exports = {
                                     }))
                                 }
                                 : { TeamId: teamId })
-                        }
+                        },
+                        group: ['state']
                     })
                 }
             }
