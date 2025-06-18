@@ -1,6 +1,7 @@
 const sleep = require('util').promisify(setTimeout)
 
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
 
 const { KEY_SETTINGS } = require('../../../../../forge/db/models/ProjectSettings')
 const setup = require('../setup')
@@ -1252,7 +1253,12 @@ describe('Team API', function () {
     })
 
     describe('Get team instance counts', async function () {
-        it('returns instance count for hosted instanceType and state', async function () {
+        it('returns instance state counters for the hosted instanceType', async function () {
+            const stub = sinon.stub(app.db.models.Project, 'countByState').resolves([
+                { state: 'running', count: 1 },
+                { state: 'stopped', count: 2 }
+            ])
+
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
@@ -1264,13 +1270,19 @@ describe('Team API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.property('counter')
-            if (typeof result.counter !== 'number') {
-                throw new Error('Expected result.counter to be a number')
-            }
+            result.should.have.property('running', 1)
+            result.should.have.property('stopped', 2)
+            result.should.not.have.property('error')
+
+            stub.restore()
         })
 
-        it('returns instance count for remote instanceType and state', async function () {
+        it('returns instance state counters for the remote instanceType', async function () {
+            const stub = sinon.stub(app.db.models.Device, 'countByState').resolves([
+                { state: 'running', count: 5 },
+                { state: 'stopped', count: 1 }
+            ])
+
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
@@ -1282,13 +1294,18 @@ describe('Team API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.property('counter')
-            if (typeof result.counter !== 'number') {
-                throw new Error('Expected result.counter to be a number')
-            }
+
+            result.should.have.property('running', 5)
+            result.should.have.property('stopped', 1)
+            result.should.not.have.property('error')
+
+            stub.restore()
         })
 
         it('returns an instance count even if the state is passed in as a string', async function () {
+            const stub = sinon.stub(app.db.models.Device, 'countByState').resolves([
+                { state: 'running', count: 0 }
+            ])
             const response = await app.inject({
                 method: 'GET',
                 url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
@@ -1300,10 +1317,12 @@ describe('Team API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.property('counter')
-            if (typeof result.counter !== 'number') {
-                throw new Error('Expected result.counter to be a number')
-            }
+
+            result.should.have.property('running', 0)
+            result.should.not.have.property('stopped', 1)
+            result.should.not.have.property('error')
+
+            stub.restore()
         })
 
         it('returns error for invalid instanceType', async function () {
@@ -1336,23 +1355,6 @@ describe('Team API', function () {
             result.should.have.property('code', 'invalid_state')
             if (!result.error || !/invalid state value/i.test(result.error)) {
                 throw new Error('Expected error to match "invalid state value"')
-            }
-        })
-
-        it('returns all instances if state query is missing or empty', async function () {
-            const response = await app.inject({
-                method: 'GET',
-                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
-                cookies: { sid: TestObjects.tokens.alice },
-                query: {
-                    instanceType: 'hosted'
-                }
-            })
-            response.statusCode.should.equal(200)
-            const result = response.json()
-            result.should.have.property('counter')
-            if (typeof result.counter !== 'number') {
-                throw new Error('Expected result.counter to be a number')
             }
         })
 
