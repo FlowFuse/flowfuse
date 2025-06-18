@@ -990,7 +990,8 @@ module.exports = async function (app) {
             const response = {}
 
             stateCounters.forEach(res => {
-                response[res.state] = res.count
+                // remote instances that have not been connected yet have an empty state
+                response[res.state.length ? res.state : 'unknown'] = res.count
             })
 
             reply.send(response)
