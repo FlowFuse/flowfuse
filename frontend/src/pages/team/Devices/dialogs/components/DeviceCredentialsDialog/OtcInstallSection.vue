@@ -44,6 +44,8 @@
 
 <script>
 
+import { mapGetters } from 'vuex'
+
 import clipboardMixin from '../../../../../../mixins/Clipboard.js'
 
 import Alerts from '../../../../../../services/alerts.js'
@@ -83,24 +85,25 @@ export default {
         }
     },
     emits: ['select-os'],
-    data () {
-        return {
-            commands: {
+    computed: {
+        ...mapGetters('account', ['settings']),
+        commands () {
+            return {
                 script: {
                     Windows: {
                         title: 'Open Command Prompt or PowerShell as administrator and run:',
                         command: 'powershell -c "irm https://raw.githubusercontent.com/FlowFuse/device-agent/refs/heads/main/installer/get.ps1|iex" && \\\n' +
-                            `flowfuse-device-agent-installer.exe -o ${this.device.credentials.otc} -u https://ffplatform.url`
+                                `flowfuse-device-agent-installer.exe -o ${this.device.credentials.otc} -u ${this.settings?.base_url}`
                     },
                     MacOS: {
                         title: 'Open Terminal and run:',
                         command: '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/FlowFuse/device-agent/refs/heads/main/installer/get.sh)" && \\\n' +
-                            `flowfuse-device-agent-installer -o ${this.device.credentials.otc} -u https://ffplatform.url`
+                                `flowfuse-device-agent-installer -o ${this.device.credentials.otc} -u ${this.settings?.base_url}`
                     },
                     Linux: {
                         title: 'Open Terminal and run:',
                         command: '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/FlowFuse/device-agent/refs/heads/main/installer/get.sh)" && \\\n' +
-                            `flowfuse-device-agent-installer -o ${this.device.credentials.otc} -u https://ffplatform.url`
+                                `flowfuse-device-agent-installer -o ${this.device.credentials.otc} -u ${this.settings?.base_url}`
                     }
                 },
                 npm: {
@@ -118,9 +121,7 @@ export default {
                     }
                 }
             }
-        }
-    },
-    computed: {
+        },
         command () {
             if (
                 Object.prototype.hasOwnProperty.call(this.commands, this.installationMethod) &&
