@@ -3,7 +3,6 @@
         <template #header>
             <ff-page-header>
                 <template #breadcrumbs>
-                    <!-- <ff-nav-breadcrumb :has-chevron="true">{{ team.name }}</ff-nav-breadcrumb>-->
                     <ff-nav-breadcrumb>Home</ff-nav-breadcrumb>
                 </template>
             </ff-page-header>

@@ -1,7 +1,7 @@
 <template>
     <div class="recently-modified">
         <p class="text-gray-400 text-sm">Recently Modified</p>
-        <ul class="flex flex-col gap-1">
+        <ul v-if="devices.length" class="flex flex-col gap-1">
             <li v-for="device in devices" :key="device.id" class="instance-wrapper flex flex-1">
                 <DeviceTile
                     :device="device"
@@ -10,7 +10,23 @@
                     @device-action="onDeviceAction"
                 />
             </li>
+            <li v-if="hasMore" class="fde-wrapper flex flex-1">
+                <team-link :to="{name: 'TeamDevices'}" class="instance-tile has-more">
+                    <span>{{ instancesLeft }} More</span>
+                    <span>
+                        <ChevronRightIcon class="ff-icon ff-icon-sm" />
+                    </span>
+                </team-link>
+            </li>
         </ul>
+
+        <div v-else class="no-devices flex flex-col flex-1 justify-center text-gray-500 italic">
+            <p class="text-center self-center">
+                This space intentionally left unpopulated.
+                <span class="text-indigo-500 cursor-pointer" @click.stop.prevent="openCreateDialog">Deploy a remote instance</span>
+                to change that.
+            </p>
+        </div>
 
         <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
 
@@ -34,9 +50,12 @@
 </template>
 
 <script>
+import { ChevronRightIcon } from '@heroicons/vue/outline'
 import { mapGetters } from 'vuex'
 
-import TeamAPI from '../../../../api/team.js'
+import teamAPI from '../../../../api/team.js'
+
+import TeamLink from '../../../../components/router-links/TeamLink.vue'
 
 import DeviceActions from '../../../../mixins/DeviceActions.js'
 import DeviceTile from '../../Applications/components/compact/DeviceTile.vue'
@@ -45,19 +64,32 @@ import TeamDeviceCreateDialog from '../../Devices/dialogs/TeamDeviceCreateDialog
 
 export default {
     name: 'RecentlyModified',
-    components: { TeamDeviceCreateDialog, DeviceCredentialsDialog, DeviceTile },
+    components: {
+        ChevronRightIcon,
+        TeamLink,
+        TeamDeviceCreateDialog,
+        DeviceCredentialsDialog,
+        DeviceTile
+    },
     mixins: [DeviceActions],
     data () {
         return {
             devices: [],
-            deviceEditModalOpened: false
+            deviceEditModalOpened: false,
+            hasMore: false,
+            totalInstances: 0
         }
     },
     computed: {
-        ...mapGetters('account', ['team'])
+        ...mapGetters('account', ['team']),
+        instancesLeft () {
+            return this.totalInstances - this.devices.length
+        }
     },
     mounted () {
-        this.getTeamDevices()
+        this.getInstanceCount()
+            .then(() => this.getTeamDevices())
+            .catch(e => e)
     },
     methods: {
         onDeviceAction ({ action, id }) {
@@ -65,10 +97,30 @@ export default {
             this.$nextTick(() => this.deviceAction(action, id))
         },
         getTeamDevices () {
-            return TeamAPI.getTeamDevices(this.team.id, null, 3, null, { })
+            let limit
+
+            if (this.totalInstances <= 4) {
+                limit = 3
+                this.hasMore = this.totalInstances === 4
+            } else {
+                limit = 3
+                this.hasMore = true
+            }
+            return teamAPI.getTeamDevices(this.team.id, null, limit, null, { })
                 .then((res) => {
                     this.devices = res.devices
                 })
+        },
+        getInstanceCount () {
+            return teamAPI.getTeamInstanceCounts(this.team.id, [], 'remote')
+                .then(res => {
+                    this.totalInstances = res.counter
+                })
+                .catch(e => e)
+        },
+        openCreateDialog () {
+            this.deviceEditModalOpened = true
+            this.$nextTick(() => this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application))
         }
     }
 }
@@ -107,6 +159,10 @@ export default {
             justify-content: space-between;
             align-items: center;
         }
+    }
+
+    .no-devices {
+        min-height: 130px;
     }
 }
 </style>
