@@ -15,7 +15,8 @@ const modelTypes = [
     'PipelineStageGitRepo',
     'FlowTemplate',
     'MFAToken',
-    'GitToken'
+    'GitToken',
+    'Table'
 ]
 
 async function init (app) {
