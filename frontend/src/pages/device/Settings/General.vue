@@ -24,7 +24,7 @@
     <form v-if="canChangeNodeRedVersion" class="my-6 space-y-6" @submit.prevent.stop>
         <FormHeading class="pb-2">
             Change Node-RED Version
-            <span class="italic text-md px-2 text-gray-400">({{ displayNrVersion }})</span>
+            <span class="italic text-md px-2 text-gray-400">(Current: {{ displayNrVersion }})</span>
         </FormHeading>
 
         <div ref="updateStack" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
@@ -218,7 +218,7 @@ export default {
         displayNrVersion () {
             return this.original.nodeRedVersion.length
                 ? this.original.nodeRedVersion
-                : 'Using snapshot version'
+                : 'Inherited from Snapshot'
         },
         hasApplication () {
             return this.device?.ownerType === 'application' && this.device.application
