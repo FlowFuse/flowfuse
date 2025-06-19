@@ -91,7 +91,7 @@ export default {
             return {
                 script: {
                     Windows: {
-                        title: 'Open Command Prompt as administrator and run:',
+                        title: 'Open an elevated Command Prompt and run:',
                         command: 'powershell -c "irm https://raw.githubusercontent.com/FlowFuse/device-agent/refs/heads/main/installer/get.ps1|iex" && \\\n' +
                                 `flowfuse-device-agent-installer.exe -o ${this.device.credentials.otc} -u ${this.settings?.base_url}`
                     },
