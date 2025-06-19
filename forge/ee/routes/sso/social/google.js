@@ -1,9 +1,7 @@
-const crypto = require('crypto')
-
 const fp = require('fastify-plugin')
 const { OAuth2Client } = require('google-auth-library')
 
-const { generatePassword, completeSSOSignIn, completeUserSignup } = require('../../../../lib/userTeam')
+const { generateUsernameFromEmail, generatePassword, completeSSOSignIn, completeUserSignup } = require('../../../../lib/userTeam')
 
 module.exports = fp(async function (app, opts) {
     app.post('/ee/sso/login/callback/google', {
@@ -72,19 +70,7 @@ module.exports = fp(async function (app, opts) {
                 }
                 // Need to determine the username
 
-                const baseUsername = googleUserInfo.email.split('@')[0].replaceAll(/\+.*$/g, '').replaceAll(/[^0-9a-zA-Z-]/g, '')
-                let username
-                // Check if username is available
-                let count = 0
-                do {
-                    username = `${baseUsername}-${crypto.randomBytes(2).toString('hex')}`
-                    count = await app.db.models.User.count({
-                        where: {
-                            username
-                        }
-                    })
-                } while (count > 0)
-
+                const username = await generateUsernameFromEmail(app, googleUserInfo.email)
                 userProperties.username = username
                 try {
                     // - Create user in DB

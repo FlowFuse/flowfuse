@@ -2,7 +2,7 @@ const { Authenticator } = require('@fastify/passport')
 const { MultiSamlStrategy } = require('@node-saml/passport-saml')
 const fp = require('fastify-plugin')
 
-const { generatePassword, completeSSOSignIn, completeUserSignup } = require('../../../lib/userTeam')
+const { generateUsernameFromEmail, generatePassword, completeSSOSignIn, completeUserSignup } = require('../../../lib/userTeam')
 
 module.exports = fp(async function (app, opts) {
     app.addHook('onRequest', async (request, reply) => {
@@ -110,7 +110,7 @@ module.exports = fp(async function (app, opts) {
                         userProperties.name = samlUser.nameID.split('@')[0]
                     }
 
-                    userProperties.username = samlUser.nameID.replace('@', '-').replaceAll('.', '_').toLowerCase()
+                    userProperties.username = await generateUsernameFromEmail(app, samlUser.nameID)
 
                     try {
                         // create user
