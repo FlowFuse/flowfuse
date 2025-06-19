@@ -22,15 +22,15 @@
 
                             <div class="flex gap-2 mb-5">
                                 <InstanceStat
-                                    :counter="atAGlanceInstanceStats.running"
+                                    :counter="instanceStats.running"
                                     state="running" type="hosted" @clicked="onGlanceClick"
                                 />
                                 <InstanceStat
-                                    :counter="atAGlanceInstanceStats.error"
+                                    :counter="instanceStats.error"
                                     state="error" type="hosted" @clicked="onGlanceClick"
                                 />
                                 <InstanceStat
-                                    :counter="atAGlanceInstanceStats.stopped"
+                                    :counter="instanceStats.stopped"
                                     state="not-running" type="hosted" @clicked="onGlanceClick"
                                 />
                             </div>
@@ -45,15 +45,15 @@
 
                             <div class="flex gap-2 mb-5">
                                 <InstanceStat
-                                    :counter="atAGlanceDeviceStats.running"
+                                    :counter="deviceStats.running"
                                     state="running" type="remote" @clicked="onGlanceClick"
                                 />
                                 <InstanceStat
-                                    :counter="atAGlanceDeviceStats.error"
+                                    :counter="deviceStats.error"
                                     state="error" type="remote" @clicked="onGlanceClick"
                                 />
                                 <InstanceStat
-                                    :counter="atAGlanceDeviceStats.stopped
+                                    :counter="deviceStats.stopped
                                     " state="not-running" type="remote" @clicked="onGlanceClick"
                                 />
                             </div>
@@ -119,7 +119,7 @@ export default {
                     meta: { state: 'running' }
                 }
             ],
-            deviceStateCounts: { unknown: 38, stopped: 1 },
+            deviceStateCounts: {},
             statesMap: {
                 running: ['starting', 'importing', 'connected', 'info', 'success', 'pushing', 'pulling', 'loading',
                     'installing', 'safe', 'protected', 'running', 'warning'],
@@ -130,7 +130,7 @@ export default {
     },
     computed: {
         ...mapGetters('account', ['team']),
-        atAGlanceInstanceStats () {
+        instanceStats () {
             return {
                 running: this.instanceStateCounts
                     ? Object.keys(this.instanceStateCounts)
@@ -149,7 +149,7 @@ export default {
                     : 0
             }
         },
-        atAGlanceDeviceStats () {
+        deviceStats () {
             return {
                 running: this.deviceStateCounts
                     ? Object.keys(this.deviceStateCounts)
@@ -185,9 +185,7 @@ export default {
                     this.logEntries = response.log
                 })
         },
-        onGlanceClick (payload) {
-            // console.log(payload)
-        },
+        onGlanceClick (payload) {},
         getInstanceStateCounts () {
             return TeamAPI.getTeamInstanceCounts(this.team.id, [], 'hosted')
                 .then(res => {
