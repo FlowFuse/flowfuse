@@ -30,7 +30,7 @@ module.exports = fp(async function (app, opts) {
 
     app.setErrorHandler(function (error, request, reply) {
         // TODO: how to surface errors properly
-        app.log.error(`SAML Login error: ${error.toString()}`)
+        app.log.error(`SAML Login error: ${error.toString()} ${error.stack}`)
         reply.redirect('/')
     })
 
@@ -165,7 +165,7 @@ module.exports = fp(async function (app, opts) {
         preValidation: fastifyPassport.authenticate('saml', { session: false })
     }, async (request, reply, err, user, info, status) => {
         if (request.user) {
-            const result = await completeSSOSignIn(app, user)
+            const result = await completeSSOSignIn(app, request.user)
             if (result.cookie) {
                 // Valid session
                 reply.setCookie('sid', result.cookie.value, result.cookie.options)
