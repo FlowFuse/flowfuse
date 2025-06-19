@@ -8,7 +8,7 @@
             :only-custom-message="true"
         />
     </div>
-    <div class="flex-1 flex flex-col gap-14 overflow-auto">
+    <div class="flex-1 flex flex-col gap-2 overflow-auto">
         <template v-if="!featureAvailable">
             <empty-state>
                 <template #header>
@@ -52,6 +52,31 @@
 
                     <CpuChart :resources="resources" :instance="instance" />
                 </section>
+
+                <section class="ff-chart-section">
+                    <SectionTopMenu>
+                        <template #hero>
+                            <div class="flex items-center gap-2">
+                                <ChipIcon class="ff-icon ff-icon-md text-gray-800" />
+                                <div class="text-gray-800 text-xl font-medium whitespace-nowrap">Memory Utilisation</div>
+                            </div>
+                        </template>
+                        <template #tools>
+                            <div class="flex items-center gap-2">
+                                <div class="ff-socket-status">
+                                    <div class="ff-socket-status-icon" :class="{ 'ff-socket-status-icon-connected': wsConnected, 'ff-socket-status-icon-disconnected': !wsConnected }" />
+                                    <div class="ff-socket-status-text">
+                                        {{ wsConnected ? 'Connected to Live Data' : 'Unable to connect to Live Data' }}
+                                    </div>
+                                </div>
+                                <ff-button v-if="!wsConnected" size="small" kind="secondary" @click="getResources">
+                                    <template #icon><RefreshIcon /></template>
+                                </ff-button>
+                            </div>
+                        </template>
+                    </SectionTopMenu>
+                    <MemoryChart :resources="resources" :instance="instance" />
+                </section>
             </template>
 
             <empty-state v-else>
@@ -87,10 +112,12 @@ import usePermissions from '../../../composables/Permissions.js'
 import featuresMixin from '../../../mixins/Features.js'
 
 import CpuChart from './components/CpuChart.vue'
+import MemoryChart from './components/MemoryChart.vue'
 
 export default {
     name: 'InstancePerformance',
     components: {
+        MemoryChart,
         CpuChart,
         EmptyState,
         FfLoading,
@@ -213,11 +240,15 @@ export default {
             })
             this.ws.addEventListener('message', async (event) => {
                 const data = JSON.parse(await event.data.text())
-                // does the data contain a cpu key?
-                if (Object.prototype.hasOwnProperty.call(data, 'cpu')) {
+                console.log(data)
+                if (
+                    Object.prototype.hasOwnProperty.call(data, 'cpu') ||
+                    Object.prototype.hasOwnProperty.call(data, 'ps')
+                ) {
                     this.resources.push({
                         ts: Date.now(),
-                        cpu: data.cpu
+                        cpu: data.cpu,
+                        ps: data.ps
                     })
                 }
             })
