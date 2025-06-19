@@ -1,8 +1,5 @@
 <template>
-    <div
-        class="rounded-md flex-1 p-3" :class="[`bg-${accent}-50`, `text-${accent}-500`]"
-        @click="clicked('running')"
-    >
+    <div class="rounded-md flex-1 p-3" :class="[`bg-${accent}-50`, `text-${accent}-500`]">
         <p class="title">{{ title }}</p>
         <span class="counter font-extrabold text-4xl">{{ counter }}</span>
     </div>
@@ -10,8 +7,6 @@
 
 <script>
 import { mapGetters } from 'vuex'
-
-import teamClient from '../../../../api/team.js'
 
 export default {
     name: 'InstanceStat',
@@ -23,11 +18,10 @@ export default {
         state: {
             required: true,
             type: String
-        }
-    },
-    data () {
-        return {
-            counter: 0
+        },
+        counter: {
+            required: true,
+            type: Number
         }
     },
     computed: {
@@ -66,20 +60,6 @@ export default {
             default:
                 return ['stopping', 'restarting', 'suspending', 'rollback', 'stopped', 'suspended', '']
             }
-        }
-    },
-    mounted () {
-        teamClient.getTeamInstanceCounts(this.team.id, this.apiStates, this.type)
-            .then(res => {
-                this.counter = res.counter
-            })
-            .catch(e => e)
-    },
-    methods: {
-        clicked (on) {
-            // todo figure out why instances with state error get to the FE as suspended
-            //  because atm we can't redirect users to any instance page due to it
-            // this.$router.push({ name: '' })
         }
     }
 }
