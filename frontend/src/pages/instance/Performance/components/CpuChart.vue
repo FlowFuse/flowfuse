@@ -15,6 +15,8 @@ import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import VChart, { THEME_KEY } from 'vue-echarts'
 
+import { debounce } from '../../../../utils/eventHandling.js'
+
 export default {
     name: 'CpuChart',
     components: {
@@ -164,10 +166,14 @@ export default {
         }
     },
     methods: {
-        onDataZoom (event) {
-            this.zoom.start = event.start
-            this.zoom.end = event.end
-        },
+        onDataZoom: debounce(function (event) {
+            const batch = event?.batch?.[0]
+
+            if (batch?.type === 'datazoom') {
+                this.zoom.start = batch.start
+                this.zoom.end = batch.end
+            }
+        }, 50),
         capGraph (val) {
             switch (true) {
             case val <= 0:
