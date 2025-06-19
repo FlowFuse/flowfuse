@@ -65,8 +65,5 @@ module.exports = {
     'platform:stats:token': false,
 
     // Team Broker topic cache
-    'team:broker:topics': null,
-
-    'platform:sso:google': false, // Is Google SSO enabled?
-    'platform:sso:google:clientId': null // Client ID for Google SSO
+    'team:broker:topics': null
 }
