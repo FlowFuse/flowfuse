@@ -240,7 +240,6 @@ export default {
             })
             this.ws.addEventListener('message', async (event) => {
                 const data = JSON.parse(await event.data.text())
-                console.log(data)
                 if (
                     Object.prototype.hasOwnProperty.call(data, 'cpu') ||
                     Object.prototype.hasOwnProperty.call(data, 'ps')
