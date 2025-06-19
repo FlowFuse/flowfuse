@@ -1,15 +1,8 @@
-const crypto = require('crypto')
-
 const { Authenticator } = require('@fastify/passport')
 const { MultiSamlStrategy } = require('@node-saml/passport-saml')
 const fp = require('fastify-plugin')
 
-const { completeUserSignup } = require('../../../lib/userTeam')
-
-const generatePassword = () => {
-    const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
-    return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
-}
+const { generateUsernameFromEmail, generatePassword, completeSSOSignIn, completeUserSignup } = require('../../../lib/userTeam')
 
 module.exports = fp(async function (app, opts) {
     app.addHook('onRequest', async (request, reply) => {
@@ -104,10 +97,11 @@ module.exports = fp(async function (app, opts) {
                     //     name: request.body.name,
                         email: samlUser.nameID,
                         // email_verified: true,
-                        // password: request.body.password,
-                        admin: false,
+                        password: generatePassword(),
+                        admin: false
                         // sso_enabled: true,
-                        tcs_accepted: new Date()
+                        // Do not set tcs_accepted as the user hasn't accepted the T&Cs yet (if required)
+                        // tcs_accepted: new Date()
                     }
 
                     if (samlUser['http://schemas.microsoft.com/identity/claims/displayname']) {
@@ -116,8 +110,7 @@ module.exports = fp(async function (app, opts) {
                         userProperties.name = samlUser.nameID.split('@')[0]
                     }
 
-                    userProperties.password = generatePassword()
-                    userProperties.username = samlUser.nameID.replace('@', '-').replaceAll('.', '_').toLowerCase()
+                    userProperties.username = await generateUsernameFromEmail(app, samlUser.nameID)
 
                     try {
                         // create user
@@ -172,22 +165,10 @@ module.exports = fp(async function (app, opts) {
         preValidation: fastifyPassport.authenticate('saml', { session: false })
     }, async (request, reply, err, user, info, status) => {
         if (request.user) {
-            const userInfo = app.auditLog.formatters.userObject(request.user)
-            // They have completed authentication and we know who they are.
-            const sessionInfo = await app.createSessionCookie(request.user.email)
-            if (sessionInfo) {
-                request.user.sso_enabled = true
-                request.user.email_verified = true
-                if (request.user.mfa_enabled) {
-                    // They are mfa_enabled - but have authenticated via SSO
-                    // so we will let them in without further challenge
-                    sessionInfo.session.mfa_verified = true
-                    await sessionInfo.session.save()
-                }
-                await request.user.save()
-                userInfo.id = sessionInfo.session.UserId
-                reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
-                await app.auditLog.User.account.login(userInfo, null)
+            const result = await completeSSOSignIn(app, user)
+            if (result.cookie) {
+                // Valid session
+                reply.setCookie('sid', result.cookie.value, result.cookie.options)
                 let redirectTo = '/'
                 if (request.body?.RelayState) {
                     const state = JSON.parse(request.body.RelayState)
@@ -198,11 +179,8 @@ module.exports = fp(async function (app, opts) {
                     redirectTo = '/account/settings'
                 }
                 reply.redirect(redirectTo)
-                return
             } else {
-                const resp = { code: 'user_suspended', error: 'User Suspended' }
-                await app.auditLog.User.account.login(userInfo, resp, userInfo)
-                // TODO: how to surface errors
+                // Invalid session - user is suspended or similar
                 reply.redirect('/')
                 return
             }
