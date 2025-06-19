@@ -88,7 +88,6 @@
         "fastify": "^4.25.2",
         "fastify-metrics": "^11.0.0",
         "fastify-plugin": "^4.5.1",
-        "google-auth-library": "^10.1.0",
         "handlebars": "^4.7.7",
         "hashids": "^2.3.0",
         "jsonwebtoken": "^9.0.0",
@@ -113,7 +112,6 @@
         "vue-echarts": "^7.0.3",
         "vue-router": "^4.2.5",
         "vue-shepherd": "^3.0.0",
-        "vue3-google-login": "^2.0.33",
         "vuex": "^4.1.0",
         "yaml": "^2.3.1",
         "zxcvbn": "^4.4.2"

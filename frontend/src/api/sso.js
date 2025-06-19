@@ -29,17 +29,11 @@ const testProvider = async (id, options) => {
         return res.data
     })
 }
-const googleSSOCallback = async (code) => {
-    return client.post(`/ee/sso/login/callback/google?code=${code}`).then(res => {
-        return res.data
-    })
-}
 export default {
     createProvider,
     updateProvider,
     getProvider,
     deleteProvider,
     getProviders,
-    testProvider,
-    googleSSOCallback
+    testProvider
 }
