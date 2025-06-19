@@ -351,4 +351,80 @@ describe('Project model', function () {
             updatedProject.ProjectTemplateId.should.equal(projectTemplate.id)
         })
     })
+
+    describe('Counting Projects by State', function () {
+        it('should count projects grouped by state with valid states and a string TeamId', async function () {
+            const states = ['running', 'stopped']
+
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const numericTeamId = team.id
+
+            await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId })
+            await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId })
+            await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId })
+
+            const result = await app.db.models.Project.countByState(states, team.id)
+
+            result.should.deepEqual([
+                { state: 'running', count: 2 },
+                { state: 'stopped', count: 1 }
+            ])
+        })
+
+        it('should count projects with no state filter (only by TeamId)', async function () {
+            const teamId = app.TestObjects.team1.id
+
+            await app.db.models.Project.create({ name: 'p4', type: '', url: '', state: 'idle', TeamId: teamId })
+            await app.db.models.Project.create({ name: 'p5', type: '', url: '', state: 'running', TeamId: teamId })
+
+            const result = await app.db.models.Project.countByState([], teamId)
+
+            result.should.deepEqual([
+                { state: 'idle', count: 1 },
+                { state: 'running', count: 1 }
+            ])
+        })
+
+        it('should return an empty result when no projects match the given states', async function () {
+            const states = ['non-existent-state']
+            const teamId = app.TestObjects.team1.id
+
+            const result = await app.db.models.Project.countByState(states, teamId)
+
+            result.should.eql([])
+        })
+
+        it('should handle errors gracefully when an invalid teamId is provided', async function () {
+            const teamId = 'invalidTeamId'
+
+            try {
+                await app.db.models.Project.countByState(['running'], teamId)
+                should.fail('Expected an error to be thrown')
+            } catch (err) {
+                err.should.be.an.Error()
+                err.message.should.match(/invalid.+teamId/i)
+            }
+        })
+
+        it('should be able to return results when using a hashed team id', async function () {
+            // Mock states and team ID
+            const states = ['running', 'stopped']
+
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const numericTeamId = team.id
+
+            await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId })
+            await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId })
+            await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId })
+
+            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
+
+            const result = await app.db.models.Project.countByState(states, hashedTeamId)
+
+            result.should.deepEqual([
+                { state: 'running', count: 2 },
+                { state: 'stopped', count: 1 }
+            ])
+        })
+    })
 })
