@@ -152,6 +152,12 @@ export default {
                     color: $ff-grey-400;
                 }
             }
+
+            .name {
+                &:hover {
+                    color: $ff-indigo-700;
+                }
+            }
         }
 
         .actions {

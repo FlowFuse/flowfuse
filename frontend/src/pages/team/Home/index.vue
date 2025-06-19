@@ -20,9 +20,18 @@
                             </template>
 
                             <div class="flex gap-2 mb-5">
-                                <InstanceStat state="running" type="hosted" @clicked="onGlanceClick" />
-                                <InstanceStat state="error" type="hosted" @clicked="onGlanceClick" />
-                                <InstanceStat state="not-running" type="hosted" @clicked="onGlanceClick" />
+                                <InstanceStat
+                                    :counter="instanceStats.running"
+                                    state="running" type="hosted" @clicked="onGlanceClick"
+                                />
+                                <InstanceStat
+                                    :counter="instanceStats.error"
+                                    state="error" type="hosted" @clicked="onGlanceClick"
+                                />
+                                <InstanceStat
+                                    :counter="instanceStats.stopped"
+                                    state="not-running" type="hosted" @clicked="onGlanceClick"
+                                />
                             </div>
 
                             <RecentlyModifiedInstances />
@@ -34,9 +43,18 @@
                             </template>
 
                             <div class="flex gap-2 mb-5">
-                                <InstanceStat state="running" type="remote" @clicked="onGlanceClick" />
-                                <InstanceStat state="error" type="remote" @clicked="onGlanceClick" />
-                                <InstanceStat state="not-running" type="remote" @clicked="onGlanceClick" />
+                                <InstanceStat
+                                    :counter="deviceStats.running"
+                                    state="running" type="remote" @clicked="onGlanceClick"
+                                />
+                                <InstanceStat
+                                    :counter="deviceStats.error"
+                                    state="error" type="remote" @clicked="onGlanceClick"
+                                />
+                                <InstanceStat
+                                    :counter="deviceStats.stopped
+                                    " state="not-running" type="remote" @clicked="onGlanceClick"
+                                />
                             </div>
 
                             <RecentlyModifiedDevices />
@@ -86,13 +104,83 @@ export default {
     data () {
         return {
             loading: true,
-            logEntries: []
+            logEntries: [],
+            instances: [
+                { id: 1, name: 'something-foo', url: 'https://reddit.com', meta: { state: 'running' } },
+                { id: 3, name: 'something-foo', url: 'https://reddit.com', meta: { state: 'suspended' } },
+                {
+                    id: 2,
+                    name: 'another-bar',
+                    url: 'http:/google.com',
+                    meta: { state: 'running' },
+                    settings: {
+                        dashboard2UI: '/dashboard'
+                    }
+                }
+            ],
+            instanceStateCounts: {},
+            devices: [
+                { id: 1, name: 'foo-this', url: 'https://reddit.com', meta: { state: 'running' } },
+                {
+                    id: 2,
+                    name: 'bar-that',
+                    url: 'http:/google.com',
+                    meta: { state: 'running' }
+                }
+            ],
+            deviceStateCounts: {},
+            statesMap: {
+                running: ['starting', 'importing', 'connected', 'info', 'success', 'pushing', 'pulling', 'loading',
+                    'installing', 'safe', 'protected', 'running', 'warning'],
+                error: ['error', 'crashed'],
+                stopped: ['stopping', 'restarting', 'suspending', 'rollback', 'stopped', 'suspended', 'unknown']
+            }
         }
     },
     computed: {
-        ...mapGetters('account', ['team'])
+        ...mapGetters('account', ['team']),
+        instanceStats () {
+            return {
+                running: this.instanceStateCounts
+                    ? Object.keys(this.instanceStateCounts)
+                        .filter(key => this.statesMap.running.includes(key))
+                        .reduce((total, key) => total + this.instanceStateCounts[key], 0)
+                    : 0,
+                error: this.instanceStateCounts
+                    ? Object.keys(this.instanceStateCounts)
+                        .filter(key => this.statesMap.error.includes(key))
+                        .reduce((total, key) => total + this.instanceStateCounts[key], 0)
+                    : 0,
+                stopped: this.instanceStateCounts
+                    ? Object.keys(this.instanceStateCounts)
+                        .filter(key => this.statesMap.stopped.includes(key))
+                        .reduce((total, key) => total + this.instanceStateCounts[key], 0)
+                    : 0
+            }
+        },
+        deviceStats () {
+            return {
+                running: this.deviceStateCounts
+                    ? Object.keys(this.deviceStateCounts)
+                        .filter(key => this.statesMap.running.includes(key))
+                        .reduce((total, key) => total + this.deviceStateCounts[key], 0)
+                    : 0,
+                error: this.deviceStateCounts
+                    ? Object.keys(this.deviceStateCounts)
+                        .filter(key => this.statesMap.error.includes(key))
+                        .reduce((total, key) => total + this.deviceStateCounts[key], 0)
+                    : 0,
+                stopped: this.deviceStateCounts
+                    ? Object.keys(this.deviceStateCounts)
+                        .filter(key => this.statesMap.stopped.includes(key))
+                        .reduce((total, key) => total + this.deviceStateCounts[key], 0)
+                    : 0
+            }
+        }
     },
     async mounted () {
+        this.getInstanceStateCounts()
+        this.getDeviceStateCounts()
         this.getRecentActivity()
             .finally(() => {
                 this.loading = false
@@ -106,8 +194,20 @@ export default {
                     this.logEntries = response.log
                 })
         },
-        onGlanceClick (payload) {
-            // console.log(payload)
+        onGlanceClick (payload) {},
+        getInstanceStateCounts () {
+            return TeamAPI.getTeamInstanceCounts(this.team.id, [], 'hosted')
+                .then(res => {
+                    this.instanceStateCounts = res
+                })
+                .catch(e => e)
+        },
+        getDeviceStateCounts () {
+            return TeamAPI.getTeamInstanceCounts(this.team.id, [], 'remote')
+                .then(res => {
+                    this.deviceStateCounts = res
+                })
+                .catch(e => e)
         }
     }
 }

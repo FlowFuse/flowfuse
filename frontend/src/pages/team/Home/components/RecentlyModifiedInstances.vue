@@ -117,6 +117,11 @@ export default {
                     font-size: $ff-funit-sm;
                     color: $ff-grey-400;
                 }
+                .name, .editor-link:not(.inactive) {
+                    &:hover {
+                        color: $ff-indigo-700;
+                    }
+                }
             }
         }
 
