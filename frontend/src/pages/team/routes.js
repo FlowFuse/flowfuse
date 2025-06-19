@@ -44,7 +44,7 @@ export default [
                 children: [
                     ...BrokersRoutes,
                     {
-                        path: 'home',
+                        path: 'overview',
                         name: 'team-home',
                         component: TeamHome
                     },
@@ -176,11 +176,6 @@ export default [
                         meta: {
                             title: 'Team - Billing'
                         }
-                    },
-                    {
-                        name: 'team-overview',
-                        path: 'overview',
-                        redirect: { name: 'team-home' }
                     },
                     {
                         name: 'team-pipelines',
