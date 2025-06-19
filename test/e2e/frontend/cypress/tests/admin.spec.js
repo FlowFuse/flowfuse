@@ -7,7 +7,7 @@ describe('FlowFuse platform admin users', () => {
     })
 
     it('can login in', () => {
-        cy.url().should('include', '/home')
+        cy.url().should('include', '/overview')
     })
 
     it('can view (and click) the "Admin Settings" in user options', () => {

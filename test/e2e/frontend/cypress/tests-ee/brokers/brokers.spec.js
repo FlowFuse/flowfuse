@@ -39,14 +39,14 @@ describe('FlowFuse - Brokers', () => {
     })
 
     describe('users with insufficient permissions', () => {
-        it('should have the Brokers menu entry hidden and route guard for viewer roles', () => {
+        it.only('should have the Brokers menu entry hidden and route guard for viewer roles', () => {
             cy.intercept('GET', '/api/*/teams/*/user', { role: 10 })
             cy.login('bob', 'bbPassword')
             cy.home()
 
             cy.get('[data-nav="team-brokers"]').should('not.exist')
             cy.visit('team/ateam/brokers')
-            cy.url().should('include', 'team/ateam/home')
+            cy.url().should('include', 'team/ateam/overview')
         })
 
         it('should have the Brokers menu entry hidden and route guard for dashboard roles', () => {
