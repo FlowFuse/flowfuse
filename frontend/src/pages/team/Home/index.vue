@@ -98,6 +98,7 @@ export default {
             logEntries: [],
             instances: [
                 { id: 1, name: 'something-foo', url: 'https://reddit.com', meta: { state: 'running' } },
+                { id: 3, name: 'something-foo', url: 'https://reddit.com', meta: { state: 'suspended' } },
                 {
                     id: 2,
                     name: 'another-bar',
