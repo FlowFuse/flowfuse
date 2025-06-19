@@ -19,7 +19,7 @@ describe('FlowForge - Brokers Clients', () => {
 
             cy.get('[data-nav="team-brokers"]').should('not.exist')
             cy.visit('team/ateam/brokers/team-broker/clients')
-            cy.url().should('include', 'team/ateam/home')
+            cy.url().should('include', 'team/ateam/overview')
         })
 
         it('should have the brokers menu entry hidden and route guard for dashboard roles', () => {
