@@ -217,6 +217,6 @@ describe('Navigation', () => {
 
         cy.get('[data-nav="back"]').click()
 
-        cy.url().should('match', /^.*\/team\/.*\/home/)
+        cy.url().should('match', /^.*\/team\/.*\/overview/)
     })
 })
