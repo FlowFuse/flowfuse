@@ -971,8 +971,8 @@ module.exports = async function (app) {
             response: {
                 200: {
                     type: 'object',
-                    properties: {
-                        counter: { type: 'number' }
+                    patternProperties: {
+                        '^.*$': { type: 'number' } // accepts any property name (string) where the value is a number.
                     }
                 },
                 '4xx': {
@@ -986,9 +986,15 @@ module.exports = async function (app) {
                 ? app.db.models.Project
                 : app.db.models.Device
 
-            const counter = await model.countByState(request.query.state, request.team.id)
+            const stateCounters = await model.countByState(request.query.state, request.team.id) ?? []
+            const response = {}
 
-            reply.send({ counter })
+            stateCounters.forEach(res => {
+                // remote instances that have not been connected yet have an empty state
+                response[res.state.length ? res.state : 'unknown'] = res.count
+            })
+
+            reply.send(response)
         } catch (err) {
             // Handle any errors that occur
             const response = {
