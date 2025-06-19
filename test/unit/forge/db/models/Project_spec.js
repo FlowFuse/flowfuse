@@ -351,4 +351,101 @@ describe('Project model', function () {
             updatedProject.ProjectTemplateId.should.equal(projectTemplate.id)
         })
     })
+
+    describe('Counting Projects by State', function () {
+        beforeEach(() => {
+            app.license.defaults.teams = 20
+        })
+        it('should count projects grouped by state with valid states and a string TeamId', async function () {
+            const states = ['running', 'stopped']
+
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const numericTeamId = team.id
+
+            const instance1 = await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId })
+            const instance2 = await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId })
+            const instance3 = await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId })
+
+            const result = await app.db.models.Project.countByState(states, team.id)
+
+            result.should.deepEqual([
+                { state: 'running', count: 2 },
+                { state: 'stopped', count: 1 }
+            ])
+
+            await instance1.destroy()
+            await instance2.destroy()
+            await instance3.destroy()
+            await team.destroy()
+        })
+
+        it('should count projects with no state filter (only by TeamId)', async function () {
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+
+            const instance1 = await app.db.models.Project.create({ name: 'p4', type: '', url: '', state: 'idle', TeamId: team.id })
+            const instance2 = await app.db.models.Project.create({ name: 'p5', type: '', url: '', state: 'running', TeamId: team.id })
+
+            const result = await app.db.models.Project.countByState([], team.id)
+
+            result.should.deepEqual([
+                { state: 'idle', count: 1 },
+                { state: 'running', count: 1 }
+            ])
+
+            await instance1.destroy()
+            await instance2.destroy()
+            await team.destroy()
+        })
+
+        it('should return an empty result when no projects match the given states', async function () {
+            const states = ['non-existent-state']
+            const team = await app.db.models.Team.create({
+                name: 'Test Team',
+                TeamTypeId: 1
+            })
+
+            const result = await app.db.models.Project.countByState(states, team.id)
+
+            result.should.eql([])
+
+            await team.destroy()
+        })
+
+        it('should handle errors gracefully when an invalid teamId is provided', async function () {
+            const teamId = 'invalidTeamId'
+
+            try {
+                await app.db.models.Project.countByState(['running'], teamId)
+                should.fail('Expected an error to be thrown')
+            } catch (err) {
+                err.should.be.an.Error()
+                err.message.should.match(/invalid.+teamId/i)
+            }
+        })
+
+        it('should be able to return results when using a hashed team id', async function () {
+            const states = ['running', 'stopped']
+
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const numericTeamId = team.id
+
+            const instance1 = await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId })
+            const instance2 = await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId })
+            const instance3 = await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId })
+
+            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
+
+            const result = await app.db.models.Project.countByState(states, hashedTeamId)
+
+            result.should.deepEqual([
+                { state: 'running', count: 2 },
+                { state: 'stopped', count: 1 }
+            ])
+
+            await instance1.destroy()
+            await instance2.destroy()
+            await instance3.destroy()
+            await team.destroy()
+        })
+    })
 })

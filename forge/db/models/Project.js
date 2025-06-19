@@ -581,6 +581,10 @@ module.exports = {
                 countByState: async (states, teamId) => {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
+
+                        if (teamId.length === 0) {
+                            throw new Error('Invalid TeamId')
+                        }
                     }
 
                     return this.count({
