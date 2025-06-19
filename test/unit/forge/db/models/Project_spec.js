@@ -353,15 +353,18 @@ describe('Project model', function () {
     })
 
     describe('Counting Projects by State', function () {
+        beforeEach(() => {
+            app.license.defaults.teams = 20
+        })
         it('should count projects grouped by state with valid states and a string TeamId', async function () {
             const states = ['running', 'stopped']
 
             const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
             const numericTeamId = team.id
 
-            await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId })
-            await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId })
-            await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId })
+            const instance1 = await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId })
+            const instance2 = await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId })
+            const instance3 = await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId })
 
             const result = await app.db.models.Project.countByState(states, team.id)
 
@@ -369,29 +372,43 @@ describe('Project model', function () {
                 { state: 'running', count: 2 },
                 { state: 'stopped', count: 1 }
             ])
+
+            await instance1.destroy()
+            await instance2.destroy()
+            await instance3.destroy()
+            await team.destroy()
         })
 
         it('should count projects with no state filter (only by TeamId)', async function () {
-            const teamId = app.TestObjects.team1.id
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
 
-            await app.db.models.Project.create({ name: 'p4', type: '', url: '', state: 'idle', TeamId: teamId })
-            await app.db.models.Project.create({ name: 'p5', type: '', url: '', state: 'running', TeamId: teamId })
+            const instance1 = await app.db.models.Project.create({ name: 'p4', type: '', url: '', state: 'idle', TeamId: team.id })
+            const instance2 = await app.db.models.Project.create({ name: 'p5', type: '', url: '', state: 'running', TeamId: team.id })
 
-            const result = await app.db.models.Project.countByState([], teamId)
+            const result = await app.db.models.Project.countByState([], team.id)
 
             result.should.deepEqual([
                 { state: 'idle', count: 1 },
                 { state: 'running', count: 1 }
             ])
+
+            await instance1.destroy()
+            await instance2.destroy()
+            await team.destroy()
         })
 
         it('should return an empty result when no projects match the given states', async function () {
             const states = ['non-existent-state']
-            const teamId = app.TestObjects.team1.id
+            const team = await app.db.models.Team.create({
+                name: 'Test Team',
+                TeamTypeId: 1
+            })
 
-            const result = await app.db.models.Project.countByState(states, teamId)
+            const result = await app.db.models.Project.countByState(states, team.id)
 
             result.should.eql([])
+
+            await team.destroy()
         })
 
         it('should handle errors gracefully when an invalid teamId is provided', async function () {
@@ -407,15 +424,14 @@ describe('Project model', function () {
         })
 
         it('should be able to return results when using a hashed team id', async function () {
-            // Mock states and team ID
             const states = ['running', 'stopped']
 
             const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
             const numericTeamId = team.id
 
-            await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId })
-            await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId })
-            await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId })
+            const instance1 = await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId })
+            const instance2 = await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId })
+            const instance3 = await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId })
 
             const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
 
@@ -425,6 +441,11 @@ describe('Project model', function () {
                 { state: 'running', count: 2 },
                 { state: 'stopped', count: 1 }
             ])
+
+            await instance1.destroy()
+            await instance2.destroy()
+            await instance3.destroy()
+            await team.destroy()
         })
     })
 })
