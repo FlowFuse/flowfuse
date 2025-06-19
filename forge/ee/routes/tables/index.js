@@ -84,6 +84,7 @@ module.exports = async function (app) {
             if (err.message.includes('already exists')) {
                 return reply.status(409).send({ error: 'Database already exists' })
             } else {
+                console.log(err)
                 reply.status(500).send({ error: 'Failed to create database' })
             }
         }
