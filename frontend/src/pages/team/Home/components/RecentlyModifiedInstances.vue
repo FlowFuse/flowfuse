@@ -35,11 +35,16 @@ import InstanceTile from '../../Applications/components/compact/InstanceTile.vue
 export default {
     name: 'RecentlyModifiedInstances',
     components: { TeamLink, InstanceTile, ChevronRightIcon },
+    props: {
+        totalInstances: {
+            type: Number,
+            required: true
+        }
+    },
     data () {
         return {
             hasMore: false,
-            instances: [],
-            totalInstances: 0
+            instances: []
         }
     },
     computed: {
@@ -49,8 +54,7 @@ export default {
         }
     },
     mounted () {
-        this.getInstanceCount()
-            .then(() => this.getInstances())
+        this.getInstances()
             .catch(e => e)
     },
     methods: {
@@ -72,13 +76,6 @@ export default {
                 .then(res => {
                     this.instances = res.projects
                 })
-        },
-        getInstanceCount () {
-            return teamAPI.getTeamInstanceCounts(this.team.id, [], 'hosted')
-                .then(res => {
-                    this.totalInstances = res.counter
-                })
-                .catch(e => e)
         }
     }
 }

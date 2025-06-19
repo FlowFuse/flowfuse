@@ -72,23 +72,27 @@ export default {
         DeviceTile
     },
     mixins: [DeviceActions],
+    props: {
+        totalDevices: {
+            type: Number,
+            required: true
+        }
+    },
     data () {
         return {
             devices: [],
             deviceEditModalOpened: false,
-            hasMore: false,
-            totalInstances: 0
+            hasMore: false
         }
     },
     computed: {
         ...mapGetters('account', ['team']),
         instancesLeft () {
-            return this.totalInstances - this.devices.length
+            return this.totalDevices - this.devices.length
         }
     },
     mounted () {
-        this.getInstanceCount()
-            .then(() => this.getTeamDevices())
+        this.getTeamDevices()
             .catch(e => e)
     },
     methods: {
@@ -99,9 +103,9 @@ export default {
         getTeamDevices () {
             let limit
 
-            if (this.totalInstances <= 4) {
+            if (this.totalDevices <= 4) {
                 limit = 3
-                this.hasMore = this.totalInstances === 4
+                this.hasMore = this.totalDevices === 4
             } else {
                 limit = 3
                 this.hasMore = true
@@ -110,13 +114,6 @@ export default {
                 .then((res) => {
                     this.devices = res.devices
                 })
-        },
-        getInstanceCount () {
-            return teamAPI.getTeamInstanceCounts(this.team.id, [], 'remote')
-                .then(res => {
-                    this.totalInstances = res.counter
-                })
-                .catch(e => e)
         },
         openCreateDialog () {
             this.deviceEditModalOpened = true
