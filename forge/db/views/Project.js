@@ -41,10 +41,14 @@ module.exports = function (app) {
                     disableAutoSafeMode: { type: 'boolean' }
                 },
                 additionalProperties: false
+            },
+            meta: {
+                type: 'object',
+                additionalProperties: true
             }
         }
     })
-    async function project (project, { includeSettings = true } = {}) {
+    async function project (project, { includeSettings = true, includeMeta = false } = {}) {
         const proj = project.toJSON()
         const result = {
             id: proj.id,
@@ -156,16 +160,23 @@ module.exports = function (app) {
             result.stack = app.db.views.ProjectStack.stackSummary(proj.ProjectStack)
         }
         result.links = proj.links
+
+        if (includeMeta) {
+            const liveState = await project.liveState()
+            result.meta = liveState?.meta
+            result.flowLastUpdatedAt = liveState?.flowLastUpdatedAt
+        }
+
         return result
     }
 
     // This view is only used by the 'deprecated' /team/:teamId/projects end point.
     // However, it is still used in a few places from the frontend. None of them
     // require the full details of the instances - so the settings object can be omitted
-    async function instancesList (instancesArray, { includeSettings = false } = {}) {
+    async function instancesList (instancesArray, { includeSettings = false, includeMeta = false } = {}) {
         return Promise.all(instancesArray.map(async (instance) => {
             // Full settings are not required for the instance summary list
-            const result = await app.db.views.Project.project(instance, { includeSettings })
+            const result = await app.db.views.Project.project(instance, { includeSettings, includeMeta })
 
             if (!result.url) {
                 delete result.url
