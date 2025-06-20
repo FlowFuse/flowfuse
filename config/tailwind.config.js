@@ -39,7 +39,9 @@ module.exports = {
             'forge-minimal-status-loading',
             'forge-minimal-status-rollback',
             'forge-minimal-status-installing',
-            'forge-minimal-status-restarting'
+            'forge-minimal-status-restarting',
+            'text-green-400',
+            'bg-green-50'
         ]
     },
     darkMode: false, // or 'media' or 'class'

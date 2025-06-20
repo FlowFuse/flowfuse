@@ -1,6 +1,6 @@
 <template>
     <div class="rounded-md flex-1 p-3" :class="[`bg-${accent}-50`, `text-${accent}-500`]">
-        <p class="title">{{ title }}</p>
+        <label class="block">{{ title }}</label>
         <span class="counter font-extrabold text-4xl">{{ counter }}</span>
     </div>
 </template>
