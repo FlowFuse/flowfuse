@@ -26,12 +26,16 @@ async function cloneRepository (url, branch, workingDir) {
             result.code = 'invalid_branch'
             throw result
         }
+        let error
         // Fallback - try to extract the 'fatal' line from the output
         const m = /fatal: (.*)/.exec(output)
         if (m) {
-            throw new Error('Failed to clone repository: ' + m[1])
+            error = new Error('Failed to clone repository: ' + m[1])
+        } else {
+            error = new Error('Failed to clone repository')
         }
-        throw new Error('Failed to clone repository')
+        error.cause = err
+        throw error
     }
 }
 
@@ -133,11 +137,15 @@ module.exports.init = async function (app) {
                     result.cause = err
                     throw result
                 }
+                let error
                 const m = /fatal: (.*)/.exec(output)
                 if (m) {
-                    throw new Error('Failed to push repository: ' + m[1])
+                    error = new Error('Failed to push repository: ' + m[1])
+                } else {
+                    error = Error('Failed to push repository')
                 }
-                throw new Error('Failed to push repository')
+                error.cause = err
+                throw error
             }
         } finally {
             if (workingDir) {
