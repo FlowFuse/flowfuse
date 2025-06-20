@@ -67,7 +67,7 @@ describe('FlowFuse platform invitees', () => {
 
         cy.contains('Home')
 
-        cy.url().should('include', '/home')
+        cy.url().should('include', '/overview')
     })
 })
 
