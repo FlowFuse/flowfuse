@@ -16,9 +16,9 @@
         </ul>
         <div v-else class="no-instances flex flex-col flex-1 justify-center text-gray-500 italic">
             <p class="text-center self-center">
-                This section’s a ghost town.
+                It's looking a little empty.
                 <team-link :to="{name: 'CreateInstance'}" class="text-indigo-500">Create a Hosted Instance</team-link>
-                and break the silence.
+                to get started.
             </p>
         </div>
     </div>
