@@ -262,11 +262,7 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-.chart {
-    max-height: 450px;
-}
-
+<style lang="scss">
 .ff-socket-status {
     display: flex;
     align-items: center;
@@ -290,6 +286,7 @@ export default {
 
 .ff-chart-section {
     flex: 1;
-    max-height: 50%;
+    display: flex;
+    flex-direction: column;
 }
 </style>

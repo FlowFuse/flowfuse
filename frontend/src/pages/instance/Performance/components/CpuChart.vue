@@ -1,5 +1,7 @@
 <template>
-    <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize @datazoom="onDataZoom" />
+    <div class="chart-wrapper">
+        <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize @datazoom="onDataZoom" />
+    </div>
 </template>
 
 <script>
@@ -189,5 +191,15 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.chart-wrapper {
+    flex: 1;
+    display: flex;
 
+    .chart {
+        flex: 1;
+        height: 100%;
+        width: 100%;
+        min-height: 250px;
+    }
+}
 </style>
