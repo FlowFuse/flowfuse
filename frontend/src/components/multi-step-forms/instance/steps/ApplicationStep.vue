@@ -125,7 +125,7 @@ export default {
             default: false
         }
     },
-    emits: ['step-updated'],
+    emits: ['step-updated', 'next-step'],
     setup (props) {
         return {
             initialState: props.state
@@ -206,6 +206,7 @@ export default {
                 this.selection = null
             } else {
                 this.selection = application
+                this.$emit('next-step')
             }
         }
     }
