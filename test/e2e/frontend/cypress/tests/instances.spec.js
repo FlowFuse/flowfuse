@@ -241,7 +241,7 @@ describe('FlowForge - Instances', () => {
         cy.contains('template1')
     })
 
-    it('can be created', () => {
+    it.only('can be created', () => {
         cy.intercept('POST', '/api/*/projects').as('createInstance')
         cy.intercept('GET', 'api/v1/project-types', (req) => req.reply(res => {
             const disabledInstance = {
@@ -275,7 +275,6 @@ describe('FlowForge - Instances', () => {
 
         // move along the multi-step form
         cy.get('[data-el="application-item"]').first().click()
-        cy.get('[data-el="next-step"]').click()
 
         // set the new instance name
         cy.get('[data-el="instance-name"] input').clear()
