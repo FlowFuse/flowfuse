@@ -1,4 +1,5 @@
 const { KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_DISABLE_AUTO_SAFE_MODE, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
+const { exportEnvVarObject } = require('../../db/utils')
 const { Roles } = require('../../lib/roles')
 
 const ProjectActions = require('./projectActions')
@@ -840,6 +841,7 @@ module.exports = async function (app) {
         if (settings.settings.env) {
             settings.env = Object.assign({}, settings.settings.env, settings.env)
             delete settings.settings.env
+            settings.env = exportEnvVarObject(settings.env)
         }
 
         const teamType = await request.project.Team.getTeamType()
