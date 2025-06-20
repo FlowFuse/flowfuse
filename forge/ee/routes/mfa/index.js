@@ -42,13 +42,21 @@ module.exports = async function (app, opts) {
         // Token has been verified
         mfaToken.verified = true
         request.session.User.mfa_enabled = true
-        request.session.mfa_verified = true
         await Promise.all([
             mfaToken.save(),
             request.session.User.save(),
-            request.session.save(),
-            app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(request.session.User)
+            // Clear all existing tokens/sessions for this user
+            app.db.controllers.AccessToken.deleteAllUserPasswordResetTokens(request.session.User),
+            app.db.controllers.Session.deleteAllUserSessions(request.session.User)
         ])
+        // Create a new session
+        const sessionInfo = await app.createSessionCookie(request.session.User.username)
+        if (sessionInfo) {
+            // Mark the session as MFA verified
+            sessionInfo.session.mfa_verified = true
+            await sessionInfo.session.save()
+            reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
+        }
         reply.send({ status: 'okay' })
     })
 
