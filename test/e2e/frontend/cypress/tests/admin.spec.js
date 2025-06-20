@@ -187,7 +187,7 @@ describe('FlowFuse platform non-admin users', () => {
     it('can login in', () => {
         cy.contains('Home')
 
-        cy.url().should('include', '/team/ateam/home')
+        cy.url().should('include', '/team/ateam/overview')
     })
 
     it('cannot view the "Admin Settings" in user options', () => {
