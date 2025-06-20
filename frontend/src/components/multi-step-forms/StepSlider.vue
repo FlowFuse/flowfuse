@@ -74,7 +74,7 @@ export default {
         position: relative;
         max-width: 600px;
         margin: auto;
-        min-height: 50px;
+        min-height: 70px;
 
         .progress {
             position: absolute;

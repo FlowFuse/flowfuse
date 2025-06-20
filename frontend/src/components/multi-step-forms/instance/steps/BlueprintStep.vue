@@ -1,61 +1,61 @@
 <template>
-    <section class="ff-blueprint-step text-center flex flex-col gap-4 pt-6" data-step="blueprint">
-        <h2>Select Your Blueprint</h2>
+    <section class="ff-blueprint-step text-center flex flex-col pt-6 overflow-auto" data-step="blueprint">
+        <div class="ff-step-header">
+            <h2>Select Your Blueprint</h2>
 
-        <p>We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</p>
+            <p>We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</p>
+        </div>
 
         <transition name="fade" mode="out-in">
             <ff-loading v-if="loading" message="Loading Blueprints..." />
-            <div v-else class="flex flex-col gap-7" data-el="blueprints-wrapper">
-                <div class="flex gap-16 text-left flex-wrap-reverse">
-                    <div class="ff-blueprints flex-1">
-                        <ul class="flex flex-col gap-8" data-group="blueprint-groups">
-                            <li
-                                v-for="(category, $categoryName) in categories"
-                                :key="$categoryName"
-                                :ref="$categoryName"
-                                data-group="blueprints"
-                            >
-                                <h3>{{ $categoryName }}</h3>
-                                <hr class="my-3">
-                                <ul class="ff-blueprint-tiles grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-                                    <li v-for="(blueprint, $key) in category" :key="$key" class="tile">
-                                        <BlueprintTile
-                                            :blueprint="blueprint"
-                                            :display-preview-button="false"
-                                            :display-external-url-button="true"
-                                            :display-select-button="false"
-                                            :tile-behavior="true"
-                                            :active="selectedBlueprint && selectedBlueprint.id === blueprint.id"
-                                            :alt-preview-button="true"
-                                            :class="{'no-icon': !blueprint.icon}"
-                                            class="cursor-pointer"
-                                            @selected="onTileSelect"
-                                            @preview="onPreview($event)"
-                                        />
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="ff-blueprint-categories">
-                        <h3>Categories</h3>
-                        <hr class="my-3">
-                        <ul>
-                            <li
-                                v-for="(category, $categoryName) in categories"
-                                :key="$categoryName"
-                                class="mb-3 flex gap-3 font-bold"
-                            >
-                                <div class="flex-1 flex gap-2 cursor-pointer" @click="onCategoryClick($categoryName)">
-                                    <span>
-                                        {{ $categoryName }}
-                                    </span>
-                                </div>
-                                <div>{{ category.length }}</div>
-                            </li>
-                        </ul>
-                    </div>
+            <div v-else class="flex flex-row gap-7 flex-wrap-reverse md:flex-nowrap overflow-auto" data-el="blueprints-wrapper">
+                <div class="ff-blueprints flex-1 pt-6">
+                    <ul class="flex flex-col gap-8" data-group="blueprint-groups">
+                        <li
+                            v-for="(category, $categoryName) in categories"
+                            :key="$categoryName"
+                            :ref="$categoryName"
+                            data-group="blueprints"
+                        >
+                            <h3>{{ $categoryName }}</h3>
+                            <hr class="my-3">
+                            <ul class="ff-blueprint-tiles grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+                                <li v-for="(blueprint, $key) in category" :key="$key" class="tile">
+                                    <BlueprintTile
+                                        :blueprint="blueprint"
+                                        :display-preview-button="false"
+                                        :display-external-url-button="true"
+                                        :display-select-button="false"
+                                        :tile-behavior="true"
+                                        :active="selectedBlueprint && selectedBlueprint.id === blueprint.id"
+                                        :alt-preview-button="true"
+                                        :class="{'no-icon': !blueprint.icon}"
+                                        class="cursor-pointer"
+                                        @selected="onTileSelect"
+                                        @preview="onPreview($event)"
+                                    />
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                <div class="ff-blueprint-categories flex flex-col overflow-auto pt-6">
+                    <h3>Categories</h3>
+                    <hr class="my-3">
+                    <ul class="overflow-auto">
+                        <li
+                            v-for="(category, $categoryName) in categories"
+                            :key="$categoryName"
+                            class="mb-3 flex gap-3 font-bold"
+                        >
+                            <div class="flex-1 flex gap-2 cursor-pointer" @click="onCategoryClick($categoryName)">
+                                <span>
+                                    {{ $categoryName }}
+                                </span>
+                            </div>
+                            <div>{{ category.length }}</div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </transition>
