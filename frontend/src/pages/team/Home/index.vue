@@ -3,7 +3,6 @@
         <template #header>
             <ff-page-header>
                 <template #breadcrumbs>
-                    <!-- <ff-nav-breadcrumb :has-chevron="true">{{ team.name }}</ff-nav-breadcrumb>-->
                     <ff-nav-breadcrumb>Home</ff-nav-breadcrumb>
                 </template>
             </ff-page-header>
@@ -35,7 +34,7 @@
                                 />
                             </div>
 
-                            <RecentlyModified :instances="instances" />
+                            <RecentlyModifiedInstances :total-instances="totalInstances" />
                         </DashboardSection>
 
                         <DashboardSection title="Remote Instances" type="remote">
@@ -58,7 +57,7 @@
                                 />
                             </div>
 
-                            <RecentlyModified :instances="devices" />
+                            <RecentlyModifiedDevices :total-devices="totalDevices" />
                         </DashboardSection>
                     </section>
 
@@ -87,11 +86,21 @@ import ProjectsIcon from '../../../components/icons/Projects.js'
 
 import DashboardSection from './components/DashboardSection.vue'
 import InstanceStat from './components/InstanceStat.vue'
-import RecentlyModified from './components/RecentlyModified.vue'
+import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
+import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
 
 export default {
     name: 'TeamHome',
-    components: { InstanceStat, RecentlyModified, AuditLog, DashboardSection, ChipIcon, ProjectsIcon, DatabaseIcon },
+    components: {
+        InstanceStat,
+        RecentlyModifiedInstances,
+        AuditLog,
+        DashboardSection,
+        ChipIcon,
+        ProjectsIcon,
+        DatabaseIcon,
+        RecentlyModifiedDevices
+    },
     data () {
         return {
             loading: true,
@@ -167,6 +176,16 @@ export default {
                         .reduce((total, key) => total + this.deviceStateCounts[key], 0)
                     : 0
             }
+        },
+        totalInstances () {
+            return this.instanceStateCounts
+                ? Object.values(this.instanceStateCounts).reduce((total, count) => total + count, 0)
+                : 0
+        },
+        totalDevices () {
+            return this.deviceStateCounts
+                ? Object.values(this.deviceStateCounts).reduce((total, count) => total + count, 0)
+                : 0
         }
     },
     async mounted () {
