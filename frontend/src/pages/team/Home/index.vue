@@ -3,7 +3,6 @@
         <template #header>
             <ff-page-header>
                 <template #breadcrumbs>
-                    <!-- <ff-nav-breadcrumb :has-chevron="true">{{ team.name }}</ff-nav-breadcrumb>-->
                     <ff-nav-breadcrumb>Home</ff-nav-breadcrumb>
                 </template>
             </ff-page-header>
@@ -20,14 +19,22 @@
                                 <ProjectsIcon class="ff-icon-lg" />
                             </template>
 
-                            <AtAGlanceInstanceStats
-                                class="mb-5"
-                                type-of-instances="hosted"
-                                :stats="{}"
-                                @clicked="onGlanceClick"
-                            />
+                            <div class="flex gap-2 mb-5">
+                                <InstanceStat
+                                    :counter="instanceStats.running"
+                                    state="running" type="hosted" @clicked="onGlanceClick"
+                                />
+                                <InstanceStat
+                                    :counter="instanceStats.error"
+                                    state="error" type="hosted" @clicked="onGlanceClick"
+                                />
+                                <InstanceStat
+                                    :counter="instanceStats.stopped"
+                                    state="not-running" type="hosted" @clicked="onGlanceClick"
+                                />
+                            </div>
 
-                            <RecentlyModified :instances="instances" />
+                            <RecentlyModifiedInstances :total-instances="totalInstances" />
                         </DashboardSection>
 
                         <DashboardSection title="Remote Instances" type="remote">
@@ -35,13 +42,22 @@
                                 <ChipIcon class="ff-icon-lg" />
                             </template>
 
-                            <AtAGlanceInstanceStats
-                                class="mb-5"
-                                type-of-instances="remote"
-                                :stats="{}" @clicked="onGlanceClick"
-                            />
+                            <div class="flex gap-2 mb-5">
+                                <InstanceStat
+                                    :counter="deviceStats.running"
+                                    state="running" type="remote" @clicked="onGlanceClick"
+                                />
+                                <InstanceStat
+                                    :counter="deviceStats.error"
+                                    state="error" type="remote" @clicked="onGlanceClick"
+                                />
+                                <InstanceStat
+                                    :counter="deviceStats.stopped
+                                    " state="not-running" type="remote" @clicked="onGlanceClick"
+                                />
+                            </div>
 
-                            <RecentlyModified :instances="devices" />
+                            <RecentlyModifiedDevices :total-devices="totalDevices" />
                         </DashboardSection>
                     </section>
 
@@ -68,13 +84,23 @@ import AuditLog from '../../../components/audit-log/AuditLog.vue'
 
 import ProjectsIcon from '../../../components/icons/Projects.js'
 
-import AtAGlanceInstanceStats from './components/AtAGlanceInstanceStats.vue'
 import DashboardSection from './components/DashboardSection.vue'
-import RecentlyModified from './components/RecentlyModified.vue'
+import InstanceStat from './components/InstanceStat.vue'
+import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
+import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
 
 export default {
     name: 'TeamHome',
-    components: { RecentlyModified, AtAGlanceInstanceStats, AuditLog, DashboardSection, ChipIcon, ProjectsIcon, DatabaseIcon },
+    components: {
+        InstanceStat,
+        RecentlyModifiedInstances,
+        AuditLog,
+        DashboardSection,
+        ChipIcon,
+        ProjectsIcon,
+        DatabaseIcon,
+        RecentlyModifiedDevices
+    },
     data () {
         return {
             loading: true,
@@ -92,6 +118,7 @@ export default {
                     }
                 }
             ],
+            instanceStateCounts: {},
             devices: [
                 { id: 1, name: 'foo-this', url: 'https://reddit.com', meta: { state: 'running' } },
                 {
@@ -100,13 +127,70 @@ export default {
                     url: 'http:/google.com',
                     meta: { state: 'running' }
                 }
-            ]
+            ],
+            deviceStateCounts: {},
+            statesMap: {
+                running: ['starting', 'importing', 'connected', 'info', 'success', 'pushing', 'pulling', 'loading',
+                    'installing', 'safe', 'protected', 'running', 'warning'],
+                error: ['error', 'crashed'],
+                stopped: ['stopping', 'restarting', 'suspending', 'rollback', 'stopped', 'suspended', 'unknown']
+            }
         }
     },
     computed: {
-        ...mapGetters('account', ['team'])
+        ...mapGetters('account', ['team']),
+        instanceStats () {
+            return {
+                running: this.instanceStateCounts
+                    ? Object.keys(this.instanceStateCounts)
+                        .filter(key => this.statesMap.running.includes(key))
+                        .reduce((total, key) => total + this.instanceStateCounts[key], 0)
+                    : 0,
+                error: this.instanceStateCounts
+                    ? Object.keys(this.instanceStateCounts)
+                        .filter(key => this.statesMap.error.includes(key))
+                        .reduce((total, key) => total + this.instanceStateCounts[key], 0)
+                    : 0,
+                stopped: this.instanceStateCounts
+                    ? Object.keys(this.instanceStateCounts)
+                        .filter(key => this.statesMap.stopped.includes(key))
+                        .reduce((total, key) => total + this.instanceStateCounts[key], 0)
+                    : 0
+            }
+        },
+        deviceStats () {
+            return {
+                running: this.deviceStateCounts
+                    ? Object.keys(this.deviceStateCounts)
+                        .filter(key => this.statesMap.running.includes(key))
+                        .reduce((total, key) => total + this.deviceStateCounts[key], 0)
+                    : 0,
+                error: this.deviceStateCounts
+                    ? Object.keys(this.deviceStateCounts)
+                        .filter(key => this.statesMap.error.includes(key))
+                        .reduce((total, key) => total + this.deviceStateCounts[key], 0)
+                    : 0,
+                stopped: this.deviceStateCounts
+                    ? Object.keys(this.deviceStateCounts)
+                        .filter(key => this.statesMap.stopped.includes(key))
+                        .reduce((total, key) => total + this.deviceStateCounts[key], 0)
+                    : 0
+            }
+        },
+        totalInstances () {
+            return this.instanceStateCounts
+                ? Object.values(this.instanceStateCounts).reduce((total, count) => total + count, 0)
+                : 0
+        },
+        totalDevices () {
+            return this.deviceStateCounts
+                ? Object.values(this.deviceStateCounts).reduce((total, count) => total + count, 0)
+                : 0
+        }
     },
     async mounted () {
+        this.getInstanceStateCounts()
+        this.getDeviceStateCounts()
         this.getRecentActivity()
             .finally(() => {
                 this.loading = false
@@ -120,8 +204,20 @@ export default {
                     this.logEntries = response.log
                 })
         },
-        onGlanceClick (payload) {
-            // console.log(payload)
+        onGlanceClick (payload) {},
+        getInstanceStateCounts () {
+            return TeamAPI.getTeamInstanceCounts(this.team.id, [], 'hosted')
+                .then(res => {
+                    this.instanceStateCounts = res
+                })
+                .catch(e => e)
+        },
+        getDeviceStateCounts () {
+            return TeamAPI.getTeamInstanceCounts(this.team.id, [], 'remote')
+                .then(res => {
+                    this.deviceStateCounts = res
+                })
+                .catch(e => e)
         }
     }
 }

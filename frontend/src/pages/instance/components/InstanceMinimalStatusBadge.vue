@@ -1,5 +1,5 @@
 <template>
-    <span :class="{['forge-minimal-status-' + status]: true, 'animate-pulse': isTransitoryStatus }" class="minimal-status" />
+    <span v-ff-tooltip:bottom="status" :class="{['forge-minimal-status-' + status]: true, 'animate-pulse': isTransitoryStatus }" class="minimal-status" />
 </template>
 
 <script>
