@@ -1,7 +1,7 @@
 <template>
     <div class="rounded-md flex-1 p-3" :class="[`bg-${accent}-50`, `text-${accent}-500`]">
         <label class="block">{{ title }}</label>
-        <span class="counter font-extrabold text-4xl">{{ counter }}</span>
+        <span class="counter font-bold text-4xl">{{ counter }}</span>
     </div>
 </template>
 
