@@ -577,6 +577,29 @@ module.exports = {
                             }
                         ]
                     })
+                },
+                countByState: async (states, teamId) => {
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+
+                        if (teamId.length === 0) {
+                            throw new Error('Invalid TeamId')
+                        }
+                    }
+
+                    return this.count({
+                        where: {
+                            ...(states.length > 0
+                                ? {
+                                    [Op.or]: states.map(state => ({
+                                        state,
+                                        TeamId: teamId
+                                    }))
+                                }
+                                : { TeamId: teamId })
+                        },
+                        group: ['state']
+                    })
                 }
             }
         }
