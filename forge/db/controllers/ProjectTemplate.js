@@ -1,6 +1,6 @@
 const { BUILT_IN_MODULES } = require('../../lib/builtInModules')
 const { templateFields, defaultTemplateValues, defaultTemplatePolicy } = require('../../lib/templates')
-const { hash } = require('../utils')
+const { hash, mapEnvArrayToObject } = require('../utils')
 
 function getTemplateValue (template, path) {
     const parts = path.split('_')
@@ -258,19 +258,25 @@ module.exports = {
         if (settings.env) {
             if (mergeEnvVars) {
                 // As objects for stable merge
-                const existingEnvVars = Object.fromEntries((existingSettings.env || []).map(envVar => [envVar.name, envVar.value]))
-                const newEnvVars = Object.fromEntries((settings.env || []).map(envVar => [envVar.name, envVar.value]))
-
+                const existingEnvVars = mapEnvArrayToObject(existingSettings.env || [])
+                const newEnvVars = mapEnvArrayToObject(settings.env || [])
                 // copy new over old, then old over the merge (to keep the order), existing have precedence over new
                 const mergedEnvVars = { ...existingEnvVars, ...newEnvVars, ...existingEnvVars }
-
                 // Convert back to an array
                 result.env = []
                 Object.entries(mergedEnvVars).forEach(entry => {
                     const [name, value] = entry
-                    result.env.push({
-                        name, value
-                    })
+                    if (typeof value === 'object' && value.hidden) {
+                        result.env.push({
+                            name,
+                            value: value.value,
+                            hidden: true
+                        })
+                    } else {
+                        result.env.push({
+                            name, value
+                        })
+                    }
                 })
             } else {
                 result.env = settings.env

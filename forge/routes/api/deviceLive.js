@@ -1,5 +1,6 @@
 const SemVer = require('semver')
 
+const { exportEnvVarObject, mapEnvObjectToArray, mapEnvArrayToObject } = require('../../db/utils')
 /**
  * Device Live api routes
  *
@@ -230,9 +231,10 @@ module.exports = async function (app) {
                     // since transmit env in key/value pairs for a snapshot, we need to convert them to the same
                     // format as we store them in the database, then we can update the FF_ env vars before
                     // re-converting to key/value pairs ready for the snapshot
-                    const envArray = Object.entries(settings.env || {}).map(([name, value]) => ({ name, value }))
+                    const envArray = mapEnvObjectToArray(settings.env || {})
                     const updatedEnv = app.db.controllers.Device.insertPlatformSpecificEnvVars(device, envArray)
-                    settings.env = Object.fromEntries(updatedEnv.map(({ name, value }) => [name, value]))
+                    // Convert back to the exported key/value pair with any hidden values inserted
+                    settings.env = exportEnvVarObject(mapEnvArrayToObject(updatedEnv))
                 } catch (err) {
                     app.log.error('Failed to update environment variables in snapshot', err)
                 }
@@ -272,9 +274,7 @@ module.exports = async function (app) {
         })
         Object.keys(settings).forEach(key => {
             if (key === 'env') {
-                settings.env.forEach(envVar => {
-                    response.env[envVar.name] = envVar.value
-                })
+                response.env = exportEnvVarObject(mapEnvArrayToObject(settings.env || []))
             } else {
                 response[key] = settings[key]
             }
@@ -332,6 +332,7 @@ module.exports = async function (app) {
                 response.security.httpNodeAuth.clientSecret = authClient.clientSecret
             }
         }
+
         reply.send(response)
     })
 }
