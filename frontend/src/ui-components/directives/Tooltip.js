@@ -53,7 +53,7 @@ function renderTooltip (el, binding) {
             })
 
             setTimeout(() => {
-                tooltip.remove()
+                tooltip?.remove()
                 tooltip = null
             }, 500)
         }
@@ -61,7 +61,7 @@ function renderTooltip (el, binding) {
 
     const onMouseEnter = () => {
         clearTimeout(tooltipTimeout)
-        tooltipTimeout = setTimeout(createTooltip, 250)
+        tooltipTimeout = setTimeout(createTooltip, 150)
     }
 
     const onMouseLeave = () => {

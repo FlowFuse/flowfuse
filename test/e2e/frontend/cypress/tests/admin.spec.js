@@ -7,7 +7,7 @@ describe('FlowFuse platform admin users', () => {
     })
 
     it('can login in', () => {
-        cy.url().should('include', '/applications')
+        cy.url().should('include', '/overview')
     })
 
     it('can view (and click) the "Admin Settings" in user options', () => {
@@ -67,7 +67,8 @@ describe('FlowFuse platform admin users', () => {
 
         // Not a member of BTeam
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
-        cy.wait('@getTeamApplications')
+
+        cy.get('[data-nav="team-applications"]').click()
 
         cy.get('[data-el="banner-team-as-admin"]').should('exist')
 
@@ -94,11 +95,11 @@ describe('FlowFuse platform admin users', () => {
         cy.visit('/admin/overview')
 
         cy.get('[data-nav="admin-teams"]').click()
-        cy.wait('@getTeams')
 
         // Not a member of BTeam
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
-        cy.wait('@getTeamApplications')
+
+        cy.get('[data-nav="team-applications"]').click()
 
         cy.get('[data-nav="team-devices"]').click()
         cy.wait('@getDevices')
@@ -184,7 +185,9 @@ describe('FlowFuse platform non-admin users', () => {
     })
 
     it('can login in', () => {
-        cy.url().should('include', '/applications')
+        cy.contains('Home')
+
+        cy.url().should('include', '/team/ateam/overview')
     })
 
     it('cannot view the "Admin Settings" in user options', () => {
