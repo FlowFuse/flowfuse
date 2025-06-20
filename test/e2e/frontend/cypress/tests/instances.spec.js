@@ -241,7 +241,7 @@ describe('FlowForge - Instances', () => {
         cy.contains('template1')
     })
 
-    it.only('can be created', () => {
+    it('can be created', () => {
         cy.intercept('POST', '/api/*/projects').as('createInstance')
         cy.intercept('GET', 'api/v1/project-types', (req) => req.reply(res => {
             const disabledInstance = {
