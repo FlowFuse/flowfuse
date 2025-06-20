@@ -275,7 +275,6 @@ describe('FlowForge - Instances', () => {
 
         // move along the multi-step form
         cy.get('[data-el="application-item"]').first().click()
-        cy.get('[data-el="next-step"]').click()
 
         // set the new instance name
         cy.get('[data-el="instance-name"] input').clear()
