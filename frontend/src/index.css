@@ -204,7 +204,7 @@
     .forge-minimal-status-suspending,
     .forge-minimal-status-info,
     .forge-minimal-status-offline{
-        @apply bg-gray-500;
+        @apply bg-gray-300;
     }
     .forge-minimal-status-success,
     .forge-minimal-status-connected,
@@ -221,7 +221,7 @@
     .forge-minimal-status-rollback,
     .forge-minimal-status-installing,
     .forge-minimal-status-restarting{
-        @apply bg-green-500;
+        @apply bg-green-400;
     }
     
     .forge-badge-devmode {
