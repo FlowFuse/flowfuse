@@ -1,6 +1,5 @@
 import { defineComponent } from 'vue'
 
-import ObjectProperties from '../pages/team/Brokers/Hierarchy/components/schema/ObjectProperties.vue'
 import Dialog from '../services/dialog.js'
 
 export function useHubspotHelper () {
@@ -14,7 +13,6 @@ export function useHubspotHelper () {
             is: {
                 // eslint-disable-next-line vue/one-component-per-file
                 component: defineComponent({
-                    components: { ObjectProperties },
                     computed: {
                         url () {
                             const url = new URL('flowfuse/book-a-demo-call', 'https://meetings-eu1.hubspot.com')
