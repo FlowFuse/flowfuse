@@ -53,7 +53,7 @@ function renderTooltip (el, binding) {
             })
 
             setTimeout(() => {
-                tooltip.remove()
+                tooltip?.remove()
                 tooltip = null
             }, 500)
         }
