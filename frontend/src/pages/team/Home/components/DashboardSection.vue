@@ -10,7 +10,7 @@
                 </span>
             </h3>
         </div>
-        <div class="ff-box-content overflow-auto">
+        <div class="ff-box-content flex flex-col flex-1 overflow-auto">
             <slot />
         </div>
     </div>
