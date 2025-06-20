@@ -1,8 +1,10 @@
 <template>
-    <section class="ff-duplication-step text-center flex flex-col gap-4 pt-6" data-step="duplication">
-        <h2>Duplication Overview</h2>
+    <section class="ff-duplication-step text-center flex flex-col pt-6 overflow-auto" data-step="duplication">
+        <div class="ff-step-header max-w-2xl m-auto w-full">
+            <h2>Duplication Overview</h2>
+        </div>
 
-        <div class="max-w-2xl m-auto text-left">
+        <div class="max-w-2xl m-auto text-left pt-6 overflow-auto">
             <transition name="fade" mode="out-in">
                 <ff-loading v-if="loading" message="Loading data..." />
                 <div v-else class="flex flex-col gap-7" data-el="duplicate-wrapper">

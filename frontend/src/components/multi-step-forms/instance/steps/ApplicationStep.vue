@@ -1,11 +1,13 @@
 <template>
-    <section class="ff-select-application-step text-center flex flex-col gap-4 pt-6" data-step="application">
+    <section class="ff-select-application-step text-center flex flex-col pt-6 overflow-auto" data-step="application">
         <template v-if="hasApplications">
-            <h2>Choose an Application</h2>
+            <div class="ff-step-header max-w-2xl m-auto w-full">
+                <h2>Choose an Application</h2>
 
-            <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
+                <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
+            </div>
 
-            <ul class="max-w-2xl w-full m-auto text-left flex flex-col gap-4">
+            <ul class="max-w-2xl w-full m-auto text-left flex flex-col pt-6 gap-4 overflow-auto">
                 <li
                     v-for="(application, $key) in applications"
                     :key="$key"

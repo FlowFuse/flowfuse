@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-multi-step-form" data-form="multi-step-form">
+    <div class="ff-multi-step-form flex flex-col overflow-auto" data-form="multi-step-form">
         <transition name="fade" mode="out-in">
             <div v-if="loadingOverlay" class="loading-overlay">
                 <ff-loading :message="loadingOverlayText" />
@@ -15,7 +15,7 @@
             />
         </section>
 
-        <section class="content">
+        <section class="content flex flex-col overflow-auto">
             <transition name="fade" mode="out-in">
                 <component
                     :is="currentStep.component"
@@ -171,6 +171,14 @@ export default {
         height: 100%;
         background: rgba(255,255,255, .6);
         z-index: 100;
+    }
+}
+</style>
+<style lang="scss">
+.ff-multi-step-form {
+    .ff-step-header {
+        border-bottom: 1px solid $ff-color--border;
+        padding-bottom: 10px;
     }
 }
 </style>

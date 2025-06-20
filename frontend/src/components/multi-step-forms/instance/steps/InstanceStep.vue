@@ -1,7 +1,9 @@
 <template>
-    <section class="ff-instance-step text-center flex flex-col gap-4 pt-6" data-step="instance">
-        <h2>Setup Your Instance</h2>
-        <form class="max-w-2xl m-auto text-left flex flex-col gap-7">
+    <section class="ff-instance-step text-center flex flex-col pt-6 overflow-auto" data-step="instance">
+        <div class="ff-step-header max-w-2xl m-auto w-full">
+            <h2>Setup Your Instance</h2>
+        </div>
+        <form class="max-w-2xl m-auto text-left flex flex-col gap-7 pt-6 overflow-auto">
             <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
 
             <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
