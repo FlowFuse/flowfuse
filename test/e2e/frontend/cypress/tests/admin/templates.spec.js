@@ -17,7 +17,7 @@ describe('FlowFuse - Templates', () => {
     it('can delete a template from the table', () => {
         cy.intercept('DELETE', '/api/*/templates/*').as('deleteTemplate')
         // add a template that we will then delete
-        cy.request('POST', '/api/v1/templates', { name: 'New Template', settings: { disableEditor: false, httpAdminRoot: '', codeEditor: 'monaco', theme: 'forge-light', page: { title: 'FlowForge', favicon: '' }, header: { title: 'FlowForge', url: '' }, timeZone: 'UTC', palette: { allowInstall: true, nodesExcludes: '', denyList: [] }, modules: { allowInstall: true, denyList: [] }, env: [] }, policy: { disableEditor: false, httpAdminRoot: false, codeEditor: false, theme: false, page: { title: false, favicon: false }, header: { title: false, url: false }, timeZone: false, palette: { allowInstall: false, nodesExcludes: false, denyList: false }, modules: { allowInstall: false, denyList: false } } })
+        cy.request('POST', '/api/v1/templates', { name: 'New Template', settings: { disableEditor: false, httpAdminRoot: '', codeEditor: 'monaco', theme: 'forge-light', page: { title: 'FlowFuse', favicon: '' }, header: { title: 'FlowFuse', url: '' }, timeZone: 'UTC', palette: { allowInstall: true, nodesExcludes: '', denyList: [] }, modules: { allowInstall: true, denyList: [] }, env: [] }, policy: { disableEditor: false, httpAdminRoot: false, codeEditor: false, theme: false, page: { title: false, favicon: false }, header: { title: false, url: false }, timeZone: false, palette: { allowInstall: false, nodesExcludes: false, denyList: false }, modules: { allowInstall: false, denyList: false } } })
 
         cy.visit('/admin/templates')
 
