@@ -107,7 +107,7 @@ Git Repository stages can be used to push and pull snapshots from a GitHub hoste
 the branch to push/pull from as well as the filename to use for the snapshot.
 
 If a filename is not configured, it will generate the filename when pushing to the repository based on the name of Instance, Device
-or Device Group that provided the snapshot. The provided filenames can include directory structures, allowing the storage of flow files in subdirectories.
+or Device Group that provided the snapshot. The provided filename can include directory structures, allowing the snapshot to be stored in a subdirectory of the repository.
 
 When pulling from a repository, if the stage has not previously been used to push to the repository, the filename is a required property.
 
