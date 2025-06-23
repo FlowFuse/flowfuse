@@ -7,7 +7,7 @@ const interceptBom = (dependencies = []) => {
     }).as('getBom')
 }
 
-describe('FlowForge - Application - Dependencies', () => {
+describe('FlowFuse - Application - Dependencies', () => {
     let application
     let team
     function navigateToApplication (teamName, projectName, instances = [], statuses = []) {

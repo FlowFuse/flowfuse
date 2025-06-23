@@ -1,4 +1,4 @@
-describe('FlowForge - Instance editor', () => {
+describe('FlowFuse - Instance editor', () => {
     function navigateToInstance (teamName, instanceName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {

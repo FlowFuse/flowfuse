@@ -1,4 +1,4 @@
-describe('FlowForge - Instance - Devices', () => {
+describe('FlowFuse - Instance - Devices', () => {
     function navigateToProject (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
@@ -62,7 +62,7 @@ describe('FlowForge - Instance - Devices', () => {
     })
 })
 
-describe('FlowForge shows audit logs', () => {
+describe('FlowFuse shows audit logs', () => {
     function navigateToInstance (teamName, projectName) {
         cy.intercept('GET', '/api/*/projects/*/audit-log*').as('getInstanceAuditLog')
 

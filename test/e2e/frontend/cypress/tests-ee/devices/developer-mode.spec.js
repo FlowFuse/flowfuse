@@ -1,4 +1,4 @@
-describe('FlowForge - Devices - With Billing', () => {
+describe('FlowFuse - Devices - With Billing', () => {
     beforeEach(() => {
         cy.enableBilling()
         cy.intercept('/api/*/settings', (req) => {

@@ -1,4 +1,4 @@
-describe('FlowForge - Version History', () => {
+describe('FlowFuse - Version History', () => {
     let projectId
 
     beforeEach(() => {

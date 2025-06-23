@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-describe('FlowForge - Team Overview (Home) - With License', () => {
+describe('FlowFuse - Team Overview (Home) - With License', () => {
     function navigateToTeam (teamName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {

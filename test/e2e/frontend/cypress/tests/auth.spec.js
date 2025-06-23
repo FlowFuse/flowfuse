@@ -1,4 +1,4 @@
-describe('FlowForge - Auth', () => {
+describe('FlowFuse - Auth', () => {
     it('successfully loads', () => {
         cy.visit('/')
     })
