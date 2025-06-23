@@ -1,4 +1,4 @@
-describe('FlowForge - Team Membership', () => {
+describe('FlowFuse - Team Membership', () => {
     it('admin can enable redirect for offboarding users', () => {
         cy.intercept('PUT', '/api/*/settings').as('putSettings')
 

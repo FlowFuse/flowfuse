@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-describe('FlowForge - Table Component', () => {
+describe('FlowFuse - Table Component', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()

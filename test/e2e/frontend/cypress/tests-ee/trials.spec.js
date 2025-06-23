@@ -1,4 +1,4 @@
-describe('FlowForge - Trial Users', () => {
+describe('FlowFuse - Trial Users', () => {
     beforeEach(() => {
         cy.login('terry', 'ttPassword')
         cy.home()

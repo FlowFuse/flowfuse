@@ -1,4 +1,4 @@
-describe('FlowForge - Applications', () => {
+describe('FlowFuse - Applications', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
         cy.intercept('/api/*/teams/*/applications*').as('getTeamApplications')
@@ -448,7 +448,7 @@ describe('FlowForge - Applications', () => {
     })
 })
 
-describe('FlowForge stores audit logs for an application', () => {
+describe('FlowFuse stores audit logs for an application', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()

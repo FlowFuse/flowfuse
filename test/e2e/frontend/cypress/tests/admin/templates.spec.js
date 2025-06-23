@@ -1,4 +1,4 @@
-describe('FlowForge - Templates', () => {
+describe('FlowFuse - Templates', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()

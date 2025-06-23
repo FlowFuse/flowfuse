@@ -1,4 +1,4 @@
-describe('FlowForge - Instance - Assets', () => {
+describe('FlowFuse - Instance - Assets', () => {
     function navigateToProject (teamName, projectName, tab = 'overview') {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {

@@ -1,4 +1,4 @@
-describe('FlowForge - Applications', () => {
+describe('FlowFuse - Applications', () => {
     let team
     function navigateToApplication (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
