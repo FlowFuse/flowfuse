@@ -92,7 +92,9 @@ export default {
     computed: {
         neverConnected () {
             return !this.device.lastSeenAt
-        },
+        }
+    },
+    methods: {
         shouldDisplayKebabMenu () {
             return this.hasPermission('device:edit') ||
             this.hasPermission('device:delete')
