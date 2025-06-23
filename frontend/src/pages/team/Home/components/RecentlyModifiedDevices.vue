@@ -22,9 +22,9 @@
 
         <div v-else class="no-devices flex flex-col flex-1 justify-center text-gray-500 italic">
             <p class="text-center self-center">
-                This space intentionally left unpopulated.
-                <span class="text-indigo-500 cursor-pointer" @click.stop.prevent="openCreateDialog">Deploy a remote instance</span>
-                to change that.
+                No remote Node-RED Instances found.
+                <span class="text-indigo-500 cursor-pointer" @click.stop.prevent="openCreateDialog">Add a Remote Instance</span>
+                to get started.
             </p>
         </div>
 
