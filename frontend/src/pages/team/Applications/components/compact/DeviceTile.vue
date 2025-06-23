@@ -50,7 +50,6 @@
 import FinishSetupButton from '../../../../../components/FinishSetup.vue'
 import StatusBadge from '../../../../../components/StatusBadge.vue'
 import AuditMixin from '../../../../../mixins/Audit.js'
-import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
 import permissionsMixin from '../../../../../mixins/Permissions.js'
 import FfKebabMenu from '../../../../../ui-components/components/KebabMenu.vue'
 import DaysSince from '../../../../application/Snapshots/components/cells/DaysSince.vue'
@@ -63,7 +62,7 @@ export default {
         DaysSince,
         FinishSetupButton
     },
-    mixins: [AuditMixin, permissionsMixin, deviceActionsMixin],
+    mixins: [AuditMixin, permissionsMixin],
     props: {
         device: {
             type: Object,
@@ -82,7 +81,7 @@ export default {
     },
     methods: {
         finishSetup () {
-            this.deviceAction('updateCredentials')
+            this.$emit('device-action', { action: 'updateCredentials', id: this.device.id })
         }
     }
 }
