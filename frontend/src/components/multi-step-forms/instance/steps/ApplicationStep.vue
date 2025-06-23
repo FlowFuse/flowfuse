@@ -6,7 +6,7 @@
 
                 <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
 
-                <div class="search-wrapper my-2 relative">
+                <div v-if="applications.length > 5" class="search-wrapper my-2 relative">
                     <search-icon class="ff-icon ff-icon-sm absolute left-0 top-0 text-gray-600 z-10 mt-1.5 ml-2 " />
                     <input v-model="searchTerm" type="text" class="w-full">
                     <x-icon
