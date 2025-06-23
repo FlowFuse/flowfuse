@@ -8,7 +8,7 @@
             :only-custom-message="true"
         />
     </div>
-    <div class="flex-1 flex flex-col gap-2 overflow-auto">
+    <div class="flex-1 flex flex-col gap-2">
         <template v-if="!featureAvailable">
             <empty-state>
                 <template #header>
