@@ -5,11 +5,21 @@
                 <h2>Choose an Application</h2>
 
                 <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
+
+                <div class="search-wrapper my-2 relative">
+                    <search-icon class="ff-icon ff-icon-sm absolute left-0 top-0 text-gray-600 z-10 mt-1.5 ml-2 " />
+                    <input v-model="searchTerm" type="text" class="w-full">
+                    <x-icon
+                        v-if="searchTerm.length"
+                        class="ff-icon ff-icon-sm absolute right-0 top-o z-10 text-gray-600 mt-1.5 mr-2 transition-all duration-300 ease-in-out cursor-pointer"
+                        @click="searchTerm = ''"
+                    />
+                </div>
             </div>
 
             <ul class="max-w-2xl w-full m-auto text-left flex flex-col pt-6 gap-4 overflow-auto">
                 <li
-                    v-for="(application, $key) in applications"
+                    v-for="(application, $key) in filteredApplications"
                     :key="$key"
                     class="app-tile flex flex-col gap-2"
                     :class="{selected: application.id === selection?.id}"
@@ -94,6 +104,8 @@
 </template>
 
 <script>
+import { SearchIcon, XIcon } from '@heroicons/vue/outline'
+
 import FormRow from '../../../FormRow.vue'
 import IconDeviceSolid from '../../../icons/DeviceSolid.js'
 
@@ -101,7 +113,7 @@ import IconNodeRedSolid from '../../../icons/NodeRedSolid.js'
 
 export default {
     name: 'ApplicationStep',
-    components: { FormRow, IconDeviceSolid, IconNodeRedSolid },
+    components: { FormRow, IconDeviceSolid, IconNodeRedSolid, SearchIcon, XIcon },
     props: {
         slug: {
             required: true,
@@ -140,12 +152,18 @@ export default {
                 name: this.initialState?.input?.name ?? '',
                 description: this.initialState?.input?.description ?? '',
                 createInstance: this.initialState?.input?.createInstance ?? true
-            }
+            },
+            searchTerm: ''
         }
     },
     computed: {
         hasApplications () {
             return this.applications.length > 0
+        },
+        filteredApplications () {
+            if (!this.searchTerm.length) return this.applications
+
+            return this.applications.filter(app => app.label.toLowerCase().includes(this.searchTerm.toLowerCase()))
         }
     },
     watch: {
@@ -249,5 +267,21 @@ export default {
             font-size: $ff-funit-sm;
         }
     }
+
+    .search-wrapper {
+        input {
+            padding-left: 30px;
+        }
+    }
+}
+
+.list-enter-active,
+.list-leave-active {
+    transition: all 0.5s ease;
+}
+.list-enter-from,
+.list-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
 }
 </style>
