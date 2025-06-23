@@ -5,19 +5,25 @@
 
             <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
 
-            <div v-if="applications.length > 5" class="search-wrapper max-w-2xl my-2 relative">
-                <search-icon class="ff-icon ff-icon-sm absolute left-0 top-0 text-gray-600 z-10 mt-1.5 ml-2 " />
-                <input v-model="searchTerm" type="text" class="w-full">
-                <x-icon
-                    v-if="searchTerm.length"
-                    class="ff-icon ff-icon-sm absolute right-0 top-o z-10 text-gray-600 mt-1.5 mr-2 transition-all duration-300 ease-in-out cursor-pointer"
-                    @click="searchTerm = ''"
-                />
+            <div v-if="applications.length > 5" class="search-wrapper flex justify-center my-2">
+                <ff-text-input
+                    v-model="searchTerm" class="ff-data-table--search max-w-2xl w-full col-span-3 relative"
+                    data-form="search" placeholder="Search applications"
+                >
+                    <template #icon><SearchIcon /></template>
+                    <template #icon-right>
+                        <x-icon
+                            v-if="searchTerm.length"
+                            class="ff-icon ff-icon-sm absolute right-0 top-o z-10 text-gray-600 mr-1 transition-all duration-300 ease-in-out cursor-pointer"
+                            @click="searchTerm = ''"
+                        />
+                    </template>
+                </ff-text-input>
             </div>
 
             <ul class="max-w-2xl w-full m-auto text-left flex flex-col gap-4">
                 <li
-                    v-for="(application, $key) in applications"
+                    v-for="(application, $key) in filteredApplications"
                     :key="$key"
                     class="app-tile flex flex-col gap-2"
                     :class="{selected: application.id === selection?.id}"
