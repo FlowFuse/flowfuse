@@ -1,4 +1,4 @@
-describe('FlowForge - Instance Types', () => {
+describe('FlowFuse - Instance Types', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')
         cy.intercept('GET', '/api/*/team-types*').as('getTeamTypes')

@@ -7,7 +7,7 @@ function interceptBlueprints (blueprints = []) {
     }).as('getBlueprints')
 }
 
-describe('FlowForge - Library', () => {
+describe('FlowFuse - Library', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()

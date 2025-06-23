@@ -1,4 +1,4 @@
-describe('FlowForge - Device - Settings Environment', () => {
+describe('FlowFuse - Device - Settings Environment', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.visit('/team/bteam/devices')

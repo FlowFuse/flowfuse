@@ -40,7 +40,7 @@ Cypress.Commands.add('login', (username, password) => {
 })
 
 Cypress.Commands.add('logout', () => {
-    // clear Cypress session, and logout from FlowForge
+    // clear Cypress session, and logout from FlowFuse
     cy.session([null, null], () => {
         cy.request('post', '/account/logout')
     })

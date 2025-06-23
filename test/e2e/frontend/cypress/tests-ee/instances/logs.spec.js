@@ -1,4 +1,4 @@
-describe('FlowForge - Instance - Logs', () => {
+describe('FlowFuse - Instance - Logs', () => {
     let instance
     function navigateToInstanceLogs (teamName, instanceName) {
         cy.request('GET', '/api/v1/user/teams')

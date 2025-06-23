@@ -1,4 +1,4 @@
-describe('FlowForge - Team Membership', () => {
+describe('FlowFuse - Team Membership', () => {
     let startingInviteCount
 
     beforeEach(() => {
@@ -110,7 +110,7 @@ describe('FlowForge - Team Membership', () => {
     })
 })
 
-describe('FlowForge shows audit logs', () => {
+describe('FlowFuse shows audit logs', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()

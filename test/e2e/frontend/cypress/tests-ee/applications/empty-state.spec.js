@@ -1,4 +1,4 @@
-describe('FlowForge - Application - Empty State', () => {
+describe('FlowFuse - Application - Empty State', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.intercept('GET', '/api/v1/teams/*/applications*', (req) => {

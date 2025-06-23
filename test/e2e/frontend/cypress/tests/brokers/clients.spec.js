@@ -1,4 +1,4 @@
-describe('FlowForge - Brokers Clients', () => {
+describe('FlowFuse - Brokers Clients', () => {
     describe('is accessible to users with correct permissions', () => {
         beforeEach(() => {
             cy.login('alice', 'aaPassword')
