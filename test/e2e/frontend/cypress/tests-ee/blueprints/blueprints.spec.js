@@ -21,7 +21,7 @@ function prefillMultiStepForm () {
     cy.get('[data-group="blueprints"]').contains(singleBlueprint.blueprints[0].name)
 }
 
-describe('FlowForge - Blueprints', () => {
+describe('FlowFuse - Blueprints', () => {
     // Blueprint Details
     const NAME = 'Test Blueprint'
     const CATEGORY = 'Category A'

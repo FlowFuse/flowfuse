@@ -1,4 +1,4 @@
-describe('FlowForge - Applications - With Billing', () => {
+describe('FlowFuse - Applications - With Billing', () => {
     beforeEach(() => {
         cy.enableBilling()
     })

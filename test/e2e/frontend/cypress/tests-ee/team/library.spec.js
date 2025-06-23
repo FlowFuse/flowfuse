@@ -42,7 +42,7 @@ function interceptFlowFile () {
     ).as('getFlowJson')
 }
 
-describe('FlowForge - Library', () => {
+describe('FlowFuse - Library', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()

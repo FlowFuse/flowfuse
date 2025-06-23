@@ -1,4 +1,4 @@
-// test admin rights & access in FlowForge
+// test admin rights & access in FlowFuse
 
 describe('FlowFuse platform admin users', () => {
     beforeEach(() => {
@@ -160,7 +160,7 @@ describe('FlowFuse platform admin users', () => {
             cy.wait('@getSettings')
 
             cy.get('[data-el="banner"]').type('this is banner')
-            cy.get('[data-el="splash"]').type('<h1>Welcome to FlowForge</h1>')
+            cy.get('[data-el="splash"]').type('<h1>Welcome to FlowFuse</h1>')
 
             cy.get('[data-action="save-settings"]').click()
 
@@ -173,7 +173,7 @@ describe('FlowFuse platform admin users', () => {
             cy.url().should('include', '/account/create')
 
             cy.get('[data-el="banner-text"]').contains('this is banner')
-            cy.get('[data-el="splash"]').contains('Welcome to FlowForge')
+            cy.get('[data-el="splash"]').contains('Welcome to FlowFuse')
         })
     })
 })
@@ -204,7 +204,7 @@ describe('FlowFuse platform non-admin users', () => {
     })
 })
 
-describe('FlowForge stores an admin-level audit', () => {
+describe('FlowFuse stores an admin-level audit', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()

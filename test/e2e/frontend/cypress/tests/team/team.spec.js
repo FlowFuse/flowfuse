@@ -1,4 +1,4 @@
-describe('FlowForge - Team', () => {
+describe('FlowFuse - Team', () => {
     let teamTypeId
     beforeEach(() => {
         cy.login('alice', 'aaPassword')

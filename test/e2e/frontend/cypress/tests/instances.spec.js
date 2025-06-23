@@ -3,7 +3,7 @@
  * As such some tests may be out of date
  */
 
-describe('FlowForge - Instances', () => {
+describe('FlowFuse - Instances', () => {
     function navigateToInstances (teamName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {

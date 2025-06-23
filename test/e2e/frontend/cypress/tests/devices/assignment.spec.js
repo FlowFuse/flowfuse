@@ -1,4 +1,4 @@
-describe('FlowForge - Devices', () => {
+describe('FlowFuse - Devices', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.visit('/team/bteam/devices')
@@ -32,7 +32,7 @@ describe('FlowForge - Devices', () => {
     })
 })
 
-describe('FlowForge - Team - Devices - Create', () => {
+describe('FlowFuse - Team - Devices - Create', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.visit('/team/bteam/devices')
@@ -121,7 +121,7 @@ describe('FlowForge - Team - Devices - Create', () => {
     })
 })
 
-describe('FlowForge - Application - Devices - Create', () => {
+describe('FlowFuse - Application - Devices - Create', () => {
     function navigateToApplicationDevices (teamName, appName) {
         let team
         cy.request('GET', '/api/v1/user/teams')
@@ -182,7 +182,7 @@ describe('FlowForge - Application - Devices - Create', () => {
     })
 })
 
-describe('FlowForge - Devices - Assign', () => {
+describe('FlowFuse - Devices - Assign', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.visit('/team/bteam/devices')
