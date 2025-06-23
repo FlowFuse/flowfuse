@@ -68,8 +68,18 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const template = await app.db.models.ProjectTemplate.byId(request.params.templateId)
+
         if (template) {
-            reply.send(app.db.views.ProjectTemplate.template(template))
+            const result = app.db.views.ProjectTemplate.template(template)
+            if (result.settings?.env) {
+                result.settings.env = result.settings.env.map(env => {
+                    if (env.hidden) {
+                        env.value = ''
+                    }
+                    return env
+                })
+            }
+            reply.send(result)
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
@@ -223,6 +233,16 @@ module.exports = async function (app) {
                 }
             }
         }
+        templateSettings.env = templateSettings.env.map((env, key) => {
+            if (env.hidden === true && env.value === '') {
+                // we need to re-map the hidden value so it won't get overwritten
+                const existingVar = template.settings.env.find(currentEnv => currentEnv.name === env.name)
+                if (existingVar) {
+                    env.value = existingVar.value
+                }
+            }
+            return env
+        })
         template.settings = templateSettings
         template.policy = request.body.policy
         await template.save()

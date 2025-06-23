@@ -146,7 +146,7 @@ forge:
   localPostgresql: true
 EOF
 ```
-A full list of all the configuration options can be found in the [Helm Chart README](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md#configuration-values).
+A full list of all the configuration options can be found in the [Helm Chart README](https://github.com/FlowFuse/helm/blob/main/helm/flowfuse/README.md#configuration-values).
 ### Label Nodes
 
 By default FlowFuse platform expects that Kubernetes nodes have specific labels applied. The main reason behind this approach is to separate core application components from Node-RED instances.
@@ -182,7 +182,7 @@ forge:
 Once you have the `customization.yml` file created, you can install FlowFuse using our Helm chart. This will automatically create all required objects and start services:
 
 ```bash
-helm upgrade --atomic --install --timeout 10m flowfuse flowfuse/flowforge -f customization.yml
+helm upgrade --atomic --install --timeout 10m flowfuse flowfuse/flowfuse -f customization.yml
 ```
 
 ## First Run Setup
@@ -197,7 +197,7 @@ Once you have finished setting up the admin user there are some [Kubernetes spec
 ## Upgrade
 
 All technical aspects of the upgrade process of Flowfuse application running on Kubernetes and managed by Helm chart are maintained in our repository.
-Please refer to the [Flowfuse Helm Chart documentation](https://github.com/FlowFuse/helm/blob/main/helm/flowforge/README.md#upgrading-chart) for more details
+Please refer to the [Flowfuse Helm Chart documentation](https://github.com/FlowFuse/helm/blob/main/helm/flowfuse/README.md#upgrading-chart) for more details
 about the upgrade process.
 
 ## Common Questions
@@ -216,6 +216,31 @@ ingress:
 ```
 
 Apply changes with [platform startup command](#start-flowfuse-platform).
+
+### I use Kubernetes Network Policies, how can I configure them?
+
+If your cluster uses Network Policies to restrict traffic between namespaces, you'll need to create appropriate policies.
+
+Here's an example Network Policy that allows traffic from the `flowforge` namespace (default namespace for Node-RED instances) to the `flowfuse` namespace:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-flowforge-to-flowfuse
+  namespace: flowfuse
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: flowforge
+  policyTypes:
+    - Ingress
+```
+
+You may need to adjust this policy based on your specific network requirements and namespace configuration.
 
 ### How to use external database server?
 
@@ -301,7 +326,7 @@ FlowFuse platform allows you to invite team members to the platform using their 
 To enable this feature, you need to configure the e-mail settings in the `customization.yml` file.
 
 Check this [page](../configuration.md#email-configuration) for more details about the parameters. 
-Check [FlowFuseHelm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowforge#email) for information where configuration values should be placed in `customization.yml` file.
+Check [FlowFuseHelm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse#email) for information where configuration values should be placed in `customization.yml` file.
 
 If you use AWS EKS (Elastic Kubernetes Service) and want to use AWS SES (Simple Email Service) for sending e-mails, you need to provide the IAM role with the required permissions to use SES.
 
@@ -335,7 +360,7 @@ forge:
 
 Apply changes with [platform startup command](#start-flowfuse-platform).
 
-Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowforge#mqtt-broker) for more details about the parameters that can be configured for the MQTT broker.
+Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse#mqtt-broker) for more details about the parameters that can be configured for the MQTT broker.
 
 </details>
 
@@ -368,7 +393,7 @@ forge:
 
 Apply changes with [platform startup command](#start-flowfuse-platform).
 
-Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowforge#file-storage) for more details about the parameters that can be configured for the File Storage.
+Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse#file-storage) for more details about the parameters that can be configured for the File Storage.
 
 ### I would like to run FlowFuse on AWS EKS. Do you have any guidance?
 

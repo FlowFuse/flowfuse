@@ -22,12 +22,15 @@ For container based deployment models, this covers three things:
 
  - `memory` - the amount of memory (in MB) to limit container to. Recommended minimum: `256`.
  - `cpu` - a value between 1 and 100 that is the % of a CPU core the container should be allowed to consume.
- - `container` - this is the fully qualified name of the container to use. The default container built when following the install instructions is named `flowfuse/node-red:latest`
+ - `container location` - this is the fully qualified name of the container to use. The default container built when following the install instructions is named `flowfuse/node-red:latest`
 
-FlowFuse supports Node-RED 2.2.x and later.
+If you wish to use different Node-RED version, you need to specify the name of the container and the version you want to use. For example, if you want to use Node-RED v3.1.x, you should enter `flowfuse/node-red:latest-3.1.x` in the `container location` section of the Stack configuration.
+Full list of available pre-built containers can be found on [Docker Hub](https://hub.docker.com/r/flowfuse/node-red/tags).
 
-## Creating Containers
+## Creating Own Containers
 
+As mentioned in the previous paragraph, we encourage to use our pre-built containers in your stacks.
+However, if you want to create your own container, you can do so by creating a `Dockerfile` and `package.json` files.
 There is an example `Dockerfile` and `package.json` in the [node-red-container](https://github.com/FlowFuse/docker-compose/tree/main/node-red-container) 
 directory of the [docker-compose](https://github.com/FlowFuse/docker-compose) project. This will start with `nodered/node-red:latest` 
 as it's base and then add the required FlowFuse components.

@@ -78,6 +78,10 @@ describe('FlowFuse - Instance - Settings - Launcher', () => {
         cy.get('[data-el="save-settings-button"]').click()
         cy.wait('@updateInstance')
 
+        cy.get('[data-el="platform-dialog"]').should('be.visible')
+        cy.get('[data-el="platform-dialog"]').contains('Restart Required')
+        cy.get('[data-el="platform-dialog"] [data-action="dialog-cancel"]').click()
+
         // refresh page
         navigateToInstanceSettings('BTeam', 'instance-2-1')
         cy.get('[data-el="section-side-menu"] li').contains('Launcher').click()

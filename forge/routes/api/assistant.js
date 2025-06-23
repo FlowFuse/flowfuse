@@ -120,6 +120,9 @@ module.exports = async function (app) {
                 headers,
                 timeout: requestTimeout
             })
+            if (request.body.transactionId !== response.data.transactionId) {
+                throw new Error('Transaction ID mismatch') // Ensure we are responding to the correct transaction
+            }
             reply.send(response.data)
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })

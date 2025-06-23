@@ -134,6 +134,9 @@
       background-color: $ff-color--highlight;
       color: $ff-white;
     }
+    &[disabled=""] {
+      background-color: transparent !important;
+    }
   }
   &--danger {
     color: $ff-white;
@@ -357,8 +360,9 @@ li.ff-list-item {
       background-color: $ff-grey-50;
       border-bottom: 1px solid $ff-grey-200;
       cursor: pointer;
+      transition: ease-in-out .3s;
       &:hover {
-        background-color: $ff-grey-200;
+        background-color: $ff-grey-100;
       }
     }
     &.ff-dropdown-options--full-width {
@@ -845,14 +849,14 @@ li.ff-list-item {
 */
 .ff-dialog-container {
   position: fixed;
-  z-index: 100;
+  z-index: 110;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   justify-content: center;
   align-items: flex-start;
-  overflow-y: auto;
+  overflow-y: hidden;
   background-color: rgba($ff-grey-800, 0.3);
   &--open {
     display: flex;
@@ -871,6 +875,8 @@ li.ff-list-item {
   display: flex;
   flex-direction: column;
   background-color: $ff-white;
+  max-height: 85vh;
+  overflow: auto;
   .ff-dialog {
     &-header {
       height: 48px;
@@ -890,7 +896,8 @@ li.ff-list-item {
     }
     &-content {
       padding: $ff-funit-lg;
-      overflow-y: visible;
+      overflow: auto;
+      max-height: 75vh;
     }
     &-actions {
       display: flex;
@@ -900,6 +907,9 @@ li.ff-list-item {
         margin-left: $ff-funit-md;
       }
     }
+  }
+  &--wide {
+    max-width: 52rem;
   }
 }
 
@@ -1110,6 +1120,7 @@ $countdown_size: 20px;
   z-index: 100;
   font-weight: normal; // prevent parent overriding if embedded in hX
   white-space: nowrap;
+  height: fit-content;
   background-color: black;
   color: white;
   padding: 3px 12px;
@@ -1119,8 +1130,6 @@ $countdown_size: 20px;
   transition: 0.3s opacity;
   -webkit-transition: 0.3s opacity;
   &.ff-tooltip-right {
-    top: -3px;
-    left: calc(100% + 9px);
     &::after {
       content: " ";
       position: absolute;
@@ -1133,8 +1142,6 @@ $countdown_size: 20px;
     }
   }
   &.ff-tooltip-left {
-    top: -3px;
-    right: calc(100% + 9px);
     &::after {
       content: " ";
       position: absolute;
@@ -1147,8 +1154,6 @@ $countdown_size: 20px;
     }
   }
   &.ff-tooltip-top {
-    bottom: calc(100% + 9px);
-    left: 50%;
     transform: translateX(-50%);
     &::after {
       content: " ";
@@ -1162,8 +1167,6 @@ $countdown_size: 20px;
     }
   }
   &.ff-tooltip-bottom {
-    top: calc(100% + 9px);
-    left: 50%;
     transform: translateX(-50%);
     &::after {
       content: " ";
@@ -1175,6 +1178,9 @@ $countdown_size: 20px;
       border-style: solid;
       border-color: transparent transparent black transparent;
     }
+  }
+  &--visible {
+    opacity: 1;
   }
 }
 .ff-tooltip-container {

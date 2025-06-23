@@ -9,7 +9,14 @@
                 <ChevronRightIcon v-if="hasChildren" class="chevron ff-icon-sm" />
                 <p class="flex gap-2.5 items-end" :class="{'ml-2': !hasChildren}">
                     <span class="title">
-                        {{ segmentText }}
+                        <span class="highlighted-text-parts flex">
+                            <span
+                                v-for="(part, $key) in highlightedText" :key="$key"
+                                :class="{ highlight: part.highlight }"
+                            >
+                                {{ part.text }}
+                            </span>
+                        </span>
                         <span
                             v-if="segment.isEndOfTopic && segment.childrenCount"
                             class="separator cursor-help"
@@ -33,6 +40,7 @@
                 :is-last-sibling="key === Object.keys(children).length - 1"
                 :class="{'pl-10': !isRoot}"
                 :selected-segment="selectedSegment"
+                :filter-term="filterTerm"
                 @segment-selected="rowClick"
                 @segment-state-changed="$emit('segment-state-changed', $event)"
             />
@@ -75,6 +83,10 @@ export default {
             required: false,
             type: Object,
             default: null
+        },
+        filterTerm: {
+            required: true,
+            type: String
         }
     },
     emits: ['segment-selected', 'segment-state-changed'],
@@ -108,6 +120,43 @@ export default {
         },
         isSegmentSelected () {
             return this.segment?.topic === this.selectedSegment?.topic
+        },
+        highlightedText () {
+            if (!this.filterTerm) {
+                return [{ text: this.segmentText, highlight: false }]
+            }
+
+            const escapedQuery = this.filterTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            const regex = new RegExp(escapedQuery, 'gi')
+
+            const parts = []
+            let lastIndex = 0
+            let match
+
+            while ((match = regex.exec(this.segmentText)) !== null) {
+                if (match.index > lastIndex) {
+                    parts.push({
+                        text: this.segmentText.slice(lastIndex, match.index),
+                        highlight: false
+                    })
+                }
+
+                parts.push({
+                    text: match[0],
+                    highlight: true
+                })
+
+                lastIndex = regex.lastIndex
+            }
+
+            if (lastIndex < this.segmentText.length) {
+                parts.push({
+                    text: this.segmentText.slice(lastIndex),
+                    highlight: false
+                })
+            }
+
+            return parts
         }
     },
     watch: {
@@ -182,6 +231,10 @@ export default {
                 align-items: center;
                 display: flex;
                 gap: 3px;
+
+                .highlight {
+                    background-color: $ff-indigo-100;
+                }
             }
 
             .ff-text-copier {

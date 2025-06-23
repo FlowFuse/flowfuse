@@ -18,7 +18,7 @@
                             >
                                 <h3>{{ $categoryName }}</h3>
                                 <hr class="my-3">
-                                <ul class="ff-blueprint-tiles flex gap-5 flex-wrap">
+                                <ul class="ff-blueprint-tiles grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
                                     <li v-for="(blueprint, $key) in category" :key="$key" class="tile">
                                         <BlueprintTile
                                             :blueprint="blueprint"
@@ -184,7 +184,9 @@ export default {
 
         .ff-blueprint-tiles {
             .ff-blueprint-tile {
-                width: 280px;
+                max-width: 280px;
+                width: 100%;
+                height: 100%;
             }
         }
     }

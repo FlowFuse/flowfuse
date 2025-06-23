@@ -8,11 +8,15 @@ describe('FlowForge - Trial Users', () => {
         cy.get('[data-el="banner-team-trial"]').should('exist')
     })
 
-    it('should be presented with an empty state on the Applications view', () => {
-        cy.get('[data-el="empty-state"] [data-action="create-application"]').click()
-    })
-
     it('are redirected to their (first) newly created instance', () => {
+        cy.get('[data-team="tteam"]')
+        cy.contains('Home')
+        cy.get('[data-el="dashboard-section-hosted"] .ff-box-title').contains('Hosted Instances')
+        cy.get('[data-el="dashboard-section-remote"] .ff-box-title').contains('Remote Instances')
+        cy.get('[data-el="dashboard-section-audit"] .ff-box-title').contains('Recent Activity')
+
+        cy.get('[data-nav="team-applications"]').click()
+
         const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
         const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
@@ -21,26 +25,42 @@ describe('FlowForge - Trial Users', () => {
 
         cy.get('[data-el="empty-state"] [data-action="create-application"]').click()
 
-        cy.get('[data-action="create-project"]').should('be.disabled')
+        cy.get('[data-el="next-step"]').should('be.disabled')
 
         cy.get('[data-form="application-name"] input').clear()
         cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
 
+        cy.get('[data-el="next-step"]').should('be.enabled')
+        cy.get('[data-el="next-step"]').click()
+
         // Pre-fills instance name
-        cy.get('[data-form="project-name"] input').should(($input) => {
+        cy.get('[data-el="instance-name"] input').should(($input) => {
             const projectName = $input.val()
             expect(projectName.length).to.be.above(0)
         })
 
-        cy.get('[data-form="project-name"] input').clear()
-        cy.get('[data-form="project-name"] input').type(INSTANCE_NAME)
+        cy.get('[data-el="instance-name"] input').clear()
+        cy.get('[data-el="instance-name"] input').type(INSTANCE_NAME)
 
-        cy.get('[data-action="create-project"]').should('not.be.disabled').click()
+        // pre-select the first project template
+        cy.get('[data-form="project-template"] [data-item="tile-selection-option"]').first().click()
 
-        cy.url().should('include', '/instance/')
+        cy.get('[data-el="node-red-listbox"]').click()
+        cy.get('[data-option].ff-option').first().click()
+
+        cy.get('[data-el="next-step"]').should('be.enabled')
+        cy.get('[data-el="next-step"]').click()
+        cy.get('[data-el="next-step"]').click()
+
+        cy.url().should('include', '/applications/')
     })
 
     it('cannot create a second instance', () => {
+        cy.get('[data-team="tteam"]')
+        cy.contains('Home')
+
+        cy.get('[data-nav="team-applications"]').click()
+
         cy.get('[data-action="view-application"]').click()
         cy.get('[data-action="create-instance"]').click()
 
@@ -48,6 +68,11 @@ describe('FlowForge - Trial Users', () => {
     })
 
     it('setup billing redirects to team type selection', () => {
+        cy.get('[data-team="tteam"]')
+        cy.contains('Home')
+
+        cy.get('[data-nav="team-applications"]').click()
+
         let teamType
         cy.intercept('GET', '/api/*/team-types*').as('getTeamTypes')
         cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')

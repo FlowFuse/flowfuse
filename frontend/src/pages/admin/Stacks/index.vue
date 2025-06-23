@@ -1,55 +1,60 @@
 <template>
-    <div class="space-y-6">
-        <FormHeading>Active Stacks</FormHeading>
-        <ff-loading v-if="loadingActive" message="Loading Stacks..." />
-        <ff-data-table
-            v-if="!loadingActive"
-            data-el="active-stacks"
-            :columns="activeColumns"
-            :rows="activeStacks"
-            :show-search="true"
-            search-placeholder="Search by Stack Name..."
-            no-data-message="No Active Stacks Found"
-        >
-            <template #actions>
-                <ff-button @click="showCreateStackDialog">
-                    <template #icon-right>
-                        <PlusSmIcon />
-                    </template>
-                    Create stack
-                </ff-button>
-            </template>
-            <template #context-menu="{row}">
-                <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
-                <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
-                <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
-            </template>
-        </ff-data-table>
-        <div v-if="nextActiveCursor">
-            <a v-if="!loadingActive" class="forge-button-inline" data-action="load-more-active" @click.stop="loadActiveItems">Load more...</a>
+    <ff-page>
+        <template #header>
+            <ff-page-header title="Stacks" />
+        </template>
+        <div class="space-y-6">
+            <FormHeading>Active Stacks</FormHeading>
+            <ff-loading v-if="loadingActive" message="Loading Stacks..." />
+            <ff-data-table
+                v-if="!loadingActive"
+                data-el="active-stacks"
+                :columns="activeColumns"
+                :rows="activeStacks"
+                :show-search="true"
+                search-placeholder="Search by Stack Name..."
+                no-data-message="No Active Stacks Found"
+            >
+                <template #actions>
+                    <ff-button @click="showCreateStackDialog">
+                        <template #icon-right>
+                            <PlusSmIcon />
+                        </template>
+                        Create stack
+                    </ff-button>
+                </template>
+                <template #context-menu="{row}">
+                    <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
+                    <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
+                    <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
+                </template>
+            </ff-data-table>
+            <div v-if="nextActiveCursor">
+                <a v-if="!loadingActive" class="forge-button-inline" data-action="load-more-active" @click.stop="loadActiveItems">Load more...</a>
+            </div>
+            <FormHeading>Inactive Stacks</FormHeading>
+            <ff-loading v-if="loadingInactive" message="Loading Stacks..." />
+            <ff-data-table
+                v-if="!loadingInactive"
+                data-el="inactive-stacks"
+                :columns="inactiveColumns"
+                :rows="inactiveStacks"
+                :show-search="true"
+                search-placeholder="Search by Stack Name..."
+                no-data-message="No Inactive Stacks Found"
+            >
+                <template #context-menu="{row}">
+                    <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
+                    <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
+                    <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
+                </template>
+            </ff-data-table>
+            <div v-if="nextInactiveCursor">
+                <a v-if="!loadingInactive" class="forge-button-inline" data-action="load-more-inactive" @click.stop="loadInactiveItems">Load more...</a>
+            </div>
         </div>
-        <FormHeading>Inactive Stacks</FormHeading>
-        <ff-loading v-if="loadingInactive" message="Loading Stacks..." />
-        <ff-data-table
-            v-if="!loadingInactive"
-            data-el="inactive-stacks"
-            :columns="inactiveColumns"
-            :rows="inactiveStacks"
-            :show-search="true"
-            search-placeholder="Search by Stack Name..."
-            no-data-message="No Inactive Stacks Found"
-        >
-            <template #context-menu="{row}">
-                <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
-                <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
-                <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
-            </template>
-        </ff-data-table>
-        <div v-if="nextInactiveCursor">
-            <a v-if="!loadingInactive" class="forge-button-inline" data-action="load-more-inactive" @click.stop="loadInactiveItems">Load more...</a>
-        </div>
-    </div>
-    <AdminStackEditDialog ref="adminStackEditDialog" @stack-created="stackCreated" @stack-updated="stackUpdated" />
+        <AdminStackEditDialog ref="adminStackEditDialog" @stack-created="stackCreated" @stack-updated="stackUpdated" />
+    </ff-page>
 </template>
 
 <script>

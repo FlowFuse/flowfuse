@@ -1,49 +1,52 @@
 <template>
-    <!-- set mb-14 (~56px) on the form to permit access to kebab actions where hubspot chat covers it -->
-    <div class="space-y-6 mb-14">
-        <SectionTopMenu hero="Team Types">
-            <template #tools>
-                <ff-button data-action="create-type" @click="showEditTeamTypeDialog()">
-                    <template #icon-right>
-                        <PlusSmIcon />
-                    </template>
-                    Create team type
-                </ff-button>
-            </template>
-        </SectionTopMenu>
-        <ff-tile-selection data-el="active-types">
-            <ff-tile-selection-option
-                v-for="(teamType, index) in activeTeamTypes"
-                :key="index"
-                value=""
-                :price="teamType.properties?.billingDescription?.split('/')[0] || ''"
-                :price-interval="teamType.properties?.billingDescription?.split('/')[1] || ''"
-                :label="teamType.name" :description="teamType.description"
-                :meta="[{key: 'ID', value: teamType.id}, {key: 'Team Count', value: teamType.teamCount}]"
-                :editable="true"
-                @edit="showEditTeamTypeDialog(teamType)"
-            />
-        </ff-tile-selection>
-        <div v-if="nextCursor">
-            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+    <ff-page>
+        <template #header>
+            <ff-page-header title="Team Types">
+                <template #tools>
+                    <ff-button data-action="create-type" @click="showEditTeamTypeDialog()">
+                        <template #icon-right>
+                            <PlusSmIcon />
+                        </template>
+                        Create team type
+                    </ff-button>
+                </template>
+            </ff-page-header>
+        </template>
+        <div class="space-y-6 mb-14">
+            <ff-tile-selection data-el="active-types">
+                <ff-tile-selection-option
+                    v-for="(teamType, index) in activeTeamTypes"
+                    :key="index"
+                    value=""
+                    :price="teamType.properties?.billingDescription?.split('/')[0] || ''"
+                    :price-interval="teamType.properties?.billingDescription?.split('/')[1] || ''"
+                    :label="teamType.name" :description="teamType.description"
+                    :meta="[{key: 'ID', value: teamType.id}, {key: 'Team Count', value: teamType.teamCount}]"
+                    :editable="true"
+                    @edit="showEditTeamTypeDialog(teamType)"
+                />
+            </ff-tile-selection>
+            <div v-if="nextCursor">
+                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+            </div>
+            <SectionTopMenu hero="Inactive Types" />
+            <ff-data-table :columns="columns" :rows="inactiveTeamTypes" data-el="inactive-types">
+                <template #context-menu="{row}">
+                    <ff-list-item label="Edit Team Type" @click="teamTypeAction('edit', row.id)" />
+                    <ff-list-item label="Delete Team Type" kind="danger" @click="teamTypeAction('delete', row.id)" />
+                </template>
+            </ff-data-table>
+            <div v-if="nextCursor">
+                <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
+            </div>
         </div>
-        <SectionTopMenu hero="Inactive Types" />
-        <ff-data-table :columns="columns" :rows="inactiveTeamTypes" data-el="inactive-types">
-            <template #context-menu="{row}">
-                <ff-list-item label="Edit Team Type" @click="teamTypeAction('edit', row.id)" />
-                <ff-list-item label="Delete Team Type" kind="danger" @click="teamTypeAction('delete', row.id)" />
-            </template>
-        </ff-data-table>
-        <div v-if="nextCursor">
-            <a v-if="!loading" class="forge-button-inline" @click.stop="loadItems">Load more...</a>
-        </div>
-    </div>
-    <TeamTypeEditDialog
-        ref="adminTeamTypeEditDialog"
-        @team-type-created="teamTypeCreated"
-        @team-type-updated="teamTypeUpdated"
-        @show-delete-dialog="showConfirmTeamTypeDeleteDialog"
-    />
+        <TeamTypeEditDialog
+            ref="adminTeamTypeEditDialog"
+            @team-type-created="teamTypeCreated"
+            @team-type-updated="teamTypeUpdated"
+            @show-delete-dialog="showConfirmTeamTypeDeleteDialog"
+        />
+    </ff-page>
 </template>
 
 <script>

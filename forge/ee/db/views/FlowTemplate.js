@@ -78,6 +78,7 @@ module.exports = function (app) {
                 items: {
                     type: 'object',
                     properties: {
+                        id: { type: 'string' },
                         name: { type: 'string' },
                         description: { type: 'string' },
                         category: { type: 'string' },
@@ -91,8 +92,8 @@ module.exports = function (app) {
         }
     })
 
-    function flowBlueprintExport (blueprint) {
-        return {
+    function flowBlueprintExport (blueprint, includeId = false) {
+        const returnedBlueprint = {
             name: blueprint.name,
             description: blueprint.description,
             category: blueprint.category,
@@ -100,6 +101,11 @@ module.exports = function (app) {
             flows: blueprint.flows,
             modules: blueprint.modules
         }
+
+        if (includeId) {
+            returnedBlueprint.id = blueprint.hashid
+        }
+        return returnedBlueprint
     }
 
     return {

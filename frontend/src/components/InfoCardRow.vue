@@ -1,6 +1,6 @@
 <template>
     <div class="ff-info-card-row flex items-center">
-        <div class="ff-info-card-row-property w-40 font-medium">
+        <div class="ff-info-card-row-property w-48 font-medium">
             <slot name="property">{{ property }}</slot>
         </div>
         <div class="ff-info-card-row-value">

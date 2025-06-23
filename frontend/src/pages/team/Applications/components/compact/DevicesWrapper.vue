@@ -35,28 +35,17 @@
         </div>
 
         <TeamDeviceCreateDialog
-            v-if="team"
+            v-if="team && deviceEditModalOpened"
             ref="teamDeviceCreateDialog"
             :team="team"
             :teamDeviceCount="teamDeviceCount"
             @device-created="deviceCreated"
             @device-updated="deviceUpdated"
+            @closed="deviceEditModalOpened = false"
         >
             <template #description>
-                <p>
-                    Here, you can add a new device to your
-                    <template v-if="displayingTeam">team.</template>
-                    <template v-if="displayingApplication">application.</template>
-                    <template v-else-if="displayingInstance">application instance.</template>
-                    This will generate a <b>device.yml</b> file that should be
-                    placed on the target device.
-                </p>
                 <p class="my-4">
-                    If you want your device to be automatically registered to an instance, in order to remotely deploy flows, you can use provisioning tokens
-                    in your <ff-team-link :to="{'name': 'TeamSettingsDevices', 'params': {team_slug: team.slug}}">Team Settings</ff-team-link>
-                </p>
-                <p class="my-4">
-                    Further info on Devices can be found
+                    Further info on Remote Instances can be found
                     <a href="https://flowfuse.com/docs/user/devices/" target="_blank">here</a>.
                 </p>
             </template>
@@ -96,7 +85,8 @@ export default {
     emits: ['delete-device'],
     data () {
         return {
-            devices: this.application.devices
+            devices: this.application.devices,
+            deviceEditModalOpened: false
         }
     },
     computed: {
@@ -133,20 +123,10 @@ export default {
             this.devices = devices
         }
     },
-    mounted () {
-        this.fetchAllDeviceStatuses()
-    },
     methods: {
-        openDevice (device) {
-            this.$router.push({
-                name: 'Device',
-                params: {
-                    id: device.id
-                }
-            })
-        },
         onDeviceAction ({ action, id }) {
-            this.deviceAction(action, id)
+            this.deviceEditModalOpened = true
+            this.$nextTick(() => this.deviceAction(action, id))
         }
     }
 }

@@ -90,6 +90,10 @@ module.exports = async function (app) {
                 })
                 response['platform:stats:token'] = app.settings.get('platform:stats:token')
             }
+            if (app.config.features.enabled('sso') && app.settings.get('platform:sso:google') && app.settings.get('platform:sso:google:clientId')) {
+                response['platform:sso:google'] = true
+                response['platform:sso:google:clientId'] = app.settings.get('platform:sso:google:clientId')
+            }
             reply.send(response)
         } else {
             // This is for an unauthenticated request. Return settings related
@@ -130,6 +134,12 @@ module.exports = async function (app) {
                 }
                 publicSettings.adwords = adwords
             }
+
+            if (app.config.features.enabled('sso') && app.settings.get('platform:sso:google') && app.settings.get('platform:sso:google:clientId')) {
+                publicSettings['platform:sso:google'] = true
+                publicSettings['platform:sso:google:clientId'] = app.settings.get('platform:sso:google:clientId')
+            }
+
             reply.send(publicSettings)
         }
     })

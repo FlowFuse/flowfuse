@@ -163,7 +163,7 @@ describe('Assistant API', async function () {
                     cookies: { sid: TestObjects.tokens.alice }
                 })
                 const device = deviceCreateResponse.json()
-                sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                sinon.stub(axios, 'post').resolves({ data: { status: 'ok', transactionId: '1234' } })
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/assistant/${serviceName}`,
@@ -174,12 +174,12 @@ describe('Assistant API', async function () {
                 response.statusCode.should.equal(200)
             })
             it('instance token can access', async function () {
-                sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                sinon.stub(axios, 'post').resolves({ data: { status: 'ok', transactionId: '4321' } })
                 const response = await app.inject({
                     method: 'POST',
                     url: `/api/v1/assistant/${serviceName}`,
                     headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
-                    payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                    payload: { prompt: 'multiply by 5', transactionId: '4321' }
                 })
                 axios.post.calledOnce.should.be.true()
                 response.statusCode.should.equal(200)
@@ -202,13 +202,23 @@ describe('Assistant API', async function () {
                 })
                 response.statusCode.should.equal(400)
             })
+            it('fails when transactionId is mismatched', async function () {
+                sinon.stub(axios, 'post').resolves({ data: { status: 'ok', transactionId: 'originator-id' } })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/assistant/${serviceName}`,
+                    headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
+                    payload: { prompt: 'multiply by 5', transactionId: 'deliberately-incorrect-id' }
+                })
+                response.statusCode.should.equal(500)
+            })
             it('contains owner info in headers for an instance', async function () {
-                sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                sinon.stub(axios, 'post').resolves({ data: { status: 'ok', transactionId: '11223344' } })
                 await app.inject({
                     method: 'POST',
                     url: `/api/v1/assistant/${serviceName}`,
                     headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
-                    payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                    payload: { prompt: 'multiply by 5', transactionId: '11223344' }
                 })
                 axios.post.calledOnce.should.be.true()
                 axios.post.args[0][2].headers.should.have.properties({
@@ -221,12 +231,12 @@ describe('Assistant API', async function () {
                 })
             })
             it('contains owner info in headers for a device', async function () {
-                sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                sinon.stub(axios, 'post').resolves({ data: { status: 'ok', transactionId: '9876' } })
                 await app.inject({
                     method: 'POST',
                     url: `/api/v1/assistant/${serviceName}`,
                     headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
-                    payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                    payload: { prompt: 'multiply by 5', transactionId: '9876' }
                 })
                 axios.post.calledOnce.should.be.true()
                 axios.post.args[0][2].headers.should.have.properties({

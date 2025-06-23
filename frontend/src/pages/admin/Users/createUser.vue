@@ -1,8 +1,20 @@
 <template>
-    <main>
-        <div class="max-w-2xl m-auto">
+    <ff-page>
+        <template #header>
+            <ff-page-header>
+                <template #breadcrumbs>
+                    <div class="flex-grow">
+                        <div class="text-gray-800 text-xl">
+                            <router-link class="ff-link font-bold" :to="{name: 'admin-users'}">Users</router-link>
+                            <ChevronRightIcon class="ff-icon" />
+                            <span>Create</span>
+                        </div>
+                    </div>
+                </template>
+            </ff-page-header>
+        </template>
+        <div class="max-w-2xl">
             <form class="space-y-6">
-                <FormHeading>Create a new user</FormHeading>
                 <FormRow v-model="input.username" :error="errors.username">Username</FormRow>
                 <FormRow v-model="input.name" :placeholder="input.username" :error="errors.name">Full Name</FormRow>
                 <FormRow v-model="input.email" :error="errors.email">Email</FormRow>
@@ -20,11 +32,11 @@
                 </ff-button>
             </form>
         </div>
-    </main>
+    </ff-page>
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import usersApi from '../../../api/users.js'
@@ -36,6 +48,7 @@ let zxcvbn
 export default {
     name: 'AdminCreateUser',
     components: {
+        ChevronRightIcon,
         FormRow,
         FormHeading
     },

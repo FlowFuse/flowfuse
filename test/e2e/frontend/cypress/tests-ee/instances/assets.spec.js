@@ -194,10 +194,8 @@ describe('FlowForge - Instance - Assets', () => {
             cy.get('[data-el="files-table"]').within(() => {
                 cy.get('[data-el="kebab-menu"]').as('kebabMenu')
                 cy.get('@kebabMenu').click()
-                cy.get('@kebabMenu').within(() => {
-                    cy.get('[data-action="delete-file"]').click()
-                })
             })
+            cy.get('[data-el="kebab-options"] [data-action="delete-file"]').click()
 
             interceptFiles([], '', 0, {})
 
@@ -243,10 +241,10 @@ describe('FlowForge - Instance - Assets', () => {
             cy.get('[data-el="files-table"]').within(() => {
                 cy.get('[data-el="kebab-menu"]').as('kebabMenu')
                 cy.get('@kebabMenu').click()
-                cy.get('@kebabMenu').within(() => {
-                    cy.get('[data-action="delete-folder"]').click()
-                })
             })
+
+            cy.get('[data-el="kebab-options"] [data-action="delete-folder"]').click()
+
             interceptFiles([], '', 0, {})
 
             cy.get('[data-el="platform-dialog"]').should('be.visible')
@@ -265,10 +263,9 @@ describe('FlowForge - Instance - Assets', () => {
             cy.get('[data-el="files-table"]').within(() => {
                 cy.get('[data-el="kebab-menu"]').as('kebabMenu')
                 cy.get('@kebabMenu').click()
-                cy.get('@kebabMenu').within(() => {
-                    cy.get('[data-action="edit-folder"]').click()
-                })
             })
+
+            cy.get('[data-el="kebab-options"] [data-action="edit-folder"]').click()
 
             cy.intercept('PUT', '/api/*/projects/*/files/_/*', 'hello world updated').as('updateFolder')
             interceptFiles([{ name: 'hello world updated', type: 'directory', lastModified: new Date() }])
@@ -405,7 +402,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
+            cy.get('[data-el="listbox-options"]')
                 .should('be.visible')
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="ff-data-cell"]:nth-child(2)').contains('hello_world')
@@ -431,7 +428,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
+            cy.get('[data-el="listbox-options"]')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-private"]').click()
@@ -464,7 +461,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
+            cy.get('[data-el="listbox-options"]')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-private"]').click()
@@ -493,7 +490,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
+            cy.get('[data-el="listbox-options"]')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-public"]').click()
@@ -537,7 +534,7 @@ describe('FlowForge - Instance - Assets', () => {
 
             cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"]')
                 .click()
-            cy.get('[data-el="folder-breadcrumbs"] [data-el="visibility-selector"] .ff-options')
+            cy.get('[data-el="listbox-options"]')
                 .should('be.visible')
                 .within(() => {
                     cy.get('[data-action="select-public"]').click()

@@ -1115,6 +1115,9 @@ describe('Application Device Groups API', function () {
                 // add 2 of the devices to the group
                 await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, { addDevices: [device1of3.id, device2of3.id] })
 
+                // Let the commands get flushed out asynchronously
+                await new Promise(resolve => setTimeout(resolve, 100))
+
                 // reset the mock call history
                 app.comms.devices.sendCommand.resetHistory()
 
@@ -1131,6 +1134,9 @@ describe('Application Device Groups API', function () {
 
                 // should succeed
                 response.statusCode.should.equal(200)
+
+                // Sending commands is done asynchronously. Add a small delay to let them finish
+                await new Promise(resolve => setTimeout(resolve, 200))
 
                 // check 3 devices got an update request
                 app.comms.devices.sendCommand.callCount.should.equal(3)
@@ -1172,6 +1178,9 @@ describe('Application Device Groups API', function () {
                 await deviceGroupOne.save()
                 await app.db.models.PipelineStageDeviceGroup.update({ targetSnapshotId: snapshot.id }, { where: { PipelineStageId: pipelineDeviceGroupsStageTwo.id } })
 
+                // Sending commands is done asynchronously. Add a small delay to let them finish
+                await new Promise(resolve => setTimeout(resolve, 200))
+
                 // reset the mock call history
                 app.comms.devices.sendCommand.resetHistory()
 
@@ -1187,6 +1196,9 @@ describe('Application Device Groups API', function () {
 
                 // should succeed
                 response.statusCode.should.equal(200)
+
+                // Sending commands is done asynchronously. Add a small delay to let them finish
+                await new Promise(resolve => setTimeout(resolve, 200))
 
                 // check both devices got an update request
                 app.comms.devices.sendCommand.callCount.should.equal(2)

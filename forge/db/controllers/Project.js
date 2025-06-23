@@ -108,6 +108,23 @@ module.exports = {
         moduleList.forEach(module => {
             modules[module.name] = module.version
         })
+        // ensure email alert settings for resources have a value that matches
+        // what we show in the UI when no value is set in the DB
+        // (see forge/db/views/Project.js for the matching UI default values)
+        if (typeof result.emailAlerts !== 'object') {
+            result.emailAlerts = {}
+        }
+        if (typeof result.emailAlerts.resource !== 'object') {
+            result.emailAlerts.resource = {}
+        }
+        if (typeof result.emailAlerts.resource.cpu !== 'boolean') {
+            const templateSetting = project.ProjectTemplate?.settings?.emailAlerts?.resource?.cpu
+            result.emailAlerts.resource.cpu = templateSetting ?? true
+        }
+        if (typeof result.emailAlerts.resource.memory !== 'boolean') {
+            const templateSetting = project.ProjectTemplate?.settings?.emailAlerts?.resource?.memory
+            result.emailAlerts.resource.memory = templateSetting ?? true
+        }
         result.palette = result.palette || {}
         result.palette.modules = modules
         result.env = env

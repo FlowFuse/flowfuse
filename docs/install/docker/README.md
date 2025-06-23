@@ -256,11 +256,15 @@ Once you have finished setting up the admin user there are some Docker specific 
     ```bash
     curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose.yml
     ```
-4. Make sure the `.env` file is present and contains your installaction-specific configuration. Download an example `.env` file if needed:
+4. Make sure the `.env` file is present and contains your installation-specific configuration. Download an example `.env` file if needed:
     ```bash
     curl -o .env.example https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/.env.example
     ```
-5. Start the project depending on the TLS configuration (replace `$projectName` with your project name):
+5. Pull the latest version of the default stack container (and any other stacks you have configured)
+   ```bash
+   docker pull flowfuse/node-red:latest
+   ```
+6. Start the project depending on the TLS configuration (replace `$projectName` with your project name):
 
   - automatic TLS:
     ```bash

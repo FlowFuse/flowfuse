@@ -62,7 +62,7 @@ get_latest_image_tag() {
 }
 
 create_suspended_instance() {
-  local INSTANCE_NAME=$1
+  local INSTANCE_NAME=$1-$PR_NUMBER
   local TEAM_APPLICATION_ID=$2
   echo "Creating suspended $INSTANCE_NAME@$TEAM_APPLICATION_ID instance"
   INSTANCE_ID=$(curl -ks -XPOST \
@@ -296,7 +296,9 @@ curl -ks -w "\n" -XPOST \
                         "staticAssets":true,
                         "bom":true,
                         "projectHistory":true,
-                        "teamBroker":true
+                        "teamBroker":true,
+                        "gitIntegration": true,
+                        "instanceResources":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {

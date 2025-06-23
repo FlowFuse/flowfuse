@@ -113,7 +113,6 @@ describe('FlowForge - Library', () => {
 
             // move along the multi-step form
             cy.get('[data-el="application-item"]').first().click()
-            cy.get('[data-el="next-step"]').click()
 
             // select instance type
             cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()
@@ -122,7 +121,7 @@ describe('FlowForge - Library', () => {
             cy.get('[data-group="templates"] [data-item="tile-selection-option"]').first().click()
 
             // select nr-version
-            cy.get('[data-el="listbox"]').click()
+            cy.get('[data-form="multi-step-form"] [data-el="node-red-listbox"]').click()
             cy.get('[data-option="stack 1"]').click()
 
             cy.get('[data-el="next-step"]').click()

@@ -1,8 +1,8 @@
 import {
-    BookOpenIcon, ChatIcon, ChevronLeftIcon, ChipIcon, CogIcon, CollectionIcon,
-    ColorSwatchIcon, CurrencyDollarIcon, DatabaseIcon,
-    DesktopComputerIcon, LockClosedIcon, RssIcon,
-    TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
+    BookOpenIcon, ChartBarIcon, ChatIcon, ChevronLeftIcon, ChipIcon, CogIcon,
+    CollectionIcon, ColorSwatchIcon, CurrencyDollarIcon,
+    DatabaseIcon, DesktopComputerIcon, HomeIcon, LockClosedIcon,
+    RssIcon, TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
 } from '@heroicons/vue/outline'
 
 import DeviceGroupOutlineIcon from '../../../components/icons/DeviceGroupOutline.js'
@@ -194,13 +194,13 @@ const getters = {
                     hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
                         {
-                            label: 'Applications',
+                            label: 'Home',
                             to: {
-                                name: 'Applications',
+                                name: 'team-home',
                                 params: { team_slug: team.slug }
                             },
-                            tag: 'team-applications',
-                            icon: TemplateIcon,
+                            tag: 'team-home',
+                            icon: HomeIcon,
                             disabled: requiresBilling
                         }
                     ]
@@ -242,6 +242,16 @@ const getters = {
                     title: 'Operations',
                     hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
+                        {
+                            label: 'Applications',
+                            to: {
+                                name: 'Applications',
+                                params: { team_slug: team.slug }
+                            },
+                            tag: 'team-applications',
+                            icon: TemplateIcon,
+                            disabled: requiresBilling
+                        },
                         {
                             label: 'Groups',
                             to: {
@@ -286,6 +296,15 @@ const getters = {
                             disabled: requiresBilling,
                             featureUnavailable: !features.isMqttBrokerFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
+                        },
+                        {
+                            label: 'Performance',
+                            to: { name: 'team-performance', params: { team_slug: team.slug } },
+                            tag: 'team-performance',
+                            icon: ChartBarIcon,
+                            disabled: requiresBilling,
+                            featureUnavailable: !features.isInstanceResourcesFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isInstanceResourcesFeatureEnabledForPlatform
                         }
                     ]
                 },

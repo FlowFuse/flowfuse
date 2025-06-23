@@ -45,7 +45,7 @@ You will need to know the following:
 - Username/Password
 
 If you don't already have a SMTP server you can grab one from an email delivery service like 
-SparkPost, [Sendgrid](https://marketplace.digitalocean.com/apps/sendgrid), Mailgun, etc.
+SparkPost, Sendgrid, Mailgun, or any [other email solution provided by Digital Ocean](https://marketplace.digitalocean.com/category/email).
 
 ## Setup
 

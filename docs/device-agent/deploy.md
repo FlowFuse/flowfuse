@@ -67,14 +67,18 @@ about working with snapshots.
 
 ## Editing the Node-RED flows on a Remote Instance that is assigned to an application
 
-The device agent does not allow local access to the Node-RED editor. Access to the
-editor is only available when:
+Access to the editor is only available when:
 
 * The Remote Instance is in Developer Mode
 
 * When running on FlowFuse Cloud, or a premium licensed FlowFuse instance (with the
 [MQTT broker enabled](https://flowfuse.com/docs/contribute/local/#setting-up-mosquitto-(optional))
 the Remote Instance can be placed in Developer Mode that enables remote access to the editor.
+
+* Local access to the editor can be enabled by defining a Username & Password in the Device 
+  Settings -> Security and enabling "Allow offline access"
+  ![Device Allow Offline Access Settings](./images/device-local-access.png){data-zoomable}
+  _Device Allow Offline Access Srttings_
 
 Whilst in Developer Mode the Remote Instance will not receive new updates from the platform.
 

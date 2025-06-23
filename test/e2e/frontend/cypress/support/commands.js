@@ -69,10 +69,9 @@ Cypress.Commands.add('home', (username, password) => {
     cy.wait('@getTeam')
     cy.wait('@getTeams')
     cy.wait('@getTeamRole')
-    cy.wait('@getTeamApplications')
     cy.wait('@getInvitations')
 
-    cy.url().should('include', '/applications')
+    cy.url().should('include', '/overview')
 })
 
 Cypress.Commands.add('enableBilling', () => {
@@ -166,6 +165,26 @@ Cypress.Commands.add('clearBrowserData', () => {
     cy.clearLocalStorage()
     cy.window().then((win) => {
         win.sessionStorage.clear()
+    })
+})
+
+Cypress.Commands.add('isEmailEnabled', () => {
+    cy.login('alice', 'aaPassword')
+
+    cy.visit('/admin/settings/email')
+
+    // wait for the page to render
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(2000)
+
+    // eslint-disable-next-line cypress/require-data-selectors
+    return cy.get('body').then(($body) => {
+        const isDisabled = $body.text().includes('Email is not currently configured for the platform.')
+
+        cy.logout()
+        cy.clearBrowserData()
+
+        return cy.wrap(!isDisabled)
     })
 })
 

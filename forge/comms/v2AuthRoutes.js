@@ -124,7 +124,7 @@ module.exports = async function (app) {
         } else {
             if (app.license.active()) {
                 const parts = request.body.username.split('@')
-                const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1])
+                const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1], false)
                 if (user) {
                     const acls = JSON.parse(user.acls)
                     for (const acl in acls) {

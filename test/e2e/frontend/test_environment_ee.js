@@ -1,23 +1,50 @@
 /* eslint-disable n/no-process-exit */
 'use strict'
 
+const fs = require('fs')
+
+const path = require('path')
+
+const yaml = require('yaml')
+
 const TestModelFactory = require('../../lib/TestModelFactory')
 
-const smtp = require('./environments/smtp')
 const app = require('./environments/standard')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
+const configPath = path.join(process.cwd(), 'etc', 'flowforge.local.yml')
+let e2eConfig = null
+
+if (fs.existsSync(configPath)) {
+    const configFile = fs.readFileSync(configPath, 'utf8')
+    e2eConfig = yaml.parse(configFile).e2e
+}
+
 ;(async function () {
     const PORT = 3002
-    const smtpConfig = {
-        smtpPort: process.env.SMTP_PORT || 1026,
-        webPort: process.env.SMTP_WEB_PORT || 8026
-    }
+    let emailConfig
 
-    if (!process.env.NO_SMTP_SERVER || process.env.NO_SMTP_SERVER === 'false') {
-        await smtp({ smtpPort: smtpConfig.smtpPort, webPort: smtpConfig.webPort })
+    if (e2eConfig && e2eConfig.email && e2eConfig.email.ee && e2eConfig.email.ee.enabled) {
+        const smtp = require('./environments/smtp')
+
+        await smtp({
+            smtpPort: e2eConfig.email.ee.smtp.port,
+            webPort: e2eConfig.email.ee.smtp.web_port
+        })
+        emailConfig = e2eConfig.email.ee
+    } else {
+        emailConfig = {
+            enabled: true,
+            debug: true,
+            smtp: {
+                host: process.env.SMTP_HOST,
+                port: process.env.SMTP_PORT,
+                secure: false,
+                debug: true
+            }
+        }
     }
 
     const flowforge = await app({
@@ -40,16 +67,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
                 }
             }
         },
-        email: {
-            enabled: true,
-            debug: true,
-            smtp: {
-                host: process.env.SMTP_HOST || 'localhost',
-                port: smtpConfig.smtpPort,
-                secure: false,
-                debug: true
-            }
-        },
+        email: emailConfig,
         broker: {
             url: ':test:',
             teamBroker: {
@@ -122,7 +140,10 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
             instances: { [flowforge.projectTypes[0].hashid]: { active: false } },
             devices: {},
             users: {},
-            features: {}
+            features: {},
+            billing: {
+                disabled: true
+            }
         }
     })
     const freeTeam = await factory.createTeam({

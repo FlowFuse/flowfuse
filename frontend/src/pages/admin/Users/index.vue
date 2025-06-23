@@ -1,14 +1,10 @@
 <template>
-    <div class="clear-page-gutters">
-        <div class="ff-instance-header">
+    <ff-page>
+        <template #header>
             <ff-page-header title="Users" :tabs="sideNavigation" />
-        </div>
-        <div class="px-3 py-3 md:px-6 md:py-6">
-            <div class="flex-grow">
-                <router-view />
-            </div>
-        </div>
-    </div>
+        </template>
+        <router-view />
+    </ff-page>
 </template>
 
 <script>
@@ -29,7 +25,4 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.clear-page-gutters {
-    margin: -1.75rem
-}
 </style>

@@ -8,16 +8,19 @@ import TeamBilling from './Billing.vue'
 import BrokersRoutes from './Brokers/routes.js'
 import DeviceGroups from './DeviceGroups/index.vue'
 import TeamDevices from './Devices/index.vue'
+import TeamHome from './Home/index.vue'
 import TeamInstances from './Instances.vue'
 import Library from './Library/index.vue'
 import LibraryRoutes from './Library/routes.js'
 import TeamMembersMembers from './Members/General.vue'
 import TeamMembersInvitations from './Members/Invitations.vue'
 import TeamMembers from './Members/index.vue'
+import TeamPerformance from './Performance/index.vue'
 import TeamPipelines from './Pipelines/index.vue'
 import TeamSettingsDanger from './Settings/Danger.vue'
 import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
+import TeamSettingsIntegrations from './Settings/Integrations.vue'
 import TeamSettings from './Settings/index.vue'
 import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
@@ -32,7 +35,7 @@ export default [
         children: [
             {
                 path: ':team_slug',
-                redirect: { name: 'Applications' },
+                redirect: { name: 'team-home' },
                 name: 'Team',
                 component: Team,
                 meta: {
@@ -40,6 +43,11 @@ export default [
                 },
                 children: [
                     ...BrokersRoutes,
+                    {
+                        path: 'overview',
+                        name: 'team-home',
+                        component: TeamHome
+                    },
                     {
                         path: 'applications',
                         children: [
@@ -146,6 +154,7 @@ export default [
                                 children: [
                                     { name: 'team-settings-general', path: 'general', component: TeamSettingsGeneral },
                                     { name: 'TeamSettingsDevices', path: 'devices', component: TeamSettingsDevices },
+                                    { name: 'team-settings-integrations', path: 'integrations', component: TeamSettingsIntegrations },
                                     { name: 'team-settings-danger', path: 'danger', component: TeamSettingsDanger }
 
                                 ]
@@ -169,11 +178,6 @@ export default [
                         }
                     },
                     {
-                        name: 'team-overview',
-                        path: 'overview',
-                        redirect: { name: 'Applications' }
-                    },
-                    {
                         name: 'team-pipelines',
                         path: 'pipelines',
                         component: TeamPipelines,
@@ -195,6 +199,14 @@ export default [
                         component: DeviceGroups,
                         meta: {
                             title: 'Team - Groups'
+                        }
+                    },
+                    {
+                        name: 'team-performance',
+                        path: 'performance',
+                        component: TeamPerformance,
+                        meta: {
+                            title: 'Team - Performance'
                         }
                     }
                 ]

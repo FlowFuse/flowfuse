@@ -353,3 +353,155 @@ d
         })
     })
 })
+
+describe('SSO managed membership', async function () {
+    let app
+    const TestObjects = { tokens: {} }
+
+    async function login (username, password) {
+        const response = await app.inject({
+            method: 'POST',
+            url: '/account/login',
+            payload: { username, password, remember: false }
+        })
+        response.cookies.should.have.length(1)
+        response.cookies[0].should.have.property('name', 'sid')
+        TestObjects.tokens[username] = response.cookies[0].value
+    }
+
+    before(async function () {
+        app = await setup({})
+
+        TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
+        TestObjects.ATeam.slug = 'ateam'
+        await TestObjects.ATeam.save()
+
+        TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', slug: 'bteam', TeamTypeId: app.defaultTeamType.id })
+    })
+    beforeEach(async function () {
+        return setupUsers()
+    })
+    async function setupUsers () {
+        await app.db.models.TeamMember.destroy({ where: {} })
+        await app.db.models.User.destroy({ where: {} })
+        await app.db.models.SAMLProvider.destroy({ where: {} })
+
+        TestObjects.alice = await app.db.models.User.create({ username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
+        TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@ssoexample.com', email_verified: true, password: 'bbPassword' })
+
+        await login('alice', 'aaPassword')
+        await login('bob', 'bbPassword')
+
+        // Two teams - ATeam and BTeam
+        // alice owner of both
+        // bob is member of both
+
+        await TestObjects.ATeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+        await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
+        await TestObjects.BTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+        await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
+        app.samlProviders = {}
+        app.samlProviders.provider1 = await app.db.models.SAMLProvider.create({
+            name: 'ssoexample.com',
+            domainFilter: '@ssoexample.com',
+            active: true,
+            options: {
+                groupAllTeams: false,
+                groupTeams: [TestObjects.BTeam.slug]
+            }
+        })
+    }
+
+    after(async function () {
+        await app.close()
+    })
+
+    it('cannot delete membership for SSO managed user/team', async function () {
+        // BTeam is listed as a groupTeam in the SSO config
+        const response = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${TestObjects.BTeam.hashid}/members/${TestObjects.bob.hashid}`,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        response.statusCode.should.equal(400)
+        const result = response.json()
+        result.should.have.property('code', 'invalid_request')
+        result.should.have.property('error', 'Cannot modify team membershipt for an SSO managed user')
+    })
+    it('cannot modify membership for SSO managed user/team', async function () {
+        // BTeam is listed as a groupTeam in the SSO config
+        const response = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/teams/${TestObjects.BTeam.hashid}/members/${TestObjects.bob.hashid}`,
+            cookies: { sid: TestObjects.tokens.alice },
+            payload: {
+                role: Roles.Viewer
+            }
+        })
+        response.statusCode.should.equal(400)
+        const result = response.json()
+        result.should.have.property('code', 'invalid_request')
+        result.should.have.property('error', 'Cannot modify team membershipt for an SSO managed user')
+    })
+
+    it('can delete membership for non-SSO managed user/team', async function () {
+        // ATeam is not listed as a groupTeam in the SSO config
+        const response = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${TestObjects.ATeam.hashid}/members/${TestObjects.bob.hashid}`,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        response.statusCode.should.equal(200)
+    })
+    it('can modify membership for SSO managed user/team', async function () {
+        // ATeam is not listed as a groupTeam in the SSO config
+        const response = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/teams/${TestObjects.ATeam.hashid}/members/${TestObjects.bob.hashid}`,
+            cookies: { sid: TestObjects.tokens.alice },
+            payload: {
+                role: Roles.Viewer
+            }
+        })
+        response.statusCode.should.equal(200)
+    })
+
+    it('cannot delete membership for non-SSO managed user/team when groupAllTeams selected', async function () {
+        // Update options
+        const options = app.samlProviders.provider1.getOptions()
+        options.groupAllTeams = true
+        app.samlProviders.provider1.set('options', options)
+        await app.samlProviders.provider1.save()
+        // ATeam is not listed as a groupTeam in the SSO config
+        const response = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${TestObjects.ATeam.hashid}/members/${TestObjects.bob.hashid}`,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        response.statusCode.should.equal(400)
+        const result = response.json()
+        result.should.have.property('code', 'invalid_request')
+        result.should.have.property('error', 'Cannot modify team membershipt for an SSO managed user')
+    })
+
+    it('cannot modify membership for non-SSO managed user/team when groupAllTeams selected', async function () {
+        // Update options
+        const options = app.samlProviders.provider1.getOptions()
+        options.groupAllTeams = true
+        app.samlProviders.provider1.set('options', options)
+        await app.samlProviders.provider1.save()
+        // ATeam is not listed as a groupTeam in the SSO config
+        const response = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/teams/${TestObjects.ATeam.hashid}/members/${TestObjects.bob.hashid}`,
+            cookies: { sid: TestObjects.tokens.alice },
+            payload: {
+                role: Roles.Viewer
+            }
+        })
+        response.statusCode.should.equal(400)
+        const result = response.json()
+        result.should.have.property('code', 'invalid_request')
+        result.should.have.property('error', 'Cannot modify team membershipt for an SSO managed user')
+    })
+})

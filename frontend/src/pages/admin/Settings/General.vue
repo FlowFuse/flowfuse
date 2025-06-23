@@ -172,6 +172,23 @@
             </template>
         </FormRow>
 
+        <template v-if="ssoEnabled">
+            <FormHeading>Social Logins</FormHeading>
+            <FormRow v-model="input['platform:sso:google']" type="checkbox" data-el="google-sso">
+                Allow users to login with Google SSO
+                <template #description>
+                    Users can login using Google Single-Sign On. This only supports non-Workspace accounts. Workspace accounts
+                    must be configured via individual SSO providers.
+                </template>
+            </FormRow>
+            <FormRow v-if="input['platform:sso:google']" v-model="input['platform:sso:google:clientId']" containerClass="max-w-sm ml-9" type="text" data-el="google-sso-">
+                Client ID
+                <template #description>
+                    The Client ID for the Google SSO application
+                </template>
+            </FormRow>
+        </template>
+
         <div class="pt-8">
             <ff-button :disabled="!saveEnabled" data-action="save-settings" @click="saveChanges">Save settings</ff-button>
         </div>
@@ -208,7 +225,9 @@ const validSettings = [
     'telemetry:enabled',
     'branding:account:signUpTopBanner',
     'branding:account:signUpLeftBanner',
-    'platform:stats:token'
+    'platform:stats:token',
+    'platform:sso:google',
+    'platform:sso:google:clientId'
 ]
 
 export default {
@@ -239,6 +258,9 @@ export default {
         ...mapState('account', ['features', 'settings']),
         isLicensed () {
             return !!this.settings['platform:licensed']
+        },
+        ssoEnabled () {
+            return this.features.sso
         },
         tcsDate () {
             const _tcsDate = this.input['user:tcs-date']

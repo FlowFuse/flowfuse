@@ -74,24 +74,24 @@ describe('FlowForge - Application - Snapshots', () => {
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
 
         // check the options are present
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').should('have.length', MENU_ITEM_COUNT)
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_EDIT_SNAPSHOT).contains('Edit Snapshot')
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).contains('Compare Snapshot...')
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).contains('Download Snapshot')
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).contains('Download package.json')
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DELETE_SNAPSHOT).contains('Delete Snapshot')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').should('have.length', MENU_ITEM_COUNT)
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_EDIT_SNAPSHOT).contains('Edit Snapshot')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).contains('Compare Snapshot...')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).contains('Download Snapshot')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).contains('Download package.json')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_DELETE_SNAPSHOT).contains('Delete Snapshot')
         // close the kebab menu by clicking the table
         cy.get('[data-el="snapshots"]').click()
 
         // click kebab menu in row 2 - a instance snapshot
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(1).click()
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_EDIT_SNAPSHOT).contains('Edit Snapshot')
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).contains('Compare Snapshot...')
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).contains('Download Snapshot')
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).contains('Download package.json')
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DELETE_SNAPSHOT).contains('Delete Snapshot')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).contains('View Snapshot')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_EDIT_SNAPSHOT).contains('Edit Snapshot')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).contains('Compare Snapshot...')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_SNAPSHOT).contains('Download Snapshot')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).contains('Download package.json')
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_DELETE_SNAPSHOT).contains('Delete Snapshot')
     })
 
     it('provides functionality to view a device snapshot', () => {
@@ -103,7 +103,7 @@ describe('FlowForge - Application - Snapshots', () => {
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
         // click the View Snapshot option
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).click()
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).click()
 
         cy.wait('@fullSnapshot')
 
@@ -123,7 +123,7 @@ describe('FlowForge - Application - Snapshots', () => {
         // click kebab menu in row 2
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(1).click()
         // click the View Snapshot option
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).click()
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_VIEW_SNAPSHOT).click()
 
         cy.wait('@fullSnapshot')
 
@@ -144,7 +144,7 @@ describe('FlowForge - Application - Snapshots', () => {
         // click kebab menu in row 2
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(1).click()
         // click the Edit Snapshot option
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_EDIT_SNAPSHOT).click()
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_EDIT_SNAPSHOT).click()
 
         // check the snapshot dialog is visible and contains the snapshot name
         cy.get('[data-el="dialog-edit-snapshot"]').should('be.visible')
@@ -185,7 +185,7 @@ describe('FlowForge - Application - Snapshots', () => {
         // click kebab menu in row 2
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(1).click()
         // click the View Snapshot option
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).click()
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_COMPARE_SNAPSHOT).click()
 
         cy.wait('@fullSnapshot')
 
@@ -198,7 +198,7 @@ describe('FlowForge - Application - Snapshots', () => {
 
         // select a comparison snapshot
         cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"]').click()
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] .ff-options > .ff-option:first').click()
+        cy.get('[data-el="listbox-options"] > .ff-option:first').click()
         // click compare button
         cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').click()
         cy.wait('@fullSnapshot')
@@ -217,7 +217,7 @@ describe('FlowForge - Application - Snapshots', () => {
         // click kebab menu in row 1
         cy.get('[data-el="snapshots"] tbody').find('.ff-kebab-menu').eq(0).click()
         // click the Download Package.json option
-        cy.get('[data-el="snapshots"] tbody .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).click()
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(IDX_DOWNLOAD_PACKAGE).click()
 
         cy.wait('@snapshot').then(async interception => {
             // At this point, the endpoint has returned but occasionally, the test fails as the file is not yet written to the filesystem.

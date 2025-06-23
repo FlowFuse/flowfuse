@@ -25,6 +25,7 @@
                     :project="instance"
                     :instance="instance"
                     @instance-updated="$emit('instance-updated')"
+                    @restart-instance="restartInstance"
                     @instance-confirm-suspend="$emit('instance-confirm-suspend')"
                     @instance-confirm-delete="$emit('instance-confirm-delete')"
                     @save-button-state="onSaveButtonStateChange"
@@ -39,6 +40,7 @@ import { mapState } from 'vuex'
 
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import instanceActionsMixin from '../../../mixins/InstanceActions.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
@@ -47,7 +49,7 @@ export default {
         SectionTopMenu,
         SectionSideMenu
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, instanceActionsMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -122,6 +124,9 @@ export default {
             ) {
                 this.$refs.settingsPage.saveSettings()
             }
+        },
+        restartInstance () {
+            this.instanceRestart(this.instance) // from the InstanceActions mixin
         }
     }
 }

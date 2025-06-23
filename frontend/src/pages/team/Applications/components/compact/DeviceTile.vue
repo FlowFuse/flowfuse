@@ -1,7 +1,8 @@
 <template>
     <div class="device-tile" data-el="device-tile">
         <div class="status">
-            <StatusBadge :status="device.status" :instanceId="device.id" instanceType="device" />
+            <StatusBadge v-if="!minimalView" :status="device.status" :instanceId="device.id" instanceType="device" />
+            <InstanceMinimalStatusBadge v-else :status="device.status" />
         </div>
         <div class="details">
             <div class="detail-wrapper">
@@ -18,19 +19,21 @@
             </div>
         </div>
         <div class="actions">
-            <FinishSetupButton v-if="neverConnected" :device="device" />
-            <ff-kebab-menu v-else>
+            <FinishSetupButton v-if="neverConnected && hasPermission('device:edit')" :device="device" :minimal-view="minimalView" />
+            <ff-kebab-menu v-else-if="shouldDisplayKebabMenu">
                 <ff-list-item
+                    v-if="hasPermission('device:edit')"
                     label="Edit Details"
                     @click.stop="$emit('device-action',{action: 'edit', id: device.id})"
                 />
                 <ff-list-item
-                    v-if="(displayingTeam || displayingApplication)"
+                    v-if="displayingApplication && hasPermission('device:edit')"
                     label="Remove from Application"
                     data-action="device-remove-from-application"
                     @click.stop="$emit('device-action',{action: 'removeFromApplication', id: device.id})"
                 />
                 <ff-list-item
+                    v-if="hasPermission('device:edit')"
                     kind="danger"
                     label="Regenerate Configuration"
                     @click.stop="$emit('device-action',{action: 'updateCredentials', id: device.id})"
@@ -49,14 +52,17 @@
 <script>
 import FinishSetupButton from '../../../../../components/FinishSetup.vue'
 import StatusBadge from '../../../../../components/StatusBadge.vue'
+import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import permissionsMixin from '../../../../../mixins/Permissions.js'
 import FfKebabMenu from '../../../../../ui-components/components/KebabMenu.vue'
 import DaysSince from '../../../../application/Snapshots/components/cells/DaysSince.vue'
+import InstanceMinimalStatusBadge from '../../../../instance/components/InstanceMinimalStatusBadge.vue'
 
 export default {
     name: 'DeviceTile',
     components: {
+        InstanceMinimalStatusBadge,
         StatusBadge,
         FfKebabMenu,
         DaysSince,
@@ -69,11 +75,19 @@ export default {
             required: true
         },
         application: { // required for deviceActionsMixin fetchData
-            required: true,
+            required: false,
             type: Object
+        },
+        minimalView: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['device-action'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     computed: {
         neverConnected () {
             return !this.device.lastSeenAt
@@ -82,6 +96,10 @@ export default {
     methods: {
         finishSetup () {
             this.$emit('device-action', { action: 'updateCredentials', id: this.device.id })
+        },
+        shouldDisplayKebabMenu () {
+            return this.hasPermission('device:edit') ||
+            this.hasPermission('device:delete')
         }
     }
 }

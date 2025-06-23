@@ -59,17 +59,16 @@
                                 class="font-mono"
                                 :containerClass="'w-full' + (!readOnly && (editTemplate || item.policy === undefined)) ? ' env-cell-uneditable':''"
                                 :inputClass="item.deprecated ? 'w-full text-yellow-700 italic' : 'w-full'"
-                                :error="errors[item.index].error"
+                                :error="errors[item.index] ? errors[item.index].error : null"
                                 :disabled="isDisabledName(item)"
                                 value-empty-text=""
                                 data-el="var-name"
-                                :type="(!readOnly && (editTemplate || item.policy === undefined))?'text':'uneditable'"
+                                :type="(!readOnly && (editTemplate || item.policy === undefined)) ? 'text' : 'uneditable'"
                             />
                         </td>
-                        <td class="ff-data-table--cell !p-1 border w-3/5 align-top max-w-xl" :class="{'align-middle':item.encrypted}">
+                        <td class="ff-data-table--cell !p-1 border w-3/5 max-w-xl" :class="{'align-middle':item.encrypted, 'align-top': !item.hidden}">
                             <div v-if="!item.encrypted" class="w-full">
                                 <template v-if="(!readOnly && (editTemplate || item.policy === undefined || item.policy))">
-                                    <!-- editable -->
                                     <textarea
                                         v-model="item.value"
                                         :placeholder="item.hidden ? 'Value hidden' : ''"
@@ -78,7 +77,9 @@
                                     />
                                 </template>
                                 <template v-else>
+                                    <span v-if="item.hidden" class="italic text-gray-300">Value hidden</span>
                                     <FormRow
+                                        v-else
                                         v-model="item.value"
                                         class="font-mono"
                                         containerClass="w-full env-cell-uneditable"
@@ -202,12 +203,13 @@ export default {
         },
         originalEnvVars: {
             type: Array,
-            required: true
+            default: () => []
         }
     },
     emits: ['update:modelValue', 'validated'],
     data () {
         return {
+            ogEnvVars: [],
             addedCount: 0,
             input: {},
             envVarLookup: {},
@@ -223,7 +225,7 @@ export default {
         },
         filteredRows: function () {
             if (this.search === '') {
-                return this.editable.settings.env.filter(row => !row.deprecated)
+                return this.editable?.settings?.env?.filter(row => !row.deprecated)
             }
             const search = this.search.toLowerCase()
             return this.editable.settings.env.filter(row => {
@@ -249,6 +251,12 @@ export default {
     mounted () {
         this.updateLookup()
         this.validate()
+        // save the original env vars
+        if (!this.originalEnvVars || this.originalEnvVars.length === 0) {
+            this.ogEnvVars = this.editable.settings.env
+        } else {
+            this.ogEnvVars = this.originalEnvVars
+        }
     },
     methods: {
         openInfoDialog () {

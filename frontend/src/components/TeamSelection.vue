@@ -1,33 +1,48 @@
 <template>
-    <ff-dropdown v-if="hasAvailableTeams" class="ff-team-selection">
-        <template #placeholder>
-            <div v-if="team" class="flex grow items-center">
-                <img :src="team.avatar" class="ff-avatar">
-                <div class="ff-team-selection-name">
-                    <label>TEAM:</label>
-                    <h5>{{ team.name }}</h5>
+    <ff-listbox v-if="hasAvailableTeams" :options="teamOptions" v-model="selection" class="ff-team-selection">
+        <template #button>
+            <ListboxButton>
+                <div v-if="team" class="flex grow items-center">
+                    <div class="ff-team-selection-name">
+                        <label>TEAM:</label>
+                        <h5>{{ team.name }}</h5>
+                    </div>
                 </div>
-            </div>
-            <div v-else class="flex grow items-center">
-                <div class="ff-team-selection-name">
-                    <h5>Select a team</h5>
+                <div v-else class="flex grow items-center">
+                    <div class="ff-team-selection-name">
+                        <h5>Select a team</h5>
+                    </div>
                 </div>
-            </div>
+            </ListboxButton>
         </template>
-        <template #default>
-            <ul class="ff-dropdown-option-list">
-                <ff-dropdown-option>
-                    <nav-item v-for="t in teams" :key="t.id" :label="t.name" :avatar="t?.avatar" @click="selectTeam(t)" data-action="switch-team" />
-                </ff-dropdown-option>
-                <ff-dropdown-option v-if="canCreateTeam">
-                    <nav-item label="Create New Team" :icon="plusIcon" @click="createTeam(t);" data-action="create-team" />
-                </ff-dropdown-option>
-            </ul>
+        <template #options="{options}">
+            <ListboxOption
+                v-for="option in options"
+                v-slot="{ active, selected }"
+                :key="option.label"
+                :value="option"
+                as="template"
+                class="ff-option ff-team-selection-option"
+                :class="{'create-new': option.value === 'create-new-team'}"
+                :data-option="option.label"
+                :title="option.label"
+            >
+                <li>
+                    <div class="ff-option-content truncate" :class="{selected, active}">
+                        <component v-if="option.icon" :is="PlusIcon" class="ff-icon transition-fade" />
+                        <span class="truncate">{{ option.label }}</span>
+                    </div>
+                </li>
+            </ListboxOption>
         </template>
-    </ff-dropdown>
+    </ff-listbox>
 </template>
 
 <script>
+import {
+    ListboxButton,
+    ListboxOption
+} from '@headlessui/vue'
 import { PlusIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState } from 'vuex'
 
@@ -37,15 +52,42 @@ export default {
     name: 'FFTeamSelection',
     emits: ['option-selected'],
     components: {
-        NavItem
+        NavItem,
+        ListboxOption,
+        ListboxButton
+    },
+    setup () {
+        return { PlusIcon }
     },
     computed: {
         ...mapState('account', ['team', 'teams', 'settings']),
-        ...mapGetters('account', ['hasAvailableTeams', 'canCreateTeam'])
+        ...mapGetters('account', ['hasAvailableTeams', 'canCreateTeam']),
+        teamOptions () {
+            return [
+                ...this.teams.map(team => {
+                    return { label: team.name, value: team.slug }
+                }),
+                (
+                    this.canCreateTeam
+                        ? { label: 'Create New Team', value: 'create-new-team', icon: PlusIcon }
+                        : undefined
+                )
+            ].filter(v => v)
+        }
     },
     data () {
         return {
-            plusIcon: PlusIcon
+            selection: this.$route.params.team_slug ?? null,
+            loaded: false
+        }
+    },
+    watch: {
+        selection (value) {
+            if (value === 'create-new-team') {
+                return this.createTeam()
+            } else {
+                return this.selectTeam({ slug: value })
+            }
         }
     },
     methods: {
@@ -62,7 +104,7 @@ export default {
             }
         },
         createTeam () {
-            this.$router.push({
+            return this.$router.push({
                 name: 'CreateTeam'
             })
         }
@@ -70,7 +112,55 @@ export default {
 }
 </script>
 <style lang="scss">
-
 @import "../stylesheets/components/team-list.scss";
+
+.ff-team-selection {
+    &.ff-listbox {
+        button {
+            border-radius: 0;
+            border: none;
+            background: none;
+
+            button {
+                padding: 0;
+
+            }
+            .icon {
+                svg {
+                    color: $ff-grey-800;
+                    width: 80%;
+                    padding-left: 10px;
+                }
+            }
+        }
+    }
+}
+.ff-options .ff-team-selection-option {
+    border-color: $ff-color--border;
+    color: $ff-grey-800;
+    border-bottom: 1px solid $ff-color--border;
+    display: flex;
+    align-items: center;
+
+    &.create-new {
+        background-color: $ff-grey-200;
+    }
+
+    .ff-option-content {
+        padding: 12px 12px 12px 18px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        width: 100%;
+
+        &.selected {
+            background: $ff-grey-200;
+        }
+    }
+
+    &:hover {
+        background-color: $ff-grey-100;
+    }
+}
 
 </style>

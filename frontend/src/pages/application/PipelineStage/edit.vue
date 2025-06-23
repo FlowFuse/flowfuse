@@ -18,9 +18,11 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { mapState } from 'vuex'
 
 import ApplicationAPI from '../../../api/application.js'
 import PipelinesAPI from '../../../api/pipeline.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
 
@@ -53,6 +55,10 @@ export default {
             required: true
         }
     },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             icons: {
@@ -60,6 +66,24 @@ export default {
             },
             mounted: false,
             stage: null
+        }
+    },
+    computed: {
+        ...mapState('account', ['team'])
+    },
+    watch: {
+        team: {
+            immediate: true,
+            handler (team) {
+                if (team && !this.hasPermission('pipeline:edit')) {
+                    this.$router.replace({
+                        name: 'ApplicationPipelines',
+                        params: {
+                            id: this.application.id
+                        }
+                    })
+                }
+            }
         }
     },
     async mounted () {
@@ -100,7 +124,20 @@ export default {
             } else {
                 options.deviceGroupId = input.deviceGroupId
             }
-
+            if (input.gitTokenId) {
+                // Git repo - clean up unused settings
+                options.gitTokenId = input.gitTokenId
+                options.url = input.url
+                options.branch = input.branch
+                options.pullBranch = input.pullBranch
+                options.pullPath = input.pullPath
+                options.pushPath = input.pushPath
+                if (input.credentialSecret) {
+                    // Only pass back a non-blank value. This avoids overwriting
+                    // the existing value
+                    options.credentialSecret = input.credentialSecret
+                }
+            }
             await PipelinesAPI.updatePipelineStage(this.pipeline.id, this.stage.id, options)
             Alerts.emit('Pipeline stage successfully updated.', 'confirmation')
 
@@ -115,7 +152,6 @@ export default {
             if (!this.pipeline.id) {
                 return
             }
-
             this.stage = await PipelinesAPI.getPipelineStage(this.pipeline.id, this.$route.params.stageId)
         }
     }

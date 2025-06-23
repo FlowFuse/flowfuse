@@ -219,10 +219,10 @@ module.exports = {
                 await M.Notification.destroy({
                     where: {
                         type: {
-                            [Op.in]: ['instance-crashed', 'instance-safe-mode']
+                            [Op.in]: ['instance-crashed', 'instance-safe-mode', 'instance-resource-cpu', 'instance-resource-memory']
                         },
                         reference: {
-                            [Op.in]: [`instance-crashed:${project.id}`, `instance-safe-mode:${project.id}`]
+                            [Op.in]: [`instance-crashed:${project.id}`, `instance-safe-mode:${project.id}`, `instance-resource-cpu:${project.id}`, `instance-resource-memory:${project.id}`]
                         }
                     }
                 })
@@ -490,7 +490,15 @@ module.exports = {
                         include
                     })
                 },
-                byTeam: async (teamIdOrHash, { query = null, instanceId = null, includeAssociations = true, includeSettings = false } = {}) => {
+                byTeam: async (teamIdOrHash, {
+                    query = null,
+                    instanceId = null,
+                    includeAssociations = true,
+                    includeSettings = false,
+                    includeMeta = false,
+                    limit = null,
+                    orderByMostRecentFlows = false
+                } = {}) => {
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
@@ -529,8 +537,23 @@ module.exports = {
                         })
                     }
 
+                    if (includeMeta) {
+                        include.push({
+                            model: M.StorageFlow,
+                            attributes: ['id', 'updatedAt', 'flow', 'ProjectId']
+                        })
+                    }
+
                     const queryObject = {
                         include
+                    }
+
+                    if (limit !== null) {
+                        queryObject.limit = limit
+                    }
+
+                    if (includeMeta && orderByMostRecentFlows) {
+                        queryObject.order = [[{ model: M.StorageFlow }, 'updatedAt', 'DESC']]
                     }
 
                     if (instanceId) {
@@ -541,6 +564,7 @@ module.exports = {
                             { [Op.like]: `%${query.toLowerCase()}%` }
                         )
                     }
+
                     return this.findAll(queryObject)
                 },
                 getProjectTeamId: async (id) => {
@@ -576,6 +600,29 @@ module.exports = {
                                 where: { key: 'settings' }
                             }
                         ]
+                    })
+                },
+                countByState: async (states, teamId) => {
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+
+                        if (teamId.length === 0) {
+                            throw new Error('Invalid TeamId')
+                        }
+                    }
+
+                    return this.count({
+                        where: {
+                            ...(states.length > 0
+                                ? {
+                                    [Op.or]: states.map(state => ({
+                                        state,
+                                        TeamId: teamId
+                                    }))
+                                }
+                                : { TeamId: teamId })
+                        },
+                        group: ['state']
                     })
                 }
             }

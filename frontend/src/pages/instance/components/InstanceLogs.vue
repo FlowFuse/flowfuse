@@ -8,7 +8,7 @@
     <div v-if="!instance.meta || instance.meta.state === 'suspended'" class="flex text-gray-500 justify-center italic mb-4 p-8">
         Logs unavailable
     </div>
-    <div v-else :class="showOfflineBanner ? 'forge-log-offline-background' : ''" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
+    <div v-else :class="showOfflineBanner ? 'forge-log-offline-background' : ''" class="w-full mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
         <div v-if="prevCursor" class="flex">
             <a class="text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
         </div>
@@ -55,7 +55,7 @@ export default {
             required: false
         }
     },
-    emits: ['ha-instance-detected'],
+    emits: ['ha-instance-detected', 'new-range'],
     data () {
         return {
             doneInitialLoad: false,
@@ -99,6 +99,9 @@ export default {
         this.stopPolling()
     },
     methods: {
+        clear: function () {
+            this.logEntries = []
+        },
         shouldPoll: function () {
             return Object.hasOwnProperty.call(this.$route, 'meta') &&
                 Object.hasOwnProperty.call(this.$route.meta, 'shouldPoll') &&
@@ -174,6 +177,12 @@ export default {
                     }
                     if (!cursor || cursor[0] !== '-') {
                         this.nextCursor = entries.meta.next_cursor
+                    }
+                    if (entries.meta.first_entry && entries.meta.last_entry) {
+                        this.$emit('new-range', {
+                            first: entries.meta.first_entry,
+                            last: entries.meta.last_entry
+                        })
                     }
                 }
             } catch (error) {

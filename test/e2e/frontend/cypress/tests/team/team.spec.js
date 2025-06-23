@@ -153,55 +153,56 @@ describe('Navigation', () => {
         cy.login('bob', 'bbPassword')
         cy.home()
 
-        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
+        cy.get('[data-action="team-selection"] .ff-team-selection-name')
             .within(() => {
                 cy.contains('ATeam')
             })
-        cy.contains('application-1')
 
-        cy.get('[data-nav="team-instances"]').click()
-        cy.contains('instance-1-1')
-        cy.contains('instance-1-2')
+        cy.get('[data-team="ateam"]')
+        cy.contains('Home')
+        cy.get('[data-el="dashboard-section-hosted"] .ff-box-title').contains('Hosted Instances')
+        cy.get('[data-el="dashboard-section-remote"] .ff-box-title').contains('Remote Instances')
+        cy.get('[data-el="dashboard-section-audit"] .ff-box-title').contains('Recent Activity')
 
-        cy.visit('/team/bteam/applications')
+        cy.get('[data-nav="team-instances"]').click() // navigate away from the homepage on the same team
 
-        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
+        cy.visit('/team/bteam')
+
+        cy.get('[data-action="team-selection"] .ff-team-selection-name')
             .within(() => {
                 cy.contains('BTeam')
             })
-        cy.contains('application-2')
-
-        cy.get('[data-nav="team-instances"]').click()
-        cy.contains('instance-2-1')
-        cy.contains('instance-2-with-devices')
+        cy.get('[data-team="bteam"]')
+        cy.contains('Home')
+        cy.get('[data-el="dashboard-section-hosted"] .ff-box-title').contains('Hosted Instances')
+        cy.get('[data-el="dashboard-section-remote"] .ff-box-title').contains('Remote Instances')
+        cy.get('[data-el="dashboard-section-audit"] .ff-box-title').contains('Recent Activity')
     })
 
     it('correctly changes the team when manually selecting a different team', () => {
         cy.login('bob', 'bbPassword')
         cy.home()
 
-        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
+        cy.get('[data-action="team-selection"] .ff-team-selection-name')
             .within(() => {
                 cy.contains('ATeam')
             })
-        cy.contains('application-1')
 
-        cy.get('[data-nav="team-instances"]').click()
-        cy.contains('instance-1-1')
-        cy.contains('instance-1-2')
+        cy.get('[data-team="ateam"]')
+        cy.contains('Home')
+        cy.get('[data-el="dashboard-section-hosted"] .ff-box-title').contains('Hosted Instances')
+        cy.get('[data-el="dashboard-section-remote"] .ff-box-title').contains('Remote Instances')
+        cy.get('[data-el="dashboard-section-audit"] .ff-box-title').contains('Recent Activity')
+        cy.get('[data-nav="team-instances"]').click() // navigate away from the homepage on the same team
 
-        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection').click()
-        cy.get('[data-action="switch-team"]').contains('BTeam').parent().click()
+        cy.get('[data-action="team-selection"] .ff-team-selection-name').click()
+        cy.get('[data-option="BTeam"]').click()
 
-        cy.get('[data-action="team-selection"].ff-dropdown.ff-dropdown--closed.ff-team-selection')
-            .within(() => {
-                cy.contains('BTeam')
-            })
-        cy.contains('application-2')
-
-        cy.get('[data-nav="team-instances"]').click()
-        cy.contains('instance-2-1')
-        cy.contains('instance-2-with-devices')
+        cy.get('[data-team="bteam"]')
+        cy.contains('Home')
+        cy.get('[data-el="dashboard-section-hosted"] .ff-box-title').contains('Hosted Instances')
+        cy.get('[data-el="dashboard-section-remote"] .ff-box-title').contains('Remote Instances')
+        cy.get('[data-el="dashboard-section-audit"] .ff-box-title').contains('Recent Activity')
     })
 
     it('should display the back button when creating a team', () => {
@@ -216,6 +217,6 @@ describe('Navigation', () => {
 
         cy.get('[data-nav="back"]').click()
 
-        cy.url().should('match', /^.*\/team\/.*\/applications/)
+        cy.url().should('match', /^.*\/team\/.*\/overview/)
     })
 })

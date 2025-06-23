@@ -10,7 +10,7 @@
                 {{ label }}
             </slot>
         </span>
-        <ChevronRightIcon v-if="to" class="ff-icon" />
+        <ChevronRightIcon v-if="to || hasChevron" class="ff-icon" />
     </div>
 </template>
 
@@ -30,6 +30,10 @@ export default {
         to: {
             default: '',
             type: [String, Object]
+        },
+        hasChevron: {
+            default: false,
+            type: Boolean
         }
     }
 }

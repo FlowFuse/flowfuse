@@ -176,6 +176,22 @@ const getTeamInstancesList = async (teamId) => {
     return list
 }
 
+const getInstances = async (teamId, {
+    limit = 20,
+    includeMeta = false,
+    orderByMostRecentFlows = false
+} = {}) => {
+    const params = new URLSearchParams()
+
+    params.append('limit', limit.toString())
+
+    if (includeMeta) params.append('includeMeta', includeMeta.toString())
+    if (orderByMostRecentFlows) params.append('orderByMostRecentFlows', orderByMostRecentFlows.toString())
+
+    return await client.get(`/api/v1/teams/${teamId}/projects?${params.toString()}`)
+        .then(res => res.data)
+}
+
 const getTeamMembers = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/members`).then(res => {
         return res.data
@@ -370,10 +386,11 @@ const getTeamDeviceProvisioningTokens = async (teamId, cursor, limit) => {
  */
 const generateTeamDeviceProvisioningToken = async (teamId, options) => {
     options = options || {}
-    const { name, instance, expiresAt } = options
+    const { name, application, instance, expiresAt } = options
     return client.post(`/api/v1/teams/${teamId}/devices/provisioning`,
         {
             name: name || 'Auto Provisioning Token',
+            application,
             instance,
             expiresAt
         }
@@ -393,9 +410,10 @@ const generateTeamDeviceProvisioningToken = async (teamId, options) => {
  */
 const updateTeamDeviceProvisioningToken = async (teamId, tokenId, options) => {
     options = options || {}
-    const { instance, expiresAt } = options
+    const { application, instance, expiresAt } = options
     return client.put(`/api/v1/teams/${teamId}/devices/provisioning/${tokenId}`,
         {
+            application,
             instance,
             expiresAt
         }
@@ -471,6 +489,27 @@ const getTeamDeviceGroups = (teamId) => {
         .then(res => res.data)
 }
 
+const getGitTokens = async (teamId, cursor) => {
+    const url = paginateUrl(`/api/v1/teams/${teamId}/git/tokens`, cursor)
+    return client.get(url).then(res => res.data)
+}
+
+const createGitToken = async (teamId, token) => {
+    return client.post(`/api/v1/teams/${teamId}/git/tokens`, token).then(res => res.data)
+}
+const deleteGitToken = async (teamId, tokenId) => {
+    return client.delete(`/api/v1/teams/${teamId}/git/tokens/${tokenId}`)
+}
+
+const getTeamInstanceCounts = async (teamId, states, type) => {
+    const params = new URLSearchParams()
+    states.forEach(state => params.append('state', state))
+    params.append('instanceType', type)
+
+    return client.get(`/api/v1/teams/${teamId}/instance-counts?${params.toString()}`)
+        .then(res => res.data)
+}
+
 /**
  * Calls api routes in team.js
  * See [routes/api/team.js](../../../forge/routes/api/team.js)
@@ -485,8 +524,10 @@ export default {
     getTeamApplicationsAssociationsStatuses,
     getTeamInstances,
     getTeamInstancesList,
+    getInstances,
     getTeamDashboards,
     getTeamMembers,
+    getTeamInstanceCounts,
     changeTeamMemberRole,
     removeTeamMember,
     getTeamInvitations,
@@ -507,5 +548,8 @@ export default {
     bulkDeviceDelete,
     bulkDeviceMove,
     getDependencies,
-    getTeamDeviceGroups
+    getTeamDeviceGroups,
+    getGitTokens,
+    createGitToken,
+    deleteGitToken
 }

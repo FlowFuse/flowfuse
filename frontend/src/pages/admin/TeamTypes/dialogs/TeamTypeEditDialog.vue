@@ -121,6 +121,8 @@
                     <FormRow v-model="input.properties.features.teamBroker" type="checkbox">Team Broker</FormRow>
                     <FormRow v-model="input.properties.features.projectHistory" type="checkbox">Version History Timeline</FormRow>
                     <FormRow v-model="input.properties.features.npm" type="checkbox">NPM Packages</FormRow>
+                    <FormRow v-model="input.properties.features.gitIntegration" type="checkbox">Git Integration</FormRow>
+                    <FormRow v-model="input.properties.features.instanceResources" type="checkbox">Instance Resources</FormRow>
                     <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
                     <span />
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
@@ -241,6 +243,12 @@ export default {
                     }
                     if (this.input.properties.features.npm === undefined) {
                         this.input.properties.features.npm = false
+                    }
+                    if (this.input.properties.features.gitIntegration === undefined) {
+                        this.input.properties.features.gitIntegration = false
+                    }
+                    if (this.input.properties.features.instanceResources === undefined) {
+                        this.input.properties.features.instanceResources = false
                     }
                 } else {
                     this.editDisabled = false

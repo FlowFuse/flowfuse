@@ -95,9 +95,9 @@ module.exports = {
                     await log('team.device.credentials-generated', actionedBy, team?.id, generateBody({ error, device }))
                 },
                 provisioning: {
-                    async created (actionedBy, error, tokenId, tokenName, team, project) {
+                    async created (actionedBy, error, tokenId, tokenName, team, application, project) {
                         const info = { tokenId, tokenName }
-                        await log('team.device.provisioning.created', actionedBy, team?.id, generateBody({ error, project, info }))
+                        await log('team.device.provisioning.created', actionedBy, team?.id, generateBody({ error, application, project, info }))
                     },
                     async updated (actionedBy, error, tokenId, tokenName, team, updates) {
                         const info = { tokenId, tokenName }

@@ -29,7 +29,7 @@ describe('FlowForge - Templates', () => {
         cy.get('[data-el="templates"] tbody').find('tr').should('have.length', 3)
 
         cy.get('[data-el="templates"] tbody tr:last').find('.ff-kebab-menu').click()
-        cy.get('[data-el="templates"] tbody tr:last .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(1).click()
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(1).click()
 
         cy.get('.ff-dialog-box').should('be.visible')
 
@@ -56,7 +56,7 @@ describe('FlowForge - Templates', () => {
         cy.get('[data-el="templates"] tbody').find('tr').should('have.length', 2)
 
         cy.get('[data-el="templates"] tbody tr:first').find('.ff-kebab-menu').click()
-        cy.get('[data-el="templates"] tbody tr:first .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(1).click()
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(1).click()
 
         cy.get('.ff-dialog-box').should('be.visible')
 

@@ -58,26 +58,34 @@ Repeat these steps for each Remote Instance you want to connect to the platform.
 
 ## Bulk Registration
 
-If you have dozens, or hundreds of pieces of hardware to connect, you can use the **Provisioning Configuration** method.
+If you have dozens, or hundreds of pieces of hardware to connect, you can use the **Device Provisioning Configuration** method.
 
 This approach provides you with a single "Provisioning Token" for all of your Remote Instances. When passed to the `flowfuse-device-agent`, this token will automatically register your Remote Instances with the relevant instance or application. There is no need to "Add Remote Instance" each time, as is the case with the [Single Device Registration](#single-remote-instance-registration) method.
 
-### Generating "Provisioning Configuration"
+### Generating a "Device Provisioning Configuration"
 
-1. Go to your teams's **Settings** page.
-2. Open the **Remote Instance** tab.
-2. Click the **Create Provisioning Token** tab.
-3. You will be prompted to give the token a **name** and to chose what **instance**, if any, the Remote Instance should be assigned to.
-4. Click **Create**
+1. Go to your **Team Settings** page.
+2. Open the **Provisioning** tab.
+3. Click the **Add Token** button.
+4. Enter a value for **Token Name**
+5. Optionally, chose whether the device should Auto Assign to an **Instance**, an **Application**, or be left unassigned.
+   * Select an **Instance** if you want the device to be automatically assigned to an instance.
+   * Select an **Application** if you want the device to be automatically assigned to an application.
+6. Click **Create**
+
+![Screenshot of a FlowFuse Remote Instance Provisioning Token](./images/create-provisioning-token.png){data-zoomable}
 
 Once the Provisioning Token has been created, you will be shown the 
-**Device Provisioning Configuration** dialog. This is the only time the 
-platform will show you this information.
+**Device Provisioning Configuration** dialog:
 
-<img src="images/provisioning-token.png" width="650px" style="margin: auto; margin-bottom: 12px;" />
+![Screenshot of a FlowFuse Remote Instance Provisioning Token](./images/provisioning-token.png){data-zoomable}
 
-Make sure to take a copy or use the **Download** button to save
-the configuration file locally.
+**IMPORTANT:** This is the only time the platform will show you
+this information. Make sure to take a copy or use the **Download**
+button to save the configuration file locally.
+
+Once the token is created, it will be shown in the list of tokens on the **Provisioning** tab.
+![Screenshot of FlowFuse Remote Instance Provisioning Tokens](./images/provisioning-tokens.png){data-zoomable}
 
 ## Connecting your Hardware
 

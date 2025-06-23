@@ -406,7 +406,7 @@ export default {
             return this.instance?.projectType?.id !== this.input.projectType
         },
         projectStackChanged () {
-            return ((this.instance?.stack?.id || this.stacks?.[0]?.id) !== this.input.stack)
+            return ((this.stacks?.[0]?.id || this.instance?.stack?.id) !== this.input.stack)
         },
         formDirty () {
             return this.creatingNew || this.projectTypeChanged || this.projectStackChanged

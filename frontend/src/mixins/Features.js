@@ -77,6 +77,12 @@ export default {
         },
         isMqttBrokerFeatureEnabled () {
             return this.featuresCheck.isMqttBrokerFeatureEnabled
+        },
+        isInstanceResourcesFeatureEnabledForPlatform () {
+            return this.featuresCheck.isInstanceResourcesFeatureEnabledForPlatform
+        },
+        isInstanceResourcesFeatureEnabledForTeam () {
+            return this.featuresCheck.isInstanceResourcesFeatureEnabledForTeam
         }
     }
 }

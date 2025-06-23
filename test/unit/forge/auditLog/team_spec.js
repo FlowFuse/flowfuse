@@ -526,7 +526,7 @@ describe('Audit Log > Team', async function () {
         logEntry.body.info.tokenName.should.equal('Token Name')
     })
     it('Provides a logger for creating a provisioning token with a project assigned', async function () {
-        await teamLogger.team.device.provisioning.created(ACTIONED_BY, null, 'DEF456', 'Token Name 2', TEAM, PROJECT)
+        await teamLogger.team.device.provisioning.created(ACTIONED_BY, null, 'DEF456', 'Token Name 2', TEAM, null, PROJECT)
         // {"info":{"tokenId":"Znqv1kl7kg","tokenName":"Auto Provision and join to Data-Processing project"}}
         // check log stored
         const logEntry = await getLog()
@@ -538,6 +538,24 @@ describe('Audit Log > Team', async function () {
         logEntry.body.info.should.only.have.keys('tokenId', 'tokenName')
         logEntry.body.info.tokenId.should.equal('DEF456')
         logEntry.body.info.tokenName.should.equal('Token Name 2')
+        logEntry.body.project.should.only.have.keys('id', 'name')
+        logEntry.body.project.id.should.equal(PROJECT.id)
+    })
+    it('Provides a logger for creating a provisioning token with an application assigned', async function () {
+        await teamLogger.team.device.provisioning.created(ACTIONED_BY, null, 'DEF789', 'Token Name 2 (app)', TEAM, APPLICATION, null)
+        // {"info":{"tokenId":"Znqv1kl7kg","tokenName":"Auto Provision and join to Data-Processing project"}}
+        // check log stored
+        const logEntry = await getLog()
+        logEntry.should.have.property('event', 'team.device.provisioning.created')
+        logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+        logEntry.should.have.property('trigger', { id: ACTIONED_BY.hashid, type: 'user', name: ACTIONED_BY.username })
+        logEntry.should.have.property('body')
+        logEntry.body.should.only.have.keys('info', 'application')
+        logEntry.body.info.should.only.have.keys('tokenId', 'tokenName')
+        logEntry.body.info.tokenId.should.equal('DEF789')
+        logEntry.body.info.tokenName.should.equal('Token Name 2 (app)')
+        logEntry.body.application.should.only.have.keys('id', 'name')
+        logEntry.body.application.id.should.equal(APPLICATION.id)
     })
     it('Provides a logger for editing a provisioning token - to assign a project', async function () {
         const updates = [{ key: 'project', old: null, new: 'new' }]

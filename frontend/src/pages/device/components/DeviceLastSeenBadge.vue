@@ -12,6 +12,7 @@
 import { ExclamationCircleIcon } from '@heroicons/vue/outline'
 
 import DeviceStatus from '../../../services/device-status.js'
+import daysSince from '../../../utils/daysSince.js'
 
 export default {
     name: 'DeviceLastSeenBadge',
@@ -25,7 +26,7 @@ export default {
             if (!this.lastSeenAt) {
                 return 'never'
             } else {
-                return this.lastSeenSince || 'unknown'
+                return daysSince(this.lastSeenAt, true) || 'unknown'
             }
         }
     },

@@ -15,7 +15,7 @@
 
 <script>
 import { ArrowSmRightIcon, TemplateIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapState, useStore } from 'vuex'
 
 export default {
     name: 'AccessRequest',
@@ -27,6 +27,9 @@ export default {
         ...mapState('account', ['user', 'team'])
     },
     mounted () {
+        const store = useStore()
+        // If we've got here, remove any redirect url to prevent further unexpected redirects to this route
+        store.dispatch('account/setRedirectUrl', null)
         window.location.href = `/account/complete/${this.$router.currentRoute.value.params.id}`
     }
 }

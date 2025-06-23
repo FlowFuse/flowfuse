@@ -10,7 +10,7 @@
             </div>
             <div class="ff-dialog-actions">
                 <slot name="actions">
-                    <ff-button v-if="canBeCanceled" kind="secondary" data-action="dialog-cancel" @click="cancel()">Cancel</ff-button>
+                    <ff-button v-if="canBeCanceled" kind="secondary" data-action="dialog-cancel" @click="cancel()">{{ cancelLabel }}</ff-button>
                     <ff-button :kind="kind" data-action="dialog-confirm" :disabled="disablePrimary" @click="confirm()">{{ confirmLabel }}</ff-button>
                 </slot>
             </div>
@@ -33,6 +33,10 @@ export default {
         confirmLabel: {
             type: String,
             default: 'Confirm'
+        },
+        cancelLabel: {
+            type: String,
+            default: 'Cancel'
         },
         disablePrimary: {
             type: Boolean,

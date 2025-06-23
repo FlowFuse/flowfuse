@@ -104,9 +104,11 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const result = app.db.views.Device.device(request.device)
-        const nrVersion = await request.device.getSetting('editor')
-        if (nrVersion) {
-            result.nrVersion = nrVersion.nodeRedVersion
+        const securitySettings = await request.device.getSetting('security')
+        result.localLoginEnabled = securitySettings?.localAuth?.enabled || false
+
+        if (request.device.nodeRedVersion) {
+            result.nrVersion = request.device.nodeRedVersion
         }
         // ingress-nginx will set a cookie on /api/v1/devices - which will cannot allow to override
         // that of the device-specific cookie. So clear it out.
@@ -233,7 +235,13 @@ module.exports = async function (app) {
                     type: 'object',
                     allOf: [{ $ref: 'Device' }],
                     properties: {
-                        credentials: { type: 'object', additionalProperties: true }
+                        credentials: { type: 'object', additionalProperties: true },
+                        meta: {
+                            type: 'object',
+                            properties: {
+                                ffVersion: { type: 'string' }
+                            }
+                        }
                     }
                 },
                 '4xx': {
@@ -244,7 +252,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const provisioningMode = !!request.session.provisioning
         const otcSetupMode = request.body.setup === true && request.session.provisioning?.otcSetup === true
-        let team, project
+        let team, project, application
         // Additional checks. (initial membership/team/token checks done in preHandler and auth verifySession decorator)
         if (provisioningMode || otcSetupMode) {
             if (otcSetupMode) {
@@ -255,6 +263,9 @@ module.exports = async function (app) {
                     app.auditLog.Device.device.credentials.generated(0, null, device)
                     const response = app.db.views.Device.device(device)
                     response.credentials = credentials
+                    response.meta = {
+                        ffVersion: app.config.version
+                    }
                     return reply.send(response)
                 } else {
                     return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -265,14 +276,25 @@ module.exports = async function (app) {
                     reply.code(400).send({ code: 'invalid_team', error: 'Invalid team' })
                     return
                 }
-                if (request.session.provisioning.project) {
+                if (request.session.provisioning.application) {
+                    application = await app.db.models.Application.byId(request.session.provisioning.application)
+                    if (!application) {
+                        reply.code(400).send({ code: 'invalid_application', error: 'Invalid application' })
+                        return
+                    }
+                    const applicationTeam = await application.getTeam()
+                    if (!applicationTeam?.id || applicationTeam.id !== team.id) {
+                        reply.code(400).send({ code: 'invalid_application', error: 'Invalid application' })
+                        return
+                    }
+                } else if (request.session.provisioning.project) {
                     project = await app.db.models.Project.byId(request.session.provisioning.project)
                     if (!project) {
                         reply.code(400).send({ code: 'invalid_instance', error: 'Invalid instance' })
                         return
                     }
                     const projectTeam = await project.getTeam()
-                    if (projectTeam.id !== team.id) {
+                    if (!projectTeam?.id || projectTeam.id !== team.id) {
                         reply.code(400).send({ code: 'invalid_instance', error: 'Invalid instance' })
                         return
                     }
@@ -321,7 +343,18 @@ module.exports = async function (app) {
                 await app.auditLog.Team.team.device.created(actionedBy, null, team, device)
 
                 // When device provisioning: if a project was specified, add the device to the project
-                if (provisioningMode && project) {
+                if (provisioningMode && application) {
+                    await assignDeviceToApplication(device, application)
+                    await device.save()
+                    await device.reload({
+                        include: [
+                            { model: app.db.models.Application }
+                        ]
+                    })
+                    await app.auditLog.Team.team.device.assigned(actionedBy, null, device.Team, device.Application, device)
+                    await app.auditLog.Application.application.device.assigned(actionedBy, null, device.Application, device)
+                    await app.auditLog.Device.device.assigned(actionedBy, null, device.Application, device)
+                } else if (provisioningMode && project) {
                     await assignDeviceToProject(device, project)
                     await device.save()
                     await device.reload({
@@ -335,6 +368,9 @@ module.exports = async function (app) {
                 }
                 const response = app.db.views.Device.device(device)
                 response.credentials = credentials
+                response.meta = {
+                    ffVersion: app.config.version
+                }
                 reply.send(response)
             } finally {
                 if (app.license.active() && app.billing) {

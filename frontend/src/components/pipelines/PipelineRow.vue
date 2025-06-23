@@ -6,11 +6,11 @@
                 <label>
                     {{ pipeline.name }}
                 </label>
-                <div v-ff-tooltip:right="'Edit Pipeline Name'">
+                <div v-if="hasPermission('pipeline:edit')" v-ff-tooltip:right="'Edit Pipeline Name'">
                     <PencilAltIcon v-if="!editing.name" class="ml-4 ff-icon ff-clickable" @click="edit" />
                 </div>
             </div>
-            <div class="flex gap-2">
+            <div v-if="hasPermission('pipeline:delete')" class="flex gap-2">
                 <div v-if="!editing.name" v-ff-tooltip:left="'Delete Pipeline'" data-action="delete-pipeline">
                     <TrashIcon class="ff-icon ff-clickable" @click="deletePipeline" />
                 </div>
@@ -35,7 +35,7 @@
                 />
                 <Transition name="fade">
                     <ChevronRightIcon
-                        v-if="$index <= pipeline.stages.length - 1"
+                        v-if="$index <= pipeline.stages.length - 2 || ($index == pipeline.stages.length - 1 && addStageAvailable)"
                         class="ff-icon mt-4 flex-shrink-0"
                         :class="{
                             'animate-deploying': nextStageDeploying($index),
@@ -45,11 +45,12 @@
                 </Transition>
             </template>
             <Transition name="fade">
-                <PipelineStage @click="addStage" />
+                <PipelineStage v-if="addStageAvailable" @click="addStage" />
             </Transition>
         </div>
         <div v-else class="ff-pipeline-stages">
-            <PipelineStage @click="addStage" />
+            <PipelineStage v-if="addStageAvailable" @click="addStage" />
+            <p class="text-center text-gray-400 center w-full">No stages in sight just yet!</p>
         </div>
     </div>
 </template>
@@ -61,6 +62,7 @@ import { mapState } from 'vuex'
 
 import ApplicationAPI from '../../api/application.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
+import usePermissions from '../../composables/Permissions.js'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
@@ -96,9 +98,17 @@ export default {
         deviceGroupStatusMap: {
             required: true,
             type: Map
+        },
+        gitRepoStatusMap: {
+            required: true,
+            type: Map
         }
     },
     emits: ['pipeline-deleted', 'stage-deleted', 'deploy-starting', 'deploy-started', 'stage-deploy-starting', 'stage-deploy-started', 'stage-deploy-failed'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         const pipeline = this.pipeline
         return {
@@ -117,6 +127,9 @@ export default {
         saveRowEnabled () {
             return this.scopedPipeline.name?.length > 0
         },
+        addStageAvailable () {
+            return this.hasPermission('pipeline:edit')
+        },
         stagesWithStates () {
             return this.pipeline.stages.map((stage) => {
                 // For now, each stage contains only one instance, one device, or a device group, so read state from that object
@@ -127,8 +140,17 @@ export default {
                 const stageDeviceGroupMapId = `${stage.id}:${stage.deviceGroup?.id}`
                 const stageDeviceGroupState = this.deviceGroupStatusMap.get(stageDeviceGroupMapId) || stage.deviceGroup
 
-                // Set the state state based on group, device, or instance
-                if (stageDeviceGroupState) {
+                const stageGitRepoState = this.gitRepoStatusMap.get(stage.id)
+
+                if (stage.stageType === StageType.GITREPO) {
+                    stage.state = {
+                        isDeploying: stageGitRepoState?.isDeploying,
+                        status: stageGitRepoState?.status ?? stage.gitRepo.status,
+                        statusMessage: stageGitRepoState?.statusMessage ?? stage.gitRepo.statusMessage,
+                        lastPushAt: stageGitRepoState?.lastPushAt ?? stage.gitRepo.lastPushAt
+                    }
+                } else if (stageDeviceGroupState) {
+                    // Set the state state based on group, device, or instance
                     stage.state = {
                         isDeploying: stageDeviceGroupState.isDeploying,
                         targetMatchCount: stageDeviceGroupState.targetMatchCount,
@@ -145,7 +167,7 @@ export default {
                 stage.lastSeenSince = stageDeviceState?.lastSeenSince
 
                 // If any device or instance inside the stage are deploying, this stage is deploying
-                stage.isDeploying = stageDeviceState?.isDeploying || stageInstanceState?.isDeploying || stageDeviceGroupState?.isDeploying
+                stage.isDeploying = stageDeviceState?.isDeploying || stageInstanceState?.isDeploying || stageDeviceGroupState?.isDeploying || stageGitRepoState?.isDeploying
 
                 return stage
             })
@@ -193,15 +215,15 @@ export default {
         },
         stageDeployStarting (stage) {
             const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
-            this.$emit('stage-deploy-starting', stage, nextStage)
+            this.$emit('stage-deploy-starting', stage, nextStage, this.pipeline)
         },
         stageDeployStarted (stage) {
             const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
-            this.$emit('stage-deploy-started', stage, nextStage)
+            this.$emit('stage-deploy-started', stage, nextStage, this.pipeline)
         },
         stageDeployFailed (stage) {
             const nextStage = this.pipeline.stages.find((s) => s.id === stage.NextStageId)
-            this.$emit('stage-deploy-failed', stage, nextStage)
+            this.$emit('stage-deploy-failed', stage, nextStage, this.pipeline)
         },
         stageDeleted (stageIndex) {
             this.$emit('stage-deleted', stageIndex)
@@ -215,6 +237,10 @@ export default {
         },
         nextStageAvailable (stage, $index) {
             const endofPipeline = ($index >= this.pipeline.stages.length - 1)
+            if (!endofPipeline && stage.stageType === StageType.GITREPO) {
+                // A git repo stage can pull as long as it is not the last stage
+                return true
+            }
             if (stage.action !== StageAction.NONE && !endofPipeline) {
                 // we are mid-pipeline
                 const nextStage = this.pipeline.stages[$index + 1]

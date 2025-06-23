@@ -43,19 +43,15 @@ module.exports = {
     finders: function (M) {
         return {
             static: {
-                byUsername: async (username, teamHashId) => {
+                byUsername: async (username, teamHashId, includeTeam = true) => {
                     let teamId = teamHashId
                     if (typeof teamHashId === 'string') {
                         teamId = M.Team.decodeHashid(teamHashId)
                     }
+                    const incTeam = includeTeam ? { model: M.Team, include: { model: M.TeamType } } : undefined
                     return this.findOne({
                         where: { username, TeamId: teamId },
-                        include: {
-                            model: M.Team,
-                            include: {
-                                model: M.TeamType
-                            }
-                        }
+                        include: incTeam
                     })
                 },
                 byTeam: async (teamHashId, pagination = {}, where = {}) => {

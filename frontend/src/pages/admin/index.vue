@@ -1,9 +1,5 @@
 <template>
-    <ff-page>
-        <div class="">
-            <router-view />
-        </div>
-    </ff-page>
+    <router-view />
 </template>
 
 <script>

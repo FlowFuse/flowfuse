@@ -291,6 +291,26 @@ module.exports.init = async function (app) {
         }
         return false
     }
+
+    /**
+     * Checks to see if the user's membership of the specified team is managed by SSO\
+     * @param {User} user The user object
+     * @param {Team} team The team object
+     * @returns {boolean} True if the membership is managed by SSO
+     */
+    async function isUserMembershipManaged (user, team) {
+        // Checks to see if the user's membership of the specified team is managed by SSO
+        // 1. check if the user's email is managed by SSO
+        const provider = await app.db.models.SAMLProvider.forEmail(user.email)
+        if (provider) {
+            const options = provider.getOptions()
+            if (options.groupAllTeams || (options.groupTeams || []).includes(team.slug)) {
+                return true
+            }
+        }
+        return false
+    }
+
     /**
      * Update a user's team memberships according to the SAML Assertions
      * received when they logged in.
@@ -580,6 +600,7 @@ module.exports.init = async function (app) {
         isSSOEnabledForEmail,
         getProviderOptions,
         getProviderForEmail,
-        updateTeamMembership
+        updateTeamMembership,
+        isUserMembershipManaged
     }
 }

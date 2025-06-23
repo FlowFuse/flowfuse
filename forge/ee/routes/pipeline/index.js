@@ -250,8 +250,16 @@ module.exports = async function (app) {
                     instanceId: { type: 'string' },
                     deviceId: { type: 'string' },
                     deviceGroupId: { type: 'string' },
-                    source: { type: 'string' },
-                    action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
+                    deployToDevices: { type: 'boolean' },
+                    action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) },
+                    gitTokenId: { type: 'string' },
+                    url: { type: 'string' },
+                    branch: { type: 'string' },
+                    pullBranch: { type: 'string' },
+                    pushPath: { type: 'string' },
+                    pullPath: { type: 'string' },
+                    credentialSecret: { type: 'string' },
+                    source: { type: 'string' }
                 }
             },
             response: {
@@ -266,8 +274,21 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const team = await request.teamMembership.getTeam()
         const name = request.body.name?.trim() // name of the stage
-        const { instanceId, deviceId, deviceGroupId, deployToDevices, action } = request.body
-
+        const {
+            instanceId,
+            deviceId,
+            deviceGroupId,
+            deployToDevices,
+            action,
+            // Git Repo options
+            gitTokenId,
+            url,
+            branch,
+            pullBranch,
+            pushPath,
+            pullPath,
+            credentialSecret
+        } = request.body
         let stage
         try {
             const options = {
@@ -276,7 +297,14 @@ module.exports = async function (app) {
                 deviceId,
                 deviceGroupId,
                 deployToDevices,
-                action
+                action,
+                gitTokenId,
+                url,
+                branch,
+                pullBranch,
+                pushPath,
+                pullPath,
+                credentialSecret
             }
             if (request.body.source) {
                 options.source = request.body.source
@@ -336,7 +364,15 @@ module.exports = async function (app) {
                     instanceId: { type: 'string' },
                     deviceId: { type: 'string' },
                     deviceGroupId: { type: 'string' },
-                    action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) }
+                    action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) },
+                    gitTokenId: { type: 'string' },
+                    url: { type: 'string' },
+                    branch: { type: 'string' },
+                    pullBranch: { type: 'string' },
+                    pushPath: { type: 'string' },
+                    pullPath: { type: 'string' },
+                    credentialSecret: { type: 'string' },
+                    source: { type: 'string' }
                 }
             },
             response: {
@@ -356,7 +392,14 @@ module.exports = async function (app) {
                 deployToDevices: request.body.deployToDevices,
                 action: request.body.action,
                 deviceId: request.body.deviceId,
-                deviceGroupId: request.body.deviceGroupId
+                deviceGroupId: request.body.deviceGroupId,
+                gitTokenId: request.body.gitTokenId,
+                url: request.body.url,
+                branch: request.body.branch,
+                pullBranch: request.body.pullBranch,
+                pushPath: request.body.pushPath,
+                pullPath: request.body.pullPath,
+                credentialSecret: request.body.credentialSecret
             }
 
             const stage = await app.db.controllers.Pipeline.updatePipelineStage(
@@ -417,36 +460,23 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const stageId = request.params.stageId
-
-            const stage = await app.db.models.PipelineStage.byId(stageId)
-            if (!stage) {
-                return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-            }
-
-            if (stage.PipelineId !== request.pipeline.id) {
-                return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-            }
-
-            // Update the previous stage to point to the next stage when this model is deleted
-            // e.g. A -> B -> C to A -> C when B is deleted
-            const previousStage = await app.db.models.PipelineStage.byNextStage(stageId)
-            if (previousStage) {
-                if (stage.NextStageId) {
-                    previousStage.NextStageId = stage.NextStageId
-                } else {
-                    previousStage.NextStageId = null
-                }
-
-                await previousStage.save()
-            }
-
-            await stage.destroy()
+            await app.db.controllers.Pipeline.deletePipelineStage(
+                request.pipeline,
+                request.params.stageId
+            )
 
             // TODO - Audit log entry?
 
             reply.send({ status: 'okay' })
         } catch (err) {
+            if (err instanceof ControllerError) {
+                return reply
+                    .code(err.statusCode || 400)
+                    .send({
+                        code: err.code || 'unexpected_error',
+                        error: err.error || err.message
+                    })
+            }
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
@@ -495,8 +525,11 @@ module.exports = async function (app) {
             const sourceStage = await app.db.models.PipelineStage.byId(
                 request.params.stageId
             )
+            // A blank action is okay if the stage is a git repo.
+            // TODO: would it be cleaner to have a GIT Action? Not sure as it only applies to the one stage type.
+            const gitRepo = await sourceStage?.getPipelineStageGitRepo()
 
-            if (sourceStage?.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.NONE) {
+            if (!gitRepo && sourceStage?.action === app.db.models.PipelineStage.SNAPSHOT_ACTIONS.NONE) {
                 // Nothing to do
                 reply.code(200).send({ status: 'okay' })
                 return
@@ -509,6 +542,8 @@ module.exports = async function (app) {
                 targetDevice,
                 sourceDeviceGroup,
                 targetDeviceGroup,
+                sourceGitRepo,
+                targetGitRepo,
                 targetStage
             } = await app.db.controllers.Pipeline.validateSourceStageForDeploy(
                 request.pipeline,
@@ -550,6 +585,32 @@ module.exports = async function (app) {
             } else if (sourceDeviceGroup) {
                 sourceSnapshot = await app.db.controllers.Pipeline.getSnapshotForSourceDeviceGroup(sourceDeviceGroup)
                 sourceDeployed = sourceDeviceGroup
+            } else if (sourceGitRepo) {
+                // sourceSnapshot from a gitRepo is, by default, a memory-only snapshot as it will be cloned
+                // when deploying to an instance or git repo
+                sourceSnapshot = await sourceGitRepo.pull()
+                if (!sourceSnapshot) {
+                    throw new ControllerError('deploy_failed', sourceGitRepo.statusMessage || 'Failed to pull from Git repository')
+                }
+                if (targetDevice || targetDeviceGroup) {
+                    // These targets expect the snapshot to be persistent - so save it to the db first
+                    // To do that, the snapshot needs to have an owner - which will depend on who it is deploying to
+                    if (targetDevice) {
+                        // Use the target device as the owner
+                        sourceSnapshot.DeviceId = targetDevice.id
+                    } else if (targetDeviceGroup) {
+                        const dgDevices = await targetDeviceGroup.getDevices()
+                        if (dgDevices.length > 0) {
+                            sourceSnapshot.DeviceId = dgDevices[0].id
+                        } else {
+                            // TODO: edge case we don't have any devices in the group
+                            // so we can't assign an owner of the snapshot.
+                        }
+                    }
+                    // Attach the user who triggered the deploy as the user/owner of the snapshot
+                    sourceSnapshot.UserId = user.id
+                    await sourceSnapshot.save()
+                }
             } else {
                 throw new Error('No source device or instance found.')
             }
@@ -599,6 +660,13 @@ module.exports = async function (app) {
                 repliedEarly = true
                 deployTarget = targetDeviceGroup
                 await deployPromise
+            } else if (targetGitRepo) {
+                const options = {
+                    sourceObject: sourceDeployed,
+                    user: request.session.User,
+                    pipeline: request.pipeline
+                }
+                await targetGitRepo.deploy(sourceSnapshot, options)
             } else {
                 throw new Error('No target device or instance found.')
             }
@@ -607,6 +675,9 @@ module.exports = async function (app) {
         } catch (err) {
             if (repliedEarly) {
                 console.warn('Deploy failed, but response already sent', err)
+                if (err.cause) {
+                    console.warn(err.cause.stack)
+                }
             } else {
                 if (err instanceof ControllerError) {
                     return reply

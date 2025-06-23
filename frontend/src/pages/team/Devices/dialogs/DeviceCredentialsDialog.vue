@@ -11,75 +11,17 @@
                         be able to reconnect until it has been given its new configuration.
                     </p>
                 </template>
-                <template v-if="hasCredentials">
-                    <template v-if="otc">
-                        <label class="block font-bold mb-2">Install Device Agent</label>
-                        <p>Run this command on the hardware where you want your Remote Instance to run:</p>
-                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">npm install -g @flowfuse/device-agent</pre>
-                        <div class="flex flex-row justify-end space-x-2 -mt-1">
-                            <ff-button kind="tertiary" size="small" @click="copy('npm install -g @flowfuse/device-agent')">
-                                <template #icon-right><ClipboardCopyIcon /></template>
-                                <span class="">Copy</span>
-                            </ff-button>
-                        </div>
-                        <p class="text-gray-600 italic text-sm">
-                            Note: For more detailed instructions on installing the Device Agent, checkout the documentation <a href="https://flowfuse.com/docs/device-agent/" target="_blank">here</a>.
-                        </p>
-                        <label class="block font-bold mt-4 mb-2">Connect Agent to FlowFuse</label>
-                        <p class="mt-2">
-                            Then, with the Device Agent installed, run the following command, on your hardware, to connect it to FlowFuse:
-                        </p>
-                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ otcCommand }}</pre>
-                        <div class="flex flex-row justify-end space-x-2 -mt-1">
-                            <ff-button kind="tertiary" size="small" @click="copy(otcCommand)">
-                                <template #icon-right><ClipboardCopyIcon /></template>
-                                <span class="">Copy</span>
-                            </ff-button>
-                        </div>
-                        <p class="text-gray-600 italic text-sm">
-                            <span>Notes:</span>
-                            <ul class="list-disc list-inside ml-2">
-                                <li>this command is single use and expires in 24h.</li>
-                                <li>requires device-agent v2.1 or later (follow the manual setup below for older versions).</li>
-                            </ul>
-                        </p>
+                <template v-else>
+                    <OtcInstallSection
+                        v-if="otc"
+                        :selected-o-s="selectedOS"
+                        :otc-command="otcCommand"
+                        :device="device"
+                        :credentials="credentials"
+                        @select-os="selectedOS = $event"
+                    />
 
-                        <details class="mt-4">
-                            <summary class="mt-6 cursor-pointer">Show manual setup instructions</summary>
-                            <p class="mt-4">
-                                Place the below configuration on your device.
-                                See the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">Device Agent documentation</a> for instructions on how to do this.
-                            </p>
-                            <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
-                            <div class="flex flex-row justify-end space-x-2 -mt-1">
-                                <ff-button kind="tertiary" size="small" class="ml-4" @click="downloadCredentials()">
-                                    <template #icon-right><DocumentDownloadIcon /></template>
-                                    <span class="">Download</span>
-                                </ff-button>
-                                <ff-button kind="tertiary" size="small" @click="copy(credentials)">
-                                    <template #icon-right><ClipboardCopyIcon /></template>
-                                    <span class="">Copy</span>
-                                </ff-button>
-                            </div>
-                        </details>
-                    </template>
-                    <template v-else>
-                        <p>
-                            Place the below configuration on your device.
-                            See the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">Device Agent documentation</a> for instructions on how to do this.
-                        </p>
-                        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
-                        <div class="flex flex-row justify-end space-x-2 -mt-1">
-                            <ff-button kind="tertiary" size="small" class="ml-4" @click="downloadCredentials()">
-                                <template #icon-right><DocumentDownloadIcon /></template>
-                                <span class="">Download</span>
-                            </ff-button>
-                            <ff-button kind="tertiary" size="small" @click="copy(credentials)">
-                                <template #icon-right><ClipboardCopyIcon /></template>
-                                <span class="">Copy</span>
-                            </ff-button>
-                        </div>
-                    </template>
+                    <ManualInstall v-else :credentials="credentials" :device="device" />
                 </template>
             </form>
         </template>
@@ -96,32 +38,35 @@
 </template>
 
 <script>
-// import devicesApi from '../../../../api/devices'
-import { ClipboardCopyIcon, DocumentDownloadIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../../api/devices.js'
-import { downloadData } from '../../../../composables/Download.js'
-import clipboardMixin from '../../../../mixins/Clipboard.js'
-import Alerts from '../../../../services/alerts.js'
+
+import ManualInstall from './components/DeviceCredentialsDialog/ManualInstall.vue'
+import OtcInstallSection from './components/DeviceCredentialsDialog/OtcInstallSection.vue'
 
 export default {
     name: 'DeviceCredentialsDialog',
     components: {
-        ClipboardCopyIcon,
-        DocumentDownloadIcon
+        OtcInstallSection,
+        ManualInstall
     },
-    mixins: [clipboardMixin],
     props: ['team'],
+    setup () {
+        return {
+            show (device) {
+                this.device = device
+                this.$refs.dialog.show()
+            }
+        }
+    },
     data () {
         return {
-            device: null
+            device: null,
+            selectedOS: 'Windows' // Default selected OS
         }
     },
     methods: {
-        downloadCredentials () {
-            downloadData(this.credentials, `device-${this.device.id}.yml`)
-        },
         async regenerateCredentials () {
             const creds = await deviceApi.generateCredentials(this.device.id)
             this.device.credentials = creds
@@ -136,14 +81,6 @@ export default {
             const newEvent = new Event('click', { bubbles: false, cancelable: true })
             newEvent.custom = true
             event.target.dispatchEvent(newEvent)
-        },
-        copy (text) {
-            this.copyToClipboard(text).then(() => {
-                Alerts.emit('Copied to Clipboard.', 'confirmation')
-            }).catch((err) => {
-                console.warn('Clipboard write permission denied: ', err)
-                Alerts.emit('Clipboard write permission denied.', 'warning')
-            })
         }
     },
     computed: {
@@ -173,14 +110,6 @@ brokerPassword: ${this.device.credentials.broker.password}
                 }
             }
             return result
-        }
-    },
-    setup () {
-        return {
-            show (device) {
-                this.device = device
-                this.$refs.dialog.show()
-            }
         }
     }
 }

@@ -24,7 +24,7 @@
                 </div>
             </div>
             <div class="actions">
-                <ff-kebab-menu v-if="snapshotExists" ref="kebab" menu-align="right">
+                <ff-kebab-menu v-if="snapshotExists" ref="kebab">
                     <ff-list-item
                         :disabled="!hasPermission('project:snapshot:rollback')"
                         label="Restore Snapshot"

@@ -24,7 +24,7 @@ describe('FlowForge - Stacks', () => {
         cy.intercept('POST', '/api/*/stacks').as('createStack')
 
         cy.get('[data-el="active-stacks"] tbody tr:first .ff-kebab-menu').click()
-        cy.get('[data-el="active-stacks"] tbody tr:first .ff-kebab-menu .ff-kebab-options').find('.ff-list-item').eq(0).click()
+        cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').eq(0).click()
 
         cy.get('.ff-dialog-box').should('be.visible')
 

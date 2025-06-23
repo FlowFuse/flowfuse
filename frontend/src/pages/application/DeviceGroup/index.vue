@@ -10,43 +10,41 @@
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <div class="ff-instance-header">
-            <ff-page-header :title="deviceGroup?.name" :tabs="navigation">
-                <template #breadcrumbs>
-                    <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Applications', params: {team_slug: team.slug}}">
-                        Applications
-                    </ff-nav-breadcrumb>
-                    <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Application', params: {team_slug: team.slug, id: application.id}}">
-                        {{ application.name }}
-                    </ff-nav-breadcrumb>
-                    <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'ApplicationDeviceGroups', params: {id: application?.id}}">
-                        Device Groups
-                    </ff-nav-breadcrumb>
-                </template>
-                <template #tools>
-                    <div class="ff-target-snapshot-info">
-                        <p class="ff-title">Target Snapshot: </p>
-                        <div class="flex gap-2 pr-2" data-el="device-group-target-snapshot">
-                            <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
-                                <ExclamationIcon v-if="!targetSnapshot" class="text-yellow-600 w-4" />
-                                <CheckCircleIcon v-else class="text-green-700 w-4" />
-                            </span>
-                            <div class="flex flex-col">
-                                <span v-if="targetSnapshot" data-el="snapshot-name">{{ targetSnapshot.name }}</span>
-                                <span v-else data-el="snapshot-name">No Target Snapshot Set</span>
-                                <span v-if="targetSnapshot" class="text-xs text-gray-500" data-el="snapshot-id">{{ targetSnapshot.id }}</span>
-                            </div>
+        <ff-page-header :title="deviceGroup?.name" :tabs="navigation">
+            <template #breadcrumbs>
+                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Applications', params: {team_slug: team.slug}}">
+                    Applications
+                </ff-nav-breadcrumb>
+                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Application', params: {team_slug: team.slug, id: application.id}}">
+                    {{ application.name }}
+                </ff-nav-breadcrumb>
+                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'ApplicationDeviceGroups', params: {id: application?.id}}">
+                    Device Groups
+                </ff-nav-breadcrumb>
+            </template>
+            <template #tools>
+                <div class="ff-target-snapshot-info">
+                    <p class="ff-title">Target Snapshot: </p>
+                    <div class="flex gap-2 pr-2" data-el="device-group-target-snapshot">
+                        <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
+                            <ExclamationIcon v-if="!targetSnapshot" class="text-yellow-600 w-4" />
+                            <CheckCircleIcon v-else class="text-green-700 w-4" />
+                        </span>
+                        <div class="flex flex-col">
+                            <span v-if="targetSnapshot" data-el="snapshot-name">{{ targetSnapshot.name }}</span>
+                            <span v-else data-el="snapshot-name">No Target Snapshot Set</span>
+                            <span v-if="targetSnapshot" class="text-xs text-gray-500" data-el="snapshot-id">{{ targetSnapshot.id }}</span>
                         </div>
                     </div>
-                </template>
-                <template #context>
-                    <div>
-                        Application:
-                        <router-link :to="{name: 'Application', params: {id: application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ application?.name }}</router-link>
-                    </div>
-                </template>
-            </ff-page-header>
-        </div>
+                </div>
+            </template>
+            <template #context>
+                <div>
+                    Application:
+                    <router-link :to="{name: 'Application', params: {id: application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ application?.name }}</router-link>
+                </div>
+            </template>
+        </ff-page-header>
         <div class="px-3 py-3 md:px-6 md:py-6">
             <router-view
                 :application="application"
@@ -156,8 +154,18 @@ export default {
                 this.applicationInstances = []
                 this.deviceGroup = await ApplicationApi.getDeviceGroup(applicationId, this.$route.params.deviceGroupId)
                 this.application = await ApplicationApi.getApplication(applicationId)
-                const deviceData = await ApplicationApi.getApplicationDevices(applicationId)
-                this.applicationDevices = deviceData?.devices
+
+                // Need to load all devices in the application - which could be more than a single page
+                const devices = []
+                let cursor
+                do {
+                    const deviceData = await ApplicationApi.getApplicationDevices(applicationId, cursor)
+                    cursor = deviceData?.meta?.next_cursor
+                    if (deviceData?.devices) {
+                        devices.push(deviceData?.devices)
+                    }
+                } while (cursor)
+                this.applicationDevices = devices.flat()
 
                 this.$store.dispatch('account/setTeam', this.application.team.slug)
             } catch (err) {
