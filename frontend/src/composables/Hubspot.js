@@ -1,12 +1,11 @@
 import { defineComponent } from 'vue'
 
-import ObjectProperties from '../pages/team/Brokers/Hierarchy/components/schema/ObjectProperties.vue'
 import Dialog from '../services/dialog.js'
 
 export function useHubspotHelper () {
-    const talkToSalesCalendarModal = (user) => {
+    const talkToSalesCalendarModal = (user, teamType) => {
         Dialog.show({
-            header: 'Talk to sales to Upgrade to Enterprise',
+            header: `Talk to sales to upgrade to ${teamType.name}`,
             kind: 'primary',
             boxClass: 'ff-dialog-box--wide',
             confirmLabel: 'Close',
@@ -14,7 +13,6 @@ export function useHubspotHelper () {
             is: {
                 // eslint-disable-next-line vue/one-component-per-file
                 component: defineComponent({
-                    components: { ObjectProperties },
                     computed: {
                         url () {
                             const url = new URL('flowfuse/book-a-demo-call', 'https://meetings-eu1.hubspot.com')
@@ -35,7 +33,7 @@ export function useHubspotHelper () {
                         document.body.appendChild(script)
                     },
                     template: `
-                            <p>Unlock advanced features, dedicated support, and enterprise scale capabilities. Schedule a call to discuss your needs.</p>
+                            <p>Unlock FlowFuse by upgrading to ${teamType.name}. Schedule a call to discuss your needs.</p>
                             <div class="meetings-iframe-container" :data-src="url"></div>
                           `
                 })

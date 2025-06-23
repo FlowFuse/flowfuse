@@ -552,4 +552,91 @@ describe('Device model', function () {
             device.DeviceGroupId.should.equal(deviceGroup.id)
         })
     })
+    describe('Counting Devices by State', function () {
+        before(async function () {
+            app = await setup()
+        })
+        after(async function () {
+            await app.close()
+        })
+        beforeEach(async () => {
+            // increase license limits
+            app.license.defaults.devices = 20
+            app.license.defaults.instances = 20
+        })
+
+        it('should count devices grouped by state with valid states and a string TeamId', async function () {
+            const states = ['running', 'stopped']
+
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const numericTeamId = team.id
+
+            await app.db.models.Device.create({ name: 'p1', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId })
+            await app.db.models.Device.create({ name: 'p2', credentialSecret: 'abc', type: 'P1', state: 'stopped', TeamId: numericTeamId })
+            await app.db.models.Device.create({ name: 'p3', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId })
+
+            const result = await app.db.models.Device.countByState(states, team.id)
+
+            result.should.deepEqual([
+                { state: 'running', count: 2 },
+                { state: 'stopped', count: 1 }
+            ])
+        })
+
+        it('should count devices with no state filter (only by TeamId)', async function () {
+            const teamId = app.TestObjects.team1.id
+
+            await app.db.models.Device.create({ name: 'p4', credentialSecret: 'abc', type: 'P1', state: 'idle', TeamId: teamId })
+            await app.db.models.Device.create({ name: 'p5', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: teamId })
+
+            const result = await app.db.models.Device.countByState([], teamId)
+
+            result.should.deepEqual([
+                { state: 'idle', count: 1 },
+                { state: 'running', count: 1 }
+            ])
+        })
+
+        it('should return an empty result when no devices match the given states', async function () {
+            const states = ['non-existent-state']
+            const teamId = app.TestObjects.team1.id
+
+            const result = await app.db.models.Device.countByState(states, teamId)
+
+            result.should.eql([])
+        })
+
+        it('should handle errors gracefully when an invalid teamId is provided', async function () {
+            const teamId = 'invalidTeamId'
+
+            try {
+                await app.db.models.Device.countByState(['running'], teamId)
+                should.fail('Expected an error to be thrown')
+            } catch (err) {
+                err.should.be.an.Error()
+                err.message.should.match(/invalid.+teamId/i)
+            }
+        })
+
+        it('should be able to return results when using a hashed team id', async function () {
+            // Mock states and team ID
+            const states = ['running', 'stopped']
+
+            const team = await app.db.models.Team.create({ name: 'Another Test Team', TeamTypeId: 1 })
+            const numericTeamId = team.id
+
+            await app.db.models.Device.create({ name: 'p1', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId })
+            await app.db.models.Device.create({ name: 'p2', credentialSecret: 'abc', type: 'P1', state: 'stopped', TeamId: numericTeamId })
+            await app.db.models.Device.create({ name: 'p3', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId })
+
+            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
+
+            const result = await app.db.models.Device.countByState(states, hashedTeamId)
+
+            result.should.deepEqual([
+                { state: 'running', count: 2 },
+                { state: 'stopped', count: 1 }
+            ])
+        })
+    })
 })

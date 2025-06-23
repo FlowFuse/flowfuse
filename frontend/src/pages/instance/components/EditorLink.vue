@@ -3,7 +3,7 @@
         <slot name="default">
             <ff-button
                 v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
-                kind="secondary"
+                :kind="minimalView ? 'tertiary' : 'secondary'"
                 data-action="open-editor"
                 :disabled="buttonDisabled"
                 class="whitespace-nowrap"
@@ -15,7 +15,7 @@
                 <template v-else #icon>
                     <ProjectIcon />
                 </template>
-                <template v-if="showText">
+                <template v-if="showText && !minimalView">
                     {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
                 </template>
             </ff-button>
@@ -56,6 +56,10 @@ export default {
         showText: {
             default: true,
             type: Boolean
+        },
+        minimalView: {
+            type: Boolean,
+            default: false
         }
     },
     setup () {

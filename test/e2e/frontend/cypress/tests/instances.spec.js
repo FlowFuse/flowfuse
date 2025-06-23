@@ -44,7 +44,7 @@ describe('FlowForge - Instances', () => {
 
         cy.visit('/')
 
-        cy.get('[data-nav="team-applications"]')
+        cy.get('[data-nav="team-applications"]').click()
 
         cy.wait('@getTeamApplications')
 
@@ -275,7 +275,6 @@ describe('FlowForge - Instances', () => {
 
         // move along the multi-step form
         cy.get('[data-el="application-item"]').first().click()
-        cy.get('[data-el="next-step"]').click()
 
         // set the new instance name
         cy.get('[data-el="instance-name"] input').clear()

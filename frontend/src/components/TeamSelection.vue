@@ -119,6 +119,7 @@ export default {
         button {
             border-radius: 0;
             border: none;
+            background: none;
 
             button {
                 padding: 0;

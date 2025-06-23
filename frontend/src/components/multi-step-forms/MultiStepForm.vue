@@ -24,6 +24,7 @@
                     v-model="payload"
                     @step-updated="$emit('step-updated', $event, currentStepKey)"
                     @go-to-step="selectStep"
+                    @next-step="nextStep"
                 />
             </transition>
         </section>

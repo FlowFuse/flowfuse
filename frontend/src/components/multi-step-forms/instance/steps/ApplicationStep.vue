@@ -127,7 +127,7 @@ export default {
             default: false
         }
     },
-    emits: ['step-updated'],
+    emits: ['step-updated', 'next-step'],
     setup (props) {
         return {
             initialState: props.state
@@ -171,6 +171,7 @@ export default {
                         errors
                     }
                 })
+                this.$emit('next-step')
             },
             deep: true,
             immediate: true

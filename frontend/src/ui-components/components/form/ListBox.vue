@@ -166,6 +166,8 @@ export default {
   .ff-button {
     border: 1px solid $ff-grey-300;
     padding: 5px 5px 5px 10px;
+    background: $ff-white;
+
     &:focus-visible {
         outline: none;
     }
