@@ -54,6 +54,7 @@ import FinishSetupButton from '../../../../../components/FinishSetup.vue'
 import StatusBadge from '../../../../../components/StatusBadge.vue'
 import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
+import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
 import permissionsMixin from '../../../../../mixins/Permissions.js'
 import FfKebabMenu from '../../../../../ui-components/components/KebabMenu.vue'
 import DaysSince from '../../../../application/Snapshots/components/cells/DaysSince.vue'
@@ -68,7 +69,7 @@ export default {
         DaysSince,
         FinishSetupButton
     },
-    mixins: [AuditMixin, permissionsMixin],
+    mixins: [AuditMixin, permissionsMixin, deviceActionsMixin],
     props: {
         device: {
             type: Object,
@@ -94,9 +95,6 @@ export default {
         }
     },
     methods: {
-        finishSetup () {
-            this.$emit('device-action', { action: 'updateCredentials', id: this.device.id })
-        },
         shouldDisplayKebabMenu () {
             return this.hasPermission('device:edit') ||
             this.hasPermission('device:delete')
