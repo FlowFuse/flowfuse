@@ -1,25 +1,23 @@
 <template>
-    <section class="ff-select-application-step text-center flex flex-col pt-6 overflow-auto" data-step="application">
+    <section class="ff-select-application-step text-center flex flex-col gap-4 pt-6" data-step="application">
         <template v-if="hasApplications">
-            <div class="ff-step-header max-w-2xl m-auto w-full">
-                <h2>Choose an Application</h2>
+            <h2>Choose an Application</h2>
 
-                <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
+            <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
 
-                <div v-if="applications.length > 5" class="search-wrapper my-2 relative">
-                    <search-icon class="ff-icon ff-icon-sm absolute left-0 top-0 text-gray-600 z-10 mt-1.5 ml-2 " />
-                    <input v-model="searchTerm" type="text" class="w-full">
-                    <x-icon
-                        v-if="searchTerm.length"
-                        class="ff-icon ff-icon-sm absolute right-0 top-o z-10 text-gray-600 mt-1.5 mr-2 transition-all duration-300 ease-in-out cursor-pointer"
-                        @click="searchTerm = ''"
-                    />
-                </div>
+            <div v-if="applications.length > 5" class="search-wrapper max-w-2xl my-2 relative">
+                <search-icon class="ff-icon ff-icon-sm absolute left-0 top-0 text-gray-600 z-10 mt-1.5 ml-2 " />
+                <input v-model="searchTerm" type="text" class="w-full">
+                <x-icon
+                    v-if="searchTerm.length"
+                    class="ff-icon ff-icon-sm absolute right-0 top-o z-10 text-gray-600 mt-1.5 mr-2 transition-all duration-300 ease-in-out cursor-pointer"
+                    @click="searchTerm = ''"
+                />
             </div>
 
-            <ul class="max-w-2xl w-full m-auto text-left flex flex-col pt-6 gap-4 overflow-auto">
+            <ul class="max-w-2xl w-full m-auto text-left flex flex-col gap-4">
                 <li
-                    v-for="(application, $key) in filteredApplications"
+                    v-for="(application, $key) in applications"
                     :key="$key"
                     class="app-tile flex flex-col gap-2"
                     :class="{selected: application.id === selection?.id}"
@@ -267,21 +265,5 @@ export default {
             font-size: $ff-funit-sm;
         }
     }
-
-    .search-wrapper {
-        input {
-            padding-left: 30px;
-        }
-    }
-}
-
-.list-enter-active,
-.list-leave-active {
-    transition: all 0.5s ease;
-}
-.list-enter-from,
-.list-leave-to {
-    opacity: 0;
-    transform: translateX(30px);
 }
 </style>
