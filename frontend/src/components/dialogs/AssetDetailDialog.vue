@@ -20,6 +20,8 @@
 
 import FlowRenderer from '@flowfuse/flow-renderer'
 
+import BlueprintAPI from '../../api/flowBlueprints.js'
+
 export default {
     name: 'FlowViewerDialog',
     props: {
@@ -30,7 +32,13 @@ export default {
     },
     setup () {
         return {
-            show (payload) { // accepts blueprints, snapshots and libraries
+            async show (payload) { // accepts blueprints, snapshots and libraries
+                // If there is no flows property, but there is a category property, we assume this is a blueprint
+                // and try to load the content dynamically
+                if (!payload.flows && Object.hasOwn(payload, 'category')) {
+                    const blueprint = await BlueprintAPI.getFlowBlueprint(payload.id)
+                    payload.flows = blueprint.flows
+                }
                 this.mode = 'view'
                 this.$refs.dialog.show()
                 this.payload = payload

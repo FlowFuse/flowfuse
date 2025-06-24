@@ -34,7 +34,6 @@ module.exports = async function (app) {
         } else if (request.query.filter === 'inactive') {
             filter = { active: false }
         }
-
         if (request.query.team) {
             const team = await app.db.models.Team.byId(request.query.team)
             if (!team) {
@@ -45,7 +44,7 @@ module.exports = async function (app) {
             reply.send(flowTemplates)
         } else {
             // get all flow templates - typically for administration purposes
-            const flowTemplates = await app.db.models.FlowTemplate.getAll(paginationOptions, filter)
+            const flowTemplates = await app.db.models.FlowTemplate.getAll(paginationOptions, filter, { includeFlows: false })
             flowTemplates.blueprints = flowTemplates.templates.map(ft => app.db.views.FlowTemplate.flowBlueprintSummary(ft))
             reply.send(flowTemplates)
         }
@@ -291,7 +290,7 @@ module.exports = async function (app) {
                 }
             }
         }, async (request, reply) => {
-            const flowTemplates = await app.db.models.FlowTemplate.getAll({}, { active: true })
+            const flowTemplates = await app.db.models.FlowTemplate.getAll({}, { active: true }, { includeFlows: true })
             const modified = flowTemplates.templates.map(bp => app.db.views.FlowTemplate.flowBlueprintExport(bp, true))
             reply.send({
                 blueprints: modified,
