@@ -1,5 +1,5 @@
 module.exports = async function (app) {
-    // All routes are relative to /api/v1/teams/:teamId/tables
+    // All routes are relative to /api/v1/teams/:teamId/databases
 
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined) {
