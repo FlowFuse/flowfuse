@@ -8,7 +8,7 @@
             :only-custom-message="true"
         />
     </div>
-    <div class="flex-1 flex flex-col gap-2 overflow-auto">
+    <div class="flex-1 flex flex-col gap-2">
         <template v-if="!featureAvailable">
             <empty-state>
                 <template #header>
@@ -262,11 +262,7 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-.chart {
-    max-height: 450px;
-}
-
+<style lang="scss">
 .ff-socket-status {
     display: flex;
     align-items: center;
@@ -290,6 +286,7 @@ export default {
 
 .ff-chart-section {
     flex: 1;
-    max-height: 50%;
+    display: flex;
+    flex-direction: column;
 }
 </style>
