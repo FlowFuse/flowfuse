@@ -4,7 +4,12 @@ module.exports = async function (app) {
     app.config.features.register('flowBlueprints', true, true)
 
     app.get('/', {
-        preHandler: app.needsPermission('flow-blueprint:list'),
+        preHandler: async (request, reply) => {
+            if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
+                return
+            }
+            await app.needsPermission('flow-blueprint:list')(request, reply)
+        },
         schema: {
             summary: 'Get a list of the available flow blueprints',
             tags: ['Flow Blueprints'],
@@ -51,7 +56,12 @@ module.exports = async function (app) {
     })
 
     app.get('/:flowBlueprintId', {
-        preHandler: app.needsPermission('flow-blueprint:read'),
+        preHandler: async (request, reply) => {
+            if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
+                return
+            }
+            await app.needsPermission('flow-blueprint:read')(request, reply)
+        },
         schema: {
             summary: 'Get full details of a flow blueprint',
             tags: ['Flow Blueprints'],
