@@ -113,7 +113,7 @@ export default {
                 running: ['starting', 'importing', 'connected', 'info', 'success', 'pushing', 'pulling', 'loading',
                     'installing', 'safe', 'protected', 'running', 'warning'],
                 error: ['error', 'crashed'],
-                stopped: ['stopping', 'restarting', 'suspending', 'rollback', 'stopped', 'suspended', 'unknown']
+                stopped: ['stopping', 'restarting', 'suspending', 'rollback', 'stopped', 'suspended', 'offline', 'unknown']
             }
         }
     },
