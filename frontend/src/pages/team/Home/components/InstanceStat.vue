@@ -65,7 +65,7 @@ export default {
 <style scoped lang="scss">
 .ff-stat {
     border: 1px solid transparent;
-    transition: ease-in-out .3s;
+    transition: ease-in-out .15s;
     will-change: border-color;
 
     &:hover {
