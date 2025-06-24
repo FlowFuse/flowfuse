@@ -1,7 +1,7 @@
 import activeStack from '../../fixtures/admin/stacks/stack-active.json'
 import inactiveStack from '../../fixtures/admin/stacks/stack-inactive.json'
 
-describe('FlowForge - Stacks', () => {
+describe('FlowFuse - Stacks', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()
@@ -98,7 +98,7 @@ describe('FlowForge - Stacks', () => {
     })
 })
 
-describe('FlowForge shows audit logs', () => {
+describe('FlowFuse shows audit logs', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/**/audit-log?*').as('getAuditLog')
 

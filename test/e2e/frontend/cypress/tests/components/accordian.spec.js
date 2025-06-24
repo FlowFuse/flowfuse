@@ -1,4 +1,4 @@
-describe('FlowForge - Accordion Component', () => {
+describe('FlowFuse - Accordion Component', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()

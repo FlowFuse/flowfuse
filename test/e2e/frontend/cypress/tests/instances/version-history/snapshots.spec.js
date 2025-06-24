@@ -16,7 +16,7 @@ const IDX_SET_TARGET = idx++
 const IDX_DELETE_SNAPSHOT = idx++
 const MENU_ITEM_COUNT = idx
 
-describe('FlowForge - Instance Snapshots', () => {
+describe('FlowFuse - Instance Snapshots', () => {
     let projectId
     beforeEach(() => {
         cy.intercept('GET', '/api/*/projects/*/snapshots').as('getProjectSnapshots')
@@ -699,7 +699,7 @@ describe('FlowForge - Instance Snapshots', () => {
     })
 })
 
-describe('FlowForge shows audit logs', () => {
+describe('FlowFuse shows audit logs', () => {
     function navigateToProject (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {

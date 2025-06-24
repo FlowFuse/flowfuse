@@ -134,6 +134,9 @@
       background-color: $ff-color--highlight;
       color: $ff-white;
     }
+    &[disabled=""] {
+      background-color: transparent !important;
+    }
   }
   &--danger {
     color: $ff-white;
@@ -1117,6 +1120,7 @@ $countdown_size: 20px;
   z-index: 100;
   font-weight: normal; // prevent parent overriding if embedded in hX
   white-space: nowrap;
+  height: fit-content;
   background-color: black;
   color: white;
   padding: 3px 12px;
@@ -1126,8 +1130,6 @@ $countdown_size: 20px;
   transition: 0.3s opacity;
   -webkit-transition: 0.3s opacity;
   &.ff-tooltip-right {
-    top: -3px;
-    left: calc(100% + 9px);
     &::after {
       content: " ";
       position: absolute;
@@ -1140,8 +1142,6 @@ $countdown_size: 20px;
     }
   }
   &.ff-tooltip-left {
-    top: -3px;
-    right: calc(100% + 9px);
     &::after {
       content: " ";
       position: absolute;
@@ -1154,8 +1154,6 @@ $countdown_size: 20px;
     }
   }
   &.ff-tooltip-top {
-    bottom: calc(100% + 9px);
-    left: 50%;
     transform: translateX(-50%);
     &::after {
       content: " ";
@@ -1169,8 +1167,6 @@ $countdown_size: 20px;
     }
   }
   &.ff-tooltip-bottom {
-    top: calc(100% + 9px);
-    left: 50%;
     transform: translateX(-50%);
     &::after {
       content: " ";
@@ -1182,6 +1178,9 @@ $countdown_size: 20px;
       border-style: solid;
       border-color: transparent transparent black transparent;
     }
+  }
+  &--visible {
+    opacity: 1;
   }
 }
 .ff-tooltip-container {

@@ -1,4 +1,4 @@
-describe('FlowForge - Trial Users', () => {
+describe('FlowFuse - Trial Users', () => {
     beforeEach(() => {
         cy.login('terry', 'ttPassword')
         cy.home()
@@ -8,11 +8,15 @@ describe('FlowForge - Trial Users', () => {
         cy.get('[data-el="banner-team-trial"]').should('exist')
     })
 
-    it('should be presented with an empty state on the Applications view', () => {
-        cy.get('[data-el="empty-state"] [data-action="create-application"]').click()
-    })
-
     it('are redirected to their (first) newly created instance', () => {
+        cy.get('[data-team="tteam"]')
+        cy.contains('Home')
+        cy.get('[data-el="dashboard-section-hosted"] .ff-box-title').contains('Hosted Instances')
+        cy.get('[data-el="dashboard-section-remote"] .ff-box-title').contains('Remote Instances')
+        cy.get('[data-el="dashboard-section-audit"] .ff-box-title').contains('Recent Activity')
+
+        cy.get('[data-nav="team-applications"]').click()
+
         const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
         const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
 
@@ -52,6 +56,11 @@ describe('FlowForge - Trial Users', () => {
     })
 
     it('cannot create a second instance', () => {
+        cy.get('[data-team="tteam"]')
+        cy.contains('Home')
+
+        cy.get('[data-nav="team-applications"]').click()
+
         cy.get('[data-action="view-application"]').click()
         cy.get('[data-action="create-instance"]').click()
 
@@ -59,6 +68,11 @@ describe('FlowForge - Trial Users', () => {
     })
 
     it('setup billing redirects to team type selection', () => {
+        cy.get('[data-team="tteam"]')
+        cy.contains('Home')
+
+        cy.get('[data-nav="team-applications"]').click()
+
         let teamType
         cy.intercept('GET', '/api/*/team-types*').as('getTeamTypes')
         cy.intercept('GET', '/api/*/project-types*').as('getInstanceTypes')

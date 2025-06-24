@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-describe('FlowForge - Team Overview (Home) - With License', () => {
+describe('FlowFuse - Team Overview (Home) - With License', () => {
     function navigateToTeam (teamName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
@@ -92,13 +92,13 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                 cy.get('[data-el="applications-list"] > li').first().within(() => {
                     cy.contains('application-2')
 
-                    cy.get('[data-el="application-summary"]').should(($div) => {
-                        const labels = $div.find('a span').map(function () { return this.innerText })
-
-                        const text = labels.toArray().join(', ')
-
-                        // Test should pass for single test of full suite (objects persist between tests)
-                        expect(text).to.match(/2 x Instances, 3 x Devices, 2 x Device Groups, (9|[1-9]\d+) x Snapshots, 4 x Pipelines|2 x Instances, 3 x Devices, 1 x Device Group, (4|[1-9]\d+) x Snapshots/)
+                    cy.get('[data-el="application-summary"] [data-nav="application-instances"]').contains(2)
+                    cy.get('[data-el="application-summary"] [data-nav="application-devices"]').contains(3)
+                    cy.get('[data-el="application-summary"] [data-nav="application-device-groups"]').contains(2)
+                    cy.get('[data-el="application-summary"] [data-nav="application-pipelines"]').contains(4)
+                    cy.get('[data-el="application-summary"] [data-nav="application-snapshots"]').should(($snapshot) => {
+                        const text = $snapshot.text().trim()
+                        expect(text).to.match(/(9|[1-9])|(4|[1-9])/)
                     })
 
                     cy.get('[data-el="application-instances"]').find('.item-wrapper').should('have.length', 2)

@@ -259,7 +259,7 @@ export default {
             }, 200)
         },
         sendContact: async function () {
-            this.talkToSalesCalendarModal(this.user)
+            this.talkToSalesCalendarModal(this.user, this.input.teamType)
         }
     },
     components: {

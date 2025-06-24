@@ -4,7 +4,7 @@ const bobInviteToATeam = require('../fixtures/notifications/bob-invites-to-bteam
 const eddyAcceptedInvite = require('../fixtures/notifications/eddy-accepted-invite-to-ateam.json')
 const instanceCrash = require('../fixtures/notifications/instance-crashed.json')
 
-describe('FlowForge - Notifications', () => {
+describe('FlowFuse - Notifications', () => {
     describe('Team Invitations', () => {
         describe('appear as notification messages', () => {
             it('to users that have no team memberships', () => {

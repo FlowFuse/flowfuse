@@ -1,4 +1,4 @@
-describe('FlowForge - Groups', () => {
+describe('FlowFuse - Groups', () => {
     describe('Teams with the groups feature disabled', () => {
         it('should have the groups menu entry in the sidebar and display the feature banner', () => {
             cy.login('bob', 'bbPassword')

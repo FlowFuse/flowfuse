@@ -1,4 +1,4 @@
-describe('FlowForge - Team Audit Log', () => {
+describe('FlowFuse - Team Audit Log', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()
@@ -16,7 +16,7 @@ describe('FlowForge - Team Audit Log', () => {
         cy.get('.ff-no-data').should('exist')
     })
 
-    describe('FlowForge Team Audit Logs filtering', () => {
+    describe('FlowFuse Team Audit Logs filtering', () => {
         beforeEach(() => {
             cy.intercept('GET', '/api/*/teams/*/audit-log*').as('getAuditLog')
 

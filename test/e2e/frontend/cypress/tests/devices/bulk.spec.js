@@ -7,7 +7,7 @@ const deviceName1 = 'team2-unassigned-device-bulk-test-1'
 const deviceName2 = 'assigned-device-d-bulk-test-2'
 const deviceName3 = 'application-device-c-bulk-test-3'
 
-describe('FlowForge - Devices', () => {
+describe('FlowFuse - Devices', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.visit('/team/bteam/devices')

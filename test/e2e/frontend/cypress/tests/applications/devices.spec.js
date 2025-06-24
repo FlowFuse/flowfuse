@@ -1,4 +1,4 @@
-describe('FlowForge - Application - Devices', () => {
+describe('FlowFuse - Application - Devices', () => {
     let application
     let team
     function navigateToApplication (teamName, projectName) {
