@@ -1,5 +1,5 @@
 module.exports = async function (app) {
-    // All routes are relative to /api/v1/teams/:teamId/tables
+    // All routes are relative to /api/v1/teams/:teamId/databases
 
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined) {
@@ -16,6 +16,7 @@ module.exports = async function (app) {
     })
 
     app.get('/', {
+        preHandler: app.needsPermission('team:database:list'),
         schema: {
             summary: '',
             tags: ['FF tables'],
@@ -53,6 +54,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.tables
      */
     app.post('/', {
+        preHandler: app.needsPermission('team:database:create'),
         schema: {
             summary: '',
             tags: ['FF tables'],
@@ -91,6 +93,7 @@ module.exports = async function (app) {
     })
 
     app.delete('/', {
+        preHandler: app.needsPermission('team:database:delete'),
         schema: {
             summary: '',
             tags: ['FF tables'],
