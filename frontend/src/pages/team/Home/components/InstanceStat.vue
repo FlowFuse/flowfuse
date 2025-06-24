@@ -1,7 +1,7 @@
 <template>
     <div
-        class="rounded-md flex-1 p-3"
-        :class="[`bg-${accent}-50`, `text-${accent}-500`, 'cursor-pointer']"
+        class="ff-stat rounded-md flex-1 p-3 cursor-pointer"
+        :class="[`bg-${accent}-50`, `text-${accent}-500`, accent]"
         @click="clicked()"
     >
         <label class="block">{{ title }}</label>
@@ -63,5 +63,21 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.ff-stat {
+    border: 1px solid transparent;
+    transition: ease-in-out .3s;
+    will-change: border-color;
 
+    &:hover {
+        &.green {
+            border-color: $ff-green-500;
+        }
+        &.red {
+            border-color: $ff-red-500;
+        }
+        &.gray {
+            border-color: $ff-grey-500;
+        }
+    }
+}
 </style>

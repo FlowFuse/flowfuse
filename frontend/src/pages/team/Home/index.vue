@@ -186,7 +186,7 @@ export default {
         },
         onStatClick (payload) {
             const searchQuery = Object.prototype.hasOwnProperty.call(this.statesMap, payload.state)
-                ? this.statesMap[payload.state].join('|')
+                ? this.statesMap[payload.state].join(' | ')
                 : ''
             const name = payload.type === 'hosted' ? 'Instances' : 'TeamDevices'
 
