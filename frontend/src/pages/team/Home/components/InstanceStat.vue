@@ -1,5 +1,9 @@
 <template>
-    <div class="rounded-md flex-1 p-3" :class="[`bg-${accent}-50`, `text-${accent}-500`]">
+    <div
+        class="rounded-md flex-1 p-3"
+        :class="[`bg-${accent}-50`, `text-${accent}-500`, 'cursor-pointer']"
+        @click="clicked()"
+    >
         <label class="block">{{ title }}</label>
         <span class="counter font-bold text-4xl">{{ counter }}</span>
     </div>
@@ -24,6 +28,7 @@ export default {
             type: Number
         }
     },
+    emits: ['clicked'],
     computed: {
         ...mapGetters('account', ['team']),
         accent () {
@@ -32,7 +37,7 @@ export default {
                 return 'green'
             case 'error':
                 return 'red'
-            case 'not-running':
+            case 'stopped':
             default:
                 return 'gray'
             }
@@ -43,23 +48,15 @@ export default {
                 return 'Running'
             case 'error':
                 return 'Error'
-            case 'not-running':
+            case 'stopped':
             default:
                 return 'Not Running'
             }
-        },
-        apiStates () {
-            switch (this.state) {
-            case 'running':
-                return ['starting', 'importing',
-                    'connected', 'info', 'success', 'pushing', 'pulling',
-                    'loading', 'installing', 'safe', 'protected', 'running', 'warning']
-            case 'error':
-                return ['error', 'crashed']
-            case 'not-running':
-            default:
-                return ['stopping', 'restarting', 'suspending', 'rollback', 'stopped', 'suspended', '']
-            }
+        }
+    },
+    methods: {
+        clicked () {
+            this.$emit('clicked', { type: this.type, state: this.state })
         }
     }
 }
