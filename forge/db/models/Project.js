@@ -553,7 +553,7 @@ module.exports = {
                     }
 
                     if (includeMeta && orderByMostRecentFlows) {
-                        queryObject.order = [[{ model: M.StorageFlow }, 'updatedAt', 'DESC']]
+                        queryObject.order = [[{ model: M.StorageFlow }, 'updatedAt', 'DESC NULLS LAST']]
                     }
 
                     if (instanceId) {
