@@ -10,7 +10,7 @@
 
         <div id="team-dashboard" class="page-wrapper overflow-auto" :data-team="team.slug">
             <transition name="fade" mode="out-in">
-                <ff-loading v-if="loading" message="Loading Dashboard..." />
+                <ff-loading v-if="loading || pendingTeamChange" message="Loading Dashboard..." />
 
                 <div v-else class="ff-team-dashboard">
                     <section class="flex gap-3 mb-3 flex-wrap md:flex-nowrap">
@@ -118,7 +118,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['team']),
+        ...mapGetters('account', ['team', 'pendingTeamChange']),
         instanceStats () {
             return {
                 running: this.instanceStateCounts
@@ -214,6 +214,7 @@ export default {
 .ff-team-dashboard {
     height: 100%;
     display: flex;
+    flex: 1;
     flex-direction: column;
     overflow: auto;
 }
