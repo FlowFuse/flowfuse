@@ -1,6 +1,6 @@
 const crypto = require('crypto')
 const pg = require('pg')
-const { generatePassword} = require('../../../forge/lib/userTeam')
+const { generatePassword} = require('../../../../lib/userTeam')
 
 let adminClient
 
