@@ -13,7 +13,7 @@
                 <ff-loading v-if="loading" message="Loading Dashboard..." />
 
                 <div v-else class="ff-team-dashboard">
-                    <section class="flex gap-3 mb-3">
+                    <section class="flex gap-3 mb-3 flex-wrap md:flex-nowrap">
                         <DashboardSection title="Hosted Instances" type="hosted">
                             <template #icon>
                                 <ProjectsIcon class="ff-icon-lg" />
