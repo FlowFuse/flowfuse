@@ -20,13 +20,9 @@ const product = require('./product')
 const routes = require('./routes')
 const settings = require('./settings')
 const { finishSetup } = require('./setup')
+const { generatePassword } = require ('./lib/userTeam')
 
 require('dotenv').config()
-
-const generatePassword = () => {
-    const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
-    return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
-}
 
 async function createAdminAccessToken (server, userId) {
     const { token } = await server.db.controllers.AccessToken.createPersonalAccessToken(userId, '', null, 'Admin Access Token')
