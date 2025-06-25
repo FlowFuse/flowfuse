@@ -1,12 +1,8 @@
 const crypto = require('crypto')
 const pg = require('pg')
+const { generatePassword} = require('../../../forge/lib/userTeam')
 
 let adminClient
-
-const generatePassword = () => {
-    const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
-    return Array.from(crypto.randomFillSync(new Uint32Array(16))).map(x => charList[x % charList.length]).join('')
-}
 
 module.exports = {
     init: async function (app, options) {
