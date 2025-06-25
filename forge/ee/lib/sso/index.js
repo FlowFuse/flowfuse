@@ -1,9 +1,7 @@
-const crypto = require('crypto')
-
 const { Client } = require('ldapts')
 
 const { Roles, TeamRoles } = require('../../../lib/roles')
-const { completeUserSignup } = require('../../../lib/userTeam')
+const { completeUserSignup, generatePassword } = require('../../../lib/userTeam')
 
 module.exports.init = async function (app) {
     // Set the SSO feature flag
@@ -145,11 +143,6 @@ module.exports.init = async function (app) {
             }
         }
         return false
-    }
-
-    const generatePassword = () => {
-        const charList = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@-#$'
-        return Array.from(crypto.randomFillSync(new Uint32Array(8))).map(x => charList[x % charList.length]).join('')
     }
 
     /**
