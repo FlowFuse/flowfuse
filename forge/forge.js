@@ -1,5 +1,3 @@
-const crypto = require('crypto')
-
 const cookie = require('@fastify/cookie')
 const csrf = require('@fastify/csrf-protection')
 const helmet = require('@fastify/helmet')
@@ -13,6 +11,7 @@ const containers = require('./containers')
 const db = require('./db')
 const ee = require('./ee')
 const housekeeper = require('./housekeeper')
+const { generatePassword } = require('./lib/userTeam')
 const license = require('./licensing')
 const notifications = require('./notifications')
 const postoffice = require('./postoffice')
@@ -20,7 +19,6 @@ const product = require('./product')
 const routes = require('./routes')
 const settings = require('./settings')
 const { finishSetup } = require('./setup')
-const { generatePassword } = require ('./lib/userTeam')
 
 require('dotenv').config()
 
