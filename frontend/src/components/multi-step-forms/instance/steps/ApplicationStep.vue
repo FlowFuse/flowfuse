@@ -5,9 +5,25 @@
 
             <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
 
+            <div v-if="applications.length > 5" class="search-wrapper flex justify-center my-2">
+                <ff-text-input
+                    v-model="searchTerm" class="ff-data-table--search max-w-2xl w-full col-span-3 relative"
+                    data-form="search" placeholder="Search applications"
+                >
+                    <template #icon><SearchIcon /></template>
+                    <template #icon-right>
+                        <x-icon
+                            v-if="searchTerm.length"
+                            class="ff-icon ff-icon-sm absolute right-0 top-o z-10 text-gray-600 mr-1 transition-all duration-300 ease-in-out cursor-pointer"
+                            @click="searchTerm = ''"
+                        />
+                    </template>
+                </ff-text-input>
+            </div>
+
             <ul class="max-w-2xl w-full m-auto text-left flex flex-col gap-4">
                 <li
-                    v-for="(application, $key) in applications"
+                    v-for="(application, $key) in filteredApplications"
                     :key="$key"
                     class="app-tile flex flex-col gap-2"
                     :class="{selected: application.id === selection?.id}"
@@ -92,6 +108,8 @@
 </template>
 
 <script>
+import { SearchIcon, XIcon } from '@heroicons/vue/outline'
+
 import FormRow from '../../../FormRow.vue'
 import IconDeviceSolid from '../../../icons/DeviceSolid.js'
 
@@ -99,7 +117,7 @@ import IconNodeRedSolid from '../../../icons/NodeRedSolid.js'
 
 export default {
     name: 'ApplicationStep',
-    components: { FormRow, IconDeviceSolid, IconNodeRedSolid },
+    components: { FormRow, IconDeviceSolid, IconNodeRedSolid, SearchIcon, XIcon },
     props: {
         slug: {
             required: true,
@@ -125,7 +143,7 @@ export default {
             default: false
         }
     },
-    emits: ['step-updated'],
+    emits: ['step-updated', 'next-step'],
     setup (props) {
         return {
             initialState: props.state
@@ -138,12 +156,18 @@ export default {
                 name: this.initialState?.input?.name ?? '',
                 description: this.initialState?.input?.description ?? '',
                 createInstance: this.initialState?.input?.createInstance ?? true
-            }
+            },
+            searchTerm: ''
         }
     },
     computed: {
         hasApplications () {
             return this.applications.length > 0
+        },
+        filteredApplications () {
+            if (!this.searchTerm.length) return this.applications
+
+            return this.applications.filter(app => app.label.toLowerCase().includes(this.searchTerm.toLowerCase()))
         }
     },
     watch: {
@@ -169,6 +193,7 @@ export default {
                         errors
                     }
                 })
+                this.$emit('next-step')
             },
             deep: true,
             immediate: true

@@ -42,7 +42,7 @@ function interceptFlowFile () {
     ).as('getFlowJson')
 }
 
-describe('FlowForge - Library', () => {
+describe('FlowFuse - Library', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()
@@ -113,7 +113,6 @@ describe('FlowForge - Library', () => {
 
             // move along the multi-step form
             cy.get('[data-el="application-item"]').first().click()
-            cy.get('[data-el="next-step"]').click()
 
             // select instance type
             cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()

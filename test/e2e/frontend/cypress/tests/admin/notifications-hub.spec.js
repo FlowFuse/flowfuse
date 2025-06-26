@@ -1,4 +1,4 @@
-describe('FlowForge - Notifications Hub', () => {
+describe('FlowFuse - Notifications Hub', () => {
     it('is accessible from the admin menu', () => {
         cy.login('alice', 'aaPassword')
 

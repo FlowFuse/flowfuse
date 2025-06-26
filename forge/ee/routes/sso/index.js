@@ -147,6 +147,8 @@ module.exports = fp(async function (app, opts) {
         }
     })
 
+    await app.register(require('./social/google'))
+
     // IMPORTANT: register the auth routes last so that none of their internal
     // handling get applied to the routes registered in this file.
     await app.register(require('./auth'))

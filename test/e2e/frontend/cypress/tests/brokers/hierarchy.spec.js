@@ -1,4 +1,4 @@
-describe('FlowForge - Brokers Hierarchy', () => {
+describe('FlowFuse - Brokers Hierarchy', () => {
     describe('is not accessible to users with insufficient permissions', () => {
         it('should have the brokers menu entry hidden and route guard for viewer roles', () => {
             cy.intercept('GET', '/api/*/teams/*/user', { role: 10 })
@@ -7,7 +7,7 @@ describe('FlowForge - Brokers Hierarchy', () => {
 
             cy.get('[data-nav="team-broker"]').should('not.exist')
             cy.visit('team/ateam/brokers/team-broker/hierarchy')
-            cy.url().should('include', 'team/ateam/applications')
+            cy.url().should('include', 'team/ateam/overview')
         })
 
         it('should have the brokers menu entry hidden and route guard for dashboard roles', () => {

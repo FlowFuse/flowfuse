@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 RUN apk add --no-cache --virtual build-base g++ make py3-pip sqlite-dev python3
 
@@ -15,7 +15,7 @@ RUN npm install --no-audit --no-fund pg-hstore@^2.3.4 && \
     npm run build
 
 
-FROM node:18-alpine
+FROM node:20-alpine
 
 RUN apk add --no-cache git
 

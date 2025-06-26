@@ -133,7 +133,8 @@ export default {
                 connected: !!instance.performance?.connected,
                 error: instance.performance?.error,
                 cpuUtilization: instance.performance?.cpuUtilization,
-                featureSupported: !!instance.performance?.featureSupported
+                featureSupported: !!instance.performance?.featureSupported,
+                stackCpuScale: instance.stack?.properties?.cpu ?? null
             }))
         },
         hasInstances () {

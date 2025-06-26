@@ -6,11 +6,11 @@
                     {{ selected?.label || placeholder }}
                 </div>
             </slot>
-            <ChevronDownIcon class="ff-icon ff-btn--icon-right ff-dropdown-icon" />
+            <ChevronDownIcon v-if="showChevron" class="ff-icon ff-btn--icon-right ff-dropdown-icon" />
         </div>
         <ff-button v-else-if="dropdownStyle === 'button'" @click="open()">
             {{ placeholder }}
-            <template #icon-right><ChevronDownIcon /></template>
+            <template #icon-right><ChevronDownIcon v-if="showChevron" /></template>
         </ff-button>
         <div v-show="isOpen">
             <div ref="options" v-click-outside="close" class="ff-dropdown-options" :class="{'ff-dropdown-options--full-width': dropdownStyle === 'select', 'ff-dropdown-options--fit': dropdownStyle === 'button', 'ff-dropdown-options--align-left': optionsAlign === 'left', 'ff-dropdown-options--align-right': optionsAlign === 'right'}">
@@ -47,6 +47,10 @@ export default {
         },
         disabled: {
             default: false,
+            type: Boolean
+        },
+        showChevron: {
+            default: true,
             type: Boolean
         }
     },

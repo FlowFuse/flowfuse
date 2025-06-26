@@ -73,7 +73,6 @@ export default {
             show (device, instance, application, showApplicationsList = false) {
                 this.$refs.dialog.show()
                 this.instance = instance
-                this.application = application
                 this.device = device
                 this.showApplicationsList = showApplicationsList
                 if (device) {
@@ -84,6 +83,10 @@ export default {
                 } else {
                     this.editDisabled = false
                     this.input = { name: '', type: '' }
+                }
+                if (application) {
+                    this.application = application
+                    this.input.application = application.id
                 }
                 this.errors = {}
             }
@@ -146,7 +149,7 @@ export default {
         applicationsList () {
             return [
                 { value: '', label: '- none -' },
-                ...this.applications
+                ...this.applications.map(app => ({ value: app.id, label: app.name }))
             ]
         }
     },
@@ -163,7 +166,7 @@ export default {
         loadApplications () {
             this.loading.applications = true
             teamApi.getTeamApplications(this.team.id).then((data) => {
-                this.applications = data.applications.map(application => { return { value: application, label: application.name } })
+                this.applications = data.applications
                 this.loading.applications = false
             }).catch((error) => {
                 console.error(error)
@@ -172,8 +175,11 @@ export default {
         confirm () {
             const opts = {
                 name: this.input.name,
-                type: this.input.type,
-                application: this.input.application
+                type: this.input.type
+            }
+
+            if (Object.prototype.hasOwnProperty.call(this.input, 'application')) {
+                opts.application = this.input.application
             }
 
             if (this.device) {
@@ -212,12 +218,12 @@ export default {
                             alerts.emit('Device successfully created.', 'confirmation')
                         })
                     } else if (this.application || this.input.application) {
-                        const app = this.input.application || this.application
+                        const application = this.input.application
                         const creds = response.credentials
                         // TODO: should the create allow a device to linked to an application at the same time?
                         //       currently, as above, this is a 2 step process
                         // eslint-disable-next-line promise/no-nesting
-                        return devicesApi.updateDevice(response.id, { application: app.id }).then((response) => {
+                        return devicesApi.updateDevice(response.id, { application }).then((response) => {
                             // Reattach the credentials from the create request
                             // so they can be displayed to the user
                             response.credentials = creds

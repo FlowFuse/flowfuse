@@ -1,4 +1,4 @@
-describe('FlowForge - Application - Empty State', () => {
+describe('FlowFuse - Application - Empty State', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.intercept('GET', '/api/v1/teams/*/applications*', (req) => {
@@ -15,7 +15,7 @@ describe('FlowForge - Application - Empty State', () => {
                 applications: []
             })
         }).as('getTeamApplicationsStatus')
-        cy.home()
+        cy.visit('team/bteam/applications')
     })
 
     it('is shown when a user navigates to the Applications view and has no applications', () => {

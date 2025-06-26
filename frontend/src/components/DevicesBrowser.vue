@@ -586,6 +586,16 @@ export default {
             this.$nextTick(() => this.$refs.teamDeviceCreateDialog.show(null, this.instance, this.application, showApplicationsList))
         },
 
+        showEditDeviceDialog (device) {
+            // overrides the deviceActionsMixin method
+            this.deviceEditModalOpened = true
+            const showApplicationsList = this.displayingTeam
+            this.$nextTick(() => this.$refs.teamDeviceCreateDialog.show(device,
+                null,
+                device.application ?? null,
+                showApplicationsList))
+        },
+
         confirmBulkDelete () {
             // do the delete
             teamApi.bulkDeviceDelete(this.team?.id, this.checkedDevices.map(device => device.id))

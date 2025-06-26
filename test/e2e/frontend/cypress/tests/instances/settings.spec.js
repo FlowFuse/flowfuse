@@ -1,4 +1,4 @@
-describe('FlowForge - Instance Settings - DevOps', () => {
+describe('FlowFuse - Instance Settings - DevOps', () => {
     function navigateToInstanceSettings (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
