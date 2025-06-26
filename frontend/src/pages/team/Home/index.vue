@@ -110,7 +110,7 @@ export default {
             devices: [],
             deviceStateCounts: {},
             statesMap: {
-                running: ['starting', 'importing', 'connected', 'info', 'success', 'pushing', 'pulling', 'loading',
+                running: ['starting', 'importing', 'connected', 'info', 'success', 'pushing', 'pulling', 'loading', 'updating',
                     'installing', 'safe', 'protected', 'running', 'warning'],
                 error: ['error', 'crashed'],
                 stopped: ['stopping', 'restarting', 'suspending', 'rollback', 'stopped', 'suspended', 'offline', 'unknown']
