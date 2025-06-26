@@ -829,7 +829,7 @@ describe('Accounts API', async function () {
                 should.not.exist(token2)
             })
 
-            it('user can delete mfa token', async function () {
+            it('user can setup and delete mfa token', async function () {
                 const user = await createUser(true)
                 const mfaResponse = await app.inject({
                     method: 'PUT',
@@ -848,6 +848,12 @@ describe('Accounts API', async function () {
                     cookies: { sid: TestObjects.tokens[user.username] }
                 })
                 verifyResponse.statusCode.should.equal(200)
+
+                // This should have reset the session cookie
+                const responseCookies = verifyResponse.cookies
+                responseCookies.should.have.length(1)
+                responseCookies[0].should.have.property('name', 'sid')
+                TestObjects.tokens[user.username] = responseCookies[0].value
 
                 // Now we can finally delete the mfa setup
                 const deleteResponse = await app.inject({
@@ -885,6 +891,12 @@ describe('Accounts API', async function () {
                     cookies: { sid: TestObjects.tokens[user.username] }
                 })
                 verifyResponse.statusCode.should.equal(200)
+
+                // This should have reset the session cookie
+                const responseCookies = verifyResponse.cookies
+                responseCookies.should.have.length(1)
+                responseCookies[0].should.have.property('name', 'sid')
+                TestObjects.tokens[user.username] = responseCookies[0].value
 
                 // Now we try to setup mfa again
                 const mfaResponse2 = await app.inject({

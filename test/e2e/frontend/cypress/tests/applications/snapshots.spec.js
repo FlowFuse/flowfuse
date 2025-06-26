@@ -22,7 +22,7 @@ const IDX_DELETE_SNAPSHOT = idx++
 
 const MENU_ITEM_COUNT = idx
 
-describe('FlowForge - Application - Snapshots', () => {
+describe('FlowFuse - Application - Snapshots', () => {
     let application
     let team
     function navigateToApplication (teamName, projectName) {

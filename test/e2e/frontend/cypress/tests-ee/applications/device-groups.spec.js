@@ -1,7 +1,7 @@
 import applicationDevices from '../../fixtures/device-groups/application-devices.json'
 import deviceGroup1 from '../../fixtures/device-groups/device-group-1.json'
 
-describe('FlowForge - Application - Device Groups', () => {
+describe('FlowFuse - Application - Device Groups', () => {
     let application
     let team
     function loadApplication (teamName, applicationName) {

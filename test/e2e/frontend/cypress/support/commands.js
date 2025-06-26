@@ -40,7 +40,7 @@ Cypress.Commands.add('login', (username, password) => {
 })
 
 Cypress.Commands.add('logout', () => {
-    // clear Cypress session, and logout from FlowForge
+    // clear Cypress session, and logout from FlowFuse
     cy.session([null, null], () => {
         cy.request('post', '/account/logout')
     })
@@ -69,10 +69,9 @@ Cypress.Commands.add('home', (username, password) => {
     cy.wait('@getTeam')
     cy.wait('@getTeams')
     cy.wait('@getTeamRole')
-    cy.wait('@getTeamApplications')
     cy.wait('@getInvitations')
 
-    cy.url().should('include', '/applications')
+    cy.url().should('include', '/overview')
 })
 
 Cypress.Commands.add('enableBilling', () => {

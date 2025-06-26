@@ -1,4 +1,4 @@
-describe('FlowForge - Team Membership', () => {
+describe('FlowFuse - Team Membership', () => {
     // let team // , project
 
     beforeEach(() => {

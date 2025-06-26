@@ -119,7 +119,12 @@ module.exports = {
 
                             app.log.warn(`Failed to deploy pipeline stage ${M.PipelineStage.encodeHashid(this.PipelineStageId)} (push): ${err.message}`)
                             if (!err.code) {
-                                app.log.error(err)
+                                if (err.cause) {
+                                    // Log the root cause - this is usually a git error
+                                    app.log.error(err.cause)
+                                } else {
+                                    app.log.error(err)
+                                }
                             }
                         }
                     })

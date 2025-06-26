@@ -1,4 +1,4 @@
-// test team invitations in FlowForge
+// test team invitations in FlowFuse
 
 describe('FlowFuse platform invitees', () => {
     beforeEach(() => {
@@ -64,11 +64,14 @@ describe('FlowFuse platform invitees', () => {
 
         cy.get('[data-action="team-selection"]').should('be.visible')
         // should have navigated to the team dashboard
-        cy.url().should('include', '/team/bteam/applications')
+
+        cy.contains('Home')
+
+        cy.url().should('include', '/overview')
     })
 })
 
-describe('FlowForge stores invitation-based audit logs', () => {
+describe('FlowFuse stores invitation-based audit logs', () => {
     it('when an invitation is rejected', () => {
         cy.login('alice', 'aaPassword')
         cy.home()

@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-describe('FlowForge - Application - DevOps Pipelines', () => {
+describe('FlowFuse - Application - DevOps Pipelines', () => {
     let application
     let team
     function loadApplication (teamName, applicationName) {

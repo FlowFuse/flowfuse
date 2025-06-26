@@ -1,7 +1,7 @@
 import deviceOffline from '../fixtures/device-offline.json'
 import deviceRunning from '../fixtures/device-running.json'
 
-describe('FlowForge - Team Devices', () => {
+describe('FlowFuse - Team Devices', () => {
     describe('team with no devices', () => {
         beforeEach(() => {
             cy.intercept('GET', '/api/*/teams/*/devices').as('getDevices')
@@ -453,7 +453,7 @@ describe('FlowForge - Team Devices', () => {
     })
 })
 
-describe('FlowForge stores device audit logs', () => {
+describe('FlowFuse stores device audit logs', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()

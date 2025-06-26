@@ -1,4 +1,4 @@
-describe('FlowForge - Devices', () => {
+describe('FlowFuse - Devices', () => {
     beforeEach(() => {
         cy.login('bob', 'bbPassword')
         cy.visit('/team/bteam/devices')

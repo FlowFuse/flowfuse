@@ -4,7 +4,12 @@ module.exports = async function (app) {
     app.config.features.register('flowBlueprints', true, true)
 
     app.get('/', {
-        preHandler: app.needsPermission('flow-blueprint:list'),
+        preHandler: async (request, reply) => {
+            if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
+                return
+            }
+            await app.needsPermission('flow-blueprint:list')(request, reply)
+        },
         schema: {
             summary: 'Get a list of the available flow blueprints',
             tags: ['Flow Blueprints'],
@@ -34,7 +39,6 @@ module.exports = async function (app) {
         } else if (request.query.filter === 'inactive') {
             filter = { active: false }
         }
-
         if (request.query.team) {
             const team = await app.db.models.Team.byId(request.query.team)
             if (!team) {
@@ -45,14 +49,19 @@ module.exports = async function (app) {
             reply.send(flowTemplates)
         } else {
             // get all flow templates - typically for administration purposes
-            const flowTemplates = await app.db.models.FlowTemplate.getAll(paginationOptions, filter)
+            const flowTemplates = await app.db.models.FlowTemplate.getAll(paginationOptions, filter, { includeFlows: false })
             flowTemplates.blueprints = flowTemplates.templates.map(ft => app.db.views.FlowTemplate.flowBlueprintSummary(ft))
             reply.send(flowTemplates)
         }
     })
 
     app.get('/:flowBlueprintId', {
-        preHandler: app.needsPermission('flow-blueprint:read'),
+        preHandler: async (request, reply) => {
+            if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
+                return
+            }
+            await app.needsPermission('flow-blueprint:read')(request, reply)
+        },
         schema: {
             summary: 'Get full details of a flow blueprint',
             tags: ['Flow Blueprints'],
@@ -291,7 +300,7 @@ module.exports = async function (app) {
                 }
             }
         }, async (request, reply) => {
-            const flowTemplates = await app.db.models.FlowTemplate.getAll({}, { active: true })
+            const flowTemplates = await app.db.models.FlowTemplate.getAll({}, { active: true }, { includeFlows: true })
             const modified = flowTemplates.templates.map(bp => app.db.views.FlowTemplate.flowBlueprintExport(bp, true))
             reply.send({
                 blueprints: modified,

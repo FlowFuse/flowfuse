@@ -318,13 +318,43 @@ module.exports = async function (app) {
      *  - the Team Instances view
      *  - team/Devices/dialogs/CreateProvisionTokenDialog.vue
      *  - team/Settings/Devices.vue
+     *  - team/Home/components/RecentlyModifiedInstances.vue
      */
     app.get('/:teamId/projects', {
-        preHandler: app.needsPermission('team:projects:list')
+        preHandler: app.needsPermission('team:projects:list'),
+        query: {
+            limit: {
+                type: 'number',
+                nullable: true
+            },
+            includeMeta: {
+                type: 'boolean',
+                nullable: true,
+                default: false
+            },
+            orderByMostRecentFlows: {
+                type: 'boolean',
+                nullable: true,
+                default: false
+            }
+        }
     }, async (request, reply) => {
-        const projects = await app.db.models.Project.byTeam(request.params.teamId, { includeSettings: true })
+        const includeMeta = request.query.includeMeta
+        const limit = request.query.limit
+        const orderByMostRecentFlows = request.query.orderByMostRecentFlows
+
+        const projects = await app.db.models.Project.byTeam(request.params.teamId, {
+            includeSettings: true,
+            limit,
+            includeMeta,
+            orderByMostRecentFlows
+        })
+
         if (projects) {
-            let result = await app.db.views.Project.instancesList(projects, { includeSettings: true })
+            let result = await app.db.views.Project.instancesList(projects, {
+                includeSettings: true,
+                includeMeta
+            })
             if (request.session.ownerType === 'project') {
                 // This request is from a project token. Filter the list to return
                 // the minimal information needed
@@ -924,5 +954,91 @@ module.exports = async function (app) {
         ]
             .map(row => row.join(','))
             .join('\r\n'))
+    })
+
+    /**
+     * Get the team instance counts
+     * @name /api/v1/teams/:teamId/instance-counts
+     * @memberof forge.routes.api.team
+     */
+    app.get('/:teamId/instance-counts', {
+        preHandler: [
+            app.needsPermission('team:read'),
+            async (request, reply) => {
+                const validInstanceTypes = ['remote', 'hosted']
+                const validStates = ['starting', 'stopping', 'restarting', 'suspending', 'rollback', 'importing',
+                    'error', 'crashed', 'stopped', 'suspended', 'warning', 'connected', 'info', 'success', 'pushing', 'pulling',
+                    'loading', 'installing', 'safe', 'protected', 'running', ''] // empty state is required for the remote instances not-running query
+
+                if (!validInstanceTypes.includes(request.query.instanceType)) {
+                    return reply.code(400).send({
+                        code: 'invalid_instance_type',
+                        error: 'Invalid instance type provided'
+                    })
+                }
+
+                if (Array.isArray(request.query.state)) {
+                    for (const state of request.query.state) {
+                        if (!validStates.includes(state)) {
+                            return reply.code(400).send({
+                                code: 'invalid_state',
+                                error: `Invalid state value: ${state}`
+                            })
+                        }
+                    }
+                }
+            }
+        ],
+        schema: {
+            summary: 'Get team remote/hosted instance counts counts',
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            query: {
+                instanceType: { type: 'string' },
+                state: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    default: []
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    patternProperties: {
+                        '^.*$': { type: 'number' } // accepts any property name (string) where the value is a number.
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const model = request.query.instanceType === 'hosted'
+                ? app.db.models.Project
+                : app.db.models.Device
+
+            const stateCounters = await model.countByState(request.query.state, request.team.id) ?? []
+            const response = {}
+
+            stateCounters.forEach(res => {
+                // remote instances that have not been connected yet have an empty state
+                response[res.state.length ? res.state : 'unknown'] = res.count
+            })
+
+            reply.send(response)
+        } catch (err) {
+            // Handle any errors that occur
+            const response = {
+                code: err.code || 'unexpected_error',
+                error: err.toString()
+            }
+            reply.code(400).send(response)
+        }
     })
 }

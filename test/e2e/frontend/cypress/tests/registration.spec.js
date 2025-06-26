@@ -1,4 +1,4 @@
-describe('FlowForge - Sign Up Page', () => {
+describe('FlowFuse - Sign Up Page', () => {
     it('should present the relevant default fields', () => {
         cy.intercept('GET', '/api/*/settings').as('getUserSettings')
         cy.visit('/account/create')
@@ -317,7 +317,7 @@ describe('FlowForge - Sign Up Page', () => {
         cy.get('[data-action="sign-up"]').should('be.disabled')
     })
 
-    it('should present the "What brings you to FlowForge" question if configured', () => {
+    it('should present the "What brings you to FlowFuse" question if configured', () => {
         Cypress.on('window:before:load', win => {
             win.posthog = {
                 onFeatureFlags: () => {},

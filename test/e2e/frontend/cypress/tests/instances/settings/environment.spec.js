@@ -1,4 +1,4 @@
-describe('FlowForge - Instance - Settings Environment', () => {
+describe('FlowFuse - Instance - Settings Environment', () => {
     let instanceId
     beforeEach(() => {
         cy.login('alice', 'aaPassword')

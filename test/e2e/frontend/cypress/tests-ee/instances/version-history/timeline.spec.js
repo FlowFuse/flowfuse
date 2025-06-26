@@ -9,7 +9,7 @@ import projectSnapshotImportedPipeline
     from '../../../fixtures/version-history/timeline/project-snapshot-imported_pipeline.json'
 import projectSnapshotRolledBack from '../../../fixtures/version-history/timeline/project-snapshot-rolled-back.json'
 
-describe('FlowForge - Version History', () => {
+describe('FlowFuse - Version History', () => {
     let projectId
 
     beforeEach(() => {
