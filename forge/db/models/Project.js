@@ -556,9 +556,9 @@ module.exports = {
                         queryObject.order = [
                             [literal(`
                                 CASE
-                                    WHEN state = 'error' OR state = 'crashed' THEN 1
-                                    WHEN state = 'running' OR state = 'safe' OR state = 'protected' OR state = 'warning' THEN 2
-                                    WHEN state = 'suspended' OR state = 'stopped' OR state = 'offline' OR state = 'unknown' OR state = '' THEN 3
+                                    WHEN state IN ('error', 'crashed') THEN 1
+                                    WHEN state IN ('running', 'safe', 'protected', 'warning') THEN 2
+                                    WHEN state IS NULL OR state IN ('suspended', 'stopped', 'offline', 'unknown', '') THEN 3
                                     ELSE 4
                                 END
                             `), 'ASC'],
