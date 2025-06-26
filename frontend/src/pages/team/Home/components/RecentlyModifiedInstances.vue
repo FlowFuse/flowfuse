@@ -3,7 +3,7 @@
         <p class="text-gray-400 text-sm">Recently Modified</p>
         <ul v-if="instances.length" class="flex flex-1 flex-col gap-1">
             <li v-for="instance in instances" :key="instance.id" class="instance-wrapper flex">
-                <InstanceTile :instance="instance" :minimal-view="true" />
+                <InstanceTile :instance="instance" :minimal-view="true" @delete-instance="$emit('delete-instance', $event)" />
             </li>
             <li v-if="hasMore" class="instance-wrapper flex">
                 <team-link :to="{name: 'Instances'}" class="instance-tile has-more hover:text-indigo-700">
@@ -41,6 +41,7 @@ export default {
             required: true
         }
     },
+    emits: ['delete-instance'],
     data () {
         return {
             hasMore: false,
@@ -51,6 +52,12 @@ export default {
         ...mapGetters('account', ['team']),
         instancesLeft () {
             return this.totalInstances - this.instances.length
+        }
+    },
+    watch: {
+        totalInstances () {
+            // if the no. of total instances changed, it must mean one was deleted, so we need to refresh our list
+            this.getInstances()
         }
     },
     mounted () {

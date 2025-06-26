@@ -34,7 +34,7 @@
                                 />
                             </div>
 
-                            <RecentlyModifiedInstances :total-instances="totalInstances" />
+                            <RecentlyModifiedInstances :total-instances="totalInstances" @delete-instance="openDeleteInstanceForm" />
                         </DashboardSection>
 
                         <DashboardSection title="Remote Instances" type="remote">
@@ -68,6 +68,12 @@
 
                         <AuditLog :entries="logEntries" />
                     </DashboardSection>
+
+                    <ConfirmInstanceDeleteDialog
+                        v-if="isDeleteInstanceDialogOpen" ref="confirmInstanceDeleteDialog"
+                        @cancel="isDeleteInstanceDialogOpen = false"
+                        @confirm="onInstanceDeleted"
+                    />
                 </div>
             </transition>
         </div>
@@ -83,6 +89,7 @@ import TeamAPI from '../../../api/team.js'
 import AuditLog from '../../../components/audit-log/AuditLog.vue'
 
 import ProjectsIcon from '../../../components/icons/Projects.js'
+import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import DashboardSection from './components/DashboardSection.vue'
 import InstanceStat from './components/InstanceStat.vue'
@@ -92,6 +99,7 @@ import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vu
 export default {
     name: 'TeamHome',
     components: {
+        ConfirmInstanceDeleteDialog,
         InstanceStat,
         RecentlyModifiedInstances,
         AuditLog,
@@ -107,6 +115,7 @@ export default {
             logEntries: [],
             instances: [],
             instanceStateCounts: {},
+            isDeleteInstanceDialogOpen: false,
             devices: [],
             deviceStateCounts: {},
             statesMap: {
@@ -205,6 +214,15 @@ export default {
                     this.deviceStateCounts = res
                 })
                 .catch(e => e)
+        },
+        openDeleteInstanceForm (instance) {
+            this.isDeleteInstanceDialogOpen = true
+            this.$nextTick(() => this.$refs.confirmInstanceDeleteDialog.show(instance))
+        },
+        onInstanceDeleted (instance) {
+            this.isDeleteInstanceDialogOpen = false
+            // get the new number of instances which triggers a recently modified instances list refresh
+            this.getInstanceStateCounts()
         }
     }
 }
