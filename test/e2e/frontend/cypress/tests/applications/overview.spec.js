@@ -364,7 +364,7 @@ describe('FlowFuse - Applications', () => {
         })
 
         describe('can search through', () => {
-            it.only('applications', () => {
+            it('applications', () => {
                 cy.intercept(
                     'GET',
                     '/api/*/teams/*/applications/status*',
