@@ -11,7 +11,6 @@ module.exports = function (app) {
             icon: { type: 'string' },
             order: { type: 'number' },
             default: { type: 'boolean' },
-            flows: { type: 'object', additionalProperties: true },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             externalUrl: { type: 'string' }
@@ -27,7 +26,6 @@ module.exports = function (app) {
             icon: blueprint.icon,
             order: blueprint.order,
             default: blueprint.default,
-            flows: blueprint.flows,
             createdAt: blueprint.createdAt,
             updatedAt: blueprint.updatedAt,
             externalUrl: blueprint.externalUrl
