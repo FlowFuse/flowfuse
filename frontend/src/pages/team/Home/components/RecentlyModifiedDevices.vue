@@ -2,7 +2,7 @@
     <div class="recently-modified">
         <p class="text-gray-400 text-sm">Recently Modified</p>
         <ul v-if="devices.length" class="flex flex-col gap-1">
-            <li v-for="device in devices" :key="device.id" class="instance-wrapper flex flex-1">
+            <li v-for="device in devices" :key="device.id" class="device-wrapper flex">
                 <DeviceTile
                     :device="device"
                     :minimal-view="true"
@@ -10,8 +10,8 @@
                     @device-action="onDeviceAction"
                 />
             </li>
-            <li v-if="hasMore" class="fde-wrapper flex flex-1">
-                <team-link :to="{name: 'TeamDevices'}" class="instance-tile has-more hover:text-indigo-700">
+            <li v-if="hasMore" class="device-wrapper flex">
+                <team-link :to="{name: 'TeamDevices'}" class="device-tile has-more hover:text-indigo-700">
                     <span>{{ instancesLeft }} More</span>
                     <span>
                         <ChevronRightIcon class="ff-icon ff-icon-sm" />
@@ -130,37 +130,51 @@ export default {
         margin-bottom: 10px;
         line-height: 2rem;
     }
-    .device-tile {
-        border: 1px solid $ff-grey-100;
-        padding: 2px 10px;
-        border-radius: 5px;
-        flex: 1;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
 
-        .details {
-            flex: 1;
-
-            .detail-wrapper {
-                &:last-of-type {
-                    font-size: $ff-funit-sm;
-                    color: $ff-grey-400;
-                }
-            }
-
-            .name {
-                &:hover {
-                    color: $ff-indigo-700;
-                }
-            }
-        }
-
-        .actions {
+    .device-wrapper {
+        .device-tile {
+            border: 1px solid $ff-grey-100;
+            padding: 2px 10px;
+            border-radius: 5px;
             display: flex;
+            width: 100%;
+            height: fit-content;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
+            will-change: border-color;
+            transition: ease-in-out .3s;
+
+            &.has-more {
+                padding: 10px;
+            }
+
+            &:hover {
+                border-color: $ff-grey-200;
+            }
+
+            .details {
+                flex: 1;
+
+                .detail-wrapper {
+                    &:last-of-type {
+                        font-size: $ff-funit-sm;
+                        color: $ff-grey-400;
+                    }
+                }
+
+                .name {
+                    &:hover {
+                        color: $ff-indigo-700;
+                    }
+                }
+            }
+
+            .actions {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
         }
     }
 
