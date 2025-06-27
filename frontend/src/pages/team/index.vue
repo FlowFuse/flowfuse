@@ -1,15 +1,12 @@
 <template>
-    <template v-if="pendingTeamChange">
-        <Loading />
-    </template>
-    <template v-else-if="canAccessTeam && team">
+    <template v-if="canAccessTeam && team">
         <Teleport v-if="mounted" to="#platform-banner">
             <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
             <TeamSuspendedBanner v-if="team.suspended" :team="team" />
             <SubscriptionExpiredBanner v-else :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <router-view />
+        <router-view :key="team.id" />
     </template>
     <template v-else-if="!canAccessTeam">
         <TeamInstances :dashboard-role-only="true" />
@@ -19,7 +16,6 @@
 <script>
 import { mapGetters, mapState } from 'vuex'
 
-import Loading from '../../components/Loading.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
@@ -31,7 +27,6 @@ export default {
     name: 'TeamPage',
     components: {
         TeamInstances,
-        Loading,
         SubscriptionExpiredBanner,
         TeamSuspendedBanner,
         TeamTrialBanner
