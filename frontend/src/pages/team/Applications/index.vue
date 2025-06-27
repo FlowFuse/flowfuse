@@ -231,28 +231,22 @@ export default {
                 }
             }
         },
-        filterTerm (filterTerm) {
-            this.isSearching = true
-            debounce(async (filterTerm) => {
+        filterTerm: {
+            handler: debounce(async function (filterTerm) {
+                this.isSearching = true
                 if (filterTerm.length === 0) {
                     this.isSearching = false
                     this.debouncedFilterTerm = filterTerm
                     return
                 }
 
-                const searchInstances = await searchApi.searchInstances(this.team.id, filterTerm)
-                searchInstances.results.forEach(instance => {
-                    if (instance.instanceType === 'hosted') {
-                        this.applications.get(instance.application.id).instances.set(instance.id, instance)
-                    }
-
-                    if (instance.instanceType === 'remote') {
-                        this.applications.get(instance.application.id).devices.set(instance.id, instance)
-                    }
-                })
-                this.debouncedFilterTerm = filterTerm
-                this.isSearching = false
-            }, 500)(filterTerm)
+                this.search(filterTerm)
+                    .then(() => {
+                        this.debouncedFilterTerm = filterTerm
+                        this.isSearching = false
+                    })
+                    .catch(e => e)
+            }, 500)
         }
     },
     async mounted () {
@@ -366,7 +360,21 @@ export default {
                 this.filterTerm = this.$route.query.searchQuery
             }
         },
+        async search (filterTerm) {
+            return searchApi.searchInstances(this.team.id, filterTerm)
+                .then((response) => response.results)
+                .then((results) => {
+                    results.forEach(instance => {
+                        if (instance.instanceType === 'hosted') {
+                            this.applications.get(instance.application.id).instances.set(instance.id, instance)
+                        }
 
+                        if (instance.instanceType === 'remote') {
+                            this.applications.get(instance.application.id).devices.set(instance.id, instance)
+                        }
+                    })
+                })
+        },
         dispatchTour () {
             switch (true) {
             case this.isFreeTeamType && !!this.applicationsList[0]:
