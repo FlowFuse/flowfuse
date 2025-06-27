@@ -13,7 +13,7 @@
 
 const crypto = require('crypto')
 
-const { col, fn, DataTypes, Op, where } = require('sequelize')
+const { col, fn, DataTypes, Op, where, literal } = require('sequelize')
 
 const Controllers = require('../controllers')
 
@@ -553,7 +553,17 @@ module.exports = {
                     }
 
                     if (includeMeta && orderByMostRecentFlows) {
-                        queryObject.order = [[{ model: M.StorageFlow }, 'updatedAt', 'DESC NULLS LAST']]
+                        queryObject.order = [
+                            [literal(`
+                                CASE
+                                    WHEN state IN ('error', 'crashed') THEN 1
+                                    WHEN state IN ('running', 'safe', 'protected', 'warning') THEN 2
+                                    WHEN state IS NULL OR state IN ('suspended', 'stopped', 'offline', 'unknown', '') THEN 3
+                                    ELSE 4
+                                END
+                            `), 'ASC'],
+                            [{ model: M.StorageFlow }, 'updatedAt', 'DESC NULLS LAST']
+                        ]
                     }
 
                     if (instanceId) {
