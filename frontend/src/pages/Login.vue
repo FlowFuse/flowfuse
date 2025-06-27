@@ -1,9 +1,9 @@
 <template>
     <ff-layout-box class="ff-login">
         <div v-if="!pending" data-form="login">
-            <ff-loading v-if="loggingIn" :message="$t('auth.loggingIn')" color="white" />
+            <ff-loading v-if="loggingIn" v-i18n message="Loading..." color="white" data-i18n="auth.loggingIn" />
             <template v-else-if="!mfaRequired">
-                <label>{{ $t('auth.username') }}</label>
+                <label v-i18n data-i18n="auth.username">Username / E-Mail</label>
                 <ff-text-input
                     ref="login-username"
                     v-model="input.username"
@@ -15,7 +15,7 @@
                 />
                 <span class="ff-error-inline" data-el="errors-username">{{ errors.username }}</span>
                 <div v-if="passwordRequired">
-                    <label>{{ $t('auth.password') }}</label>
+                    <label v-i18n data-i18n="auth.password">Password</label>
                     <ff-text-input
                         ref="login-password"
                         v-model="input.password"
@@ -30,19 +30,19 @@
                 <label class="ff-error-inline" data-el="errors-general">{{ errors.general }}</label>
                 <div class="ff-actions">
                     <ff-button data-action="login" :disabled="loggingIn || tooManyRequests" @click="login()">
-                        <span>{{ $t('auth.login') }}</span>
+                        <span v-i18n data-i18n="auth.login">Login</span>
                         <span v-if="loggingIn || tooManyRequests" class="w-4">
                             <SpinnerIcon class="ff-icon ml-3 !w-3.5" />
                         </span>
                     </ff-button>
-                    <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create" data-action="sign-up">{{ $t('auth.signup') }}</ff-button>
-                    <ff-button v-if="passwordRequired && settings['user:reset-password']" kind="tertiary" :to="{'name': 'ForgotPassword'}" data-action="forgot-password">{{ $t('auth.forgotPassword') }}</ff-button>
+                    <ff-button v-if="settings['user:signup']" v-i18n kind="tertiary" to="/account/create" data-action="sign-up" data-i18n="auth.signup">Sign Up</ff-button>
+                    <ff-button v-if="passwordRequired && settings['user:reset-password']" v-i18n kind="tertiary" :to="{'name': 'ForgotPassword'}" data-action="forgot-password" data-i18n="auth.forgotPassword">Forgot Password</ff-button>
                     <template v-if="googleSSOEnabled">
                         <hr class="mb-4">
                         <GoogleLogin class="w-full" :client-id="settings['platform:sso:google:clientId']" popup-type="TOKEN" :callback="ggCallback">
                             <ff-button class="w-full space-x-2" kind="secondary" data-action="google-login" :disabled="loggingIn">
                                 <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0yMy41MiAxMi4yNzI3QzIzLjUyIDExLjQyMTggMjMuNDQzNiAxMC42MDM2IDIzLjMwMTggOS44MTgxNkgxMlYxNC40NkgxOC40NTgyQzE4LjE4IDE1Ljk2IDE3LjMzNDUgMTcuMjMwOSAxNi4wNjM2IDE4LjA4MThWMjEuMDkyN0gxOS45NDE4QzIyLjIxMDkgMTkuMDAzNiAyMy41MiAxNS45MjczIDIzLjUyIDEyLjI3MjdaIiBmaWxsPSIjNDI4NUY0Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMTIgMjRDMTUuMjQgMjQgMTcuOTU2NCAyMi45MjU1IDE5Ljk0MTggMjEuMDkyN0wxNi4wNjM3IDE4LjA4MThDMTQuOTg5MSAxOC44MDE4IDEzLjYxNDYgMTkuMjI3MyAxMiAxOS4yMjczQzguODc0NTYgMTkuMjI3MyA2LjIyOTExIDE3LjExNjQgNS4yODU0NyAxNC4yOEgxLjI3NjM4VjE3LjM4OTFDMy4yNTA5MyAyMS4zMTA5IDcuMzA5MTEgMjQgMTIgMjRaIiBmaWxsPSIjMzRBODUzIi8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNNS4yODU0NSAxNC4yOEM1LjA0NTQ1IDEzLjU2IDQuOTA5MDkgMTIuNzkwOSA0LjkwOTA5IDEyQzQuOTA5MDkgMTEuMjA5MSA1LjA0NTQ1IDEwLjQ0IDUuMjg1NDUgOS43MTk5OFY2LjYxMDg5SDEuMjc2MzZDMC40NjM2MzYgOC4yMzA4OSAwIDEwLjA2MzYgMCAxMkMwIDEzLjkzNjMgMC40NjM2MzYgMTUuNzY5MSAxLjI3NjM2IDE3LjM4OTFMNS4yODU0NSAxNC4yOFoiIGZpbGw9IiNGQkJDMDUiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMiA0Ljc3MjczQzEzLjc2MTggNC43NzI3MyAxNS4zNDM3IDUuMzc4MTggMTYuNTg3MyA2LjU2NzI3TDIwLjAyOTEgMy4xMjU0NUMxNy45NTA5IDEuMTg5MDkgMTUuMjM0NiAwIDEyIDBDNy4zMDkxMSAwIDMuMjUwOTMgMi42ODkwOSAxLjI3NjM4IDYuNjEwOTFMNS4yODU0NyA5LjcyQzYuMjI5MTEgNi44ODM2NCA4Ljg3NDU2IDQuNzcyNzMgMTIgNC43NzI3M1oiIGZpbGw9IiNFQTQzMzUiLz4KPC9zdmc+Cg==" class="ml-2">
-                                <span>{{ $t('auth.signInWithGoogle') }}</span>
+                                <span v-i18n data-i18n="auth.signInWithGoogle">Sign in with Google</span>
                                 <span v-if="loggingIn || tooManyRequests" class="w-4">
                                     <SpinnerIcon class="ff-icon ml-3 !w-3.5" />
                                 </span>
@@ -53,11 +53,11 @@
                 </div>
             </template>
             <template v-else>
-                <label>{{ $t('auth.securityCodePrompt') }}</label>
+                <label v-i18n data-i18n="auth.securityCodePrompt">Security Code</label>
                 <ff-text-input ref="login-mfa-token" v-model="input.token" maxlength="6" label="token" @enter="submitMFAToken" />
                 <div class="ff-actions">
                     <ff-button data-action="submit-token" :disabled="loggingIn || tokenInvalid" @click="submitMFAToken()">
-                        <span>{{ $t('auth.continue') }}</span>
+                        <span v-i18n data-i18n="auth.continue">Continue</span>
                         <span class="w-4">
                             <SpinnerIcon v-if="loggingIn" class="ff-icon ml-3 !w-3.5" />
                         </span>

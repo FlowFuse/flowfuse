@@ -13,26 +13,26 @@
                 v-html="settings['branding:account:signUpTopBanner']"
             />
             <div>
-                <label>{{ $t('auth.username') }}</label>
+                <label v-i18n data-i18n="auth.username">Username / E-Mail</label>
                 <ff-text-input ref="signup-username" v-model="input.username" data-form="signup-username" label="username" :error="showErrors.username ? errors.username : ''" />
                 <span class="ff-error-inline">{{ showErrors.username ? errors.username : '' }}</span>
-                <label>{{ $t('auth.fullName') }}</label>
-                <ff-text-input ref="signup-fullname" v-model="input.name" data-form="signup-fullname" :label="$t('auth.fullName')" :error="showErrors.name ? errors.name : ''" />
+                <label v-i18n data-i18n="auth.fullName">Full Name</label>
+                <ff-text-input ref="signup-fullname" v-model="input.name" data-form="signup-fullname" label="Full Name" :error="showErrors.name ? errors.name : ''" />
                 <span class="ff-error-inline">{{ showErrors.name ? errors.name : '' }}</span>
-                <label>{{ $t('auth.emailAddress') }}</label>
-                <ff-text-input ref="signup-email" v-model="input.email" data-form="signup-email" :label="$t('auth.emailAddress')" :error="showErrors.email ? errors.email : ''" />
+                <label v-i18n data-i18n="auth.emailAddress">Email Address</label>
+                <ff-text-input ref="signup-email" v-model="input.email" data-form="signup-email" label="Email Address" :error="showErrors.email ? errors.email : ''" />
                 <span class="ff-error-inline">{{ showErrors.email ? errors.email : '' }}</span>
-                <label>{{ $t('auth.password') }}</label>
+                <label v-i18n data-i18n="auth.password">Password</label>
                 <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="showErrors.password ? errors.password : ''" type="password" />
                 <span class="ff-error-inline">{{ showErrors.password ? errors.password : '' }}</span>
-                <label>{{ $t('auth.confirmPassword') }}</label>
-                <ff-text-input ref="signup-repeat-password" v-model="input.repeatPassword" data-form="signup-repeat-password" :label="$t('auth.confirmPassword')" :error="showErrors.repeatPassword ? errors.repeatPassword : ''" type="password" />
+                <label v-i18n data-i18n="auth.confirmPassword">Confirm Password</label>
+                <ff-text-input ref="signup-repeat-password" v-model="input.repeatPassword" data-form="signup-repeat-password" label="Confirm Password" :error="showErrors.repeatPassword ? errors.repeatPassword : ''" type="password" />
                 <span class="ff-error-inline">{{ showErrors.repeatPassword ? errors.repeatPassword : '' }}</span>
             </div>
             <div v-if="askJoinReason" class="pt-3">
                 <ff-radio-group
                     v-model="input.join_reason"
-                    :label="$t('auth.joinReason.label')"
+                    label="What brings you to FlowFuse?"
                     orientation="grid"
                     data-form="signup-join-reason"
                     :options="reasons"
@@ -40,26 +40,26 @@
             </div>
             <div v-if="settings['user:tcs-required']" class="pt-3">
                 <ff-checkbox v-model="input.tcs_accepted" data-form="signup-accept-tcs">
-                    {{ $t('auth.termsAndConditions') }}
+                    <span v-i18n data-i18n="auth.termsAndConditions">I agree to the</span>
                     <a target="_blank" :href="settings['user:tcs-url']">FlowFuse Terms &amp; Conditions.</a>
                 </ff-checkbox>
             </div>
             <label v-if="errors.general" class="pt-3 ff-error-inline">{{ errors.general }}</label>
             <div class="ff-actions pt-2">
                 <ff-button type="submit" :disabled="!formValid || busy || tooManyRequests" data-action="sign-up">
-                    <span>{{ $t('auth.signup') }}</span>
+                    <span v-i18n data-i18n="auth.signup">Sign Up</span>
                     <span class="w-4">
                         <SpinnerIcon v-if="busy || tooManyRequests" class="ff-icon ml-3 !w-3.5" />
                     </span>
                 </ff-button>
                 <p class="flex text-gray-400 font-light mt-6 gap-2 w-full justify-center">
-                    {{ $t('auth.alreadyRegistered') }} <a href="/" data-action="login">{{ $t('auth.loginHere') }}</a>
+                    <span v-i18n data-i18n="auth.alreadyRegistered">Already registered?</span> <a v-i18n href="/" data-action="login" data-i18n="auth.loginHere">Login here</a>
                 </p>
             </div>
         </form>
         <div v-else-if="ssoCreated">
-            <p>{{ $t('auth.ssoCreated') }}</p>
-            <ff-button :to="{ name: 'Home' }" data-action="login">{{ $t('auth.login') }}</ff-button>
+            <p v-i18n data-i18n="auth.ssoCreated">Account created via SSO</p>
+            <ff-button v-i18n :to="{ name: 'Home' }" data-action="login" data-i18n="auth.login">Login</ff-button>
         </div>
     </ff-layout-box>
 </template>
