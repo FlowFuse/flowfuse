@@ -2,10 +2,10 @@
     <div class="recently-modified">
         <p class="text-gray-400 text-sm">Recently Modified</p>
         <ul v-if="instances.length" class="flex flex-1 flex-col gap-1">
-            <li v-for="instance in instances" :key="instance.id" class="instance-wrapper flex flex-1">
-                <InstanceTile :instance="instance" :minimal-view="true" />
+            <li v-for="instance in instances" :key="instance.id" class="instance-wrapper flex">
+                <InstanceTile :instance="instance" :minimal-view="true" @delete-instance="$emit('delete-instance', $event)" />
             </li>
-            <li v-if="hasMore" class="instance-wrapper flex flex-1">
+            <li v-if="hasMore" class="instance-wrapper flex">
                 <team-link :to="{name: 'Instances'}" class="instance-tile has-more hover:text-indigo-700">
                     <span>{{ instancesLeft }} More</span>
                     <span>
@@ -41,6 +41,7 @@ export default {
             required: true
         }
     },
+    emits: ['delete-instance'],
     data () {
         return {
             hasMore: false,
@@ -51,6 +52,12 @@ export default {
         ...mapGetters('account', ['team']),
         instancesLeft () {
             return this.totalInstances - this.instances.length
+        }
+    },
+    watch: {
+        totalInstances () {
+            // if the no. of total instances changed, it must mean one was deleted, so we need to refresh our list
+            this.getInstances()
         }
     },
     mounted () {
@@ -92,40 +99,52 @@ export default {
         margin-bottom: 10px;
         line-height: 2rem;
     }
-    .instance-tile {
-        border: 1px solid $ff-grey-100;
-        padding: 2px 10px;
-        border-radius: 5px;
-        flex: 1;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
 
-        &.has-more {
-            padding: 10px;
-        }
+    .instance-wrapper {
+        height: fit-content;
 
-        .details {
-            flex: 1;
+        .instance-tile {
+            border: 1px solid $ff-grey-100;
+            padding: 2px 10px;
+            border-radius: 5px;
+            display: flex;
+            width: 100%;
+            height: fit-content;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            will-change: border-color;
+            transition: ease-in-out .3s;
 
-            .detail-wrapper {
-                &.detail {
-                    font-size: $ff-funit-sm;
-                    color: $ff-grey-400;
-                }
-                .name, .editor-link:not(.inactive) {
-                    &:hover {
-                        color: $ff-indigo-700;
+            &.has-more {
+                padding: 10px;
+            }
+
+            &:hover {
+                border-color: $ff-grey-200;
+            }
+
+            .details {
+                flex: 1;
+
+                .detail-wrapper {
+                    &.detail {
+                        font-size: $ff-funit-sm;
+                        color: $ff-grey-400;
+                    }
+                    .name, .editor-link:not(.inactive) {
+                        &:hover {
+                            color: $ff-indigo-700;
+                        }
                     }
                 }
             }
-        }
 
-        .actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            .actions {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
         }
     }
 
