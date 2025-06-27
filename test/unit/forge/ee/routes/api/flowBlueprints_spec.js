@@ -102,10 +102,10 @@ describe('Flow Blueprints API', function () {
             statusCode.should.equal(200)
             result.should.have.property('id')
             result.should.have.property('name', name)
-            result.should.have.property('flows')
             result.should.have.property('externalUrl')
             // Response is a summary object that doesn't include flows/modules
             result.should.not.have.property('modules')
+            result.should.not.have.property('flows')
         })
 
         it('Non-admin cannot create a flow blueprint', async function () {
@@ -193,7 +193,7 @@ describe('Flow Blueprints API', function () {
             result.should.have.property('id')
             result.should.have.property('name', name)
             // Response is a summary object that doesn't include flows/modules
-            result.should.have.property('flows')
+            result.should.not.have.property('flows')
             result.should.have.property('externalUrl', externalUrl)
             result.should.not.have.property('modules')
         })
@@ -420,9 +420,9 @@ describe('Flow Blueprints API', function () {
             template.should.have.property('active', false)
             template.should.have.property('category', 'new cat')
             template.should.have.property('externalUrl', 'updated-value')
-            template.should.have.property('flows')
             // Response is summary view without these properties
             template.should.not.have.property('modules')
+            template.should.not.have.property('flows')
 
             const fullTemplate = (await app.inject({
                 method: 'GET',

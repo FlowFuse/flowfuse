@@ -125,6 +125,11 @@ function searchObjectProps (object, searchTerm, searchProps = []) {
             return false
         }
 
+        if (searchTerm.includes('|')) {
+            const terms = searchTerm.split('|').filter(t => t)
+            return terms.some(term => propValue.toLowerCase().includes(term.trim().toLowerCase()))
+        }
+
         return propValue.toLowerCase().includes(searchTerm)
     })
 }

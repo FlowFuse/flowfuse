@@ -22,15 +22,15 @@
                             <div class="flex gap-2 mb-5">
                                 <InstanceStat
                                     :counter="instanceStats.running"
-                                    state="running" type="hosted" @clicked="onGlanceClick"
+                                    state="running" type="hosted" @clicked="onStatClick"
                                 />
                                 <InstanceStat
                                     :counter="instanceStats.error"
-                                    state="error" type="hosted" @clicked="onGlanceClick"
+                                    state="error" type="hosted" @clicked="onStatClick"
                                 />
                                 <InstanceStat
                                     :counter="instanceStats.stopped"
-                                    state="not-running" type="hosted" @clicked="onGlanceClick"
+                                    state="stopped" type="hosted" @clicked="onStatClick"
                                 />
                             </div>
 
@@ -45,15 +45,15 @@
                             <div class="flex gap-2 mb-5">
                                 <InstanceStat
                                     :counter="deviceStats.running"
-                                    state="running" type="remote" @clicked="onGlanceClick"
+                                    state="running" type="remote" @clicked="onStatClick"
                                 />
                                 <InstanceStat
                                     :counter="deviceStats.error"
-                                    state="error" type="remote" @clicked="onGlanceClick"
+                                    state="error" type="remote" @clicked="onStatClick"
                                 />
                                 <InstanceStat
-                                    :counter="deviceStats.stopped
-                                    " state="not-running" type="remote" @clicked="onGlanceClick"
+                                    :counter="deviceStats.stopped"
+                                    state="stopped" type="remote" @clicked="onStatClick"
                                 />
                             </div>
 
@@ -105,35 +105,15 @@ export default {
         return {
             loading: true,
             logEntries: [],
-            instances: [
-                { id: 1, name: 'something-foo', url: 'https://reddit.com', meta: { state: 'running' } },
-                { id: 3, name: 'something-foo', url: 'https://reddit.com', meta: { state: 'suspended' } },
-                {
-                    id: 2,
-                    name: 'another-bar',
-                    url: 'http:/google.com',
-                    meta: { state: 'running' },
-                    settings: {
-                        dashboard2UI: '/dashboard'
-                    }
-                }
-            ],
+            instances: [],
             instanceStateCounts: {},
-            devices: [
-                { id: 1, name: 'foo-this', url: 'https://reddit.com', meta: { state: 'running' } },
-                {
-                    id: 2,
-                    name: 'bar-that',
-                    url: 'http:/google.com',
-                    meta: { state: 'running' }
-                }
-            ],
+            devices: [],
             deviceStateCounts: {},
             statesMap: {
                 running: ['starting', 'importing', 'connected', 'info', 'success', 'pushing', 'pulling', 'loading',
                     'installing', 'safe', 'protected', 'running', 'warning'],
                 error: ['error', 'crashed'],
-                stopped: ['stopping', 'restarting', 'suspending', 'rollback', 'stopped', 'suspended', 'unknown']
+                stopped: ['stopping', 'restarting', 'suspending', 'rollback', 'stopped', 'suspended', 'offline', 'unknown']
             }
         }
     },
@@ -204,7 +184,14 @@ export default {
                     this.logEntries = response.log
                 })
         },
-        onGlanceClick (payload) {},
+        onStatClick (payload) {
+            const searchQuery = Object.prototype.hasOwnProperty.call(this.statesMap, payload.state)
+                ? this.statesMap[payload.state].join(' | ')
+                : ''
+            const name = payload.type === 'hosted' ? 'Instances' : 'TeamDevices'
+
+            this.$router.push({ name, query: { searchQuery } })
+        },
         getInstanceStateCounts () {
             return TeamAPI.getTeamInstanceCounts(this.team.id, [], 'hosted')
                 .then(res => {
