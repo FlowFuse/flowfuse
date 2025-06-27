@@ -433,6 +433,14 @@ module.exports = async (options = {}) => {
             }
         })
 
+        // I18n : internationalization
+        await server.register(require('fastify-i18n'), {
+            locales: ['en'],
+            defaultLocale: 'en',
+            directory: require('path').join(__dirname, '..', 'locales'),
+            objectNotation: true
+        })
+
         // Routes : the HTTP routes
         await server.register(routes, { logLevel: server.config.logging.http })
         // Post Office : handles email

@@ -1,0 +1,106 @@
+# Internationalization (i18n) Setup
+
+This FlowFuse project now includes internationalization support using:
+
+- **Backend**: `fastify-i18n` with `node-polyglot`
+- **Frontend**: `vue-i18n` for Vue 3
+
+## Current Implementation
+
+### Backend Configuration
+
+The backend i18n is configured in `forge/forge.js` and uses translation files in the `locales/` directory:
+
+```
+locales/
+  en/
+    common.json
+```
+
+### Frontend Configuration
+
+The frontend i18n is configured in `frontend/src/i18n.js` and uses translation files in `frontend/src/locales/`:
+
+```
+frontend/src/locales/
+  en.json
+```
+
+### Updated Pages
+
+The following pages have been prepared for translation:
+
+- **Sign Up page** (`frontend/src/pages/account/Create.vue`)
+- **Sign In page** (`frontend/src/pages/Login.vue`)
+
+All hardcoded text strings have been replaced with translation keys using `$t()` function.
+
+## Usage Examples
+
+### In Vue Components
+
+```vue
+<template>
+  <label>{{ $t('auth.username') }}</label>
+  <button>{{ $t('auth.login') }}</button>
+</template>
+```
+
+### Error Messages
+
+```vue
+<script>
+this.errors.username = this.$t('auth.errors.usernameRequired')
+</script>
+```
+
+## Adding New Languages (Future)
+
+To add a new language (e.g., Spanish):
+
+### Backend
+
+1. Create `locales/es/common.json` with Spanish translations
+2. Update the backend configuration in `forge/forge.js`:
+   ```js
+   await server.register(require('fastify-i18n'), {
+       locales: ['en', 'es'],
+       defaultLocale: 'en',
+       // ...
+   })
+   ```
+
+### Frontend
+
+1. Create `frontend/src/locales/es.json` with Spanish translations
+2. Update `frontend/src/i18n.js`:
+   ```js
+   import en from './locales/en.json'
+   import es from './locales/es.json'
+
+   const messages = { en, es }
+   ```
+
+3. Add language switcher component to change locale:
+   ```js
+   this.$i18n.locale = 'es'
+   ```
+
+## Translation Keys Structure
+
+Current structure follows this pattern:
+
+```json
+{
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "errors": {
+      "requiredField": "Required field",
+      "loginFailed": "Login failed"
+    }
+  }
+}
+```
+
+This provides a logical grouping of related translations.
