@@ -42,7 +42,8 @@ export default {
                 'restarting',
                 'suspending',
                 'importing',
-                'installing'
+                'installing',
+                'updating'
             ].includes(this.status)
         }
     }

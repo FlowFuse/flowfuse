@@ -194,7 +194,7 @@
         @apply border-dashed;
         @apply text-green-700;
     }
-  
+
     .forge-minimal-status-error,
     .forge-minimal-status-crashed{
         @apply bg-red-600;
@@ -220,10 +220,11 @@
     .forge-minimal-status-loading,
     .forge-minimal-status-rollback,
     .forge-minimal-status-installing,
+    .forge-minimal-status-updating,
     .forge-minimal-status-restarting{
         @apply bg-green-400;
     }
-    
+
     .forge-badge-devmode {
         @apply bg-purple-100;
         @apply border-purple-600;
@@ -233,7 +234,7 @@
         @apply bg-teal-100;
         @apply border-teal-600;
         @apply text-teal-700;
-    } 
+    }
 
     th {
         @apply text-left;
