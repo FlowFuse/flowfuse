@@ -345,7 +345,7 @@ $nav_height: 60px;
     align-items: center;
     justify-content: space-between;
     position: fixed;
-    width: 100%; 
+    width: 100%;
     img.ff-logo {
         padding-top: 18px;
         padding-bottom: 18px;
@@ -423,7 +423,7 @@ $nav_height: 60px;
         ul {
             background: $ff-white;
             border: 1px solid $ff-color--border;
-            
+
             .ff-nav-item {
                 transition: ease-in-out .3s;
                 &:hover {
@@ -475,14 +475,14 @@ $nav_height: 60px;
             width: 100%;
             border-color: $ff-color--border;
             border-right: 0;
-            
+
             .ff-dropdown-option {
                 &:hover {
                     label, svg {
                         color: $ff-indigo-700;
                         fill: $ff-indigo-700;
                     }
-                }   
+                }
             }
         }
     }
@@ -504,7 +504,7 @@ $nav_height: 60px;
         max-height: initial;
         .ff-dropdown-option {
             border-bottom: none;
-            
+
             &.danger {
                 label, svg {
                     color: $ff-red-700;
@@ -633,7 +633,7 @@ $nav_height: 60px;
                 label, svg {
                     color: $ff-red-700;
                     fill: $ff-red-700;
-                }   
+                }
             }
             &.create {
                 background: $ff-grey-100;
@@ -756,6 +756,9 @@ $nav_height: 60px;
                             .ff-nav-item {
                                 padding: 5px 10px;
                                 border-radius: 5px;
+                                .ff-tooltip-container {
+                                    max-height: 20px;
+                                }
 
                                 & > div {
                                     gap: 5px;
