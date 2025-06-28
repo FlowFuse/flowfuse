@@ -1,0 +1,49 @@
+{
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "username": "Username / E-Mail",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "fullName": "Full Name",
+    "emailAddress": "E-Mail Address",
+    "forgotPassword": "Forgot your password?",
+    "alreadyRegistered": "Already registered?",
+    "loginHere": "Log in here",
+    "signInWithGoogle": "Sign In with Google",
+    "loggingIn": "Logging in...",
+    "continue": "Continue",
+    "securityCodePrompt": "Enter the 6-digit security code from your authenticator app",
+    "errors": {
+      "loginFailed": "Login failed",
+      "tooManyAttempts": "Too many login attempts. Try again later.",
+      "tooManyRegistrationAttempts": "Too many attempts. Try again later.",
+      "requiredField": "Required field",
+      "tooLong": "Too long",
+      "usernameRequired": "Username is required",
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "invalidEmail": "Enter a valid email address",
+      "passwordTooShort": "Password must be 8 characters or more",
+      "passwordTooLong": "Password too long",
+      "passwordMatchesUsername": "Password must not match username",
+      "passwordMatchesEmail": "Password must not match email",
+      "passwordMatchesName": "Password must not match name",
+      "passwordTooWeak": "Password needs to be more complex",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "userRegistrationDisabled": "User registration is not enabled",
+      "unexpectedError": "An unexpected error occurred. Please try again later or contact support.",
+      "usernameInvalidChars": "Must only contain a-z A-Z 0-9 - _",
+      "nameCannotBeUrl": "Names can not be URLs",
+      "checkAllFields": "Please check all fields are valid"
+    },
+    "joinReason": {
+      "label": "What brings you to FlowFuse?",
+      "education": "Educational Use",
+      "business": "Business Needs",
+      "personal": "Personal Use"
+    },
+    "termsAndConditions": "I accept the FlowFuse Terms & Conditions.",
+    "ssoCreated": "You can now login using your SSO Provider."
+  }
+}

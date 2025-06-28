@@ -13,19 +13,19 @@
                 v-html="settings['branding:account:signUpTopBanner']"
             />
             <div>
-                <label>Username</label>
+                <label v-i18n data-i18n="auth.username">Username / E-Mail</label>
                 <ff-text-input ref="signup-username" v-model="input.username" data-form="signup-username" label="username" :error="showErrors.username ? errors.username : ''" />
                 <span class="ff-error-inline">{{ showErrors.username ? errors.username : '' }}</span>
-                <label>Full Name</label>
+                <label v-i18n data-i18n="auth.fullName">Full Name</label>
                 <ff-text-input ref="signup-fullname" v-model="input.name" data-form="signup-fullname" label="Full Name" :error="showErrors.name ? errors.name : ''" />
                 <span class="ff-error-inline">{{ showErrors.name ? errors.name : '' }}</span>
-                <label>E-Mail Address</label>
-                <ff-text-input ref="signup-email" v-model="input.email" data-form="signup-email" label="E-Mail Address" :error="showErrors.email ? errors.email : ''" />
+                <label v-i18n data-i18n="auth.emailAddress">Email Address</label>
+                <ff-text-input ref="signup-email" v-model="input.email" data-form="signup-email" label="Email Address" :error="showErrors.email ? errors.email : ''" />
                 <span class="ff-error-inline">{{ showErrors.email ? errors.email : '' }}</span>
-                <label>Password</label>
+                <label v-i18n data-i18n="auth.password">Password</label>
                 <ff-text-input ref="signup-password" v-model="input.password" data-form="signup-password" label="password" :error="showErrors.password ? errors.password : ''" type="password" />
                 <span class="ff-error-inline">{{ showErrors.password ? errors.password : '' }}</span>
-                <label>Confirm Password</label>
+                <label v-i18n data-i18n="auth.confirmPassword">Confirm Password</label>
                 <ff-text-input ref="signup-repeat-password" v-model="input.repeatPassword" data-form="signup-repeat-password" label="Confirm Password" :error="showErrors.repeatPassword ? errors.repeatPassword : ''" type="password" />
                 <span class="ff-error-inline">{{ showErrors.repeatPassword ? errors.repeatPassword : '' }}</span>
             </div>
@@ -40,25 +40,26 @@
             </div>
             <div v-if="settings['user:tcs-required']" class="pt-3">
                 <ff-checkbox v-model="input.tcs_accepted" data-form="signup-accept-tcs">
-                    I accept the <a target="_blank" :href="settings['user:tcs-url']">FlowFuse Terms &amp; Conditions.</a>
+                    <span v-i18n data-i18n="auth.termsAndConditions">I agree to the</span>
+                    <a target="_blank" :href="settings['user:tcs-url']">FlowFuse Terms &amp; Conditions.</a>
                 </ff-checkbox>
             </div>
             <label v-if="errors.general" class="pt-3 ff-error-inline">{{ errors.general }}</label>
             <div class="ff-actions pt-2">
                 <ff-button type="submit" :disabled="!formValid || busy || tooManyRequests" data-action="sign-up">
-                    <span>Sign Up</span>
+                    <span v-i18n data-i18n="auth.signup">Sign Up</span>
                     <span class="w-4">
                         <SpinnerIcon v-if="busy || tooManyRequests" class="ff-icon ml-3 !w-3.5" />
                     </span>
                 </ff-button>
                 <p class="flex text-gray-400 font-light mt-6 gap-2 w-full justify-center">
-                    Already registered? <a href="/" data-action="login">Log in here</a>
+                    <span v-i18n data-i18n="auth.alreadyRegistered">Already registered?</span> <a v-i18n href="/" data-action="login" data-i18n="auth.loginHere">Login here</a>
                 </p>
             </div>
         </form>
         <div v-else-if="ssoCreated">
-            <p>You can now login using your SSO Provider.</p>
-            <ff-button :to="{ name: 'Home' }" data-action="login">Login</ff-button>
+            <p v-i18n data-i18n="auth.ssoCreated">Account created via SSO</p>
+            <ff-button v-i18n :to="{ name: 'Home' }" data-action="login" data-i18n="auth.login">Login</ff-button>
         </div>
     </ff-layout-box>
 </template>
@@ -111,12 +112,7 @@ export default {
                 username: '',
                 name: '',
                 general: ''
-            },
-            reasons: [
-                { label: 'Educational Use', value: 'education' },
-                { label: 'Business Needs', value: 'business' },
-                { label: 'Personal Use', value: 'personal' }
-            ]
+            }
         }
     },
     computed: {
@@ -135,6 +131,13 @@ export default {
         },
         askJoinReason () {
             return !!window.posthog
+        },
+        reasons () {
+            return [
+                { label: this.$t('auth.joinReason.education'), value: 'education' },
+                { label: this.$t('auth.joinReason.business'), value: 'business' },
+                { label: this.$t('auth.joinReason.personal'), value: 'personal' }
+            ]
         }
     },
     watch: {
@@ -171,49 +174,49 @@ export default {
          */
         validateFormInputs () {
             if (!this.input.username.trim()) {
-                this.errors.username = 'Username is required'
+                this.errors.username = this.$t('auth.errors.usernameRequired')
             } else if (!/^[a-z0-9-_]+$/i.test(this.input.username)) {
-                this.errors.username = 'Must only contain a-z A-Z 0-9 - _'
+                this.errors.username = this.$t('auth.errors.usernameInvalidChars')
             } else {
                 this.errors.username = ''
             }
 
             if (this.input.name.trim() && /:\/\//i.test(this.input.name)) {
-                this.errors.name = 'Names can not be URLs'
+                this.errors.name = this.$t('auth.errors.nameCannotBeUrl')
             } else {
                 this.errors.name = ''
             }
 
             if (!this.input.email.trim()) {
-                this.errors.email = 'Email is required'
+                this.errors.email = this.$t('auth.errors.emailRequired')
             } else if (!/.+@.+/.test(this.input.email)) {
-                this.errors.email = 'Enter a valid email address'
+                this.errors.email = this.$t('auth.errors.invalidEmail')
             } else {
                 this.errors.email = ''
             }
 
             let checkRepeat = false
             if (!this.input.password) {
-                this.errors.password = 'Password is required'
+                this.errors.password = this.$t('auth.errors.passwordRequired')
             } else if (this.input.password.length < 8) {
-                this.errors.password = 'Password must be 8 characters or more'
+                this.errors.password = this.$t('auth.errors.passwordTooShort')
             } else if (this.input.password.length > 128) {
-                this.errors.password = 'Password too long'
+                this.errors.password = this.$t('auth.errors.passwordTooLong')
             } else if (this.input.password === this.input.username.trim()) {
-                this.errors.password = 'Password must not match username'
+                this.errors.password = this.$t('auth.errors.passwordMatchesUsername')
             } else if (this.input.password === this.input.email.trim()) {
-                this.errors.password = 'Password must not match email'
+                this.errors.password = this.$t('auth.errors.passwordMatchesEmail')
             } else if (this.input.password === this.input.name.trim()) {
-                this.errors.password = 'Password must not match name'
+                this.errors.password = this.$t('auth.errors.passwordMatchesName')
             } else if (zxcvbn(this.input.password).score < 2) {
-                this.errors.password = 'Password needs to be more complex'
+                this.errors.password = this.$t('auth.errors.passwordTooWeak')
             } else {
                 this.errors.password = ''
                 checkRepeat = true
             }
 
             if (checkRepeat && this.input.password !== this.input.repeatPassword) {
-                this.errors.repeatPassword = 'Passwords do not match'
+                this.errors.repeatPassword = this.$t('auth.errors.passwordsDoNotMatch')
             } else {
                 this.errors.repeatPassword = ''
             }
@@ -232,7 +235,7 @@ export default {
             const inputsValid = this.validateFormInputs()
             if (!this.formValid || !inputsValid) {
                 // should not reach here due to button being disabled (catch all)
-                this.errors.general = 'Please check all fields are valid'
+                this.errors.general = this.$t('auth.errors.checkAllFields')
                 return
             }
 
@@ -265,20 +268,20 @@ export default {
                     } else if (err.response.data.code === 'invalid_sso_email') {
                         this.errors.email = err.response.data.error
                     } else if (err.response.data.statusCode === 429) {
-                        this.errors.general = 'Too many attempts. Try again later.'
+                        this.errors.general = this.$t('auth.errors.tooManyRegistrationAttempts')
                         this.tooManyRequests = true
                         setTimeout(() => {
                             this.tooManyRequests = false
                         }, 10000)
                     } else if (err.response.data.error === 'user registration not enabled') {
-                        this.errors.general = 'User registration is not enabled'
+                        this.errors.general = this.$t('auth.errors.userRegistrationDisabled')
                     } else if (err.response.data.error === 'Validation isEmail on email failed') {
-                        this.errors.email = 'Invalid email address'
+                        this.errors.email = this.$t('auth.errors.invalidEmail')
                     } else {
-                        this.errors.general = 'An unexpected error occurred. Please try again later or contact support.'
+                        this.errors.general = this.$t('auth.errors.unexpectedError')
                     }
                 } else {
-                    this.errors.general = 'An unexpected error occurred. Please try again later or contact support.'
+                    this.errors.general = this.$t('auth.errors.unexpectedError')
                 }
             })
         }

@@ -13,6 +13,8 @@ import App from './App.vue'
 import Loading from './components/Loading.vue'
 import SectionNavigationHeader from './components/SectionNavigationHeader.vue'
 import TeamLink from './components/router-links/TeamLink.vue'
+import i18nDirective from './directives/i18n.js'
+import i18n from './i18n.js'
 import PageLayout from './layouts/Page.vue'
 import router from './routes.js'
 import Alerts from './services/alerts.js'
@@ -29,7 +31,11 @@ const app = createApp(App)
     .use(ForgeUIComponents)
     .use(store)
     .use(router)
+    .use(i18n)
     .use(VueShepherdPlugin)
+
+// Register i18n directive
+app.directive('i18n', i18nDirective)
 
 // Error tracking
 setupSentry(app, router)
