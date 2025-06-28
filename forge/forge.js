@@ -438,7 +438,7 @@ module.exports = async (options = {}) => {
         const path = require('path')
         const localesDir = path.join(__dirname, '..', 'locales')
         const messages = {}
-        
+
         // Load locale files
         const locales = ['en']
         for (const locale of locales) {
@@ -447,7 +447,7 @@ module.exports = async (options = {}) => {
                 messages[locale] = JSON.parse(fs.readFileSync(localePath, 'utf8'))
             }
         }
-        
+
         await server.register(require('fastify-i18n'), {
             messages,
             fallbackLocale: 'en',
