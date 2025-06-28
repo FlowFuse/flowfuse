@@ -434,10 +434,23 @@ module.exports = async (options = {}) => {
         })
 
         // I18n : internationalization
+        const fs = require('fs')
+        const path = require('path')
+        const localesDir = path.join(__dirname, '..', 'locales')
+        const messages = {}
+        
+        // Load locale files
+        const locales = ['en']
+        for (const locale of locales) {
+            const localePath = path.join(localesDir, locale, 'common.json')
+            if (fs.existsSync(localePath)) {
+                messages[locale] = JSON.parse(fs.readFileSync(localePath, 'utf8'))
+            }
+        }
+        
         await server.register(require('fastify-i18n'), {
-            locales: ['en'],
-            defaultLocale: 'en',
-            directory: require('path').join(__dirname, '..', 'locales'),
+            messages,
+            fallbackLocale: 'en',
             objectNotation: true
         })
 
