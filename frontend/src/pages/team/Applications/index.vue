@@ -336,23 +336,29 @@ export default {
 
                 const { instances: instanceStatuses, devices: deviceStatuses, ...applicationProps } = applicationData
                 instanceStatuses.forEach((instanceStatusData) => {
-                    application.instances.set(instanceStatusData.id, {
-                        ...application.instances.get(instanceStatusData.id),
-                        ...instanceStatusData
-                    })
+                    if (application.instances.has(instanceStatusData.id)) {
+                        application.instances.set(instanceStatusData.id, {
+                            ...application.instances.get(instanceStatusData.id),
+                            ...instanceStatusData
+                        })
+                    }
                 })
 
                 deviceStatuses.forEach((deviceStatusData) => {
-                    application.devices.set(deviceStatusData.id, {
-                        ...application.devices.get(deviceStatusData.id),
-                        ...deviceStatusData
-                    })
+                    if (application.devices.has(deviceStatusData.id)) {
+                        application.devices.set(deviceStatusData.id, {
+                            ...application.devices.get(deviceStatusData.id),
+                            ...deviceStatusData
+                        })
+                    }
                 })
 
-                this.applications.set(applicationData.id, {
-                    ...application,
-                    ...applicationProps
-                })
+                if (this.applications.has(applicationData.id)) {
+                    this.applications.set(applicationData.id, {
+                        ...application,
+                        ...applicationProps
+                    })
+                }
             })
         },
         setSearchQuery () {
