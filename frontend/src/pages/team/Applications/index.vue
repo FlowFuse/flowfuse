@@ -253,7 +253,7 @@ export default {
 
                 teamApi.getTeamApplications(this.team.id,
                     {
-                        includeApplicationSummary: true,
+                        includeApplicationSummary: true
                     }
                 ).then((response) => {
                     const applications = response.applications
