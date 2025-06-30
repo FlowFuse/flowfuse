@@ -77,7 +77,8 @@ export default {
         },
         application: { // required for deviceActionsMixin fetchData
             required: false,
-            type: Object
+            type: Object,
+            default: null
         },
         minimalView: {
             type: Boolean,
