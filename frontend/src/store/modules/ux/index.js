@@ -340,7 +340,7 @@ const getters = {
                                 }
 
                                 return {
-                                    title: 'Add a team member to get started building!'
+                                    title: 'Add a team member and start collaborating!'
                                 }
                             })()
                         }
