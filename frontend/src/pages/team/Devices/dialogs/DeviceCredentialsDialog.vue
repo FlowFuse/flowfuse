@@ -78,7 +78,7 @@ export default {
             installationMethods: [
                 {
                     slug: 'script',
-                    label: 'Install via Script'
+                    label: 'One Line Install'
                 },
                 {
                     slug: 'npm',
