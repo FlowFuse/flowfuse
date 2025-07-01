@@ -6,7 +6,7 @@ const crypto = require('crypto')
 
 const SemVer = require('semver')
 
-const { col, fn, DataTypes, Op, where } = require('sequelize')
+const { col, fn, DataTypes, Op, where, literal } = require('sequelize')
 
 const Controllers = require('../controllers')
 const { buildPaginationSearchClause } = require('../utils')
@@ -405,6 +405,14 @@ module.exports = {
                                 }
                             } else if (key === 'instance') {
                                 order.unshift([M.Project, 'name', pagination.order[key] || 'ASC'])
+                            } else if (key === 'state-priority') {
+                                order.unshift([literal(`
+                                    CASE
+                                        WHEN "Device"."state" IN ('error', 'crashed') THEN 1
+                                        WHEN "Device"."state" IN ('running', 'safe', 'protected', 'warning') THEN 2
+                                        WHEN "Device"."state" IS NULL OR "Device"."state" IN ('stopped', 'offline', 'unknown', '') THEN 3
+                                    END
+                                `), 'ASC'])
                             } else {
                                 order.unshift([key, pagination.order[key] || 'ASC'])
                             }
