@@ -1,7 +1,10 @@
 <template>
     <div class="terminal-command-section">
         <p>{{ title }}</p>
-        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ command }}</pre>
+        <pre
+            class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200"
+            style="text-wrap: wrap"
+        >{{ command }}</pre>
         <div class="flex flex-row justify-end space-x-2 -mt-1">
             <ff-button kind="tertiary" size="small" @click="copy(command)">
                 <template #icon-right><ClipboardCopyIcon /></template>
