@@ -1020,6 +1020,91 @@ describe('Accounts API', async function () {
         })
     })
 
+    describe('Change email tests', async function () {
+        let testUser
+        before(async function () {
+            app = await setup()
+        })
+        after(async function () {
+            await app.close()
+        })
+        beforeEach(async function () {
+            testUser = await app.factory.createUser({
+                username: 'testUser',
+                name: 'Test User',
+                email: 'test@example.com',
+                password: 'ttPassword'
+            })
+            await login('testUser', 'ttPassword')
+        })
+        afterEach(async function () {
+            // Reset settings to default
+            app.settings.set('user:reset-password', false)
+            await testUser.destroy()
+        })
+        it('Change email address', async function () {
+            // Create a second login session to verify existing sessions are ended
+            const secondLoginSession = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'testUser', password: 'ttPassword', remember: false }
+            })
+            secondLoginSession.cookies.should.have.length(1)
+            secondLoginSession.cookies[0].should.have.property('name', 'sid')
+            const secondLoginSessionId = secondLoginSession.cookies[0].value
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                payload: {
+                    email: 'testChanged@example.com'
+                },
+                cookies: { sid: TestObjects.tokens.testUser }
+            })
+            response.statusCode.should.equal(200)
+            app.config.email.transport.getMessageQueue().should.have.lengthOf(1)
+            const resetEmail = app.config.email.transport.getMessageQueue()[0].text
+            // Extract token from the email notification
+            // http://localhost:3000/account/email_change/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWQiOiJwbzJtRFJ4cnE3IiwiY2hhbmdlIjoidGVzdDFAZXhhbXBsZS5jb20iLCJhdWQiOiJ1cGRhdGUtdXNlci1lbWFpbCIsImV4cCI6MTc1MTU0MDk3NywiaWF0IjoxNzUxMzY4MTc3fQ.Csazvol4LKKNCNVmNr91KFZdD8-tL9_FAtwQDH6lAis
+            const m = /\/account\/email_change\/(\S+)/.exec(resetEmail)
+            should.exist(m[1])
+            const token = m[1]
+
+            // Submit change email
+            const resetResponse = await app.inject({
+                method: 'POST',
+                url: `/account/email_change/${token}`,
+                cookies: { sid: TestObjects.tokens.testUser }
+            })
+            resetResponse.statusCode.should.equal(200)
+            const newSid = resetResponse.cookies[0].value
+
+            // The existing session token should no longer work
+            const checkOldToken = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: TestObjects.tokens.testUser }
+            })
+            checkOldToken.statusCode.should.equal(401)
+
+            // The existing session token should no longer work
+            const checkSecondToken = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: secondLoginSessionId }
+            })
+            checkSecondToken.statusCode.should.equal(401)
+
+            // The existing session token should no longer work
+            const newSidTest = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user',
+                cookies: { sid: newSid }
+            })
+            newSidTest.statusCode.should.equal(200)
+        })
+    })
+
     describe('Session configuration', async function () {
         it('Incorrect configuration should fail', async function () {
             try {
