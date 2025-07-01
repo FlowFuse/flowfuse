@@ -204,7 +204,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        if (request.query.query.length === 0) {
+        if (!request.query.query) {
             return reply.send({
                 count: 0,
                 results: []
