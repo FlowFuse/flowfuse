@@ -632,6 +632,19 @@ async function init (app, opts) {
                 return
             }
 
+            // Clear any existing sessions
+            await app.db.controllers.Session.deleteAllUserSessions(request.session.User)
+            // Create a new session for the user
+            const sessionInfo = await app.createSessionCookie(request.session.User.username)
+            if (sessionInfo) {
+                // Mark the session as MFA verified
+                if (request.session.mfa_verified) {
+                    sessionInfo.session.mfa_verified = true
+                    await sessionInfo.session.save()
+                }
+                reply.setCookie('sid', sessionInfo.session.sid, sessionInfo.cookieOptions)
+            }
+
             await app.auditLog.User.account.changeEmailConfirmed(request.session?.User || verifiedUser, null)
             reply.send({ status: 'okay' })
         } catch (err) {

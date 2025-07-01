@@ -408,9 +408,9 @@ module.exports = {
                             } else if (key === 'state-priority') {
                                 order.unshift([literal(`
                                     CASE
-                                        WHEN Device.state IN ('error', 'crashed') THEN 1
-                                        WHEN Device.state IN ('running', 'safe', 'protected', 'warning') THEN 2
-                                        WHEN Device.state IS NULL OR Device.state IN ('stopped', 'offline', 'unknown', '') THEN 3
+                                        WHEN "Device"."state" IN ('error', 'crashed') THEN 1
+                                        WHEN "Device"."state" IN ('running', 'safe', 'protected', 'warning') THEN 2
+                                        WHEN "Device"."state" IS NULL OR "Device"."state" IN ('stopped', 'offline', 'unknown', '') THEN 3
                                     END
                                 `), 'ASC'])
                             } else {
@@ -633,6 +633,33 @@ module.exports = {
                         },
                         group: ['state']
                     })
+                },
+                byTeamForSearch: async (teamId, query) => {
+                    const queryObject = {
+                        include: [
+                            {
+                                model: M.Team,
+                                where: { id: teamId },
+                                attributes: ['hashid', 'id', 'name', 'slug']
+                            },
+                            {
+                                model: M.Application,
+                                required: true,
+                                attributes: ['hashid', 'id', 'name']
+                            }
+                        ],
+                        where: {
+                            [Op.and]: [
+                                where(
+                                    fn('lower', col('Device.name')),
+                                    { [Op.like]: `%${query.toLowerCase()}%` }
+                                )
+                            ]
+
+                        }
+                    }
+
+                    return this.findAll(queryObject)
                 }
             }
         }
