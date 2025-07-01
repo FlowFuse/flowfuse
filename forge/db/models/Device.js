@@ -6,7 +6,7 @@ const crypto = require('crypto')
 
 const SemVer = require('semver')
 
-const { col, fn, DataTypes, Op, where, literal } = require('sequelize')
+const { col, fn, DataTypes, Op, where } = require('sequelize')
 
 const Controllers = require('../controllers')
 const { buildPaginationSearchClause } = require('../utils')
