@@ -410,7 +410,7 @@ module.exports = {
                                     CASE
                                         WHEN 'Device'.'state' IN ('error', 'crashed') THEN 1
                                         WHEN 'Device'.'state' IN ('running', 'safe', 'protected', 'warning') THEN 2
-                                        WHEN 'Device'.'state' IS NULL OR Device.state IN ('stopped', 'offline', 'unknown', '') THEN 3
+                                        WHEN 'Device'.'state' IS NULL OR 'Device'.'state' IN ('stopped', 'offline', 'unknown', '') THEN 3
                                     END
                                 `), 'ASC'])
                             } else {
