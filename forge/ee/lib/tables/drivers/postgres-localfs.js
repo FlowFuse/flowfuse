@@ -8,7 +8,18 @@ module.exports = {
     init: async function (app, options) {
         this._app = app
         this._options = options || {}
+        // options.max = 1
+        // adminClient = new pg.Pool(options || {})
         adminClient = new pg.Client(options || {})
+        // adminClient.on('connect', (client) => {
+        //     this._app.log.info('Postgres LocalFS driver new client connected')
+        //     client.on('error', (err) => {
+        //         this._app.log.error('Postgres LocalFS driver client error', err)
+        //     })
+        // })
+        adminClient.on('error', (err) => {
+            this._app.log.error('Postgres LocalFS driver error:', err)
+        })
         try {
             await adminClient.connect()
         } catch (err) {
@@ -17,8 +28,11 @@ module.exports = {
         app.log.info('Postgres LocalFS driver initialized')
     },
     shutdown: async function () {
+        console.log('BEN1')
         try {
+            this._app.log.info('Shutting down Postgres LocalFS driver')
             await adminClient.end()
+            // console.log('BEN2')
         } catch (err) {
             this._app.log.debug('Error shutting down Postgres LocalFS driver:', err)
         }
