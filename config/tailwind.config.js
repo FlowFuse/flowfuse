@@ -40,6 +40,7 @@ module.exports = {
             'forge-minimal-status-rollback',
             'forge-minimal-status-installing',
             'forge-minimal-status-restarting',
+            'forge-minimal-status-updating',
             'text-green-400',
             'bg-green-50'
         ]

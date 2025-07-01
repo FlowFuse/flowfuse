@@ -538,8 +538,18 @@ module.exports = async function (app) {
                 // ### Add device to application ###
 
                 // Update includes a application id?
-                if (device.Application?.id === request.body.application) {
-                    // Device is already assigned to this application - nothing to do
+                if (device.Application?.hashid === request.body.application) {
+                    // Device is already assigned to this application, still need to check name/type updates
+                    if (request.body.name !== undefined && request.body.name !== device.name) {
+                        updates.push('name', device.name, request.body.name)
+                        device.name = request.body.name
+                        sendDeviceUpdate = true
+                    }
+                    if (request.body.type !== undefined && request.body.type !== device.type) {
+                        updates.push('type', device.type, request.body.type)
+                        device.type = request.body.type
+                        sendDeviceUpdate = true
+                    }
                 } else {
                     // Check if the specified application is in the same team
                     assignToApplication = await app.db.models.Application.byId(request.body.application)

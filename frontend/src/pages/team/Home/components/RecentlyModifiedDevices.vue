@@ -110,7 +110,7 @@ export default {
                 limit = 3
                 this.hasMore = true
             }
-            return teamAPI.getTeamDevices(this.team.id, null, limit, null, { sort: 'state-priority' })
+            return teamAPI.getTeamDevices(this.team.id, null, limit, null, { })
                 .then((res) => {
                     this.devices = res.devices
                 })
