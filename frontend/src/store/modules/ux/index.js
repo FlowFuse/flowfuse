@@ -331,7 +331,18 @@ const getters = {
                             },
                             tag: 'team-members',
                             icon: UsersIcon,
-                            disabled: requiresBilling
+                            disabled: requiresBilling,
+                            alert: (() => {
+                                const teamAge = new Date().getTime() - new Date(team.createdAt).getTime()
+                                const fourteenDaysInMs = 14 * 24 * 60 * 60 * 1000
+                                if (team.membersCount === 1 && teamAge > fourteenDaysInMs) {
+                                    return null
+                                }
+
+                                return {
+                                    title: 'Add a team member to get started building!'
+                                }
+                            })()
                         }
                     ]
                 },
