@@ -180,8 +180,12 @@ function mapEnvArrayToObject (envArray) {
  * Convert a key/value object of env vars to an array of env var objects
  * From: { VAR1: 'value1', VAR2: { value: 'value2', hidden: true } }
  * To: [ { name: 'VAR1', value: 'value1' }, { name: 'VAR2', value: 'value2', hidden: true } ]
+ * @param {EnvVarObject} envObject
+ * @return {EnvVarArray}
+ * @see {@link mapEnvArrayToObject} for the reverse operation
  */
 function mapEnvObjectToArray (envObject) {
+    /** @type {EnvVarArray} */
     const envArray = []
     for (const [name, value] of Object.entries(envObject)) {
         if (typeof value === 'object' && value.hidden) {
