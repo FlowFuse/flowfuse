@@ -415,6 +415,66 @@ describe('Assistant API', async function () {
                 Buffer.from(response2.rawPayload).toString().should.equal('test-asset')
                 axiosGetStub.calledTwice.should.be.true() // should call axios.get again after cache clear
             })
+
+            it('should return ok headers and strip all others', async function () {
+                const upstreamHeaders = {
+                    connection: 'upstream-value',
+                    'content-type': 'application/octet-stream'
+                }
+                const shouldStripHeaders = {
+                    'keep-alive': 'should-be-stripped',
+                    'proxy-authenticate': 'should-be-stripped',
+                    'proxy-authorization': 'should-be-stripped',
+                    te: 'should-be-stripped',
+                    trailer: 'should-be-stripped',
+                    upgrade: 'should-be-stripped',
+                    server: 'should-be-stripped',
+                    'x-powered-by': 'should-be-stripped',
+                    'x-asset-cache-hit': 'should-be-stripped',
+                    'x-asset-cache-miss': 'should-be-stripped',
+                    'x-asset-cache-age': 'should-be-stripped',
+                    'x-internal-header': 'should-be-stripped'
+                }
+
+                const okHeaders = {
+                    'content-type': 'application/octet-stream',
+                    'content-length': '*',
+                    date: '*',
+                    expires: '*',
+                    'last-modified': '*',
+                    'cache-control': 'public, max-age=1800',
+                    vary: '*',
+                    'accept-ranges': '*',
+                    age: '*'
+                }
+
+                axiosGetStub.resolves({
+                    status: 200,
+                    headers: {
+                        ...upstreamHeaders,
+                        ...shouldStripHeaders,
+                        ...okHeaders
+                    },
+                    data: Buffer.from('test-asset')
+                })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: assetUrl1,
+                    headers: { authorization: 'Bearer ' + TestObjects.tokens.device }
+                })
+                response.statusCode.should.equal(200)
+                response.headers.should.not.have.property('connection', 'dummy') // connection can be present but not the header from upstream
+                // scan for any header with value 'should-be-stripped'
+                Object.keys(shouldStripHeaders).forEach(header => {
+                    response.headers.should.not.have.property(header)
+                })
+                Object.keys(okHeaders).forEach(header => {
+                    response.headers.should.have.property(header)
+                })
+                response.headers['content-type'].should.equal('application/octet-stream')
+                Buffer.from(response.rawPayload).toString().should.equal('test-asset')
+                axiosGetStub.calledOnce.should.be.true()
+            })
         })
     })
 })
