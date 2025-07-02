@@ -26,8 +26,12 @@ describe('Assistant API', async function () {
             assistant: {
                 enabled: true,
                 service: {
-                    url: 'http://localhost:9876',
-                    token: 'blah'
+                    url: 'http://localhost:9876'
+                },
+                token: 'blah',
+                assetCache: {
+                    max: 10,
+                    ttl: 1000 // 1 second TTL for testing
                 }
             }
         }
@@ -254,6 +258,156 @@ describe('Assistant API', async function () {
         })
         describe('json service', async function () {
             serviceTests('json')
+        })
+    })
+
+    describe('assets endpoint', async function () {
+        const assetUrl1 = '/api/v1/assistant/assets/model.json'
+        const assetUrl2 = '/api/v1/assistant/assets/model.bin'
+        const assetUrl3 = '/api/v1/assistant/assets/vocabulary.json'
+        let axiosGetStub
+
+        beforeEach(function () {
+            axiosGetStub = sinon.stub(axios, 'get')
+        })
+        afterEach(function () {
+            sinon.restore()
+        })
+
+        it('should return 401 for anonymous access', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: assetUrl1
+            })
+            response.statusCode.should.equal(401)
+        })
+
+        it('should return 401 for random token', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: assetUrl1,
+                headers: { authorization: 'Bearer blah-blah' }
+            })
+            response.statusCode.should.equal(401)
+        })
+
+        it('should return 401 for user token', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: assetUrl1,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(401)
+        })
+
+        it('should return 400 for missing asset path', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/assistant/assets/',
+                headers: { authorization: 'Bearer ' + TestObjects.tokens.device }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_path')
+        })
+
+        it('should return 400 for asset path starting with slash', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/assistant/assets//bad',
+                headers: { authorization: 'Bearer ' + TestObjects.tokens.device }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_path')
+        })
+
+        it('should handle upstream error', async function () {
+            axiosGetStub.rejects({
+                response: { status: 404, data: { code: 'not_found', error: 'Not found' } },
+                message: 'Not found'
+            })
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/assistant/assets/nonexistent.json',
+                headers: { authorization: 'Bearer ' + TestObjects.tokens.device }
+            })
+            response.statusCode.should.equal(404)
+            response.json().should.have.property('code', 'not_found')
+        })
+
+        it('should fetch and cache asset for device token', async function () {
+            const fakeBuffer = Buffer.from('test-asset')
+            axiosGetStub.resolves({
+                status: 200,
+                headers: { 'content-type': 'application/octet-stream' },
+                data: fakeBuffer
+            })
+            const response = await app.inject({
+                method: 'GET',
+                url: assetUrl1,
+                headers: { authorization: 'Bearer ' + TestObjects.tokens.device }
+            })
+            response.statusCode.should.equal(200)
+            response.headers['content-type'].should.equal('application/octet-stream')
+            Buffer.from(response.rawPayload).toString().should.equal('test-asset')
+            axiosGetStub.calledOnce.should.be.true()
+
+            // Second request should hit cache and not call axios.get again
+            axiosGetStub.resetHistory()
+            const response2 = await app.inject({
+                method: 'GET',
+                url: assetUrl1,
+                headers: { authorization: 'Bearer ' + TestObjects.tokens.device }
+            })
+            response2.statusCode.should.equal(200)
+            Buffer.from(response2.rawPayload).toString().should.equal('test-asset')
+            axiosGetStub.called.should.be.false()
+        })
+
+        it('should fetch and cache asset for instance token', async function () {
+            const fakeBuffer = Buffer.from('instance-asset')
+            axiosGetStub.resolves({
+                status: 200,
+                headers: { 'content-type': 'application/octet-stream' },
+                data: fakeBuffer
+            })
+            const response = await app.inject({
+                method: 'GET',
+                url: assetUrl2,
+                headers: { authorization: 'Bearer ' + TestObjects.tokens.instance }
+            })
+            response.statusCode.should.equal(200)
+            response.headers['content-type'].should.equal('application/octet-stream')
+            Buffer.from(response.rawPayload).toString().should.equal('instance-asset')
+        })
+
+        it('should fetch fresh after cache expiration', async function () {
+            const fakeBuffer = Buffer.from('test-asset')
+            axiosGetStub.resolves({
+                status: 200,
+                headers: { 'content-type': 'application/octet-stream' },
+                data: fakeBuffer
+            })
+            const response = await app.inject({
+                method: 'GET',
+                url: assetUrl3,
+                headers: { authorization: 'Bearer ' + TestObjects.tokens.device }
+            })
+            response.statusCode.should.equal(200)
+            response.headers['content-type'].should.equal('application/octet-stream')
+            Buffer.from(response.rawPayload).toString().should.equal('test-asset')
+            axiosGetStub.calledOnce.should.be.true()
+
+            // Simulate cache expiration
+            await new Promise(resolve => setTimeout(resolve, 1010)) // wait for over 1 sec
+
+            const response2 = await app.inject({
+                method: 'GET',
+                url: assetUrl3,
+                headers: { authorization: 'Bearer ' + TestObjects.tokens.device }
+            })
+            response2.statusCode.should.equal(200)
+            Buffer.from(response2.rawPayload).toString().should.equal('test-asset')
+            axiosGetStub.calledTwice.should.be.true() // should call axios.get again after cache clear
         })
     })
 })

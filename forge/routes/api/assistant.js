@@ -11,10 +11,13 @@ const { LRUCache } = require('lru-cache')
  */
 module.exports = async function (app) {
     const assetCache = new LRUCache({
-        max: app.config.assistant?.service?.assetCache?.max || 100,
-        ttl: app.config.assistant?.service?.assetCache?.ttl || 30 * 60 * 1000, // Defaults to 1/2 hour cache for assets - enough to handle bursts
+        max: app.config.assistant?.assetCache?.max || 100,
+        ttl: app.config.assistant?.assetCache?.ttl || 30 * 60 * 1000, // Defaults to 1/2 hour cache for assets - enough to handle bursts
         updateAgeOnGet: false // do not update the age on get, we want it to expire after the original ttl
     })
+
+    // decorate the app with the asset cache
+    app.decorate('assistant', { assetCache })
 
     // Get the assistant service configuration
     const serviceUrl = app.config.assistant?.service?.url
