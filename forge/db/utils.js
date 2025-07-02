@@ -158,7 +158,7 @@ function randomPhrase (wordCount = 3, minLength = 2, maxLength = 15, separator =
  * An object mapping environment variable names to a string value or a metadata object.
  * e.g.
  * `{ VAR1: 'value1', VAR2: { value: 'value2', hidden: true } }`
- * 
+ *
  * @typedef {Array<{ name: string, value: string, hidden?: boolean }>} EnvVarArray
  * An array of environment variable objects, where each object has a name and value,
  * and optionally a hidden flag.
@@ -229,7 +229,7 @@ function mapEnvObjectToArray (envObject) {
  * To: { VAR1: 'value1', VAR2: 'value2' }
  * @param {EnvVarObject} envObject
  * @return {Object<string, string>}
- */ 
+ */
 function exportEnvVarObject (envObject) {
     // Check for any hidden env vars. These are objects with a 'hidden' property set to true.
     // If so, we replace the object with just the value.
