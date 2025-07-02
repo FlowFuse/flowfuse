@@ -32,6 +32,9 @@ The broker for FlowFuse Cloud is available on `broker.flowfuse.cloud` and suppor
  mosquitto_sub -u "alice@32E4NEO5pY" -i "alice@32E4NEO5pY" -P "password" -h broker.flowfuse.cloud -t "#"
  ```
 
+ Please note that username **must** also be used for the client id to connect to the team broker. This does mean that each 
+ username/password can only be used with a single MQTT client at a time.
+
  Or in Node-RED as follows
 
  ![Node-RED MQTT Client Connection](../cloud/images/node-red-mqtt-connection.png)
