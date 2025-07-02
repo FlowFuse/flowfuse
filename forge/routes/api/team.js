@@ -219,7 +219,9 @@ module.exports = async function (app) {
             summary: 'Get a list of the teams applications',
             tags: ['Teams'],
             query: {
-                associationsLimit: { type: 'number' }
+                associationsLimit: { type: 'number' },
+                includeInstances: { type: 'boolean' },
+                includeApplicationDevices: { type: 'boolean' }
             },
             params: {
                 type: 'object',
@@ -242,12 +244,17 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const includeInstances = true
-        const includeApplicationDevices = true
+        const includeInstances = request.query.includeInstances ?? true
+        const includeApplicationDevices = request.query.includeApplicationDevices ?? true
         const associationsLimit = request.query.associationsLimit
         const includeApplicationSummary = !!associationsLimit || request.query.includeApplicationSummary
 
-        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices, associationsLimit, includeApplicationSummary })
+        const applications = await app.db.models.Application.byTeam(request.params.teamId, {
+            includeInstances,
+            includeApplicationDevices,
+            associationsLimit,
+            includeApplicationSummary
+        })
 
         reply.send({
             count: applications.length,

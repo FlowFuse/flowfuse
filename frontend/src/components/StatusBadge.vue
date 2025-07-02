@@ -8,6 +8,7 @@
         @click="navigate"
     >
         <slot name="icon">
+            <AnimIconStarting v-if="status === null" class="w-4 h-4" />
             <ExclamationCircleIcon v-if="status === 'error' || status === 'crashed'" class="w-4 h-4" />
             <ExclamationIcon v-if="status === 'suspended' || status === 'stopped' || status === 'warning'" class="w-4 h-4" />
             <PlayIcon v-if="['running', 'connected'].includes(status)" class="w-4 h-4" />
