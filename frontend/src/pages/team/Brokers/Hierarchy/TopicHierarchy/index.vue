@@ -116,6 +116,11 @@ export default {
             filterTerm: ''
         }
     },
+    watch: {
+        topics () {
+            console.log(123)
+        }
+    },
     computed: {
         ...mapGetters('account', ['featuresCheck']),
         ...mapGetters('product', ['brokerExpandedTopics']),
@@ -123,6 +128,10 @@ export default {
             return this.$route.params.brokerId
         },
         expandedTopics () {
+            // Forces the computed property to re-evaluate when topics change, preventing a stale 'opened' state after fully refreshing the topics.
+            // eslint-disable-next-line no-unused-vars
+            const topics = this.topics
+
             return this.brokerExpandedTopics(this.brokerId)
         },
         filteredTopics () {
