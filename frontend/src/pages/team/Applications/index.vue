@@ -107,6 +107,7 @@ import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
 import { mapGetters, mapState } from 'vuex'
 
+import instanceApi from '../../../api/instances.js'
 import searchApi from '../../../api/search.js'
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -274,91 +275,65 @@ export default {
             if (this.team.id) {
                 const applicationsMap = new Map()
 
-                const applicationsPromise = teamApi.getTeamApplications(this.team.id,
+                teamApi.getTeamApplications(this.team.id,
                     {
                         includeApplicationSummary: true,
                         associationsLimit: 3
                     }
-                )
+                ).then((response) => {
+                    const applications = response.applications
+                    applications.forEach((applicationData) => {
+                        const application = applicationsMap.get(applicationData.id) || {}
+                        if (!application.instances) {
+                            application.instances = new Map()
+                        }
 
-                const applications = (await applicationsPromise).applications
-                applications.forEach((applicationData) => {
-                    const application = applicationsMap.get(applicationData.id) || {}
-                    if (!application.instances) {
-                        application.instances = new Map()
-                    }
+                        const { instancesSummary, devicesSummary, ...applicationProps } = applicationData
+                        instancesSummary.instances.forEach((instanceData) => {
+                            application.instances.set(instanceData.id, {
+                                ...application.instances.get(instanceData.id),
+                                ...instanceData
+                            })
+                        })
 
-                    const { instancesSummary, devicesSummary, ...applicationProps } = applicationData
-                    instancesSummary.instances.forEach((instanceData) => {
-                        application.instances.set(instanceData.id, {
-                            ...application.instances.get(instanceData.id),
-                            ...instanceData
+                        if (!application.devices) {
+                            application.devices = new Map()
+                        }
+                        devicesSummary.devices.forEach((deviceData) => {
+                            application.devices.set(deviceData.id, {
+                                ...application.devices.get(deviceData.id),
+                                ...deviceData
+                            })
+                        })
+
+                        application.instanceCount = instancesSummary.count
+                        application.deviceCount = devicesSummary.count
+
+                        applicationsMap.set(applicationData.id, {
+                            ...application,
+                            ...applicationProps
                         })
                     })
-
-                    if (!application.devices) {
-                        application.devices = new Map()
-                    }
-                    devicesSummary.devices.forEach((deviceData) => {
-                        application.devices.set(deviceData.id, {
-                            ...application.devices.get(deviceData.id),
-                            ...deviceData
-                        })
-                    })
-
-                    application.instanceCount = instancesSummary.count
-                    application.deviceCount = devicesSummary.count
-
-                    applicationsMap.set(applicationData.id, {
-                        ...application,
-                        ...applicationProps
-                    })
+                    this.applications = applicationsMap
                 })
-                this.applications = applicationsMap
-                // Only update statuses *after* populating this.applications
-                this.updateApplicationAssociationStatuses()
+                    .then(() => this.updateApplicationAssociationStatuses()) // Only update statuses *after* populating this.applications
+                    .catch(e => e)
+                    .finally(() => {
+                        this.loading = false
+                    })
             }
-            this.loading = false
         },
         async updateApplicationAssociationStatuses () {
-            const applicationsAssociationsStatuses = (await teamApi.getTeamApplicationsAssociationsStatuses(this.team.id, { includeApplicationSummary: true })).applications
-
-            applicationsAssociationsStatuses.forEach((applicationData) => {
-                const application = this.applications.get(applicationData.id) || {}
-
-                if (!application.instances) {
-                    application.instances = new Map()
-                }
-
-                if (!application.devices) {
-                    application.devices = new Map()
-                }
-
-                const { instances: instanceStatuses, devices: deviceStatuses, ...applicationProps } = applicationData
-                instanceStatuses.forEach((instanceStatusData) => {
-                    if (application.instances.has(instanceStatusData.id)) {
-                        application.instances.set(instanceStatusData.id, {
-                            ...application.instances.get(instanceStatusData.id),
-                            ...instanceStatusData
-                        })
-                    }
+            this.applications.forEach(app => {
+                app.instances.forEach((instance, key) => {
+                    instanceApi.getStatus(instance.id)
+                        .then(res => {
+                            app.instances.set(key, {
+                                ...instance,
+                                meta: res.meta
+                            })
+                        }).catch(e => e)
                 })
-
-                deviceStatuses.forEach((deviceStatusData) => {
-                    if (application.devices.has(deviceStatusData.id)) {
-                        application.devices.set(deviceStatusData.id, {
-                            ...application.devices.get(deviceStatusData.id),
-                            ...deviceStatusData
-                        })
-                    }
-                })
-
-                if (this.applications.has(applicationData.id)) {
-                    this.applications.set(applicationData.id, {
-                        ...application,
-                        ...applicationProps
-                    })
-                }
             })
         },
         setSearchQuery () {
