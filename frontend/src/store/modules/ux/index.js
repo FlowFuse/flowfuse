@@ -1,8 +1,8 @@
 import {
     BookOpenIcon, ChartBarIcon, ChatIcon, ChevronLeftIcon, ChipIcon, CogIcon,
     CollectionIcon, ColorSwatchIcon, CurrencyDollarIcon,
-    DatabaseIcon, DesktopComputerIcon, LockClosedIcon, RssIcon,
-    TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
+    DatabaseIcon, DesktopComputerIcon, HomeIcon, LockClosedIcon,
+    RssIcon, TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
 } from '@heroicons/vue/outline'
 
 import DeviceGroupOutlineIcon from '../../../components/icons/DeviceGroupOutline.js'
@@ -194,13 +194,13 @@ const getters = {
                     hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
                         {
-                            label: 'Applications',
+                            label: 'Home',
                             to: {
-                                name: 'Applications',
+                                name: 'team-home',
                                 params: { team_slug: team.slug }
                             },
-                            tag: 'team-applications',
-                            icon: TemplateIcon,
+                            tag: 'team-home',
+                            icon: HomeIcon,
                             disabled: requiresBilling
                         }
                     ]
@@ -242,6 +242,16 @@ const getters = {
                     title: 'Operations',
                     hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
                     entries: [
+                        {
+                            label: 'Applications',
+                            to: {
+                                name: 'Applications',
+                                params: { team_slug: team.slug }
+                            },
+                            tag: 'team-applications',
+                            icon: TemplateIcon,
+                            disabled: requiresBilling
+                        },
                         {
                             label: 'Groups',
                             to: {
@@ -321,7 +331,18 @@ const getters = {
                             },
                             tag: 'team-members',
                             icon: UsersIcon,
-                            disabled: requiresBilling
+                            disabled: requiresBilling,
+                            alert: (() => {
+                                const teamAge = new Date().getTime() - new Date(team.createdAt).getTime()
+                                const fourteenDaysInMs = 14 * 24 * 60 * 60 * 1000
+                                if (team.membersCount === 1 && teamAge > fourteenDaysInMs) {
+                                    return null
+                                }
+
+                                return {
+                                    title: 'Add a team member and start collaborating!'
+                                }
+                            })()
                         }
                     ]
                 },

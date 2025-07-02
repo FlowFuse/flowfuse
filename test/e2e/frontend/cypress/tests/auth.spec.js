@@ -1,4 +1,4 @@
-describe('FlowForge - Auth', () => {
+describe('FlowFuse - Auth', () => {
     it('successfully loads', () => {
         cy.visit('/')
     })
@@ -72,7 +72,7 @@ describe('FlowForge - Auth', () => {
         // click "login"
         cy.get('[data-action="login"]').click()
         // check where we are
-        cy.url().should('include', '/applications')
+        cy.url().should('include', '/overview')
     })
     it('prevent long password', () => {
         cy.visit('')

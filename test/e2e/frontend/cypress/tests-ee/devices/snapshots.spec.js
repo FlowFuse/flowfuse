@@ -18,7 +18,7 @@ const IDX_DELETE_SNAPSHOT = idx++
 
 const MENU_ITEM_COUNT = idx
 
-describe('FlowForge - Devices - With Billing', () => {
+describe('FlowFuse - Devices - With Billing', () => {
     beforeEach(() => {
         cy.enableBilling()
         cy.intercept('/api/*/settings', (req) => {

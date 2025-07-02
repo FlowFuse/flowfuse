@@ -139,6 +139,23 @@ describe('Team Devices API', function () {
             await device3.destroy()
         })
 
+        it('Get a sorted list of devices owned by this team', async function () {
+            // first ensure we have 1 device (added in beforeEach)
+            const currentDeviceCount = await app.db.models.Device.count()
+            should(currentDeviceCount).equal(1)
+
+            // add 2 devices
+            const device2 = await app.factory.createDevice({ name: 'device 2', type: 'test device' }, TestObjects.ATeam, TestObjects.Project1)
+            const device3 = await app.factory.createDevice({ name: 'device 3', type: 'test device' }, TestObjects.ATeam, TestObjects.Project1)
+
+            // check that we get 2 devices
+            const devices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=state-priority`)
+            devices.should.length(3)
+
+            await device2.destroy()
+            await device3.destroy()
+        })
+
         it('Non member does not get a list of devices', async function () {
             // GET /api/v1/team/:teamId/devices
             await login('dave', 'ddPassword')

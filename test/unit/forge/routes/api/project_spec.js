@@ -31,6 +31,8 @@ describe('Project API', function () {
         // alice : admin
         // bob
         // chris
+        // dave: Viewer Role in CTeam
+        // evan: Dashboard role in CTeam
 
         // ATeam ( alice (owner), bob )
         // BTeam ( alice (owner), bob (owner), chris)
@@ -41,6 +43,7 @@ describe('Project API', function () {
         TestObjects.bob = await app.db.models.User.create({ username: 'bob', name: 'Bob Solo', email: 'bob@example.com', email_verified: true, password: 'bbPassword' })
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
         TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave vader', email: 'dave@example.com', email_verified: true, password: 'ddPassword' })
+        TestObjects.evan = await app.db.models.User.create({ username: 'evan', name: 'Evan vader', email: 'evan@example.com', email_verified: true, password: 'eePassword' })
 
         // ATeam create in setup()
         TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
@@ -57,12 +60,14 @@ describe('Project API', function () {
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
         await TestObjects.CTeam.addUser(TestObjects.dave, { through: { role: Roles.Viewer } })
+        await TestObjects.CTeam.addUser(TestObjects.evan, { through: { role: Roles.Dashboard } })
 
         TestObjects.tokens = {}
         await login('alice', 'aaPassword')
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
         await login('dave', 'ddPassword')
+        await login('evan', 'eePassword')
 
         // TestObjects.tokens.alice = (await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.alice)).token
         TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
@@ -2753,6 +2758,81 @@ describe('Project API', function () {
             response.statusCode.should.equal(403)
             const json = response.json()
             json.should.have.property('code', 'unauthorized')
+        })
+    })
+
+    describe('Get Project Live Status', async function () {
+        let testProject
+        before(async function () {
+            testProject = await createInstance(false)
+        })
+
+        it('should return 200 and the live status of an instance', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${testProject.id}/status`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('id', testProject.id)
+            result.id.should.be.String()
+
+            result.should.have.property('name', testProject.name)
+
+            result.should.have.property('meta').which.is.an.Object()
+            result.meta.should.have.property('state', 'unknown')
+        })
+
+        it('should return 403 if user does not have project:read permission', async function () {
+            const instance = await app.factory.createInstance(
+                { name: generateProjectName() },
+                TestObjects.ApplicationC,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${instance.id}/status`,
+                cookies: { sid: TestObjects.tokens.evan }
+            })
+
+            response.statusCode.should.equal(403)
+        })
+
+        it('should return 404 if user is not part of that team', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${testProject.id}/status`,
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+
+            response.statusCode.should.equal(404)
+        })
+
+        it('should return 404 for a non-existent project', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/projects/non-existent-id/status',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(404)
+            response.json().should.have.property('code', 'not_found')
+        })
+
+        it('should return 401 if no authentication is provided', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/projects/${testProject.id}/status`
+            })
+
+            response.statusCode.should.equal(401)
+            response.json().should.have.property('code', 'unauthorized')
         })
     })
 })

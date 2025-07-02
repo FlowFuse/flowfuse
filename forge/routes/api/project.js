@@ -1272,6 +1272,50 @@ module.exports = async function (app) {
     })
 
     /**
+     * Get the live status of an instance
+     * @name /api/v1/projects/:instanceId/status
+     * @static
+     * @memberof forge.routes.api.project
+     */
+    app.get('/:instanceId/status', {
+        preHandler: app.needsPermission('project:read'),
+        schema: {
+            summary: 'Get the live status of an instance',
+            tags: ['Instances', 'Live State'],
+            params: {
+                type: 'object',
+                required: ['instanceId'],
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        name: { type: 'string' },
+                        id: { type: 'string' },
+                        meta: { type: 'object', additionalProperties: true }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const instance = await app.db.models.Project.byId(request.params.instanceId, { barebone: true, includeStorageFlows: false })
+
+        const liveState = await instance.liveState({ omitStorageFlows: true })
+
+        return reply.send({
+            id: instance.id,
+            name: instance.name,
+            meta: liveState.meta
+        })
+    })
+
+    /**
      * Merge env vars from 2 arrays.
      *
      * NOTE: When a var is found in both, currentVars will take precedence

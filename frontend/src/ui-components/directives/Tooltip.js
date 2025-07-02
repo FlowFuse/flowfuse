@@ -1,3 +1,5 @@
+import { debounce } from '../../utils/eventHandling.js'
+
 function renderTooltip (el, binding) {
     el.classList.add('ff-tooltip-container')
 
@@ -8,8 +10,11 @@ function renderTooltip (el, binding) {
 
     let tooltip = null
     let tooltipTimeout = null
+    let isTooltipVisible = false
 
     const createTooltip = () => {
+        if (isTooltipVisible) return
+
         tooltip = document.createElement('div')
         tooltip.className = `ff-tooltip ${posClass}`
         tooltip.innerHTML = binding.value
@@ -42,26 +47,30 @@ function renderTooltip (el, binding) {
         // Use requestAnimationFrame to allow the DOM to render first
         requestAnimationFrame(() => {
             tooltip.classList.add('ff-tooltip--visible')
+            isTooltipVisible = true
         })
     }
 
     const removeTooltip = () => {
+        if (!isTooltipVisible) return
+
         if (tooltip) {
             // Use requestAnimationFrame to allow the DOM to render first
             requestAnimationFrame(() => {
                 tooltip.classList.remove('ff-tooltip--visible')
-            })
 
-            setTimeout(() => {
-                tooltip.remove()
-                tooltip = null
-            }, 500)
+                setTimeout(() => {
+                    tooltip?.remove()
+                    tooltip = null
+                    isTooltipVisible = false
+                }, 500)
+            })
         }
     }
 
     const onMouseEnter = () => {
         clearTimeout(tooltipTimeout)
-        tooltipTimeout = setTimeout(createTooltip, 250)
+        tooltipTimeout = setTimeout(createTooltip, 150)
     }
 
     const onMouseLeave = () => {
@@ -69,8 +78,8 @@ function renderTooltip (el, binding) {
         tooltipTimeout = setTimeout(removeTooltip, 250)
     }
 
-    el.addEventListener('mouseenter', onMouseEnter)
-    el.addEventListener('mouseleave', onMouseLeave)
+    el.addEventListener('mouseenter', debounce(onMouseEnter, 150))
+    el.addEventListener('mouseleave', debounce(onMouseLeave, 150))
 
     // Store references for cleanup
     el._tooltip = { onMouseEnter, onMouseLeave, removeTooltip }

@@ -1,4 +1,4 @@
-describe('FlowForge - Applications', () => {
+describe('FlowFuse - Applications', () => {
     let team
     function navigateToApplication (teamName, projectName) {
         cy.request('GET', '/api/v1/user/teams')
@@ -19,12 +19,20 @@ describe('FlowForge - Applications', () => {
 
     beforeEach(() => {
         cy.intercept('GET', '/api/*/applications/*').as('getApplication')
+        cy.intercept('GET', '/api/*/projects/*/status', (req) => {
+            // returns a status of running on all project calls
+            const projectId = req.url.match(/\/projects\/([^/]+)\/status/)[1]
+            req.reply({
+                statusCode: 200,
+                body: { meta: { state: 'running' }, id: projectId }
+            })
+        })
         cy.login('bob', 'bbPassword')
     })
 
     describe('Listing', () => {
         it('shows a list of cloud hosted instances', () => {
-            cy.home()
+            cy.visit('team/bteam/applications')
 
             navigateToApplication('BTeam', 'application-2')
 
@@ -37,11 +45,6 @@ describe('FlowForge - Applications', () => {
 
     describe('The overview', () => {
         it('can display an application without devices and instances', () => {
-            cy.intercept(
-                'GET',
-                '/api/*/teams/*/applications/status*',
-                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
-            ).as('getAppStatuses')
             cy.intercept(
                 'GET',
                 '/api/*/teams/*/applications*',
@@ -67,10 +70,9 @@ describe('FlowForge - Applications', () => {
                 })
             ).as('getApplication')
 
-            cy.visit('/')
+            cy.visit('team/bteam/applications')
 
             cy.wait('@getApplication')
-            cy.wait('@getAppStatuses')
 
             cy.contains('My app')
             cy.contains('My empty app description')
@@ -104,11 +106,6 @@ describe('FlowForge - Applications', () => {
             ]
             cy.intercept(
                 'GET',
-                '/api/*/teams/*/applications/status*',
-                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
-            ).as('getAppStatuses')
-            cy.intercept(
-                'GET',
                 '/api/*/teams/*/applications?*',
                 (req) => req.reply(res => {
                     res.body = {
@@ -120,7 +117,7 @@ describe('FlowForge - Applications', () => {
                                 instancesSummary: {
                                     instances: [
                                         {
-                                            id: 1,
+                                            id: '1',
                                             name: 'immersive-compatible-instance',
                                             meta: {
                                                 versions: {
@@ -131,7 +128,7 @@ describe('FlowForge - Applications', () => {
                                             url: 'https://www.google.com:123/search?q=rick+astley'
                                         },
                                         {
-                                            id: 2,
+                                            id: '2',
                                             name: 'immersive-incompatible-instance',
                                             meta: {
                                                 versions: {
@@ -153,10 +150,9 @@ describe('FlowForge - Applications', () => {
                 })
             ).as('getApplication')
 
-            cy.visit('/')
+            cy.visit('team/ateam/applications')
 
             cy.wait('@getApplication')
-            cy.wait('@getAppStatuses')
 
             cy.get('[data-el="application-instance-item"]')
                 .contains('immersive-compatible-instance')
@@ -206,11 +202,6 @@ describe('FlowForge - Applications', () => {
         it('hides remaining instances if above threshold', () => {
             cy.intercept(
                 'GET',
-                '/api/*/teams/*/applications/status*',
-                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
-            ).as('getAppStatuses')
-            cy.intercept(
-                'GET',
                 '/api/*/teams/*/applications*',
                 req => req.reply(res => {
                     res.send({
@@ -224,7 +215,7 @@ describe('FlowForge - Applications', () => {
                                 instancesSummary: {
                                     instances: [
                                         {
-                                            id: 1,
+                                            id: '1',
                                             name: 'instance-1',
                                             meta: {
                                                 versions: {
@@ -235,7 +226,7 @@ describe('FlowForge - Applications', () => {
                                             url: 'https://www.google.com:123/search?q=rick+astley'
                                         },
                                         {
-                                            id: 2,
+                                            id: '2',
                                             name: 'instance-2',
                                             meta: {
                                                 versions: {
@@ -246,7 +237,7 @@ describe('FlowForge - Applications', () => {
                                             url: 'https://www.google.com:456/search?q=rick+ross'
                                         },
                                         {
-                                            id: 3,
+                                            id: '3',
                                             name: 'instance-3',
                                             meta: {
                                                 versions: {
@@ -268,10 +259,9 @@ describe('FlowForge - Applications', () => {
                 )
             ).as('getApplication')
 
-            cy.visit('/')
+            cy.visit('team/bteam/applications')
 
             cy.wait('@getApplication')
-            cy.wait('@getAppStatuses')
 
             cy.get('[data-el="application-instance-item"]')
                 .contains('instance-1')
@@ -291,11 +281,6 @@ describe('FlowForge - Applications', () => {
         it('can open an instance default editor', () => {
             cy.intercept(
                 'GET',
-                '/api/*/teams/*/applications/status*',
-                { count: 1, applications: [{ id: 'some-id', instances: [], devices: [] }] }
-            ).as('getAppStatuses')
-            cy.intercept(
-                'GET',
                 '/api/*/teams/*/applications*',
                 req => req.reply(res => {
                     res.send({
@@ -308,7 +293,7 @@ describe('FlowForge - Applications', () => {
                                 instancesSummary: {
                                     instances: [
                                         {
-                                            id: 1,
+                                            id: '1',
                                             name: 'instance-1',
                                             meta: {
                                                 versions: {
@@ -330,10 +315,9 @@ describe('FlowForge - Applications', () => {
                 })
             ).as('getApplication')
 
-            cy.visit('/')
+            cy.visit('team/bteam/applications')
 
             cy.wait('@getApplication')
-            cy.wait('@getAppStatuses')
 
             cy.get('[data-el="application-instance-item"]')
                 .contains('instance-1')
@@ -357,7 +341,7 @@ describe('FlowForge - Applications', () => {
                 { role: 30 }
             ).as('getTeamRole')
 
-            cy.visit('/')
+            cy.visit('team/bteam/applications')
             cy.wait('@getTeamRole')
 
             cy.get('[data-el="kebab-menu"]').should('not.exist')
@@ -365,18 +349,6 @@ describe('FlowForge - Applications', () => {
 
         describe('can search through', () => {
             it('applications', () => {
-                cy.intercept(
-                    'GET',
-                    '/api/*/teams/*/applications/status*',
-                    {
-                        count: 1,
-                        applications: [
-                            { id: '1', instances: [], devices: [] },
-                            { id: '2', instances: [], devices: [] },
-                            { id: '3', instances: [], devices: [] }
-                        ]
-                    }
-                ).as('getAppStatuses')
                 cy.intercept(
                     'GET',
                     '/api/*/teams/*/applications*',
@@ -420,9 +392,8 @@ describe('FlowForge - Applications', () => {
                     }
                 ).as('getApplication')
 
-                cy.home()
+                cy.visit('team/bteam/applications')
 
-                cy.wait('@getAppStatuses')
                 cy.wait('@getApplication')
 
                 // check that we have three apps
@@ -442,18 +413,6 @@ describe('FlowForge - Applications', () => {
             })
 
             it('devices and instances', () => {
-                cy.intercept(
-                    'GET',
-                    '/api/*/teams/*/applications/status*',
-                    {
-                        count: 1,
-                        applications: [
-                            { id: '1', instances: [], devices: [] },
-                            { id: '2', instances: [], devices: [] },
-                            { id: '3', instances: [], devices: [] }
-                        ]
-                    }
-                ).as('getAppStatuses')
                 cy.intercept(
                     'GET',
                     '/api/*/teams/*/applications*',
@@ -791,9 +750,8 @@ describe('FlowForge - Applications', () => {
                     }
                 ).as('getApplication')
 
-                cy.home()
+                cy.visit('team/bteam/applications')
 
-                cy.wait('@getAppStatuses')
                 cy.wait('@getApplication')
 
                 // check that we have the correct number of apps, devices and instances associated with each result
@@ -928,20 +886,6 @@ describe('FlowForge - Applications', () => {
                 ]
                 const instances = []
 
-                cy.intercept(
-                    'GET',
-                    '/api/*/teams/*/applications/status*',
-                    {
-                        count: 1,
-                        applications: [
-                            {
-                                id: '1',
-                                instances,
-                                devices
-                            }
-                        ]
-                    }
-                ).as('getAppStatuses')
                 cy.intercept('get', '/api/*/applications/*/devices*', {
                     meta: {},
                     count: 5,
@@ -982,26 +926,19 @@ describe('FlowForge - Applications', () => {
                     }
                 }).as('getApplication')
 
-                cy.intercept('GET', '/api/*/applications/1/instances*', {
-                    count: 0,
-                    instances
-                }).as('getApplicationInstances')
-
                 cy.intercept('GET', '/api/*/applications/1/devices*', {
                     count: 5,
                     devices
                 }).as('getApplicationDevices')
 
-                cy.home()
+                cy.visit('team/bteam/applications')
 
-                cy.wait('@getAppStatuses')
                 cy.wait('@getApplications')
 
                 cy.get('[data-form="search"]').type('common')
                 cy.get('[data-el="has-more-tile"]').click()
 
                 cy.wait('@getApplication')
-                cy.wait('@getApplicationInstances')
                 cy.wait('@getApplicationDevices')
 
                 cy.get('[data-form="search"]').should('exist')
@@ -1071,20 +1008,7 @@ describe('FlowForge - Applications', () => {
                     }
                 ]
                 const devices = []
-                cy.intercept(
-                    'GET',
-                    '/api/*/teams/*/applications/status*',
-                    {
-                        count: 1,
-                        applications: [
-                            {
-                                id: '1',
-                                instances,
-                                devices
-                            }
-                        ]
-                    }
-                ).as('getAppStatuses')
+
                 cy.intercept('get', '/api/*/applications/*/devices*', {
                     meta: {},
                     count: 0,
@@ -1135,9 +1059,8 @@ describe('FlowForge - Applications', () => {
                     instances: []
                 }).as('getSomeStatuses')
 
-                cy.home()
+                cy.visit('/team/ateam/applications')
 
-                cy.wait('@getAppStatuses')
                 cy.wait('@getApplications')
 
                 cy.get('[data-form="search"]').type('common')
@@ -1219,19 +1142,10 @@ describe('FlowForge - Applications', () => {
                         ]
                     }
                 ).as('getApplications')
-                cy.intercept(
-                    'GET',
-                    '/api/*/teams/*/applications/status*',
-                    {
-                        count: 1,
-                        applications: [{ id: 'some-id', instances: [], devices: [] }]
-                    }
-                ).as('getAppStatuses')
 
-                cy.visit('/')
+                cy.visit('/team/bteam/applications')
 
                 cy.wait('@getApplications')
-                cy.wait('@getAppStatuses')
 
                 // open the kebab menu for the first device & verify that the correct dialog is opened for each item
                 MENU_ITEMS.forEach((item) => {
@@ -1282,19 +1196,10 @@ describe('FlowForge - Applications', () => {
                         ]
                     }
                 ).as('getApplications')
-                cy.intercept(
-                    'GET',
-                    '/api/*/teams/*/applications/status*',
-                    {
-                        count: 1,
-                        applications: [{ id: 'some-id', instances: [], devices: [] }]
-                    }
-                ).as('getAppStatuses')
 
-                cy.visit('/')
+                cy.visit('/team/bteam/applications')
 
                 cy.wait('@getApplications')
-                cy.wait('@getAppStatuses')
 
                 cy.get('[data-el="device-tile"]').first().get('[data-action="finish-setup"]').should('exist')
             })

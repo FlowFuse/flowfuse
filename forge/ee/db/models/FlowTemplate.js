@@ -132,12 +132,12 @@ module.exports = {
                         ]
                     })
                 },
-                forTeamType: async (teamTypeId, pagination, where = {}) => {
+                forTeamType: async (teamTypeId, pagination, where = {}, options = { includeFlows: false }) => {
                     // since sqlite does not support json queries, we have to get all rows and filter them in memory
                     if (typeof teamTypeId === 'string') {
                         teamTypeId = M.TeamType.decodeHashid(teamTypeId)
                     }
-                    const data = await self.getAll(pagination, where)
+                    const data = await self.getAll(pagination, where, options)
                     const rows = data.templates.filter(template => {
                         if (!template.teamTypeScope) {
                             return true // by default (null), all templates are available to all teamtypes
@@ -148,17 +148,21 @@ module.exports = {
                     data.count = rows.length
                     return data
                 },
-                getAll: async (pagination = {}, where = {}) => {
+                getAll: async (pagination = {}, where = {}, options = { includeFlows: false }) => {
                     const limit = parseInt(pagination.limit) || 1000
                     if (pagination.cursor) {
                         pagination.cursor = M.FlowTemplate.decodeHashid(pagination.cursor)
                     }
-
+                    let attributes
+                    if (!options.includeFlows) {
+                        attributes = { exclude: ['flows', 'modules'] }
+                    }
                     const [rows, count] = await Promise.all([
                         this.findAll({
                             where: buildPaginationSearchClause(pagination, where, ['FlowTemplate.name']),
                             order: [['id', 'ASC']],
                             limit,
+                            attributes,
                             include: [
                                 { model: M.User, as: 'createdBy' }
                             ]

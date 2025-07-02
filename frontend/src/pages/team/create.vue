@@ -9,11 +9,11 @@
         </template>
         <ff-loading v-if="redirecting" message="Redirecting to Stripe..." />
         <ff-loading v-else-if="loading" message="Creating Team..." />
-        <div v-else :class="presetTeamType ? 'flex flex-col gap-4 sm:flex-row sm:gap-0' : 'space-y-6 mb-5'">
+        <div v-else :class="presetTeamType ? 'flex flex-col gap-4 sm:gap-0' : 'flex flex-col space-y-6 mb-5'">
             <div v-if="presetTeamType" class="w-full">
                 <team-type-tile class="m-auto" :team-type="presetTeamType" :enableCTA="false" />
             </div>
-            <form>
+            <form :class="[presetTeamType ? 'flex flex-col items-center mt-10' : '']">
                 <!-- TeamType Type -->
                 <div v-if="!presetTeamType" class="grid mb-3">
                     <ff-tile-selection v-model="input.teamTypeId">
@@ -26,7 +26,7 @@
                         />
                     </ff-tile-selection>
                 </div>
-                <div v-if="!isContactRequired" class="space-y-3">
+                <div v-if="!isContactRequired" class="space-y-3" :class="{'flex flex-col max-w-md': presetTeamType}">
                     <FormRow id="team" v-model="input.name" :error="errors.name" containerClass="max-w-md">
                         Team Name
                         <template #description>
@@ -259,7 +259,7 @@ export default {
             }, 200)
         },
         sendContact: async function () {
-            this.talkToSalesCalendarModal(this.user)
+            this.talkToSalesCalendarModal(this.user, this.input.teamType)
         }
     },
     components: {

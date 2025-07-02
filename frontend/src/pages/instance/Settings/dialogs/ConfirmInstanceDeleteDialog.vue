@@ -7,6 +7,7 @@
         kind="danger"
         :disable-primary="!formValid"
         @confirm="deleteInstance()"
+        @cancel="$emit('cancel')"
     >
         <template #default>
             <form class="space-y-4" @submit.prevent>
@@ -44,7 +45,7 @@ export default {
             default: null
         }
     },
-    emits: ['confirm'],
+    emits: ['confirm', 'cancel'],
     setup () {
         return {
             show (instance) {

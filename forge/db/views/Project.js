@@ -41,10 +41,14 @@ module.exports = function (app) {
                     disableAutoSafeMode: { type: 'boolean' }
                 },
                 additionalProperties: false
+            },
+            meta: {
+                type: 'object',
+                additionalProperties: true
             }
         }
     })
-    async function project (project, { includeSettings = true } = {}) {
+    async function project (project, { includeSettings = true, includeMeta = false } = {}) {
         const proj = project.toJSON()
         const result = {
             id: proj.id,
@@ -156,16 +160,23 @@ module.exports = function (app) {
             result.stack = app.db.views.ProjectStack.stackSummary(proj.ProjectStack)
         }
         result.links = proj.links
+
+        if (includeMeta) {
+            const liveState = await project.liveState()
+            result.meta = liveState?.meta
+            result.flowLastUpdatedAt = liveState?.flowLastUpdatedAt
+        }
+
         return result
     }
 
     // This view is only used by the 'deprecated' /team/:teamId/projects end point.
     // However, it is still used in a few places from the frontend. None of them
     // require the full details of the instances - so the settings object can be omitted
-    async function instancesList (instancesArray, { includeSettings = false } = {}) {
+    async function instancesList (instancesArray, { includeSettings = false, includeMeta = false } = {}) {
         return Promise.all(instancesArray.map(async (instance) => {
             // Full settings are not required for the instance summary list
-            const result = await app.db.views.Project.project(instance, { includeSettings })
+            const result = await app.db.views.Project.project(instance, { includeSettings, includeMeta })
 
             if (!result.url) {
                 delete result.url
@@ -261,6 +272,20 @@ module.exports = function (app) {
         }
     })
     function dashboardInstanceSummary (project) {
+        const settings = project.settings || {}
+
+        if (project.ProjectSettings[0]) {
+            const projectSettings = project.ProjectSettings[0]?.value
+
+            if (projectSettings.palette?.modules?.find(module => module.name === '@flowfuse/node-red-dashboard')) {
+                settings.dashboard2UI = '/dashboard'
+            }
+
+            if (Object.prototype.hasOwnProperty.call(projectSettings, 'disableEditor')) {
+                settings.disableEditor = projectSettings.disableEditor
+            }
+        }
+
         const result = {
             id: project.id,
             name: project.name,
@@ -271,7 +296,11 @@ module.exports = function (app) {
             application: app.db.views.Application.applicationSummary(project.Application),
             flowLastUpdatedAt: project.flowLastUpdatedAt,
             status: project.state,
-            settings: project.settings
+            settings
+        }
+
+        if (project.meta) {
+            result.meta = project.meta
         }
 
         return result
@@ -361,6 +390,7 @@ module.exports = function (app) {
         instanceStatusList,
         projectSummary,
         userProjectList,
+        dashboardInstanceSummary,
         dashboardInstancesSummaryList
     }
 }

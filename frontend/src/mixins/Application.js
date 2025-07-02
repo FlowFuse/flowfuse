@@ -79,7 +79,7 @@ export default {
             try {
                 await ApplicationApi.deleteApplication(this.application.id, this.team.id)
                 await this.$store.dispatch('account/refreshTeam')
-                this.$router.push({ name: 'Home' })
+                this.$router.push({ name: 'Applications' })
                 alerts.emit('Application successfully deleted.', 'confirmation')
             } catch (err) {
                 if (err.response.data.error) {

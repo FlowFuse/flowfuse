@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-describe('FlowForge - Team Overview (Home) - With License', () => {
+describe('FlowFuse - Team Overview (Home) - With License', () => {
     function navigateToTeam (teamName) {
         cy.request('GET', '/api/v1/user/teams')
             .then((response) => {
@@ -36,31 +36,6 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                 const deviceOneId = applications[0].devices.find((device) => device.name === 'application-device-a').id
                 const deviceTwoId = applications[0].devices.find((device) => device.name === 'application-device-b').id
 
-                cy.intercept('GET', '/api/*/teams/*/applications/status*', (req) => {
-                    req.continue((res) => {
-                        const instanceOne = res.body.applications[0].instances.find((instance) => instance.id === instanceOneId)
-                        instanceOne.meta.state = 'running'
-                        instanceOne.flowLastUpdatedAt = new Date().toISOString()
-
-                        const instanceTwo = res.body.applications[0].instances.find((instance) => instance.id === instanceTwoId)
-                        instanceTwo.meta.state = 'stopped'
-
-                        const deviceOne = res.body.applications[0].devices.find((device) => device.id === deviceOneId)
-
-                        deviceOne.status = 'running'
-                        deviceOne.lastSeenAt = new Date()
-                        deviceOne.editor = {
-                            url: 'http://editor.example.com',
-                            enabled: true,
-                            connected: true,
-                            local: true
-                        }
-
-                        const deviceTwo = res.body.applications[0].devices.find((device) => device.id === deviceTwoId)
-                        deviceTwo.status = 'stopped'
-                    })
-                }).as('getApplicationsStatus')
-
                 cy.intercept('GET', '/api/*/teams/*/applications?*', (req) => {
                     req.continue((res) => {
                         const instanceOne = res.body.applications[0].instancesSummary.instances.find((instance) => instance.id === instanceOneId)
@@ -81,11 +56,16 @@ describe('FlowForge - Team Overview (Home) - With License', () => {
                         deviceTwo.status = 'stopped'
                     })
                 }).as('getApplications')
+                cy.intercept(`/api/*/projects/${instanceTwoId}/status`, (req) => {
+                    req.continue(res => {
+                        res.body.meta.state = 'stopped'
+                    })
+                }).as('getInstanceStatus')
 
                 navigateToTeam('BTeam')
 
                 cy.wait('@getApplications')
-                cy.wait('@getApplicationsStatus')
+                cy.wait('@getInstanceStatus')
 
                 cy.get('[data-el="applications-list"]').find('> li').should('have.length', 1)
 

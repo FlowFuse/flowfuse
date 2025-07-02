@@ -1,4 +1,4 @@
-describe('FlowForge - Personal Access Tokens', () => {
+describe('FlowFuse - Personal Access Tokens', () => {
     beforeEach(() => {
         cy.intercept('GET', '/api/*/user/tokens').as('getPersonalAccessToken')
 

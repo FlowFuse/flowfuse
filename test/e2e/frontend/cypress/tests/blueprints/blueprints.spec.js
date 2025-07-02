@@ -1,4 +1,4 @@
-describe('FlowForge - Blueprints', () => {
+describe('FlowFuse - Blueprints', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()

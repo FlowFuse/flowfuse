@@ -13,7 +13,7 @@
 
 const crypto = require('crypto')
 
-const { col, fn, DataTypes, Op, where } = require('sequelize')
+const { col, fn, DataTypes, Op, where, literal } = require('sequelize')
 
 const Controllers = require('../controllers')
 
@@ -307,18 +307,20 @@ module.exports = {
                     return credentialSecret
                 },
 
-                async liveState () {
-                    let storageFlow = this.StorageFlow
-                    if (storageFlow === undefined) {
-                        app.log.warn(`N+1 warning - Requested live state for instance ${this.id} with no storage flow loaded`)
-                        storageFlow = await M.StorageFlow.byProject(this.id)
-                    }
+                async liveState ({ omitStorageFlows = false } = { }) {
+                    const result = {}
 
                     const inflightState = Controllers.Project.getInflightState(this)
                     const isDeploying = Controllers.Project.isDeploying(this)
 
-                    const result = {
-                        flowLastUpdatedAt: storageFlow?.updatedAt // prop not set if storageFlow not found
+                    if (!omitStorageFlows) {
+                        let storageFlow = this.StorageFlow
+                        if (storageFlow === undefined) {
+                            app.log.warn(`N+1 warning - Requested live state for instance ${this.id} with no storage flow loaded`)
+                            storageFlow = await M.StorageFlow.byProject(this.id)
+                        }
+
+                        result.flowLastUpdatedAt = storageFlow?.updatedAt // prop not set if storageFlow not found
                     }
 
                     if (inflightState) {
@@ -387,44 +389,46 @@ module.exports = {
                         }
                     })
                 },
-                byId: async (id, { includeStorageFlows = false } = {}) => {
-                    const include = [
-                        {
-                            model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
-                        },
-                        {
-                            model: M.Application,
-                            attributes: ['hashid', 'id', 'name', 'links']
-                        },
-                        {
-                            model: M.ProjectType,
-                            attributes: ['hashid', 'id', 'name']
-                        },
-                        {
-                            model: M.ProjectStack,
-                            attributes: ['hashid', 'id', 'name', 'label', 'links', 'properties', 'replacedBy', 'ProjectTypeId']
-                        },
-                        {
-                            model: M.ProjectTemplate,
-                            attributes: ['hashid', 'id', 'name', 'links', 'settings', 'policy']
-                        },
-                        {
-                            model: M.ProjectSettings,
-                            where: {
-                                [Op.or]: [
-                                    { key: KEY_SETTINGS },
-                                    { key: KEY_HOSTNAME },
-                                    { key: KEY_HA },
-                                    { key: KEY_PROTECTED },
-                                    { key: KEY_CUSTOM_HOSTNAME },
-                                    { key: KEY_HEALTH_CHECK_INTERVAL },
-                                    { key: KEY_DISABLE_AUTO_SAFE_MODE }
-                                ]
+                byId: async (id, { includeStorageFlows = false, barebone = false } = {}) => {
+                    const include = barebone
+                        ? []
+                        : [
+                            {
+                                model: M.Team,
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
                             },
-                            required: false
-                        }
-                    ]
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id', 'name', 'links']
+                            },
+                            {
+                                model: M.ProjectType,
+                                attributes: ['hashid', 'id', 'name']
+                            },
+                            {
+                                model: M.ProjectStack,
+                                attributes: ['hashid', 'id', 'name', 'label', 'links', 'properties', 'replacedBy', 'ProjectTypeId']
+                            },
+                            {
+                                model: M.ProjectTemplate,
+                                attributes: ['hashid', 'id', 'name', 'links', 'settings', 'policy']
+                            },
+                            {
+                                model: M.ProjectSettings,
+                                where: {
+                                    [Op.or]: [
+                                        { key: KEY_SETTINGS },
+                                        { key: KEY_HOSTNAME },
+                                        { key: KEY_HA },
+                                        { key: KEY_PROTECTED },
+                                        { key: KEY_CUSTOM_HOSTNAME },
+                                        { key: KEY_HEALTH_CHECK_INTERVAL },
+                                        { key: KEY_DISABLE_AUTO_SAFE_MODE }
+                                    ]
+                                },
+                                required: false
+                            }
+                        ]
 
                     // Used for instance status
                     if (includeStorageFlows) {
@@ -490,7 +494,15 @@ module.exports = {
                         include
                     })
                 },
-                byTeam: async (teamIdOrHash, { query = null, instanceId = null, includeAssociations = true, includeSettings = false } = {}) => {
+                byTeam: async (teamIdOrHash, {
+                    query = null,
+                    instanceId = null,
+                    includeAssociations = true,
+                    includeSettings = false,
+                    includeMeta = false,
+                    limit = null,
+                    orderByMostRecentFlows = false
+                } = {}) => {
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
@@ -529,8 +541,33 @@ module.exports = {
                         })
                     }
 
+                    if (includeMeta) {
+                        include.push({
+                            model: M.StorageFlow,
+                            attributes: ['id', 'updatedAt', 'flow', 'ProjectId']
+                        })
+                    }
+
                     const queryObject = {
                         include
+                    }
+
+                    if (limit !== null) {
+                        queryObject.limit = limit
+                    }
+
+                    if (includeMeta && orderByMostRecentFlows) {
+                        queryObject.order = [
+                            [literal(`
+                                CASE
+                                    WHEN state IN ('error', 'crashed') THEN 1
+                                    WHEN state IN ('running', 'safe', 'protected', 'warning') THEN 2
+                                    WHEN state IS NULL OR state IN ('suspended', 'stopped', 'offline', 'unknown', '') THEN 3
+                                    ELSE 4
+                                END
+                            `), 'ASC'],
+                            [{ model: M.StorageFlow }, 'updatedAt', 'DESC NULLS LAST']
+                        ]
                     }
 
                     if (instanceId) {
@@ -541,6 +578,7 @@ module.exports = {
                             { [Op.like]: `%${query.toLowerCase()}%` }
                         )
                     }
+
                     return this.findAll(queryObject)
                 },
                 getProjectTeamId: async (id) => {
@@ -577,6 +615,64 @@ module.exports = {
                             }
                         ]
                     })
+                },
+                countByState: async (states, teamId) => {
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+
+                        if (teamId.length === 0) {
+                            throw new Error('Invalid TeamId')
+                        }
+                    }
+
+                    return this.count({
+                        where: {
+                            ...(states.length > 0
+                                ? {
+                                    [Op.or]: states.map(state => ({
+                                        state,
+                                        TeamId: teamId
+                                    }))
+                                }
+                                : { TeamId: teamId })
+                        },
+                        group: ['state']
+                    })
+                },
+                byTeamForSearch: async (teamId, query) => {
+                    const queryObject = {
+                        include: [
+                            {
+                                model: M.Team,
+                                where: { id: teamId },
+                                attributes: ['hashid', 'id', 'name', 'slug']
+                            },
+                            {
+                                model: M.ProjectType,
+                                attributes: ['hashid', 'id', 'name']
+                            },
+                            {
+                                model: M.ProjectSettings,
+                                attributes: ['id', 'key', 'value', 'ProjectId'],
+                                where: { key: 'settings' }
+                            },
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id', 'name'],
+                                required: true
+                            }
+                        ],
+                        where: {
+                            [Op.and]: [
+                                where(
+                                    fn('lower', col('Project.name')),
+                                    { [Op.like]: `%${query.toLowerCase()}%` }
+                                )
+                            ]
+                        }
+                    }
+
+                    return this.findAll(queryObject)
                 }
             }
         }
