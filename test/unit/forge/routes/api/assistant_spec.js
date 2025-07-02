@@ -463,7 +463,7 @@ describe('Assistant API', async function () {
                     headers: { authorization: 'Bearer ' + TestObjects.tokens.device }
                 })
                 response.statusCode.should.equal(200)
-                response.headers.should.not.have.property('connection', 'dummy') // connection can be present but not the header from upstream
+                response.headers.should.not.have.property('connection', 'upstream-value') // connection can be present but not the header from upstream
                 // scan for any header with value 'should-be-stripped'
                 Object.keys(shouldStripHeaders).forEach(header => {
                     response.headers.should.not.have.property(header)
