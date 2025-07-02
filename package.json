@@ -94,6 +94,7 @@
         "jsonwebtoken": "^9.0.0",
         "ldapts": "^7.0.12",
         "lottie-web-vue": "^2.0.7",
+        "lru-cache": "^11.1.0",
         "marked": "^15.0.7",
         "mqtt": "^5.1.1",
         "mqtt-match": "^3.0.0",
