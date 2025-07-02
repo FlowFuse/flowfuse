@@ -11,13 +11,13 @@
         </p>
 
         <ul class="results">
-            <li v-for="(result, index) in truncatedResults" :key="result.id" class="result-wrapper">
+            <li v-for="(result, index) in truncatedResults" :key="result.id" class="result-wrapper" data-el="result">
                 <router-link :to="result.route" class="result iterable" tabindex="0" @click="onResultClick">
                     <div class="icon">
                         <slot name="result-icon" :item="result" :index="index" />
                     </div>
 
-                    <div class="title truncate">
+                    <div class="title truncate" :data-title="result.name">
                         <slot name="result-title" :item="result" :index="index">
                             {{ result.name }}
                         </slot>
