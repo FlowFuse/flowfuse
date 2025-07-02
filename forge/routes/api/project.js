@@ -1217,7 +1217,7 @@ module.exports = async function (app) {
         config: {
             rateLimit: app.config.rate_limits
                 ? {
-                    max: 5,
+                    max: 6,
                     timeWindow: 30000,
                     keyGenerator: app.config.rate_limits.keyGenerator,
                     hard: true

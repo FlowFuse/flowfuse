@@ -293,12 +293,20 @@ export default {
                             this.errors.name = null
                         })
                         .catch(e => {
-                            this.errors.name = 'Instance name already in use.'
+                            if (e.status === 409) {
+                                if (e.response?.data?.error === 'name in use') {
+                                    this.errors.name = 'Instance name already in use.'
+                                } else if (e.response?.data?.error === 'name not allowed') {
+                                    this.errors.name = 'Instance name not allowed.'
+                                }
+                            } else if (e.status === 429) {
+                                this.errors.name = 'Name check rate limit exceeded'
+                            }
                         })
                 } else {
                     this.errors.name = 'Invalid character in use.'
                 }
-            }, 500)
+            }, 1000)
         },
         errors: {
             deep: true,
