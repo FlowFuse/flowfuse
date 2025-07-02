@@ -206,7 +206,9 @@ function mapEnvObjectToArray (envObject) {
  * of this function is suitable for passing to a hosted/remote instance to use as-is
  * From: { VAR1: 'value1', VAR2: { value: 'value2', hidden: true } }
  * To: { VAR1: 'value1', VAR2: 'value2' }
- */
+ * @param {EnvVarObject} envObject
+ * @return {Object<string, string>}
+ */ 
 function exportEnvVarObject (envObject) {
     // Check for any hidden env vars. These are objects with a 'hidden' property set to true.
     // If so, we replace the object with just the value.
