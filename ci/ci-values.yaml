@@ -19,7 +19,12 @@ forge:
     requests:
       cpu: 100m
       memory: 16Mi
-
+  rate_limits:
+    enabled: true
+    global: false
+    max: 600
+    maxAnonymous: 10
+    timeWindow: 30000
 
 postgresql:
   persistence:
