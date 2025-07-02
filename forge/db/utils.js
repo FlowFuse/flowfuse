@@ -154,12 +154,29 @@ function randomPhrase (wordCount = 3, minLength = 2, maxLength = 15, separator =
 }
 
 /**
+ * @typedef {Object<string, string | { value: string, hidden?: boolean }>} EnvVarObject
+ * An object mapping environment variable names to a string value or a metadata object.
+ * e.g.
+ * `{ VAR1: 'value1', VAR2: { value: 'value2', hidden: true } }`
+ * 
+ * @typedef {Array<{ name: string, value: string, hidden?: boolean }>} EnvVarArray
+ * An array of environment variable objects, where each object has a name and value,
+ * and optionally a hidden flag.
+ * e.g.
+ * `[ { name: 'VAR1', value: 'value1' }, { name: 'VAR2', value: 'value2', hidden: true } ]`
+ */
+
+/**
  * Convert an array of env var objects to a key/value object, with handling of hidden vars that
  * need to retain their metadata
  * From: [ { name: 'VAR1', value: 'value1' }, { name: 'VAR2', value: 'value2', hidden: true } ]
  * To: { VAR1: 'value1', VAR2: { value: 'value2', hidden: true } }
- */
+ * @param {EnvVarArray} envArray
+ * @return {EnvVarObject}
+ * @see {@link mapEnvObjectToArray} for the reverse operation
+*/
 function mapEnvArrayToObject (envArray) {
+    /** @type {EnvVarObject} */
     const envObject = {}
     envArray.forEach((envVar) => {
         const name = envVar.name
