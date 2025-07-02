@@ -9,8 +9,17 @@ const { default: axios } = require('axios')
  * @memberof forge.routes.api
  */
 module.exports = async function (app) {
+    // Get the assistant service configuration
+    const serviceUrl = app.config.assistant?.service?.url
+    const serviceToken = app.config.assistant?.service?.token
+    const serviceEnabled = app.config.assistant?.enabled !== false && serviceUrl
+    const requestTimeout = app.config.assistant?.service?.requestTimeout || 60000
+
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, reply) => {
+        if (!serviceEnabled) {
+            return reply.code(501).send({ code: 'service_disabled', error: 'Assistant service is not enabled' })
+        }
         // Only permit requests made by a valid device or instance token
         if (!request.session || request.session.provisioning) {
             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
@@ -81,39 +90,11 @@ module.exports = async function (app) {
             return reply.code(400).send({ code: 'invalid_method', error: 'Invalid method name' })
         }
 
-        const serviceUrl = app.config.assistant?.service?.url
-        const serviceToken = app.config.assistant?.service?.token
-        const enabled = app.config.assistant?.enabled !== false && serviceUrl
-        const requestTimeout = app.config.assistant?.service?.requestTimeout || 60000
-
-        if (!enabled) {
-            return reply.code(501).send({ code: 'service_disabled', error: 'Assistant service is not enabled' })
-        }
-
         const url = `${serviceUrl.replace(/\/+$/, '')}/${method.replace(/^\/+/, '')}`
 
         // post to the assistant service
-        const headers = {
-            'ff-owner-type': request.ownerType,
-            'ff-owner-id': request.ownerId
-        }
-
-        // include license information, team id and trial status so that we can make decisions in the assistant service
-        const isLicensed = app.license?.active() || false
-        const licenseType = isLicensed ? (app.license.get('dev') ? 'DEV' : 'EE') : 'CE'
-        const tier = isLicensed ? app.license.get('tier') : null
-        headers['ff-license-active'] = isLicensed
-        headers['ff-license-type'] = licenseType
-        headers['ff-license-tier'] = tier
-        headers['ff-team-id'] = request.team.hashid
-        if (app.billing && request.team.getSubscription) {
-            const subscription = await request.team.getSubscription()
-            headers['ff-team-trial'] = subscription ? subscription.isTrial() : null
-        }
-        if (serviceToken) {
-            headers.Authorization = `Bearer ${serviceToken}`
-        }
         try {
+            const headers = await buildRequestHeaders(request)
             const response = await axios.post(url, {
                 ...request.body
             }, {
@@ -128,4 +109,33 @@ module.exports = async function (app) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
         }
     })
+
+    async function buildRequestHeaders (request) {
+        const headers = {
+            'ff-owner-type': request.ownerType,
+            'ff-owner-id': request.ownerId,
+            'ff-team-id': request.team.hashid
+        }
+        // include license information, team id and trial status so that we can make decisions in the assistant service
+        const isLicensed = app.license?.active() || false
+        const licenseType = isLicensed ? (app.license.get('dev') ? 'DEV' : 'EE') : 'CE'
+        const tier = isLicensed ? app.license.get('tier') : null
+        headers['ff-license-active'] = isLicensed
+        headers['ff-license-type'] = licenseType
+        headers['ff-license-tier'] = tier
+        if (app.billing && request.team.getSubscription) {
+            const subscription = await request.team.getSubscription()
+            headers['ff-team-trial'] = subscription ? subscription.isTrial() : null
+        }
+        if (serviceToken) {
+            headers.Authorization = `Bearer ${serviceToken}`
+        }
+        if (request.headers.accept) {
+            headers.Accept = request.headers.accept
+        }
+        if (request.headers['user-agent']) {
+            headers['User-Agent'] = request.headers['user-agent']
+        }
+        return headers
+    }
 }
