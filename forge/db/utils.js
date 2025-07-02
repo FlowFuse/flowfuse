@@ -213,7 +213,7 @@ function exportEnvVarObject (envObject) {
     // TODO: handle encrypted values
     const result = {}
     for (const envVar of Object.keys(envObject)) {
-        if (Object.hasOwn(envObject[envVar], 'hidden') && envObject[envVar].hidden) {
+        if (Object.hasOwn(envObject[envVar], 'hidden')) {
             // The value has metadata - use the value only
             result[envVar] = envObject[envVar].value
         } else {
