@@ -1,11 +1,19 @@
 <template>
-    <ApplicationHeader :application="localApplication" />
+    <li class="application-wrapper" :class="{'is-loading': isLoading}">
+        <ApplicationHeader :application="localApplication" />
 
-    <InstancesWrapper :application="localApplication" :search-query="searchQuery" @delete-instance="onInstanceDelete" />
+        <InstancesWrapper :application="localApplication" :search-query="searchQuery" @delete-instance="onInstanceDelete" />
 
-    <DevicesWrapper :application="localApplication" :search-query="searchQuery" @delete-device="$emit('device-deleted')" />
+        <DevicesWrapper :application="localApplication" :search-query="searchQuery" @delete-device="$emit('device-deleted')" />
 
-    <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
+        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
+
+        <transition name="fade">
+            <div v-if="isLoading" class="overlay flex">
+                <ff-spinner v-if="isLoading" class="flex-1 self-center" />
+            </div>
+        </transition>
+    </li>
 </template>
 
 <script>
@@ -33,16 +41,28 @@ export default {
             type: String,
             required: false,
             default: ''
+        },
+        isSearching: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['instance-deleted', 'device-deleted'],
     data () {
         return {
-            localApplication: null
+            localApplication: null,
+            isLoading: true
         }
     },
     watch: {
-        application: 'setLocalApplication'
+        application: 'setLocalApplication',
+        isSearching: {
+            immediate: true,
+            handler (isSearching) {
+                this.isLoading = isSearching
+            }
+        }
     },
     created () {
         this.setLocalApplication()
@@ -64,3 +84,19 @@ export default {
     }
 }
 </script>
+
+<style lang="scss" scoped>
+.application-wrapper {
+    position: relative;
+
+    .overlay {
+        position: absolute;
+        top:0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.4) !important;
+        border: none !important;
+    }
+}
+</style>
