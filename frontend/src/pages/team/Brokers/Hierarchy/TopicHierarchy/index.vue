@@ -116,11 +116,6 @@ export default {
             filterTerm: ''
         }
     },
-    watch: {
-        topics () {
-            console.log(123)
-        }
-    },
     computed: {
         ...mapGetters('account', ['featuresCheck']),
         ...mapGetters('product', ['brokerExpandedTopics']),
