@@ -40,6 +40,14 @@ Note: since the 1.13 release, the package name was updated. See the [updating](#
 It can be installed as a global npm module. This will ensure the agent
 command is on the path:
 
+### Automatic Installation and Configuration
+
+For automatic installation and configuration of the Device Agent using our dedicated installer scripts, please refer to the [Quick Start Guide](./quickstart.md).
+
+The installer will prepare the runtime environment, configure it to start on system boot, and connect it to the FlowFuse platform.
+
+This is the simplest and most convenient way to get started with the Device Agent on your device.
+
 ### Linux/MacOS
 
 ```bash
