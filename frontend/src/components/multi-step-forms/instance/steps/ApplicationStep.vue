@@ -226,7 +226,7 @@ export default {
     },
     methods: {
         selectApplication (application) {
-            if (this.selection?.id === application?.id && this.applications > 1) {
+            if (this.selection?.id === application?.id && (this.applications && this.applications.length > 1)) {
                 this.selection = null
             } else {
                 this.selection = application
