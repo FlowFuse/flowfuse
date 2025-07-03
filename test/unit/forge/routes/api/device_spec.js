@@ -22,6 +22,13 @@ describe('Device API', async function () {
     /**
      * Create a device
      * @param {Object} options - Options for creating a device
+     * @param {string} options.name - The name of the device
+     * @param {string} options.type - The type of the device
+     * @param {string} options.team - The team hashid to create the device in
+     * @param {string} options.as - The user session to create the device as
+     * @param {string} [options.agentVersion] - The agent version to set on the device
+     * @param {string} [options.application] - The application hashid to assign the device to
+     * @param {string} [options.instance] - The instance hashid to assign the device to
      * @returns {Promise<Object>} - The device object
      */
     async function createDevice (options) {
@@ -2294,6 +2301,73 @@ describe('Device API', async function () {
             const body = await getLiveSettings(device)
             body.should.have.property('editor').and.be.an.Object()
             body.editor.should.have.property('nodeRedVersion', 'next')
+        })
+    })
+    describe('Assistant Settings', function () {
+        // these tests are run with a clean app since they change the app config
+        beforeEach(async function () {
+            // Close down the default app
+            if (app) {
+                await app.close()
+            }
+            app = null
+        })
+        after(async function () {
+            // Once all done, create the clean app for later tests
+            await app.close()
+            await setupApp()
+        })
+
+        it('device downloads settings with assistant disabled', async function () {
+            app = await setup({
+                assistant: {
+                    enabled: false,
+                    mcp: { enabled: false }
+                    // completions deliberately excluded to check it defaults to disabled
+                }
+            })
+            await login('alice', 'aaPassword')
+            const device = await createDevice({ name: 'AppDevice1', type: 'AppDevice1_type', team: app.team.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.setApplication(app.application)
+            await dbDevice.save()
+
+            const body = await getLiveSettings(device)
+            body.should.have.property('assistant').and.be.an.Object()
+            body.assistant.should.have.property('enabled', false)
+            body.assistant.should.have.property('mcp').and.be.an.Object()
+            body.assistant.mcp.should.have.property('enabled', false)
+            body.assistant.should.have.property('completions').and.be.an.Object()
+            body.assistant.completions.should.have.property('enabled', false) // default to disabled
+        })
+        it('device downloads settings including assistant completions settings when enabled', async function () {
+            app = await setup({
+                assistant: {
+                    enabled: true,
+                    requestTimeout: 12345,
+                    // mcp deliberately excluded to check it defaults to enabled
+                    completions: {
+                        enabled: true,
+                        modelUrl: 'https://FORGEURL/api/v1/assistant/assets/completions/model.json',
+                        vocabularyUrl: 'https://FORGEURL/api/v1/assistant/assets/completions/vocabulary.json'
+                    }
+                }
+            })
+            await login('alice', 'aaPassword')
+            const device = await createDevice({ name: 'AppDevice2', type: 'AppDevice2_type', team: app.team.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.setApplication(app.application)
+            await dbDevice.save()
+
+            const body = await getLiveSettings(device)
+            body.should.have.property('assistant').and.be.an.Object()
+            body.assistant.should.have.property('enabled', true)
+            body.assistant.should.have.property('mcp').and.be.an.Object()
+            body.assistant.mcp.should.have.property('enabled', true) // defaults to enabled
+            body.assistant.should.have.property('completions').and.be.an.Object()
+            body.assistant.completions.should.have.property('enabled', true)
+            body.assistant.completions.should.have.property('modelUrl', 'https://FORGEURL/api/v1/assistant/assets/completions/model.json')
+            body.assistant.completions.should.have.property('vocabularyUrl', 'https://FORGEURL/api/v1/assistant/assets/completions/vocabulary.json')
         })
     })
 
