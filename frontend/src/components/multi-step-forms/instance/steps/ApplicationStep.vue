@@ -193,7 +193,6 @@ export default {
                         errors
                     }
                 })
-                this.$emit('next-step')
             },
             deep: true,
             immediate: true
@@ -231,6 +230,9 @@ export default {
                 this.selection = null
             } else {
                 this.selection = application
+                this.$nextTick(() => {
+                    this.$emit('next-step')
+                })
             }
         }
     }
