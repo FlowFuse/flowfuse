@@ -77,6 +77,12 @@ driver:
 #     url: https://assistant.service
 #     token: token_for_service
 #     requestTimeout: 60000
+#   mcp
+#     enabled: true # defaults to true if not set
+#   completions:
+#     enabled: true # defaults to false if not set
+#     modelUrl: https://<example>/model.json            # OPTIONAL - assistant will default to forge URL+"assistant/assets/model.json"
+#     vocabularyUrl: https://<example>/vocabulary.json  # OPTIONAL - assistant will default to forge URL+"assistant/assets/vocabulary.json"
 
 #################################################
 # File Server config                            #
