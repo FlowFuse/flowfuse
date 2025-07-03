@@ -153,6 +153,100 @@ function randomPhrase (wordCount = 3, minLength = 2, maxLength = 15, separator =
     return randomStrings(wordCount, minLength, maxLength).join(separator)
 }
 
+/**
+ * @typedef {Object<string, string | { value: string, hidden?: boolean }>} EnvVarObject
+ * An object mapping environment variable names to a string value or a metadata object.
+ * e.g.
+ * `{ VAR1: 'value1', VAR2: { value: 'value2', hidden: true } }`
+ *
+ * @typedef {Array<{ name: string, value: string, hidden?: boolean }>} EnvVarArray
+ * An array of environment variable objects, where each object has a name and value,
+ * and optionally a hidden flag.
+ * e.g.
+ * `[ { name: 'VAR1', value: 'value1' }, { name: 'VAR2', value: 'value2', hidden: true } ]`
+ */
+
+/**
+ * Convert an array of env var objects to a key/value object, with handling of hidden vars that
+ * need to retain their metadata
+ * From: [ { name: 'VAR1', value: 'value1' }, { name: 'VAR2', value: 'value2', hidden: true } ]
+ * To: { VAR1: 'value1', VAR2: { value: 'value2', hidden: true } }
+ * @param {EnvVarArray} envArray
+ * @return {EnvVarObject}
+ * @see {@link mapEnvObjectToArray} for the reverse operation
+*/
+function mapEnvArrayToObject (envArray) {
+    /** @type {EnvVarObject} */
+    const envObject = {}
+    envArray.forEach((envVar) => {
+        const name = envVar.name
+        const value = envVar.value
+        if (envVar.hidden) {
+            envObject[name] = {
+                value,
+                hidden: true
+            }
+        } else {
+            envObject[name] = value
+        }
+    })
+    return envObject
+}
+
+/**
+ * Convert a key/value object of env vars to an array of env var objects
+ * From: { VAR1: 'value1', VAR2: { value: 'value2', hidden: true } }
+ * To: [ { name: 'VAR1', value: 'value1' }, { name: 'VAR2', value: 'value2', hidden: true } ]
+ * @param {EnvVarObject} envObject
+ * @return {EnvVarArray}
+ * @see {@link mapEnvArrayToObject} for the reverse operation
+ */
+function mapEnvObjectToArray (envObject) {
+    /** @type {EnvVarArray} */
+    const envArray = []
+    for (const [name, value] of Object.entries(envObject)) {
+        if (typeof value === 'object' && value.hidden) {
+            envArray.push({
+                name,
+                value: value.value,
+                hidden: true
+            })
+        } else {
+            envArray.push({
+                name,
+                value
+            })
+        }
+    }
+    return envArray
+}
+
+/**
+ * Takes an env var key/value object and modifies it to contain only the values of the env vars
+ * This handles any env vars flagged as hidden. This strips the hidden metadata - the result
+ * of this function is suitable for passing to a hosted/remote instance to use as-is
+ * From: { VAR1: 'value1', VAR2: { value: 'value2', hidden: true } }
+ * To: { VAR1: 'value1', VAR2: 'value2' }
+ * @param {EnvVarObject} envObject
+ * @return {Object<string, string>}
+ */
+function exportEnvVarObject (envObject) {
+    // Check for any hidden env vars. These are objects with a 'hidden' property set to true.
+    // If so, we replace the object with just the value.
+    // TODO: handle encrypted values
+    const result = {}
+    for (const envVar of Object.keys(envObject)) {
+        if (Object.hasOwn(envObject[envVar], 'hidden')) {
+            // The value has metadata - use the value only
+            result[envVar] = envObject[envVar].value
+        } else {
+            // The value is the bare value - use as-is
+            result[envVar] = envObject[envVar]
+        }
+    }
+    return result
+}
+
 module.exports = {
     init: _app => { app = _app },
     generateToken: (length, prefix) => (prefix ? prefix + '_' : '') + base64URLEncode(crypto.randomBytes(length || 32)),
@@ -184,5 +278,8 @@ module.exports = {
     buildPaginationSearchClause,
     getCanonicalEmail,
     randomStrings,
-    randomPhrase
+    randomPhrase,
+    mapEnvArrayToObject,
+    mapEnvObjectToArray,
+    exportEnvVarObject
 }

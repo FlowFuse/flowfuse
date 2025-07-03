@@ -95,9 +95,17 @@ module.exports = {
             const projectSettings = projectSettingsRow.value
             result = app.db.controllers.ProjectTemplate.mergeSettings(result, projectSettings)
             const envVars = app.db.controllers.Project.insertPlatformSpecificEnvVars(project, result.env)
+            // envVars is an array of env var objects. Need to convert to an env var object and merge into
+            // the existing env object
             // convert  [{name: 'a', value: '1'}, {name: 'b', value: '2'}]  >> to >>  { a: 1, b: 2 }
             envVars.forEach(envVar => {
-                env[envVar.name] = envVar.value
+                if (envVar.hidden) {
+                    // Maintain the hidden flag
+                    // TODO: handle encrypted values
+                    env[envVar.name] = { value: envVar.value, hidden: true }
+                } else {
+                    env[envVar.name] = envVar.value
+                }
             })
         }
         // If we don't have any modules listed in project settings. We should
@@ -131,6 +139,9 @@ module.exports = {
         return result
     },
 
+    /**
+     * Exports the instance as a JSON object. Used as part of generating snapshots.
+     */
     exportProject: async function (app, project, components = {
         flows: true,
         credentials: true,
@@ -212,10 +223,19 @@ module.exports = {
                 const envVarKeys = Object.keys(snapshot.settings.env || {})
                 if (envVarKeys?.length) {
                     envVarKeys.forEach(key => {
-                        snapshotSettings.env.push({
-                            name: key,
-                            value: snapshot.settings.env[key]
-                        })
+                        const value = snapshot.settings.env[key]
+                        if (typeof value === 'object' && value !== null && Object.hasOwn(value, 'hidden')) {
+                            snapshotSettings.env.push({
+                                name: key,
+                                value: snapshot.settings.env[key].value,
+                                hidden: snapshot.settings.env[key].hidden
+                            })
+                        } else {
+                            snapshotSettings.env.push({
+                                name: key,
+                                value
+                            })
+                        }
                     })
                 }
                 if (snapshotSettings.palette?.modules) {
