@@ -59,15 +59,7 @@ module.exports = async function (app) {
      */
     app.get('/assets/*', {
         schema: {
-            hide: true, // dont show in swagger
-            response: {
-                200: {
-                    type: 'string'
-                },
-                '4xx': {
-                    $ref: 'APIError'
-                }
-            }
+            hide: true // dont show in swagger
         }
     }, async (request, reply) => {
         const upstreamPath = request.params['*'] // the path to the asset
