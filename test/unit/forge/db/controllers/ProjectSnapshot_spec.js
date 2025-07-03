@@ -62,17 +62,34 @@ describe('ProjectSnapshot controller', function () {
     describe('createSnapshot (instance)', function () {
         it('creates a snapshot of the current project state', async function () {
             const project = await createProject()
+            const projectSettings = await project.getSetting('settings') || {}
+            projectSettings.env = [
+                { name: 'a', value: '1' },
+                { name: 'b', value: '2', hidden: true }
+            ]
+            await project.updateSetting('settings', projectSettings)
+
+            await project.reload()
             const user = await app.db.models.User.byUsername('alice')
             const options = {
                 name: 'snapshot1',
                 description: 'a snapshot'
             }
+
             const snapshot = await app.db.controllers.ProjectSnapshot.createSnapshot(project, user, options)
             snapshot.should.have.property('name', 'snapshot1')
             snapshot.should.have.property('description', 'a snapshot')
             snapshot.should.have.property('settings')
             // Ensure modules is empty as none has been provided
             snapshot.settings.should.have.only.keys('settings', 'env', 'modules')
+            // Validate the env vars are set correctly
+            snapshot.settings.env.should.have.property('a', '1')
+            snapshot.settings.env.should.have.property('b')
+            snapshot.settings.env.b.should.have.property('value', '2')
+            snapshot.settings.env.b.should.have.property('hidden', true)
+            snapshot.settings.env.should.have.property('FF_INSTANCE_ID', project.id)
+            snapshot.settings.env.should.have.property('FF_INSTANCE_NAME', project.name)
+
             snapshot.settings.modules.should.have.only.keys()
             snapshot.should.have.property('flows')
             snapshot.flows.should.have.only.keys('flows', 'credentials')
@@ -233,6 +250,15 @@ describe('ProjectSnapshot controller', function () {
     describe('instance exportSnapshot', function () {
         it('exports a snapshot', async function () {
             const project = await createProject()
+            const projectSettings = await project.getSetting('settings') || {}
+            projectSettings.env = [
+                { name: 'a', value: '1' },
+                { name: 'b', value: '2', hidden: true }
+            ]
+            await project.updateSetting('settings', projectSettings)
+
+            await project.reload()
+
             const user = await app.db.models.User.byUsername('alice')
             const options = {
                 name: 'snapshot1',
@@ -250,6 +276,10 @@ describe('ProjectSnapshot controller', function () {
             snapshotExported.should.have.property('settings').and.be.an.Object()
             snapshotExported.settings.should.have.property('settings').and.be.an.Object()
             snapshotExported.settings.should.have.property('env').and.be.an.Object()
+            snapshotExported.settings.env.should.have.property('a', '1')
+            snapshotExported.settings.env.should.have.property('b')
+            snapshotExported.settings.env.b.should.have.property('value', '2')
+            snapshotExported.settings.env.b.should.have.property('hidden', true)
             snapshotExported.settings.should.have.property('modules').and.be.an.Object()
             snapshotExported.should.have.property('credentialSecret').and.be.a.String()
         })
