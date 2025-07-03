@@ -193,7 +193,6 @@ export default {
                         errors
                     }
                 })
-                this.$emit('next-step')
             },
             deep: true,
             immediate: true
@@ -227,10 +226,13 @@ export default {
     },
     methods: {
         selectApplication (application) {
-            if (this.selection?.id === application?.id) {
+            if (this.selection?.id === application?.id && (this.applications && this.applications.length > 1)) {
                 this.selection = null
             } else {
                 this.selection = application
+                this.$nextTick(() => {
+                    this.$emit('next-step')
+                })
             }
         }
     }

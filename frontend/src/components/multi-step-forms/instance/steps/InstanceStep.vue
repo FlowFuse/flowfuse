@@ -275,6 +275,7 @@ export default {
     },
     watch: {
         input: {
+            immediate: true,
             deep: true,
             handler () {
                 this.updateParent()
