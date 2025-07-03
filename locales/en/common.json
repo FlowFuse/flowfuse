@@ -1,0 +1,35 @@
+{
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "username": "Username / E-Mail",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "fullName": "Full Name",
+    "emailAddress": "E-Mail Address",
+    "forgotPassword": "Forgot your password?",
+    "alreadyRegistered": "Already registered?",
+    "loginHere": "Log in here",
+    "signInWithGoogle": "Sign In with Google",
+    "errors": {
+      "loginFailed": "Login failed",
+      "tooManyAttempts": "Too many login attempts. Try again later.",
+      "tooManyRegistrationAttempts": "Too many attempts. Try again later.",
+      "requiredField": "Required field",
+      "tooLong": "Too long",
+      "usernameRequired": "Username is required",
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "invalidEmail": "Enter a valid email address",
+      "passwordTooShort": "Password must be 8 characters or more",
+      "passwordTooLong": "Password too long",
+      "passwordMatchesUsername": "Password must not match username",
+      "passwordMatchesEmail": "Password must not match email",
+      "passwordMatchesName": "Password must not match name",
+      "passwordTooWeak": "Password needs to be more complex",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "userRegistrationDisabled": "User registration is not enabled",
+      "unexpectedError": "An unexpected error occurred. Please try again later or contact support."
+    }
+  }
+}
