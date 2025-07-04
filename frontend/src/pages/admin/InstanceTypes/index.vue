@@ -12,7 +12,7 @@
                 </template>
             </ff-page-header>
         </template>
-        <div class="space-y-6 mb-14">
+        <div class="space-y-6">
             <ff-tile-selection data-el="active-types">
                 <ff-tile-selection-option
                     v-for="(instanceType, index) in activeInstanceTypes" :key="index" value=""
