@@ -25,8 +25,22 @@ module.exports = {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
                     }
+                    return self.find({
+                        where: {
+                            TeamId: teamId
+                        }
+                    })
+                },
+                byId: async (id, teamId) => {
+                    if (typeof teamId === 'string') {
+                        teamId = M.Team.decodeHashid(teamId)
+                    }
+                    if (typeof id === 'string') {
+                        id = M.Table.decodeHashid(id)
+                    }
                     return self.findOne({
                         where: {
+                            id,
                             TeamId: teamId
                         }
                     })

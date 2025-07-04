@@ -16,6 +16,13 @@ module.exports = {
             return this._driver.shutdown()
         }
     },
+    getDatabases: async (team) => {
+        if (this._driver.getDatabases) {
+            return this._driver.getDatabases(team)
+        } else {
+            throw new Error('Database driver does not support getDatabases')
+        }
+    },
     getDatabase: async (team) => {
         if (this._driver.getDatabase) {
             return this._driver.getDatabase(team)

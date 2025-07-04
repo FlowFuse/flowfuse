@@ -1,6 +1,6 @@
-const crypto = require('crypto')
 const pg = require('pg')
-const { generatePassword} = require('../../../../lib/userTeam')
+
+const { generatePassword } = require('../../../../lib/userTeam')
 
 let adminClient
 
@@ -28,21 +28,27 @@ module.exports = {
         app.log.info('Postgres LocalFS driver initialized')
     },
     shutdown: async function () {
-        console.log('BEN1')
         try {
             this._app.log.info('Shutting down Postgres LocalFS driver')
             await adminClient.end()
-            // console.log('BEN2')
         } catch (err) {
             this._app.log.debug('Error shutting down Postgres LocalFS driver:', err)
         }
     },
-    getDatabase: async function (team) {
-        const table = await this._app.db.models.Table.byTeamId(team.id)
+    getDatabases: async function (team) {
+        const tables = await this._app.db.models.Table.byTeamId(team.id)
+        if (tables && tables.length > 0) {
+            return tables
+        } else {
+            throw new Error(`Database for team ${team.hashid} does not exist`)
+        }
+    },
+    getDatabase: async function (team, database) {
+        const table = await this._app.db.models.Table.byId(database, team.id)
         if (table) {
             return table.credentials
         } else {
-            throw new Error(`Database for team ${team.hashid} does not exist`)
+            throw new Error(`Database ${database} for team ${team.hashid} does not exist`)
         }
     },
     createDatabase: async function (team) {

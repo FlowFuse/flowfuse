@@ -41,12 +41,13 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const creds = await app.tables.getDatabase(request.team)
+        const creds = await app.tables.getDatabases(request.team)
         if (!creds) {
             return reply.status(404).send({ error: 'Database not found' })
         }
         reply.send(creds)
     })
+
     /**
      * @name /api/v1/teams/:teamId/tables
      * @description Create a new database for the team
@@ -92,7 +93,45 @@ module.exports = async function (app) {
         }
     })
 
-    app.delete('/', {
+    app.get('/:databaseId', {
+        preHandler: app.needsPermission('team:database:list'),
+        schema: {
+            summary: '',
+            tags: ['FF tables'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        host: { type: 'string' },
+                        port: { type: 'number' },
+                        ssl: { type: 'boolean' },
+                        database: { type: 'string' },
+                        user: { type: 'string' },
+                        password: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const creds = await app.tables.getDatabase(request.team, request.params.databaseId)
+            if (creds) {
+                reply.send(creds)
+            } else {
+                reply.status(404).send({ error: 'Database not found' })
+            }
+        } catch (err) {
+            console.log(err)
+        }
+    })
+
+    app.delete('/:databaseId', {
         preHandler: app.needsPermission('team:database:delete'),
         schema: {
             summary: '',
@@ -109,10 +148,16 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            await app.tables.destroyDatabase(request.team)
+            await app.tables.destroyDatabase(request.team, request.params.databaseId)
             reply.send({})
         } catch (err) {
             reply.status(500).send({ error: 'Failed to destroy database' })
         }
+    })
+
+    app.get('/:databaseId/tables', {
+        preHandler: app.needsPermission('team:database:list'),
+        schema: {}
+    }, async (request, reply) => {
     })
 }
