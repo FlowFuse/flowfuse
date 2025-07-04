@@ -21,27 +21,7 @@ This video will walk you through every step from creating a remote instance, ins
 
 ## Setup & Installation
 
-### Step 1: Install Device Agent (On Device)
-
-NodeJS version 18 is supported but version 20 or later is recommended. However, if necessary, device agent version 2.8 does support NodeJS versions 14 and 16.
-
-For full install instructions, follow the [install instructions here](/docs/device-agent/install.md).
-
-#### Linux/MacOS
-
-```bash
-sudo npm install -g @flowfuse/device-agent
-```
-
-#### Windows
-
-Issue the below command in an elevated command prompt:
-
-```bash
-npm install -g @flowfuse/device-agent
-```
-
-### Step 2: Register a Remote Instance (On FlowFuse)
+### Step 1: Register a Remote Instance (On FlowFuse Platform)
 
 1. Open your web browser and go to your FlowFuse application page.
 2. Navigate to the **Remote Instances** section.
@@ -54,24 +34,20 @@ npm install -g @flowfuse/device-agent
 5. Click **Add**
 6. You will be presented with a **Device Configuration** that you will need in the next step. _(Do not close this window just yet.)_
 
-    ![Screenshot of the dialog shown to a suer when a Device is registered](./images/config_yml2a.png){data-zoomable}
-    _Screenshot of the dialog shown to a suer when a Device is registered_
+    ![Screenshot of the dialog shown to a user when a Device is registered](./images/config_yml2a.png){data-zoomable}
+    _Screenshot of the dialog shown to a user when a Device is registered_
 
-### Step 3: Connect the Device (On Device)
+7. Copy the installation command. You will need it in next step.
+
+### Step 2. Install and Configure the Device Agent (On Device)
 
 1. Open a Terminal/Command Prompt on the Device.
-2. Paste the command presented when you registered your Device, and run it.
+2. Paste the command you copied from the previous step and execute it.
+3. Answer prompts as needed.
+4. Installer will set up the runtime and configure the Device Agent, and summarize on successful completion.
 
-    ![Example output in a Terminal showing a device agent successfully connecting to the FlowFuse Platform](./images/device_cli.png){data-zoomable}
-    _Example output in a Terminal showing a device agent successfully connecting to the FlowFuse Platform_
-
-### Step 4: Start the Device Agent (On Device)
-
-1. Start the Device Agent using the command instructed by the device agent output e.g:
-
-   ```bash
-   flowfuse-device-agent
-   ```
+    ![Example output in a Terminal showing a device agent successfully installed](./images/installer_output.png){data-zoomable}
+    _Example output in a Terminal showing a device agent successfully installed_
 
 Your device is now connected to FlowFuse and ready to be used.
 
