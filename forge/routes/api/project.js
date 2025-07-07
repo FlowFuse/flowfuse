@@ -849,7 +849,7 @@ module.exports = async function (app) {
         if (app.config.features.enabled('ha') && teamType.getFeatureProperty('ha', true)) {
             const ha = await request.project.getHASettings()
             if (ha && ha.replicas > 1) {
-                settings.ha = ha
+                settings.settings.ha = ha
             }
         }
         const customCatalogsEnabledForTeam = app.config.features.enabled('customCatalogs') && teamType.getFeatureProperty('customCatalogs', false)
