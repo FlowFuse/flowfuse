@@ -179,7 +179,7 @@ describe('FlowFuse - Global Search', () => {
         })
     })
 
-    it('should not be accessible to dashboard roled users', () => {
+    it('should not be accessible to dashboard access-only users', () => {
         cy.intercept('GET', '/api/*/teams/*/user', (req) => {
             req.continue((res) => {
                 res.body.role = 5
