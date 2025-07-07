@@ -92,7 +92,7 @@ describe('Team - Instances', () => {
             cy.contains('There are no dashboards in this team.')
         })
 
-        it.only('are shown a list of instances when dashboard instances are found', () => {
+        it('are shown a list of instances when dashboard instances are found', () => {
             cy.intercept('GET', '/api/*/teams/*/user',
                 req => req.reply(res => {
                     res.send({
