@@ -305,6 +305,15 @@ const getters = {
                             disabled: requiresBilling,
                             featureUnavailable: !features.isInstanceResourcesFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isInstanceResourcesFeatureEnabledForPlatform
+                        },
+                        {
+                            label: 'Tables',
+                            to: { name: 'team-tables', params: { team_slug: team.slug } },
+                            tag: 'team-tables',
+                            icon: DatabaseIcon,
+                            disabled: requiresBilling,
+                            featureUnavailable: !features.isTablesFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isTablesFeatureEnabledForPlatform
                         }
                     ]
                 },

@@ -22,6 +22,7 @@ import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
 import TeamSettingsIntegrations from './Settings/Integrations.vue'
 import TeamSettings from './Settings/index.vue'
+import TeamTables from './Tables/index.vue'
 import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
@@ -207,6 +208,14 @@ export default [
                         component: TeamPerformance,
                         meta: {
                             title: 'Team - Performance'
+                        }
+                    },
+                    {
+                        name: 'team-tables',
+                        path: 'tables',
+                        component: TeamTables,
+                        meta: {
+                            title: 'Team - Tables'
                         }
                     }
                 ]
