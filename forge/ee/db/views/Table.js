@@ -33,7 +33,6 @@ module.exports = function (app) {
 
     async function tables(tables) {
         if (tables) {
-            console.log('Found tables', tables)
             return await Promise.all(tables.map(table))
         } else {
             return []

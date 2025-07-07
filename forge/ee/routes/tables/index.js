@@ -75,7 +75,6 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const creds = await app.tables.createDatabase(request.team, request.body.name)
-            console.log('Created database for team', request.team.hashid, creds)
             reply.send(await app.db.views.Table.table(creds))
         } catch (err) {
             if (err.message.includes('already exists')) {
@@ -154,12 +153,23 @@ module.exports = async function (app) {
         schema: {}
     }, async (request, reply) => {
         // paginate the list of tables
+        const tables = await app.tables.getTables(request.team, request.params.databaseId)
+        if (!tables) {
+            return reply.status(404).send({ error: 'Database not found' })
+        }
+        reply.send(tables)
     })
 
     app.get('/:databaseId/tables/:tableName', {
         preHandler: app.needsPermission('team:database:list'),
         schema: {}
     }, async (request, reply) => {
+        // get the table schema
+        const table = await app.tables.getTable(request.team, request.params.databaseId, request.params.tableName)
+        if (!table) {
+            return reply.status(404).send({ error: 'Table not found' })
+        }
+        reply.send(table)
     })
 
     app.get('/:databaseId/tables/:tableName/data', {
