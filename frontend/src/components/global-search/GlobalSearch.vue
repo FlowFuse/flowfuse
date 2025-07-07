@@ -1,5 +1,5 @@
 <template>
-    <div id="global-search" :class="{focused: isFocused}">
+    <div id="global-search" :class="{focused: isFocused}" data-el="global-search">
         <transition name="fade" mode="out-in">
             <div v-if="isFocused" class="overlay" @click="deFocusSearch" />
         </transition>
@@ -41,6 +41,7 @@
                     :results="resApplication"
                     :query="query"
                     result-type="application"
+                    data-el="application-results"
                     @result-selected="handleSelectedResult"
                 >
                     <template #result-icon>
@@ -76,6 +77,7 @@
                     :results="resInstances"
                     :query="query"
                     result-type="instance"
+                    data-el="instance-results"
                     @result-selected="handleSelectedResult"
                 >
                     <template #result-icon>
@@ -92,6 +94,7 @@
                     :results="resDevices"
                     :query="query"
                     result-type="device"
+                    data-el="device-results"
                     @result-selected="handleSelectedResult"
                 >
                     <template #result-icon="{item}">
