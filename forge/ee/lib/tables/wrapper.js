@@ -37,28 +37,35 @@ module.exports = {
             throw new Error('Database driver does not support createDatabase')
         }
     },
-    destroyDatabase: async (team) => {
+    destroyDatabase: async (team, databaseId) => {
         if (this._driver.destroyDatabase) {
             return this._driver.destroyDatabase(team)
         } else {
             throw new Error('Database driver does not support destroyDatabase')
         }
     },
-    getTables: async (team, database) => {
+    getTables: async (team, databaseId) => {
         if (this._driver.getTables) {
-            return this._driver.getTables(team, database)
+            return this._driver.getTables(team, databaseId)
         } else {
             throw new Error('Database driver does not support getTables')
         }
     },
-    getTable: async (team, database, table) => {
+    getTable: async (team, databaseId, tableName) => {
         if (this._driver.getTable) {
-            return this._driver.getTable(team, database, table)
+            return this._driver.getTable(team, databaseId, tableName)
         } else {
             throw new Error('Database driver does not support getTable')
         }
     },
-    createTable: async (team, database, table) => {
+    getTableData: async (team, database, table, rows = 10) => {
+        if (this._driver.getTableData) {
+            return this._driver.getTableData(team, database, table, rows)
+        } else {
+            throw new Error('Database driver does not support getTableData')
+        }
+    },
+    createTable: async (team, databaseId, table) => {
         if (this._driver.createTable) {
             return this._driver.createTable(team, database, table)
         } else {
@@ -70,13 +77,6 @@ module.exports = {
             return this._driver.dropTable(team, database, table)
         } else {
             throw new Error('Database driver does not support dropTable')
-        }
-    },
-    getColumns: async (team, database, table) => {
-        if (this._driver.getColumns) {
-            return this._driver.getColumns(team, database, table)
-        } else {
-            throw new Error('Database driver does not support getColumns')
         }
     },
     removeColumn: async (team, database, table, column) => {

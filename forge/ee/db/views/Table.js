@@ -20,6 +20,22 @@ module.exports = function (app) {
         }
     })
 
+    app.addSchema({
+        $id: 'DatabaseTable',
+        type: 'array',
+        items: {
+            type: 'object',
+            properties: {
+                name: { type: 'string' },
+                type: { type: 'string' },
+                nullable: { type: 'boolean' },
+                default: { type: 'string' },
+                generated: { type: 'boolean' },
+                maxLength: { type: 'number' }
+            }
+        }
+    })
+
     async function table(table) {
         if (table) {
             const result = table.toJSON();
