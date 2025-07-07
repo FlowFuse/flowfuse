@@ -917,7 +917,7 @@ describe('Project API', function () {
                 response.statusCode.should.equal(200)
                 const result = response.json()
                 result.should.have.property('ha')
-                result.settings.ha.should.have.property('replicas', 2)
+                result.ha.should.have.property('replicas', 2)
             })
 
             it('Check Project Settings have ee properties', async function () {
@@ -939,7 +939,7 @@ describe('Project API', function () {
                         authorization: `Bearer ${newAccessToken}`
                     }
                 })).json()
-                runtimeSettings.should.have.property('ha')
+                runtimeSettings.settings.should.have.property('ha')
                 runtimeSettings.settings.ha.should.have.property('replicas', 2)
                 runtimeSettings.settings.palette.should.have.property('npmrc', 'example npmrc')
                 runtimeSettings.settings.palette.should.have.property('catalogue')
@@ -965,7 +965,7 @@ describe('Project API', function () {
                         authorization: `Bearer ${newAccessToken}`
                     }
                 })).json()
-                runtimeSettings.should.have.property('ha')
+                runtimeSettings.settings.should.have.property('ha')
                 runtimeSettings.settings.ha.should.have.property('replicas', 2)
                 runtimeSettings.settings.palette.should.not.have.property('npmrc')
                 runtimeSettings.settings.palette.should.not.have.property('catalogue')
