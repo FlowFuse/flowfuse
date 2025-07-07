@@ -8,6 +8,7 @@ import {
 import DeviceGroupOutlineIcon from '../../../components/icons/DeviceGroupOutline.js'
 import PipelinesIcon from '../../../components/icons/Pipelines.js'
 import ProjectsIcon from '../../../components/icons/Projects.js'
+import QueueIcon from '../../../components/icons/Queue.js'
 import usePermissions from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
@@ -92,7 +93,7 @@ const getters = {
                         label: 'Audit Log',
                         to: { name: 'admin-audit-logs' },
                         tag: 'admin-auditlog',
-                        icon: DatabaseIcon
+                        icon: QueueIcon
                     },
                     {
                         label: 'Notifications Hub',
@@ -367,7 +368,7 @@ const getters = {
                                 params: { team_slug: team.slug }
                             },
                             tag: 'team-audit',
-                            icon: DatabaseIcon,
+                            icon: QueueIcon,
                             disabled: requiresBilling,
                             permission: 'team:edit'
                         },
