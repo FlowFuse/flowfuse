@@ -43,15 +43,21 @@ module.exports = {
             throw new Error(`Database for team ${team.hashid} does not exist`)
         }
     },
-    getDatabase: async function (team, database) {
-        const table = await this._app.db.models.Table.byId(database, team.id)
+    getDatabase: async function (teamId, databaseId) {
+        const table = await this._app.db.models.Table.byId(teamId, databaseId)
         if (table) {
-            return table.credentials
+            return table
         } else {
-            throw new Error(`Database ${database} for team ${team.hashid} does not exist`)
+            throw new Error(`Database ${databaseId} for team ${teamId} does not exist`)
         }
     },
-    createDatabase: async function (team) {
+    createDatabase: async function (team, name) {
+        const existing = await this._app.db.models.Table.byTeamId(team.id)
+        // Will need removing when we support multiple databases per team
+        if (existing && existing.length > 0) {
+            console.log('Existing tables for team', team.hashid, existing)
+            throw new Error('Database already exists')
+        }
         const res = await adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
         if (res.rows.length > 0) {
             throw new Error('Database already exists')
@@ -86,6 +92,7 @@ module.exports = {
                 password
             }
             this._app.db.models.Table.create({
+                name,
                 TeamId: team.id,
                 credentials
             })

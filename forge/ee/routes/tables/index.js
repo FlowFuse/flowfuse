@@ -22,15 +22,8 @@ module.exports = async function (app) {
             tags: ['FF tables'],
             response: {
                 200: {
-                    type: 'object',
-                    properties: {
-                        host: { type: 'string' },
-                        port: { type: 'number' },
-                        ssl: { type: 'boolean' },
-                        database: { type: 'string' },
-                        user: { type: 'string' },
-                        password: { type: 'string' }
-                    }
+                    type: 'array',
+                    items: { $ref: 'DatabaseCredentials' }
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -45,7 +38,7 @@ module.exports = async function (app) {
         if (!creds) {
             return reply.status(404).send({ error: 'Database not found' })
         }
-        reply.send(creds)
+        reply.send(await app.db.views.Table.tables(creds))
     })
 
     /**
@@ -59,17 +52,17 @@ module.exports = async function (app) {
         schema: {
             summary: '',
             tags: ['FF tables'],
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string', description: 'Name of the database' }
+                },
+                required: ['name']
+            },
             response: {
                 200: {
                     type: 'object',
-                    properties: {
-                        host: { type: 'string' },
-                        port: { type: 'number' },
-                        ssl: { type: 'boolean' },
-                        database: { type: 'string' },
-                        user: { type: 'string' },
-                        password: { type: 'string' }
-                    }
+                    $ref: 'DatabaseCredentials'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -81,8 +74,9 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const creds = await app.tables.createDatabase(request.team)
-            reply.send(creds)
+            const creds = await app.tables.createDatabase(request.team, request.body.name)
+            console.log('Created database for team', request.team.hashid, creds)
+            reply.send(await app.db.views.Table.table(creds))
         } catch (err) {
             if (err.message.includes('already exists')) {
                 return reply.status(409).send({ error: 'Database already exists' })
@@ -98,17 +92,16 @@ module.exports = async function (app) {
         schema: {
             summary: '',
             tags: ['FF tables'],
+            params: {
+                type: 'object',
+                properties: {
+                    databaseId: { type: 'string' }
+                }
+            },
             response: {
                 200: {
                     type: 'object',
-                    properties: {
-                        host: { type: 'string' },
-                        port: { type: 'number' },
-                        ssl: { type: 'boolean' },
-                        database: { type: 'string' },
-                        user: { type: 'string' },
-                        password: { type: 'string' }
-                    }
+                    $ref: 'DatabaseCredentials'
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -120,14 +113,15 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const creds = await app.tables.getDatabase(request.team, request.params.databaseId)
+            const creds = await app.tables.getDatabase(request.team.hashid, request.params.databaseId)
             if (creds) {
-                reply.send(creds)
+                reply.send(await app.db.views.Table.table(creds))
             } else {
                 reply.status(404).send({ error: 'Database not found' })
             }
         } catch (err) {
             console.log(err)
+            reply.status(500).send({ error: 'Failed to retrieve database' })
         }
     })
 
@@ -159,5 +153,19 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('team:database:list'),
         schema: {}
     }, async (request, reply) => {
+        // paginate the list of tables
+    })
+
+    app.get('/:databaseId/tables/:tableName', {
+        preHandler: app.needsPermission('team:database:list'),
+        schema: {}
+    }, async (request, reply) => {
+    })
+
+    app.get('/:databaseId/tables/:tableName/data', {
+        preHandler: app.needsPermission('team:database:list'),
+        schema: {}
+    }, async (request, reply) => {
+        // paginate the data in the table
     })
 }

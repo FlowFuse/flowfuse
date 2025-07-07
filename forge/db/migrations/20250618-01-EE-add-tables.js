@@ -7,6 +7,10 @@ module.exports = {
     up: async (context) => {
         await context.createTable('Tables', {
             id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+            name: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
             credentials: {
                 type: DataTypes.TEXT,
                 set (value) {

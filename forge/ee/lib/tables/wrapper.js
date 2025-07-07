@@ -23,16 +23,16 @@ module.exports = {
             throw new Error('Database driver does not support getDatabases')
         }
     },
-    getDatabase: async (team) => {
+    getDatabase: async (team, database) => {
         if (this._driver.getDatabase) {
-            return this._driver.getDatabase(team)
+            return this._driver.getDatabase(team, database)
         } else {
             throw new Error('Database driver does not support getDatabase')
         }
     },
-    createDatabase: async (team) => {
+    createDatabase: async (team, name) => {
         if (this._driver.createDatabase) {
-            return this._driver.createDatabase(team)
+            return this._driver.createDatabase(team, name)
         } else {
             throw new Error('Database driver does not support createDatabase')
         }

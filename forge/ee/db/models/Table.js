@@ -3,6 +3,9 @@ const { DataTypes } = require('sequelize')
 module.exports = {
     name: 'Table',
     schema: {
+        name: {
+            type: DataTypes.STRING, allowNull: false
+        },
         credentials: {
             type: DataTypes.TEXT,
             set (value) {
@@ -22,25 +25,26 @@ module.exports = {
         return {
             static: {
                 byTeamId: async (teamId) => {
+                    console.log(self)
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
                     }
-                    return self.find({
+                    return self.findAll({
                         where: {
                             TeamId: teamId
                         }
                     })
                 },
-                byId: async (id, teamId) => {
+                byId: async (teamId, databaseId) => {
                     if (typeof teamId === 'string') {
-                        teamId = M.Team.decodeHashid(teamId)
+                        teamId = M.Team.decodeHashid(teamId)[0]
                     }
-                    if (typeof id === 'string') {
-                        id = M.Table.decodeHashid(id)
+                    if (typeof databaseId === 'string') {
+                        databaseId = M.Table.decodeHashid(databaseId)[0]
                     }
                     return self.findOne({
                         where: {
-                            id,
+                            id: databaseId,
                             TeamId: teamId
                         }
                     })
