@@ -291,10 +291,10 @@ module.exports = async function (app) {
             mcp: { enabled: true }, // default to enabled
             completions: { enabled: false } // default to disabled
         }
-        if (typeof app.config.assistant?.mcp === 'object') {
+        if (app.config.assistant?.mcp && typeof app.config.assistant.mcp === 'object') {
             response.assistant.mcp = { ...app.config.assistant.mcp }
         }
-        if (typeof app.config.assistant?.completions === 'object') {
+        if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
             response.assistant.completions = { ...app.config.assistant.completions }
         }
 
