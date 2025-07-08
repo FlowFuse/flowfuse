@@ -14,6 +14,7 @@
                         label="instance-name"
                         :error="errors.name"
                         data-el="instance-name"
+                        :disabled="nameDisabled"
                     />
                     <ff-button kind="secondary" @click="refreshName">
                         <template #icon>
@@ -201,7 +202,8 @@ export default {
             decoratedInstanceTypes: [],
             instanceTemplates: [],
             subscription: null,
-            loading: true
+            loading: true,
+            nameDisabled: false
         }
     },
     computed: {
@@ -273,6 +275,7 @@ export default {
     },
     watch: {
         input: {
+            immediate: true,
             deep: true,
             handler () {
                 this.updateParent()
@@ -289,16 +292,35 @@ export default {
 
                 if (allowedCharacters.test(value)) {
                     instancesApi.nameCheck(value)
-                        .then(res => {
+                        .then((res) => {
                             this.errors.name = null
+                            if (res.headers['x-ratelimit-remaining'] === '0') {
+                                const timeout = parseInt(res.headers['x-ratelimit-reset']) * 1000
+                                if (timeout > 750) {
+                                    setTimeout(() => {
+                                        this.errors.name = null
+                                        this.nameDisabled = false
+                                    }, timeout)
+                                    this.errors.name = 'Please wait, checking name'
+                                    this.nameDisabled = true
+                                }
+                            }
                         })
                         .catch(e => {
-                            this.errors.name = 'Instance name already in use.'
+                            if (e.status === 409) {
+                                if (e.response?.data?.error === 'name in use') {
+                                    this.errors.name = 'Instance name already in use.'
+                                } else if (e.response?.data?.error === 'name not allowed') {
+                                    this.errors.name = 'Instance name not allowed.'
+                                }
+                            } else if (e.status === 429) {
+                                this.errors.name = 'Name check rate limit exceeded'
+                            }
                         })
                 } else {
                     this.errors.name = 'Invalid character in use.'
                 }
-            }, 500)
+            }, 750)
         },
         errors: {
             deep: true,

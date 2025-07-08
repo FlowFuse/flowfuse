@@ -109,6 +109,13 @@ describe('Snapshots API', function () {
 
         await TestObjects.project1.updateSetting('credentialSecret', 'a-random-cred-secret')
 
+        const projectSettings = await TestObjects.project1.getSetting('settings') || {}
+        projectSettings.env = [
+            { name: 'a', value: '1' },
+            { name: 'b', value: '2', hidden: true }
+        ]
+        await TestObjects.project1.updateSetting('settings', projectSettings)
+
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
     })
@@ -387,6 +394,15 @@ describe('Snapshots API', function () {
                 data.settings.should.only.have.keys('settings', 'env', 'modules')
                 data.settings.settings.should.be.an.Object()
                 data.settings.env.should.be.an.Object()
+                if (kind === 'instance') {
+                    // Currently, env vars only get captured for hosted instances.
+                    data.settings.env.should.have.property('a', '1')
+                    data.settings.env.should.have.property('b')
+                    data.settings.env.b.should.have.property('value', '2')
+                    data.settings.env.b.should.have.property('hidden', true)
+                    data.settings.env.should.have.property('FF_INSTANCE_ID', TestObjects.project1.id)
+                    data.settings.env.should.have.property('FF_INSTANCE_NAME', TestObjects.project1.name)
+                }
                 data.settings.modules.should.be.an.Object()
                 data.flows.should.be.an.Object()
                 data.flows.should.only.have.keys('flows')
@@ -500,6 +516,16 @@ describe('Snapshots API', function () {
                 data.settings.should.only.have.keys('settings', 'env', 'modules')
                 data.settings.settings.should.be.an.Object()
                 data.settings.env.should.be.an.Object()
+                if (kind === 'instance') {
+                    // Currently, env vars only get captured for hosted instances.
+                    data.settings.env.should.have.property('a', '1')
+                    data.settings.env.should.have.property('b')
+                    data.settings.env.b.should.have.property('value', '2')
+                    data.settings.env.b.should.have.property('hidden', true)
+                    // An export does not include system-level env vars
+                    data.settings.env.should.not.have.property('FF_INSTANCE_ID')
+                    data.settings.env.should.not.have.property('FF_INSTANCE_NAME')
+                }
                 data.settings.modules.should.be.an.Object()
                 data.flows.should.be.an.Object()
                 data.flows.should.only.have.keys('flows', 'credentials')
@@ -606,7 +632,7 @@ describe('Snapshots API', function () {
             it('Owner can import snapshot with credentials', async function () {
                 const ownerId = getOwnerId()
                 const owner = getOwner()
-                const ss = dummySnapshot('dummy', [{ id: '123' }], { testSetting: 123 }, { ONE: 'envOne' }, { module: '1.2.3' }, encryptCredentials('test-secret', { testCreds: 'abc' }))
+                const ss = dummySnapshot('dummy', [{ id: '123' }], { testSetting: 123 }, { ONE: 'envOne', TWO: { value: 'envTwo', hidden: true } }, { module: '1.2.3' }, encryptCredentials('test-secret', { testCreds: 'abc' }))
                 const response = await importSnapshot(ownerId, kind, ss, 'test-secret', TestObjects.tokens.alice)
 
                 response.statusCode.should.equal(200)
@@ -642,6 +668,10 @@ describe('Snapshots API', function () {
                 data.settings.settings.should.have.property('testSetting', 123)
                 data.settings.env.should.be.an.Object()
                 data.settings.env.should.have.property('ONE', 'envOne')
+                data.settings.env.should.have.property('TWO')
+                data.settings.env.TWO.should.have.property('value', 'envTwo')
+                data.settings.env.TWO.should.have.property('hidden', true)
+
                 data.settings.modules.should.be.an.Object()
                 data.settings.modules.should.have.property('module', '1.2.3')
 

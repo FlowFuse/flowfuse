@@ -1,3 +1,70 @@
+#### 2.19.0: Release
+
+ - Enable rate limits on prestaging envs (#5720)
+ - Bump flowfuse/github-actions-workflows from 0.39.0 to 0.40.0 (#5705)
+ - Bump docker/setup-buildx-action from 3.11.0 to 3.11.1 (#5675)
+ - Bump cypress-io/github-action from 6.10.0 to 6.10.1 (#5620)
+ - Bump docker/setup-buildx-action from 3.10.0 to 3.11.0 (#5622)
+ - Test with NodeJS 20 (#5433)
+ - Fix memberCount typo causing the add members cta to be permanently present (#5729) @cstns
+ - Fix multi-step-form inconsistent behavior when navigating between steps (#5728) @cstns
+ - Fix stale topic state by re-evaluating computed prop on topics refresh (#5714) @cstns
+ - update flowfuse assistant docs for latest features and usage (#5709) @Steve-Mcl
+ - Retain env var hidden flag metadata within snapshots (#5666) @knolleary
+ - Reduce the rate of calls to instance name check API (#5716) @hardillb
+ - Fix: add back the missing device sort option to recently modified devices (#5726) @cstns
+ - Add note about client id to Team Broker docs (#5725) @hardillb
+ - Offload Application Instance/Device Search to Backend + UI Performance Tweaks (#5602) @cstns
+ - Use a new API endpoint for instance status checks (#5704) @cstns
+ - Add a new instance status endpoint (#5702) @cstns
+ - Add a search endpoint for hosted and remote instances (#5592) @cstns
+ - Fix: Handle Tooltip Concurrency Issues During Rapid Mouse Events (#5711) @cstns
+ - Add tooltip to 'Members' menu for single-user teams (#5710) @cstns
+ - Add the new script installation method (#5614) @cstns
+ - Include missing updating device state to correctly render it's status (#5687) @cstns
+ - Ensure sessions are invalidated on user email change (#5708) @hardillb
+ - Use unquoted aliases for recently created devices (#5707) @cstns
+ - Fix setting device name or type (#5694) @hardillb
+ - Revert " Improve recently modified remote instances sorting" (#5706) @cstns
+ -  Improve recently modified remote instances sorting (#5688) @cstns
+ - Fix lint warning caused by missing default prop value (#5700) @cstns
+ - Improve recently modified hosted instances sorting (#5686) @cstns
+ - Improve the Team Overview (#5684) @cstns
+ - ci: Use `flowfuse` helm chart for pre-staging deployments (#5693) @ppawlowski
+ - Fix new user team creation page (#5689) @cstns
+ - Fix recently modified instances order (#5683) @cstns
+ - Do not include full flow content in blueprint collection api (#5679) @knolleary
+ - reuse the generatePassword function (#5682) @hardillb
+ - Make the new HomePage tiles interactive (#5677) @cstns
+ - Enable Multi-Term Search in DataTables (#5676) @cstns
+ - Fix instance performance tab resizing (#5665) @cstns
+ - Add an application search field ot the application step (#5673) @cstns
+ - fix: remove deviceActionsMixin from DeviceTile (#5669) @ZJvandeWeg
+ - Update devops-pipelines.md (#5667) @robmarcer
+ - tests: Flowforge be gone (#5670) @ZJvandeWeg
+ - Iterate on empty state messaging for new home page tiles (#5664) @joepavitt
+ - Align ux for setting nr versions between remote and hosted instances (#5586) @cstns
+ - Add a new team home page (#5608) @cstns
+ - Pass teamType to contact form so we show the right tier name (#5662) @knolleary
+ - Better logging of git errors (#5659) @knolleary
+ - Auto-advance to Next Step After Application Selection (#5657) @cstns
+ - Add instance memory usage performance metrics (#5655) @cstns
+ - Enable Google social login (#5653) @knolleary
+ - Revert "Enable Google social login" (#5652) @knolleary
+ - Enable Google social login (#5647) @knolleary
+ - Logout other sessions when MFA enabled (#5650) @knolleary
+ - Fix clipped or overflowing ff-tooltip (#5646) @cstns
+ - Extract the otc step into manageable components (#5612) @cstns
+ - Extract the device manual install step into a separate component (#5611) @cstns
+ - Fix modal overlay over main nav (#5610) @cstns
+ - Scale down team performance metrics to stack limitations (#5603) @cstns
+ - Modernize the main navigation (#5605) @cstns
+ - Bump eslint-plugin-no-only-tests from 3.1.0 to 3.3.0 (#5353) @app/dependabot
+ - Reduce Blueprint import logging (#5595) @hardillb
+ - Bump webpack-dev-server from 4.15.1 to 5.2.1 (#5587) @app/dependabot
+ - Bump vite from 5.4.17 to 6.3.5 (#5501) @app/dependabot
+ - Ensure snapshot is persisted when deploying to device from git (#5593) @knolleary
+
 #### 2.18.0: Release
 
  - Bump docker/build-push-action from 6.17.0 to 6.18.0 (#5568)
