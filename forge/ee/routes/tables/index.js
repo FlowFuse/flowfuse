@@ -43,7 +43,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const creds = await app.tables.getDatabases(request.team)
         if (!creds) {
-            return reply.status(404).send({ error: 'Database not found' })
+            return reply.send([])
         }
         reply.send(await app.db.views.Table.tables(creds))
     })
@@ -85,10 +85,10 @@ module.exports = async function (app) {
             reply.send(await app.db.views.Table.table(creds))
         } catch (err) {
             if (err.message.includes('already exists')) {
-                return reply.status(409).send({ error: 'Database already exists' })
+                return reply.status(409).send({ code: 'already_exists', error: 'Database already exists' })
             } else {
                 console.log(err)
-                reply.status(500).send({ error: 'Failed to create database' })
+                reply.status(500).send({ code: 'unexpected_error', error: 'Failed to create database' })
             }
         }
     })
@@ -123,11 +123,11 @@ module.exports = async function (app) {
             if (creds) {
                 reply.send(await app.db.views.Table.table(creds))
             } else {
-                reply.status(404).send({ error: 'Database not found' })
+                reply.status(404).send({ code: 'not_found', error: 'Database not found' })
             }
         } catch (err) {
             console.log(err)
-            reply.status(500).send({ error: 'Failed to retrieve database' })
+            reply.status(500).send({ code: 'unexpected_error', error: 'Failed to retrieve database' })
         }
     })
 
@@ -157,7 +157,7 @@ module.exports = async function (app) {
             await app.tables.destroyDatabase(request.team, request.params.databaseId)
             reply.send({})
         } catch (err) {
-            reply.status(500).send({ error: 'Failed to destroy database' })
+            reply.status(500).send({ code: 'unexpected_error',error: 'Failed to destroy database' })
         }
     })
 
@@ -195,7 +195,7 @@ module.exports = async function (app) {
         // paginate the list of tables
         const tables = await app.tables.getTables(request.team, request.params.databaseId)
         if (!tables) {
-            return reply.status(404).send({ error: 'Database not found' })
+            return reply.status(404).send({ code:'not_found', error: 'Database not found' })
         }
         reply.send(tables)
     })
