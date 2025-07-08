@@ -48,19 +48,21 @@ The installer will prepare the runtime environment, configure it to start on sys
 
 This is the simplest and most convenient way to get started with the Device Agent on your device.
 
-### Linux/MacOS
+### Manual Installation
+
+#### Linux/MacOS
 
 ```bash
 sudo npm install -g @flowfuse/device-agent
 ```
 
-### Windows (run elevated[^1])
+#### Windows (run elevated[^1])
 
 ```bash
 npm install -g @flowfuse/device-agent
 ```
 
-### Docker
+#### Docker
 
 Or you can chose to run the Docker container. When you do, you'll need to mount
 the `device.yml` obtained when [Registering the device](./register.md):
@@ -84,7 +86,7 @@ services:
       - /path/to/device.yml:/opt/flowfuse-device/device.yml
 ```
 
-#### Time Zone
+##### Time Zone
 
 In order to ensure that the device agent runs with the correct timezone environment variable is set with the `-e` option
 
