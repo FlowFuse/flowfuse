@@ -289,7 +289,7 @@ module.exports = async function (app) {
             enabled: app.config.assistant?.enabled || false,
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
-            completions: { enabled: false } // default to disabled
+            completions: { enabled: true } // default to enabled
         }
         if (app.config.assistant?.mcp && typeof app.config.assistant.mcp === 'object') {
             response.assistant.mcp = { ...app.config.assistant.mcp }
