@@ -51,6 +51,11 @@ export default defineComponent({
     },
     computed: {
         ...mapGetters('account', ['featuresCheck'])
+    },
+    mounted () {
+        if (!this.featuresCheck.isTablesFeatureEnabledForPlatform) {
+            this.$router.push({ name: 'Home' })
+        }
     }
 })
 </script>
