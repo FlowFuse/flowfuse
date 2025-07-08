@@ -828,7 +828,15 @@ module.exports = async function (app) {
         settings.fileStore = app.config.fileStore ? { ...app.config.fileStore } : null
         settings.assistant = {
             enabled: app.config.assistant?.enabled || false,
-            requestTimeout: app.config.assistant?.requestTimeout
+            requestTimeout: app.config.assistant?.requestTimeout || 60000,
+            mcp: { enabled: true }, // default to enabled
+            completions: { enabled: true } // default to enabled
+        }
+        if (app.config.assistant?.mcp && typeof app.config.assistant.mcp === 'object') {
+            settings.assistant.mcp = { ...app.config.assistant.mcp }
+        }
+        if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
+            settings.assistant.completions = { ...app.config.assistant.completions }
         }
         settings.teamID = request.project.Team.hashid
         settings.storageURL = request.project.storageURL
