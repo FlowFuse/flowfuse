@@ -2322,8 +2322,8 @@ describe('Device API', async function () {
             app = await setup({
                 assistant: {
                     enabled: false,
-                    mcp: { enabled: false }
-                    // completions deliberately excluded to check it defaults to disabled
+                    mcp: { enabled: false },
+                    completions: { enabled: false }
                 }
             })
             await login('alice', 'aaPassword')
@@ -2338,19 +2338,15 @@ describe('Device API', async function () {
             body.assistant.should.have.property('mcp').and.be.an.Object()
             body.assistant.mcp.should.have.property('enabled', false)
             body.assistant.should.have.property('completions').and.be.an.Object()
-            body.assistant.completions.should.have.property('enabled', false) // default to disabled
+            body.assistant.completions.should.have.property('enabled', false)
         })
         it('device downloads settings including assistant completions settings when enabled', async function () {
             app = await setup({
                 assistant: {
                     enabled: true,
-                    requestTimeout: 12345,
+                    requestTimeout: 12345
                     // mcp deliberately excluded to check it defaults to enabled
-                    completions: {
-                        enabled: true,
-                        modelUrl: 'https://FORGEURL/api/v1/assistant/assets/completions/model.json',
-                        vocabularyUrl: 'https://FORGEURL/api/v1/assistant/assets/completions/vocabulary.json'
-                    }
+                    // completions deliberately excluded to check it defaults to enabled
                 }
             })
             await login('alice', 'aaPassword')
@@ -2365,9 +2361,7 @@ describe('Device API', async function () {
             body.assistant.should.have.property('mcp').and.be.an.Object()
             body.assistant.mcp.should.have.property('enabled', true) // defaults to enabled
             body.assistant.should.have.property('completions').and.be.an.Object()
-            body.assistant.completions.should.have.property('enabled', true)
-            body.assistant.completions.should.have.property('modelUrl', 'https://FORGEURL/api/v1/assistant/assets/completions/model.json')
-            body.assistant.completions.should.have.property('vocabularyUrl', 'https://FORGEURL/api/v1/assistant/assets/completions/vocabulary.json')
+            body.assistant.completions.should.have.property('enabled', true) // defaults to enabled
         })
     })
 
