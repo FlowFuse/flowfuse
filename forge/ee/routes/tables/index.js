@@ -1,5 +1,3 @@
-const { name } = require("../../db/models/Table")
-
 module.exports = async function (app) {
     // All routes are relative to /api/v1/teams/:teamId/databases
 
@@ -19,7 +17,7 @@ module.exports = async function (app) {
         }
         if (!request.teamMembership) {
             request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
-        } 
+        }
     })
 
     /**
@@ -93,7 +91,7 @@ module.exports = async function (app) {
             if (err.message.includes('already exists')) {
                 return reply.status(409).send({ code: 'already_exists', error: 'Database already exists' })
             } else {
-                console.log(err)
+                // console.log(err)
                 reply.status(500).send({ code: 'unexpected_error', error: 'Failed to create database' })
             }
         }
@@ -138,7 +136,7 @@ module.exports = async function (app) {
                 reply.status(404).send({ code: 'not_found', error: 'Database not found' })
             }
         } catch (err) {
-            console.log(err)
+            // console.log(err)
             reply.status(500).send({ code: 'unexpected_error', error: 'Failed to retrieve database' })
         }
     })
@@ -175,7 +173,7 @@ module.exports = async function (app) {
             await app.tables.destroyDatabase(request.team, request.params.databaseId)
             reply.send({})
         } catch (err) {
-            reply.status(500).send({ code: 'unexpected_error',error: 'Failed to destroy database' })
+            reply.status(500).send({ code: 'unexpected_error', error: 'Failed to destroy database' })
         }
     })
 
@@ -219,7 +217,7 @@ module.exports = async function (app) {
         // paginate the list of tables
         const tables = await app.tables.getTables(request.team, request.params.databaseId)
         if (!tables) {
-            return reply.status(404).send({ code:'not_found', error: 'Database not found' })
+            return reply.status(404).send({ code: 'not_found', error: 'Database not found' })
         }
         reply.send(tables)
     })

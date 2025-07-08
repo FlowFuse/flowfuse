@@ -36,18 +36,18 @@ module.exports = function (app) {
         }
     })
 
-    async function table(table) {
+    async function table (table) {
         if (table) {
-            const result = table.toJSON();
+            const result = table.toJSON()
             result.id = result.hashid
-            delete result.hashid;
+            delete result.hashid
             return result
         } else {
-            return null;
+            return null
         }
     }
 
-    async function tables(tables) {
+    async function tables (tables) {
         if (tables) {
             return await Promise.all(tables.map(table))
         } else {

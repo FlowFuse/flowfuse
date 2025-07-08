@@ -25,7 +25,6 @@ module.exports = {
         return {
             static: {
                 byTeamId: async (teamId) => {
-                    console.log(self)
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
                     }

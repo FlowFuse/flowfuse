@@ -55,7 +55,6 @@ module.exports = {
         const existing = await this._app.db.models.Table.byTeamId(team.id)
         // Will need removing when we support multiple databases per team
         if (existing && existing.length > 0) {
-            console.log('1 Existing tables for team', team.hashid, existing)
             throw new Error('Database already exists')
         }
         const res = await adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
@@ -137,23 +136,22 @@ module.exports = {
                 teamClient.connect()
                 const res = await teamClient.query('SELECT "tablename" FROM "pg_catalog"."pg_tables" WHERE "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\'')
                 if (res.rows && res.rows.length > 0) {
-                    return res.rows.map(row => { return {
-                        name: row.tablename,
-                        schema: row.schemaname
-                    }})
+                    return res.rows.map(row => {
+                        return {
+                            name: row.tablename,
+                            schema: row.schemaname
+                        }
+                    })
                 } else {
                     return []
                 }
-            }
-            finally {
+            } finally {
                 teamClient.end()
-            } 
-        } 
-        catch (err) {
+            }
+        } catch (err) {
             console.error('Error retrieving tables:', err)
             throw new Error(`Failed to retrieve tables for team ${team.hashid}: ${err.message}`)
         }
-        
     },
     getTable: async function (team, database, table) {
         // SELECT column_name, data_type, is_nullable, column_default
@@ -175,7 +173,7 @@ module.exports = {
             const teamClient = new pg.Client(options)
             try {
                 teamClient.connect()
-                const res = await teamClient.query(`SELECT column_name, udt_name, is_nullable, column_default, character_maximum_length, is_generated FROM information_schema.columns WHERE table_name = $1`, [table])
+                const res = await teamClient.query('SELECT column_name, udt_name, is_nullable, column_default, character_maximum_length, is_generated FROM information_schema.columns WHERE table_name = $1', [table])
                 if (res.rows && res.rows.length > 0) {
                     return res.rows.map(row => {
                         const col = {
