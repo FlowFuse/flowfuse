@@ -611,7 +611,7 @@ module.exports = async function (app) {
         const project = await app.db.models.Project.byId(request.project.id) // Reload project entirely
         const projectView = await app.db.views.Project.project(request.project)
         let result
-        if (request.teamMembership.role >= Roles.Owner) {
+        if (request.session.User.admin || request.teamMembership.role >= Roles.Owner) {
             result = projectView
         } else {
             // exclude template object in response when not owner
