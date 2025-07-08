@@ -41,7 +41,7 @@ This video will walk you through every step from creating a remote instance, ins
 
 ### Step 2. Install and Configure the Device Agent (On Device)
 
-1. Open a Terminal/Command Prompt on the Device.
+1. Open a Terminal/elevated Command Prompt on the Device.
 2. Paste the command you copied from the previous step and execute it.
 3. Answer prompts as needed.
 4. Installer will set up the runtime and configure the Device Agent, and summarize on successful completion.
