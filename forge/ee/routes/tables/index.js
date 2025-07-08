@@ -22,6 +22,12 @@ module.exports = async function (app) {
         } 
     })
 
+    /**
+     * @name /api/v1/teams/:teamId/databases
+     * @description List all databases for the team
+     * @static
+     * @memberof forge.routes.api.team.tables
+     */
     app.get('/', {
         preHandler: app.needsPermission('team:database:list'),
         schema: {
@@ -49,7 +55,7 @@ module.exports = async function (app) {
     })
 
     /**
-     * @name /api/v1/teams/:teamId/tables
+     * @name /api/v1/teams/:teamId/databases
      * @description Create a new database for the team
      * @static
      * @memberof forge.routes.api.team.tables
@@ -93,6 +99,12 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * @name /api/v1/teams/:teamId/databases/:databaseId
+     * @description Get a specific team database by ID
+     * @static
+     * @memberof forge.routes.api.team.tables
+     */
     app.get('/:databaseId', {
         preHandler: app.needsPermission('team:database:list'),
         schema: {
@@ -131,6 +143,12 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * @name /api/v1/teams/:teamId/databases/:databaseId
+     * @description Delete a specific team database by ID
+     * @static
+     * @memberof forge.routes.api.team.tables
+     */
     app.delete('/:databaseId', {
         preHandler: app.needsPermission('team:database:delete'),
         schema: {
@@ -161,6 +179,12 @@ module.exports = async function (app) {
         }
     })
 
+    /**
+     * @name /api/v1/teams/:teamId/databases/:databaseId/tables
+     * @description List all tables in a specific team database
+     * @static
+     * @memberof forge.routes.api.team.tables
+     */
     app.get('/:databaseId/tables', {
         preHandler: app.needsPermission('team:database:list'),
         schema: {
@@ -200,6 +224,12 @@ module.exports = async function (app) {
         reply.send(tables)
     })
 
+    /**
+     * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName
+     * @description Get a specific table schema in a team database
+     * @static
+     * @memberof forge.routes.api.team.tables
+     */
     app.get('/:databaseId/tables/:tableName', {
         preHandler: app.needsPermission('team:database:list'),
         schema: {
@@ -233,6 +263,12 @@ module.exports = async function (app) {
         reply.send(table)
     })
 
+    /**
+     * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName/data
+     * @description Get sample data from a specific table in a team database
+     * @static
+     * @memberof forge.routes.api.team.tables
+     */
     app.get('/:databaseId/tables/:tableName/data', {
         preHandler: app.needsPermission('team:database:list'),
         schema: {
