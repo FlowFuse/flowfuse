@@ -156,6 +156,7 @@ module.exports = {
                             token: gitToken.token,
                             url: this.url,
                             branch: this.pullBranch || this.branch,
+                            credentialSecret: this.credentialSecret,
                             path: sourceFilename
                         }, options)
                         // snapshotContent is a JSON representation of the snapshot. We need to convert it to a

@@ -8,6 +8,8 @@ const execPromised = promisify(exec)
 
 const axios = require('axios')
 
+const { decryptValue } = require('../../../db/utils')
+
 async function cloneRepository (url, branch, workingDir) {
     try {
         await execPromised(`git clone -b ${branch} --depth 1 --single-branch ${url.toString()} .`, { cwd: workingDir })
@@ -189,6 +191,17 @@ module.exports.init = async function (app) {
             try {
                 const snapshotContent = await fs.readFile(snapshotFile, 'utf8')
                 const snapshot = JSON.parse(snapshotContent)
+                if (snapshot.settings?.env) {
+                    const keys = Object.keys(snapshot.settings.env)
+                    keys.forEach((key) => {
+                        const env = snapshot.settings.env[key]
+                        if (env.hidden && env.$) {
+                            // Decrypt the value if it is encrypted
+                            env.value = decryptValue(repoOptions.credentialSecret, env.$)
+                            delete env.$
+                        }
+                    })
+                }
                 return snapshot
             } catch (err) {
                 throw new Error('Failed to read snapshot file: ' + err.message)
