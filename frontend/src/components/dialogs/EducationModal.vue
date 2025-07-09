@@ -17,7 +17,7 @@
             </template>
             <template v-else>
                 <p class="text-center">
-                    You can access these resources at any time by clicking the drop-down arrow in the upper-right corner.
+                    You can access these resources at any time by clicking the User Menu in the upper-right corner.
                 </p>
             </template>
         </div>

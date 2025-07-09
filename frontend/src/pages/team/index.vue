@@ -83,9 +83,6 @@ export default {
             this.dispatchTour()
         }
     },
-    updated () {
-        console.log('updated')
-    },
     async beforeMount () {
         this.checkRoute(this.$route)
     },
