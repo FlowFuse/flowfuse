@@ -15,6 +15,16 @@ module.exports = {
                 const rawValue = this.getDataValue('credentials') || '{}'
                 return JSON.parse(rawValue)
             }
+        },
+        meta: {
+            type: DataTypes.TEXT,
+            set (value) {
+                this.setDataValue('meta', JSON.stringify(value))
+            },
+            get () {
+                const rawValue = this.getDataValue('meta') || '{}'
+                return JSON.parse(rawValue)
+            }
         }
     },
     associations: function (M) {

@@ -10,7 +10,10 @@ module.exports = {
         this._options = options || {}
         // options.max = 1
         // adminClient = new pg.Pool(options || {})
-        adminClient = new pg.Client(options || {})
+        if (!options.database) {
+            throw new Error('Postgres LocalFS driver requires database options to be provided')
+        }
+        adminClient = new pg.Client(options.database || {})
         // adminClient.on('connect', (client) => {
         //     this._app.log.info('Postgres LocalFS driver new client connected')
         //     client.on('error', (err) => {
@@ -62,30 +65,37 @@ module.exports = {
             throw new Error('Database already exists')
         } else {
             await adminClient.query(`CREATE DATABASE "${team.hashid}"`)
+            await adminClient.query(`REVOKE connect ON DATABASE "${team.hashid}" FROM PUBLIC;`)
             const options = {
-                host: this._options.host,
-                port: this._options.port,
-                ssl: this._options.ssl,
+                host: this._options.database.host,
+                port: this._options.database.port,
+                ssl: this._options.database.ssl,
                 database: team.hashid,
-                user: this._options.user,
-                password: this._options.password
+                user: this._options.database.user,
+                password: this._options.database.password
             }
             const teamClient = new pg.Client(options)
             const password = generatePassword()
             try {
                 await teamClient.connect()
                 // need to generate a password for the team user
-                await teamClient.query(`CREATE ROLE "${team.hashid}" WITH LOGIN PASSWORD '${password}'`)
-                await teamClient.query(`GRANT CONNECT ON DATABASE "${team.hashid}" TO "${team.hashid}"`)
-                // await teamClient.query(`GRANT ALL ON ALL TABLES TO "${team.hashid}"`)
+                await teamClient.query(`CREATE ROLE "${team.hashid}-role" WITH LOGIN`)
+                await teamClient.query(`GRANT CONNECT ON DATABASE "${team.hashid}" TO "${team.hashid}-role"`)
+                await teamClient.query(`GRANT ALL PRIVILEGES ON DATABASE "${team.hashid}" TO "${team.hashid}-role"`)
+                await teamClient.query(`GRANT CREATE ON SCHEMA public TO "${team.hashid}-role"`)
+                await teamClient.query(`GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "${team.hashid}-role"`)
+                await teamClient.query(`GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "${team.hashid}-role"`)
+                await teamClient.query(`CREATE USER "${team.hashid}" WITH PASSWORD '${password}'`)
+                await teamClient.query(`GRANT "${team.hashid}-role" TO "${team.hashid}"`)
+                
             } finally {
                 await teamClient.end()
             }
             this._app.log.info(`Database created for team ${team.hashid}`)
             const credentials = {
-                host: this._options.host,
-                port: this._options.port,
-                ssl: this._options.ssl,
+                host: this._options.database.host,
+                port: this._options.database.port,
+                ssl: this._options.database.ssl,
                 database: team.hashid,
                 user: team.hashid,
                 password
@@ -98,19 +108,21 @@ module.exports = {
             return table
         }
     },
-    destroyDatabase: async function (team) {
-        const res = await adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
-        if (res.rows.length === 1) {
-            try {
-                await adminClient.query(`DROP DATABASE IF EXISTS "${team.hashid}"`)
-                await adminClient.query(`DROP ROLE IF EXISTS "${team.hashid}"`)
-                await this._app.db.models.Table.destroy({
-                    where: {
-                        TeamId: team.id
-                    }
-                })
-            } catch (err) {
-                // console.log(err)
+    destroyDatabase: async function (team, databaseId) {
+        const db = await this._app.db.models.Table.byId(team.id, databaseId)
+        if (db) {
+            const res = await adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
+            if (res.rows.length === 1) {
+                try {
+                    await adminClient.query(`DROP DATABASE IF EXISTS "${team.hashid}"`)
+                    await adminClient.query(`DROP USER IF EXISTS "${team.hashid}"`)
+                    await adminClient.query(`DROP ROLE IF EXISTS "${team.hashid}-role"`)
+                    await db.destroy()
+                } catch (err) {
+                    // console.log(err)
+                }
+            } else {
+                throw new Error(`Database ${team.hashid} does not exist`)
             }
         } else {
             throw new Error(`Database ${team.hashid} does not exist`)
@@ -124,12 +136,12 @@ module.exports = {
         }
         try {
             const options = {
-                host: this._options.host,
-                port: this._options.port,
-                ssl: this._options.ssl,
+                host: this._options.database.host,
+                port: this._options.database.port,
+                ssl: this._options.database.ssl,
                 database: team.hashid,
-                user: this._options.user,
-                password: this._options.password
+                user: this._options.database.user,
+                password: this._options.database.password
             }
             const teamClient = new pg.Client(options)
             try {
@@ -163,12 +175,12 @@ module.exports = {
         }
         try {
             const options = {
-                host: this._options.host,
-                port: this._options.port,
-                ssl: this._options.ssl,
+                host: this._options.database.host,
+                port: this._options.database.port,
+                ssl: this._options.database.ssl,
                 database: team.hashid,
-                user: this._options.user,
-                password: this._options.password
+                user: this._options.database.user,
+                password: this._options.database.password
             }
             const teamClient = new pg.Client(options)
             try {
@@ -206,12 +218,12 @@ module.exports = {
         }
         try {
             const options = {
-                host: this._options.host,
-                port: this._options.port,
-                ssl: this._options.ssl,
+                host: this._options.database.host,
+                port: this._options.database.port,
+                ssl: this._options.database.ssl,
                 database: team.hashid,
-                user: this._options.user,
-                password: this._options.password
+                user: this._options.database.user,
+                password: this._options.database.password
             }
             const teamClient = new pg.Client(options)
             try {

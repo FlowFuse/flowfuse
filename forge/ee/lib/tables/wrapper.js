@@ -39,7 +39,7 @@ module.exports = {
     },
     destroyDatabase: async (team, databaseId) => {
         if (this._driver.destroyDatabase) {
-            return this._driver.destroyDatabase(team)
+            return this._driver.destroyDatabase(team, databaseId)
         } else {
             throw new Error('Database driver does not support destroyDatabase')
         }
