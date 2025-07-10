@@ -41,7 +41,6 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        return reply.send([])
         const creds = await app.tables.getDatabases(request.team)
         if (!creds) {
             return reply.send([])
