@@ -40,19 +40,29 @@ Note: since the 1.13 release, the package name was updated. See the [updating](#
 It can be installed as a global npm module. This will ensure the agent
 command is on the path:
 
-### Linux/MacOS
+### Automatic Installation and Configuration
+
+For automatic installation and configuration of the Device Agent using our dedicated installer scripts, please refer to the [Quick Start Guide](./quickstart.md).
+
+The installer will prepare the runtime environment, configure it to start on system boot, and connect it to the FlowFuse platform.
+
+This is the simplest and most convenient way to get started with the Device Agent on your device.
+
+### Manual Installation
+
+#### Linux/MacOS
 
 ```bash
 sudo npm install -g @flowfuse/device-agent
 ```
 
-### Windows (run elevated[^1])
+#### Windows (run elevated[^1])
 
 ```bash
 npm install -g @flowfuse/device-agent
 ```
 
-### Docker
+#### Docker
 
 Or you can chose to run the Docker container. When you do, you'll need to mount
 the `device.yml` obtained when [Registering the device](./register.md):
@@ -76,7 +86,7 @@ services:
       - /path/to/device.yml:/opt/flowfuse-device/device.yml
 ```
 
-#### Time Zone
+##### Time Zone
 
 In order to ensure that the device agent runs with the correct timezone environment variable is set with the `-e` option
 
