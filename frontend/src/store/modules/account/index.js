@@ -503,6 +503,7 @@ const actions = {
             teamMembership = await teamApi.getTeamUserMembership(team.id)
         }
         state.commit('setTeam', team)
+        state.dispatch('clearOtherStores')
         state.commit('setTeamMembership', teamMembership)
         state.commit('clearPendingTeamChange')
     },
@@ -541,6 +542,9 @@ const actions = {
                 state.commit('setTeamInvitations', invitations.invitations)
             })
             .catch(_ => {})
+    },
+    async clearOtherStores (state) {
+        await state.dispatch('product/tables/clearState', null, { root: true })
     }
 }
 

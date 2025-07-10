@@ -6,9 +6,7 @@
 
 <script>
 import { defineComponent } from 'vue'
-import { mapGetters } from 'vuex'
-
-import tablesApi from '../../../../api/tables.js'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 export default defineComponent({
     name: 'TeamTable',
@@ -16,7 +14,6 @@ export default defineComponent({
     data () {
         return {
             loading: true,
-            tables: [],
             tabs: [
                 {
                     label: 'Explorer',
@@ -50,15 +47,10 @@ export default defineComponent({
     },
     computed: {
         ...mapGetters('account', ['team']),
-        hasTables () {
-            return this.tables.length > 0
-        }
+        ...mapState('product/tables', ['tables'])
     },
     mounted () {
-        this.getTables()
-            .then(res => {
-                this.tables = res
-            })
+        this.getTables(this.$route.params.id)
             .catch(e => e)
             .finally(() => {
                 this.loading = false
@@ -66,9 +58,7 @@ export default defineComponent({
         this.$emit('set-tabs', this.tabs)
     },
     methods: {
-        getTables () {
-            return tablesApi.getTables(this.team.id, this.$route.params.id)
-        }
+        ...mapActions('product/tables', ['getTables'])
     }
 })
 </script>

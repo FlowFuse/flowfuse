@@ -46,9 +46,7 @@
 
 <script>
 import { defineComponent } from 'vue'
-import { mapGetters } from 'vuex'
-
-import tablesApi from '../../../api/tables.js'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
@@ -63,14 +61,13 @@ export default defineComponent({
     },
     data () {
         return {
-            databases: [],
-            tables: [],
             loading: true,
             tabs: []
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team'])
+        ...mapGetters('account', ['featuresCheck', 'team']),
+        ...mapState('product/tables', ['databases'])
     },
     updated () {
         this.redirectIfNeeded()
@@ -80,20 +77,17 @@ export default defineComponent({
             this.$router.push({ name: 'Home' })
         }
 
-        this.getDataBases()
-            .then((res) => {
-                this.databases = res
-                this.redirectIfNeeded()
-            })
-            .catch(e => e)
-            .finally(() => {
-                this.loading = false
-            })
+        if (this.featuresCheck.isTablesFeatureEnabledForTeam) {
+            this.getDatabases()
+                .then(() => this.redirectIfNeeded())
+                .catch(e => e)
+                .finally(() => {
+                    this.loading = false
+                })
+        }
     },
     methods: {
-        getDataBases () {
-            return tablesApi.getDataBases(this.team.id)
-        },
+        ...mapActions('product/tables', ['getDatabases']),
         redirectIfNeeded () {
             if (this.databases.length === 0) {
                 // if the user doesn't have any tables, we'll redirect him to the offering page
