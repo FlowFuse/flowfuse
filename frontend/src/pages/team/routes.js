@@ -22,6 +22,9 @@ import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
 import TeamSettingsIntegrations from './Settings/Integrations.vue'
 import TeamSettings from './Settings/index.vue'
+import ChooseDatabase from './Tables/components/ChooseDatabase.vue'
+import CreateDatabase from './Tables/components/CreateDatabase.vue'
+import TeamTable from './Tables/components/TeamTable.vue'
 import TeamTables from './Tables/index.vue'
 import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
@@ -216,7 +219,30 @@ export default [
                         component: TeamTables,
                         meta: {
                             title: 'Team - Tables'
-                        }
+                        },
+                        children: [
+                            {
+                                path: ':id',
+                                name: 'team-tables-table',
+                                component: TeamTable
+                            },
+                            {
+                                name: 'team-tables-add',
+                                path: 'add',
+                                component: ChooseDatabase,
+                                meta: {
+                                    title: 'Team - Add Table'
+                                }
+                            },
+                            {
+                                name: 'team-tables-create',
+                                path: 'create/:type',
+                                component: CreateDatabase,
+                                meta: {
+                                    title: 'Team - Create Table'
+                                }
+                            }
+                        ]
                     }
                 ]
             },

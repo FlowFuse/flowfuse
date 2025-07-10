@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Tables">
                 <template #context>
-                    Live stream of CPU utilization of all Hosted Instances running through FlowFuse.
+                    Manage your Database tables all in one place with FlowFuse Tables
                 </template>
             </ff-page-header>
         </template>
@@ -28,7 +28,9 @@
                 </EmptyState>
             </template>
             <template v-else>
-                TBD
+                <ff-loading v-if="loading" message="Loading Databases..." />
+
+                <router-view />
             </template>
         </div>
     </ff-page>
@@ -37,6 +39,8 @@
 <script>
 import { defineComponent } from 'vue'
 import { mapGetters } from 'vuex'
+
+import tablesApi from '../../../api/tables.js'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
@@ -49,12 +53,47 @@ export default defineComponent({
         FeatureUnavailableToTeam,
         EmptyState
     },
+    data () {
+        return {
+            databases: [],
+            tables: [],
+            loading: true
+        }
+    },
     computed: {
-        ...mapGetters('account', ['featuresCheck'])
+        ...mapGetters('account', ['featuresCheck', 'team'])
+    },
+    updated () {
+        this.redirectIfNeeded(this.databases)
     },
     mounted () {
         if (!this.featuresCheck.isTablesFeatureEnabledForPlatform) {
             this.$router.push({ name: 'Home' })
+        }
+
+        this.getDataBases()
+            .then((res) => {
+                this.databases = res
+                this.redirectIfNeeded(res)
+            })
+            .catch(e => e)
+            .finally(() => {
+                this.loading = false
+            })
+    },
+    methods: {
+        getDataBases () {
+            return tablesApi.getDataBases(this.team.id)
+        },
+        redirectIfNeeded (databases) {
+            if (this.$route.name === 'team-tables-create') {
+                return
+            }
+            if (databases.length === 0) {
+                return this.$router.replace({ name: 'team-tables-add' })
+            } else {
+                return this.$router.push({ name: 'team-tables-table', params: { id: databases[0].id } })
+            }
         }
     }
 })
