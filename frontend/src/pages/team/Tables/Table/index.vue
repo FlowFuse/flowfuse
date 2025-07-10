@@ -1,6 +1,5 @@
 <template>
     <div id="team-table">
-        <ff-loading v-if="loading" message="Loading Tables..." />
         <router-view />
     </div>
 </template>
@@ -65,9 +64,6 @@ export default defineComponent({
                 this.loading = false
             })
         this.$emit('set-tabs', this.tabs)
-    },
-    beforeUnmount () {
-        this.$emit('set-tabs', [])
     },
     methods: {
         getTables () {

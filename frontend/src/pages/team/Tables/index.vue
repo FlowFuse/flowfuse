@@ -34,6 +34,7 @@
                     <transition name="page-fade" mode="out-in">
                         <component
                             :is="Component"
+                            :key="$route.fullPath"
                             @set-tabs="tabs = $event"
                         />
                     </transition>
