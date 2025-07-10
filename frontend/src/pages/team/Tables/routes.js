@@ -19,10 +19,7 @@ export default [
                 name: 'team-tables-table',
                 path: ':id',
                 component: TeamTable,
-                redirect: (to) => {
-                    console.log('route to', to.name, to.path)
-                    return { name: 'team-tables-table-explorer' }
-                },
+                redirect: { name: 'team-tables-table-explorer' },
                 children: [
                     {
                         name: 'team-tables-table-explorer',
