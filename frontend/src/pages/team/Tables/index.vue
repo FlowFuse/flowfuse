@@ -44,7 +44,8 @@
     </ff-page>
 </template>
 
-<script>import { defineComponent } from 'vue'
+<script>
+import { defineComponent } from 'vue'
 import { mapGetters } from 'vuex'
 
 import tablesApi from '../../../api/tables.js'
