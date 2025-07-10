@@ -1,7 +1,7 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Tables">
+            <ff-page-header title="Tables" :tabs="tabs">
                 <template #context>
                     Manage your Database tables all in one place with FlowFuse Tables
                 </template>
@@ -30,14 +30,20 @@
             <template v-else>
                 <ff-loading v-if="loading" message="Loading Databases..." />
 
-                <router-view />
+                <router-view v-slot="{ Component }">
+                    <transition name="page-fade" mode="out-in">
+                        <component
+                            :is="Component"
+                            @set-tabs="tabs = $event"
+                        />
+                    </transition>
+                </router-view>
             </template>
         </div>
     </ff-page>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script>import { defineComponent } from 'vue'
 import { mapGetters } from 'vuex'
 
 import tablesApi from '../../../api/tables.js'
@@ -57,14 +63,15 @@ export default defineComponent({
         return {
             databases: [],
             tables: [],
-            loading: true
+            loading: true,
+            tabs: []
         }
     },
     computed: {
         ...mapGetters('account', ['featuresCheck', 'team'])
     },
     updated () {
-        this.redirectIfNeeded(this.databases)
+        this.redirectIfNeeded()
     },
     mounted () {
         if (!this.featuresCheck.isTablesFeatureEnabledForPlatform) {
@@ -74,7 +81,7 @@ export default defineComponent({
         this.getDataBases()
             .then((res) => {
                 this.databases = res
-                this.redirectIfNeeded(res)
+                this.redirectIfNeeded()
             })
             .catch(e => e)
             .finally(() => {
@@ -85,14 +92,14 @@ export default defineComponent({
         getDataBases () {
             return tablesApi.getDataBases(this.team.id)
         },
-        redirectIfNeeded (databases) {
-            if (this.$route.name === 'team-tables-create') {
-                return
-            }
-            if (databases.length === 0) {
+        redirectIfNeeded () {
+            if (this.databases.length === 0) {
+                // if the user doesn't have any tables, we'll redirect him to the offering page
                 return this.$router.replace({ name: 'team-tables-add' })
-            } else {
-                return this.$router.push({ name: 'team-tables-table', params: { id: databases[0].id } })
+            } else if (!this.$route.params.id) {
+                // if the route we hit doesn't contain a specific database id and the user already has a table, it means
+                // he was redirected from somewhere to the generic tables page
+                return this.$router.push({ name: 'team-tables-table', params: { id: this.databases[0].id } })
             }
         }
     }

@@ -1,25 +1,7 @@
 <template>
     <div id="team-table">
         <ff-loading v-if="loading" message="Loading Tables..." />
-
-        <div v-else-if="hasTables">
-            <h1>TBD</h1>
-        </div>
-
-        <EmptyState v-else>
-            <template #img>
-                <img alt="empty-state-logo" src="../../../../images/empty-states/application-instances.png">
-            </template>
-            <template #header>No Tables Found</template>
-            <template #message>
-                <p>
-                    We've not been able to find any Tables for this team.
-                </p>
-                <p>
-                    After creating a Table, you can explore its contents, inspect rows, and query the data here.
-                </p>
-            </template>
-        </EmptyState>
+        <router-view />
     </div>
 </template>
 
@@ -29,15 +11,42 @@ import { mapGetters } from 'vuex'
 
 import tablesApi from '../../../../api/tables.js'
 
-import EmptyState from '../../../../components/EmptyState.vue'
-
 export default defineComponent({
     name: 'TeamTable',
-    components: { EmptyState },
+    emits: ['set-tabs'],
     data () {
         return {
             loading: true,
-            tables: []
+            tables: [],
+            tabs: [
+                {
+                    label: 'Explorer',
+                    to: {
+                        name: 'team-tables-table-explorer',
+                        params: {
+                            id: this.$route.params.id
+                        }
+                    }
+                },
+                {
+                    label: 'SQL Editor',
+                    to: {
+                        name: 'team-tables-table-editor',
+                        params: {
+                            id: this.$route.params.id
+                        }
+                    }
+                },
+                {
+                    label: 'Settings',
+                    to: {
+                        name: 'team-tables-table-settings',
+                        params: {
+                            id: this.$route.params.id
+                        }
+                    }
+                }
+            ]
         }
     },
     computed: {
@@ -55,6 +64,10 @@ export default defineComponent({
             .finally(() => {
                 this.loading = false
             })
+        this.$emit('set-tabs', this.tabs)
+    },
+    beforeUnmount () {
+        this.$emit('set-tabs', [])
     },
     methods: {
         getTables () {
