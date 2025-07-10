@@ -2,6 +2,7 @@ const crypto = require('crypto')
 
 const sinon = require('sinon')
 const should = require('should') // eslint-disable-line
+const { decryptValue } = require('../../../../../forge/db/utils')
 const { encryptCreds, decryptCreds } = require('../../../../lib/credentials')
 const setup = require('../setup')
 
@@ -278,7 +279,10 @@ describe('ProjectSnapshot controller', function () {
             snapshotExported.settings.should.have.property('env').and.be.an.Object()
             snapshotExported.settings.env.should.have.property('a', '1')
             snapshotExported.settings.env.should.have.property('b')
-            snapshotExported.settings.env.b.should.have.property('value', '2')
+            snapshotExported.settings.env.b.should.not.have.property('value')
+            snapshotExported.settings.env.b.should.have.property('$')
+            const value = decryptValue('abc', snapshotExported.settings.env.b.$)
+            value.should.equal('2')
             snapshotExported.settings.env.b.should.have.property('hidden', true)
             snapshotExported.settings.should.have.property('modules').and.be.an.Object()
             snapshotExported.should.have.property('credentialSecret').and.be.a.String()
