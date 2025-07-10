@@ -19,7 +19,7 @@
                                 <ProjectsIcon class="ff-icon-lg" />
                             </template>
 
-                            <div class="flex gap-2 mb-5">
+                            <div class="stats flex gap-2 mb-5">
                                 <InstanceStat
                                     :counter="instanceStats.running"
                                     state="running" type="hosted" @clicked="onStatClick"
@@ -42,7 +42,7 @@
                                 <ChipIcon class="ff-icon-lg" />
                             </template>
 
-                            <div class="flex gap-2 mb-5">
+                            <div class="stats flex gap-2 mb-5">
                                 <InstanceStat
                                     :counter="deviceStats.running"
                                     state="running" type="remote" @clicked="onStatClick"

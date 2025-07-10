@@ -48,15 +48,28 @@ export function scrollToAndJiggleHighlight (
         count = 2
     } = {}
 ) {
-    let animationCount = 0
-
     scrollIntoView($scrollTo)
 
+    highlightElement($highlight, { duration, delay, count, animation: 'jiggle' })
+}
+
+export function highlightElement (
+    $element,
+    {
+        duration = 300,
+        delay = 800,
+        count = 2,
+        animation = 'jiggle'
+    } = {}
+
+) {
     function runAnimation () {
+        let animationCount = 0
+
         if (animationCount < count) {
-            $highlight.classList.add('jiggle')
+            $element.classList.add(animation)
             setTimeout(() => {
-                $highlight.classList.remove('jiggle')
+                $element.classList.remove(animation)
                 animationCount++
                 setTimeout(runAnimation, delay)
             }, duration)
