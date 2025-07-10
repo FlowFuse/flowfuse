@@ -105,7 +105,7 @@
 <script>
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import instanceApi from '../../../api/instances.js'
 import searchApi from '../../../api/search.js'
