@@ -1,5 +1,4 @@
 <template>
-    <h1>Settings</h1>
     <DatabaseForm :database="databases[0]" />
 </template>
 
