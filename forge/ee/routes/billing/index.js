@@ -378,6 +378,14 @@ module.exports = async function (app) {
                 response.code(400).send({ code: 'invalid_team_type', error: 'Invalid team type' })
                 return
             }
+            if (targetTeamType.id !== request.team.TeamTypeId) {
+                // This is a *change* in team type. Check the 'contact required' flag
+                if (targetTeamType.getProperty('billing.requireContact', false) && request.session.User && !request.session.User.admin) {
+                    response.code(403).type('application/json').send({ code: 'contact_required', error: 'Contact required for this team type' })
+                    return
+                }
+            }
+
             try {
                 await request.team.checkTeamTypeUpdateAllowed(targetTeamType)
             } catch (err) {
