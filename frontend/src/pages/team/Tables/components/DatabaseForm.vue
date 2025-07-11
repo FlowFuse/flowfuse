@@ -18,29 +18,6 @@
                         </template>
                     </FormRow>
                 </section>
-                <section v-if="form.credentials" class="credentials space-y-3 max-w-lg min-w-min flex-1">
-                    <h6 class="mb-5 pb-2 title">Credentials</h6>
-                    <!-- todo needs to be stylized-->
-                    <dl>
-                        <dt>Host</dt>
-                        <dd>{{ form.credentials.host }}</dd>
-
-                        <dt>Port</dt>
-                        <dd>{{ form.credentials.port }}</dd>
-
-                        <dt>SSL</dt>
-                        <dd>{{ form.credentials.ssl }}</dd>
-
-                        <dt>Database</dt>
-                        <dd>{{ form.credentials.database }}</dd>
-
-                        <dt>User</dt>
-                        <dd>{{ form.credentials.user }}</dd>
-
-                        <dt>Password</dt>
-                        <dd>{{ form.credentials.password }}</dd>
-                    </dl>
-                </section>
             </form>
             <div class="my-6 flex gap-3 justify-end max-w-full lg:max-w-3xl">
                 <ff-button v-if="hasBackButton" kind="tertiary" data-action="back" @click="$router.back()">
