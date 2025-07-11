@@ -22,6 +22,7 @@ import TeamSettingsDevices from './Settings/Devices.vue'
 import TeamSettingsGeneral from './Settings/General.vue'
 import TeamSettingsIntegrations from './Settings/Integrations.vue'
 import TeamSettings from './Settings/index.vue'
+import TablesRoutes from './Tables/routes.js'
 import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
@@ -43,6 +44,7 @@ export default [
                 },
                 children: [
                     ...BrokersRoutes,
+                    ...TablesRoutes,
                     {
                         path: 'overview',
                         name: 'team-home',
