@@ -22,12 +22,17 @@ const getters = {
             return state.databases[databaseId]
         }
         return null
+    },
+    tables: (state) => (databaseId) => {
+        if (Object.prototype.hasOwnProperty.call(state.tables, databaseId)) {
+            return state.tables[databaseId]
+        }
+        return []
     }
 }
 const mutations = {
     setDatabases (state, payload) {
         payload.forEach(database => {
-            console.log(123, database)
             state.databases[database.id] = database
         })
     },
@@ -35,7 +40,10 @@ const mutations = {
         state.tables[payload.databaseId] = payload.tables
     },
     clearState (state) {
-        state = initialState()
+        const cleanState = initialState()
+        Object.keys(cleanState).forEach(key => {
+            state[key] = cleanState[key]
+        })
     }
 }
 const actions = {

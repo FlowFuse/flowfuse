@@ -1,5 +1,5 @@
 <template>
-    <div id="team-table">
+    <div id="team-table" class="h-full">
         <router-view />
     </div>
 </template>

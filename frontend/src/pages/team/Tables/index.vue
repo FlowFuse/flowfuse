@@ -8,7 +8,7 @@
             </ff-page-header>
         </template>
 
-        <div id="team-tables">
+        <div id="team-tables" class="h-full">
             <template v-if="!featuresCheck.isTablesFeatureEnabled">
                 <div class="banner-wrapper">
                     <FeatureUnavailable v-if="!featuresCheck.isTablesFeatureEnabledForPlatform" />

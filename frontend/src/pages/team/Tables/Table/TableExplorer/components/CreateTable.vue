@@ -1,12 +1,14 @@
 <template>
-    <h1>Explorer</h1>
+    <div id="create-table">
+        creating?
+    </div>
 </template>
 
 <script>
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-    name: 'TableExplorer'
+    name: 'CreateTable'
 })
 </script>
 

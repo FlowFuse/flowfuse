@@ -1,5 +1,5 @@
+import TableExplorer from './Table/TableExplorer/index.vue'
 import TableCredentials from './Table/components/TableCredentials.vue'
-import TableExplorer from './Table/components/TableExplorer.vue'
 import TableSqlEditor from './Table/components/TableSqlEditor.vue'
 import TeamTable from './Table/index.vue'
 import ChooseDatabase from './components/ChooseDatabase.vue'
