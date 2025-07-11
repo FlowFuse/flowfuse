@@ -39,7 +39,7 @@ module.exports = {
     },
     destroyDatabase: async (team, databaseId) => {
         if (this._driver.destroyDatabase) {
-            return this._driver.destroyDatabase(team)
+            return this._driver.destroyDatabase(team, databaseId)
         } else {
             throw new Error('Database driver does not support destroyDatabase')
         }
@@ -67,7 +67,7 @@ module.exports = {
     },
     createTable: async (team, databaseId, table) => {
         if (this._driver.createTable) {
-            return this._driver.createTable(team, database, table)
+            return this._driver.createTable(team, databaseId, table)
         } else {
             throw new Error('Database driver does not support createTable')
         }
