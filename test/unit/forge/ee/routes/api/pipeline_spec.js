@@ -62,7 +62,7 @@ describe('Pipelines API', function () {
                     ),
                     package: {
                         modules: {
-                            custom: 'custom-module'
+                            custom: '1.2.3'
                         }
                     }
                 }
@@ -2328,7 +2328,7 @@ describe('Pipelines API', function () {
                         flows: { custom: 'custom-flows' },
                         credentials: { custom: 'custom-creds' },
                         settings: {
-                            modules: { custom: 'custom-module' },
+                            modules: { custom: '1.2.3' },
                             env: { custom: 'custom-env' }
                         }
                     })
@@ -2381,7 +2381,7 @@ describe('Pipelines API', function () {
                     decrypted.should.have.property('custom', 'custom-creds')
 
                     targetSnapshot.settings.should.have.property('settings')
-                    targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
+                    targetSnapshot.settings.modules.should.have.property('custom', '1.2.3')
                     targetSnapshot.settings.env.should.have.property('custom', 'custom-env')
 
                     // Verify the container driver was asked to restart the flows
@@ -2451,7 +2451,7 @@ describe('Pipelines API', function () {
                     decrypted.should.have.property('key', 'value')
 
                     targetSnapshot.settings.should.have.property('settings')
-                    targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
+                    targetSnapshot.settings.modules.should.have.property('custom', '1.2.3')
 
                     // Verify the container driver was asked to restart the flows
                     app.log.info.calledWith(`[stub driver] Restarting flows ${TestObjects.instanceTwo.id}`).should.be.true()
@@ -2640,7 +2640,7 @@ describe('Pipelines API', function () {
                         flows: { custom: 'custom-flows' },
                         credentials: { custom: 'custom-creds' },
                         settings: {
-                            modules: { custom: 'custom-module' },
+                            modules: { custom: '1.2.3' },
                             env: { custom: 'custom-env' }
                         }
                     })
@@ -2684,7 +2684,7 @@ describe('Pipelines API', function () {
                     decrypted.should.have.property('custom', 'custom-creds')
 
                     targetSnapshot.settings.should.have.property('settings')
-                    targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
+                    targetSnapshot.settings.modules.should.have.property('custom', '1.2.3')
                     targetSnapshot.settings.env.should.have.property('custom', 'custom-env')
 
                     // Verify the container driver was asked to restart the flows
@@ -2749,7 +2749,7 @@ describe('Pipelines API', function () {
                     decrypted.should.have.property('key', 'value')
 
                     targetSnapshot.settings.should.have.property('settings')
-                    targetSnapshot.settings.modules.should.have.property('custom', 'custom-module')
+                    targetSnapshot.settings.modules.should.have.property('custom', '1.2.3')
 
                     // Verify the container driver was asked to restart the flows
                     app.log.info.calledWith(`[stub driver] Restarting flows ${TestObjects.instanceTwo.id}`).should.be.true()
@@ -2842,7 +2842,6 @@ describe('Pipelines API', function () {
                     const deviceGroup = deviceGroupData.groups[0]
                     device.should.have.property('targetSnapshotId', snapshot.id)
                     deviceGroup.should.have.property('targetSnapshotId', snapshot.id)
-                    console.warn('DEBUG: TEST END')
                 })
             })
 

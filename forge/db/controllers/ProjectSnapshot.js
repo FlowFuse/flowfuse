@@ -1,6 +1,7 @@
 const { Op } = require('sequelize')
 
 const { getLoggers: getProjectLogger } = require('../../auditLog/project')
+const { BUILT_IN_MODULES } = require('../../lib/builtInModules')
 
 const DEVICE_AUTO_SNAPSHOT_LIMIT = 10
 const DEVICE_AUTO_SNAPSHOT_PREFIX = 'Auto Snapshot' // Any changes to the format should be reflected in frontend/src/pages/device/Snapshots/index.vue
@@ -467,7 +468,7 @@ module.exports = {
             description: options.description || '',
             credentialSecret: device.credentialSecret,
             settings: {
-                settings: {}, // TODO: when device settings at application level are implemented
+                settings: { palette: { modules: {} } }, // TODO: when device settings at application level are implemented
                 env: {}, // TODO: when device settings at application level are implemented
                 modules: {} // TODO: when device settings at application level are implemented
             },
@@ -488,6 +489,14 @@ module.exports = {
         }
         if (deviceConfig.package?.modules) {
             snapshotOptions.settings.modules = deviceConfig.package.modules
+            // Ensure that the modules are added to the palette modules as this is used as the source of truth when
+            // importing the snapshot into a hosted instance
+            const modules = Object.keys(snapshotOptions.settings.modules)
+            modules.forEach((moduleName) => {
+                if (moduleName !== 'node-red' && !BUILT_IN_MODULES.includes(moduleName)) {
+                    snapshotOptions.settings.settings.palette.modules[moduleName] = snapshotOptions.settings.modules[moduleName]
+                }
+            })
         }
         // calling ProjectSnapshot.create because it's the same model as DeviceSnapshot (the one and only model for snapshots in the db)
         const snapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
