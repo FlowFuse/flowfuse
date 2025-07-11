@@ -34,9 +34,9 @@ export default defineComponent({
                     }
                 },
                 {
-                    label: 'Settings',
+                    label: 'Credentials',
                     to: {
-                        name: 'team-tables-table-settings',
+                        name: 'team-tables-table-credentials',
                         params: {
                             id: this.$route.params.id
                         }

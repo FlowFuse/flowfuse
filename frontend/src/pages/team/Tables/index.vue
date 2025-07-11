@@ -89,13 +89,13 @@ export default defineComponent({
     methods: {
         ...mapActions('product/tables', ['getDatabases']),
         redirectIfNeeded () {
-            if (this.databases.length === 0) {
+            if (Object.keys(this.databases).length === 0) {
                 // if the user doesn't have any tables, we'll redirect him to the offering page
                 return this.$router.replace({ name: 'team-tables-add' })
             } else if (!this.$route.params.id) {
                 // if the route we hit doesn't contain a specific database id and the user already has a table, it means
                 // he was redirected from somewhere to the generic tables page
-                return this.$router.push({ name: 'team-tables-table', params: { id: this.databases[0].id } })
+                return this.$router.push({ name: 'team-tables-table', params: { id: this.databases[Object.keys(this.databases)[0]].id } })
             }
         }
     }

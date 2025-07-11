@@ -1,7 +1,7 @@
 import tablesApi from '../../../../api/tables.js'
 
 const initialState = () => ({
-    databases: [],
+    databases: {},
     tables: {}
 })
 
@@ -26,7 +26,10 @@ const getters = {
 }
 const mutations = {
     setDatabases (state, payload) {
-        state.databases = payload
+        payload.forEach(database => {
+            console.log(123, database)
+            state.databases[database.id] = database
+        })
     },
     setTables (state, payload) {
         state.tables[payload.databaseId] = payload.tables

@@ -1,5 +1,5 @@
+import TableCredentials from './Table/components/TableCredentials.vue'
 import TableExplorer from './Table/components/TableExplorer.vue'
-import TableSettings from './Table/components/TableSettings.vue'
 import TableSqlEditor from './Table/components/TableSqlEditor.vue'
 import TeamTable from './Table/index.vue'
 import ChooseDatabase from './components/ChooseDatabase.vue'
@@ -32,9 +32,9 @@ export default [
                         component: TableSqlEditor
                     },
                     {
-                        name: 'team-tables-table-settings',
-                        path: 'settings',
-                        component: TableSettings
+                        name: 'team-tables-table-credentials',
+                        path: 'credentials',
+                        component: TableCredentials
                     }
                 ]
             },
