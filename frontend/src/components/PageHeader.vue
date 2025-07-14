@@ -222,9 +222,7 @@ export default {
         },
         startWelcomeTour () {
             return this.$store.dispatch('ux/tours/resetTours')
-                // it's unfortunate that we can't redirect premium users straight to the application device page, but we
-                // don't have available applications at this moment in time so they'll get redirected twice
-                .then(() => this.$router.push({ name: 'team-home' }))
+                .then(() => this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } }))
                 .then(() => this.$store.dispatch('ux/tours/presentTour'))
         },
         toggleMobileTeamSelectionMenu () {
