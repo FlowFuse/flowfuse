@@ -39,7 +39,7 @@
                     </div>
                     <div class="flex item">
                         <dt>Password:</dt>
-                        <dd>{{ currentDatabase.credentials.host }}</dd>
+                        <dd>{{ currentDatabase.credentials.password }}</dd>
                     </div>
                     <div class="flex item">
                         <dt>Port</dt>
