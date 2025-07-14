@@ -152,7 +152,9 @@ export default {
         isContactRequired () {
             return this.billingEnabled &&
                    !this.user.admin &&
-                   this.input.teamType && this.input.teamType.properties?.billing?.requireContact
+                   this.input.teamType &&
+                   this.input.teamTypeId !== this.team.type.id &&
+                   this.input.teamType.properties?.billing?.requireContact
         },
         isSelectionAvailable () {
             if (this.input.teamTypeId) {
