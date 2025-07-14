@@ -69,20 +69,53 @@ export default [
         modalOverlayOpeningPadding: 6,
         modalOverlayOpeningRadius: 6
     },
-    {
+    { // last step for teams that already have an instance created when signing up
         title: 'You’re All Set',
         text: `
             <p>There is lots more on offer with FlowFuse, but let's dive into your newly created Hosted Instance and get building some flows. Click the <b>Open Editor</b> button now to dive in and start building.</p>
         `,
         attachTo: {
-            element: '[data-el="dashboard-section-hosted"] .instance-tile:first-of-type', // adjust selector
+            element: '[data-el="dashboard-section-hosted"] .instance-tile:first-of-type',
             on: 'bottom'
         },
         when: {
             show () {
+                const target = document.querySelector('[data-el="dashboard-section-hosted"] .instance-tile:first-of-type')
+                if (!target) {
+                    // skip to the next step if we don't have instances created
+                    return this.tour.next()
+                } else {
+                    this.updateStepOptions({
+                        buttons: [
+                            {
+                                text: 'Back',
+                                action: this.tour.back,
+                                classes: 'shepherd-button-secondary'
+                            },
+                            {
+                                text: 'Finish',
+                                action: this.tour.complete,
+                                classes: 'shepherd-button-primary'
+                            }
+                        ]
+                    })
+                }
+
                 const editorButton = document.querySelector('[data-el="dashboard-section-hosted"] .instance-tile:first-of-type .actions .ff-btn')
                 highlightElement(editorButton, { count: 3, duration: 2000, animation: 'pulse' })
             }
+        },
+        modalOverlayOpeningPadding: 6,
+        modalOverlayOpeningRadius: 6
+    },
+    {
+        title: 'You’re All Set',
+        text: `
+            <p>There’s much more you can do with FlowFuse, but first, let’s get you started by creating your Hosted Instance. Click the <b>Create Instance</b> button to set one up and begin building your flows.</p>
+        `,
+        attachTo: {
+            element: '[data-el="dashboard-section-hosted"] .no-instances a',
+            on: 'bottom'
         },
         modalOverlayOpeningPadding: 6,
         modalOverlayOpeningRadius: 6
