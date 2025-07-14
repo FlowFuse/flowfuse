@@ -17,18 +17,8 @@ export default [
         modalOverlayOpeningRadius: 6
     },
     {
-        title: 'Hosted Instances Statistics at a Glance',
-        text: '<p>Check the status of Hosted Instances in this team — <b>Running</b>, <b>Error</b>, or <b>Not Running</b> — all in one place.</p> ',
-        attachTo: {
-            element: '[data-el="dashboard-section-hosted"] .stats',
-            on: 'bottom'
-        },
-        modalOverlayOpeningPadding: 6,
-        modalOverlayOpeningRadius: 6
-    },
-    {
         title: 'Recently Modified Hosted Instances',
-        text: '<p>Quickly pick up where you left off. See your most recently modified Hosted Instances and jump straight into editing or managing them.</p>',
+        text: '<p>Here, you can get quick access to your most recently modified Hosted Instances, jumping straight into editing or managing them.</p>',
         attachTo: {
             element: '[data-el="dashboard-section-hosted"] .recently-modified',
             on: 'bottom'
@@ -37,18 +27,8 @@ export default [
         modalOverlayOpeningRadius: 6
     },
     {
-        title: 'Manage Hosted Instances Anytime',
-        text: '<p>For more details and full control of your Hosted Instances, visit the <b>Hosted Instances</b> menu entry at any time.</p>',
-        attachTo: {
-            element: '[data-nav="team-instances"]',
-            on: 'right'
-        },
-        modalOverlayOpeningPadding: 6,
-        modalOverlayOpeningRadius: 6
-    },
-    {
         title: 'Concept: Remote Instances',
-        text: '<p><b>Remote Instances</b> are Node-RED instances that are managed and deployed <i>remotely</i>.</p><p>Whether hardware in factories or a Raspberry Pi on your desk, FlowFuse helps you manage hundreds of remote deployments.</p>',
+        text: '<p><b>Remote Instances</b> are Node-RED instances that are managed and deployed <i>remotely</i>, most commonly used for deploying Node-RED to the Edge.</p><p>Example include hardware in factories or a Raspberry Pi on your desk. FlowFuse can manage thousands of remote Node-RED deployments.</p>',
         attachTo: {
             element: '[data-el="dashboard-section-remote"]',
             on: 'bottom'
@@ -57,18 +37,8 @@ export default [
         modalOverlayOpeningRadius: 6
     },
     {
-        title: 'Monitor Remote Instance Status',
-        text: '<p>View the current state of your Remote Instances — see which are <b>Running</b>, which have <b>Errors</b>, and which are <b>Not Running</b>.</p>',
-        attachTo: {
-            element: '[data-el="dashboard-section-remote"] .stats',
-            on: 'bottom'
-        },
-        modalOverlayOpeningPadding: 6,
-        modalOverlayOpeningRadius: 6
-    },
-    {
         title: 'Manage Recent Remote Activity',
-        text: '<p>Access, edit, and manage the Remote Instances you updated most recently without searching for them.</p>',
+        text: '<p>Similarly, you can get quick access to your Remote Instances, with Remote Instances not fully setup, or in <b>Error</b> state getting flagged.</p>',
         attachTo: {
             element: '[data-el="dashboard-section-remote"] .recently-modified',
             on: 'bottom'
@@ -77,18 +47,8 @@ export default [
         modalOverlayOpeningRadius: 6
     },
     {
-        title: 'Explore Remote Instances',
-        text: '<p>For more details and full control of your Remote Instances, visit the <b>Remote Instances</b> menu entry at any time.</p>',
-        attachTo: {
-            element: '[data-nav="team-devices"]',
-            on: 'right'
-        },
-        modalOverlayOpeningPadding: 6,
-        modalOverlayOpeningRadius: 6
-    },
-    {
         title: 'Recent Team Activity',
-        text: '<p>Keep track of your team’s latest actions. Quickly review what’s been happening across the team in one condensed view.</p>',
+        text: '<p>FlowFuse keeps an Audit Log of all actions taken in the team so you can easily keep track of changes and actions taken by fellow team members.</p>',
         attachTo: {
             element: '[data-el="dashboard-section-audit"]',
             on: 'bottom'
@@ -99,9 +59,8 @@ export default [
     {
         title: 'Search Your Team',
         text: `
-            <p>Quickly find Hosted Instances, Remote Instances, and Applications in your team.</p>
-            <p>Click the search bar or press <b>Ctrl+K</b> (Windows/Linux) or <b>Cmd+K</b> (Mac) to open it.</p>
-            <p>Navigate results using your keyboard for faster access.</p>
+            <p>The quickest way to navigate FlowFuse is the global search bar. You can quickly find any Hosted Instances, Remote Instances, and Applications in your team.</p>
+            <p>Click the search bar or press <b>Ctrl+K</b> (Windows/Linux) or <b>Cmd+K</b> (Mac) to open it and get searching across your resources.</p>
         `,
         attachTo: {
             element: '#global-search',
@@ -113,7 +72,7 @@ export default [
     {
         title: 'You’re All Set',
         text: `
-            <p>This should be enough to get things rolling. Your newly created Hosted Instance is ready — click the <b>Open Editor</b> button now to dive in and start building.</p>
+            <p>There is lots more on offer with FlowFuse, but let's dive into your newly created Hosted Instance and get building some flows. Click the <b>Open Editor</b> button now to dive in and start building.</p>
         `,
         attachTo: {
             element: '[data-el="dashboard-section-hosted"] .instance-tile:first-of-type', // adjust selector
