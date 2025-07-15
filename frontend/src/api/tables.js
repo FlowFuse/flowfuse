@@ -15,8 +15,20 @@ const createDatabase = (teamId, name) => {
         .then(res => res.data)
 }
 
+const getTableSchema = (teamId, databaseId, tableName) => {
+    return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}`)
+        .then(res => res.data)
+}
+
+const getTableData = (teamId, databaseId, tableName) => {
+    return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}/data`)
+        .then(res => res.data)
+}
+
 export default {
+    createDatabase,
     getDataBases,
     getTables,
-    createDatabase
+    getTableSchema,
+    getTableData
 }

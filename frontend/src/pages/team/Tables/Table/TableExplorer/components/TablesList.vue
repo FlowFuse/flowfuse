@@ -20,8 +20,9 @@
         <ul v-if="filteredTables.length && tables.length" class="list">
             <li
                 v-for="table in filteredTables" :key="table.id"
-                v-ff-tooltip="table.name"
+                :title="table.name"
                 class="item"
+                @click="updateTableSelection(table.name)"
             >
                 <TableIcon class="ff-icon ff-icon-sm" style="min-width: 24px;" />
                 <span class="truncate">{{ table.name }}</span>
@@ -41,9 +42,9 @@
 </template>
 
 <script>
-import { PlusIcon, SearchIcon, TableIcon } from '@heroicons/vue/outline'
+import { SearchIcon, TableIcon } from '@heroicons/vue/outline'
 import { defineComponent } from 'vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import Alerts from '../../../../../../services/alerts.js'
 import Dialog from '../../../../../../services/dialog.js'
@@ -51,7 +52,8 @@ import Dialog from '../../../../../../services/dialog.js'
 import CreateTable from './CreateTable.vue'
 export default defineComponent({
     name: 'TablesList',
-    components: { SearchIcon, PlusIcon, TableIcon },
+    components: { SearchIcon, TableIcon },
+    emits: ['select-table'],
     data () {
         return {
             filterTerm: '',
@@ -74,6 +76,7 @@ export default defineComponent({
         }
     },
     methods: {
+        ...mapActions('product/tables', ['updateTableSelection']),
         onCreateTable () {
             Dialog.show({
                 header: 'Create a new Table',

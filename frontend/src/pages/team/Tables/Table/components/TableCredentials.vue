@@ -9,19 +9,19 @@
                 <dl>
                     <div class="flex item">
                         <dt>Database Name:</dt>
-                        <dd>{{ currentDatabase.credentials.database }}</dd>
+                        <dd>{{ database.credentials.database }}</dd>
                     </div>
                     <div class="flex item">
                         <dt>Host:</dt>
-                        <dd>{{ currentDatabase.credentials.host }}</dd>
+                        <dd>{{ database.credentials.host }}</dd>
                     </div>
                     <div class="flex item">
                         <dt>Port</dt>
-                        <dd>{{ currentDatabase.credentials.port }}</dd>
+                        <dd>{{ database.credentials.port }}</dd>
                     </div>
                     <div class="flex item">
                         <dt>SSL</dt>
-                        <dd>{{ currentDatabase.credentials.ssl }}</dd>
+                        <dd>{{ database.credentials.ssl }}</dd>
                     </div>
                 </dl>
             </div>
@@ -35,15 +35,15 @@
                 <dl>
                     <div class="flex item">
                         <dt>Username:</dt>
-                        <dd>{{ currentDatabase.credentials.database }}</dd>
+                        <dd>{{ database.credentials.database }}</dd>
                     </div>
                     <div class="flex item">
                         <dt>Password:</dt>
-                        <dd>{{ currentDatabase.credentials.password }}</dd>
+                        <dd>{{ database.credentials.password }}</dd>
                     </div>
                     <div class="flex item">
                         <dt>Port</dt>
-                        <dd>{{ currentDatabase.credentials.port }}</dd>
+                        <dd>{{ database.credentials.port }}</dd>
                     </div>
                 </dl>
             </div>
@@ -63,10 +63,7 @@ export default defineComponent({
     components: { DatabaseIcon, LockClosedIcon },
     computed: {
         ...mapState('product/tables', ['databases']),
-        ...mapGetters('product/tables', ['database']),
-        currentDatabase () {
-            return this.database(this.$route.params.id)
-        }
+        ...mapGetters('product/tables', ['database'])
     }
 })
 </script>

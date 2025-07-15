@@ -28,8 +28,8 @@
                                 @click="sortBy(col, $index)"
                             >
                                 <!-- Internal div required to have flex w/sorting icons -->
-                                <div>
-                                    {{ col.label }}
+                                <div :class="col.tableCellClass ?? ''">
+                                    <span :class="col.tableLabelClass ?? ''">{{ col.label }}</span>
                                     <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key" class="ff-icon ff-icon-sm" />
                                     <SortAscendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'" class="ff-icon ff-icon-sm icon-sorted" />
                                     <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'" class="ff-icon ff-icon-sm icon-sorted" />

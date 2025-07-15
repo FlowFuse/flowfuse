@@ -69,6 +69,16 @@ export default defineComponent({
         ...mapGetters('account', ['featuresCheck', 'team']),
         ...mapState('product/tables', ['databases'])
     },
+    watch: {
+        '$route.params.id': {
+            immediate: true,
+            handler (newVal) {
+                if (newVal) {
+                    this.updateDatabaseSelection(this.$route.params.id)
+                }
+            }
+        }
+    },
     updated () {
         this.redirectIfNeeded()
     },
@@ -87,7 +97,7 @@ export default defineComponent({
         }
     },
     methods: {
-        ...mapActions('product/tables', ['getDatabases']),
+        ...mapActions('product/tables', ['getDatabases', 'updateDatabaseSelection']),
         redirectIfNeeded () {
             if (Object.keys(this.databases).length === 0) {
                 // if the user doesn't have any tables, we'll redirect him to the offering page
