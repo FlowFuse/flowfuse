@@ -18,9 +18,13 @@
         </div>
 
         <ul v-if="filteredTables.length && tables.length" class="list">
-            <li v-for="table in filteredTables" :key="table.id" class="item">
-                <TableIcon class="ff-icon ff-icon-sm" />
-                {{ table.name }}
+            <li
+                v-for="table in filteredTables" :key="table.id"
+                v-ff-tooltip="table.name"
+                class="item"
+            >
+                <TableIcon class="ff-icon ff-icon-sm" style="min-width: 24px;" />
+                <span class="truncate">{{ table.name }}</span>
             </li>
         </ul>
 
