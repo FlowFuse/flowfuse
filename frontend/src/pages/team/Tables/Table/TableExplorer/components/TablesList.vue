@@ -10,47 +10,63 @@
                 <template #icon><SearchIcon /></template>
             </ff-text-input>
 
-            <ff-button kind="secondary" @click="onCreateTable">
-                <template #icon>
-                    <PlusIcon />
-                </template>
-            </ff-button>
+            <!--            <ff-button kind="secondary" @click="onCreateTable">-->
+            <!--                <template #icon>-->
+            <!--                    <PlusIcon />-->
+            <!--                </template>-->
+            <!--            </ff-button>-->
         </div>
 
-        <ul v-if="databaseTables.length" class="list">
-            <li>hello there!</li>
+        <ul v-if="filteredTables.length && tables.length" class="list">
+            <li v-for="table in filteredTables" :key="table.id" class="item">
+                <TableIcon class="ff-icon ff-icon-sm" />
+                {{ table.name }}
+            </li>
         </ul>
+
+        <div v-else-if="!filteredTables.length && tables.length" class="empty-state">
+            <p>No tables found matching your criteria!</p>
+        </div>
 
         <div v-else class="empty-state">
             <p>Ready to organize your data?</p>
-            <p><span class="cta" @click="onCreateTable">Create</span> your first table now.</p>
+            <p>Create your first table by connecting to the Database using Node-RED</p>
+            <!--            <p><span class="cta" @click="onCreateTable">Create</span> your first table now.</p>-->
         </div>
     </section>
 </template>
 
 <script>
-import { PlusIcon, SearchIcon } from '@heroicons/vue/outline'
+import { PlusIcon, SearchIcon, TableIcon } from '@heroicons/vue/outline'
 import { defineComponent } from 'vue'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import Alerts from '../../../../../../services/alerts.js'
 import Dialog from '../../../../../../services/dialog.js'
 
-import FfButton from '../../../../../../ui-components/components/Button.vue'
-
 import CreateTable from './CreateTable.vue'
 export default defineComponent({
     name: 'TablesList',
-    components: { FfButton, SearchIcon, PlusIcon },
+    components: { SearchIcon, PlusIcon, TableIcon },
     data () {
         return {
-            filterTerm: ''
+            filterTerm: '',
+            tables: []
         }
     },
     computed: {
-        ...mapGetters('product/tables', ['tables']),
-        databaseTables () {
-            return this.tables(this.$route.params.id)
+        ...mapGetters('product/tables', { getTables: 'tables' }),
+        ...mapState('product/tables', { tablesState: 'tables' }),
+        filteredTables () {
+            return this.tables.filter(t => t.name.toLowerCase().includes(this.filterTerm.toLowerCase()))
+        }
+    },
+    watch: {
+        tablesState: {
+            deep: true,
+            handler (newVal) {
+                this.tables = this.getTables(this.$route.params.id)
+            }
         }
     },
     methods: {
@@ -63,7 +79,7 @@ export default defineComponent({
                     component: CreateTable
                 }
             }, async () => {
-                Alerts.emit('way to goo!', 'confirmation')
+                Alerts.emit('Table created successfully.', 'confirmation')
             })
         }
     }
@@ -74,11 +90,29 @@ export default defineComponent({
 #tables-list {
     display: flex;
     flex-direction: column;
+    max-width: 20%;
+    min-width: 250px;
 
     .header {
         border-bottom: 1px solid $ff-color--border;
         padding-bottom: 15px;
         margin-bottom: 15px;
+    }
+
+    .list {
+        .item {
+            display: flex;
+            gap: 5px;
+            line-height: 2;
+            align-items: center;
+            transition: ease-in-out .3s;
+            cursor: pointer;
+
+            &:hover {
+             color: $ff-indigo-500;
+                background-color: $ff-grey-100;
+            }
+        }
     }
 
     .empty-state {

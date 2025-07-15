@@ -50,11 +50,6 @@ export default defineComponent({
         ...mapState('product/tables', ['tables'])
     },
     mounted () {
-        this.getTables(this.$route.params.id)
-            .catch(e => e)
-            .finally(() => {
-                this.loading = false
-            })
         this.$emit('set-tabs', this.tabs)
     },
     methods: {

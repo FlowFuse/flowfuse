@@ -7,13 +7,24 @@
 
 <script>
 import { defineComponent } from 'vue'
+import { mapActions } from 'vuex'
 
 import RowsList from './components/RowsList.vue'
 import TablesList from './components/TablesList.vue'
 
 export default defineComponent({
     name: 'TableExplorer',
-    components: { RowsList, TablesList }
+    components: { RowsList, TablesList },
+    mounted () {
+        this.getTables(this.$route.params.id)
+            .catch(e => e)
+            .finally(() => {
+                this.loading = false
+            })
+    },
+    methods: {
+        ...mapActions('product/tables', ['getTables'])
+    }
 })
 </script>
 
