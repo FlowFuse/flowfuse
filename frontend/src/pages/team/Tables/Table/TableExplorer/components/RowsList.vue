@@ -32,7 +32,7 @@ export default defineComponent({
             return (this.selectedTable?.schema ?? []).map(row => {
                 return {
                     key: row.name,
-                    label: `${row.name} / ${row.type}`,
+                    html: `<span>${row.name}</span> <span class="text-gray-400">${row.type}</span>`,
                     sortable: true,
                     style: {
                         width: '32px',
