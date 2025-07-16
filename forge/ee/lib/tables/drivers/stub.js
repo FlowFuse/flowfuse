@@ -28,7 +28,7 @@ module.exports = {
             throw new Error("Database already exists")
         }
         databases[team.hashid] = {
-            TeamId: team.hashid,
+            TeamId: team.id,
             name,
             credentials: {
                 host: "localhost",
