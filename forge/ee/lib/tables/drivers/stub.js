@@ -28,7 +28,7 @@ module.exports = {
             throw new Error("Database already exists")
         }
         databases[team.hashid] = {
-            TeamId: team.hashid,
+            TeamId: team.id,
             name,
             credentials: {
                 host: "localhost",
@@ -52,7 +52,7 @@ module.exports = {
         delete databases[team.hashid]
     },
     getTables: async function (team, databaseId) {
-        return ['table1', 'table2']
+        return [{name: 'table1', schema: 'public' }, { name: 'table2', schema: 'public' }]
     },
     getTable: async function (team, databaseId, tableName) {
         return [
