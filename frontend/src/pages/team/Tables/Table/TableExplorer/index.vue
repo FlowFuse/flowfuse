@@ -1,5 +1,5 @@
 <template>
-    <div id="table-explorer">
+    <div id="table-explorer" data-el="table-explorer">
         <TablesList />
         <RowsList />
     </div>

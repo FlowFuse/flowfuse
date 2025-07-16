@@ -1,10 +1,10 @@
 <template>
-    <section id="rows-list">
+    <section id="rows-list" data-el="rows-list">
         <!--        <div class="header flex gap-2 w-full h-full">-->
         <!--            <CollapseLeft class="ff-icon ff-icon-md" />-->
         <!--        </div>-->
 
-        <div v-if="!selectedTable" class="no-content">
+        <div v-if="!selectedTable" class="no-content w-full h-full flex justify-center items-center text-gray-400">
             <p>Select a table to get going!</p>
         </div>
 
@@ -12,7 +12,7 @@
             <ff-data-table :columns="columns" :rows="rows" />
         </div>
 
-        <div v-else class="no-content">
+        <div v-else class="no-content w-full h-full flex justify-center items-center text-gray-400">
             <p>There doesn't seem to be anything here!</p>
         </div>
     </section>

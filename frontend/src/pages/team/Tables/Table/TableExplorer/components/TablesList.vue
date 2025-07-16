@@ -1,5 +1,5 @@
 <template>
-    <section id="tables-list">
+    <section id="tables-list" data-el="tables-list">
         <div class="header flex gap-2">
             <ff-text-input
                 v-model="filterTerm"
@@ -64,7 +64,7 @@ export default defineComponent({
         ...mapGetters('product/tables', { getTables: 'tables' }),
         ...mapState('product/tables', { tablesState: 'tables' }),
         filteredTables () {
-            return this.tables.filter(t => t.name.toLowerCase().includes(this.filterTerm.toLowerCase()))
+            return this.tables.filter(t => (t.name ?? '').toLowerCase().includes(this.filterTerm.toLowerCase()))
         }
     },
     watch: {

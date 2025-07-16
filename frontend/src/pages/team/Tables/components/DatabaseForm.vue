@@ -1,6 +1,6 @@
 <template>
     <section class="database-form" data-form="database-form">
-        <div class="max-w-3xl">
+        <div class="max-w-lg">
             <form class="flex gap-9 flex-wrap" @submit.prevent="onSubmit">
                 <section class="database space-y-3 max-w-lg min-w-min flex-1">
                     <h6 class="mb-5 pb-2 title">Database</h6>

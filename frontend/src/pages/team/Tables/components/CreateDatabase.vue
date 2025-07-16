@@ -4,9 +4,7 @@
 
 <script>
 import { defineComponent } from 'vue'
-import { mapGetters } from 'vuex'
-
-import tablesApi from '../../../../api/tables.js'
+import { mapActions, mapGetters } from 'vuex'
 
 import DatabaseForm from './DatabaseForm.vue'
 
@@ -24,8 +22,15 @@ export default defineComponent({
         ...mapGetters('account', ['team'])
     },
     methods: {
+        ...mapActions('product/tables', ['createDatabase']),
         onSubmit (payload) {
-            return tablesApi.createDatabase(this.team.id, payload.name)
+            return this.createDatabase({ teamId: this.team.id, databaseName: payload.name })
+                .then(() => {
+                    this.$router.push({
+                        name: 'team-tables',
+                        params: { team_slug: this.team.slug }
+                    })
+                })
         }
     }
 })

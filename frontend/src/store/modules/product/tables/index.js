@@ -77,6 +77,13 @@ const mutations = {
     }
 }
 const actions = {
+    async createDatabase ({ commit }, { teamId, databaseName }) {
+        return tablesApi.createDatabase(teamId, databaseName)
+            .then((database) => {
+                commit('setDatabases', [database])
+                return database
+            })
+    },
     async getDatabases ({ commit, rootState }) {
         const team = rootState.account?.team
         return tablesApi.getDataBases(team.id)

@@ -1,6 +1,6 @@
 <template>
     <div id="add-database">
-        <div class="create-database py-20 flex flex-col gap-9" data-el="choose-database">
+        <div class="create-database flex flex-col gap-9" data-el="choose-database">
             <section class="flex gap-6 justify-center relative z-10 flex-wrap">
                 <h2>Choose which Database you'd like to get started with:</h2>
             </section>
@@ -15,8 +15,7 @@
                     :data-value="option.title"
                 >
                     <template #image>
-                        <!-- todo use the database icon instead-->
-                        <img alt="tile-image" class="w-36 m-auto" src="../../../../images/empty-states/mqtt-empty.png">
+                        <img alt="tile-image" class="w-36 m-auto" src="../../../../images/empty-states/team-tables.png">
                     </template>
                     <template #content>
                         <ul>
@@ -66,10 +65,9 @@ export default defineComponent({
             return [
                 {
                     ribbon: 'Recommended',
-                    title: 'Postgres',
+                    title: 'Managed PostgreSQL',
                     content: [
-                        'Something something postgres',
-                        'Another Something something postgres'
+                        'Production-ready PostgreSQL included in your plan'
                     ],
                     contentType: 'check',
                     to: { name: 'team-tables-create', params: { type: 'postgres' } }
@@ -84,5 +82,7 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-
+#add-database {
+    height: 100%;
+}
 </style>

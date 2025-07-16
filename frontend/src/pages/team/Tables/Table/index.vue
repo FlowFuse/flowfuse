@@ -13,8 +13,14 @@ export default defineComponent({
     emits: ['set-tabs'],
     data () {
         return {
-            loading: true,
-            tabs: [
+            loading: true
+        }
+    },
+    computed: {
+        ...mapGetters('account', ['team']),
+        ...mapState('product/tables', ['tables']),
+        tabs () {
+            return [
                 {
                     label: 'Explorer',
                     to: {
@@ -31,7 +37,8 @@ export default defineComponent({
                         params: {
                             id: this.$route.params.id
                         }
-                    }
+                    },
+                    hidden: true
                 },
                 {
                     label: 'Credentials',
@@ -42,12 +49,8 @@ export default defineComponent({
                         }
                     }
                 }
-            ]
+            ].filter(e => e.hidden ?? true)
         }
-    },
-    computed: {
-        ...mapGetters('account', ['team']),
-        ...mapState('product/tables', ['tables'])
     },
     mounted () {
         this.$emit('set-tabs', this.tabs)
