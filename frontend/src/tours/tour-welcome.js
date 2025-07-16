@@ -1,77 +1,123 @@
-export const id = 'welcome'
+import { highlightElement } from '../composables/Ux.js'
 
+export const id = 'welcome'
 export default [
     {
         title: 'Welcome to FlowFuse!',
-        text: "<p>Welcome to FlowFuse, the complete platform for building, managing and deploying your Node-RED applications.</p><p><b>Let's take a quick tour to get you started.</b></p>"
-    },
-    {
-        title: 'Concept: Applications',
-        text: '<p><b>This is your first Application in FlowFuse.</b></p><p>Applications help to organize your Node-RED Instances and other resources.</p>',
-        attachTo: {
-            element: 'li[data-el="application-item"]',
-            on: 'bottom'
-        },
-        modalOverlayOpeningXOffset: 12
+        text: '<p>Welcome to FlowFuse, the complete platform for building, managing and deploying your Node-RED applications.</p><p><b>Let\'s take a quick tour to get you started.</b></p>'
     },
     {
         title: 'Concept: Hosted Instances',
-        text: '<p><b>Instances</b> refer to instances of Node-RED, managed through FlowFuse.</p><p><b>Hosted Instances</b> run in the same environment as FlowFuse.</p>',
+        text: '<p><b>Hosted Instances</b> refer to instances of Node-RED running on the <i>same</i> host as FlowFuse.</p>',
         attachTo: {
-            element: 'section[data-el="application-instances-none"]',
+            element: '[data-el="dashboard-section-hosted"]',
             on: 'bottom'
-        }
+        },
+        modalOverlayOpeningPadding: 6,
+        modalOverlayOpeningRadius: 6
+    },
+    {
+        title: 'Recently Modified Hosted Instances',
+        text: '<p>Here, you can get quick access to your most recently modified Hosted Instances, jumping straight into editing or managing them.</p>',
+        attachTo: {
+            element: '[data-el="dashboard-section-hosted"] .recently-modified',
+            on: 'bottom'
+        },
+        modalOverlayOpeningPadding: 6,
+        modalOverlayOpeningRadius: 6
     },
     {
         title: 'Concept: Remote Instances',
-        text: '<p><b>Remote Instances</b> are Node-RED instances that are managed and deployed onto your own hardware.</p><p>This could be Instances running in factories or on a Raspberry Pi on your desk.</p>',
+        text: '<p><b>Remote Instances</b> are Node-RED instances that are managed and deployed <i>remotely</i>, most commonly used for deploying Node-RED to the Edge.</p><p>Example include hardware in factories or a Raspberry Pi on your desk. FlowFuse can manage thousands of remote Node-RED deployments.</p>',
         attachTo: {
-            element: 'section[data-el="application-devices-none"], section[data-el="application-devices"]',
-            on: 'bottom'
-        }
-    },
-    {
-        title: 'Navigation: Application Summary',
-        text: "<p>Here you can see a summary of the resources within your Application.</p><p>We've already had a quick look at the first two, but let's quickly scan over the others.</p>",
-        attachTo: {
-            element: 'div[data-el="application-summary"]',
-            on: 'left'
-        }
-    },
-    {
-        title: 'Concept: Pipelines',
-        text: '<p><b>DevOps Pipelines</b> help you push flows and configuration from one running Node-RED Instance to another.</p></p>This could be from a testing Instance to a production Instance, or from a single (test) Remote Instance out to thousands of (production) Remote Instances in your factory.</p>',
-        attachTo: {
-            element: 'a[data-nav="application-pipelines"] ',
-            on: 'left'
-        }
-    },
-    {
-        title: 'Concept: Snapshots',
-        text: '<p><b>Snapshots</b> are a point-in-time backup of a Node-RED Instance. They capture the flows, credentials and runtime settings.</p><p>Snapshots are used mostly for <b>Version Control</b> and in <b>Pipelines</b> where you can choose to roll out a <b>Snapshot</b> to <b>Instances</b> or <b>Device Group</b>.</p>',
-        attachTo: {
-            element: 'a[data-nav="application-snapshots"] ',
-            on: 'left'
-        }
-    },
-    {
-        title: 'Concept: Device Groups',
-        text: '<p><b>Device Groups</b> are collections of <b>Remote Instances</b> that can be used in <b>Pipelines</b> in order to deploy the same Node-RED flows out to multiple pieces of hardware in one-click.</p>',
-        attachTo: {
-            element: 'a[data-nav="application-device-groups"] ',
-            on: 'left'
-        }
-    },
-    {
-        title: 'Setup Your First Remote Instance',
-        text: "To get started, let's select your Application.</p>",
-        attachTo: {
-            element: 'a[data-action="view-application"]',
+            element: '[data-el="dashboard-section-remote"]',
             on: 'bottom'
         },
-        advanceOn: {
-            selector: 'a[data-action="view-application"]',
-            event: 'click'
-        }
+        modalOverlayOpeningPadding: 6,
+        modalOverlayOpeningRadius: 6
+    },
+    {
+        title: 'Manage Recent Remote Activity',
+        text: '<p>Similarly, you can get quick access to your Remote Instances, with Remote Instances not fully setup, or in <b>Error</b> state getting flagged.</p>',
+        attachTo: {
+            element: '[data-el="dashboard-section-remote"] .recently-modified',
+            on: 'bottom'
+        },
+        modalOverlayOpeningPadding: 6,
+        modalOverlayOpeningRadius: 6
+    },
+    {
+        title: 'Recent Team Activity',
+        text: '<p>FlowFuse keeps an Audit Log of all actions taken in the team so you can easily keep track of changes and actions taken by fellow team members.</p>',
+        attachTo: {
+            element: '[data-el="dashboard-section-audit"]',
+            on: 'bottom'
+        },
+        modalOverlayOpeningPadding: 6,
+        modalOverlayOpeningRadius: 6
+    },
+    {
+        title: 'Search Your Team',
+        text: `
+            <p>The quickest way to navigate FlowFuse is the global search bar. You can quickly find any Hosted Instances, Remote Instances, and Applications in your team.</p>
+            <p>Click the search bar or press <b>Ctrl+K</b> (Windows/Linux) or <b>Cmd+K</b> (Mac) to open it and get searching across your resources.</p>
+        `,
+        attachTo: {
+            element: '#global-search',
+            on: 'bottom'
+        },
+        modalOverlayOpeningPadding: 6,
+        modalOverlayOpeningRadius: 6
+    },
+    { // last step for teams that already have an instance created when signing up
+        title: 'You’re All Set',
+        text: `
+            <p>There is lots more on offer with FlowFuse, but let's dive into your newly created Hosted Instance and get building some flows. Click the <b>Open Editor</b> button now to dive in and start building.</p>
+        `,
+        attachTo: {
+            element: '[data-el="dashboard-section-hosted"] .instance-tile:first-of-type',
+            on: 'bottom'
+        },
+        when: {
+            show () {
+                const target = document.querySelector('[data-el="dashboard-section-hosted"] .instance-tile:first-of-type')
+                if (!target) {
+                    // skip to the next step if we don't have instances created
+                    return this.tour.next()
+                } else {
+                    this.updateStepOptions({
+                        buttons: [
+                            {
+                                text: 'Back',
+                                action: this.tour.back,
+                                classes: 'shepherd-button-secondary'
+                            },
+                            {
+                                text: 'Finish',
+                                action: this.tour.complete,
+                                classes: 'shepherd-button-primary'
+                            }
+                        ]
+                    })
+                }
+
+                const editorButton = document.querySelector('[data-el="dashboard-section-hosted"] .instance-tile:first-of-type .actions .ff-btn')
+                highlightElement(editorButton, { count: 3, duration: 2000, animation: 'pulse' })
+            }
+        },
+        modalOverlayOpeningPadding: 6,
+        modalOverlayOpeningRadius: 6
+    },
+    {
+        title: 'You’re All Set',
+        text: `
+            <p>There’s much more you can do with FlowFuse, but first, let’s get you started by creating your Hosted Instance. Click the <b>Create Instance</b> button to set one up and begin building your flows.</p>
+        `,
+        attachTo: {
+            element: '[data-el="dashboard-section-hosted"] .no-instances a',
+            on: 'bottom'
+        },
+        modalOverlayOpeningPadding: 6,
+        modalOverlayOpeningRadius: 6
     }
 ]
