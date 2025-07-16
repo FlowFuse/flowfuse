@@ -8,18 +8,10 @@ module.exports = {
     init: async function (app, options) {
         this._app = app
         this._options = options || {}
-        // options.max = 1
-        // adminClient = new pg.Pool(options || {})
         if (!options.database) {
             throw new Error('Postgres LocalFS driver requires database options to be provided')
         }
         adminClient = new pg.Client(options.database || {})
-        // adminClient.on('connect', (client) => {
-        //     this._app.log.info('Postgres LocalFS driver new client connected')
-        //     client.on('error', (err) => {
-        //         this._app.log.error('Postgres LocalFS driver client error', err)
-        //     })
-        // })
         adminClient.on('error', (err) => {
             this._app.log.error('Postgres LocalFS driver error:', err)
         })
@@ -145,7 +137,7 @@ module.exports = {
             }
             const teamClient = new pg.Client(options)
             try {
-                teamClient.connect()
+                await teamClient.connect()
                 const res = await teamClient.query('SELECT "tablename" FROM "pg_catalog"."pg_tables" WHERE "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\'')
                 if (res.rows && res.rows.length > 0) {
                     return res.rows.map(row => {
@@ -184,7 +176,7 @@ module.exports = {
             }
             const teamClient = new pg.Client(options)
             try {
-                teamClient.connect()
+                await teamClient.connect()
                 const res = await teamClient.query('SELECT column_name, udt_name, is_nullable, column_default, character_maximum_length, is_generated FROM information_schema.columns WHERE table_name = $1', [table])
                 if (res.rows && res.rows.length > 0) {
                     return res.rows.map(row => {
@@ -227,7 +219,7 @@ module.exports = {
             }
             const teamClient = new pg.Client(options)
             try {
-                teamClient.connect()
+                await teamClient.connect()
                 const query = `SELECT * FROM "${table}" LIMIT $1`
                 const res = await teamClient.query(query, [rows || 10])
                 if (res.rows && res.rows.length > 0) {
