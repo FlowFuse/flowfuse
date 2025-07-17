@@ -229,8 +229,11 @@ const getters = {
 
             // Instance Resources
             isInstanceResourcesFeatureEnabledForPlatform: !!state.features?.instanceResources,
-            isInstanceResourcesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.instanceResources
+            isInstanceResourcesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.instanceResources,
 
+            // Tables
+            isTablesFeatureEnabledForPlatform: !!state.features.tables,
+            isTablesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.tables
         }
         return {
             ...preCheck,
@@ -247,7 +250,8 @@ const getters = {
             devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
             isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups,
             isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration,
-            isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam
+            isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
+            isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam
         }
     }
 }
@@ -499,6 +503,7 @@ const actions = {
             teamMembership = await teamApi.getTeamUserMembership(team.id)
         }
         state.commit('setTeam', team)
+        state.dispatch('clearOtherStores')
         state.commit('setTeamMembership', teamMembership)
         state.commit('clearPendingTeamChange')
     },
@@ -537,6 +542,9 @@ const actions = {
                 state.commit('setTeamInvitations', invitations.invitations)
             })
             .catch(_ => {})
+    },
+    async clearOtherStores (state) {
+        await state.dispatch('product/tables/clearState', null, { root: true })
     }
 }
 
