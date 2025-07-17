@@ -170,7 +170,7 @@ describe('Tables API', function () {
         })
         response.statusCode.should.equal(200)
         const columns = response.json()
-        columns.should.be.an.Array().and.have.length(2) 
+        columns.should.be.an.Array().and.have.length(2)
         columns[0].should.have.property('name', 'id')
         columns[0].should.have.property('type', 'integer')
         columns[1].should.have.property('name', 'name')
