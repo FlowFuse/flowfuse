@@ -98,6 +98,16 @@ describe('Tables API', function () {
         db.credentials.should.have.property('port', 5432)
     })
 
+    it('Create a new Team database when already exists', async function () {
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${TestObjects.team.hashid}/databases`,
+            cookies: { sid: TestObjects.tokens.bob },
+            payload: { name: 'Test Database' }
+        })
+        response.statusCode.should.equal(409)        
+    })
+
     it('Get Team database list after creation', async function () {
         const response = await app.inject({
             method: 'GET',
