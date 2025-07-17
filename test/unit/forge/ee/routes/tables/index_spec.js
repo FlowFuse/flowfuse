@@ -4,7 +4,7 @@ const setup = require('../../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
-describe('Tables API', function () {
+describe.only('Tables API', function () {
     let app
     const TestObjects = { tokens: {} }
 
@@ -159,5 +159,41 @@ describe('Tables API', function () {
         tables.should.be.an.Array().and.have.length(2)
         tables[0].should.have.property('name', 'table1')
         tables[1].should.have.property('name', 'table2')
+    })
+
+    it('Get details for a table', async function () {
+        const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/teams/${TestObjects.team.hashid}/databases/${db.hashid}/tables/table1`,
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+        response.statusCode.should.equal(200)
+        const columns = response.json()
+        columns.should.be.an.Array().and.have.length(2) 
+        columns[0].should.have.property('name', 'id')
+        columns[0].should.have.property('type', 'integer')
+        columns[1].should.have.property('name', 'name')
+        columns[1].should.have.property('type', 'text')
+    })
+
+    it('Fail to delete database without permission', async function () {
+        const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
+        const response = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${TestObjects.team.hashid}/databases/${db.hashid}`,
+            cookies: { sid: TestObjects.tokens.dave }
+        })
+        response.statusCode.should.equal(403)
+    })
+
+    it('Delete Team database', async function () {
+        const db = (await app.db.models.Table.byTeamId(TestObjects.team.id))[0]
+        const response = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${TestObjects.team.hashid}/databases/${db.hashid}`,
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+        response.statusCode.should.equal(200)
     })
 })
