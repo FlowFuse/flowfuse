@@ -36,6 +36,9 @@ module.exports = async function (app) {
         }
         await app.register(require('./gitops'), { prefix: '/api/v1/teams/:teamId/git', logLevel: app.config.logging.http })
         await app.register(require('./resource'), { prefix: '/api/v1/projects/:instanceId/resources', logLevel: app.config.logging.http })
+        if (app.config.tables?.enabled) {
+            await app.register(require('./tables'), { prefix: '/api/v1/teams/:teamId/databases', logLevel: app.config.logging.http })
+        }
 
         // Important: keep SSO last to avoid its error handling polluting other routes.
         await app.register(require('./sso'), { logLevel: app.config.logging.http })
