@@ -8,39 +8,31 @@ module.exports = {
     shutdown: async function (app) {},
     getDatabases: async function (team) {
         const tables = await this._app.db.models.Table.byTeamId(team.id)
-        if (tables && tables.length > 0) {
-            return tables
-        } else {
-            throw new Error(`Database for team ${team.hashid} does not exist`)
-        }
+        return tables
     },
     getDatabase: async function (team, databaseId) {
-        const table = await this._app.db.models.Table.byId(teamId, databaseId)
-        if (table) {
-            return table
-        } else {
-            throw new Error(`Database ${databaseId} for team ${teamId} does not exist`)
-        }
+        const table = await this._app.db.models.Table.byId(team.id, databaseId)
+        return table
     },
     createDatabase: async function (team, name) {
-        console.log("Creating database for team", team.hashid, "with name", name)
+        // console.log('Creating database for team', team.hashid, 'with name', name)
         if (databases[team.hashid]) {
-            throw new Error("Database already exists")
+            throw new Error('Database already exists')
         }
         databases[team.hashid] = {
             TeamId: team.id,
             name,
             credentials: {
-                host: "localhost",
+                host: 'localhost',
                 port: 5432,
                 database: team.hashid,
-                user: "postgres",
+                user: 'postgres',
                 password: generatePassword(16),
                 ssl: false
             },
             meta: {}
-        };
-        const table = await this._app.db.models.Table.create(databases[team.hashid] )
+        }
+        const table = await this._app.db.models.Table.create(databases[team.hashid])
         return table
     },
     destroyDatabase: async function (team, databaseId) {
@@ -52,18 +44,18 @@ module.exports = {
         delete databases[team.hashid]
     },
     getTables: async function (team, databaseId) {
-        return [{name: 'table1', schema: 'public' }, { name: 'table2', schema: 'public' }]
+        return [{ name: 'table1', schema: 'public' }, { name: 'table2', schema: 'public' }]
     },
     getTable: async function (team, databaseId, tableName) {
         return [
-            {name: 'id', type: 'integer', nullable: false, default: null, maxLength: null, generated: false},
-            {name: 'name', type: 'text', nullable: true, default: null, maxLength: 255, generated: false}
+            { name: 'id', type: 'integer', nullable: false, default: null, maxLength: null, generated: false },
+            { name: 'name', type: 'text', nullable: true, default: null, maxLength: 255, generated: false }
         ]
     },
     getTableData: async function (team, databaseId, table, rows) {
         return [
-            {id: 1, name: 'Row 1'},
-            {id: 2, name: 'Row 2'}
+            { id: 1, name: 'Row 1' },
+            { id: 2, name: 'Row 2' }
         ]
     },
     createTable: async function (team, databaseId, table) {},
