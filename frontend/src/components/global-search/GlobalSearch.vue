@@ -13,7 +13,7 @@
                     <!--                    <SearchIconSolid class="ff-icon-sm mobile-search" @click="focusSearch" />-->
 
                     <transition name="primary-fade" mode="out-in">
-                        <SpinnerIcon v-if="loading" class="ff-icon-sm search" />
+                        <SpinnerIcon v-if="loading" class="ff-icon-sm" />
                         <SearchIcon v-else class="ff-icon-sm search" />
                     </transition>
 
