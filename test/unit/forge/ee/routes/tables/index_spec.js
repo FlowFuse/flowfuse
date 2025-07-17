@@ -105,7 +105,7 @@ describe('Tables API', function () {
             cookies: { sid: TestObjects.tokens.bob },
             payload: { name: 'Test Database' }
         })
-        response.statusCode.should.equal(409)        
+        response.statusCode.should.equal(409)
     })
 
     it('Get Team database list after creation', async function () {
