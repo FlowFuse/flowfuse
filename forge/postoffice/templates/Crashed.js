@@ -60,7 +60,7 @@ Possible solutions:
 <li>Check the Node-RED issue tracker for similar issues</li>
 </ul>
 
-CTA: <a href="{{{ ctaChangeTypeUrl }}}">Upgrade my instance</a>
+<a href="{{{ ctaChangeTypeUrl }}}">Upgrade my instance</a>
 </p>
 
 {{#if log.html}}

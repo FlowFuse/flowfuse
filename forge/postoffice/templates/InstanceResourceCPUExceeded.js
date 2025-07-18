@@ -64,7 +64,7 @@ Possible solutions:
 <li>Check the instance logs for clues and errors</li>
 </ul>
 
-CTA: <a href="{{{ ctaChangeTypeUrl }}}">Upgrade my instance</a>
+<a href="{{{ ctaChangeTypeUrl }}}">Upgrade my instance</a>
 </p>
 
 

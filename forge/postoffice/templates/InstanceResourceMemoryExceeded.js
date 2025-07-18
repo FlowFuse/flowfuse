@@ -64,7 +64,7 @@ Possible solutions:
 <li>Check the issue tracker of your contrib nodes</li>
 </ul>
 
-CTA: <a href="{{{ ctaChangeTypeUrl }}}">Upgrade my instance</a>
+<a href="{{{ ctaChangeTypeUrl }}}">Upgrade my instance</a>
 </p>
 
 {{#if log.html}}
