@@ -84,7 +84,6 @@ Logs:
 </p>
 {{/if}}
 
-<p>You can access the instance and its logs here</p>
-<a href="{{{ url }}}">Instance Logs</a>
+<p>You can access the instance and its logs here: <a href="{{{ url }}}">Instance Logs</a></p>
 `
 }
