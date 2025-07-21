@@ -9,6 +9,7 @@ const setup = require('../setup')
 const FF_UTIL = require('flowforge-test-utils')
 
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+const { decryptValue } = FF_UTIL.require('forge/db/utils')
 
 function decryptCredentials (key, cipher) {
     let flows = cipher.$
@@ -415,7 +416,8 @@ describe('Project Snapshots API', function () {
                     dashboardUI: '/test-dash',
                     env: [
                         { name: aEnvSignificator, value: 'a' },
-                        { name: 'two', value: 'b' }
+                        { name: 'two', value: 'b' },
+                        { name: 'secret', value: 'top-secret', hidden: true }
                     ]
                 }
             )
@@ -457,6 +459,10 @@ describe('Project Snapshots API', function () {
             exportResult.settings.should.only.have.keys('settings', 'env', 'modules')
             exportResult.settings.env.should.have.property(aEnvSignificator)
             exportResult.settings.env.should.have.property('two')
+            exportResult.settings.env.should.have.property('secret')
+            exportResult.settings.env.secret.should.not.have.property('value')
+            exportResult.settings.env.secret.should.have.property('hidden', true)
+            exportResult.settings.env.secret.should.have.property('$')
             exportResult.settings.should.have.property('modules')
 
             exportResult.should.not.have.property('credentialSecret')
@@ -484,7 +490,8 @@ describe('Project Snapshots API', function () {
                     dashboardUI: '/test-dash',
                     env: [
                         { name: aEnvSignificator, value: 'a' },
-                        { name: 'two', value: 'b' }
+                        { name: 'two', value: 'b' },
+                        { name: 'secret', value: 'top-secret', hidden: true }
                     ]
                 }
             )
@@ -530,6 +537,10 @@ describe('Project Snapshots API', function () {
             snapshot.settings.should.have.property('env')
             snapshot.settings.env.should.have.property('one', 'a')
             snapshot.settings.env.should.have.property('two', 'b')
+            snapshot.settings.env.should.have.property('secret')
+            // The db snapshot doesn't contain encrypted values, but the export will
+            snapshot.settings.env.secret.should.have.property('value', 'top-secret')
+            snapshot.settings.env.secret.should.have.property('hidden', true)
             snapshot.settings.should.have.property('modules')
 
             // we consider in this test that credentials of Project B will be used.
@@ -558,6 +569,11 @@ describe('Project Snapshots API', function () {
             exportResult.flows.should.have.property('flows').and.be.an.Array()
             exportResult.flows.flows.should.have.lengthOf(1)
             exportResult.flows.flows[0].should.have.property('id', 'node1')
+
+            exportResult.settings.env.should.have.property('secret')
+            exportResult.settings.env.secret.should.not.have.property('value')
+            exportResult.settings.env.secret.should.have.property('hidden', true)
+            exportResult.settings.env.secret.should.have.property('$')
 
             exportResult.should.not.have.property('credentialSecret')
 
@@ -613,6 +629,15 @@ describe('Project Snapshots API', function () {
             snapshotViaController.should.have.property('settings').and.be.an.Object()
             snapshotViaController.settings.should.have.property('env')
 
+            snapshotViaController.settings.env.should.be.an.Object()
+            snapshotViaController.settings.env.should.have.property('secret')
+            snapshotViaController.settings.env.secret.should.not.have.property('value')
+            snapshotViaController.settings.env.secret.should.have.property('hidden', true)
+            snapshotViaController.settings.env.secret.should.have.property('$')
+            // Validate the value has been reencrypted with the secret of Project B
+            const secretValue = decryptValue(credSecretB, snapshotViaController.settings.env.secret.$)
+            secretValue.should.equal('top-secret')
+
             // verify result has the proper env
             snapshotViaController.settings.env.should.have.property(aEnvSignificator)
             snapshotViaController.settings.env.should.have.property(aEnvSignificator)
@@ -651,7 +676,8 @@ describe('Project Snapshots API', function () {
                     dashboardUI: '/test-dash',
                     env: [
                         { name: aEnvSignificator, value: 'a' },
-                        { name: 'two', value: 'b' }
+                        { name: 'two', value: 'b' },
+                        { name: 'secret', value: 'top-secret', hidden: true }
                     ]
                 }
             )
@@ -782,6 +808,15 @@ describe('Project Snapshots API', function () {
             snapshotViaController.settings.env.should.have.property(aEnvSignificator)
             snapshotViaController.settings.env.should.have.property(aEnvSignificator)
             snapshotViaController.settings.env.should.have.property('FF_INSTANCE_ID', TestObjects.project2.id)
+
+            snapshotViaController.settings.env.should.be.an.Object()
+            snapshotViaController.settings.env.should.have.property('secret')
+            snapshotViaController.settings.env.secret.should.not.have.property('value')
+            snapshotViaController.settings.env.secret.should.have.property('hidden', true)
+            snapshotViaController.settings.env.secret.should.have.property('$')
+            // Validate the value has been reencrypted with the secret of Project B
+            const secretValue = decryptValue(credSecretB, snapshotViaController.settings.env.secret.$)
+            secretValue.should.equal('top-secret')
 
             // verify that credentials belong to Project B
             const iDecryptedCreds = decryptCredentials(keyHashB, snapshotViaController.flows.credentials)

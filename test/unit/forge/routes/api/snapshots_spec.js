@@ -520,7 +520,8 @@ describe('Snapshots API', function () {
                     // Currently, env vars only get captured for hosted instances.
                     data.settings.env.should.have.property('a', '1')
                     data.settings.env.should.have.property('b')
-                    data.settings.env.b.should.have.property('value', '2')
+                    data.settings.env.b.should.not.have.property('value')
+                    data.settings.env.b.should.have.property('$')
                     data.settings.env.b.should.have.property('hidden', true)
                     // An export does not include system-level env vars
                     data.settings.env.should.not.have.property('FF_INSTANCE_ID')
@@ -669,7 +670,8 @@ describe('Snapshots API', function () {
                 data.settings.env.should.be.an.Object()
                 data.settings.env.should.have.property('ONE', 'envOne')
                 data.settings.env.should.have.property('TWO')
-                data.settings.env.TWO.should.have.property('value', 'envTwo')
+                data.settings.env.TWO.should.not.have.property('value')
+                data.settings.env.TWO.should.have.property('$')
                 data.settings.env.TWO.should.have.property('hidden', true)
 
                 data.settings.modules.should.be.an.Object()

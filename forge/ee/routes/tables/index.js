@@ -129,7 +129,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const creds = await app.tables.getDatabase(request.team.hashid, request.params.databaseId)
+            const creds = await app.tables.getDatabase(request.team, request.params.databaseId)
             if (creds) {
                 reply.send(await app.db.views.Table.table(creds))
             } else {
@@ -173,6 +173,7 @@ module.exports = async function (app) {
             await app.tables.destroyDatabase(request.team, request.params.databaseId)
             reply.send({})
         } catch (err) {
+            // console.log(err)
             reply.status(500).send({ code: 'unexpected_error', error: 'Failed to destroy database' })
         }
     })

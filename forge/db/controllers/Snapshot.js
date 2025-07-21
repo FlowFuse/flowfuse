@@ -1,4 +1,7 @@
 const { ValidationError } = require('sequelize')
+
+const { encryptValue, decryptValue } = require('../utils')
+
 const hasProperty = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key)
 
 module.exports = {
@@ -89,10 +92,17 @@ module.exports = {
             result.settings = Object.assign({}, snapshot.settings, { env: keysOnly })
         }
 
+        const currentSecret = result.credentialSecret || owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret())
         // loop keys of result.settings.env and remove any that match FF_*
         Object.keys(result.settings.env).forEach((key) => {
             if (key.startsWith('FF_')) {
                 delete result.settings.env[key]
+            } else {
+                const envVar = result.settings.env[key]
+                if (envVar.hidden && Object.hasOwn(envVar, 'value')) {
+                    envVar.$ = encryptValue(options.credentialSecret || currentSecret, envVar.value)
+                    delete envVar.value
+                }
             }
         })
 
@@ -100,7 +110,6 @@ module.exports = {
             result.flows.credentials = {}
         } else {
             // use the secret stored in the snapshot, if available...
-            const currentSecret = result.credentialSecret || owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret())
             const credentials = options.credentials ? options.credentials : result.flows.credentials
 
             // if provided credentials already encrypted: "exportCredentials" will just return the same credentials
@@ -235,6 +244,17 @@ module.exports = {
             }, {})
             importSnapshot.settings = Object.assign({}, snapshot.settings, { env: keysOnly })
         }
+
+        // Decrypt any incoming hidden env vars that are encrypted
+        const keys = Object.keys(snapshot.settings.env)
+        keys.forEach((key) => {
+            const env = snapshot.settings.env[key]
+            if (env.hidden && env.$) {
+                // Decrypt the value if it is encrypted
+                env.value = decryptValue(credentialSecret, env.$)
+                delete env.$
+            }
+        })
 
         const targetCredentialSecret = owner.credentialSecret || (owner.getCredentialSecret && await owner.getCredentialSecret()) || credentialSecret
         // 1. If the snapshot includes credentials but no credentialSecret, we should reject it

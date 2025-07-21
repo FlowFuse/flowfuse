@@ -51,6 +51,9 @@ module.exports = {
                     if (typeof databaseId === 'string') {
                         databaseId = M.Table.decodeHashid(databaseId)[0]
                     }
+                    if (!teamId || !databaseId) {
+                        return null
+                    }
                     return self.findOne({
                         where: {
                             id: databaseId,

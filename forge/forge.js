@@ -114,6 +114,16 @@ module.exports = async (options = {}) => {
                         response.request.ownerType = reply.request?.session?.ownerType
                     }
                 }
+                // Find the team id
+                if (reply.request?.team) {
+                    response.request.team = reply.request?.team.hashid
+                } else if (reply.request?.device?.Team) {
+                    response.request.team = reply.request?.device?.Team.hashid
+                } else if (reply.request?.application?.Team) {
+                    response.request.team = reply.request?.application?.Team.hashid
+                } else if (reply.request?.snapshot && reply.request?.owner?.TeamId) {
+                    response.request.team = server.db.models.Team.encodeHashid(reply.request.owner.TeamId)
+                }
                 return response
             }
         }

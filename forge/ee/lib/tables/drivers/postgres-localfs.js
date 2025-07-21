@@ -38,12 +38,12 @@ module.exports = {
             throw new Error(`Database for team ${team.hashid} does not exist`)
         }
     },
-    getDatabase: async function (teamId, databaseId) {
-        const table = await this._app.db.models.Table.byId(teamId, databaseId)
+    getDatabase: async function (team, databaseId) {
+        const table = await this._app.db.models.Table.byId(team.id, databaseId)
         if (table) {
             return table
         } else {
-            throw new Error(`Database ${databaseId} for team ${teamId} does not exist`)
+            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
         }
     },
     createDatabase: async function (team, name) {
@@ -79,7 +79,6 @@ module.exports = {
                 await teamClient.query(`GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "${team.hashid}-role"`)
                 await teamClient.query(`CREATE USER "${team.hashid}" WITH PASSWORD '${password}'`)
                 await teamClient.query(`GRANT "${team.hashid}-role" TO "${team.hashid}"`)
-                
             } finally {
                 await teamClient.end()
             }
