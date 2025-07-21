@@ -100,6 +100,7 @@ class DeviceCommsHandler {
 
                 if (payload === null) {
                     // This device is busy updating - don't interrupt it
+                    this.app.log.info({ msg: 'Device status update - null status', device: deviceId, team: device.Team?.hashid, responseTime: Date.now() - startTime })
                     return
                 }
 
