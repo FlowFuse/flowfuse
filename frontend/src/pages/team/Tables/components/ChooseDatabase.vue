@@ -28,9 +28,19 @@
                     </template>
                     <template #call-to-action>
                         <ff-button
+                            v-if="option.to"
                             class="w-full" data-el="select"
                             :kind="option.ribbon || options.length === 1 ? 'primary' : 'secondary'"
                             :to="option.to"
+                        >
+                            Select
+                        </ff-button>
+
+                        <ff-button
+                            v-else-if="option.handler"
+                            class="w-full" data-el="select"
+                            :kind="option.ribbon || options.length === 1 ? 'primary' : 'secondary'"
+                            @click="option.handler"
                         >
                             Select
                         </ff-button>
@@ -50,8 +60,10 @@
 <script>
 import { CheckIcon, MinusIcon } from '@heroicons/vue/outline'
 import { defineComponent } from 'vue'
+import { mapActions, mapState } from 'vuex'
 
 import MediumTile from '../../../../components/tiles/MediumTile.vue'
+import NameGenerator from '../../../../utils/name-generator/index.js'
 
 export default defineComponent({
     name: 'NewDatabase',
@@ -61,6 +73,7 @@ export default defineComponent({
         MediumTile
     },
     computed: {
+        ...mapState('account', ['team']),
         options () {
             return [
                 {
@@ -70,12 +83,24 @@ export default defineComponent({
                         'Production-ready PostgreSQL included in your plan'
                     ],
                     contentType: 'check',
-                    to: { name: 'team-tables-create', params: { type: 'postgres' } }
+                    handler: this.onPgTableCreate
                 }
             ].filter(op => !op.hidden)
         },
         shouldDisplayBackButton () {
             return true
+        }
+    },
+    methods: {
+        ...mapActions('product/tables', ['createDatabase']),
+        onPgTableCreate () {
+            const databaseName = NameGenerator()
+
+            return this.createDatabase({ teamId: this.team.id, databaseName })
+                .then(() => this.$router.push({
+                    name: 'team-tables',
+                    params: { team_slug: this.team.slug }
+                }))
         }
     }
 })
