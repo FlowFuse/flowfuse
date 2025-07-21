@@ -46,6 +46,10 @@ export default {
         .input-trigger, .icon-trigger {
             display: none;
         }
+
+        .ff-icon-sm.search {
+            display: inline;
+        }
     }
 
 }
