@@ -515,7 +515,7 @@ describe('Project controller', function () {
             tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
             should(tempResult).be.undefined()
 
-            app.db.controllers.Project.setLatestProjectState('project-id', 'status')
+            app.db.controllers.Project.updateLatestProjectState('project-id', 'status')
             tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
             should(tempResult).equal('status')
 
