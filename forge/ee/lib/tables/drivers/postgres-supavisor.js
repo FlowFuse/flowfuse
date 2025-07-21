@@ -41,7 +41,7 @@ module.exports = {
         if (tables && tables.length > 0) {
             return tables
         } else {
-            throw new Error(`Database for team ${team.hashid} does not exist`)
+            return []
         }
     },
     getDatabase: async function (team, databaseId) {
