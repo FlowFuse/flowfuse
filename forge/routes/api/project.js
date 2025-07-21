@@ -1359,7 +1359,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        app.db.Controller.Project.updateLatestProjectState(request.params.instanceId, request.body.state)
+        app.db.controllers.Project.updateLatestProjectState(request.params.instanceId, request.body.state)
 
         reply.code(202).send()
     })
