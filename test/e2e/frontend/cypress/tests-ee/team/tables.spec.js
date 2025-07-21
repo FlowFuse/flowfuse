@@ -102,10 +102,6 @@ describe('FlowFuse - Tables', () => {
 
                 cy.get('[data-el="medium-tile"][data-value="Managed PostgreSQL"] [data-el="select"]').click()
 
-                cy.get('[data-input="name"] input').type('Data the Base')
-                //
-                cy.get('[data-action="submit"]').click()
-
                 cy.get('[data-el="table-explorer"]').should('exist')
 
                 cy.get('[data-el="table-explorer"] [data-el="tables-list"] .empty-state').should('exist')
