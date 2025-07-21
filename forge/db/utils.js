@@ -183,8 +183,13 @@ function mapEnvArrayToObject (envArray) {
         const value = envVar.value
         if (envVar.hidden) {
             envObject[name] = {
-                value,
                 hidden: true
+            }
+            if (Object.hasOwn(envVar, 'value')) {
+                envObject[name].value = value
+            }
+            if (Object.hasOwn(envVar, '$')) {
+                envObject[name].$ = envVar.$
             }
         } else {
             envObject[name] = value
@@ -206,11 +211,17 @@ function mapEnvObjectToArray (envObject) {
     const envArray = []
     for (const [name, value] of Object.entries(envObject)) {
         if (typeof value === 'object' && value.hidden) {
-            envArray.push({
+            const env = {
                 name,
-                value: value.value,
                 hidden: true
-            })
+            }
+            if (Object.hasOwn(value, 'value')) {
+                env.value = value.value
+            }
+            if (Object.hasOwn(value, '$')) {
+                env.$ = value.$
+            }
+            envArray.push(env)
         } else {
             envArray.push({
                 name,
@@ -219,6 +230,22 @@ function mapEnvObjectToArray (envObject) {
         }
     }
     return envArray
+}
+
+function decryptValue (secret, encryptedValue) {
+    const key = crypto.createHash('sha256').update(secret).digest()
+    const initVector = Buffer.from(encryptedValue.substring(0, 32), 'hex')
+    encryptedValue = encryptedValue.substring(32)
+    const decipher = crypto.createDecipheriv('aes-256-ctr', key, initVector)
+    const decrypted = decipher.update(encryptedValue, 'base64', 'utf8') + decipher.final('utf8')
+    return decrypted
+}
+
+function encryptValue (secret, plainValue) {
+    const key = crypto.createHash('sha256').update(secret).digest()
+    const initVector = crypto.randomBytes(16)
+    const cipher = crypto.createCipheriv('aes-256-ctr', key, initVector)
+    return initVector.toString('hex') + cipher.update(plainValue, 'utf8', 'base64') + cipher.final('base64')
 }
 
 /**
@@ -233,7 +260,6 @@ function mapEnvObjectToArray (envObject) {
 function exportEnvVarObject (envObject) {
     // Check for any hidden env vars. These are objects with a 'hidden' property set to true.
     // If so, we replace the object with just the value.
-    // TODO: handle encrypted values
     const result = {}
     for (const envVar of Object.keys(envObject)) {
         if (Object.hasOwn(envObject[envVar], 'hidden')) {
@@ -281,5 +307,7 @@ module.exports = {
     randomPhrase,
     mapEnvArrayToObject,
     mapEnvObjectToArray,
-    exportEnvVarObject
+    exportEnvVarObject,
+    encryptValue,
+    decryptValue
 }
