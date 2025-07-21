@@ -483,4 +483,45 @@ describe('Project controller', function () {
         instanceSettings.env[2].name.should.equal('NEW_KEY')
         instanceSettings.env[2].value.should.equal('new-value-3')
     })
+
+    describe('latestProjectState', function () {
+        it('should return undefined when no project state exists', () => {
+            const result = app.db.controllers.Project.getLatestProjectState('non-existing')
+            should(result).be.undefined()
+        })
+
+        it('should return the project state if one exists', () => {
+            app.db.controllers.Project.setLatestProjectState('project-id', 'status')
+            const result = app.db.controllers.Project.getLatestProjectState('project-id')
+            should(result).equal('status')
+        })
+
+        it('should clear the project state if one exists', () => {
+            app.db.controllers.Project.setLatestProjectState('project-id', 'status')
+            const tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
+            should(tempResult).equal('status')
+
+            const result = app.db.controllers.Project.clearLatestProjectState('project-id')
+            should(result).be.undefined()
+        })
+
+        it('should update non-definitive project states while removing definitive ones', () => {
+            app.db.controllers.Project.setLatestProjectState('project-id', 'status')
+
+            let tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
+            should(tempResult).equal('status')
+
+            app.db.controllers.Project.updateLatestProjectState('project-id', 'running')
+            tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
+            should(tempResult).be.undefined()
+
+            app.db.controllers.Project.setLatestProjectState('project-id', 'status')
+            tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
+            should(tempResult).equal('status')
+
+            app.db.controllers.Project.updateLatestProjectState('project-id', 'stopped')
+            tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
+            should(tempResult).be.undefined()
+        })
+    })
 })
