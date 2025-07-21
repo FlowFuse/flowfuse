@@ -89,6 +89,7 @@ import TeamAPI from '../../../api/team.js'
 import AuditLog from '../../../components/audit-log/AuditLog.vue'
 
 import ProjectsIcon from '../../../components/icons/Projects.js'
+import { useInstanceStates } from '../../../composables/InstanceStates.js'
 import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import DashboardSection from './components/DashboardSection.vue'
@@ -109,6 +110,15 @@ export default {
         DatabaseIcon,
         RecentlyModifiedDevices
     },
+    setup () {
+        const { runningStates: runningInstanceStates, errorStates: errorInstanceStates, stoppedStates: stoppedInstanceStates } = useInstanceStates()
+
+        return {
+            runningInstanceStates,
+            errorInstanceStates,
+            stoppedInstanceStates
+        }
+    },
     data () {
         return {
             loading: true,
@@ -119,10 +129,9 @@ export default {
             devices: [],
             deviceStateCounts: {},
             statesMap: {
-                running: ['starting', 'importing', 'connected', 'info', 'success', 'pushing', 'pulling', 'loading', 'updating',
-                    'installing', 'safe', 'protected', 'running', 'warning'],
-                error: ['error', 'crashed'],
-                stopped: ['stopping', 'restarting', 'suspending', 'rollback', 'stopped', 'suspended', 'offline', 'unknown']
+                running: this.runningInstanceStates,
+                error: this.errorInstanceStates,
+                stopped: this.stoppedInstanceStates
             }
         }
     },
