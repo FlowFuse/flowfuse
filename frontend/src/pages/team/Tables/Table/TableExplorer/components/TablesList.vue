@@ -22,6 +22,7 @@
                 v-for="table in filteredTables" :key="table.id"
                 :title="table.name"
                 class="item"
+                :class="{active: table.name === tableSelection}"
                 @click="updateTableSelection(table.name)"
             >
                 <TableIcon class="ff-icon ff-icon-sm" style="min-width: 24px;" />
@@ -62,7 +63,7 @@ export default defineComponent({
     },
     computed: {
         ...mapGetters('product/tables', { getTables: 'tables' }),
-        ...mapState('product/tables', { tablesState: 'tables' }),
+        ...mapState('product/tables', { tablesState: 'tables', tableSelection: 'tableSelection' }),
         filteredTables () {
             return this.tables.filter(t => (t.name ?? '').toLowerCase().includes(this.filterTerm.toLowerCase()))
         }
@@ -115,8 +116,8 @@ export default defineComponent({
             transition: ease-in-out .3s;
             cursor: pointer;
 
-            &:hover {
-             color: $ff-indigo-500;
+            &:hover, &.active {
+                color: $ff-indigo-500;
                 background-color: $ff-grey-100;
             }
         }

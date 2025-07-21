@@ -93,12 +93,19 @@ const actions = {
                 return databases
             })
     },
-    getTables ({ commit, rootState }, databaseId) {
+    getTables ({ commit, dispatch, rootState }, databaseId) {
         const team = rootState.account?.team
         return tablesApi.getTables(team.id, databaseId)
             .then((tables) => {
+                tables = [...tables].sort((a, b) =>
+                    a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+                )
+
                 commit('setTables', { databaseId, tables })
 
+                if (tables.length > 0) {
+                    dispatch('updateTableSelection', tables[0].name)
+                }
                 return tables
             })
     },
