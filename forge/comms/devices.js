@@ -93,6 +93,7 @@ class DeviceCommsHandler {
                 // TODO: log invalid device
                 return
             }
+            const startTime = Date.now()
             try {
                 const payload = JSON.parse(status.status)
                 await this.app.db.controllers.Device.updateState(device, payload)
@@ -145,7 +146,9 @@ class DeviceCommsHandler {
                 if (sendUpdateCommand) {
                     await this.app.db.controllers.Device.sendDeviceUpdateCommand(device)
                 }
+                this.app.log.info({ msg: 'Device status update', device: deviceId, team: device.Team?.hashid, sendUpdateCommand, responseTime: Date.now() - startTime })
             } catch (err) {
+                this.app.log.info({ msg: 'Device status update error', device: deviceId, team: device.Team?.hashid, responseTime: Date.now() - startTime, err: err.message })
                 // Not a JSON payload - ignore
                 if (err instanceof SyntaxError) {
                     return
