@@ -93,7 +93,7 @@ module.exports = {
             }
             const response = await axios.put(`${this._options.supavisor.url}/api/tenants/${team.hashid}`, {
                 tenant: {
-                    db_host: 'db1', // this._options.backend.host,
+                    db_host: this._options.backend.supavisorHost ? this._options.backend.supavisorHost : this._options.backend.host,
                     db_port: this._options.backend.port,
                     db_database: team.hashid,
                     external_id: team.hashid,
