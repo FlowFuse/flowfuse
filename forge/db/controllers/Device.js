@@ -55,7 +55,7 @@ module.exports = {
                 // Update the activeSnapshotId if valid and not already set
                 const snapshotId = app.db.models.ProjectSnapshot.decodeHashid(state.snapshot)
                 // hashid.decode returns an array of values, not the raw value.
-                if (snapshotId?.length > 0 && snapshotId !== device.activeSnapshotId) {
+                if (snapshotId?.length > 0 && snapshotId[0] !== device.activeSnapshotId) {
                     // Check to see if snapshot exists
                     if (await app.db.models.ProjectSnapshot.count({ where: { id: snapshotId }, limit: 1 }) > 0) {
                         device.set('activeSnapshotId', snapshotId[0])
