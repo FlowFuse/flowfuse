@@ -62,8 +62,10 @@ function updateVuexFromStorageDriver (store, storageDriver) {
                 targetState = targetState[keys[i]]
             }
 
+            if (Object.prototype.hasOwnProperty.call(targetState, keys[keys.length - 1])) {
             // Merge stored state into the existing module state instead of replacing it
-            Object.assign(targetState[keys[keys.length - 1]], storedState[storeKey])
+                Object.assign(targetState[keys[keys.length - 1]], storedState[storeKey])
+            }
         })
     }
 }
