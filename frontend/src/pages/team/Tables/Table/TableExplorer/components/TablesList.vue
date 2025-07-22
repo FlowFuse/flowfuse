@@ -35,8 +35,7 @@
         </div>
 
         <div v-else class="empty-state">
-            <p>Ready to organize your data?</p>
-            <p>Create your first table by connecting to the Database using Node-RED</p>
+            <p>Get Started by creating your first table using the <code>contrib-postgres</code> node in a Node-RED Instance.</p>
             <!--            <p><span class="cta" @click="onCreateTable">Create</span> your first table now.</p>-->
         </div>
     </section>
