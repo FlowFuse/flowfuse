@@ -109,7 +109,7 @@ module.exports = {
                             mode_type: 'transaction',
                             is_manager: true,
                             pool_size: 10,
-                            max_connections: 10
+                            max_clients: 10
                         }
                     ]
                 }
