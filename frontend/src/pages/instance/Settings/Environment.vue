@@ -176,9 +176,13 @@ export default {
                     // This is a value that cannot be overwritten, so skip it
                     return
                 } else if (field.policy && field.value === this.templateEnvValues[field.name]) {
-                    // This is a template value that can be overwritten. Check
-                    // if the value matches template - if so, skip adding it
-                    return
+                    // This is a template value that can be overwritten.
+                    // If not hidden and the value matches the template, skip adding it.
+                    // Otherise, if hidden, send the value back and let the runtime work
+                    // out whether to add/update it to the instance level settings
+                    if (!field.hidden) {
+                        return
+                    }
                 }
                 settings.env.push({
                     name: field.name,

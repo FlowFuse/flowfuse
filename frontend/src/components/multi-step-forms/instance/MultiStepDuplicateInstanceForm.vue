@@ -159,18 +159,21 @@ export default {
         },
         async getApplications () {
             const data = await teamApi.getTeamApplications(this.team.id)
-            this.applications = data.applications.map((a) => {
-                return {
-                    label: a.name,
-                    description: a.description,
-                    value: a.id,
-                    id: a.id,
-                    counters: {
-                        instances: a.instances.length,
-                        devices: a.devices.length
+            this.applications = data.applications
+                .map((a) => {
+                    return {
+                        label: a.name,
+                        description: a.description,
+                        value: a.id,
+                        id: a.id,
+                        counters: {
+                            instances: a.instances.length,
+                            devices: a.devices.length
+                        }
                     }
-                }
-            })
+                })
+                // filter out applications that don't own to the origin instance, @see #5785
+                .filter(app => app.id === this.instance.application.id)
         },
         prefillForm () {
             const input = {

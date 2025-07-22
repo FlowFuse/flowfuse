@@ -1,5 +1,5 @@
 <template>
-    <div id="global-search" :class="{focused: isFocused}">
+    <div id="global-search" :class="{focused: isFocused}" data-el="global-search">
         <transition name="fade" mode="out-in">
             <div v-if="isFocused" class="overlay" @click="deFocusSearch" />
         </transition>
@@ -10,8 +10,6 @@
                 </ff-button>
 
                 <div class="input-wrapper">
-                    <!--                    <SearchIconSolid class="ff-icon-sm mobile-search" @click="focusSearch" />-->
-
                     <transition name="primary-fade" mode="out-in">
                         <SpinnerIcon v-if="loading" class="ff-icon-sm search" />
                         <SearchIcon v-else class="ff-icon-sm search" />
@@ -41,6 +39,7 @@
                     :results="resApplication"
                     :query="query"
                     result-type="application"
+                    data-el="application-results"
                     @result-selected="handleSelectedResult"
                 >
                     <template #result-icon>
@@ -76,6 +75,7 @@
                     :results="resInstances"
                     :query="query"
                     result-type="instance"
+                    data-el="instance-results"
                     @result-selected="handleSelectedResult"
                 >
                     <template #result-icon>
@@ -92,6 +92,7 @@
                     :results="resDevices"
                     :query="query"
                     result-type="device"
+                    data-el="device-results"
                     @result-selected="handleSelectedResult"
                 >
                     <template #result-icon="{item}">

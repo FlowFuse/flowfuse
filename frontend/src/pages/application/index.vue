@@ -100,7 +100,7 @@ export default {
         }
     },
     watch: {
-        'team.name': {
+        '$route.params': {
             handler: 'updateApplication',
             immediate: true
         }
