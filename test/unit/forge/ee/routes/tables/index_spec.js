@@ -87,12 +87,12 @@ describe('Tables API', function () {
             method: 'POST',
             url: `/api/v1/teams/${TestObjects.team.hashid}/databases`,
             cookies: { sid: TestObjects.tokens.bob },
-            payload: { name: 'Test Database' }
+            payload: { }
         })
         response.statusCode.should.equal(200)
         const db = response.json()
         db.should.have.property('id')
-        db.should.have.property('name', 'Test Database')
+        db.should.have.property('name', TestObjects.team.hashid)
         db.should.have.property('credentials')
         db.credentials.should.have.property('host', 'localhost')
         db.credentials.should.have.property('port', 5432)
@@ -118,7 +118,7 @@ describe('Tables API', function () {
         const dbs = response.json()
         dbs.should.be.an.Array().and.have.length(1)
         dbs[0].should.have.property('id')
-        dbs[0].should.have.property('name', 'Test Database')
+        dbs[0].should.have.property('name', TestObjects.team.hashid)
     })
 
     it('Get Team database by ID', async function () {
@@ -131,7 +131,7 @@ describe('Tables API', function () {
         response.statusCode.should.equal(200)
         const creds = response.json()
         creds.should.have.property('id', db.hashid)
-        creds.should.have.property('name', 'Test Database')
+        creds.should.have.property('name', TestObjects.team.hashid)
         creds.should.have.property('credentials')
         creds.credentials.should.have.property('host', 'localhost')
         creds.credentials.should.have.property('port', 5432)

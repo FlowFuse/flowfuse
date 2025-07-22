@@ -67,8 +67,7 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     name: { type: 'string', description: 'Name of the database' }
-                },
-                required: ['name']
+                }
             },
             response: {
                 200: {
@@ -85,7 +84,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const creds = await app.tables.createDatabase(request.team, request.body.name)
+            const creds = await app.tables.createDatabase(request.team, request.body?.name ? request.body.name : request.team.hashid)
             reply.send(await app.db.views.Table.table(creds))
         } catch (err) {
             if (err.message.includes('already exists')) {
