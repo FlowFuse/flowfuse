@@ -8,7 +8,7 @@
             <div class="database-details">
                 <dl>
                     <div class="flex item">
-                        <dt>Database Name:</dt>
+                        <dt>Database ID:</dt>
                         <dd>{{ database.credentials.database }}</dd>
                     </div>
                     <div class="flex item">
