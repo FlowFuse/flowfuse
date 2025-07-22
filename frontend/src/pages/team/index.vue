@@ -45,6 +45,7 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
         ...mapGetters('account', ['requiresBilling', 'isAdminUser']),
+        ...mapState('ux/tours', ['shouldPresentTour']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -65,10 +66,22 @@ export default {
         },
         team () {
             this.checkRoute(this.$route)
+        },
+        shouldPresentTour: {
+            handler (should) {
+                if (should) {
+                    this.dispatchTour()
+                }
+            }
         }
     },
     mounted () {
         this.mounted = true
+
+        if (this.shouldPresentTour) {
+            // given we've loaded resources, check for tour status
+            this.dispatchTour()
+        }
     },
     async beforeMount () {
         this.checkRoute(this.$route)
@@ -97,6 +110,13 @@ export default {
                     path: `/team/${this.team.slug}/billing`
                 })
             }
+        },
+        dispatchTour () {
+            return this.$store.dispatch(
+                'ux/tours/setWelcomeTour',
+                () => this.$store.dispatch('ux/tours/openModal', 'education')
+            )
+                .catch(e => e)
         }
     }
 }

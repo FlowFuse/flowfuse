@@ -115,7 +115,6 @@ describe('Team - Instances', () => {
                                     name: 'DS'
                                 },
                                 flowLastUpdatedAt: new Date().toDateString(),
-                                status: 'stopped',
                                 settings: {
                                     dashboard2UI: '/dashboard'
                                 }
@@ -129,7 +128,6 @@ describe('Team - Instances', () => {
                                     name: 'DS'
                                 },
                                 flowLastUpdatedAt: new Date().toDateString(),
-                                status: 'running',
                                 settings: {
                                     dashboard2UI: '/dashboard'
                                 }
@@ -137,6 +135,19 @@ describe('Team - Instances', () => {
                         ]
                     }
                 }).as('getDashboardInstances')
+
+            cy.intercept('GET', '/api/*/projects/1/status', {
+                id: '1',
+                meta: {
+                    state: 'stopped'
+                }
+            })
+            cy.intercept('GET', '/api/*/projects/2/status', {
+                id: '2',
+                meta: {
+                    state: 'running'
+                }
+            })
 
             cy.login('bob', 'bbPassword')
             cy.visit('/team/bteam')
