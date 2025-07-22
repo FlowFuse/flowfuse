@@ -35,7 +35,7 @@
                 <dl>
                     <div class="flex item">
                         <dt>Username:</dt>
-                        <dd>{{ database.credentials.database }}</dd>
+                        <dd>{{ database.credentials.user }}</dd>
                     </div>
                     <div class="flex item">
                         <dt>Password:</dt>

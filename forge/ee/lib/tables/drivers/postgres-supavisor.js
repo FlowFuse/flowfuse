@@ -184,12 +184,12 @@ module.exports = {
         }
         try {
             const options = {
-                host: this._options.database.host,
-                port: this._options.database.port,
-                ssl: this._options.database.ssl,
+                host: this._options.backend.host,
+                port: this._options.backend.port,
+                ssl: this._options.backend.ssl,
                 database: team.hashid,
-                user: this._options.database.user,
-                password: this._options.database.password
+                user: this._options.backend.user,
+                password: this._options.backend.password
             }
             const teamClient = new pg.Client(options)
             try {
@@ -223,12 +223,12 @@ module.exports = {
         }
         try {
             const options = {
-                host: this._options.database.host,
-                port: this._options.database.port,
-                ssl: this._options.database.ssl,
+                host: this._options.backend.host,
+                port: this._options.backend.port,
+                ssl: this._options.backend.ssl,
                 database: team.hashid,
-                user: this._options.database.user,
-                password: this._options.database.password
+                user: this._options.backend.user,
+                password: this._options.backend.password
             }
             const teamClient = new pg.Client(options)
             try {
@@ -266,12 +266,12 @@ module.exports = {
         }
         try {
             const options = {
-                host: this._options.database.host,
-                port: this._options.database.port,
-                ssl: this._options.database.ssl,
+                host: this._options.backend.host,
+                port: this._options.backend.port,
+                ssl: this._options.backend.ssl,
                 database: team.hashid,
-                user: this._options.database.user,
-                password: this._options.database.password
+                user: this._options.backend.user,
+                password: this._options.backend.password
             }
             const teamClient = new pg.Client(options)
             try {
