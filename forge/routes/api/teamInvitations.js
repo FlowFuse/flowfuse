@@ -226,6 +226,16 @@ module.exports = async function (app) {
      * POST [/api/v1/teams/:teamId/invitations]/:invitationId
      */
     app.post('/:invitationId', {
+        config: {
+            rateLimit: app.config.rate_limits
+                ? {
+                    max: 1, // Allow one resend per minute
+                    timeWindow: 60000,
+                    keyGenerator: app.config.rate_limits.keyGenerator,
+                    hard: true
+                }
+                : false
+        },
         schema: {
             summary: 'Resend an invitation',
             tags: ['Team Invitations'],

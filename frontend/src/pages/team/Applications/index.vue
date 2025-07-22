@@ -105,7 +105,7 @@
 <script>
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import instanceApi from '../../../api/instances.js'
 import searchApi from '../../../api/search.js'
@@ -135,12 +135,10 @@ export default {
             ],
             filterTerm: '',
             debouncedFilterTerm: '',
-            isSearching: false,
-            tour: null
+            isSearching: false
         }
     },
     computed: {
-        ...mapState('ux/tours', ['tours', 'completed', 'shouldPresentTour']),
         ...mapGetters('account', ['featuresCheck', 'team', 'isFreeTeamType']),
         applicationsList () {
             return Array.from(this.applications.values()).map(app => {
@@ -225,13 +223,6 @@ export default {
     },
     watch: {
         team: 'fetchData',
-        shouldPresentTour: {
-            handler (should) {
-                if (should) {
-                    this.dispatchTour()
-                }
-            }
-        },
         filterTerm: {
             handler: debounce(async function (filterTerm) {
                 this.isSearching = true
@@ -260,11 +251,6 @@ export default {
                 // allow the Alerts service to have subscription by wrapping in nextTick
                 Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
             })
-        }
-
-        if (this.shouldPresentTour) {
-            // given we've loaded resources, check for tour status
-            this.dispatchTour()
         }
 
         this.setSearchQuery()
@@ -355,41 +341,6 @@ export default {
                         }
                     })
                 })
-        },
-        dispatchTour () {
-            switch (true) {
-            case this.isFreeTeamType && !!this.applicationsList[0]:
-                // freemium users must first undergo the first-device tour on the ApplicationDevices page
-                return this.$router.push({
-                    name: 'ApplicationDevices',
-                    params: { team_slug: this.team.slug, id: this.applicationsList[0].id }
-                })
-                    .then(() => this.$store.dispatch('ux/tours/setFirstDeviceTour'))
-                    .catch(e => e)
-
-            case !this.isFreeTeamType && this.instanceCount > 0:
-                // Running with an Instance pre-configured (Trial team types)
-                return this.$store.dispatch(
-                    'ux/tours/setTrialWelcomeTour',
-                    () => this.$store.dispatch('ux/tours/openModal', 'education')
-                )
-                    .catch(e => e)
-
-            case !this.isFreeTeamType:
-                // any regular team type
-                return this.$store.dispatch(
-                    'ux/tours/setWelcomeTour',
-                    () => {
-                        if (this.deviceCount === 0) {
-                            // start first device tour when finished
-                            this.$store.dispatch('ux/tours/setFirstDeviceTour')
-                        }
-                    })
-                    .catch(e => e)
-
-            default:
-                // no tours
-            }
         }
     }
 }

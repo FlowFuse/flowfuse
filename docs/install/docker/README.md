@@ -54,7 +54,7 @@ meta:
 
 # Docker Install
 
-This guide walks you through detailed set up of FlowFuse Platform on a Docker container envoronment using Docker Compose. Typically suited for small/medium on premise deployments.
+This guide walks you through detailed set up of FlowFuse Platform on a Docker container environment using Docker Compose. Typically suited for small/medium on premise deployments.
 By the end, you will have a fully functioning FlowFuse instance running in a Docker container.
 
 The following guide walks through a full production-ready deployment. If you want to install FlowFuse for evaluation purposes, please refer to the [Quick Start Guide](../../quick-start/README.md).
@@ -100,6 +100,10 @@ To run the FlowFuse platform smoothly, we recommend the following minimum hardwa
 * Memory: 4 GB RAM
 * Storage: 20 GB disk space
 Each Node-RED instance you host will uses 0.1 CPU cores and 256 MB of memory by default. This parameters can be adjusted in admin area of FlowFuse platform. Keep this in mind when sizing your hardware, especially if plan to create multiple hosted instances.
+
+#### AWS Elastic Container Service
+
+At this time we do not support deploying FlowFuse to AWS's Elastic Container Service.
 
 ### DNS
 

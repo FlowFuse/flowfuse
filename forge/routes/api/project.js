@@ -422,14 +422,19 @@ module.exports = async function (app) {
             // Merge the settings into the existing values
             const currentProjectSettings = await request.project.getSetting(KEY_SETTINGS) || {}
             if (newSettings.env && Array.isArray(newSettings.env)) {
-                newSettings.env = newSettings.env.map(env => {
+                newSettings.env = newSettings.env.filter(env => {
                     // hidden env vars are received as empty strings so we'll replace the empty string with the previous value,
                     // allowing them to be overwritten when needed
                     if (Object.prototype.hasOwnProperty.call(env, 'hidden') && env.hidden && !env.value.length) {
                         const previousValue = currentProjectSettings.env.find(e => e.name === env.name)
+                        if (!previousValue) {
+                            // this is a hidden env var with no value provided and no instance-level value. This
+                            // means it has come from the template and we should not add it to the instance
+                            return false
+                        }
                         env.value = previousValue.value
                     }
-                    return env
+                    return true
                 })
             }
             const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
@@ -611,7 +616,7 @@ module.exports = async function (app) {
         const project = await app.db.models.Project.byId(request.project.id) // Reload project entirely
         const projectView = await app.db.views.Project.project(request.project)
         let result
-        if (request.teamMembership.role >= Roles.Owner) {
+        if (request.session.User.admin || request.teamMembership.role >= Roles.Owner) {
             result = projectView
         } else {
             // exclude template object in response when not owner
@@ -857,7 +862,7 @@ module.exports = async function (app) {
         if (app.config.features.enabled('ha') && teamType.getFeatureProperty('ha', true)) {
             const ha = await request.project.getHASettings()
             if (ha && ha.replicas > 1) {
-                settings.ha = ha
+                settings.settings.ha = ha
             }
         }
         const customCatalogsEnabledForTeam = app.config.features.enabled('customCatalogs') && teamType.getFeatureProperty('customCatalogs', false)

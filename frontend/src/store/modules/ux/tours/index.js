@@ -1,13 +1,9 @@
 import Tours from '../../../../tours/Tours.js'
-import TourFirstDevice, { id as FirstDeviceTourId } from '../../../../tours/tour-first-device.js'
-import TourWelcomeTrial, { id as TrialWelcomeTourId } from '../../../../tours/tour-welcome-trial.js'
 import TourWelcome, { id as WelcomeTourId } from '../../../../tours/tour-welcome.js'
 
 const initialState = () => ({
     tours: {
-        [WelcomeTourId]: false,
-        [FirstDeviceTourId]: false,
-        [TrialWelcomeTourId]: false
+        [WelcomeTourId]: false
     },
     modals: {
         education: false
@@ -89,14 +85,6 @@ const actions = {
     },
     resetTours ({ commit }) {
         commit('resetTours')
-    },
-    setFirstDeviceTour ({ commit, dispatch }, callback = () => { }) {
-        commit('setActiveTour', Tours.create(FirstDeviceTourId, TourFirstDevice, callback))
-        dispatch('startTour')
-    },
-    setTrialWelcomeTour ({ commit, dispatch }, callback = () => { }) {
-        commit('setActiveTour', Tours.create(TrialWelcomeTourId, TourWelcomeTrial, callback))
-        dispatch('startTour')
     },
     setWelcomeTour ({ commit, dispatch }, callback = () => { }) {
         commit('setActiveTour', Tours.create(WelcomeTourId, TourWelcome, callback))

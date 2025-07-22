@@ -939,8 +939,8 @@ describe('Project API', function () {
                         authorization: `Bearer ${newAccessToken}`
                     }
                 })).json()
-                runtimeSettings.should.have.property('ha')
-                runtimeSettings.ha.should.have.property('replicas', 2)
+                runtimeSettings.settings.should.have.property('ha')
+                runtimeSettings.settings.ha.should.have.property('replicas', 2)
                 runtimeSettings.settings.palette.should.have.property('npmrc', 'example npmrc')
                 runtimeSettings.settings.palette.should.have.property('catalogue')
                 runtimeSettings.settings.palette.catalogue.should.have.length(1)
@@ -965,8 +965,8 @@ describe('Project API', function () {
                         authorization: `Bearer ${newAccessToken}`
                     }
                 })).json()
-                runtimeSettings.should.have.property('ha')
-                runtimeSettings.ha.should.have.property('replicas', 2)
+                runtimeSettings.settings.should.have.property('ha')
+                runtimeSettings.settings.ha.should.have.property('replicas', 2)
                 runtimeSettings.settings.palette.should.not.have.property('npmrc')
                 runtimeSettings.settings.palette.should.not.have.property('catalogue')
             })
