@@ -63,7 +63,6 @@ import { defineComponent } from 'vue'
 import { mapActions, mapState } from 'vuex'
 
 import MediumTile from '../../../../components/tiles/MediumTile.vue'
-import NameGenerator from '../../../../utils/name-generator/index.js'
 
 export default defineComponent({
     name: 'NewDatabase',
@@ -94,9 +93,7 @@ export default defineComponent({
     methods: {
         ...mapActions('product/tables', ['createDatabase']),
         onPgTableCreate () {
-            const databaseName = NameGenerator()
-
-            return this.createDatabase({ teamId: this.team.id, databaseName })
+            return this.createDatabase({ teamId: this.team.id })
                 .then(() => this.$router.push({
                     name: 'team-tables',
                     params: { team_slug: this.team.slug }
