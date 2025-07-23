@@ -41,6 +41,7 @@ const Permissions = {
     'project:create': { description: 'Create Project', role: Roles.Owner },
     'project:delete': { description: 'Delete Project', role: Roles.Owner },
     'project:read': { description: 'View a Project', role: Roles.Viewer },
+    'project:status': { description: 'View a Project', role: Roles.Dashboard },
     'project:transfer': { description: 'Transfer Project', role: Roles.Owner },
     'project:change-status': { description: 'Start/Stop Project', role: Roles.Owner },
     'project:edit': { description: 'Edit Project Settings', role: Roles.Owner },
