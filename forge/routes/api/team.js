@@ -244,8 +244,12 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const includeInstances = request.query.includeInstances ?? true
-        const includeApplicationDevices = request.query.includeApplicationDevices ?? true
+        const includeInstances = Object.prototype.hasOwnProperty.call(request.query, 'includeInstances')
+            ? request.query.includeInstances
+            : true
+        const includeApplicationDevices = Object.prototype.hasOwnProperty.call(request.query, 'includeApplicationDevices')
+            ? request.query.includeApplicationDevices
+            : true
         const associationsLimit = request.query.associationsLimit
         const includeApplicationSummary = !!associationsLimit || request.query.includeApplicationSummary
 

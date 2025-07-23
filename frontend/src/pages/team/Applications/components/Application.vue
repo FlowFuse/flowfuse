@@ -2,9 +2,11 @@
     <li class="application-wrapper" :class="{'is-loading': isLoading}">
         <ApplicationHeader :application="localApplication" />
 
-        <InstancesWrapper :application="localApplication" :search-query="searchQuery" />
+        <div class="flex">
+            <InstancesWrapper :application="localApplication" />
 
-        <DevicesWrapper :application="localApplication" :search-query="searchQuery" />
+            <DevicesWrapper :application="localApplication" />
+        </div>
 
         <transition name="fade">
             <div v-if="isLoading" class="overlay flex">
