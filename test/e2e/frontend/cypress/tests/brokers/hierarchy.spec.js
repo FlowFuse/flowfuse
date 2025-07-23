@@ -11,13 +11,13 @@ describe('FlowFuse - Brokers Hierarchy', () => {
         })
 
         it('should have the brokers menu entry hidden and route guard for dashboard roles', () => {
-            cy.intercept('GET', '/api/*/teams/*/user', { role: 5 }).as('getTeamRole')
-            cy.login('bob', 'bbPassword')
+            cy.login('dashboard-dave', 'ddPassword')
             cy.visit('/')
 
             cy.get('[data-nav="team-unified-namespace"]').should('not.exist')
             cy.visit('team/ateam/brokers/team-broker/hierarchy')
-            cy.contains('There are no dashboards in this team.')
+
+            cy.get('[data-el="instances-table"]').should('exist')
         })
     })
 })

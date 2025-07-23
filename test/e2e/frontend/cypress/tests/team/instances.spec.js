@@ -57,20 +57,13 @@ describe('Team - Instances', () => {
     describe('Users with dashboard only permissions', () => {
         beforeEach(() => {
             // viewer roled users don't receive the teamType in the team payload
-            cy.intercept('get', '/api/*/teams/slug/bteam', req => req.reply(res => {
+            cy.intercept('get', '/api/*/teams/slug/*', req => req.reply(res => {
                 const { type, ...response } = res.body
                 res.send(response)
             })).as('getTeam')
         })
 
         it('are shown a static message if no dashboard instances are found', () => {
-            cy.intercept('GET', '/api/*/teams/*/user',
-                req => req.reply(res => {
-                    res.send({
-                        role: 5
-                    })
-                })).as('getUser')
-
             cy.intercept('GET', '/api/*/teams/*/dashboard-instances',
                 {
                     statusCode: 200,
@@ -80,11 +73,9 @@ describe('Team - Instances', () => {
                     }
                 }).as('getDashboardInstances')
 
-            cy.login('bob', 'bbPassword')
-            cy.visit('/team/bteam')
+            cy.login('dashboard-dave', 'ddPassword')
+            cy.visit('/team/ateam')
 
-            cy.wait('@getTeam')
-            cy.wait('@getUser')
             cy.wait('@getDashboardInstances')
 
             cy.get('[data-el="page-name"]').contains('Dashboards')
@@ -93,70 +84,12 @@ describe('Team - Instances', () => {
         })
 
         it('are shown a list of instances when dashboard instances are found', () => {
-            cy.intercept('GET', '/api/*/teams/*/user',
-                req => req.reply(res => {
-                    res.send({
-                        role: 5
-                    })
-                })).as('getUser')
-
-            cy.intercept('GET', '/api/*/teams/*/dashboard-instances',
-                {
-                    statusCode: 200,
-                    body: {
-                        count: 0,
-                        projects: [
-                            {
-                                id: '1',
-                                name: 'death-start-port-openings',
-                                url: 'http://localhost:12086',
-                                application: {
-                                    id: 1,
-                                    name: 'DS'
-                                },
-                                flowLastUpdatedAt: new Date().toDateString(),
-                                settings: {
-                                    dashboard2UI: '/dashboard'
-                                }
-                            },
-                            {
-                                id: '2',
-                                name: 'death-start-ac',
-                                url: 'http://localhost:12087',
-                                application: {
-                                    id: 1,
-                                    name: 'DS'
-                                },
-                                flowLastUpdatedAt: new Date().toDateString(),
-                                settings: {
-                                    dashboard2UI: '/dashboard'
-                                }
-                            }
-                        ]
-                    }
-                }).as('getDashboardInstances')
-
-            cy.intercept('GET', '/api/*/projects/1/status', {
-                id: '1',
-                meta: {
-                    state: 'stopped'
-                }
-            })
-            cy.intercept('GET', '/api/*/projects/2/status', {
-                id: '2',
-                meta: {
-                    state: 'running'
-                }
-            })
-
-            cy.login('bob', 'bbPassword')
-            cy.visit('/team/bteam')
+            cy.login('dashboard-dave', 'ddPassword')
+            cy.visit('/team/ateam')
 
             cy.wait('@getTeam')
-            cy.wait('@getUser')
-            cy.wait('@getDashboardInstances')
 
-            cy.contains('death-start-port-openings')
+            cy.contains('instance-1-2')
                 .parent()
                 .parent()
                 .parent()
@@ -164,7 +97,7 @@ describe('Team - Instances', () => {
                     cy.get('[data-action="open-dashboard"]').should('be.disabled')
                 })
 
-            cy.contains('death-start-ac')
+            cy.contains('instance-1-1')
                 .parent()
                 .parent()
                 .parent()

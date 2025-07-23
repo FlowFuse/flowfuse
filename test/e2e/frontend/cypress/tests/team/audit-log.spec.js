@@ -27,7 +27,7 @@ describe('FlowFuse - Team Audit Log', () => {
 
         it('provides a list of users to filter by', () => {
             cy.get('[data-el="filter-users"]').click()
-            cy.get('[data-el="listbox-options"] .ff-option').should('have.length', 3)
+            cy.get('[data-el="listbox-options"] .ff-option').should('have.length', 4)
         })
 
         it('enables filtering by a user', () => {
