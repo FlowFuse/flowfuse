@@ -200,7 +200,7 @@ describe('ProjectSnapshot controller', function () {
                     const application = app.TestObjects.application1
                     const team = app.TestObjects.team1
                     const device1 = await factory.createDevice({ name: 'device 1' }, team, null, application)
-                    app.TestObjects.device1 = await app.db.models.Device.byId(device1.id, { include: app.db.models.Team })
+                    app.TestObjects.device1 = await app.db.models.Device.byId(device1.id)
                     // create a snapshot and set it as target for device1
                     const snapshot1 = await app.db.controllers.ProjectSnapshot.doInstanceAutoSnapshot(project, 'flows', { setAsTarget: true }, { user: { id: null } })
                     await snapshot1.update({ description: 'Auto Snapshot - 1' }) // update description to make it clear the round-robin cleanup is working
@@ -423,7 +423,7 @@ describe('ProjectSnapshot controller', function () {
                 const application = app.TestObjects.application1
                 const team = app.TestObjects.team1
                 const device = await factory.createDevice({ name: 'device' }, team, null, application)
-                const deviceWithTeam = await app.db.models.Device.byId(device.id, { include: app.db.models.Team })
+                const deviceWithTeam = await app.db.models.Device.byId(device.id)
                 const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
                 const options = { setAsTarget: false }
                 const auditEventType = 'full' // simulate node-red audit event
@@ -434,7 +434,7 @@ describe('ProjectSnapshot controller', function () {
                 const application = app.TestObjects.application1
                 const team = app.TestObjects.team1
                 const device = await factory.createDevice({ name: 'device' }, team, null, application)
-                const deviceWithTeam = await app.db.models.Device.byId(device.id, { include: app.db.models.Team })
+                const deviceWithTeam = await app.db.models.Device.byId(device.id)
                 await deviceWithTeam.updateSettings({ autoSnapshot: false })
                 const meta = { user: { id: null } } // simulate node-red situation (i.e. user is null)
                 const options = { setAsTarget: false }
@@ -457,10 +457,10 @@ describe('ProjectSnapshot controller', function () {
                     const team = app.TestObjects.team1
                     const device1 = await factory.createDevice({ name: 'device 1' }, team, null, application)
                     const device2 = await factory.createDevice({ name: 'device 2' }, team, null, application)
-                    app.TestObjects.device1 = await app.db.models.Device.byId(device1.id, { include: app.db.models.Team })
+                    app.TestObjects.device1 = await app.db.models.Device.byId(device1.id)
                     // Ensure device has credentialSecret
                     await app.TestObjects.device1.refreshAuthTokens()
-                    app.TestObjects.device2 = await app.db.models.Device.byId(device2.id, { include: app.db.models.Team })
+                    app.TestObjects.device2 = await app.db.models.Device.byId(device2.id)
                     // Ensure device has credentialSecret
                     await app.TestObjects.device2.refreshAuthTokens()
                 })

@@ -307,7 +307,8 @@ module.exports = {
                 }
             },
             static: {
-                byId: async (id, options = { includeAssociations: true }) => {
+                byId: async (id, options) => {
+                    options = Object.assign({ includeAssociations: true }, options)
                     if (typeof id === 'string') {
                         id = M.Device.decodeHashid(id)
                     }
