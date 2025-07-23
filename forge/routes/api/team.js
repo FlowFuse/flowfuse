@@ -1007,6 +1007,9 @@ module.exports = async function (app) {
                     type: 'array',
                     items: { type: 'string' },
                     default: []
+                },
+                applicationId: {
+                    type: 'string'
                 }
             },
             response: {
@@ -1027,7 +1030,7 @@ module.exports = async function (app) {
                 ? app.db.models.Project
                 : app.db.models.Device
 
-            const stateCounters = await model.countByState(request.query.state, request.team.id) ?? []
+            const stateCounters = await model.countByState(request.query.state, request.team.id, request.query.applicationId) ?? []
             const response = {}
 
             stateCounters.forEach(res => {

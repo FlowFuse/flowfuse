@@ -31,12 +31,33 @@ export function useInstanceStates () {
     const isErrorState = (state) => errorStates.includes(state)
     const isStoppedState = (state) => stoppedStates.includes(state)
 
+    const groupedInstanceStates = (instanceStateCounts) => {
+        return {
+            running: instanceStateCounts
+                ? Object.keys(instanceStateCounts)
+                    .filter(key => runningStates.includes(key))
+                    .reduce((total, key) => total + instanceStateCounts[key], 0)
+                : 0,
+            error: instanceStateCounts
+                ? Object.keys(instanceStateCounts)
+                    .filter(key => errorStates.includes(key))
+                    .reduce((total, key) => total + instanceStateCounts[key], 0)
+                : 0,
+            stopped: instanceStateCounts
+                ? Object.keys(instanceStateCounts)
+                    .filter(key => stoppedStates.includes(key))
+                    .reduce((total, key) => total + instanceStateCounts[key], 0)
+                : 0
+        }
+    }
+
     return {
         runningStates,
         isRunningState,
         errorStates,
         isErrorState,
         stoppedStates,
-        isStoppedState
+        isStoppedState,
+        groupedInstanceStates
     }
 }

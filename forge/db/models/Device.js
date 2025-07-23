@@ -612,11 +612,19 @@ module.exports = {
                         })
                     }
                 },
-                countByState: async (states, teamId) => {
+                countByState: async (states, teamId, applicationId) => {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
                         if (teamId.length === 0) {
                             throw new Error('Invalid TeamId')
+                        }
+                    }
+
+                    if (typeof applicationId === 'string') {
+                        applicationId = M.Application.decodeHashid(applicationId)
+
+                        if (applicationId.length === 0) {
+                            throw new Error('Invalid ApplicationId')
                         }
                     }
 
@@ -626,10 +634,12 @@ module.exports = {
                                 ? {
                                     [Op.or]: states.map(state => ({
                                         state,
-                                        TeamId: teamId
+                                        TeamId: teamId,
+                                        ...(applicationId ? { ApplicationId: applicationId } : {})
                                     }))
                                 }
-                                : { TeamId: teamId })
+                                : { TeamId: teamId }),
+                            ...(applicationId ? { ApplicationId: applicationId } : {})
                         },
                         group: ['state']
                     })

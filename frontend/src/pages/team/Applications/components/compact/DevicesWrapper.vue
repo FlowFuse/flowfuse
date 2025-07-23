@@ -5,9 +5,9 @@
             Remote Instances
         </label>
         <div class="items-wrapper">
-            <instance-counter :counter="0" state="running" type="remote" />
-            <instance-counter :counter="0" state="error" type="remote" />
-            <instance-counter :counter="0" state="stopped" type="remote" />
+            <instance-counter :counter="groupedStates.running ?? 0" state="running" type="remote" />
+            <instance-counter :counter="groupedStates.error ?? 0" state="error" type="remote" />
+            <instance-counter :counter="groupedStates.stopped ?? 0" state="stopped" type="remote" />
         </div>
     </section>
 </template>
@@ -15,8 +15,11 @@
 <script>
 import { mapState } from 'vuex'
 
+import teamApi from '../../../../../api/team.js'
+
 import IconDeviceSolid from '../../../../../components/icons/DeviceSolid.js'
 import InstanceCounter from '../../../../../components/tiles/InstanceCounter.vue'
+import { useInstanceStates } from '../../../../../composables/InstanceStates.js'
 
 export default {
     name: 'DevicesWrapper',
@@ -28,11 +31,33 @@ export default {
             default: null
         }
     },
+    setup () {
+        const { groupedInstanceStates } = useInstanceStates()
+
+        return {
+            groupedInstanceStates
+        }
+    },
+    data () {
+        return {
+            instanceStates: { }
+        }
+    },
     computed: {
         ...mapState('account', ['team']),
+        groupedStates () {
+            return this.groupedInstanceStates(this.instanceStates)
+        },
         isSearching () {
             return this.searchQuery.length > 0
         }
+    },
+    mounted () {
+        teamApi.getTeamInstanceCounts(this.team.id, [], 'remote', this.application.id)
+            .then(res => {
+                this.instanceStates = res
+            })
+            .catch(e => e)
     }
 }
 </script>

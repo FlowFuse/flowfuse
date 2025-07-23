@@ -514,10 +514,13 @@ const deleteGitToken = async (teamId, tokenId) => {
     return client.delete(`/api/v1/teams/${teamId}/git/tokens/${tokenId}`)
 }
 
-const getTeamInstanceCounts = async (teamId, states, type) => {
+const getTeamInstanceCounts = async (teamId, states, type, applicationId = null) => {
     const params = new URLSearchParams()
     states.forEach(state => params.append('state', state))
     params.append('instanceType', type)
+    if (applicationId !== null) {
+        params.append('applicationId', applicationId)
+    }
 
     return client.get(`/api/v1/teams/${teamId}/instance-counts?${params.toString()}`)
         .then(res => res.data)
