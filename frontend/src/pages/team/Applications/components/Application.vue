@@ -2,9 +2,9 @@
     <li class="application-wrapper" :class="{'is-loading': isLoading}">
         <ApplicationHeader :application="localApplication" />
 
-        <InstancesWrapper :application="localApplication" :search-query="searchQuery" @delete-instance="onInstanceDelete" />
+        <InstancesWrapper :application="localApplication" :search-query="searchQuery" />
 
-        <DevicesWrapper :application="localApplication" :search-query="searchQuery" @delete-device="$emit('device-deleted')" />
+        <DevicesWrapper :application="localApplication" :search-query="searchQuery" />
 
         <transition name="fade">
             <div v-if="isLoading" class="overlay flex">

@@ -14,7 +14,7 @@
             border-bottom-right-radius: 6px;
             border-bottom: 1px solid $ff-grey-300;
         }
-        
+
         > :first-child {
             border-top-left-radius: 6px;
             border-top-right-radius: 6px;
@@ -135,46 +135,6 @@
         gap: 3px;
         margin-top: 10px;
 
-        &.one {
-            grid-template-columns: repeat(1, 1fr);
-        }
-
-        &.two {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        &.three {
-            grid-template-columns: repeat(3, 1fr);
-        }
-        
-        @media screen and (max-width: $ff-screen-2xl) {
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: auto auto;
-
-            &.three {
-                grid-template-columns: repeat(2, 1fr);
-                grid-template-areas: 
-              "col1 col2"
-              "col3";
-            }
-        }
-
-        @media screen and (max-width: $ff-screen-xl) {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        @media screen and (max-width: $ff-screen-sm) {
-            grid-template-columns: repeat(1, 1fr);
-
-            &.two {
-                grid-template-columns: repeat(1, 1fr);
-            }
-            
-            &.three {
-                grid-template-columns: repeat(1, 1fr);
-            }
-        }
-
         .item-wrapper {
             background-color: white;
             border-color: $ff-grey-300;
@@ -191,7 +151,7 @@
                 align-self: stretch;
                 min-width: auto;
                 padding: 0;
-                
+
                 a {
                     align-self: stretch;
                     flex: 1;
@@ -236,11 +196,11 @@
                             color: $ff-black !important;
                         }
                     }
-                    
+
                     .detail {
                         color: $ff-grey-400;
                     }
-                    
+
                     > .detail-wrapper {
                         display: inline-block;
                         flex-direction: column;
