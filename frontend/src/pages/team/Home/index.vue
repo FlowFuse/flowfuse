@@ -89,11 +89,11 @@ import TeamAPI from '../../../api/team.js'
 import AuditLog from '../../../components/audit-log/AuditLog.vue'
 
 import ProjectsIcon from '../../../components/icons/Projects.js'
+import InstanceStat from '../../../components/tiles/InstanceCounter.vue'
 import { useInstanceStates } from '../../../composables/InstanceStates.js'
 import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import DashboardSection from './components/DashboardSection.vue'
-import InstanceStat from './components/InstanceStat.vue'
 import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
 import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
 

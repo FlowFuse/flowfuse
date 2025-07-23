@@ -13,7 +13,7 @@
 import { mapGetters } from 'vuex'
 
 export default {
-    name: 'InstanceStat',
+    name: 'InstanceCounter',
     props: {
         type: {
             required: true,
