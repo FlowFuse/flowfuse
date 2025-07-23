@@ -140,7 +140,7 @@ module.exports = async (options = {}) => {
     }
     const server = fastify({
         forceCloseConnections: true,
-        bodyLimit: 5242880,
+        bodyLimit: 10485760,  // 10mb max payload size, set to allow for VERY large flows
         maxParamLength: 500,
         trustProxy: true,
         logger: loggerConfig,
