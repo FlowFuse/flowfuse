@@ -307,13 +307,13 @@ module.exports = {
                 }
             },
             static: {
-                byId: async (id) => {
+                byId: async (id, options = { includeAssociations: true }) => {
                     if (typeof id === 'string') {
                         id = M.Device.decodeHashid(id)
                     }
-                    return this.findOne({
-                        where: { id },
-                        include: [
+                    let include = []
+                    if (options.includeAssociations) {
+                        include = [
                             {
                                 model: M.Team,
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
@@ -330,6 +330,10 @@ module.exports = {
                             { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
                             { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
                         ]
+                    }
+                    return this.findOne({
+                        where: { id },
+                        include
                     })
                 },
                 byTeam: async (teamIdOrHash, { query = null, deviceId = null } = {}) => {
