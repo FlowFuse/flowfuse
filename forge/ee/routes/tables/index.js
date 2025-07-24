@@ -223,6 +223,52 @@ module.exports = async function (app) {
     })
 
     /**
+     * 
+     */
+    app.post('/:databaseId/tables', {
+        preHandler: app.needsPermission('team:database:create'),
+        schema: {
+            summary: '',
+            tags: ['FF tables'],
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    columns: { $ref: 'DatabaseTable' }
+                }
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    databaseId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'DatabaseTable'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        if (request.body.name && request.body.columns) {
+            const tables = await app.tables.getTables(request.team, request.params.databaseId)
+            if (tables.filter((t) => t.name === request.body.name).length === 1) {
+                reply.status(409).send({ code: "table_exists", error: "Table already exists"})
+            } else {
+                console.log(request.body)
+                const t = await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns)
+                reply.status(201).send(t)
+            }
+        }
+    })
+
+    /**
      * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName
      * @description Get a specific table schema in a team database
      * @static
@@ -256,9 +302,49 @@ module.exports = async function (app) {
         // get the table schema
         const table = await app.tables.getTable(request.team, request.params.databaseId, request.params.tableName)
         if (!table) {
-            return reply.status(404).send({ error: 'Table not found' })
+            return reply.status(404).send({ code: 'table_not_found', error: 'Table not found'})
         }
         reply.send(table)
+    })
+
+    /**
+     * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName
+     * @description Delete a specific table schema in a team database
+     * @static
+     * @memberof forge.routes.api.team.tables
+     */
+    app.delete('/:databaseId/tables/:tableName', {
+        preHandler: app.needsPermission('team:database:create'),
+        schema: {
+            summary: '',
+            tags: ['FF tables'],
+            params: {
+                type: 'object',
+                properties: {
+                    databaseId: { type: 'string' },
+                    tableName: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'DatabaseTable'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const tables = await app.tables.getTables(request.team, request.params.databaseId)
+        if (tables.filter((t) => t.name === request.params.tableName).length === 1) {
+            await app.tables.dropTable(request.team, request.params.databaseId, request.params.tableName)
+            reply.status(204).send()
+        } else {
+            reply.status(404).send({ code: 'table_not_found', error: 'Table not found' })
+        }
     })
 
     /**
