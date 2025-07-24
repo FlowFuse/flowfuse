@@ -51,8 +51,6 @@
                             :key="application.id"
                             data-el="application-item"
                             :application="application"
-                            :search-query="filterTerm"
-                            :is-searching="isSearching"
                             @instance-deleted="fetchData(false)"
                             @device-deleted="fetchData(false)"
                         />
@@ -110,7 +108,6 @@ import { mapGetters } from 'vuex'
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import permissionsMixin from '../../../mixins/Permissions.js'
-import Alerts from '../../../services/alerts.js'
 
 import ApplicationListItem from './components/Application.vue'
 
@@ -131,7 +128,6 @@ export default {
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
             ],
             filterTerm: '',
-            debouncedFilterTerm: '',
             isSearching: false
         }
     },
@@ -141,12 +137,12 @@ export default {
             return Array.from(this.applications.values())
         },
         filteredApplications () {
-            if (this.debouncedFilterTerm) {
+            if (this.filterTerm.length) {
                 return this.applicationsList
                     .filter(app => {
                         return [
-                            app?.name?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase()),
-                            app?.id?.toLowerCase().includes(this.debouncedFilterTerm.toLowerCase())
+                            app?.name?.toLowerCase().includes(this.filterTerm.toLowerCase()),
+                            app?.id?.toLowerCase().includes(this.filterTerm.toLowerCase())
                         ].includes(true)
                     })
             } return this.applicationsList

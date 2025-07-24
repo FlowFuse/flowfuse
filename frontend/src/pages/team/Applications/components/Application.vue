@@ -7,12 +7,6 @@
 
             <DevicesWrapper :application="localApplication" />
         </div>
-
-        <transition name="fade">
-            <div v-if="isLoading" class="overlay flex">
-                <ff-spinner v-if="isLoading" class="flex-1 self-center" />
-            </div>
-        </transition>
     </li>
 </template>
 
