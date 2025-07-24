@@ -2,7 +2,7 @@
     <li class="application-wrapper" :class="{'is-loading': isLoading}">
         <ApplicationHeader :application="localApplication" />
 
-        <div class="flex">
+        <div class="flex flex-wrap ">
             <InstancesWrapper :application="localApplication" />
 
             <DevicesWrapper :application="localApplication" />

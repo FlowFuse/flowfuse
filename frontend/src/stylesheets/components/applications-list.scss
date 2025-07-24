@@ -132,8 +132,12 @@
         background: none;
         border: none;
         padding: 0;
-        gap: 3px;
+        gap: 5px;
         margin-top: 10px;
+
+        .ff-counter {
+            min-width: 125px;
+        }
     }
 }
 
