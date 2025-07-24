@@ -32,10 +32,10 @@ export default {
         }
     },
     setup () {
-        const { groupedInstanceStates } = useInstanceStates()
+        const { groupBySimplifiedStates } = useInstanceStates()
 
         return {
-            groupedInstanceStates
+            groupBySimplifiedStates
         }
     },
     data () {
@@ -46,7 +46,7 @@ export default {
     computed: {
         ...mapState('account', ['team']),
         groupedStates () {
-            return this.groupedInstanceStates(this.instanceStates)
+            return this.groupBySimplifiedStates(this.instanceStates)
         },
         isSearching () {
             return this.searchQuery.length > 0

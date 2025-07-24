@@ -111,12 +111,10 @@ export default {
         RecentlyModifiedDevices
     },
     setup () {
-        const { runningStates: runningInstanceStates, errorStates: errorInstanceStates, stoppedStates: stoppedInstanceStates } = useInstanceStates()
+        const { groupBySimplifiedStates } = useInstanceStates()
 
         return {
-            runningInstanceStates,
-            errorInstanceStates,
-            stoppedInstanceStates
+            groupBySimplifiedStates
         }
     },
     data () {
@@ -125,55 +123,18 @@ export default {
             logEntries: [],
             instances: [],
             instanceStateCounts: {},
-            isDeleteInstanceDialogOpen: false,
-            devices: [],
             deviceStateCounts: {},
-            statesMap: {
-                running: this.runningInstanceStates,
-                error: this.errorInstanceStates,
-                stopped: this.stoppedInstanceStates
-            }
+            isDeleteInstanceDialogOpen: false,
+            devices: []
         }
     },
     computed: {
         ...mapGetters('account', ['team', 'pendingTeamChange']),
         instanceStats () {
-            return {
-                running: this.instanceStateCounts
-                    ? Object.keys(this.instanceStateCounts)
-                        .filter(key => this.statesMap.running.includes(key))
-                        .reduce((total, key) => total + this.instanceStateCounts[key], 0)
-                    : 0,
-                error: this.instanceStateCounts
-                    ? Object.keys(this.instanceStateCounts)
-                        .filter(key => this.statesMap.error.includes(key))
-                        .reduce((total, key) => total + this.instanceStateCounts[key], 0)
-                    : 0,
-                stopped: this.instanceStateCounts
-                    ? Object.keys(this.instanceStateCounts)
-                        .filter(key => this.statesMap.stopped.includes(key))
-                        .reduce((total, key) => total + this.instanceStateCounts[key], 0)
-                    : 0
-            }
+            return this.groupBySimplifiedStates(this.instanceStateCounts)
         },
         deviceStats () {
-            return {
-                running: this.deviceStateCounts
-                    ? Object.keys(this.deviceStateCounts)
-                        .filter(key => this.statesMap.running.includes(key))
-                        .reduce((total, key) => total + this.deviceStateCounts[key], 0)
-                    : 0,
-                error: this.deviceStateCounts
-                    ? Object.keys(this.deviceStateCounts)
-                        .filter(key => this.statesMap.error.includes(key))
-                        .reduce((total, key) => total + this.deviceStateCounts[key], 0)
-                    : 0,
-                stopped: this.deviceStateCounts
-                    ? Object.keys(this.deviceStateCounts)
-                        .filter(key => this.statesMap.stopped.includes(key))
-                        .reduce((total, key) => total + this.deviceStateCounts[key], 0)
-                    : 0
-            }
+            return this.groupBySimplifiedStates(this.deviceStateCounts)
         },
         totalInstances () {
             return this.instanceStateCounts

@@ -31,7 +31,7 @@ export function useInstanceStates () {
     const isErrorState = (state) => errorStates.includes(state)
     const isStoppedState = (state) => stoppedStates.includes(state)
 
-    const groupedInstanceStates = (instanceStateCounts) => {
+    const groupBySimplifiedStates = (instanceStateCounts) => {
         return {
             running: instanceStateCounts
                 ? Object.keys(instanceStateCounts)
@@ -58,6 +58,6 @@ export function useInstanceStates () {
         isErrorState,
         stoppedStates,
         isStoppedState,
-        groupedInstanceStates
+        groupBySimplifiedStates
     }
 }
