@@ -2,6 +2,7 @@
     <div
         class="ff-counter rounded-md flex-1 p-3 cursor-pointer"
         :class="[`bg-${accent}-50`, `text-${accent}-500`, accent]"
+        :data-state="state"
         @click="clicked()"
     >
         <label class="block">{{ title }}</label>

@@ -1,5 +1,5 @@
 <template>
-    <section class="ff-applications-list-instances--compact" data-el="application-devices">
+    <section class="ff-applications-list-instances" data-el="application-devices">
         <label class="delimiter">
             <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
             Remote Instances

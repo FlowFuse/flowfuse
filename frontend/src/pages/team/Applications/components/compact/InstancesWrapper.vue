@@ -1,5 +1,5 @@
 <template>
-    <section class="ff-applications-list-instances--compact" data-el="application-instances">
+    <section class="ff-applications-list-instances" data-el="application-instances">
         <label class="delimiter">
             <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Hosted Instances
         </label>
