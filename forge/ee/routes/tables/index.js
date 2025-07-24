@@ -234,7 +234,10 @@ module.exports = async function (app) {
     })
 
     /**
-     * 
+     * @name /api/v1/teams/:teamId/databases/:databaseId/tables
+     * @description Creates new table in database
+     * @static
+     * @memberof forge.routes.api.team.tables
      */
     app.post('/:databaseId/tables', {
         preHandler: app.needsPermission('team:database:create'),
@@ -270,9 +273,8 @@ module.exports = async function (app) {
         if (request.body.name && request.body.columns) {
             const tables = await app.tables.getTables(request.team, request.params.databaseId)
             if (tables.filter((t) => t.name === request.body.name).length === 1) {
-                reply.status(409).send({ code: "table_exists", error: "Table already exists"})
+                reply.status(409).send({ code: 'table_exists', error: 'Table already exists' })
             } else {
-                console.log(request.body)
                 const t = await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns)
                 reply.status(201).send(t)
             }
@@ -313,7 +315,7 @@ module.exports = async function (app) {
         // get the table schema
         const table = await app.tables.getTable(request.team, request.params.databaseId, request.params.tableName)
         if (!table) {
-            return reply.status(404).send({ code: 'table_not_found', error: 'Table not found'})
+            return reply.status(404).send({ code: 'table_not_found', error: 'Table not found' })
         }
         reply.send(table)
     })

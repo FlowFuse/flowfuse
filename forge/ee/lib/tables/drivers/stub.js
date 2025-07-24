@@ -73,14 +73,13 @@ module.exports = {
         }
         let query = `CREATE TABLE IF NOT EXISTS "${tableName}" (\n`
         for (const [i, col] of columns.entries()) {
-            console.log(col)
             let column = `"${col.name}" `
             if (col.type === 'varchar') {
                 column += `${col.type}(${col.maxLength}) `
             } else {
                 column += `${col.type} `
             }
-            column += `${col.nullable ? '': 'NOT NULL'} ` 
+            column += `${col.nullable ? '' : 'NOT NULL'} `
             if (col.default) {
                 if (typeof col.default === 'string') {
                     column += `DEFAULT '${col.default}'`
@@ -95,7 +94,7 @@ module.exports = {
             }
         }
         query += ')'
-        app.log.info(query)
+        this._app.log.info(query)
         tables[tableName] = columns
         return columns
     },
