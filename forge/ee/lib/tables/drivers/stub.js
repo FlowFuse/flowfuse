@@ -1,5 +1,6 @@
 const { generatePassword } = require('../../../../lib/userTeam')
 const databases = {}
+const tables = {}
 
 module.exports = {
     init: async function (app, options) {
@@ -66,8 +67,45 @@ module.exports = {
             meta: {}
         }
     },
-    createTable: async function (team, databaseId, table) {},
-    dropTable: async function (team, databaseId, tableName) {},
+    createTable: async function (team, databaseId, tableName, columns) {
+        if (tables[tableName]) {
+            throw new Error()
+        }
+        let query = `CREATE TABLE IF NOT EXISTS "${tableName}" (\n`
+        for (const [i, col] of columns.entries()) {
+            console.log(col)
+            let column = `"${col.name}" `
+            if (col.type === 'varchar') {
+                column += `${col.type}(${col.maxLength}) `
+            } else {
+                column += `${col.type} `
+            }
+            column += `${col.nullable ? '': 'NOT NULL'} ` 
+            if (col.default) {
+                if (typeof col.default === 'string') {
+                    column += `DEFAULT '${col.default}'`
+                } else {
+                    column += `DEFAULT ${col.default}`
+                }
+            }
+            if (i + 1 !== columns.length) {
+                query += column + ',\n'
+            } else {
+                query += column + '\n'
+            }
+        }
+        query += ')'
+        app.log.info(query)
+        tables[tableName] = columns
+        return columns
+    },
+    dropTable: async function (team, databaseId, tableName) {
+        if (tables[tableName]) {
+            delete tables[tableName]
+        } else {
+            throw new Error('table not found')
+        }
+    },
     createColumn: async function (team, database, table, column) {},
     removeColumn: async function (team, database, table, column) {}
 }

@@ -67,10 +67,10 @@ module.exports = {
             throw new Error('Database driver does not support getTableData')
         }
     },
-    createTable: async (team, databaseId, table) => {
+    createTable: async (team, databaseId, tableName, columns) => {
         if (this._driver.createTable) {
-            this._app.log.info(`Adding table '${table.name}' to database '${databaseId}' for '${team.hashid}'`)
-            return this._driver.createTable(team, databaseId, table)
+            this._app.log.info(`Adding table '${tableName}' to database '${databaseId}' for '${team.hashid}'`)
+            return this._driver.createTable(team, databaseId, tableName, columns)
         } else {
             throw new Error('Database driver does not support createTable')
         }

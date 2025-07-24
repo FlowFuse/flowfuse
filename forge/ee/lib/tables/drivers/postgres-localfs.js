@@ -181,7 +181,7 @@ module.exports = {
                         return col
                     })
                 } else {
-                    throw new Error(`Table ${table} does not exist in database ${database} for team ${team.hashid}`)
+                    return null
                 }
             } finally {
                 teamClient.end()
@@ -225,8 +225,69 @@ module.exports = {
             throw new Error(`Failed to retrieve table ${table} for team ${team.hashid}: ${err.message}`)
         }
     },
-    createTable: async function (team, database, table) {},
-    dropTable: async function (team, database, table) {},
+    createTable: async function (team, databaseId, tableName, columns) {
+        const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
+        if (!databaseExists || databaseExists.TeamId !== team.id) {
+            throw new Error(`Database ${databaseID} for team ${team.hashid} does not exist`)
+        }
+        try {
+            const options = databaseExists.credentials
+            const teamClient = new pg.Client(options)
+            try {
+                await teamClient.connect()
+                let query = `CREATE TABLE IF NOT EXISTS "${tableName}" (\n`
+                for (const [i, col] of columns.entries()) {
+                    console.log(col)
+                    let column = `"${col.name}" `
+                    if (col.type === 'varchar') {
+                        column += `${col.type}(${col.maxLength}) `
+                    } else {
+                       column += `${col.type} `
+                    }
+                    column += `${col.nullable ? '': 'NOT NULL'} ` 
+                    if (col.default) {
+                        if (typeof col.default === 'string') {
+                            column += `DEFAULT '${col.default}'`
+                        } else {
+                            column += `DEFAULT ${col.default}`
+                        }
+                    }
+                    if (i + 1 !== columns.length) {
+                        query += column + ',\n'
+                    } else {
+                        query += column + '\n'
+                    }
+                }
+                query += ')'
+                console.log(query)
+                await teamClient.query(query)
+            } finally {
+                teamClient.end()
+            }
+        } catch (err) {
+            console.error('Error retrieving table:', err)
+            throw new Error(`Failed to create table ${tableName} for team ${team.hashid}: ${err.message}`)
+        }
+    },
+    dropTable: async function (team, databaseId, tableName) {
+        const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
+        if (!databaseExists || databaseExists.TeamId !== team.id) {
+            throw new Error(`Database ${databaseID} for team ${team.hashid} does not exist`)
+        }
+        try {
+            const options = databaseExists.credentials
+            const teamClient = new pg.Client(options)
+            try {
+                await teamClient.connect()
+                teamClient.query(`DROP TABLE ${tableName}`)
+            } finally {
+                teamClient.end()
+            }
+        } catch (err) {
+            console.error('Error retrieving table:', err)
+            throw new Error(`Failed to create table ${tableName} for team ${team.hashid}: ${err.message}`)
+        }
+    },
     createColumn: async function (team, database, table, column) {},
     removeColumn: async function (team, database, table, column) {}
 }
