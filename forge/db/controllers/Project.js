@@ -10,6 +10,8 @@ const { KEY_SETTINGS } = require('../models/ProjectSettings')
  */
 const inflightProjectState = { }
 
+const latestProjectState = { }
+
 const inflightDeploys = new Set()
 
 module.exports = {
@@ -545,7 +547,7 @@ module.exports = {
     },
 
     /**
-     * Imports settings, flows and credentials from a project export object
+     * Imports settings, flows, and credentials from a project export object
      *
      * @param {*} app
      * @param {*} project
@@ -688,6 +690,56 @@ module.exports = {
         const modules = flowBlueprint.modules || {}
         for (const [moduleName, version] of Object.entries(modules)) {
             await app.db.controllers.Project.addProjectModule(instance, moduleName, version)
+        }
+    },
+
+    /**
+     * Retrieves the latest state of a specified project.
+     *
+     * @param {string|Number} projectId - The unique identifier of the project whose latest state is to be retrieved.
+     * @returns {string} The latest state of the specified project.
+     */
+    getLatestProjectState: function (app, projectId) {
+        return latestProjectState[projectId]
+    },
+
+    /**
+     * Updates the state of the latest project for a given project ID.
+     *
+     * @function
+     * @param {string|number} projectId - The unique identifier of the project whose state is being updated.
+     * @param {any} state - The new state to be assigned to the project.
+     */
+    setLatestProjectState: function (app, projectId, state) {
+        latestProjectState[projectId] = state
+    },
+
+    /**
+     * Clears the latest project state for a specific project.
+     *
+     * This function deletes the entry in the `latestProjectState` object corresponding
+     * to the provided project's ID. The state deletion is context-specific to the project
+     * and associated application.
+     *
+     * @param {String|Number} projectId - The project id whose latest state should be cleared.
+     */
+    clearLatestProjectState: function (app, projectId) {
+        delete latestProjectState[projectId]
+    },
+
+    /**
+     * Updates the latest project state for the specified app and project based on the given state.
+     * If the state is 'running' or 'stopped', it clears the latest driver state.
+     * Otherwise, it sets the latest driver state to the new value.
+     *
+     * @param {String|Number} projectId - The project id related to the driver state update.
+     * @param {string} state - The new state to update, can be 'running', 'stopped', or other valid states.
+     */
+    updateLatestProjectState: function (app, projectId, state) {
+        if (['running', 'stopped'].includes(state)) {
+            this.clearLatestProjectState(app, projectId)
+        } else {
+            this.setLatestProjectState(app, projectId, state)
         }
     }
 }
