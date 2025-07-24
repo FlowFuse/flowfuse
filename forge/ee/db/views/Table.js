@@ -36,9 +36,9 @@ module.exports = function (app) {
         }
     })
 
-    async function table (table) {
-        if (table) {
-            const result = table.toJSON()
+    function table (tableInstance) {
+        if (tableInstance) {
+            const result = tableInstance.toJSON()
             result.id = result.hashid
             delete result.hashid
             return result
@@ -47,9 +47,9 @@ module.exports = function (app) {
         }
     }
 
-    async function tables (tables) {
-        if (tables) {
-            return await Promise.all(tables.map(table))
+    function tables (tableInstances) {
+        if (tableInstances) {
+            return tableInstances.map(table)
         } else {
             return []
         }

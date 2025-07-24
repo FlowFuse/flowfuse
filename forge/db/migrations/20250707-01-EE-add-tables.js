@@ -4,6 +4,10 @@
 const { DataTypes } = require('sequelize')
 
 module.exports = {
+    /**
+     * upgrade database
+     * @param {QueryInterface} context Sequelize.QueryInterface
+     */
     up: async (context) => {
         await context.createTable('Tables', {
             id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -12,24 +16,10 @@ module.exports = {
                 allowNull: false
             },
             credentials: {
-                type: DataTypes.TEXT,
-                set (value) {
-                    this.setDataValue('credentials', JSON.stringify(value))
-                },
-                get () {
-                    const rawValue = this.getDataValue('credentials') || '{}'
-                    return JSON.parse(rawValue)
-                }
+                type: DataTypes.TEXT
             },
             meta: {
-                type: DataTypes.TEXT,
-                set (value) {
-                    this.setDataValue('meta', JSON.stringify(value))
-                },
-                get () {
-                    const rawValue = this.getDataValue('meta') || '{}'
-                    return JSON.parse(rawValue)
-                }
+                type: DataTypes.TEXT
             },
             createdAt: { type: DataTypes.DATE, allowNull: false },
             updatedAt: { type: DataTypes.DATE, allowNull: false },
