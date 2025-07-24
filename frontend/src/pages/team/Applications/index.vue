@@ -158,17 +158,6 @@ export default {
     async mounted () {
         await this.fetchData()
 
-        // todo this should be moved to the team overview page
-        if ('billing_session' in this.$route.query) {
-            this.$nextTick(() => {
-                // Clear the query param so a reload of the page does re-trigger
-                // the notification
-                this.$router.replace({ query: '' })
-                // allow the Alerts service to have subscription by wrapping in nextTick
-                Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
-            })
-        }
-
         this.setSearchQuery()
     },
     methods: {

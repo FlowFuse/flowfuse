@@ -91,6 +91,7 @@ import AuditLog from '../../../components/audit-log/AuditLog.vue'
 import ProjectsIcon from '../../../components/icons/Projects.js'
 import InstanceStat from '../../../components/tiles/InstanceCounter.vue'
 import { useInstanceStates } from '../../../composables/InstanceStates.js'
+import Alerts from '../../../services/alerts.js'
 import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import DashboardSection from './components/DashboardSection.vue'
@@ -149,6 +150,16 @@ export default {
         }
     },
     async mounted () {
+        if ('billing_session' in this.$route.query) {
+            this.$nextTick(() => {
+                // Clear the query param so a reload of the page does re-trigger
+                // the notification
+                this.$router.replace({ query: '' })
+                // allow the Alerts service to have subscription by wrapping in nextTick
+                Alerts.emit('Thanks for signing up to FlowFuse!', 'confirmation')
+            })
+        }
+
         this.getInstanceStateCounts()
         this.getDeviceStateCounts()
         this.getRecentActivity()
