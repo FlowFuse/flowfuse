@@ -237,7 +237,7 @@ module.exports = {
     createTable: async function (team, databaseId, tableName, columns) {
         const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
-            throw new Error(`Database ${databaseID} for team ${team.hashid} does not exist`)
+            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
         }
         try {
             const options = databaseExists.credentials
@@ -246,14 +246,13 @@ module.exports = {
                 await teamClient.connect()
                 let query = `CREATE TABLE IF NOT EXISTS "${tableName}" (\n`
                 for (const [i, col] of columns.entries()) {
-                    console.log(col)
                     let column = `"${col.name}" `
                     if (col.type === 'varchar') {
                         column += `${col.type}(${col.maxLength}) `
                     } else {
-                       column += `${col.type} `
+                        column += `${col.type} `
                     }
-                    column += `${col.nullable ? '': 'NOT NULL'} ` 
+                    column += `${col.nullable ? '' : 'NOT NULL'} `
                     if (col.default) {
                         if (typeof col.default === 'string') {
                             column += `DEFAULT '${col.default}'`
@@ -268,7 +267,6 @@ module.exports = {
                     }
                 }
                 query += ')'
-                console.log(query)
                 await teamClient.query(query)
             } finally {
                 teamClient.end()
@@ -281,7 +279,7 @@ module.exports = {
     dropTable: async function (team, databaseId, tableName) {
         const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
-            throw new Error(`Database ${databaseID} for team ${team.hashid} does not exist`)
+            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
         }
         try {
             const options = databaseExists.credentials
