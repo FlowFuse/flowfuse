@@ -111,10 +111,11 @@ export default {
         RecentlyModifiedDevices
     },
     setup () {
-        const { groupBySimplifiedStates } = useInstanceStates()
+        const { groupBySimplifiedStates, statesMap: instanceStatesMap } = useInstanceStates()
 
         return {
-            groupBySimplifiedStates
+            groupBySimplifiedStates,
+            instanceStatesMap
         }
     },
     data () {
@@ -164,8 +165,8 @@ export default {
                 })
         },
         onStatClick (payload) {
-            const searchQuery = Object.prototype.hasOwnProperty.call(this.statesMap, payload.state)
-                ? this.statesMap[payload.state].join(' | ')
+            const searchQuery = Object.prototype.hasOwnProperty.call(this.instanceStatesMap, payload.state)
+                ? this.instanceStatesMap[payload.state].join(' | ')
                 : ''
             const name = payload.type === 'hosted' ? 'Instances' : 'TeamDevices'
 

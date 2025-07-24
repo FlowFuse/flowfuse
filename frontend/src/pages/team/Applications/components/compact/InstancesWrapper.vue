@@ -4,9 +4,13 @@
             <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Hosted Instances
         </label>
         <div class="items-wrapper">
-            <instance-counter :counter="groupedStates.running ?? 0" state="running" type="hosted" />
-            <instance-counter :counter="groupedStates.error ?? 0" state="error" type="hosted" />
-            <instance-counter :counter="groupedStates.stopped ?? 0" state="stopped" type="hosted" />
+            <instance-counter
+                v-for="state in states" :key="state"
+                :counter="groupedStates[state] ?? 0"
+                :state="state"
+                type="hosted"
+                @click="onCounterClick(state)"
+            />
         </div>
     </section>
 </template>
@@ -31,15 +35,17 @@ export default {
         }
     },
     setup () {
-        const { groupBySimplifiedStates } = useInstanceStates()
+        const { groupBySimplifiedStates, statesMap: instanceStatesMap } = useInstanceStates()
 
         return {
-            groupBySimplifiedStates
+            groupBySimplifiedStates,
+            instanceStatesMap
         }
     },
     data () {
         return {
-            instanceStates: { }
+            instanceStates: { },
+            states: ['running', 'error', 'stopped']
         }
     },
     computed: {
@@ -54,6 +60,19 @@ export default {
                 this.instanceStates = res
             })
             .catch(e => e)
+    },
+    methods: {
+        onCounterClick (state) {
+            const searchQuery = Object.prototype.hasOwnProperty.call(this.instanceStatesMap, state)
+                ? this.instanceStatesMap[state].join(' | ')
+                : ''
+
+            this.$router.push({
+                name: 'ApplicationInstances',
+                params: { team_slug: this.team.slug, id: this.application.id },
+                query: { searchQuery }
+            })
+        }
     }
 }
 </script>

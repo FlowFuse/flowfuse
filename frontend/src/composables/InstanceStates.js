@@ -27,6 +27,12 @@ export function useInstanceStates () {
         'unknown'
     ]
 
+    const statesMap = {
+        running: runningStates,
+        error: errorStates,
+        stopped: stoppedStates
+    }
+
     const isRunningState = (state) => runningStates.includes(state)
     const isErrorState = (state) => errorStates.includes(state)
     const isStoppedState = (state) => stoppedStates.includes(state)
@@ -58,6 +64,7 @@ export function useInstanceStates () {
         isErrorState,
         stoppedStates,
         isStoppedState,
+        statesMap,
         groupBySimplifiedStates
     }
 }
