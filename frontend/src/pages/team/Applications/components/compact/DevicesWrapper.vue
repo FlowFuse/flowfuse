@@ -72,7 +72,7 @@ export default {
                 : ''
 
             this.$router.push({
-                name: 'ApplicationInstances',
+                name: 'ApplicationDevices',
                 params: { team_slug: this.team.slug, id: this.application.id },
                 query: { searchQuery }
             })
