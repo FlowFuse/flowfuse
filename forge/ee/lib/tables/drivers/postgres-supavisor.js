@@ -297,7 +297,7 @@ module.exports = {
                 user: this._options.backend.user,
                 password: this._options.backend.password
             }
-            const teamClient = new pg.Client(options)
+            const teamClient = libPg.newClient(options)
             try {
                 await teamClient.connect()
                 let query = `CREATE TABLE IF NOT EXISTS "${tableName}" (\n`
@@ -323,7 +323,7 @@ module.exports = {
                     }
                 }
                 query += ')'
-                results = await teamClient.query(query)
+                await teamClient.query(query)
             } finally {
                 teamClient.end()
             }
@@ -346,7 +346,7 @@ module.exports = {
                 user: this._options.backend.user,
                 password: this._options.backend.password
             }
-            const teamClient = new pg.Client(options)
+            const teamClient = libPg.newClient(options)
             try {
                 await teamClient.connect()
                 await teamClient.query(`DROP TABLE ${tableName}`)
