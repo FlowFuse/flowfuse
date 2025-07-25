@@ -44,7 +44,7 @@ module.exports = {
             throw new Error('Database driver does not support destroyDatabase')
         }
     },
-    getTables: async (team, databaseId) => {
+    getTables: async (team, databaseId, paginationOptions) => {
         if (this._driver.getTables) {
             return this._driver.getTables(team, databaseId)
         } else {

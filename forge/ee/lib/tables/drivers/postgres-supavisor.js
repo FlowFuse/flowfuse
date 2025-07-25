@@ -172,9 +172,8 @@ module.exports = {
         } else {
             throw new Error(`Database ${team.hashid} does not exist`)
         }
-        
     },
-    getTables: async function (team, databaseId) {
+    getTables: async function (team, databaseId, paginationOptions) {
         // SELECT * FROM pg_catalog.pg_tables;
         const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
@@ -186,14 +185,23 @@ module.exports = {
                 await teamClient.connect()
                 const res = await teamClient.query('SELECT "tablename" FROM "pg_catalog"."pg_tables" WHERE "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\'')
                 if (res.rows && res.rows.length > 0) {
-                    return res.rows.map(row => {
+                    const tables = res.rows.map(row => {
                         return {
                             name: row.tablename,
                             schema: row.schemaname
                         }
                     })
+                    return {
+                        count: tables.length,
+                        tables,
+                        meta: {}
+                    }
                 } else {
-                    return []
+                    return {
+                        count: 0,
+                        tables: [],
+                        meta: {}
+                    }
                 }
             } finally {
                 teamClient.end()

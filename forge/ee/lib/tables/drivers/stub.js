@@ -43,8 +43,12 @@ module.exports = {
         await db.destroy()
         delete databases[team.hashid]
     },
-    getTables: async function (team, databaseId) {
-        return [{ name: 'table1', schema: 'public' }, { name: 'table2', schema: 'public' }]
+    getTables: async function (team, databaseId, paginationOptions) {
+        return {
+            count: 2,
+            tables: [{ name: 'table1', schema: 'public' }, { name: 'table2', schema: 'public' }],
+            meta: {}
+        }
     },
     getTable: async function (team, databaseId, tableName) {
         return [

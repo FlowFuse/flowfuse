@@ -197,12 +197,22 @@ module.exports = async function (app) {
             query: { $ref: 'PaginationParams' },
             response: {
                 200: {
-                    type: 'array',
-                    items: {
-                        type: 'object',
-                        properties: {
-                            name: { type: 'string' },
-                            schema: { type: 'string' }
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number' },
+                        tables: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    name: { type: 'string' },
+                                    schema: { type: 'string' }
+                                }
+                            }
+                        },
+                        meta: {
+                            type: 'object',
+                            additionalProperties: true
                         }
                     }
                 },
@@ -215,8 +225,8 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        // paginate the list of tables
-        const tables = await app.tables.getTables(request.team, request.params.databaseId)
+        const paginationOptions = app.getPaginationOptions(request)
+        const tables = await app.tables.getTables(request.team, request.params.databaseId, paginationOptions)
         if (!tables) {
             return reply.status(404).send({ code: 'not_found', error: 'Database not found' })
         }

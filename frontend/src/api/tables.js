@@ -7,7 +7,7 @@ const getDataBases = (teamId) => {
 
 const getTables = (teamId, databaseId) => {
     return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables`)
-        .then(res => res.data)
+        .then(res => res.data.tables)
 }
 
 const createDatabase = (teamId, name) => {
