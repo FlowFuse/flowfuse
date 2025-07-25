@@ -62,14 +62,14 @@ module.exports = {
         } else {
             const password = generatePassword(16)
             try {
-                await this._adminClient.query(`CREATE DATABASE "${team.hashid}"`)
-                await this._adminClient.query(`REVOKE connect ON DATABASE "${team.hashid}" FROM PUBLIC;`)
+                const escapedDatabaseName = libPg.pg.escapeIdentifier(team.hashid)
+                await this._adminClient.query(`CREATE DATABASE ${escapedDatabaseName}`)
+                await this._adminClient.query(`REVOKE connect ON DATABASE ${escapedDatabaseName} FROM PUBLIC;`)
                 const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
                 try {
                     await teamClient.connect()
                     // Escape identifiers for role and database names
                     const escapedRoleName = libPg.pg.escapeIdentifier(`${team.hashid}-role`)
-                    const escapedDatabaseName = libPg.pg.escapeIdentifier(team.hashid)
                     const escapedUserName = libPg.pg.escapeIdentifier(team.hashid)
                     // Escape the password literal for direct inclusion in DDL
                     const escapedPassword = libPg.pg.escapeLiteral(password)
@@ -162,9 +162,9 @@ module.exports = {
         const res = await this._adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
         if (res.rows.length === 1) {
             try {
-                await this._adminClient.query(`DROP DATABASE IF EXISTS "${team.hashid}"`)
-                await this._adminClient.query(`DROP USER IF EXISTS "${team.hashid}"`)
-                await this._adminClient.query(`DROP ROLE IF EXISTS "${team.hashid}-role"`)
+                await this._adminClient.query(`DROP DATABASE IF EXISTS "${libPg.pg.escapeIdentifier(team.hashid)}"`)
+                await this._adminClient.query(`DROP USER IF EXISTS "${libPg.pg.escapeIdentifier(team.hashid)}"`)
+                await this._adminClient.query(`DROP ROLE IF EXISTS ${libPg.pg.escapeIdentifier(team.hashid + '-role')}`)
                 await db.destroy()
             } catch (err) {
                 // console.log(err)
@@ -259,7 +259,8 @@ module.exports = {
             const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
             try {
                 await teamClient.connect()
-                const query = `SELECT * FROM "${table}" LIMIT $1`
+                const escapedTable = libPg.pg.escapeIdentifier(table)
+                const query = `SELECT * FROM ${escapedTable} LIMIT $1`
                 const res = await teamClient.query(query, [rows || 10])
                 if (res.rows && res.rows.length > 0) {
                     return {
