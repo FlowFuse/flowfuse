@@ -32,6 +32,7 @@ module.exports = {
     },
     createDatabase: async (team, name) => {
         if (this._driver.createDatabase) {
+            this._app.log.info(`Adding database for '${team.hashid}'`)
             return this._driver.createDatabase(team, name)
         } else {
             throw new Error('Database driver does not support createDatabase')
@@ -39,6 +40,7 @@ module.exports = {
     },
     destroyDatabase: async (team, databaseId) => {
         if (this._driver.destroyDatabase) {
+            this._app.log.info(`Removing database '${databaseId}' for '${team.hashid}'`)
             return this._driver.destroyDatabase(team, databaseId)
         } else {
             throw new Error('Database driver does not support destroyDatabase')
@@ -58,37 +60,39 @@ module.exports = {
             throw new Error('Database driver does not support getTable')
         }
     },
-    getTableData: async (team, database, table, paginationOptions) => {
+    getTableData: async (team, databaseId, table, paginationOptions) => {
         if (this._driver.getTableData) {
-            return this._driver.getTableData(team, database, table, paginationOptions)
+            return this._driver.getTableData(team, databaseId, table, paginationOptions)
         } else {
             throw new Error('Database driver does not support getTableData')
         }
     },
     createTable: async (team, databaseId, table) => {
         if (this._driver.createTable) {
+            this._app.log.info(`Adding table '${table.name}' to database '${databaseId}' for '${team.hashid}'`)
             return this._driver.createTable(team, databaseId, table)
         } else {
             throw new Error('Database driver does not support createTable')
         }
     },
-    dropTable: async (team, database, table) => {
+    dropTable: async (team, databaseId, table) => {
         if (this._driver.dropTable) {
-            return this._driver.dropTable(team, database, table)
+            this._app.log.info(`Removing table '${table}' to database '${databaseId}' for '${team.hashid}'`)
+            return this._driver.dropTable(team, databaseId, table)
         } else {
             throw new Error('Database driver does not support dropTable')
         }
     },
-    removeColumn: async (team, database, table, column) => {
+    removeColumn: async (team, databaseId, table, column) => {
         if (this._driver.removeColumn) {
-            return this._driver.removeColumn(team, database, table, column)
+            return this._driver.removeColumn(team, databaseId, table, column)
         } else {
             throw new Error('Database driver does not support removeColumn')
         }
     },
-    addColumn: async (team, database, table, column) => {
+    addColumn: async (team, databaseId, table, column) => {
         if (this._driver.addColumn) {
-            return this._driver.addColumn(team, database, table, column)
+            return this._driver.addColumn(team, databaseId, table, column)
         } else {
             throw new Error('Database driver does not support addColumn')
         }
