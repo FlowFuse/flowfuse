@@ -156,22 +156,23 @@ module.exports = {
                     Authorization: `Bearer ${this._options.supavisor.token}`
                 }
             })
-            const res = await this._adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
-            if (res.rows.length === 1) {
-                try {
-                    await this._adminClient.query(`DROP DATABASE IF EXISTS "${team.hashid}"`)
-                    await this._adminClient.query(`DROP USER IF EXISTS "${team.hashid}"`)
-                    await this._adminClient.query(`DROP ROLE IF EXISTS "${team.hashid}-role"`)
-                    await db.destroy()
-                } catch (err) {
-                    // console.log(err)
-                }
-            } else {
-                throw new Error(`Database ${team.hashid} does not exist`)
-            }
         } catch (err) {
             // console.log(err)
         }
+        const res = await this._adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
+        if (res.rows.length === 1) {
+            try {
+                await this._adminClient.query(`DROP DATABASE IF EXISTS "${team.hashid}"`)
+                await this._adminClient.query(`DROP USER IF EXISTS "${team.hashid}"`)
+                await this._adminClient.query(`DROP ROLE IF EXISTS "${team.hashid}-role"`)
+                await db.destroy()
+            } catch (err) {
+                // console.log(err)
+            }
+        } else {
+            throw new Error(`Database ${team.hashid} does not exist`)
+        }
+        
     },
     getTables: async function (team, databaseId) {
         // SELECT * FROM pg_catalog.pg_tables;

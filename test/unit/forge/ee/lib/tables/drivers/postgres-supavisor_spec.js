@@ -238,10 +238,7 @@ describe('Tables: Postgres Supavisor Driver', function () {
             sinon.stub(axios, 'delete').resolves({ status: 200, data: { success: true } })
             await driver.init(app, options)
             driver._adminClient.query.withArgs('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid]).resolves({ rows: [] })
-            await driver.destroyDatabase(team, 1).should.be.fulfilled()
-            driver._adminClient.query.calledOnce.should.be.true() // only the select query - no drops since db does not exist
-            driver._adminClient.query.calledWithMatch('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid]).should.be.true()
-            dbObj.destroy.called.should.be.false() // skipped since db does not exist
+            await driver.destroyDatabase(team, 1).should.be.rejectedWith('Database t1hash does not exist')
         })
     })
 
