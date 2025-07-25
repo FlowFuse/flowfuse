@@ -637,10 +637,11 @@ describe('Device model', function () {
                 { state: 'running', count: 2 },
                 { state: 'stopped', count: 1 }
             ])
+            await team.destroy()
         })
 
         it('should handle invalid string ApplicationId', async () => {
-            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const team = await app.db.models.Team.create({ name: 'Team Test', TeamTypeId: 1 })
             const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
 
             try {
@@ -650,6 +651,7 @@ describe('Device model', function () {
                 err.should.be.an.Error()
                 err.message.should.equal('Invalid ApplicationId')
             }
+            await team.destroy()
         })
 
         it('should filter by application and statuses', async () => {
@@ -657,7 +659,7 @@ describe('Device model', function () {
 
             const states = ['running', 'stopped']
 
-            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const team = await app.db.models.Team.create({ name: 'Team Test', TeamTypeId: 1 })
             const numericTeamId = team.id
 
             const application1 = await app.db.models.Application.create({ name: 'App 1', TeamId: numericTeamId })
@@ -700,11 +702,11 @@ describe('Device model', function () {
         })
 
         it('should filter by application and no statuses', async () => {
-            app.license.defaults.instances = 8 // override default
+            app.license.defaults.devices = 8 // override default
 
             const states = []
 
-            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const team = await app.db.models.Team.create({ name: 'Team Test', TeamTypeId: 1 })
             const numericTeamId = team.id
 
             const application1 = await app.db.models.Application.create({ name: 'App 1', TeamId: numericTeamId })
