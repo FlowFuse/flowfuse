@@ -1,9 +1,8 @@
 const axios = require('axios')
-const pg = require('pg')
 
 const { generatePassword } = require('../../../../lib/userTeam')
 
-let adminClient
+const libPg = require('./lib/pg.js')
 
 module.exports = {
     init: async function (app, options) {
@@ -11,17 +10,17 @@ module.exports = {
         this._options = options
 
         if (!options.backend) {
-            throw new Error('Postgres LocalFS driver requires database options to be provided')
+            throw new Error('Postgres Supavisor driver requires backend options to be provided')
         }
         if (!options.supavisor) {
-            throw new Error('Postgres Supavisor driver requires Supavisor options to be provided')
+            throw new Error('Postgres Supavisor driver requires supavisor options to be provided')
         }
-        adminClient = new pg.Client(options.backend || {})
-        adminClient.on('error', (err) => {
+        this._adminClient = libPg.newClient(options.backend || {})
+        this._adminClient.on('error', (err) => {
             this._app.log.error('Postgres Supavisor driver error:', err)
         })
         try {
-            await adminClient.connect()
+            await this._adminClient.connect()
         } catch (err) {
             app.log.error('Failed to connect to Postgres:', err)
         }
@@ -30,7 +29,7 @@ module.exports = {
     shutdown: async function (app) {
         try {
             this._app.log.info('Shutting down Postgres Supavisor driver')
-            await adminClient.end()
+            await this._adminClient.end()
         } catch (err) {
             this._app.log.debug('Error shutting down Postgres Supavisor driver:', err)
         }
@@ -57,33 +56,32 @@ module.exports = {
         if (existing && existing.length > 0) {
             throw new Error('Database already exists')
         }
-        const res = await adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
+        const res = await this._adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
         if (res.rows.length > 0) {
             throw new Error('Database already exists')
         } else {
             const password = generatePassword(16)
             try {
-                await adminClient.query(`CREATE DATABASE "${team.hashid}"`)
-                await adminClient.query(`REVOKE connect ON DATABASE "${team.hashid}" FROM PUBLIC;`)
-                const options = {
-                    host: this._options.backend.host,
-                    port: this._options.backend.port,
-                    ssl: this._options.backend.ssl,
-                    database: team.hashid,
-                    user: this._options.backend.user,
-                    password: this._options.backend.password
-                }
-                const teamClient = new pg.Client(options)
+                await this._adminClient.query(`CREATE DATABASE "${team.hashid}"`)
+                await this._adminClient.query(`REVOKE connect ON DATABASE "${team.hashid}" FROM PUBLIC;`)
+                const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
                 try {
                     await teamClient.connect()
-                    await teamClient.query(`CREATE ROLE "${team.hashid}-role" WITH LOGIN`)
-                    await teamClient.query(`GRANT CONNECT ON DATABASE "${team.hashid}" TO "${team.hashid}-role"`)
-                    await teamClient.query(`GRANT ALL PRIVILEGES ON DATABASE "${team.hashid}" TO "${team.hashid}-role"`)
-                    await teamClient.query(`GRANT CREATE ON SCHEMA public TO "${team.hashid}-role"`)
-                    await teamClient.query(`GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "${team.hashid}-role"`)
-                    await teamClient.query(`GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "${team.hashid}-role"`)
-                    await teamClient.query(`CREATE USER "${team.hashid}" WITH PASSWORD '${password}'`)
-                    await teamClient.query(`GRANT "${team.hashid}-role" TO "${team.hashid}"`)
+                    // Escape identifiers for role and database names
+                    const escapedRoleName = libPg.pg.escapeIdentifier(`${team.hashid}-role`)
+                    const escapedDatabaseName = libPg.pg.escapeIdentifier(team.hashid)
+                    const escapedUserName = libPg.pg.escapeIdentifier(team.hashid)
+                    // Escape the password literal for direct inclusion in DDL
+                    const escapedPassword = libPg.pg.escapeLiteral(password)
+                    // Create everything needed for the team
+                    await teamClient.query(`CREATE ROLE ${escapedRoleName} WITH LOGIN`)
+                    await teamClient.query(`GRANT CONNECT ON DATABASE ${escapedDatabaseName} TO ${escapedRoleName}`)
+                    await teamClient.query(`GRANT ALL PRIVILEGES ON DATABASE ${escapedDatabaseName} TO ${escapedRoleName}`)
+                    await teamClient.query(`GRANT CREATE ON SCHEMA public TO ${escapedRoleName}`)
+                    await teamClient.query(`GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${escapedRoleName}`)
+                    await teamClient.query(`GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${escapedRoleName}`)
+                    await teamClient.query(`CREATE USER ${escapedUserName} WITH PASSWORD ${escapedPassword}`)
+                    await teamClient.query(`GRANT ${escapedRoleName} TO ${escapedUserName}`)
                 } finally {
                     await teamClient.end()
                 }
@@ -158,12 +156,12 @@ module.exports = {
                     Authorization: `Bearer ${this._options.supavisor.token}`
                 }
             })
-            const res = await adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
+            const res = await this._adminClient.query('SELECT datname FROM pg_database WHERE datistemplate = false AND datname = $1', [team.hashid])
             if (res.rows.length === 1) {
                 try {
-                    await adminClient.query(`DROP DATABASE IF EXISTS "${team.hashid}"`)
-                    await adminClient.query(`DROP USER IF EXISTS "${team.hashid}"`)
-                    await adminClient.query(`DROP ROLE IF EXISTS "${team.hashid}-role"`)
+                    await this._adminClient.query(`DROP DATABASE IF EXISTS "${team.hashid}"`)
+                    await this._adminClient.query(`DROP USER IF EXISTS "${team.hashid}"`)
+                    await this._adminClient.query(`DROP ROLE IF EXISTS "${team.hashid}-role"`)
                     await db.destroy()
                 } catch (err) {
                     // console.log(err)
@@ -182,15 +180,7 @@ module.exports = {
             throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
         }
         try {
-            const options = {
-                host: this._options.backend.host,
-                port: this._options.backend.port,
-                ssl: this._options.backend.ssl,
-                database: team.hashid,
-                user: this._options.backend.user,
-                password: this._options.backend.password
-            }
-            const teamClient = new pg.Client(options)
+            const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
             try {
                 await teamClient.connect()
                 const res = await teamClient.query('SELECT "tablename" FROM "pg_catalog"."pg_tables" WHERE "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\'')
@@ -221,15 +211,7 @@ module.exports = {
             throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
         }
         try {
-            const options = {
-                host: this._options.backend.host,
-                port: this._options.backend.port,
-                ssl: this._options.backend.ssl,
-                database: team.hashid,
-                user: this._options.backend.user,
-                password: this._options.backend.password
-            }
-            const teamClient = new pg.Client(options)
+            const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
             try {
                 await teamClient.connect()
                 const res = await teamClient.query('SELECT column_name, udt_name, is_nullable, column_default, character_maximum_length, is_generated FROM information_schema.columns WHERE table_name = $1', [tableName])
@@ -264,15 +246,7 @@ module.exports = {
             throw new Error(`Database ${database} for team ${team.hashid} does not exist`)
         }
         try {
-            const options = {
-                host: this._options.backend.host,
-                port: this._options.backend.port,
-                ssl: this._options.backend.ssl,
-                database: team.hashid,
-                user: this._options.backend.user,
-                password: this._options.backend.password
-            }
-            const teamClient = new pg.Client(options)
+            const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
             try {
                 await teamClient.connect()
                 const query = `SELECT * FROM "${table}" LIMIT $1`

@@ -36,7 +36,9 @@
             <template v-else-if="instancesAvailable">
                 <ff-data-table
                     v-if="instances.length > 0"
-                    data-el="instances-table" :columns="columns" :rows="instances" :show-search="true" search-placeholder="Search Instances..." initialSortKey="flowLastUpdatedAt" initialSortOrder="desc"
+                    data-el="instances-table" :columns="columns" :rows="instances" :show-search="true"
+                    search-placeholder="Search Instances..."
+                    initialSortKey="flowLastUpdatedAt" initialSortOrder="desc"
                     :rows-selectable="!dashboardRoleOnly"
                     @row-selected="openInstance"
                 >
@@ -54,12 +56,42 @@
                         </ff-button>
                     </template>
                     <template #row-actions="{row}">
-                        <dashboard-link v-if="!!row.settings?.dashboard2UI?.length" :disabled="row.status !== 'running'" :instance="row" />
+                        <dashboard-link v-if="!!row.settings?.dashboard2UI?.length" :disabled="row.meta?.state !== 'running'" :instance="row" />
                         <instance-editor-link
                             v-if="hasPermission('team:projects:list')"
                             :instance="row"
-                            :disabled="row.status !== 'running'"
+                            :disabled="row.meta?.state !== 'running'"
                             disabled-reason="The Instance is not running"
+                        />
+                    </template>
+                    <template
+                        v-if="hasPermission('project:change-status')"
+                        #context-menu="{row}"
+                    >
+                        <ff-list-item
+                            :disabled="row.pendingStateChange || row.running || row.optimisticStateChange"
+                            label="Start"
+                            @click.stop="instanceStart(row)"
+                        />
+
+                        <ff-list-item
+                            :disabled="!row.notSuspended"
+                            label="Restart"
+                            @click.stop="instanceRestart(row)"
+                        />
+
+                        <ff-list-item
+                            :disabled="!row.notSuspended"
+                            kind="danger"
+                            label="Suspend"
+                            @click.stop="instanceShowConfirmSuspend(row)"
+                        />
+
+                        <ff-list-item
+                            v-if="hasPermission('project:delete')"
+                            kind="danger"
+                            label="Delete"
+                            @click.stop="instanceShowConfirmDelete(row)"
                         />
                     </template>
                 </ff-data-table>
@@ -115,6 +147,8 @@
                 </EmptyState>
             </template>
         </div>
+        <InstanceStatusPolling v-for="instance in instances" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
+        <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
     </ff-page>
 </template>
 
@@ -123,12 +157,19 @@ import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapGetters } from 'vuex'
 
+import instanceApi from '../../api/instances.js'
 import teamApi from '../../api/team.js'
 import EmptyState from '../../components/EmptyState.vue'
+import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
+import { useInstanceStates } from '../../composables/InstanceStates.js'
+import { useNavigationHelper } from '../../composables/NavigationHelper.js'
+import instanceActionsMixin from '../../mixins/InstanceActions.js'
 import permissionsMixin from '../../mixins/Permissions.js'
+import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
 import DeploymentName from '../application/components/cells/DeploymentName.vue'
 import SimpleTextCell from '../application/components/cells/SimpleTextCell.vue'
+import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../instance/components/DashboardLink.vue'
 import InstanceEditorLink from '../instance/components/EditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
@@ -136,13 +177,15 @@ import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 export default {
     name: 'TeamInstances',
     components: {
+        ConfirmInstanceDeleteDialog,
+        InstanceStatusPolling,
         InstanceEditorLink,
         DashboardLink,
         PlusSmIcon,
         EmptyState,
         FeatureUnavailableToTeam
     },
-    mixins: [permissionsMixin],
+    mixins: [permissionsMixin, instanceActionsMixin],
     props: {
         dashboardRoleOnly: {
             required: false,
@@ -150,21 +193,33 @@ export default {
             type: Boolean
         }
     },
+    setup () {
+        const { isRunningState } = useInstanceStates()
+        const { navigateTo } = useNavigationHelper()
+
+        return { isRunningState, navigateTo }
+    },
     data () {
         return {
             loading: false,
-            instances: [],
+            instancesMap: new Map(),
             columns: [
                 { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName) } },
                 {
                     label: 'Status',
                     class: ['w-44'],
-                    key: 'status',
                     sortable: true,
                     component: {
                         is: markRaw(InstanceStatusBadge),
-                        map: { instanceId: 'id' },
-                        extraProps: { instanceType: 'instance' }
+                        map: {
+                            instanceId: 'id',
+                            pendingStateChange: 'pendingStateChange',
+                            optimisticStateChange: 'optimisticStateChange',
+                            status: 'meta.state'
+                        },
+                        extraProps: {
+                            instanceType: 'instance'
+                        }
                     }
                 },
                 { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true },
@@ -183,6 +238,9 @@ export default {
     },
     computed: {
         ...mapGetters('account', ['featuresCheck']),
+        instances () {
+            return Array.from(this.instancesMap.values())
+        },
         instancesAvailable () {
             return this.featuresCheck?.isHostedInstancesEnabledForTeam
         }
@@ -196,22 +254,73 @@ export default {
     methods: {
         fetchData: async function () {
             this.loading = true
+            let promise
             if (this.team.id && this.instancesAvailable) {
                 if (this.hasPermission('team:projects:list')) {
-                    this.instances = (await teamApi.getTeamInstances(this.team.id)).projects
+                    promise = teamApi.getTeamInstances(this.team.id)
                 } else if (this.hasPermission('team:read')) {
-                    this.instances = (await teamApi.getTeamDashboards(this.team.id)).projects
+                    promise = teamApi.getTeamDashboards(this.team.id)
                 }
+
+                promise.then(response => response.projects)
+                    .then((projects) => {
+                        projects.forEach(instance => {
+                            instance.running = this.isRunningState(instance.status)
+                            instance.notSuspended = instance.status !== 'suspended'
+                            instance.pendingStateChange = false
+                            instance.optimisticStateChange = false
+                            this.instancesMap.set(instance.id, instance)
+                        })
+                    })
+                    .then(() => this.getInstanceMeta())
+                    .catch(e => e)
+                    .finally(() => {
+                        this.loading = false
+                    })
+
+                this.getInstanceMeta()
+            } else {
+                this.loading = false
             }
-            this.loading = false
         },
-        openInstance (instance) {
-            this.$router.push({
+        getInstanceMeta () {
+            const promises = []
+            this.instances.forEach(i => {
+                promises.push(instanceApi.getStatus(i.id)
+                    .then(res => {
+                        if (this.instancesMap.has(res.id)) {
+                            res.running = this.isRunningState(res.meta.state)
+                            res.notSuspended = res.meta.state !== 'suspended'
+                            this.instancesMap.set(res.id, {
+                                ...this.instancesMap.get(res.id),
+                                ...res
+                            })
+                        }
+                    }))
+            })
+        },
+        openInstance (instance, event) {
+            this.navigateTo({
                 name: 'Instance',
                 params: {
                     id: instance.id
                 }
+            }, event)
+        },
+        instanceUpdated: function (newData) {
+            const mutator = new InstanceStateMutator(newData)
+            mutator.clearState()
+            newData.running = this.isRunningState(newData.meta.state)
+            newData.notSuspended = newData.meta.state !== 'suspended'
+            this.instancesMap.set(newData.id, {
+                ...this.instancesMap.get(newData.id),
+                ...newData
             })
+        },
+        onInstanceDeleted (instance) {
+            if (this.instancesMap.has(instance.id)) {
+                this.instancesMap.delete(instance.id)
+            }
         }
     }
 }
