@@ -254,7 +254,7 @@ describe('Tables: Postgres Supavisor Driver', function () {
                 end: sinon.stub().resolves()
             }
             const result = await driver.getTables(team, team.hashid)
-            result.should.eql([{ name: 'foo', schema: 'public' }])
+            result.tables.should.eql([{ name: 'foo', schema: 'public' }])
         })
         it('should return empty array if no tables', async function () {
             const team = { id: 1, hashid: 't1hash' }
@@ -267,7 +267,7 @@ describe('Tables: Postgres Supavisor Driver', function () {
                 end: sinon.stub().resolves()
             }
             const result = await driver.getTables(team, team.hashid)
-            result.should.eql([])
+            result.tables.should.eql([])
         })
         it('should throw if db does not exist', async function () {
             app.db.models.Table.byId.resolves(null)
@@ -322,8 +322,8 @@ describe('Tables: Postgres Supavisor Driver', function () {
                 end: sinon.stub().resolves()
             }
             const client = pgClients[team.hashid] // Use the team hashid as key
-            const result = await driver.getTableData(team, team.hashid, 'table1', 5)
-            result.should.eql([{ id: 1, name: 'foo' }])
+            const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
+            result.rows.should.eql([{ id: 1, name: 'foo' }])
             client.connect.calledOnce.should.be.true()
             client.query.calledWith('SELECT * FROM "table1" LIMIT $1', [5]).should.be.true()
             client.end.calledOnce.should.be.true()
@@ -340,8 +340,8 @@ describe('Tables: Postgres Supavisor Driver', function () {
                 end: sinon.stub().resolves()
             }
             const client = pgClients[team.hashid] // Use the team hashid as key
-            const result = await driver.getTableData(team, team.hashid, 'table1', 5)
-            result.should.eql([])
+            const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
+            result.rows.should.eql([])
             client.connect.calledOnce.should.be.true()
             client.query.calledWith('SELECT * FROM "table1" LIMIT $1', [5]).should.be.true()
             client.end.calledOnce.should.be.true()
