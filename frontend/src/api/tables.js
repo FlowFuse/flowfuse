@@ -22,7 +22,7 @@ const getTableSchema = (teamId, databaseId, tableName) => {
 
 const getTableData = (teamId, databaseId, tableName) => {
     return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}/data`)
-        .then(res => res.data)
+        .then(res => res.data.rows)
 }
 
 export default {

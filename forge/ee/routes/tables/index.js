@@ -293,10 +293,20 @@ module.exports = async function (app) {
             query: { $ref: 'PaginationParams' },
             response: {
                 200: {
-                    type: 'array',
-                    items: {
-                        type: 'object',
-                        additionalProperties: true // allow any properties in the table rows
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number' },
+                        rows: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                additionalProperties: true // allow any properties in the table rows
+                            }
+                        },
+                        meta: {
+                            type: 'object',
+                            additionalProperties: true
+                        }
                     }
                 },
                 '4xx': {
@@ -308,8 +318,8 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        // paginate the data in the table
-        const data = await app.tables.getTableData(request.team, request.params.databaseId, request.params.tableName)
+        const paginationOptions = app.getPaginationOptions(request)
+        const data = await app.tables.getTableData(request.team, request.params.databaseId, request.params.tableName, paginationOptions)
         reply.send(data)
     })
 }

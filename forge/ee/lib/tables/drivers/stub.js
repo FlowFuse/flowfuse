@@ -56,11 +56,15 @@ module.exports = {
             { name: 'name', type: 'text', nullable: true, default: null, maxLength: 255, generated: false }
         ]
     },
-    getTableData: async function (team, databaseId, table, rows) {
-        return [
-            { id: 1, name: 'Row 1' },
-            { id: 2, name: 'Row 2' }
-        ]
+    getTableData: async function (team, databaseId, table, paginationOptions) {
+        return {
+            count: 2,
+            rows: [
+                { id: 1, name: 'Row 1' },
+                { id: 2, name: 'Row 2' }
+            ],
+            meta: {}
+        }
     },
     createTable: async function (team, databaseId, table) {},
     dropTable: async function (team, databaseId, tableName) {},
