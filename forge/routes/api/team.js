@@ -244,8 +244,12 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const includeInstances = request.query.includeInstances ?? true
-        const includeApplicationDevices = request.query.includeApplicationDevices ?? true
+        const includeInstances = Object.prototype.hasOwnProperty.call(request.query, 'includeInstances')
+            ? request.query.includeInstances
+            : true
+        const includeApplicationDevices = Object.prototype.hasOwnProperty.call(request.query, 'includeApplicationDevices')
+            ? request.query.includeApplicationDevices
+            : true
         const associationsLimit = request.query.associationsLimit
         const includeApplicationSummary = !!associationsLimit || request.query.includeApplicationSummary
 
@@ -1003,6 +1007,9 @@ module.exports = async function (app) {
                     type: 'array',
                     items: { type: 'string' },
                     default: []
+                },
+                applicationId: {
+                    type: 'string'
                 }
             },
             response: {
@@ -1023,7 +1030,7 @@ module.exports = async function (app) {
                 ? app.db.models.Project
                 : app.db.models.Device
 
-            const stateCounters = await model.countByState(request.query.state, request.team.id) ?? []
+            const stateCounters = await model.countByState(request.query.state, request.team.id, request.query.applicationId) ?? []
             const response = {}
 
             stateCounters.forEach(res => {
