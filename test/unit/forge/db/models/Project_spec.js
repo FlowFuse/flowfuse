@@ -463,7 +463,7 @@ describe('Project model', function () {
         })
 
         it('should filter by application and statuses', async () => {
-            app.license.defaults.instances = 8 // override default
+            app.license.defaults.instances = 50 // override default
 
             const states = ['running', 'stopped']
 
@@ -510,7 +510,7 @@ describe('Project model', function () {
         })
 
         it('should filter by application and no statuses', async () => {
-            app.license.defaults.instances = 8 // override default
+            app.license.defaults.instances = 50 // override default
 
             const states = []
 
