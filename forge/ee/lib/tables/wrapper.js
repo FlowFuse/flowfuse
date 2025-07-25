@@ -69,7 +69,7 @@ module.exports = {
     },
     createTable: async (team, databaseId, table) => {
         if (this._driver.createTable) {
-            this._app.log.info(`Adding table '${table.name}' to database '${databaseId}' for '${team.hashid}'`)
+            this._app.log.info(`Adding table '${table}' to database '${databaseId}' for '${team.hashid}'`)
             return this._driver.createTable(team, databaseId, table)
         } else {
             throw new Error('Database driver does not support createTable')
