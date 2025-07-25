@@ -4,7 +4,7 @@ const setup = require('../../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
-describe('Tables API', function () {
+describe.only('Tables API', function () {
     let app
     const TestObjects = { tokens: {} }
 
@@ -166,9 +166,9 @@ describe('Tables API', function () {
         })
         response.statusCode.should.equal(200)
         const tables = response.json()
-        tables.should.be.an.Array().and.have.length(2)
-        tables[0].should.have.property('name', 'table1')
-        tables[1].should.have.property('name', 'table2')
+        tables.tables.should.be.an.Array().and.have.length(2)
+        tables.tables[0].should.have.property('name', 'table1')
+        tables.tables[1].should.have.property('name', 'table2')
     })
 
     it('Get details for a table', async function () {
