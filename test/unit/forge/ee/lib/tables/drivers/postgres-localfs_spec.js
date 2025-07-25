@@ -1,6 +1,6 @@
-/// <reference types="should" />
-require('should')
 const pg = require('pg')
+/// <reference types="should" />
+const should = require('should')
 const sinon = require('sinon')
 
 const driver = require('../../../../../../../forge/ee/lib/tables/drivers/postgres-localfs.js')

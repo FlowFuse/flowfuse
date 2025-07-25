@@ -1,7 +1,7 @@
-/// <reference types="should" />
-require('should')
 const axios = require('axios')
 const pg = require('pg')
+/// <reference types="should" />
+const should = require('should')
 const sinon = require('sinon')
 
 const driver = require('../../../../../../../forge/ee/lib/tables/drivers/postgres-supavisor.js')
