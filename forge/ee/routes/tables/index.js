@@ -194,6 +194,7 @@ module.exports = async function (app) {
                     databaseId: { type: 'string' }
                 }
             },
+            query: { $ref: 'PaginationParams' },
             response: {
                 200: {
                     type: 'array',
@@ -279,6 +280,7 @@ module.exports = async function (app) {
                     tableName: { type: 'string' }
                 }
             },
+            query: { $ref: 'PaginationParams' },
             response: {
                 200: {
                     type: 'array',
