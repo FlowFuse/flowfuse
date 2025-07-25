@@ -4,7 +4,7 @@
             <div class="flex-shrink flex-grow flex-wrap max-w-full flex gap-x-2 items-baseline min-w-0">
                 <div class="flex gap-2 items-center">
                     <slot name="hero">
-                        <div class="flex">
+                        <div class="flex" :data-hero="hero">
                             <div class="text-gray-800 text-xl font-medium whitespace-nowrap">{{ hero }}</div>
                         </div>
                     </slot>
