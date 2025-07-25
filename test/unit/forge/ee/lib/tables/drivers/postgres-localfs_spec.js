@@ -31,13 +31,6 @@ describe('Tables: Postgres LocalFS Driver', function () {
             }
         }
 
-        // Reset mocks before each test
-        sinon.resetHistory()
-        if (pg.Client.restore) {
-            pg.Client.restore()
-        }
-        pgClients = {}
-
         sinon.stub(pg, 'Client').callsFake((opts) => {
             const key = opts.database || `${opts.host}:${opts.port}`
             pgClients[key] = pgClients[key] || {
@@ -48,6 +41,15 @@ describe('Tables: Postgres LocalFS Driver', function () {
             }
             return pgClients[key]
         })
+    })
+
+    afterEach(function () {
+        sinon.restore()
+        sinon.resetHistory()
+        if (pg.Client.restore) {
+            pg.Client.restore()
+        }
+        pgClients = {}
     })
 
     describe('init', function () {

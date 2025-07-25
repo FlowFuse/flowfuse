@@ -34,6 +34,21 @@ describe('Tables: Postgres Supavisor Driver', function () {
 
         // Reset mocks before each test
         sinon.resetHistory()
+
+        sinon.stub(pg, 'Client').callsFake((opts) => {
+            const key = opts.database || `${opts.host}:${opts.port}`
+            pgClients[key] = pgClients[key] || {
+                connect: sinon.stub().resolves(),
+                on: sinon.stub(),
+                end: sinon.stub().resolves(),
+                query: sinon.stub().resolves({ rows: [] })
+            }
+            return pgClients[key]
+        })
+    })
+    afterEach(function () {
+        sinon.restore()
+        pgClients = {}
         if (pg.Client.restore) {
             pg.Client.restore()
         }
@@ -50,17 +65,6 @@ describe('Tables: Postgres Supavisor Driver', function () {
         if (axios.delete.restore) {
             axios.delete.restore()
         }
-
-        sinon.stub(pg, 'Client').callsFake((opts) => {
-            const key = opts.database || `${opts.host}:${opts.port}`
-            pgClients[key] = pgClients[key] || {
-                connect: sinon.stub().resolves(),
-                on: sinon.stub(),
-                end: sinon.stub().resolves(),
-                query: sinon.stub().resolves({ rows: [] })
-            }
-            return pgClients[key]
-        })
     })
 
     describe('init', function () {
