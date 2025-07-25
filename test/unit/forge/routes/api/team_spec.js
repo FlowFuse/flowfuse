@@ -1400,5 +1400,61 @@ describe('Team API', function () {
             // Restore the original method
             app.db.models.Project.countByState = originalCountByState
         })
+
+        it('should pass the applicationId to the device countByState method', async () => {
+            const expectedArgs = {
+                teamId: TestObjects.ATeam.id,
+                states: ['running', 'stopped'],
+                applicationId: 'app-id'
+            }
+
+            const stub = sinon.stub(app.db.models.Device, 'countByState').callsFake(async function (states, teamId, applicationId) {
+                teamId.should.equal(expectedArgs.teamId)
+                applicationId.should.equal(expectedArgs.applicationId)
+                states.should.deepEqual(expectedArgs.states)
+            })
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
+                cookies: { sid: TestObjects.tokens.alice },
+                query: {
+                    instanceType: 'remote',
+                    state: ['running', 'stopped'],
+                    applicationId: 'app-id'
+                }
+            })
+            response.statusCode.should.equal(200)
+
+            stub.restore()
+        })
+
+        it('should pass the applicationId to the project countByState method', async () => {
+            const expectedArgs = {
+                teamId: TestObjects.ATeam.id,
+                states: ['running', 'stopped'],
+                applicationId: 'app-id'
+            }
+
+            const stub = sinon.stub(app.db.models.Project, 'countByState').callsFake(async function (states, teamId, applicationId) {
+                teamId.should.equal(expectedArgs.teamId)
+                applicationId.should.equal(expectedArgs.applicationId)
+                states.should.deepEqual(expectedArgs.states)
+            })
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/instance-counts`,
+                cookies: { sid: TestObjects.tokens.alice },
+                query: {
+                    instanceType: 'hosted',
+                    state: ['running', 'stopped'],
+                    applicationId: 'app-id'
+                }
+            })
+            response.statusCode.should.equal(200)
+
+            stub.restore()
+        })
     })
 })
