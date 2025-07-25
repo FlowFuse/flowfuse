@@ -1,7 +1,8 @@
 <template>
     <div
-        class="ff-stat rounded-md flex-1 p-3 cursor-pointer"
+        class="ff-counter rounded-md flex-1 p-3 cursor-pointer"
         :class="[`bg-${accent}-50`, `text-${accent}-500`, accent]"
+        :data-state="state"
         @click="clicked()"
     >
         <label class="block">{{ title }}</label>
@@ -13,7 +14,7 @@
 import { mapGetters } from 'vuex'
 
 export default {
-    name: 'InstanceStat',
+    name: 'InstanceCounter',
     props: {
         type: {
             required: true,
@@ -63,7 +64,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.ff-stat {
+.ff-counter {
     border: 1px solid transparent;
     transition: ease-in-out .15s;
     will-change: border-color;

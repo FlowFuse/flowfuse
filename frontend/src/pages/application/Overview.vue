@@ -27,12 +27,11 @@
                 v-if="instances?.length > 0"
                 data-el="cloud-instances"
                 :columns="cloudColumns"
-                :rows="filteredRows"
+                :rows="cloudRows"
                 :show-search="true"
                 :search="searchTerm"
                 search-placeholder="Search Instances"
                 :rows-selectable="true"
-                @update:search="updateSearch"
                 @row-selected="selectedCloudRow"
             >
                 <template
@@ -189,19 +188,10 @@ export default {
                 instance.notSuspended = instance.meta?.state !== 'suspended'
                 instance.isHA = instance.ha?.replicas !== undefined
                 instance.disabled = !instance.running || this.isVisitingAdmin || instance.isHA
-                instance._self = instance
+                instance._self = { ...instance }
                 instance.hideDashboard2Button = !instance.settings?.dashboard2UI
                 return instance
             })
-        },
-        filteredRows () {
-            return this.cloudRows
-                .filter(
-                    row => [
-                        row.name.toLowerCase().includes(this.searchTerm),
-                        row.id.toLowerCase().includes(this.searchTerm)
-                    ].includes(true)
-                )
         },
         isVisitingAdmin () {
             return this.teamMembership.role === Roles.Admin
@@ -223,9 +213,6 @@ export default {
                     id: cloudInstance.id
                 }
             }, event)
-        },
-        updateSearch (searchTerm) {
-            this.searchTerm = searchTerm
         }
     }
 }
