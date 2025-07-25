@@ -4,7 +4,13 @@
             <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
             Remote Instances
         </label>
-        <div class="items-wrapper">
+        <div v-if="doesntHaveDevices" class="empty-message">
+            <span>
+                This Application currently has no
+                <router-link :to="{name: 'ApplicationDevices', params: {team_slug: team.slug, id: application.id}}" class="ff-link">attached Remote Instances</router-link>.
+            </span>
+        </div>
+        <div v-else class="items-wrapper">
             <instance-counter
                 v-for="state in states" :key="state"
                 :counter="groupedStates[state] ?? 0"
@@ -56,6 +62,9 @@ export default {
         },
         isSearching () {
             return this.searchQuery.length > 0
+        },
+        doesntHaveDevices () {
+            return parseInt(this.application.deviceCount) === 0
         }
     },
     mounted () {

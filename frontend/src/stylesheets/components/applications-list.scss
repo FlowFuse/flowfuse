@@ -92,7 +92,7 @@
             background-color: $ff-grey-300;
         }
     }
-    > div {
+    > .items-wrapper {
         background-color: white;
         border-color: $ff-grey-300;
         border-width: 1px;
@@ -138,6 +138,16 @@
         .ff-counter {
             min-width: 125px;
         }
+    }
+
+    .empty-message {
+        min-height: 75px;
+        display: flex;
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        color: $ff-grey-500;
     }
 }
 

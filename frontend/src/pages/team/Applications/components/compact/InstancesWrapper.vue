@@ -3,7 +3,13 @@
         <label class="delimiter">
             <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Hosted Instances
         </label>
-        <div class="items-wrapper">
+        <div v-if="doesntHaveInstances" class="empty-message">
+            <p>
+                This Application currently has no
+                <router-link :to="{name: 'ApplicationInstances', params: {team_slug: team.slug, id: application.id}}" class="ff-link">attached Hosted Instances</router-link>.
+            </p>
+        </div>
+        <div v-else class="items-wrapper">
             <instance-counter
                 v-for="state in states" :key="state"
                 :counter="groupedStates[state] ?? 0"
@@ -52,7 +58,11 @@ export default {
         ...mapState('account', ['team']),
         groupedStates () {
             return this.groupBySimplifiedStates(this.instanceStates)
+        },
+        doesntHaveInstances () {
+            return parseInt(this.application.instanceCount) === 0
         }
+
     },
     mounted () {
         teamApi.getTeamInstanceCounts(this.team.id, [], 'hosted', this.application.id)
