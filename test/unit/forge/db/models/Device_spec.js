@@ -638,5 +638,113 @@ describe('Device model', function () {
                 { state: 'stopped', count: 1 }
             ])
         })
+
+        it('should handle invalid string ApplicationId', async () => {
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
+
+            try {
+                await app.db.models.Device.countByState([], hashedTeamId, 'invalid-application-id')
+                should.fail('Expected an error to be thrown')
+            } catch (err) {
+                err.should.be.an.Error()
+                err.message.should.equal('Invalid ApplicationId')
+            }
+        })
+
+        it('should filter by application and statuses', async () => {
+            app.license.defaults.devices = 8 // override default
+
+            const states = ['running', 'stopped']
+
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const numericTeamId = team.id
+
+            const application1 = await app.db.models.Application.create({ name: 'App 1', TeamId: numericTeamId })
+            const numericApp1Id = application1.id
+
+            const application2 = await app.db.models.Application.create({ name: 'App 2', TeamId: numericTeamId })
+            const numericApp2Id = application2.id
+
+            const device1 = await app.db.models.Device.create({ name: 'p1', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const device2 = await app.db.models.Device.create({ name: 'p2', credentialSecret: 'abc', type: 'P1', state: 'stopped', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const device3 = await app.db.models.Device.create({ name: 'p3', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const device4 = await app.db.models.Device.create({ name: 'p4', credentialSecret: 'abc', type: 'P1', state: 'suspended', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+
+            const device5 = await app.db.models.Device.create({ name: 'p5', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const device6 = await app.db.models.Device.create({ name: 'p6', credentialSecret: 'abc', type: 'P1', state: 'stopped', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const device7 = await app.db.models.Device.create({ name: 'p7', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const device8 = await app.db.models.Device.create({ name: 'p8', credentialSecret: 'abc', type: 'P1', state: 'suspended', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+
+            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
+            const hashedAppId = app.db.models.Application.encodeHashid(application1.id)
+
+            const result = await app.db.models.Device.countByState(states, hashedTeamId, hashedAppId)
+
+            result.should.deepEqual([
+                { state: 'running', count: 2 },
+                { state: 'stopped', count: 1 }
+            ])
+
+            await device1.destroy()
+            await device2.destroy()
+            await device3.destroy()
+            await device4.destroy()
+            await device5.destroy()
+            await device6.destroy()
+            await device7.destroy()
+            await device8.destroy()
+            await application1.destroy()
+            await application2.destroy()
+            await team.destroy()
+        })
+
+        it('should filter by application and no statuses', async () => {
+            app.license.defaults.instances = 8 // override default
+
+            const states = []
+
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const numericTeamId = team.id
+
+            const application1 = await app.db.models.Application.create({ name: 'App 1', TeamId: numericTeamId })
+            const numericApp1Id = application1.id
+
+            const application2 = await app.db.models.Application.create({ name: 'App 2', TeamId: numericTeamId })
+            const numericApp2Id = application2.id
+
+            const device1 = await app.db.models.Device.create({ name: 'p1', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const device2 = await app.db.models.Device.create({ name: 'p2', credentialSecret: 'abc', type: 'P1', state: 'stopped', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const device3 = await app.db.models.Device.create({ name: 'p3', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const device4 = await app.db.models.Device.create({ name: 'p4', credentialSecret: 'abc', type: 'P1', state: 'suspended', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+
+            const device5 = await app.db.models.Device.create({ name: 'p5', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const device6 = await app.db.models.Device.create({ name: 'p6', credentialSecret: 'abc', type: 'P1', state: 'stopped', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const device7 = await app.db.models.Device.create({ name: 'p7', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const device8 = await app.db.models.Device.create({ name: 'p8', credentialSecret: 'abc', type: 'P1', state: 'suspended', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+
+            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
+            const hashedAppId = app.db.models.Application.encodeHashid(application1.id)
+
+            const result = await app.db.models.Device.countByState(states, hashedTeamId, hashedAppId)
+
+            result.should.deepEqual([
+                { count: 2, state: 'running' },
+                { count: 1, state: 'stopped' },
+                { count: 1, state: 'suspended' }
+            ])
+
+            await device1.destroy()
+            await device2.destroy()
+            await device3.destroy()
+            await device4.destroy()
+            await device5.destroy()
+            await device6.destroy()
+            await device7.destroy()
+            await device8.destroy()
+            application1.destroy()
+            application2.destroy()
+            await team.destroy()
+        })
     })
 })
