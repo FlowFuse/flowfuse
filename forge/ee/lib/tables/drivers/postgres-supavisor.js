@@ -1,10 +1,8 @@
 const axios = require('axios')
-const pg = require('pg')
-// const local = require('./postgres-localfs')
 
 const { generatePassword } = require('../../../../lib/userTeam')
 
-let adminClient
+const libPg = require('./lib/pg.js')
 
 module.exports = {
     init: async function (app, options) {

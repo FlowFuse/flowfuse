@@ -1,8 +1,6 @@
-const pg = require('pg')
-
 const { generatePassword } = require('../../../../lib/userTeam')
 
-let adminClient
+const libPg = require('./lib/pg.js')
 
 module.exports = {
     init: async function (app, options) {
