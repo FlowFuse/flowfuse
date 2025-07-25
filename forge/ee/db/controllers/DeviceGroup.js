@@ -249,7 +249,7 @@ module.exports = {
      * so that they can determine what/if it needs to be updated
      * NOTE: Since device groups only support application owned devices, this will only send updates to application owned devices
      *
-     * To avoid triggering a thundering herd, this will send the updates in batches of 10 devices at a time with
+     * To avoid triggering a thundering herd, this will send the updates in batches of 5 devices at a time with
      * a delay of 5 seconds between each batch.
      * @param {forge.db.models.DeviceGroup} [deviceGroup] A device group to send an "update" command to
      * @param {Number[]} [deviceList] A list of device IDs to send an "update" command to
@@ -294,9 +294,10 @@ module.exports = {
                         })
                     }
 
-                    // Send the commands in batches of 10 with a 5 second delay between each batch
+                    // Send the commands in batches of 5 with a 5 second delay between each batch
                     // This is to avoid telling lots of devices to call home at the same time.
-                    const batchSize = 10
+                    // This is a tactical fix to avoid a thundering herd problem and one we'll need to revisit
+                    const batchSize = 5
                     const delay = 5000
                     let start = 0
                     while (start < commands.length) {
