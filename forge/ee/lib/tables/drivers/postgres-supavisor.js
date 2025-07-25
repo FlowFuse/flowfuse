@@ -10,10 +10,10 @@ module.exports = {
         this._options = options
 
         if (!options.backend) {
-            throw new Error('Postgres LocalFS driver requires database options to be provided')
+            throw new Error('Postgres Supavisor driver requires backend options to be provided')
         }
         if (!options.supavisor) {
-            throw new Error('Postgres Supavisor driver requires Supavisor options to be provided')
+            throw new Error('Postgres Supavisor driver requires supavisor options to be provided')
         }
         this._adminClient = libPg.newClient(options.backend || {})
         this._adminClient.on('error', (err) => {
