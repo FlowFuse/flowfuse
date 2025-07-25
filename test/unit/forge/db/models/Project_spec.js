@@ -459,6 +459,7 @@ describe('Project model', function () {
                 err.should.be.an.Error()
                 err.message.should.equal('Invalid ApplicationId')
             }
+            await team.destroy()
         })
 
         it('should filter by application and statuses', async () => {
