@@ -67,14 +67,21 @@ module.exports = {
                 const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
                 try {
                     await teamClient.connect()
-                    await teamClient.query(`CREATE ROLE "${team.hashid}-role" WITH LOGIN`)
-                    await teamClient.query(`GRANT CONNECT ON DATABASE "${team.hashid}" TO "${team.hashid}-role"`)
-                    await teamClient.query(`GRANT ALL PRIVILEGES ON DATABASE "${team.hashid}" TO "${team.hashid}-role"`)
-                    await teamClient.query(`GRANT CREATE ON SCHEMA public TO "${team.hashid}-role"`)
-                    await teamClient.query(`GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "${team.hashid}-role"`)
-                    await teamClient.query(`GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "${team.hashid}-role"`)
-                    await teamClient.query(`CREATE USER "${team.hashid}" WITH PASSWORD '${password}'`)
-                    await teamClient.query(`GRANT "${team.hashid}-role" TO "${team.hashid}"`)
+                    // Escape identifiers for role and database names
+                    const escapedRoleName = libPg.pg.escapeIdentifier(`${team.hashid}-role`)
+                    const escapedDatabaseName = libPg.pg.escapeIdentifier(team.hashid)
+                    const escapedUserName = libPg.pg.escapeIdentifier(team.hashid)
+                    // Escape the password literal for direct inclusion in DDL
+                    const escapedPassword = libPg.pg.escapeLiteral(password)
+                    // Create everything needed for the team
+                    await teamClient.query(`CREATE ROLE ${escapedRoleName} WITH LOGIN`)
+                    await teamClient.query(`GRANT CONNECT ON DATABASE ${escapedDatabaseName} TO ${escapedRoleName}`)
+                    await teamClient.query(`GRANT ALL PRIVILEGES ON DATABASE ${escapedDatabaseName} TO ${escapedRoleName}`)
+                    await teamClient.query(`GRANT CREATE ON SCHEMA public TO ${escapedRoleName}`)
+                    await teamClient.query(`GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${escapedRoleName}`)
+                    await teamClient.query(`GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${escapedRoleName}`)
+                    await teamClient.query(`CREATE USER ${escapedUserName} WITH PASSWORD ${escapedPassword}`)
+                    await teamClient.query(`GRANT ${escapedRoleName} TO ${escapedUserName}`)
                 } finally {
                     await teamClient.end()
                 }
