@@ -12,7 +12,22 @@ module.exports = {
         const filtered = {
             id: result.hashid,
             username: result.username,
-            acls: JSON.parse(result.acls)
+            acls: JSON.parse(result.acls),
+            owner: null
+        }
+        if (result.ownerType === 'device') {
+            filtered.owner = {
+                instanceType: 'remote',
+                id: u.Device?.hashid || app.db.models.Device.encodeHashid(u.ownerId),
+                name: result.Device?.name || app.db.models.Device.encodeHashid(u.ownerId),
+                type: result.Device?.type
+            }
+        } else if (result.ownerType === 'project') {
+            filtered.owner = {
+                instanceType: 'hosted',
+                id: u.Project?.id || u.ownerId,
+                name: result.Project?.name || u.ownerId
+            }
         }
         return filtered
     }
