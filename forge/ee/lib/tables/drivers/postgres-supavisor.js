@@ -84,9 +84,6 @@ module.exports = {
                     await teamClient.query(`GRANT ${escapedRoleName} TO ${escapedUserName}`)
 
                 } finally {
-                    if (!committed) {
-                        await teamClient.query('ROLLBACK')
-                    }
                     await teamClient.end()
                 }
 
@@ -144,8 +141,6 @@ module.exports = {
                         credentials,
                         meta
                     })
-                    // await teamClient.query('COMMIT')
-                    // committed = true
                     return table
                 } else {
                     this._app.log.error(`Failed to create database\n${JSON.stringify(response, null, 2)}\n${JSON.stringify(tenant, null, 2)}`)
