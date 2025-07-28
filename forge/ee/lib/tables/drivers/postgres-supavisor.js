@@ -110,7 +110,7 @@ module.exports = {
                     }
                 }
 
-                this._app.log.debug(`FF Tables creating tenant:\n${JSON.stringify(tenant, null, 2)}`)
+                this._app.log.info(`FF Tables creating tenant:\n${JSON.stringify(tenant, null, 2)}`)
 
                 const response = await axios.put(`${this._options.supavisor.url}/api/tenants/${team.hashid}`, tenant, {
                     headers: {
@@ -147,6 +147,7 @@ module.exports = {
                 }
             } catch (err) {
                 // console.log(err)
+                this._app.log.error(`Failed to create database\n${this._options.supavisor.url}/api/tenants/${team.hashid}\n${err.toString()}`)
             }
         }
     },
