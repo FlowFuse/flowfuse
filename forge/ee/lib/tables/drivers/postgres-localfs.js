@@ -11,12 +11,12 @@ module.exports = {
         }
         this._adminClient = libPg.newClient(options.database || {})
         this._adminClient.on('error', (err) => {
-            this._app.log.error('Postgres LocalFS driver error:', err)
+            this._app.log.error(`Postgres LocalFS driver error: ${err.toString()}`)
         })
         try {
             await this._adminClient.connect()
         } catch (err) {
-            app.log.error('Failed to connect to Postgres:', err)
+            app.log.error(`Failed to connect to Postgres: ${err.toString()}`)
         }
         app.log.info('Postgres LocalFS driver initialized')
     },
@@ -25,7 +25,7 @@ module.exports = {
             this._app.log.info('Shutting down Postgres LocalFS driver')
             await this._adminClient.end()
         } catch (err) {
-            this._app.log.debug('Error shutting down Postgres LocalFS driver:', err)
+            this._app.log.debug(`Error shutting down Postgres LocalFS driver: ${err.toString()}`)
         }
     },
     getDatabases: async function (team) {
