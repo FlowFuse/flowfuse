@@ -14,7 +14,6 @@
                 <template v-if="col.component">
                     <component :is="col.component.is"
                                :column="col.key"
-                               :class="col.class"
                                :style="col.style"
                                v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}"
                                :value="lookupProperty(data, col.key)"
