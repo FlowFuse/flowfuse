@@ -30,8 +30,19 @@ module.exports = async function (app) {
                 }
             }
         }
-        if (!request.teamMembership) {
-            request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
+        if (request.session.User) {
+            request.sessionUser = true
+            request.instanceTokenReq = false
+            if (!request.teamMembership) {
+                request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
+            }
+        } else if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
+            // this is a request from a project or device
+            request.sessionUserReq = false
+            request.instanceTokenReq = true
+        } else {
+            reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+            throw new Error('Unauthorized')
         }
     })
 
@@ -310,5 +321,187 @@ module.exports = async function (app) {
         } else {
             reply.status(404).send({})
         }
+    })
+
+    /**
+     * Link a MQTT Client to a device or project
+     * @name /api/v1/teams/:teamId/broker/client/:username/link
+     * @static
+     * @memberof forge.routes.api.team.broker
+     */
+    app.post('/client/:username/link', {
+        preHandler: app.needsPermission('broker:clients:link'),
+        schema: {
+            summary: 'Link a MQTT client to a device or project',
+            tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    username: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                oneOf: [
+                    // Case 1: Body is an empty object {}
+                    {
+                        // This matches an empty object.
+                        additionalProperties: false // Ensures no other properties are allowed for this case
+                    },
+                    // Case 2: Body has both ownerType and ownerId
+                    {
+                        required: ['ownerType', 'ownerId'],
+                        properties: {
+                            ownerType: { type: 'string', enum: ['device', 'project', 'instance'] },
+                            ownerId: { type: 'string' }
+                        },
+                        additionalProperties: false // Ensures only these two properties are allowed for this case
+                    }
+                ],
+                // Define properties at the top level so their types are known by the validator
+                // regardless of which oneOf matches (if a body is present).
+                properties: {
+                    ownerType: { type: 'string', enum: ['device', 'project', 'instance'] },
+                    ownerId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        username: { type: 'string' },
+                        acls: { type: 'array' },
+                        owner: {
+                            type: 'object',
+                            properties: {
+                                instanceType: { type: 'string', enum: ['remote', 'local'] },
+                                id: { type: 'string' },
+                                name: { type: 'string' }
+                            }
+                        },
+                        password: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
+        if (!user) {
+            return reply.status(404).send({})
+        }
+        if (user.ownerType && user.ownerId) {
+            return reply.status(400).send({
+                code: 'client_already_linked',
+                error: 'Client is already linked to a device or project'
+            })
+        }
+        // if this is a request from a device or project, use the validated session object values
+        // to set the ownerType and ownerId
+        let ownerId = request.body.ownerId
+        let ownerType = request.body.ownerType
+        if (request.instanceTokenReq) {
+            ownerId = request.session.ownerId
+            ownerType = request.session.ownerType
+            if (ownerType === 'device') {
+                ownerId = +ownerId // ID is a number for devices
+            }
+        }
+        if (ownerType === 'instance') {
+            ownerType = 'project' // instance is an alias for project
+        }
+
+        if (ownerType === 'device') {
+            const device = await app.db.models.Device.byId(ownerId)
+            if (!device) {
+                return reply.status(404).send({})
+            }
+            user.ownerType = 'device'
+            user.ownerId = device.id
+        } else if (ownerType === 'project' || ownerType === 'instance') {
+            const project = await app.db.models.Project.byId(ownerId)
+            if (!project) {
+                return reply.status(404).send({})
+            }
+            user.ownerType = 'project'
+            user.ownerId = project.id
+        }
+        await user.save()
+        await user.reload({
+            include: ['Team', 'Project', 'Device']
+        })
+        // get the user again to return the updated object
+        const updatedUser = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid, true, true)
+        const userView = app.db.views.TeamBrokerClient.user(updatedUser)
+        userView.password = updatedUser.password
+        reply.send({ ...userView })
+    })
+
+    /**
+     * Unlink a MQTT Client from a device or project
+     * @name /api/v1/teams/:teamId/broker/client/:username/unlink
+     * @static
+     */
+    app.delete('/client/:username/link', {
+        preHandler: app.needsPermission('broker:clients:link'),
+        schema: {
+            summary: 'Unlink a MQTT client from a device or project',
+            tags: ['MQTT Broker'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' },
+                    username: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        // get the user by username
+        const user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
+        if (!user) {
+            return reply.status(404).send({})
+        }
+
+        // If the user is not linked to a device or project, return an error
+        if (!user.ownerType || !user.ownerId) {
+            return reply.status(400).send({
+                code: 'client_not_linked',
+                error: 'Client is not linked to a device or project'
+            })
+        }
+
+        // If this is a request from a device or project, check that the ownerType and ownerId match the
+        // values in the validated session object before unlinking. Session users are permitted to unlink
+        // their own clients without this check.
+        if (request.instanceTokenReq) {
+            if (user.ownerType !== request.session.ownerType || user.ownerId !== request.session.ownerId) {
+                return reply.status(400).send({
+                    code: 'client_link_mismatch',
+                    error: 'Client is linked to a different instance. Only the owner can unlink it.'
+                })
+            }
+        }
+        user.ownerType = null
+        user.ownerId = null
+        await user.save()
+        reply.send({ status: 'okay' })
     })
 }
