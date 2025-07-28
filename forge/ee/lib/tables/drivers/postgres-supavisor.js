@@ -82,66 +82,77 @@ module.exports = {
                     await teamClient.query(`GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${escapedRoleName}`)
                     await teamClient.query(`CREATE USER ${escapedUserName} WITH PASSWORD ${escapedPassword}`)
                     await teamClient.query(`GRANT ${escapedRoleName} TO ${escapedUserName}`)
+
                 } finally {
+                    if (!committed) {
+                        await teamClient.query('ROLLBACK')
+                    }
                     await teamClient.end()
+                }
+
+                const tenant = {
+                    tenant: {
+                        db_host: this._options.backend.supavisorHost ? this._options.backend.supavisorHost : this._options.backend.host,
+                        db_port: this._options.backend.port,
+                        db_database: team.hashid,
+                        external_id: team.hashid,
+                        ip_version: 'auto',
+                        upstream_ssl: !!this._options.backend.ssl,
+                        require_user: true,
+                        auth_query: 'SELECT rolname, rolpassword FROM pg_authid WHERE rolname=$1;',
+                        // sni_hostname: `${team.slug}.${this._options.supavisor.domain}`,
+                        users: [
+                            {
+                                db_user: team.hashid,
+                                db_password: password,
+                                mode_type: 'transaction',
+                                is_manager: true,
+                                pool_size: 10,
+                                max_clients: 10
+                            }
+                        ]
+                    }
+                }
+
+                this._app.log.debug(`FF Tables creating tenant:\n${JSON.stringify(tenant, null, 2)}`)
+
+                const response = await axios.put(`${this._options.supavisor.url}/api/tenants/${team.hashid}`, tenant, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${this._options.supavisor.token}`
+                    }
+                })
+                if (response.status === 201) {
+                    this._app.log.info(`Database created for team ${team.hashid}`)
+                    const credentials = {
+                        host: `${this._options.supavisor.domain}`,
+                        port: this._options.supavisor.port,
+                        ssl: this._options.supavisor.ssl,
+                        database: team.hashid,
+                        user: `${team.hashid}.${team.hashid}`,
+                        password
+                    }
+                    const meta = {
+                        host: this._options.backend.host,
+                        port: this._options.backend.port,
+                        ssl: this._options.backend.ssl,
+                        database: this._options.backend.database
+                    }
+                    const table = await this._app.db.models.Table.create({
+                        TeamId: team.id,
+                        name,
+                        credentials,
+                        meta
+                    })
+                    // await teamClient.query('COMMIT')
+                    // committed = true
+                    return table
+                } else {
+                    this._app.log.error(`Failed to create database\n${JSON.stringify(response, null, 2)}\n${JSON.stringify(tenant, null, 2)}`)
+                    throw new Error(`Failed to create database for team ${team.hashid}: ${response.statusText}`)
                 }
             } catch (err) {
                 // console.log(err)
-            }
-            const response = await axios.put(`${this._options.supavisor.url}/api/tenants/${team.hashid}`, {
-                tenant: {
-                    db_host: this._options.backend.supavisorHost ? this._options.backend.supavisorHost : this._options.backend.host,
-                    db_port: this._options.backend.port,
-                    db_database: team.hashid,
-                    external_id: team.hashid,
-                    ip_version: 'auto',
-                    upstream_ssl: this._options.backend.ssl,
-                    require_user: true,
-                    auth_query: 'SELECT rolname, rolpassword FROM pg_authid WHERE rolname=$1;',
-                    // sni_hostname: `${team.slug}.${this._options.supavisor.domain}`,
-                    users: [
-                        {
-                            db_user: team.hashid,
-                            db_password: password,
-                            mode_type: 'transaction',
-                            is_manager: true,
-                            pool_size: 10,
-                            max_clients: 10
-                        }
-                    ]
-                }
-            }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${this._options.supavisor.token}`
-                }
-            })
-            if (response.status === 201) {
-                this._app.log.info(`Database created for team ${team.hashid}`)
-                const credentials = {
-                    host: `${this._options.supavisor.domain}`,
-                    port: this._options.supavisor.port,
-                    ssl: this._options.supavisor.ssl,
-                    database: team.hashid,
-                    user: `${team.hashid}.${team.hashid}`,
-                    password
-                }
-                const meta = {
-                    host: this._options.backend.host,
-                    port: this._options.backend.port,
-                    ssl: this._options.backend.ssl,
-                    database: this._options.backend.database
-                }
-                const table = await this._app.db.models.Table.create({
-                    TeamId: team.id,
-                    name,
-                    credentials,
-                    meta
-                })
-                return table
-            } else {
-                this._app.log.error(`Failed to create database\n${JSON.stringify(response, null, 2)}`)
-                throw new Error(`Failed to create database for team ${team.hashid}: ${response.statusText}`)
             }
         }
     },
