@@ -12,7 +12,13 @@
                                 @mouseup="handleMouseUp"
             >
                 <template v-if="col.component">
-                    <component :is="col.component.is" v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}" />
+                    <component :is="col.component.is"
+                               :column="col.key"
+                               :class="col.class"
+                               :style="col.style"
+                               v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}"
+                               :value="lookupProperty(data, col.key)"
+                    />
                 </template>
                 <template v-else-if="!isBool(lookupProperty(data, col.key))">
                     {{ lookupProperty(data, col.key) }}

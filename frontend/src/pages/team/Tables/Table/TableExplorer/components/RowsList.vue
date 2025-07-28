@@ -8,8 +8,12 @@
             <p>Select a table to get going!</p>
         </div>
 
-        <div v-else-if="selectedTable && selectedTable.schema" class="content">
-            <ff-data-table :columns="columns" :rows="rows" />
+        <div v-else-if="selectedTable && selectedTable.schema" class="content overflow-auto h-full">
+            <ff-data-table
+                :columns="columns" :rows="rows"
+                class="h-full overflow-auto"
+                tableClass="table-auto overflow-auto"
+            />
         </div>
 
         <div v-else class="no-content w-full h-full flex justify-center items-center text-gray-400">
@@ -19,8 +23,10 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
+
+import TextCell from './table-cells/text-cell.vue'
 
 export default defineComponent({
     name: 'RowsList',
@@ -29,26 +35,22 @@ export default defineComponent({
         ...mapGetters('product/tables', ['selectedTable']),
         ...mapState('account', ['team']),
         columns () {
-            return (this.selectedTable?.schema ?? []).map(row => {
+            return (this.selectedTable?.schema ?? []).map((row) => {
                 return {
                     key: row.name,
-                    html: `<span>${row.name}</span> <span class="text-gray-400">${row.type}</span>`,
+                    html: `<span >${row.name}</span> <span class="text-gray-400">${row.type}</span>`,
                     sortable: true,
-                    style: {
-                        width: '32px',
-                        'max-width': '35px'
+                    component: {
+                        is: this.getTableComponent(row.type)
                     },
                     tableCellClass: 'truncate',
-                    tableLabelClass: 'truncate'
+                    tableLabelClass: 'truncate',
+                    headerClass: 'sticky top-0'
                 }
             })
         },
         rows () {
             return (this.selectedTable?.data ?? [])
-                .map(row => {
-                    // console.log(Object.entries(row))
-                    return row
-                })
         }
     },
     watch: {
@@ -70,7 +72,21 @@ export default defineComponent({
         this.updateTableSelection(null)
     },
     methods: {
-        ...mapActions('product/tables', ['getTableSchema', 'getTableData', 'updateTableSelection'])
+        ...mapActions('product/tables', ['getTableSchema', 'getTableData', 'updateTableSelection']),
+        getTableComponent (type) {
+            const componentMap = {
+                text: TextCell
+            }
+
+            if (Object.prototype.hasOwnProperty.call(componentMap, type)) {
+                return componentMap[type]
+            } else {
+                return markRaw({
+                    props: ['value'],
+                    template: '<span class="truncate">{{value}}</span>'
+                })
+            }
+        }
     }
 })
 </script>
@@ -79,6 +95,7 @@ export default defineComponent({
 #rows-list {
     height: 100%;
     width: 100%;
+    overflow: auto;
 
     .header {
         border-bottom: 1px solid $ff-color--border;
