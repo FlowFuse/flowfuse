@@ -147,6 +147,7 @@ module.exports = {
                 }
             } catch (err) {
                 // console.log(err)
+                this._app.log.error(`Failed to create database\n${this._options.supavisor.url}/api/tenants/${team.hashid}\n${err.toString()}\n${JSON.stringify(tenant, null, 2)}`)
             }
         }
     },
