@@ -1344,8 +1344,7 @@ module.exports = async function (app) {
                 type: 'object',
                 required: ['state'],
                 properties: {
-                    state: { type: 'string' },
-                    hashId: { type: 'string' }
+                    state: { type: 'string' }
                 }
             },
             response: {
