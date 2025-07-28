@@ -82,7 +82,6 @@ module.exports = {
                     await teamClient.query(`GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${escapedRoleName}`)
                     await teamClient.query(`CREATE USER ${escapedUserName} WITH PASSWORD ${escapedPassword}`)
                     await teamClient.query(`GRANT ${escapedRoleName} TO ${escapedUserName}`)
-
                 } finally {
                     await teamClient.end()
                 }
