@@ -17,12 +17,12 @@ module.exports = {
         }
         this._adminClient = libPg.newClient(options.backend || {})
         this._adminClient.on('error', (err) => {
-            this._app.log.error('Postgres Supavisor driver error:', err)
+            this._app.log.error(`Postgres Supavisor driver error: ${err.toString()}`)
         })
         try {
             await this._adminClient.connect()
         } catch (err) {
-            app.log.error('Failed to connect to Postgres:', err)
+            app.log.error(`Failed to connect to Postgres:  ${err.toString()}`)
         }
         app.log.info('Postgres Supavisor driver initialized')
     },
@@ -31,7 +31,7 @@ module.exports = {
             this._app.log.info('Shutting down Postgres Supavisor driver')
             await this._adminClient.end()
         } catch (err) {
-            this._app.log.debug('Error shutting down Postgres Supavisor driver:', err)
+            this._app.log.debug(`Error shutting down Postgres Supavisor driver:  ${err.toString()}`)
         }
     },
     getDatabases: async function (team) {
