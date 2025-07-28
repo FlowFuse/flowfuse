@@ -181,7 +181,8 @@ module.exports = async function (app) {
                     properties: {
                         id: { type: 'string' },
                         username: { type: 'string' },
-                        acls: { type: 'array' }
+                        acls: { type: 'array' },
+                        owner: { type: 'object' }
                     }
                 },
                 '4xx': {
