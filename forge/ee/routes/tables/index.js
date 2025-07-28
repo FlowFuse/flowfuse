@@ -85,12 +85,12 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const creds = await app.tables.createDatabase(request.team, request.body?.name ? request.body.name : request.team.hashid)
+            console.log(creds)
             reply.send(await app.db.views.Table.table(creds))
         } catch (err) {
             if (err.message.includes('already exists')) {
                 return reply.status(409).send({ code: 'already_exists', error: 'Database already exists' })
             } else {
-                // console.log(err)
                 app.log.error(`Create FF tables error ${err.toString()}`)
                 reply.status(500).send({ code: 'unexpected_error', error: 'Failed to create database' })
             }
