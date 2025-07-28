@@ -31,7 +31,7 @@ module.exports = {
             this._app.log.info('Shutting down Postgres Supavisor driver')
             await this._adminClient.end()
         } catch (err) {
-            this._app.log.debug(`Error shutting down Postgres Supavisor driver:  ${err.toString()}`)
+            this._app.log.debug(`Error shutting down Postgres Supavisor driver: ${err.toString()}`)
         }
     },
     getDatabases: async function (team) {
