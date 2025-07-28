@@ -1,7 +1,7 @@
 <template>
     <div class="text-cell">
         <code v-if="!isTooLong" class="value whitespace-pre-wrap">
-            {{ isJson || value }}
+            {{ isJson || rowValue }}
         </code>
         <span
             v-else title="View more..."
@@ -20,7 +20,7 @@ import Dialog from '../../../../../../../services/dialog.js'
 export default defineComponent({
     name: 'text-cell',
     props: {
-        value: {
+        rowValue: {
             required: true,
             type: String
         },
@@ -32,13 +32,13 @@ export default defineComponent({
     computed: {
         isJson () {
             try {
-                return JSON.stringify(JSON.parse(this.value), null, 2)
+                return JSON.stringify(JSON.parse(this.rowValue), null, 2)
             } catch (e) {
                 return false
             }
         },
         isTooLong () {
-            return this.value.length > 50
+            return this.rowValue.length > 50
         }
     },
     methods: {
@@ -47,7 +47,7 @@ export default defineComponent({
             if (this.isJson) {
                 html = `<pre class="break-words overflow-auto py-3">${this.isJson}</pre>`
             } else {
-                html = `<code class="whitespace-normal break-words block">${this.value}</code>`
+                html = `<code class="whitespace-normal break-words block">${this.rowValue}</code>`
             }
             Dialog.show({
                 header: `${this.column} value`,

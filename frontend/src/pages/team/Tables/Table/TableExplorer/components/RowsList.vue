@@ -82,8 +82,8 @@ export default defineComponent({
                 return componentMap[type]
             } else {
                 return markRaw({
-                    props: ['value'],
-                    template: '<span class="truncate">{{value}}</span>'
+                    props: ['row-value'],
+                    template: '<span class="truncate">{{rowValue}}</span>'
                 })
             }
         }

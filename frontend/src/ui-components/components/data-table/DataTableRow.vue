@@ -16,7 +16,7 @@
                                :column="col.key"
                                :style="col.style"
                                v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}"
-                               :value="lookupProperty(data, col.key)"
+                               :row-value="lookupProperty(data, col.key)"
                     />
                 </template>
                 <template v-else-if="!isBool(lookupProperty(data, col.key))">
@@ -94,7 +94,7 @@ export default {
                 return data
             }
         },
-        lookupProperty (obj, property) {
+        lookupProperty (obj, property = '') {
             const parts = property.split('.')
             if (parts.length === 1) {
                 return obj[property]
