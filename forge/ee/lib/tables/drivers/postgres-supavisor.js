@@ -22,7 +22,7 @@ module.exports = {
         try {
             await this._adminClient.connect()
         } catch (err) {
-            app.log.error(`Failed to connect to Postgres:  ${err.toString()}`)
+            app.log.error(`Failed to connect to Postgres: ${err.toString()}`)
         }
         app.log.info('Postgres Supavisor driver initialized')
     },
