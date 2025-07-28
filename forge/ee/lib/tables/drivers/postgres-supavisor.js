@@ -140,6 +140,7 @@ module.exports = {
                 })
                 return table
             } else {
+                this._app.log.error(`Failed to create database\n${JSON.stringify(response, null, 2)}`)
                 throw new Error(`Failed to create database for team ${team.hashid}: ${response.statusText}`)
             }
         }
