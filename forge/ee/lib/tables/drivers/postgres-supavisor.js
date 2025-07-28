@@ -94,6 +94,7 @@ module.exports = {
                         external_id: team.hashid,
                         ip_version: 'auto',
                         upstream_ssl: !!this._options.backend.ssl,
+                        upstream_verify: this._options.backend.ssl ? 'none' : undefined,
                         require_user: true,
                         auth_query: 'SELECT rolname, rolpassword FROM pg_authid WHERE rolname=$1;',
                         // sni_hostname: `${team.slug}.${this._options.supavisor.domain}`,
@@ -110,7 +111,7 @@ module.exports = {
                     }
                 }
 
-                this._app.log.info(`FF Tables creating tenant:\n${JSON.stringify(tenant, null, 2)}`)
+                this._app.log.debug(`FF Tables creating tenant:\n${JSON.stringify(tenant, null, 2)}`)
 
                 const response = await axios.put(`${this._options.supavisor.url}/api/tenants/${team.hashid}`, tenant, {
                     headers: {
