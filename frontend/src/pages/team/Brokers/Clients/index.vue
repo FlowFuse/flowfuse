@@ -31,9 +31,10 @@
                         </ff-button>
                     </div>
                     <div class="clients-wrapper">
-                        <div class="header grid grid-cols-6 gap-4 font-bold">
+                        <div class="header grid grid-cols-7 gap-4 font-bold">
                             <span class="username">Username/ClientId</span>
                             <span class="rules">Rules</span>
+                            <span class="rules">Linked</span>
                         </div>
                         <ul data-el="clients-list" class="clients-list">
                             <li v-for="client in filteredClients" :key="client.id" class="client" data-el="client">

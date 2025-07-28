@@ -12,6 +12,10 @@
             <div class="rules text-left">
                 <span>{{ client.acls.length }} Rule{{ client.acls.length > 1 ? 's' : '' }}</span>
             </div>
+            <div class="rules text-left">
+                <span v-if="client.owner">{{ client.owner.name || client.owner.id }}</span>
+                <span v-else><i>Floating</i></span>
+            </div>
         </template>
         <template #meta>
             <span
@@ -96,7 +100,7 @@ export default {
         border: none;
         background: none;
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(7, 1fr);
         gap: 15px;
         padding: 0;
 
