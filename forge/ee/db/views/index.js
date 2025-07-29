@@ -3,7 +3,8 @@ const modelTypes = [
     'Pipeline',
     'PipelineStage',
     'FlowTemplate',
-    'GitToken'
+    'GitToken',
+    'Table'
 ]
 
 async function init (app) {

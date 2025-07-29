@@ -447,5 +447,114 @@ describe('Project model', function () {
             await instance3.destroy()
             await team.destroy()
         })
+
+        it('should handle invalid string ApplicationId', async () => {
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
+
+            try {
+                await app.db.models.Project.countByState([], hashedTeamId, 'invalid-application-id')
+                should.fail('Expected an error to be thrown')
+            } catch (err) {
+                err.should.be.an.Error()
+                err.message.should.equal('Invalid ApplicationId')
+            }
+            await team.destroy()
+        })
+
+        it('should filter by application and statuses', async () => {
+            app.license.defaults.instances = 50 // override default
+
+            const states = ['running', 'stopped']
+
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const numericTeamId = team.id
+
+            const application1 = await app.db.models.Application.create({ name: 'App 1', TeamId: numericTeamId })
+            const numericApp1Id = application1.id
+
+            const application2 = await app.db.models.Application.create({ name: 'App 2', TeamId: numericTeamId })
+            const numericApp2Id = application2.id
+
+            const instance1 = await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const instance2 = await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const instance3 = await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const instance4 = await app.db.models.Project.create({ name: 'p4', type: '', url: '', state: 'suspended', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+
+            const instance5 = await app.db.models.Project.create({ name: 'p5', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const instance6 = await app.db.models.Project.create({ name: 'p6', type: '', url: '', state: 'stopped', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const instance7 = await app.db.models.Project.create({ name: 'p7', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const instance8 = await app.db.models.Project.create({ name: 'p8', type: '', url: '', state: 'suspended', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+
+            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
+            const hashedAppId = app.db.models.Application.encodeHashid(application1.id)
+
+            const result = await app.db.models.Project.countByState(states, hashedTeamId, hashedAppId)
+
+            result.should.deepEqual([
+                { state: 'running', count: 2 },
+                { state: 'stopped', count: 1 }
+            ])
+
+            await instance1.destroy()
+            await instance2.destroy()
+            await instance3.destroy()
+            await instance4.destroy()
+            await instance5.destroy()
+            await instance6.destroy()
+            await instance7.destroy()
+            await instance8.destroy()
+            await application1.destroy()
+            await application2.destroy()
+            await team.destroy()
+        })
+
+        it('should filter by application and no statuses', async () => {
+            app.license.defaults.instances = 50 // override default
+
+            const states = []
+
+            const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            const numericTeamId = team.id
+
+            const application1 = await app.db.models.Application.create({ name: 'App 1', TeamId: numericTeamId })
+            const numericApp1Id = application1.id
+
+            const application2 = await app.db.models.Application.create({ name: 'App 2', TeamId: numericTeamId })
+            const numericApp2Id = application2.id
+
+            const instance1 = await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const instance2 = await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const instance3 = await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+            const instance4 = await app.db.models.Project.create({ name: 'p4', type: '', url: '', state: 'suspended', TeamId: numericTeamId, ApplicationId: numericApp1Id })
+
+            const instance5 = await app.db.models.Project.create({ name: 'p5', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const instance6 = await app.db.models.Project.create({ name: 'p6', type: '', url: '', state: 'stopped', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const instance7 = await app.db.models.Project.create({ name: 'p7', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+            const instance8 = await app.db.models.Project.create({ name: 'p8', type: '', url: '', state: 'stopped', TeamId: numericTeamId, ApplicationId: numericApp2Id })
+
+            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
+            const hashedAppId = app.db.models.Application.encodeHashid(application1.id)
+
+            const result = await app.db.models.Project.countByState(states, hashedTeamId, hashedAppId)
+
+            result.should.deepEqual([
+                { count: 2, state: 'running' },
+                { count: 1, state: 'stopped' },
+                { count: 1, state: 'suspended' }
+            ])
+
+            await instance1.destroy()
+            await instance2.destroy()
+            await instance3.destroy()
+            await instance4.destroy()
+            await instance5.destroy()
+            await instance6.destroy()
+            await instance7.destroy()
+            await instance8.destroy()
+            application1.destroy()
+            application2.destroy()
+            await team.destroy()
+        })
     })
 })

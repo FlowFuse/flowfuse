@@ -620,7 +620,7 @@ module.exports = {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
 
-                        if (teamId.length === 0) {
+                        if (!teamId || teamId.length === 0) {
                             throw new Error('Invalid TeamId')
                         }
                     }
@@ -628,7 +628,7 @@ module.exports = {
                     if (typeof applicationId === 'string') {
                         applicationId = M.Application.decodeHashid(applicationId)
 
-                        if (applicationId.length === 0) {
+                        if (!applicationId || applicationId.length === 0) {
                             throw new Error('Invalid ApplicationId')
                         }
                     }
