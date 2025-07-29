@@ -12,7 +12,7 @@
                 <slot name="actions" />
             </div>
         </div>
-        <table class="ff-data-table--data">
+        <table class="ff-data-table--data" :class="tableClass ?? ''">
             <slot name="table">
                 <thead>
                     <!-- HEADERS -->
@@ -23,8 +23,8 @@
                             </ff-data-table-cell>
                             <ff-data-table-cell
                                 v-for="(col, $index) in columns" :key="$index"
-                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
-                                :style="col.style"
+                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : '', col.headerClass ?? ''].concat(col.class)"
+                                :style="col.headerStyle ?? col.style"
                                 @click="sortBy(col, $index)"
                             >
                                 <!-- Internal div required to have flex w/sorting icons -->
@@ -208,6 +208,11 @@ export default {
             required: false,
             default: false,
             type: Boolean
+        },
+        tableClass: {
+            required: false,
+            default: '',
+            type: String
         }
     },
     emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked'],
