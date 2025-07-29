@@ -4,7 +4,7 @@
     <main v-else-if="!application?.id">
         <ff-loading message="Loading Application..." />
     </main>
-    <main v-else class="ff-with-status-header">
+    <main v-else class="ff-with-status-header flex flex-col h-full w-full overflow-auto">
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
         <ff-page-header :title="application.name" :tabs="navigation">
@@ -12,7 +12,7 @@
                 <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
             </template>
         </ff-page-header>
-        <div class="px-3 py-3 md:px-6 md:py-6">
+        <div class="px-3 py-3 md:px-6 md:py-6 flex-1 h-full overflow-auto">
             <router-view
                 :application="application"
                 :instances="instancesArray"
