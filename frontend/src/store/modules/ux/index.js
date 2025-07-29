@@ -500,11 +500,18 @@ const mutations = {
 }
 
 const actions = {
-    openRightDrawer ({ commit }, { component }) {
-        commit('openRightDrawer', { component })
+    openRightDrawer ({ state, commit }, { component }) {
+        if (state.rightDrawer.state && component.name === state.rightDrawer.component.name) return
+
+        if (state.rightDrawer.state) {
+            commit('closeRightDrawer')
+            setTimeout(() => commit('openRightDrawer', { component }), 300)
+        } else {
+            commit('openRightDrawer', { component })
+        }
     },
     closeRightDrawer ({ commit }) {
-        commit('closeRightDrawer')
+        setTimeout(() => commit('closeRightDrawer'), 100)
     },
     openLeftDrawer ({ commit }) {
         commit('openLeftDrawer')

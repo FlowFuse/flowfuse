@@ -9,12 +9,11 @@
             >
                 <template #icon><SearchIcon /></template>
             </ff-text-input>
-
-            <!--            <ff-button kind="secondary" @click="onCreateTable">-->
-            <!--                <template #icon>-->
-            <!--                    <PlusIcon />-->
-            <!--                </template>-->
-            <!--            </ff-button>-->
+            <button class="ff-btn ff-btn--secondary transition-fade--color" type="button" @click.stop="onCreateTable">
+                <span class="ff-btn--icon">
+                    <PlusIcon />
+                </span>
+            </button>
         </div>
 
         <ul v-if="filteredTables.length && tables.length" class="list">
@@ -34,25 +33,23 @@
             <p>No tables found matching your criteria!</p>
         </div>
 
-        <div v-else class="empty-state">
+        <div v-else class="empty-state flex gap-5">
             <p>Get Started by creating your first table using the <code>contrib-postgres</code> node in a Node-RED Instance.</p>
-            <!--            <p><span class="cta" @click="onCreateTable">Create</span> your first table now.</p>-->
+            <p>Or <span class="cta" @click="onCreateTable">Create</span> your first table now.</p>
         </div>
     </section>
 </template>
 
 <script>
-import { SearchIcon, TableIcon } from '@heroicons/vue/outline'
-import { defineComponent } from 'vue'
+import { PlusIcon, SearchIcon, TableIcon } from '@heroicons/vue/outline'
+import { defineComponent, markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
-import Alerts from '../../../../../../services/alerts.js'
-import Dialog from '../../../../../../services/dialog.js'
-
 import CreateTable from './CreateTable.vue'
+
 export default defineComponent({
     name: 'TablesList',
-    components: { SearchIcon, TableIcon },
+    components: { SearchIcon, TableIcon, PlusIcon },
     emits: ['select-table'],
     data () {
         return {
@@ -63,6 +60,7 @@ export default defineComponent({
     computed: {
         ...mapGetters('product/tables', { getTables: 'tables' }),
         ...mapState('product/tables', { tablesState: 'tables', tableSelection: 'tableSelection' }),
+        ...mapState('ux', ['rightDrawer']),
         filteredTables () {
             return this.tables.filter(t => (t.name ?? '').toLowerCase().includes(this.filterTerm.toLowerCase()))
         }
@@ -77,17 +75,10 @@ export default defineComponent({
     },
     methods: {
         ...mapActions('product/tables', ['updateTableSelection']),
+        ...mapActions('ux', ['openRightDrawer', 'closeRightDrawer']),
+
         onCreateTable () {
-            Dialog.show({
-                header: 'Create a new Table',
-                kind: 'primary',
-                confirmLabel: 'Create',
-                is: {
-                    component: CreateTable
-                }
-            }, async () => {
-                Alerts.emit('Table created successfully.', 'confirmation')
-            })
+            this.openRightDrawer({ component: markRaw(CreateTable) })
         }
     }
 })

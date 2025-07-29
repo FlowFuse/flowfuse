@@ -1,6 +1,6 @@
 <template>
     <div id="create-table">
-        creating?
+        <h1>Create Table</h1>
     </div>
 </template>
 
