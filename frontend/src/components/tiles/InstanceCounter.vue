@@ -60,7 +60,7 @@ export default {
             }
         },
         backgroundColor () {
-            const opacity = (this.accent === 'gray' && this.darkerGray) ? 200 : 50
+            const opacity = (this.accent === 'gray' && this.darkerGray) ? 100 : 50
             return `bg-${this.accent}-${opacity}`
         },
         emptyCounter () {
