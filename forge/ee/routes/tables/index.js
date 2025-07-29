@@ -31,10 +31,10 @@ module.exports = async function (app) {
             if (request.session.ownerType === 'project') {
                 const project = await app.db.models.Project.byId(request.session.ownerId)
                 if (project.Team.hashid !== request.team.hashid) {
-                    return reply.status(401).send({code: 'unauthorized', error: 'unauthorized'})
+                    return reply.status(401).send({ code: 'unauthorized', error: 'unauthorized' })
                 }
             } else {
-                app.needsPermission('team:database:list')(request, reply, done)
+                await app.needsPermission('team:database:list')(request, reply, done)
             }
         },
         schema: {
