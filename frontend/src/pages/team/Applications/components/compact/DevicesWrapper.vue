@@ -1,7 +1,6 @@
 <template>
     <section class="ff-applications-list-instances" data-el="application-devices">
         <label class="delimiter">
-            <IconDeviceSolid class="ff-icon ff-icon-sm text-teal-700" />
             Remote Instances
         </label>
         <div v-if="doesntHaveDevices" class="empty-message">
@@ -28,13 +27,12 @@ import { mapState } from 'vuex'
 
 import teamApi from '../../../../../api/team.js'
 
-import IconDeviceSolid from '../../../../../components/icons/DeviceSolid.js'
 import InstanceCounter from '../../../../../components/tiles/InstanceCounter.vue'
 import { useInstanceStates } from '../../../../../composables/InstanceStates.js'
 
 export default {
     name: 'DevicesWrapper',
-    components: { IconDeviceSolid, InstanceCounter },
+    components: { InstanceCounter },
     props: {
         application: {
             type: Object,

@@ -1,7 +1,7 @@
 <template>
     <section class="ff-applications-list-instances" data-el="application-instances">
         <label class="delimiter">
-            <IconNodeRedSolid class="ff-icon ff-icon-sm text-red-800" /> Hosted Instances
+            Hosted Instances
         </label>
         <div v-if="doesntHaveInstances" class="empty-message">
             <p>
@@ -27,13 +27,12 @@ import { mapState } from 'vuex'
 
 import teamApi from '../../../../../api/team.js'
 
-import IconNodeRedSolid from '../../../../../components/icons/NodeRedSolid.js'
 import InstanceCounter from '../../../../../components/tiles/InstanceCounter.vue'
 import { useInstanceStates } from '../../../../../composables/InstanceStates.js'
 
 export default {
     name: 'InstancesWrapper',
-    components: { InstanceCounter, IconNodeRedSolid },
+    components: { InstanceCounter },
     props: {
         application: {
             type: Object,
