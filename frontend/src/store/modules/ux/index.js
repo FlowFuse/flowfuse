@@ -21,7 +21,8 @@ const initialState = () => ({
     },
     rightDrawer: {
         state: false,
-        component: null
+        component: null,
+        wider: false
     },
     mainNav: {
         context: 'team',
@@ -463,12 +464,14 @@ const getters = {
 }
 
 const mutations = {
-    openRightDrawer (state, { component }) {
+    openRightDrawer (state, { component, wider }) {
         state.rightDrawer.state = true
+        state.rightDrawer.wider = wider
         state.rightDrawer.component = component
     },
     closeRightDrawer (state) {
         state.rightDrawer.state = false
+        state.rightDrawer.wider = false
         state.rightDrawer.component = null
     },
     openLeftDrawer (state) {
@@ -500,14 +503,14 @@ const mutations = {
 }
 
 const actions = {
-    openRightDrawer ({ state, commit }, { component }) {
+    openRightDrawer ({ state, commit }, { component, wider = false }) {
         if (state.rightDrawer.state && component.name === state.rightDrawer.component.name) return
 
         if (state.rightDrawer.state) {
             commit('closeRightDrawer')
-            setTimeout(() => commit('openRightDrawer', { component }), 300)
+            setTimeout(() => commit('openRightDrawer', { component, wider }), 300)
         } else {
-            commit('openRightDrawer', { component })
+            commit('openRightDrawer', { component, wider })
         }
     },
     closeRightDrawer ({ commit }) {

@@ -1,5 +1,10 @@
 <template>
-    <section id="right-drawer" v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}" :class="{open: rightDrawer.state}" data-el="right-drawer">
+    <section
+        id="right-drawer"
+        v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}"
+        :class="{open: rightDrawer.state, wider: rightDrawer.wider}"
+        data-el="right-drawer"
+    >
         <component :is="rightDrawer.component" v-if="rightDrawer.component" />
     </section>
 </template>
@@ -44,6 +49,10 @@ export default {
     width: 100%;
     max-width: 30vw;
     min-width: 400px;
+
+    &.wider {
+        max-width: 45vw;
+    }
   }
 }
 </style>

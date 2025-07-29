@@ -78,7 +78,7 @@ export default defineComponent({
         ...mapActions('ux', ['openRightDrawer', 'closeRightDrawer']),
 
         onCreateTable () {
-            this.openRightDrawer({ component: markRaw(CreateTable) })
+            this.openRightDrawer({ component: markRaw(CreateTable), wider: true })
         }
     }
 })
