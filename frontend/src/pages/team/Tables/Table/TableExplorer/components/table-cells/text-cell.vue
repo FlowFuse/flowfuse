@@ -1,8 +1,6 @@
 <template>
     <div class="text-cell">
-        <code v-if="!isTooLong" class="value whitespace-pre-wrap">
-            {{ isJson || rowValue }}
-        </code>
+        <pre v-if="!isTooLong" class="value whitespace-pre-wrap">{{ isJson || rowValue }}</pre>
         <span
             v-else title="View more..."
             class="cursor-pointer text-indigo-500 hover:text-indigo-700"
