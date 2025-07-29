@@ -16,6 +16,7 @@
                 :counter="groupedStates[state] ?? 0"
                 :state="state"
                 type="remote"
+                :darker-gray="true"
                 @click="onCounterClick(state)"
             />
         </div>

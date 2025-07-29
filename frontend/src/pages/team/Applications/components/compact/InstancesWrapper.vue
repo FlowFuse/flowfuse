@@ -15,6 +15,7 @@
                 :counter="groupedStates[state] ?? 0"
                 :state="state"
                 type="hosted"
+                :darker-gray="true"
                 @click="onCounterClick(state)"
             />
         </div>
