@@ -5,7 +5,7 @@
         </code>
         <span
             v-else title="View more..."
-            class="cursor-pointer hover:text-indigo-500"
+            class="cursor-pointer text-indigo-500 hover:text-indigo-700"
             @click="openDetailedView"
         >
             View more..
