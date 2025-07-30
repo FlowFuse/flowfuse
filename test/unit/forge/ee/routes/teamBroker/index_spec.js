@@ -358,7 +358,7 @@ describe('Team Broker API', function () {
                     // delete ALL broker clients for the team (avoid hitting license limits)
                     await app.db.models.TeamBrokerClient.destroy({
                         where: {
-                            teamId: app.team.id
+                            TeamId: app.team.id
                         }
                     })
                 })
@@ -394,35 +394,35 @@ describe('Team Broker API', function () {
                     await app.db.models.TeamBrokerClient.destroy({
                         where: {
                             username: { [Op.in]: [user1Name, user2Name] },
-                            teamId: app.team.id
+                            TeamId: app.team.id
                         }
                     })
                     // Delete any broker client created for a device
                     await app.db.models.TeamBrokerClient.destroy({
                         where: {
                             username: { [Op.like]: 'device-%' },
-                            teamId: app.team.id
+                            TeamId: app.team.id
                         }
                     })
                     // Delete any broker client created for a project
                     await app.db.models.TeamBrokerClient.destroy({
                         where: {
                             username: { [Op.like]: 'instance-%' },
-                            teamId: app.team.id
+                            TeamId: app.team.id
                         }
                     })
                     // delete devices created for the tests
                     await app.db.models.Device.destroy({
                         where: {
                             name: { [Op.in]: [device1Name, device2Name] },
-                            teamId: app.team.id
+                            TeamId: app.team.id
                         }
                     })
                     // delete projects created for the tests
                     await app.db.models.Project.destroy({
                         where: {
                             name: { [Op.in]: [instance1Name, instance2Name] },
-                            teamId: app.team.id
+                            TeamId: app.team.id
                         }
                     })
                 })
