@@ -125,7 +125,7 @@ export default defineComponent({
                 this.errors.name = 'The table name must not exceed 63 characters.'
                 break
             case !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(this.tableName):
-                this.errors.name = 'The table name must have a valid format.'
+                this.errors.name = 'No spaces allowed, must start with a letter or underscore, and only use letters, digits, or underscores.'
                 break
             case this.columns.length === 0:
                 this.errors.columns = 'The table must have at least one column.'
@@ -171,6 +171,7 @@ export default defineComponent({
         border-bottom: 1px solid $ff-grey-300;
         padding: 10px 0;
         width: 100%;
+        background: $ff-white;
 
         .content {
             padding: 0 12px;
@@ -190,7 +191,7 @@ export default defineComponent({
     .content-wrapper {
         flex: 1;
         width: 100%;
-        background-color: $ff-grey-100;
+        background-color: $ff-grey-50;
         overflow: auto;
         padding: 12px;
 
@@ -215,6 +216,7 @@ export default defineComponent({
     .footer {
         padding: 10px 12px;
         border-top: 1px solid $ff-grey-300;
+        background: $ff-white;
     }
 }
 </style>

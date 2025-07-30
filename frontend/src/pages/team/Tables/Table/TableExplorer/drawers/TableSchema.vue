@@ -93,6 +93,7 @@ export default defineComponent({
         border-bottom: 1px solid $ff-grey-300;
         padding: 10px 0;
         width: 100%;
+        background: $ff-white;
 
         .content {
             padding: 0 12px;
@@ -112,7 +113,7 @@ export default defineComponent({
     .content-wrapper {
         flex: 1;
         width: 100%;
-        background-color: $ff-grey-100;
+        background-color: $ff-grey-50;
         overflow: auto;
         padding: 12px;
 
@@ -125,6 +126,7 @@ export default defineComponent({
     }
 
     .footer {
+        background: $ff-white;
         padding: 10px 12px;
         border-top: 1px solid $ff-grey-300;
     }

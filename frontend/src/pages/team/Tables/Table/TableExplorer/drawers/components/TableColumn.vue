@@ -8,7 +8,7 @@
             />
         </div>
         <div class="col-section col-span-3">
-            <ff-listbox
+            <ff-combobox
                 v-model="localColumn.type"
                 :options="typeOptions"
                 option-title-key="title"
@@ -55,11 +55,9 @@
 import { XIcon } from '@heroicons/vue/solid'
 import { defineComponent } from 'vue'
 
-import FfListbox from '../../../../../../../ui-components/components/form/ListBox.vue'
-
 export default defineComponent({
     name: 'TableColumn',
-    components: { FfListbox, XIcon },
+    components: { XIcon },
     props: {
         column: {
             type: Object,
@@ -224,7 +222,7 @@ export default defineComponent({
 .column {
     .col-section {
 
-        .ff-listbox {
+        .ff-combobox {
             min-width: 100%;
             max-width: 100%;
         }
