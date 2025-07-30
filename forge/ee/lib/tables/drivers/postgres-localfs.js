@@ -277,7 +277,7 @@ module.exports = {
             const teamClient = libPg.newClient(options)
             try {
                 await teamClient.connect()
-                teamClient.query(`DROP TABLE ${tableName}`)
+                await teamClient.query(`DROP TABLE ${tableName}`)
             } finally {
                 teamClient.end()
             }
