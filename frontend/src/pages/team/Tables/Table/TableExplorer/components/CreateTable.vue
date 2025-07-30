@@ -21,14 +21,15 @@
             <ff-button type="button" kind="secondary" class="w-full" @click="onNewColumn">Add a new column</ff-button>
         </div>
         <div class="footer flex gap-3">
-            <ff-button type="button" kind="secondary" class="w-full">Cancel</ff-button>
-            <ff-button type="button" kind="secondary" class="w-full">Save</ff-button>
+            <ff-button type="button" kind="secondary" class="w-full" @click="closeRightDrawer">Cancel</ff-button>
+            <ff-button type="button" kind="primary" class="w-full" :disabled="!isFormValid">Save</ff-button>
         </div>
     </div>
 </template>
 
 <script>
 import { defineComponent } from 'vue'
+import { mapActions } from 'vuex'
 
 import TableColumn from './TableColumn.vue'
 const emptyColumn = {
@@ -45,12 +46,20 @@ export default defineComponent({
     components: { TableColumn },
     data () {
         return {
-            columns: [emptyColumn]
+            columns: [{ ...emptyColumn }]
+        }
+    },
+    computed: {
+        isFormValid () {
+            return !this.columns.map(col => {
+                return !col.name || !col.type
+            }).includes(true)
         }
     },
     methods: {
+        ...mapActions('ux', ['closeRightDrawer']),
         onNewColumn () {
-            this.columns.push(emptyColumn)
+            this.columns.push({ ...emptyColumn })
         },
         removeColumn (key) {
             this.columns.splice(key, 1)
