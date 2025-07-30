@@ -1332,6 +1332,7 @@ module.exports = async function (app) {
         },
         schema: {
             summary: 'Update the live status of an instance',
+            hide: true, 
             tags: ['Instances', 'Live State'],
             params: {
                 type: 'object',
