@@ -327,7 +327,7 @@ describe('Team Broker API', function () {
                 response.statusCode.should.equal(404)
             })
 
-            describe('Link and Unlink MQTT Broker Clients from instance', function () {
+            describe('Link and Unlink MQTT Broker Clients from an instance', function () {
                 const device1Name = 'LinkTestDevice1'
                 const device2Name = 'LinkTestDevice2'
                 const instance1Name = 'LinkTestInstance1'
@@ -353,6 +353,7 @@ describe('Team Broker API', function () {
                     const projectToken = await project.refreshAuthTokens()
                     return { project, projectToken }
                 }
+
                 before(async function () {
                     // delete ALL broker clients for the team (avoid hitting license limits)
                     await app.db.models.TeamBrokerClient.destroy({
@@ -387,6 +388,7 @@ describe('Team Broker API', function () {
                     })
                     response2.statusCode.should.equal(201)
                 })
+
                 afterEach(async function () {
                     // Delete any broker client created in the beforeEach
                     await app.db.models.TeamBrokerClient.destroy({
@@ -395,14 +397,14 @@ describe('Team Broker API', function () {
                             teamId: app.team.id
                         }
                     })
-                    // delete the device if it was created
+                    // delete devices created for the tests
                     await app.db.models.Device.destroy({
                         where: {
                             name: { [Op.in]: [device1Name, device2Name] },
                             teamId: app.team.id
                         }
                     })
-                    // delete the project if it was created
+                    // delete projects created for the tests
                     await app.db.models.Project.destroy({
                         where: {
                             name: { [Op.in]: [instance1Name, instance2Name] },
@@ -411,7 +413,63 @@ describe('Team Broker API', function () {
                     })
                 })
 
-                it('Link a client to a device using a device token', async function () {
+                it('Create & link a client for a device using a device token', async function () {
+                    // add a broker client to the team
+                    const { device, deviceToken } = await createDevice(device1Name)
+                    const userName = `device-${device.hashid}`
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${userName}/link`,
+                        headers: {
+                            Authorization: `Bearer ${deviceToken.token}`
+                        },
+                        body: {} // since this is a token-based request, we don't need to provide ownerType or ownerId (they are derived from the token)
+                    })
+                    response.statusCode.should.equal(201)
+                    const result = response.json()
+                    result.should.have.property('id')
+                    result.should.have.property('username', userName)
+                    result.should.have.property('password').which.is.a.String() // password is to a device/instance so it can immediately be used to connect
+                    result.should.have.property('acls').which.is.an.Array()
+                    result.acls.should.have.a.lengthOf(1)
+                    result.acls[0].should.have.property('id')
+                    result.acls[0].should.have.property('action', 'both')
+                    result.acls[0].should.have.property('pattern', '#')
+                    result.should.have.property('owner').which.is.an.Object()
+                    result.owner.should.have.property('instanceType', 'remote')
+                    result.owner.should.have.property('id', device.hashid)
+                    result.owner.should.have.property('name', device.name)
+                })
+                it('Create & link a client for a project using a project token', async function () {
+                    // add a broker client to the team
+                    const { project, projectToken } = await createProject(instance1Name)
+                    const userName = `instance-${project.hashid}`
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${userName}/link`,
+                        headers: {
+                            Authorization: `Bearer ${projectToken.token}`
+                        },
+                        body: {} // since this is a token-based request, we don't need to provide ownerType or ownerId (they are derived from the token)
+                    })
+                    response.statusCode.should.equal(201)
+                    const result = response.json()
+                    result.should.have.property('id')
+                    result.should.have.property('username', userName)
+                    result.should.have.property('password').which.is.a.String() // password is to a device/instance so it can immediately be used to connect
+                    result.should.have.property('acls').which.is.an.Array()
+                    result.acls.should.have.a.lengthOf(1)
+                    result.acls[0].should.have.property('id')
+                    result.acls[0].should.have.property('action', 'both')
+                    result.acls[0].should.have.property('pattern', '#')
+                    result.should.have.property('owner').which.is.an.Object()
+                    result.owner.should.have.property('instanceType', 'hosted')
+                    result.owner.should.have.property('id', project.id)
+                    result.owner.should.have.property('name', project.name)
+                })
+                it('Link an existing client to a device using a device token', async function () {
                     // add a broker client to the team
                     const { device, deviceToken } = await createDevice(device1Name)
 
@@ -436,7 +494,7 @@ describe('Team Broker API', function () {
                     result.owner.should.have.property('id', device.hashid)
                     result.owner.should.have.property('name', device.name)
                 })
-                it('Link a client to a project using a project token', async function () {
+                it('Link an existing client to a project using a project token', async function () {
                     // add a broker client to the team
                     const { project, projectToken } = await createProject(instance1Name)
 
