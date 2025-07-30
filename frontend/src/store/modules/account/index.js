@@ -503,7 +503,7 @@ const actions = {
             teamMembership = await teamApi.getTeamUserMembership(team.id)
         }
         state.commit('setTeam', team)
-        state.dispatch('clearOtherStores')
+        await state.dispatch('clearOtherStores')
         state.commit('setTeamMembership', teamMembership)
         state.commit('clearPendingTeamChange')
     },

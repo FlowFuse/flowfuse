@@ -12,7 +12,12 @@
                                 @mouseup="handleMouseUp"
             >
                 <template v-if="col.component">
-                    <component :is="col.component.is" v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}" />
+                    <component :is="col.component.is"
+                               :column="col.key"
+                               :style="col.style"
+                               v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}"
+                               :row-value="lookupProperty(data, col.key)"
+                    />
                 </template>
                 <template v-else-if="!isBool(lookupProperty(data, col.key))">
                     {{ lookupProperty(data, col.key) }}
@@ -89,7 +94,7 @@ export default {
                 return data
             }
         },
-        lookupProperty (obj, property) {
+        lookupProperty (obj, property = '') {
             const parts = property.split('.')
             if (parts.length === 1) {
                 return obj[property]
