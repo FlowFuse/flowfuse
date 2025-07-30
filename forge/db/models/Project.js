@@ -638,19 +638,18 @@ module.exports = {
 
                     const statesMap = {}
                     const results = await this.findAll({
-                        where: {
-                            ...(states.length > 0
-                                ? {
-                                    [Op.or]: states.map(state => ({
-                                        state,
-                                        TeamId: teamId,
-                                        ...(applicationId ? { ApplicationId: applicationId } : {})
-                                    }))
-                                }
-                                : { TeamId: teamId }),
-                            ...(applicationId ? { ApplicationId: applicationId } : {})
-                        },
-                        group: ['state']
+                        where: states.length > 0
+                            ? {
+                                [Op.or]: states.map(state => ({
+                                    state,
+                                    TeamId: teamId,
+                                    ...(applicationId ? { ApplicationId: applicationId } : {})
+                                }))
+                            }
+                            : {
+                                TeamId: teamId,
+                                ...(applicationId ? { ApplicationId: applicationId } : {})
+                            }
                     })
 
                     results.forEach(res => {
