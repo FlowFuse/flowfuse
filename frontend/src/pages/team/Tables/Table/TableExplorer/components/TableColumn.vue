@@ -15,7 +15,7 @@
                 placeholder="Select Type"
             />
         </div>
-        <div class="col-section flex gap-1 col-span-4">
+        <div class="col-section flex gap-1 col-span-2">
             <ff-checkbox v-model="localColumn.hasDefault" />
             <ff-text-input
                 v-model="localColumn.default"
@@ -24,11 +24,24 @@
                 type="text"
             />
         </div>
+        <div class="col-section flex gap-1 col-span-2 relative">
+            <ff-text-input
+                v-if="hasTypeOption"
+                v-model="localColumn[typeOptionsMap[localColumn.type].key]"
+                :placeholder="typeOptionsMap[localColumn.type].placeholder"
+                :type="typeOptionsMap[localColumn.type].type"
+                :error="errors[typeOptionsMap[localColumn.type].key]"
+            />
+            <span v-else>-</span>
+            <!--            <div v-if="hasTypeOption && propertyHasError(typeOptionsMap[localColumn.type].key)" data-el="form-row-error" class="ml-4 text-red-400 text-xs">-->
+            <!--                {{ errors[typeOptionsMap[localColumn.type].key] }}-->
+            <!--            </div>-->
+        </div>
         <div class="col-section col-span-1">
             <ff-checkbox v-model="localColumn.nullable" />
         </div>
         <div class="col-section col-span-1">
-            <ff-checkbox v-if="canBeUnsigned" v-model="localColumn.unsigned" />
+            <ff-checkbox v-if="isNumericType" v-model="localColumn.unsigned" />
         </div>
         <div class="col-section col-span-1 flex items-center justify-end">
             <span v-ff-tooltip:left="'Remove'" @click="$emit('remove')">
@@ -107,7 +120,14 @@ export default defineComponent({
                     value: 'varchar',
                     title: 'variable-length character string'
                 }
-            ]
+            ],
+            typeOptionsMap: {
+                varchar: {
+                    placeholder: 'Max Length',
+                    key: 'maxLength',
+                    type: 'number'
+                }
+            }
         }
     },
     computed: {
@@ -119,8 +139,29 @@ export default defineComponent({
                 this.$emit('update:column', value)
             }
         },
-        canBeUnsigned () {
+        isNumericType () {
             return ['int', 'bigint', 'bigserial', 'real', 'float8'].includes(this.localColumn.type)
+        },
+        hasTypeOption () {
+            return Object.prototype.hasOwnProperty.call(this.typeOptionsMap, this.localColumn.type)
+        },
+        errors () {
+            const errors = {}
+
+            if (this.hasTypeOption) {
+                const optionValue = this.localColumn[this.typeOptionsMap[this.localColumn.type].key]
+                const isValueNumeric = !isNaN(optionValue) && !isNaN(parseFloat(optionValue))
+                const requiredType = this.typeOptionsMap[this.localColumn.type].type
+                if (optionValue !== undefined) {
+                    if (requiredType === 'number' && !isValueNumeric) {
+                        errors[this.typeOptionsMap[this.localColumn.type].key] = 'Value must be numeric'
+                    }
+                    if (requiredType === 'string' && optionValue.length && isValueNumeric) {
+                        errors[this.typeOptionsMap[this.localColumn.type].key] = 'Value must be a string'
+                    }
+                }
+            }
+            return errors
         }
     },
     watch: {
@@ -130,9 +171,20 @@ export default defineComponent({
             }
         },
         'localColumn.type' () {
-            if (!this.canBeUnsigned) {
+            if (!this.isNumericType) {
                 this.localColumn.unsigned = false
             }
+        },
+        errors: {
+            deep: true,
+            handler (newVal) {
+                this.localColumn._errors_ = !!Object.keys(newVal).length
+            }
+        }
+    },
+    methods: {
+        propertyHasError (name) {
+            return Object.prototype.hasOwnProperty.call(this.errors, name)
         }
     }
 })

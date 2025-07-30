@@ -9,7 +9,8 @@
             <div class="header grid grid-cols-12 gap-1 mb-1">
                 <span class="col-span-3 title">Name</span>
                 <span class="col-span-2 title">Type</span>
-                <span class="col-span-4 title ">Default</span>
+                <span class="col-span-2 title">Default</span>
+                <span class="col-span-2 title">Options</span>
                 <span class="col-span-1 title -ml-1">Nullable</span>
                 <span class="col-span-1 title -ml-2">Unsigned</span>
             </div>
@@ -18,6 +19,7 @@
                     <table-column :column="column" @remove="removeColumn($key)" />
                 </li>
             </ul>
+            <pre>{{ columns }}</pre>
             <ff-button type="button" kind="secondary" class="w-full" @click="onNewColumn">Add a new column</ff-button>
         </div>
         <div class="footer flex gap-3">
@@ -52,6 +54,7 @@ export default defineComponent({
     computed: {
         isFormValid () {
             return !this.columns.map(col => {
+                if (col._errors_ === true) return true
                 return !col.name || !col.type
             }).includes(true)
         }
