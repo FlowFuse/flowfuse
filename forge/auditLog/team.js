@@ -206,6 +206,17 @@ module.exports = {
             }
         }
 
+        const tables = {
+            database: {
+                async created (actionedBy, error, team, database) {
+
+                },
+                async deleted (actionedBy, error, team, database) {
+                    
+                }
+            }
+        }
+
         const log = async (event, actionedBy, teamId, body) => {
             try {
                 const trigger = triggerObject(actionedBy)
@@ -223,7 +234,8 @@ module.exports = {
             team,
             application,
             project,
-            billing
+            billing,
+            tables
         }
     }
 }

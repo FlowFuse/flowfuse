@@ -94,6 +94,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const creds = await app.tables.createDatabase(request.team, request.body?.name ? request.body.name : request.team.hashid)
+            // await app.auditLog.Team.database.created()
             reply.send(await app.db.views.Table.table(creds))
         } catch (err) {
             if (err.message.includes('already exists')) {

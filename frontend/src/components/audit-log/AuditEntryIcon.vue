@@ -24,13 +24,14 @@
     <KeyIcon v-else-if="icon === 'key'" class="ff-icon text-green-700" />
     <KeyIcon v-else-if="icon === 'overage'" class="ff-icon text-red-700" />
     <PuzzleIcon v-else-if="icon === 'package'" class="ff-icon text-green-700" />
+    <DatabaseIcon v-else-if="icon == 'tables'" class="ff-icon text-green-700"/>
     <InformationCircleIcon v-else class="ff-icon text-gray-600" />
 </template>
 
 <script>
 
 import {
-    BeakerIcon, ChipIcon, ClockIcon, CogIcon, ColorSwatchIcon,
+    BeakerIcon, ChipIcon, DatabaseIcon, ClockIcon, CogIcon, ColorSwatchIcon,
     CurrencyDollarIcon, DesktopComputerIcon, ExclamationCircleIcon,
     ExclamationIcon, IdentificationIcon, InformationCircleIcon,
     KeyIcon, LockClosedIcon, LoginIcon, LogoutIcon, MailIcon,
@@ -248,6 +249,10 @@ const iconMap = {
     package: [
         'team.package.published',
         'team.package.unpublished'
+    ],
+    tables: [
+        'team.database.create',
+        'team.database.delete'
     ]
 }
 

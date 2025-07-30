@@ -151,6 +151,17 @@
         <span v-if="!error && entry.body?.pkg">Version {{ entry.body.pkg.version }} of '{{ entry.body.pkg.name }}' unpublished</span>
     </template>
 
+    <!-- Team Tables Events-->
+    <template v-else-if="entry.event === 'team.database.created'">
+        <label>Database Created</label>
+        <span></span>
+    </template>
+
+    <template v-else-if="entry.event === 'team.database.deleted'">
+        <label>Database Deleted</label>
+        <span></span>
+    </template>
+
     <!-- Device Actions Events -->
     <template v-else-if="entry.event === 'device.started'">
         <label>{{ AuditEvents[entry.event] }}</label>
