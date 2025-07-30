@@ -32,7 +32,8 @@ const initialState = () => ({
     userActions: {
         hasOpenedDeviceEditor: false
     },
-    isNewlyCreatedUser: false
+    isNewlyCreatedUser: false,
+    overlay: false
 })
 
 const meta = {
@@ -501,22 +502,46 @@ const mutations = {
         if (Object.prototype.hasOwnProperty.call(state.userActions, action)) {
             state.userActions[action] = payload
         }
+    },
+    openOverlay (state) {
+        state.overlay = true
+    },
+    closeOverlay (state) {
+        state.overlay = false
     }
 }
 
 const actions = {
-    openRightDrawer ({ state, commit }, { component, wider = false, props = {} }) {
+    openRightDrawer ({ state, commit }, { component, wider = false, props = {}, overlay = false }) {
         if (state.rightDrawer.state && component.name === state.rightDrawer.component.name) return
 
         if (state.rightDrawer.state) {
             commit('closeRightDrawer')
-            setTimeout(() => commit('openRightDrawer', { component, wider, props }), 300)
+            setTimeout(() => {
+                commit('openRightDrawer', {
+                    component,
+                    wider,
+                    props
+                })
+                if (overlay) {
+                    commit('openOverlay')
+                }
+            }, 300)
         } else {
             commit('openRightDrawer', { component, wider, props })
+            if (overlay) {
+                commit('openOverlay')
+            }
         }
     },
-    closeRightDrawer ({ commit }) {
-        setTimeout(() => commit('closeRightDrawer'), 100)
+    closeRightDrawer ({ commit, state }) {
+        setTimeout(() => {
+            commit('closeRightDrawer')
+
+            if (state.overlay) {
+                commit('closeOverlay')
+            }
+        }, 100)
     },
     openLeftDrawer ({ commit }) {
         commit('openLeftDrawer')
