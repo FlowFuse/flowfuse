@@ -55,7 +55,7 @@
 import { XIcon } from '@heroicons/vue/solid'
 import { defineComponent } from 'vue'
 
-import FfListbox from '../../../../../../ui-components/components/form/ListBox.vue'
+import FfListbox from '../../../../../../../ui-components/components/form/ListBox.vue'
 
 export default defineComponent({
     name: 'TableColumn',

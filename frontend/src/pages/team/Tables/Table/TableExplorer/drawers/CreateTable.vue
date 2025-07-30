@@ -59,7 +59,7 @@
 import { defineComponent } from 'vue'
 import { mapActions, mapGetters } from 'vuex'
 
-import TableColumn from './TableColumn.vue'
+import TableColumn from './components/TableColumn.vue'
 const emptyColumn = {
     name: '',
     type: '',

@@ -20,11 +20,14 @@
             <li
                 v-for="table in filteredTables" :key="table.id"
                 :title="table.name"
-                class="item"
+                class="item relative"
                 :class="{active: table.name === tableSelection}"
                 @click="updateTableSelection(table.name)"
             >
-                <TableIcon class="ff-icon ff-icon-sm" style="min-width: 24px;" />
+                <span class="icon-toggle">
+                    <TableIcon class="ff-icon ff-icon-sm" />
+                    <PencilAltIcon class="ff-icon ff-icon-sm edit" @click="showSchema(table)" />
+                </span>
                 <span class="truncate">{{ table.name }}</span>
             </li>
         </ul>
@@ -41,15 +44,16 @@
 </template>
 
 <script>
-import { PlusIcon, SearchIcon, TableIcon } from '@heroicons/vue/outline'
+import { PencilAltIcon, PlusIcon, SearchIcon, TableIcon } from '@heroicons/vue/outline'
 import { defineComponent, markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
-import CreateTable from './CreateTable.vue'
+import CreateTable from '../drawers/CreateTable.vue'
+import TableSchema from '../drawers/TableSchema.vue'
 
 export default defineComponent({
     name: 'TablesList',
-    components: { SearchIcon, TableIcon, PlusIcon },
+    components: { SearchIcon, TableIcon, PlusIcon, PencilAltIcon },
     emits: ['select-table'],
     data () {
         return {
@@ -79,6 +83,9 @@ export default defineComponent({
 
         onCreateTable () {
             this.openRightDrawer({ component: markRaw(CreateTable), wider: true })
+        },
+        showSchema (table) {
+            this.openRightDrawer({ component: markRaw(TableSchema), props: { table } })
         }
     }
 })
@@ -113,6 +120,33 @@ export default defineComponent({
             &:hover, &.active {
                 color: $ff-indigo-500;
                 background-color: $ff-grey-100;
+            }
+
+            &:hover {
+                .icon-toggle {
+                    .ff-icon:first-child {
+                        display: none;
+                    }
+                    .ff-icon:last-child {
+                        display: inline-block;
+                    }
+                }
+            }
+
+            .icon-toggle {
+                width: 24px;
+                .ff-icon:first-child {
+                    display: inline-block;
+                }
+                .ff-icon:last-child {
+                    display: none;
+                }
+
+                .edit {
+                    &:hover {
+                        transform: scale(1.2);
+                    }
+                }
             }
         }
     }

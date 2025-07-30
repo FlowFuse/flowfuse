@@ -5,7 +5,7 @@
         :class="{open: rightDrawer.state, wider: rightDrawer.wider}"
         data-el="right-drawer"
     >
-        <component :is="rightDrawer.component" v-if="rightDrawer.component" />
+        <component :is="rightDrawer.component" v-if="rightDrawer.component" v-bind="rightDrawer.props" />
     </section>
 </template>
 
