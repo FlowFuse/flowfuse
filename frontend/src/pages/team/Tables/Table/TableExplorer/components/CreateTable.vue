@@ -23,11 +23,11 @@
                 <h3>Define Columns</h3>
                 <div class="header grid grid-cols-12 gap-1 mb-1">
                     <span class="col-span-3 title">Name</span>
-                    <span class="col-span-2 title">Type</span>
-                    <span class="col-span-2 title">Default</span>
-                    <span class="col-span-2 title">Options</span>
-                    <span class="col-span-1 title -ml-1">Nullable</span>
-                    <span class="col-span-1 title -ml-2">Unsigned</span>
+                    <span class="col-span-3 title">Type</span>
+                    <span class="col-span-4 title">Default</span>
+                    <!-- <span class="col-span-2 title">Options</span>-->
+                    <span class="col-span-1 title">Nullable</span>
+                    <!-- <span class="col-span-1 title -ml-2">Unsigned</span>-->
                 </div>
                 <ul class="columns">
                     <li v-for="(column, $key) in columns" :key="$key">
@@ -42,14 +42,22 @@
         </div>
         <div class="footer flex gap-3">
             <ff-button type="button" kind="secondary" class="w-full" @click="closeRightDrawer">Cancel</ff-button>
-            <ff-button type="button" kind="primary" class="w-full" :disabled="!areColumnsValid || hasErrors">Save</ff-button>
+            <ff-button
+                type="button"
+                kind="primary"
+                class="w-full"
+                :disabled="!areColumnsValid || hasErrors"
+                @click="submit"
+            >
+                Save
+            </ff-button>
         </div>
     </div>
 </template>
 
 <script>
 import { defineComponent } from 'vue'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 import TableColumn from './TableColumn.vue'
 const emptyColumn = {
@@ -72,6 +80,7 @@ export default defineComponent({
         }
     },
     computed: {
+        ...mapGetters('account', ['team']),
         areColumnsValid () {
             return !this.columns.map(col => {
                 if (col._errors_ === true) return true
@@ -91,6 +100,7 @@ export default defineComponent({
     },
     methods: {
         ...mapActions('ux', ['closeRightDrawer']),
+        ...mapActions('product/tables', ['createTable']),
         onNewColumn () {
             this.columns.push({ ...emptyColumn })
         },
@@ -98,6 +108,8 @@ export default defineComponent({
             this.columns.splice(key, 1)
         },
         validateForm () {
+            const columnsHaveDuplicateNames = new Set(this.columns.map(col => col.name)).size !== this.columns.length
+
             // PostgreSQL identifiers:
             // - max 63 bytes (can be less than 63 characters if multibyte)
             // - must begin with a letter or underscore
@@ -118,9 +130,26 @@ export default defineComponent({
             case this.columns.length === 0:
                 this.errors.columns = 'The table must have at least one column.'
                 break
+            case columnsHaveDuplicateNames:
+                this.errors.columns = 'Columns must have different names.'
+                break
             default:
                 this.errors = { }
             }
+        },
+        submit () {
+            const sanitizedColumns = this.columns.map(col => {
+                if (!col.hasDefault) delete col.default
+                if (!col.unsigned) delete col.unsigned
+                return col
+            })
+
+            return this.createTable({
+                teamId: this.team.id,
+                databaseId: this.$route.params.id,
+                tableName: this.tableName,
+                columns: sanitizedColumns
+            })
         }
     }
 })
