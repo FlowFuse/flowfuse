@@ -16,7 +16,7 @@
             />
         </div>
         <div class="col-section flex gap-1 col-span-4">
-            <ff-checkbox v-model="localColumn.hasDefault" />
+            <ff-checkbox v-model="localColumn.hasDefault" :disabled="cantHaveDefault" />
             <ff-text-input
                 v-model="localColumn.default"
                 :disabled="!localColumn.hasDefault"
@@ -38,7 +38,7 @@
         <!--            </div>-->
         <!--        </div>-->
         <div class="col-section col-span-1">
-            <ff-checkbox v-model="localColumn.nullable" />
+            <ff-checkbox v-model="localColumn.nullable" :disabled="cantBeNull" />
         </div>
         <!--        <div class="col-section col-span-1">-->
         <!--            <ff-checkbox v-if="isNumericType" v-model="localColumn.unsigned" />-->
@@ -127,6 +127,12 @@ export default defineComponent({
                     key: 'maxLength',
                     type: 'number'
                 }
+            },
+            typeRestrictions: {
+                bigserial: {
+                    nullable: false,
+                    default: false
+                }
             }
         }
     },
@@ -175,6 +181,14 @@ export default defineComponent({
             }
 
             return errors
+        },
+        cantBeNull () {
+            return Object.prototype.hasOwnProperty.call(this.typeRestrictions, this.localColumn.type) &&
+                Object.prototype.hasOwnProperty.call(this.typeRestrictions[this.localColumn.type], 'nullable')
+        },
+        cantHaveDefault () {
+            return Object.prototype.hasOwnProperty.call(this.typeRestrictions, this.localColumn.type) &&
+                Object.prototype.hasOwnProperty.call(this.typeRestrictions[this.localColumn.type], 'default')
         }
     },
     watch: {
@@ -187,6 +201,9 @@ export default defineComponent({
             if (!this.isNumericType) {
                 this.localColumn.unsigned = false
             }
+            this.localColumn.default = null
+            this.localColumn.hasDefault = false
+            this.localColumn.nullable = false
         },
         errors: {
             deep: true,
