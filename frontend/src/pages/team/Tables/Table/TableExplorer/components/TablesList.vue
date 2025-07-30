@@ -82,10 +82,18 @@ export default defineComponent({
         ...mapActions('ux', ['openRightDrawer', 'closeRightDrawer']),
 
         onCreateTable () {
-            this.openRightDrawer({ component: markRaw(CreateTable), wider: true })
+            this.openRightDrawer({
+                component: markRaw(CreateTable),
+                wider: true,
+                overlay: true
+            })
         },
         showSchema (table) {
-            this.openRightDrawer({ component: markRaw(TableSchema), props: { table } })
+            this.openRightDrawer({
+                component: markRaw(TableSchema),
+                props: { table },
+                overlay: true
+            })
         }
     }
 })
