@@ -44,6 +44,9 @@
 import { defineComponent } from 'vue'
 import { mapActions, mapState } from 'vuex'
 
+import Alerts from '../../../../../../services/alerts.js'
+import Dialog from '../../../../../../services/dialog.js'
+
 export default defineComponent({
     name: 'TableSchema',
     props: {
@@ -59,14 +62,20 @@ export default defineComponent({
         ...mapActions('ux', ['closeRightDrawer']),
         ...mapActions('product/tables', ['deleteTable', 'getTables']),
         submit () {
-            this.deleteTable({
+            Dialog.show({
+                header: 'Delete Table',
+                text: `Are you sure you want to delete table ${this.table.name}`,
+                confirmLabel: 'Delete',
+                kind: 'danger'
+            }, () => this.deleteTable({
                 teamId: this.team.id,
                 databaseId: this.$route.params.id,
                 tableName: this.table.name
             })
                 .then(() => this.getTables(this.$route.params.id))
                 .then(() => this.closeRightDrawer())
-                .catch(e => e)
+                .then(() => Alerts.emit('Table deleted successfully', 'confirmation'))
+                .catch(e => e))
         }
     }
 })
