@@ -397,6 +397,20 @@ describe('Team Broker API', function () {
                             teamId: app.team.id
                         }
                     })
+                    // Delete any broker client created for a device
+                    await app.db.models.TeamBrokerClient.destroy({
+                        where: {
+                            username: { [Op.like]: 'device-%' },
+                            teamId: app.team.id
+                        }
+                    })
+                    // Delete any broker client created for a project
+                    await app.db.models.TeamBrokerClient.destroy({
+                        where: {
+                            username: { [Op.like]: 'instance-%' },
+                            teamId: app.team.id
+                        }
+                    })
                     // delete devices created for the tests
                     await app.db.models.Device.destroy({
                         where: {
@@ -411,6 +425,17 @@ describe('Team Broker API', function () {
                             teamId: app.team.id
                         }
                     })
+                })
+
+                after(async function () {
+                    // revert the team to have the default number of clients
+                    const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+                    const defaultTeamTypeProperties = defaultTeamType.properties
+                    if (defaultTeamTypeProperties.teamBroker) {
+                        defaultTeamTypeProperties.teamBroker.clients.limit = MAX_BROKER_USERS_PER_TEAM
+                    }
+                    app.defaultTeamType.properties = defaultTeamTypeProperties
+                    await app.defaultTeamType.save()
                 })
 
                 it('Create & link a client for a device using a device token', async function () {
@@ -636,6 +661,27 @@ describe('Team Broker API', function () {
                     response.statusCode.should.equal(400)
                     const result = response.json()
                     result.should.have.property('code', 'client_link_mismatch')
+                })
+                it('Returns a 403 when no more licenses are available', async function () {
+                    // Set the team to have no more licenses (2 are created in the beforeEach, so we set the limit to 2)
+                    const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+                    const defaultTeamTypeProperties = defaultTeamType.properties
+                    if (defaultTeamTypeProperties.teamBroker) {
+                        defaultTeamTypeProperties.teamBroker.clients.limit = 2
+                    }
+                    app.defaultTeamType.properties = defaultTeamTypeProperties
+                    await app.defaultTeamType.save()
+
+                    // Attempt to create & link a new client
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}-new/link`,
+                        cookies: { sid: TestObjects.tokens.bob },
+                        body: {}
+                    })
+                    response.statusCode.should.equal(403)
+                    const result = response.json()
+                    result.should.have.property('code', 'broker_client_limit_reached')
                 })
             })
         })
