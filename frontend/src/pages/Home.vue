@@ -61,6 +61,7 @@ export default {
         ...mapState('account', ['pending', 'user', 'team', 'teams', 'redirectUrlAfterLogin', 'settings']),
         ...mapGetters('account', ['defaultUserTeam']),
         canCreateTeam () {
+            if (this.user.admin) return true
             return Object.prototype.hasOwnProperty.call(this.settings, 'team:create') && this.settings['team:create'] === true
         }
     },
