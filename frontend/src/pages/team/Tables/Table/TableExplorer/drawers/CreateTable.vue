@@ -100,7 +100,7 @@ export default defineComponent({
     },
     methods: {
         ...mapActions('ux', ['closeRightDrawer']),
-        ...mapActions('product/tables', ['createTable']),
+        ...mapActions('product/tables', ['createTable', 'getTables']),
         onNewColumn () {
             this.columns.push({ ...emptyColumn })
         },
@@ -150,6 +150,9 @@ export default defineComponent({
                 tableName: this.tableName,
                 columns: sanitizedColumns
             })
+                .then(() => this.getTables(this.$route.params.id))
+                .then(() => this.closeRightDrawer())
+                .catch(e => e)
         }
     }
 })

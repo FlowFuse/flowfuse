@@ -132,9 +132,9 @@ const actions = {
     },
     createTable ({ commit }, { teamId, databaseId, tableName, columns }) {
         return tablesApi.createTable(teamId, databaseId, { name: tableName, columns })
-            .then((data) => {
-                commit('setTableData', { databaseId, tableName, data })
-            })
+    },
+    deleteTable ({ commit }, { teamId, databaseId, tableName }) {
+        return tablesApi.deleteTable(teamId, databaseId, tableName)
     }
 }
 

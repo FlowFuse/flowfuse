@@ -32,7 +32,7 @@
                 type="button"
                 kind="danger"
                 class="w-full"
-                @click="deleteTable"
+                @click="submit"
             >
                 Delete Table
             </ff-button>
@@ -42,7 +42,7 @@
 
 <script>
 import { defineComponent } from 'vue'
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 export default defineComponent({
     name: 'TableSchema',
@@ -52,10 +52,21 @@ export default defineComponent({
             required: true
         }
     },
+    computed: {
+        ...mapState('account', ['team'])
+    },
     methods: {
         ...mapActions('ux', ['closeRightDrawer']),
-        deleteTable () {
-            console.log('deleteTable')
+        ...mapActions('product/tables', ['deleteTable', 'getTables']),
+        submit () {
+            this.deleteTable({
+                teamId: this.team.id,
+                databaseId: this.$route.params.id,
+                tableName: this.table.name
+            })
+                .then(() => this.getTables(this.$route.params.id))
+                .then(() => this.closeRightDrawer())
+                .catch(e => e)
         }
     }
 })
