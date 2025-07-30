@@ -19,7 +19,6 @@
                     <table-column :column="column" @remove="removeColumn($key)" />
                 </li>
             </ul>
-            <pre>{{ columns }}</pre>
             <ff-button type="button" kind="secondary" class="w-full" @click="onNewColumn">Add a new column</ff-button>
         </div>
         <div class="footer flex gap-3">
