@@ -1,3 +1,5 @@
+const { generatePassword } = require('../../../lib/userTeam')
+
 const schemaApi = require('./schema')
 
 module.exports = async function (app) {
@@ -394,18 +396,8 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
-        if (!user) {
-            return reply.status(404).send({})
-        }
-        if (user.ownerType && user.ownerId) {
-            return reply.status(400).send({
-                code: 'client_already_linked',
-                error: 'Client is already linked to a device or project'
-            })
-        }
-        // if this is a request from a device or project, use the validated session object values
-        // to set the ownerType and ownerId
+        let user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
+
         let ownerId = request.body.ownerId
         let ownerType = request.body.ownerType
         if (request.instanceTokenReq) {
@@ -424,25 +416,76 @@ module.exports = async function (app) {
             if (!device) {
                 return reply.status(404).send({})
             }
-            user.ownerType = 'device'
-            user.ownerId = device.id
-        } else if (ownerType === 'project' || ownerType === 'instance') {
+            ownerId = device.id
+        } else if (ownerType === 'project') {
             const project = await app.db.models.Project.byId(ownerId)
             if (!project) {
                 return reply.status(404).send({})
             }
-            user.ownerType = 'project'
-            user.ownerId = project.id
         }
-        await user.save()
-        await user.reload({
-            include: ['Team', 'Project', 'Device']
-        })
-        // get the user again to return the updated object
+
+        // prepare a new password for the user (passwords are hashed in the DB using a non-reversible hash,
+        // so the link operation always needs to generate a new password)
+        const newPassword = generatePassword(16)
+        let statusCode = 200
+
+        if (!user) {
+            // No user found - create a new one
+            try {
+                await request.team.checkTeamBrokerClientCreateAllowed()
+            } catch (error) {
+                if (error.code === 'broker_client_limit_reached') {
+                    return reply
+                        .code(403)
+                        .send({
+                            code: 'broker_client_limit_reached',
+                            error: 'Team Broker client limit reached'
+                        })
+                }
+            }
+            // mvp for generating default acls
+            const generateUuid = (length = 6) => {
+                return Array.from(crypto.getRandomValues(new Uint8Array(6)), (byte) =>
+                    byte.toString(36).padStart(2, '0')
+                ).join('').substring(0, length)
+            }
+            const acls = [
+                {
+                    id: generateUuid(),
+                    action: 'both',
+                    pattern: '#'
+                }
+            ]
+            const newUser = request.body
+            newUser.acls = JSON.stringify(acls)
+            newUser.username = request.params.username
+            newUser.ownerType = ownerType
+            newUser.ownerId = ownerId
+            if (newUser.ownerType === 'device') {
+                newUser.ownerId = +newUser.ownerId // ID is a number for devices
+            }
+            newUser.password = newPassword
+            user = await app.db.models.TeamBrokerClient.create({ ...newUser, TeamId: request.team.id })
+            statusCode = 201
+        } else {
+            // User found - check if it is already linked to a device or project
+            if (user.ownerType && user.ownerId) {
+                return reply.status(400).send({
+                    code: 'client_already_linked',
+                    error: 'Client is already linked to a device or project'
+                })
+            }
+            // update the user with the new ownerType and ownerId
+            user.ownerType = ownerType
+            user.ownerId = ownerId
+            user.password = newPassword
+            await user.save()
+        }
+        // reload the user with the team and instance models
         const updatedUser = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid, true, true)
         const userView = app.db.views.TeamBrokerClient.user(updatedUser)
-        userView.password = updatedUser.password
-        reply.send({ ...userView })
+        userView.password = newPassword
+        reply.status(statusCode).send({ ...userView })
     })
 
     /**
