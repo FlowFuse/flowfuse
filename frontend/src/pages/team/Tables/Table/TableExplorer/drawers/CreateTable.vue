@@ -106,27 +106,25 @@ export default defineComponent({
             // - max 63 bytes (can be less than 63 characters if multibyte)
             // - must begin with a letter or underscore
             // - can contain letters, digits, and underscores
-            switch (true) {
-            case typeof this.tableName !== 'string':
+            if (typeof this.tableName !== 'string') {
                 this.errors.name = 'The table name must be a string.'
-                break
-            case this.tableName.length === 0:
+            } else if (this.tableName.length === 0) {
                 this.errors.name = 'A table name is mandatory.'
-                break
-            case this.tableName.length > 63:
+            } else if (this.tableName.length > 63) {
                 this.errors.name = 'The table name must not exceed 63 characters.'
-                break
-            case !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(this.tableName):
+            } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(this.tableName)) {
                 this.errors.name = 'No spaces allowed, must start with a letter or underscore, and only use letters, digits, or underscores.'
-                break
-            case this.columns.length === 0:
+            } else {
+                this.errors.name = null
+            }
+
+            // Handle errors associated to column definitions
+            if (this.columns.length === 0) {
                 this.errors.columns = 'The table must have at least one column.'
-                break
-            case columnsHaveDuplicateNames:
+            } else if (columnsHaveDuplicateNames) {
                 this.errors.columns = 'Columns must have different names.'
-                break
-            default:
-                this.errors = { }
+            } else {
+                this.errors.columns = null
             }
         },
         submit () {
