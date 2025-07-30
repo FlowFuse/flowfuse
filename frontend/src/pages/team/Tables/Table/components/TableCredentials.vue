@@ -19,7 +19,7 @@
                         <dt>Port</dt>
                         <dd>{{ database.credentials.port }}</dd>
                     </div>
-                    <div class="flex item">
+                    <div v-if="database.credentials.ssl" class="flex item">
                         <dt>SSL</dt>
                         <dd>{{ database.credentials.ssl }}</dd>
                     </div>
@@ -40,10 +40,6 @@
                     <div class="flex item">
                         <dt>Password:</dt>
                         <dd>{{ database.credentials.password }}</dd>
-                    </div>
-                    <div class="flex item">
-                        <dt>Port</dt>
-                        <dd>{{ database.credentials.port }}</dd>
                     </div>
                 </dl>
             </div>

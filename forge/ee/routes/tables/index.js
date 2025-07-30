@@ -15,7 +15,7 @@ module.exports = async function (app) {
                 return // eslint-disable-line no-useless-return
             }
         }
-        if (!request.teamMembership) {
+        if (!request.teamMembership && request.session?.User) {
             request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
         }
     })
@@ -27,7 +27,16 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.tables
      */
     app.get('/', {
-        preHandler: app.needsPermission('team:database:list'),
+        preHandler: async (request, reply, done) => {
+            if (request.session.ownerType === 'project') {
+                const project = await app.db.models.Project.byId(request.session.ownerId)
+                if (project.Team.hashid !== request.team.hashid) {
+                    return reply.status(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                }
+            } else {
+                await app.needsPermission('team:database:list')(request, reply, done)
+            }
+        },
         schema: {
             summary: '',
             tags: ['FF tables'],
@@ -90,7 +99,7 @@ module.exports = async function (app) {
             if (err.message.includes('already exists')) {
                 return reply.status(409).send({ code: 'already_exists', error: 'Database already exists' })
             } else {
-                // console.log(err)
+                app.log.error(`Create FF tables error ${err.toString()}`)
                 reply.status(500).send({ code: 'unexpected_error', error: 'Failed to create database' })
             }
         }

@@ -906,7 +906,8 @@ module.exports = async function (app) {
         settings.features = {
             'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true),
             projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true),
-            teamBroker: app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true)
+            teamBroker: app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true),
+            tables: app.config.features.enabled('tables') && teamType.getFeatureProperty('tables', false)
         }
         reply.send(settings)
     })

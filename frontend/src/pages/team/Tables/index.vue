@@ -28,9 +28,9 @@
                 </EmptyState>
             </template>
             <template v-else>
-                <ff-loading v-if="loading" message="Loading Databases..." />
+                <ff-loading v-if="loading || pendingTeamChange" message="Loading Databases..." />
 
-                <router-view v-slot="{ Component }">
+                <router-view v-else v-slot="{ Component }">
                     <transition name="page-fade" mode="out-in">
                         <component
                             :is="Component"
@@ -66,7 +66,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team']),
+        ...mapGetters('account', ['featuresCheck', 'team', 'pendingTeamChange']),
         ...mapState('product/tables', ['databases'])
     },
     watch: {
@@ -87,6 +87,10 @@ export default defineComponent({
         }
     },
     mounted () {
+        if (this.pendingTeamChange) {
+            return
+        }
+
         if (!this.featuresCheck.isTablesFeatureEnabledForPlatform) {
             return this.$router.push({ name: 'Home' })
         }
