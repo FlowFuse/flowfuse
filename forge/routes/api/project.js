@@ -1283,7 +1283,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.get('/:instanceId/status', {
-        preHandler: app.needsPermission('project:read'),
+        preHandler: app.needsPermission('project:status'),
         schema: {
             summary: 'Get the live status of an instance',
             tags: ['Instances', 'Live State'],

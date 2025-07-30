@@ -88,11 +88,13 @@ class DeviceCommsHandler {
         // Check it looks like a valid status message
         if (status.id && status.status) {
             const deviceId = status.id
-            const device = await this.app.db.models.Device.byId(deviceId)
+            // Load a minimal device model without any associations.
+            const device = await this.app.db.models.Device.byId(deviceId, { includeAssociations: false })
             if (!device) {
                 // TODO: log invalid device
                 return
             }
+            const teamId = this.app.db.models.Team.encodeHashid(device.TeamId)
             const startTime = Date.now()
             try {
                 const payload = JSON.parse(status.status)
@@ -100,7 +102,7 @@ class DeviceCommsHandler {
 
                 if (payload === null) {
                     // This device is busy updating - don't interrupt it
-                    this.app.log.info({ msg: 'Device status update - null status', device: deviceId, team: device.Team?.hashid, responseTime: Date.now() - startTime })
+                    this.app.log.info({ msg: 'Device status update - null status', device: deviceId, team: teamId, responseTime: Date.now() - startTime })
                     return
                 }
 
@@ -108,7 +110,7 @@ class DeviceCommsHandler {
                 // it has the right details. Always response with an 'update' command in
                 // this scenario
                 let sendUpdateCommand = payload.state === 'unknown'
-
+                let sendUpdateReason = []
                 // If the device is owned by an application (in the DB) and the agent is reporting version < 1.11.0
                 // then we need to send an update command to the device
                 if (Object.hasOwn(payload, 'snapshot') && device.isApplicationOwned) {
@@ -116,18 +118,29 @@ class DeviceCommsHandler {
                         sendUpdateCommand = true
                     }
                 }
-                if (Object.hasOwn(payload, 'project') && payload.project !== (device.Project?.id || null)) {
+                if (Object.hasOwn(payload, 'project') && payload.project !== (device.ProjectId || null)) {
                     // The Project is incorrect
+                    sendUpdateReason.push('project')
                     sendUpdateCommand = true
                 }
-                if (Object.hasOwn(payload, 'application') && payload.application !== (device.Application?.hashid || null)) {
-                    // The Application is incorrect
-                    sendUpdateCommand = true
+                if (Object.hasOwn(payload, 'application')) {
+                    // The payload contains an application hashid - get the hashid of the expected application
+                    const expectedApplicationId = device.ApplicationId ? this.app.db.models.Application.encodeHashid(device.ApplicationId) : null
+                    if (payload.application !== expectedApplicationId) {
+                        // The Application is incorrect
+                        sendUpdateReason.push('application')
+                        sendUpdateCommand = true
+                    }
                 }
                 if (Object.hasOwn(payload, 'snapshot')) {
-                    const targetSnapshot = device.targetSnapshot
+                    // The payload contains a snapshot hashid - get the hashid of the expected snapshot
+                    let targetSnapshotId = device.targetSnapshotId
+                    if (targetSnapshotId) {
+                        targetSnapshotId = this.app.db.models.ProjectSnapshot.encodeHashid(targetSnapshotId)
+                    }
                     const reportedSnapshotId = payload.snapshot === '0' ? null : payload.snapshot
-                    if (reportedSnapshotId !== (targetSnapshot?.hashid || null)) {
+                    if (reportedSnapshotId !== (targetSnapshotId || null)) {
+                        sendUpdateReason.push('snapshot')
                         sendUpdateCommand = true // The Snapshot reported in device status does not match the device model target snapshot
                     } else if (reportedSnapshotId && !device.isApplicationOwned) {
                         // load the full snapshot (as specified by the device status) from the db so we can check the snapshots
@@ -135,21 +148,26 @@ class DeviceCommsHandler {
                         const reportedSnapshot = (await this.app.db.models.ProjectSnapshot.byId(reportedSnapshotId, { includeFlows: false, includeSettings: false }))
                         if (reportedSnapshot && payload.project !== (reportedSnapshot?.ProjectId || null)) {
                             // The project the device is reporting it belongs to does not match the target Snapshot parent project
+                            sendUpdateReason.push('snapshot')
                             sendUpdateCommand = true
                         }
                     }
                 }
                 if (Object.hasOwn(payload, 'settings') && payload.settings !== (device.settingsHash || null)) {
                     // The Settings are incorrect
+                    sendUpdateReason.push('settings')
                     sendUpdateCommand = true
                 }
 
                 if (sendUpdateCommand) {
+                    sendUpdateReason = sendUpdateReason.join(',')
                     await this.app.db.controllers.Device.sendDeviceUpdateCommand(device)
+                } else {
+                    sendUpdateReason = undefined
                 }
-                this.app.log.info({ msg: 'Device status update', device: deviceId, team: device.Team?.hashid, sendUpdateCommand, responseTime: Date.now() - startTime })
+                this.app.log.info({ msg: 'Device status update', device: deviceId, team: teamId, sendUpdateCommand, sendUpdateReason, responseTime: Date.now() - startTime })
             } catch (err) {
-                this.app.log.info({ msg: 'Device status update error', device: deviceId, team: device.Team?.hashid, responseTime: Date.now() - startTime, err: err.message })
+                this.app.log.info({ msg: 'Device status update error', device: deviceId, team: teamId, responseTime: Date.now() - startTime, err: err.message })
                 // Not a JSON payload - ignore
                 if (err instanceof SyntaxError) {
                     return

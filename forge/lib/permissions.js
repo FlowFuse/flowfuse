@@ -41,6 +41,7 @@ const Permissions = {
     'project:create': { description: 'Create Project', role: Roles.Owner },
     'project:delete': { description: 'Delete Project', role: Roles.Owner },
     'project:read': { description: 'View a Project', role: Roles.Viewer },
+    'project:status': { description: 'View a Project', role: Roles.Dashboard },
     'project:transfer': { description: 'Transfer Project', role: Roles.Owner },
     'project:change-status': { description: 'Start/Stop Project', role: Roles.Owner },
     'project:edit': { description: 'Edit Project Settings', role: Roles.Owner },
@@ -205,7 +206,12 @@ const Permissions = {
     'team:git:tokens:list': { description: 'List Teams Git Tokens', role: Roles.Owner },
     'team:git:tokens:create': { description: 'List Teams Git Tokens', role: Roles.Owner },
     'team:git:tokens:edit': { description: 'Edit Teams Git Tokens', role: Roles.Owner },
-    'team:git:tokens:delete': { description: 'Edit Teams Git Tokens', role: Roles.Owner }
+    'team:git:tokens:delete': { description: 'Edit Teams Git Tokens', role: Roles.Owner },
+
+    // Team Tables
+    'team:database:create': { description: 'Create a new database for the team', role: Roles.Owner },
+    'team:database:delete': { description: 'Delete the team database', role: Roles.Owner },
+    'team:database:list': { description: 'List the team databases', role: Roles.Member }
 
 }
 

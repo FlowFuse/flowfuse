@@ -30,6 +30,7 @@ module.exports = {
         }
     },
     updateState: async function (app, device, state) {
+        // Note: device *might* be a minimal model without any associations loaded
         device.set('lastSeenAt', literal('CURRENT_TIMESTAMP'))
         if (!state) {
             // We have received a `null` state from the device. That means it
@@ -55,7 +56,7 @@ module.exports = {
                 // Update the activeSnapshotId if valid and not already set
                 const snapshotId = app.db.models.ProjectSnapshot.decodeHashid(state.snapshot)
                 // hashid.decode returns an array of values, not the raw value.
-                if (snapshotId?.length > 0 && snapshotId !== device.activeSnapshotId) {
+                if (snapshotId?.length > 0 && snapshotId[0] !== device.activeSnapshotId) {
                     // Check to see if snapshot exists
                     if (await app.db.models.ProjectSnapshot.count({ where: { id: snapshotId }, limit: 1 }) > 0) {
                         device.set('activeSnapshotId', snapshotId[0])
@@ -72,6 +73,18 @@ module.exports = {
      */
     sendDeviceUpdateCommand: async function (app, device) {
         if (app.comms) {
+            // ensure the device has all associations loaded
+            let team = device.Team
+            if (!team) {
+                // reload the device with the full set of associations needed
+                device = await app.db.models.Device.byId(device.id)
+                team = device?.Team
+                if (!team) {
+                    app.log.warn(`Failed to send update command to device ${device.hashid} as it has no team association`)
+                    return
+                }
+            }
+
             let snapshotId = device.targetSnapshot?.hashid || null
             if (snapshotId) {
                 // device.targetSnapshot is a limited view so we need to load the it from the db
@@ -109,17 +122,6 @@ module.exports = {
                 delete payload.application // exclude application property to avoid triggering the wrong kind of update on the device
             }
 
-            // ensure the device has a team association
-            let team = device.Team
-            if (!team) {
-                // reload the device with the team association
-                const _device = await app.db.models.Device.byId(device.id)
-                team = _device?.Team
-                if (!team) {
-                    app.log.warn(`Failed to send update command to device ${device.hashid} as it has no team association`)
-                    return
-                }
-            }
             // send out update command
             app.comms.devices.sendCommand(team.hashid, device.hashid, 'update', payload)
         }

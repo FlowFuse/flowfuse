@@ -2785,7 +2785,7 @@ describe('Project API', function () {
             result.meta.should.have.property('state', 'unknown')
         })
 
-        it('should return 403 if user does not have project:read permission', async function () {
+        it('should return 200 if the user has the project:status permission', async function () {
             const instance = await app.factory.createInstance(
                 { name: generateProjectName() },
                 TestObjects.ApplicationC,
@@ -2801,7 +2801,7 @@ describe('Project API', function () {
                 cookies: { sid: TestObjects.tokens.evan }
             })
 
-            response.statusCode.should.equal(403)
+            response.statusCode.should.equal(200)
         })
 
         it('should return 404 if user is not part of that team', async function () {

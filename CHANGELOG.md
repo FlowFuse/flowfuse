@@ -1,3 +1,29 @@
+#### 2.19.1: Release
+
+ - docs: Add the Device Agent Installer into the Device Agent instllation documentation  (#5732)
+ - Add note about AWS ECS (#5736)
+ - Bump form-data from 4.0.0 to 4.0.4 (#5799) @app/dependabot
+ - Fix state regeneration when switching between context stores (#5800) @cstns
+ - Add a context menu to the hosted instances list (#5746) @cstns
+ - Add an empty state and message to the home page when team creation is disabled (#5767) @cstns
+ - Update the product tours (#5769) @cstns
+ - Add logging of device status checkins (#5796) @knolleary
+ - Remote 'CTA' text from emails (#5793) @knolleary
+ - Ensure template-provided hidden env vars are not cleared on update (#5789) @knolleary
+ - Bump multer from 2.0.1 to 2.0.2 (#5790) @app/dependabot
+ - Fix the Application page not reloading when route parameter change (#5786) @cstns
+ - Prevent users from selecting other applications when duplicating instances (#5788) @cstns
+ - Adds the team hashid to log output for all api requests (#5787) @knolleary
+ - Ensure device snapshot has palette.module list populated (#5778) @knolleary
+ - Apply requireContact check to team upgrade (#5779) @knolleary
+ - Allow a team to setup billing at current team tier without contact (#5780) @knolleary
+ - Encrypted hidden env vars when exporting snapshots (#5768) @knolleary
+ - Tighter rate limit than default for Team Invite resend (#5759) @hardillb
+ - Allow Admin to edit project settings (#5765) @hardillb
+ - Move HA settings to correct location (#5748) @hardillb
+ - Remove the fix for the HS chat pill (#5738) @cstns
+ - Add e2e tests for the global search component (#5724) @cstns
+
 #### 2.19.0: Release
 
  - Enable rate limits on prestaging envs (#5720)
