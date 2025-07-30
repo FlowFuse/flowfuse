@@ -500,9 +500,7 @@ module.exports = async function (app) {
                 })
             }
         }
-        user.ownerType = null
-        user.ownerId = null
-        await user.save()
+        await user.destroy()
         reply.send({ status: 'okay' })
     })
 }
