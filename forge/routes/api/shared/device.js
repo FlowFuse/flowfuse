@@ -3,8 +3,7 @@ module.exports = {
         if (request.params.deviceId !== undefined) {
             if (request.params.deviceId) {
                 try {
-                    // StorageFlow needed for last updates time (live status)
-                    request.device = await app.db.models.Device.byId(request.params.deviceId, { includeStorageFlows: true })
+                    request.device = await app.db.models.Device.byId(request.params.deviceId)
                     if (!request.device) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return

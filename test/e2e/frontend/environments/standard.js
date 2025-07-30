@@ -28,7 +28,13 @@ module.exports = async function (settings = {}, config = {}) {
         blueprintImport: {
             enabled: false
         },
-        ...config
+        ...config,
+        tables: {
+            enabled: true,
+            driver: {
+                type: 'stub'
+            }
+        }
     }
 
     // mock out stripe JS library
@@ -122,6 +128,7 @@ module.exports = async function (settings = {}, config = {}) {
 
     if (forge.license.active()) {
         teamTypeProperties.features.teamBroker = true
+        teamTypeProperties.features.tables = true
     }
     teamType.properties = teamTypeProperties
     await teamType.save()
