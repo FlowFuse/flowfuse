@@ -2,7 +2,11 @@
     <div id="create-table">
         <div class="header">
             <div class="flex content">
-                <h2 class="title flex-grow">Create a new table</h2>
+                <h2 class="title flex-grow">Create New Table</h2>
+                <div class="flex gap-2">
+                    <ff-button type="button" kind="secondary" class="w-full" @click="closeRightDrawer">Cancel</ff-button>
+                    <ff-button type="button" kind="primary" class="w-full" @click="submit">Save</ff-button>
+                </div>
             </div>
         </div>
         <div class="content-wrapper">
@@ -39,18 +43,6 @@
                 </div>
                 <ff-button type="button" kind="secondary" class="w-full" @click="onNewColumn">Add a new column</ff-button>
             </div>
-        </div>
-        <div class="footer flex gap-3">
-            <ff-button type="button" kind="secondary" class="w-full" @click="closeRightDrawer">Cancel</ff-button>
-            <ff-button
-                type="button"
-                kind="primary"
-                class="w-full"
-                :disabled="!areColumnsValid || hasErrors"
-                @click="submit"
-            >
-                Save
-            </ff-button>
         </div>
     </div>
 </template>
