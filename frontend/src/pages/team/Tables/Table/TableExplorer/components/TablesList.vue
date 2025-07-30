@@ -95,6 +95,10 @@ export default defineComponent({
         border-bottom: 1px solid $ff-color--border;
         padding-bottom: 15px;
         margin-bottom: 15px;
+
+        .ff-data-table--search {
+            min-width: 10px;
+        }
     }
 
     .list {
