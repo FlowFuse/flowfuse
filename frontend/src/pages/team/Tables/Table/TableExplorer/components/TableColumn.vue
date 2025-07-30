@@ -20,6 +20,7 @@
             <ff-text-input
                 v-model="localColumn.default"
                 :disabled="!localColumn.hasDefault"
+                :error="errors.default"
                 placeholder="Default Value"
                 type="text"
             />
@@ -32,7 +33,6 @@
                 :type="typeOptionsMap[localColumn.type].type"
                 :error="errors[typeOptionsMap[localColumn.type].key]"
             />
-            <span v-else>-</span>
             <!--            <div v-if="hasTypeOption && propertyHasError(typeOptionsMap[localColumn.type].key)" data-el="form-row-error" class="ml-4 text-red-400 text-xs">-->
             <!--                {{ errors[typeOptionsMap[localColumn.type].key] }}-->
             <!--            </div>-->
@@ -161,6 +161,19 @@ export default defineComponent({
                     }
                 }
             }
+
+            if (this.localColumn.hasDefault) {
+                const value = this.localColumn.default
+                const isEmptyString = typeof value === 'string' && value.length === 0
+
+                if (!isEmptyString) {
+                    const isValueNumeric = !isNaN(value) && !isNaN(parseFloat(value))
+                    if (this.isNumericType && !isValueNumeric) {
+                        errors.default = 'Value must be numeric'
+                    }
+                }
+            }
+
             return errors
         }
     },
