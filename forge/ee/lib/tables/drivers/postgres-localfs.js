@@ -235,9 +235,12 @@ module.exports = {
             const teamClient = libPg.newClient(options)
             try {
                 await teamClient.connect()
-                let query = `CREATE TABLE IF NOT EXISTS "${libPg.pg.escapeIdentifier(tableName)}" (\n`
+                let query = `CREATE TABLE IF NOT EXISTS ${libPg.pg.escapeIdentifier(tableName)} (\n`
                 for (const [i, col] of columns.entries()) {
-                    let column = `"${libPg.pg.escapeIdentifier(col.name)}" `
+                    if (col.name.length === 0 || col.type.length === 0) {
+                        continue
+                    }
+                    let column = `${libPg.pg.escapeIdentifier(col.name)} `
                     if (col.type === 'varchar') {
                         column += `${col.type}(${col.maxLength}) `
                     } else {
@@ -256,6 +259,9 @@ module.exports = {
                     } else {
                         query += column + '\n'
                     }
+                }
+                if (query.endsWith(" ,\n")) {
+                    query = query.replace(/ ,\n$/,"\n")
                 }
                 query += ')'
                 await teamClient.query(query)
