@@ -15,7 +15,7 @@ module.exports = async function (app) {
                 return // eslint-disable-line no-useless-return
             }
         }
-        if (!request.teamMembership) {
+        if (!request.teamMembership && request.session?.User) {
             request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
         }
     })
@@ -27,7 +27,16 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.tables
      */
     app.get('/', {
-        preHandler: app.needsPermission('team:database:list'),
+        preHandler: async (request, reply, done) => {
+            if (request.session.ownerType === 'project') {
+                const project = await app.db.models.Project.byId(request.session.ownerId)
+                if (project.Team.hashid !== request.team.hashid) {
+                    return reply.status(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                }
+            } else {
+                await app.needsPermission('team:database:list')(request, reply, done)
+            }
+        },
         schema: {
             summary: '',
             tags: ['FF tables'],
@@ -234,6 +243,54 @@ module.exports = async function (app) {
     })
 
     /**
+     * @name /api/v1/teams/:teamId/databases/:databaseId/tables
+     * @description Creates new table in database
+     * @static
+     * @memberof forge.routes.api.team.tables
+     */
+    app.post('/:databaseId/tables', {
+        preHandler: app.needsPermission('team:database:create'),
+        schema: {
+            summary: '',
+            tags: ['FF tables'],
+            body: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    columns: { $ref: 'DatabaseTable' }
+                }
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    databaseId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'DatabaseTable'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        if (request.body.name && request.body.columns) {
+            const tables = await app.tables.getTables(request.team, request.params.databaseId)
+            if (tables.tables.filter((t) => t.name === request.body.name).length === 1) {
+                reply.status(409).send({ code: 'table_exists', error: 'Table already exists' })
+            } else {
+                const t = await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns)
+                reply.status(201).send(t)
+            }
+        }
+    })
+
+    /**
      * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName
      * @description Get a specific table schema in a team database
      * @static
@@ -267,9 +324,49 @@ module.exports = async function (app) {
         // get the table schema
         const table = await app.tables.getTable(request.team, request.params.databaseId, request.params.tableName)
         if (!table) {
-            return reply.status(404).send({ error: 'Table not found' })
+            return reply.status(404).send({ code: 'table_not_found', error: 'Table not found' })
         }
         reply.send(table)
+    })
+
+    /**
+     * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName
+     * @description Delete a specific table schema in a team database
+     * @static
+     * @memberof forge.routes.api.team.tables
+     */
+    app.delete('/:databaseId/tables/:tableName', {
+        preHandler: app.needsPermission('team:database:create'),
+        schema: {
+            summary: '',
+            tags: ['FF tables'],
+            params: {
+                type: 'object',
+                properties: {
+                    databaseId: { type: 'string' },
+                    tableName: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'DatabaseTable'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const tables = await app.tables.getTables(request.team, request.params.databaseId)
+        if (tables.tables.filter((t) => t.name === request.params.tableName).length === 1) {
+            await app.tables.dropTable(request.team, request.params.databaseId, request.params.tableName)
+            reply.status(204).send()
+        } else {
+            reply.status(404).send({ code: 'table_not_found', error: 'Table not found' })
+        }
     })
 
     /**

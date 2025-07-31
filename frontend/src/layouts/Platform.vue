@@ -45,6 +45,9 @@
                 <!-- eslint-disable-next-line vue/no-v-html -->
                 <div v-else class="space-y-2" v-html="dialog.html" />
             </ff-dialog>
+            <transition name="page-fade">
+                <div v-if="overlay" class="ff-dialog-container !z-[100]" />
+            </transition>
         </div>
     </div>
 </template>
@@ -70,7 +73,7 @@ export default {
     mixins: [AlertsMixin, DialogMixin],
     computed: {
         ...mapState('product', ['interview']),
-        ...mapState('ux', ['leftDrawer']),
+        ...mapState('ux', ['leftDrawer', 'overlay']),
         ...mapGetters('account', ['hasAvailableTeams'])
     },
     watch: {

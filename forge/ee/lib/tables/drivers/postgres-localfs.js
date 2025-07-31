@@ -181,7 +181,7 @@ module.exports = {
                         return col
                     })
                 } else {
-                    throw new Error(`Table ${table} does not exist in database ${database} for team ${team.hashid}`)
+                    return null
                 }
             } finally {
                 teamClient.end()
@@ -225,8 +225,77 @@ module.exports = {
             throw new Error(`Failed to retrieve table ${table} for team ${team.hashid}: ${err.message}`)
         }
     },
-    createTable: async function (team, database, table) {},
-    dropTable: async function (team, database, table) {},
+    createTable: async function (team, databaseId, tableName, columns) {
+        const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
+        if (!databaseExists || databaseExists.TeamId !== team.id) {
+            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
+        }
+        try {
+            const options = databaseExists.credentials
+            const teamClient = libPg.newClient(options)
+            try {
+                await teamClient.connect()
+                let query = `CREATE TABLE IF NOT EXISTS ${libPg.pg.escapeIdentifier(tableName)} (\n`
+                for (const [i, col] of columns.entries()) {
+                    if (col.name.length === 0 || col.type.length === 0) {
+                        continue
+                    }
+                    let column = `${libPg.pg.escapeIdentifier(col.name)} `
+                    if (['bigint', 'bigserial', 'boolean', 'date', 'timestampz', 'real', 'double precision', 'text'].includes(col.type)) {
+                        column += `${col.type} `
+                    } else {
+                        throw new Error('Unsupported column type')
+                    }
+                    column += `${col.nullable ? '' : 'NOT NULL'} `
+                    if (col.default) {
+                        if (typeof col.default === 'string' && col.type === 'text') {
+                            column += `DEFAULT ${libPg.pg.escapeLiteral(col.default)}`
+                        } else if (col.type === 'bigint') {
+                            column += `DEFAULT ${parseInt(col.default)}`
+                        } else if (['real', 'double precision'].includes(col.type)) {
+                            column += `DEFAULT ${parseFloat(column.default)}`
+                        } else if (col.type === 'boolean') {
+                            column += `DEFAULT ${column.default === 'true'}`
+                        }
+                    }
+                    if (i + 1 !== columns.length) {
+                        query += column + ',\n'
+                    } else {
+                        query += column + '\n'
+                    }
+                }
+                if (query.endsWith(' ,\n')) {
+                    query = query.replace(/ ,\n$/, '\n')
+                }
+                query += ')'
+                await teamClient.query(query)
+            } finally {
+                teamClient.end()
+            }
+        } catch (err) {
+            console.error('Error retrieving table:', err)
+            throw new Error(`Failed to create table ${tableName} for team ${team.hashid}: ${err.message}`)
+        }
+    },
+    dropTable: async function (team, databaseId, tableName) {
+        const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
+        if (!databaseExists || databaseExists.TeamId !== team.id) {
+            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
+        }
+        try {
+            const options = databaseExists.credentials
+            const teamClient = libPg.newClient(options)
+            try {
+                await teamClient.connect()
+                await teamClient.query(`DROP TABLE ${libPg.pg.escapeIdentifier(tableName)}`)
+            } finally {
+                teamClient.end()
+            }
+        } catch (err) {
+            console.error('Error retrieving table:', err)
+            throw new Error(`Failed to create table ${tableName} for team ${team.hashid}: ${err.message}`)
+        }
+    },
     createColumn: async function (team, database, table, column) {},
     removeColumn: async function (team, database, table, column) {}
 }

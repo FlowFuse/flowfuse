@@ -1,7 +1,7 @@
-/// <reference types="should" />
-require('should')
 const axios = require('axios')
 const pg = require('pg')
+/// <reference types="should" />
+const should = require('should')
 const sinon = require('sinon')
 
 const driver = require('../../../../../../../forge/ee/lib/tables/drivers/postgres-supavisor.js')
@@ -300,7 +300,8 @@ describe('Tables: Postgres Supavisor Driver', function () {
                 query: sinon.stub().resolves({ rows: [] }),
                 end: sinon.stub().resolves()
             }
-            await driver.getTable(team, team.hashid, 'table1').should.be.rejectedWith('Failed to retrieve table table1 for team t1hash: Table table1 does not exist in database t1hash for team t1hash')
+            const table = await driver.getTable(team, team.hashid, 'table1')
+            should.not.exist(table)
         })
         it('should throw if db does not exist', async function () {
             app.db.models.Table.byId.resolves(null)
