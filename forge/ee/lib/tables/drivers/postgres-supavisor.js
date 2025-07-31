@@ -314,17 +314,21 @@ module.exports = {
                         continue
                     }
                     let column = `${libPg.pg.escapeIdentifier(col.name)} `
-                    if (col.type === 'varchar') {
-                        column += `${col.type}(${col.maxLength}) `
-                    } else {
+                    if (['bigint', 'bigserial', 'boolean', 'date', 'timestampz', 'real', 'double precision', 'text'].includes(col.type)) {
                         column += `${col.type} `
+                    } else {
+                        throw new Error('Unsupported column type')
                     }
                     column += `${col.nullable ? '' : 'NOT NULL'} `
                     if (col.default) {
                         if (typeof col.default === 'string' && col.type === 'text') {
                             column += `DEFAULT ${libPg.pg.escapeLiteral(col.default)}`
-                        } else if (['bigint', 'real', 'double precision', 'boolean'].includes(col.type)) {
-                            column += `DEFAULT ${col.default}`
+                        } else if (col.type === 'bigint') {
+                            column += `DEFAULT ${parseInt(col.default)}`
+                        } else if (['real', 'double precision'].includes(col.type)) {
+                            column += `DEFAULT ${parseFloat(column.default)}`
+                        } else if (col.type === 'boolean') {
+                            column += `DEFAULT ${column.default === 'true'}`
                         }
                     }
                     if (i + 1 !== columns.length) {
