@@ -45,7 +45,7 @@
                                 @click="close"
                             >
                                 <li>
-                                    <div class="ff-option-content" :class="{selected, active}">
+                                    <div class="ff-option-content" :class="{selected, active}" data-click-exclude="right-drawer">
                                         {{ option[labelKey] }}
                                     </div>
                                 </li>

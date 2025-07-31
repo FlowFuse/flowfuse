@@ -281,7 +281,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         if (request.body.name && request.body.columns) {
             const tables = await app.tables.getTables(request.team, request.params.databaseId)
-            if (tables.filter((t) => t.name === request.body.name).length === 1) {
+            if (tables.tables.filter((t) => t.name === request.body.name).length === 1) {
                 reply.status(409).send({ code: 'table_exists', error: 'Table already exists' })
             } else {
                 const t = await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns)
@@ -361,7 +361,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const tables = await app.tables.getTables(request.team, request.params.databaseId)
-        if (tables.filter((t) => t.name === request.params.tableName).length === 1) {
+        if (tables.tables.filter((t) => t.name === request.params.tableName).length === 1) {
             await app.tables.dropTable(request.team, request.params.databaseId, request.params.tableName)
             reply.status(204).send()
         } else {
