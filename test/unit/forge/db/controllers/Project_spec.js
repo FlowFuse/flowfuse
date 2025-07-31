@@ -521,7 +521,7 @@ describe('Project controller', function () {
 
             app.db.controllers.Project.updateLatestProjectState('project-id', 'stopped')
             tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
-            should(tempResult).be.undefined()
+            should(tempResult).equal('stopped')
         })
     })
 })

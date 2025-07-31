@@ -334,7 +334,9 @@ module.exports = {
                     } else {
                         result.meta = await app.containers.details(this) || { state: 'unknown' }
 
-                        Controllers.Project.updateLatestProjectState(this.id, result.meta.state)
+                        if (result.meta.state !== this.state) {
+                            Controllers.Project.setLatestProjectState(this.id, result.meta.state)
+                        }
 
                         if (result.meta.versions) {
                             const currentVersionInfo = { ...this.versions }

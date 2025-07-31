@@ -729,14 +729,12 @@ module.exports = {
 
     /**
      * Updates the latest project state for the specified app and project based on the given state.
-     * If the state is 'running' or 'stopped', it clears the latest driver state.
-     * Otherwise, it sets the latest driver state to the new value.
      *
      * @param {String|Number} projectId - The project id related to the driver state update.
      * @param {string} state - The new state to update, can be 'running', 'stopped', or other valid states.
      */
     updateLatestProjectState: function (app, projectId, state) {
-        if (['running', 'stopped'].includes(state)) {
+        if (['running'].includes(state)) {
             this.clearLatestProjectState(app, projectId)
         } else {
             this.setLatestProjectState(app, projectId, state)
