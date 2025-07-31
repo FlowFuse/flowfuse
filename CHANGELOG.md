@@ -1,6 +1,37 @@
 #### 2.20.0: Release
 
  - Update URL to DAI get scripts (#5849)
+ - Release 2.20.0 (#5851) @Steve-Mcl
+ - Remove warning about depricated schema on startup (#5823) @hardillb
+ - Ensure table and column names escaped (#5850) @hardillb
+ - Flowfuse Tables - "Add Table" UI (#5846) @cstns
+ - First pass at create table api (#5815) @hardillb
+ - Add assistant config settings to instance and device runtime settings (#5735) @Steve-Mcl
+ - API update to support tokens for tables (#5838) @hardillb
+ - Assistant assets endpoint (#5723) @Steve-Mcl
+ - Fix table renderings (#5839) @cstns
+ - E2e tests for the dashboard users (#5810) @cstns
+ - Fix admins unable to create a team after initial app setup (#5840) @cstns
+ - Streamlining Applications UI (#5817) @cstns
+ - Fix team switching race condition from the tables page (#5836) @cstns
+ - Remove double port from FF Tables creds (#5834) @hardillb
+ - Fix tenant create in EKS (#5831) @hardillb
+ - Log reason for tenant failure (#5830) @hardillb
+ - Fix tenant creation with SSL (#5829) @hardillb
+ - Double logging for FF Tables create errors (#5826) @hardillb
+ - Log why FF Tables DB create failed (#5825) @hardillb
+ - Fix error logging for tables drivers (#5822) @hardillb
+ - Bump @node-saml/node-saml from 5.0.0 to 5.1.0 (#5819) @app/dependabot
+ - Flowfuse Tables API and backend Driver (#5764) @hardillb
+ - Filter instance state counters by application (#5818) @cstns
+ - Minimise Device look up on status update (#5812) @knolleary
+ - Increase max payload size for forge app (#5813) @hardillb
+ - Add a new project-status permission that allows dashboard users to query instance status (#5808) @cstns
+ - Fix check on snapshot id in device status update (#5806) @knolleary
+
+#### 2.20.0: Release
+
+ - Update URL to DAI get scripts (#5849)
  - Remove warning about depricated schema on startup (#5823) @hardillb
  - Ensure table and column names escaped (#5850) @hardillb
  - Flowfuse Tables - "Add Table" UI (#5846) @cstns
