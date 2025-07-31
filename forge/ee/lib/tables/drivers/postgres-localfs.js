@@ -248,9 +248,9 @@ module.exports = {
                     }
                     column += `${col.nullable ? '' : 'NOT NULL'} `
                     if (col.default) {
-                        if (typeof col.default === 'string') {
-                            column += `DEFAULT '${col.default}'`
-                        } else {
+                        if (typeof col.default === 'string' && col.type === 'text') {
+                            column += `DEFAULT ${libPg.pg.escapeLiteral(col.default)}`
+                        } else if (['bigint', 'real', 'double precision', 'boolean'].includes(col.type)) {
                             column += `DEFAULT ${col.default}`
                         }
                     }
@@ -260,8 +260,8 @@ module.exports = {
                         query += column + '\n'
                     }
                 }
-                if (query.endsWith(" ,\n")) {
-                    query = query.replace(/ ,\n$/,"\n")
+                if (query.endsWith(' ,\n')) {
+                    query = query.replace(/ ,\n$/, '\n')
                 }
                 query += ')'
                 await teamClient.query(query)
