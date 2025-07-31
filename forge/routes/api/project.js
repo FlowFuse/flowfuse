@@ -1329,6 +1329,50 @@ module.exports = async function (app) {
         })
     })
 
+    app.post('/:instanceId/update-state', {
+        preHandler: (request, reply, done) => {
+            // check accessToken is project scope
+            // (ownerId already checked at top-level preHandler)
+            if (request.session.ownerType !== 'project') {
+                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+            } else {
+                done()
+            }
+        },
+        schema: {
+            summary: 'Update the live status of an instance',
+            hide: true,
+            tags: ['Instances', 'Live State'],
+            params: {
+                type: 'object',
+                required: ['instanceId'],
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                required: ['state'],
+                properties: {
+                    state: { type: 'string' }
+                }
+            },
+            response: {
+                202: {
+                    type: 'object',
+                    properties: {}
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        app.db.controllers.Project.updateLatestProjectState(request.params.instanceId, request.body.state)
+
+        reply.code(202).send()
+    })
+
     /**
      * Merge env vars from 2 arrays.
      *
