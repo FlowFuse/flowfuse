@@ -34,6 +34,7 @@ export default defineComponent({
     gap: 15px;
     height: 100%;
     width: 100%;
+    overflow: auto;
 
     #tables-list {
         border-right: 1px solid $ff-color--border;

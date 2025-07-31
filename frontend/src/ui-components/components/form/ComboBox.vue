@@ -38,7 +38,7 @@
                             class="ff-option"
                         >
                             <slot name="option" :option="customValue" :selected="selected" :active="active">
-                                <div class="ff-option-content" :class="{ selected, active }">
+                                <div class="ff-option-content" :class="{ selected, active }" data-click-exclude="right-drawer">
                                     {{ customValuePreLabel }} "{{ query }}"
                                 </div>
                             </slot>
@@ -52,7 +52,7 @@
                             class="ff-option"
                         >
                             <slot name="option" :option="option" :selected="selected" :active="active">
-                                <div class="ff-option-content" :class="{ selected, active }">
+                                <div class="ff-option-content" :class="{ selected, active }" data-click-exclude="right-drawer">
                                     {{ option[labelKey] }}
                                 </div>
                             </slot>

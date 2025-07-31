@@ -9,23 +9,25 @@
             >
                 <template #icon><SearchIcon /></template>
             </ff-text-input>
-
-            <!--            <ff-button kind="secondary" @click="onCreateTable">-->
-            <!--                <template #icon>-->
-            <!--                    <PlusIcon />-->
-            <!--                </template>-->
-            <!--            </ff-button>-->
+            <button class="ff-btn ff-btn--secondary transition-fade--color" type="button" @click.stop="onCreateTable">
+                <span class="ff-btn--icon">
+                    <PlusIcon />
+                </span>
+            </button>
         </div>
 
         <ul v-if="filteredTables.length && tables.length" class="list">
             <li
                 v-for="table in filteredTables" :key="table.id"
                 :title="table.name"
-                class="item"
+                class="item relative"
                 :class="{active: table.name === tableSelection}"
                 @click="updateTableSelection(table.name)"
             >
-                <TableIcon class="ff-icon ff-icon-sm" style="min-width: 24px;" />
+                <span class="icon-toggle">
+                    <TableIcon class="ff-icon ff-icon-sm" />
+                    <PencilAltIcon class="ff-icon ff-icon-sm edit" @click="showSchema(table)" />
+                </span>
                 <span class="truncate">{{ table.name }}</span>
             </li>
         </ul>
@@ -34,25 +36,24 @@
             <p>No tables found matching your criteria!</p>
         </div>
 
-        <div v-else class="empty-state">
+        <div v-else class="empty-state flex gap-5">
             <p>Get Started by creating your first table using the <code>contrib-postgres</code> node in a Node-RED Instance.</p>
-            <!--            <p><span class="cta" @click="onCreateTable">Create</span> your first table now.</p>-->
+            <p>Or <span class="cta" @click="onCreateTable">Create</span> your first table now.</p>
         </div>
     </section>
 </template>
 
 <script>
-import { SearchIcon, TableIcon } from '@heroicons/vue/outline'
-import { defineComponent } from 'vue'
+import { PencilAltIcon, PlusIcon, SearchIcon, TableIcon } from '@heroicons/vue/outline'
+import { defineComponent, markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
-import Alerts from '../../../../../../services/alerts.js'
-import Dialog from '../../../../../../services/dialog.js'
+import CreateTable from '../drawers/CreateTable.vue'
+import TableSchema from '../drawers/TableSchema.vue'
 
-import CreateTable from './CreateTable.vue'
 export default defineComponent({
     name: 'TablesList',
-    components: { SearchIcon, TableIcon },
+    components: { SearchIcon, TableIcon, PlusIcon, PencilAltIcon },
     emits: ['select-table'],
     data () {
         return {
@@ -63,6 +64,7 @@ export default defineComponent({
     computed: {
         ...mapGetters('product/tables', { getTables: 'tables' }),
         ...mapState('product/tables', { tablesState: 'tables', tableSelection: 'tableSelection' }),
+        ...mapState('ux', ['rightDrawer']),
         filteredTables () {
             return this.tables.filter(t => (t.name ?? '').toLowerCase().includes(this.filterTerm.toLowerCase()))
         }
@@ -77,16 +79,20 @@ export default defineComponent({
     },
     methods: {
         ...mapActions('product/tables', ['updateTableSelection']),
+        ...mapActions('ux', ['openRightDrawer', 'closeRightDrawer']),
+
         onCreateTable () {
-            Dialog.show({
-                header: 'Create a new Table',
-                kind: 'primary',
-                confirmLabel: 'Create',
-                is: {
-                    component: CreateTable
-                }
-            }, async () => {
-                Alerts.emit('Table created successfully.', 'confirmation')
+            this.openRightDrawer({
+                component: markRaw(CreateTable),
+                wider: true,
+                overlay: true
+            })
+        },
+        showSchema (table) {
+            this.openRightDrawer({
+                component: markRaw(TableSchema),
+                props: { table },
+                overlay: true
             })
         }
     }
@@ -104,6 +110,10 @@ export default defineComponent({
         border-bottom: 1px solid $ff-color--border;
         padding-bottom: 15px;
         margin-bottom: 15px;
+
+        .ff-data-table--search {
+            min-width: 10px;
+        }
     }
 
     .list {
@@ -118,6 +128,33 @@ export default defineComponent({
             &:hover, &.active {
                 color: $ff-indigo-500;
                 background-color: $ff-grey-100;
+            }
+
+            &:hover {
+                .icon-toggle {
+                    .ff-icon:first-child {
+                        display: none;
+                    }
+                    .ff-icon:last-child {
+                        display: inline-block;
+                    }
+                }
+            }
+
+            .icon-toggle {
+                width: 24px;
+                .ff-icon:first-child {
+                    display: inline-block;
+                }
+                .ff-icon:last-child {
+                    display: none;
+                }
+
+                .edit {
+                    &:hover {
+                        transform: scale(1.4);
+                    }
+                }
             }
         }
     }

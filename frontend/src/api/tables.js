@@ -25,10 +25,22 @@ const getTableData = (teamId, databaseId, tableName) => {
         .then(res => res.data.rows)
 }
 
+const createTable = (teamId, databaseId, payload) => {
+    return client.post(`/api/v1/teams/${teamId}/databases/${databaseId}/tables`, payload)
+        .then(res => res.data)
+}
+
+const deleteTable = (teamId, databaseId, tableName) => {
+    return client.delete(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}`)
+        .then(res => res.data)
+}
+
 export default {
     createDatabase,
     getDataBases,
     getTables,
     getTableSchema,
-    getTableData
+    getTableData,
+    createTable,
+    deleteTable
 }

@@ -10,8 +10,8 @@ describe('FlowFuse - Team Membership', () => {
     it('loads team members into the data table', () => {
         cy.visit('team/ateam/members/general')
         cy.wait('@getTeamsInvitations')
-        // starts off with alice and bob as members
-        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 2) // should be 2 members
+        // starts off with alice, bob and dashboard-dave as members
+        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 3) // should be 3 members
 
         cy.visit('team/ateam/members/invitations')
         // starts off with one invitation already
@@ -87,8 +87,8 @@ describe('FlowFuse - Team Membership', () => {
         cy.visit('team/ateam/members/general')
         cy.wait(['@getTeamMembers'])
 
-        // check we now have 3 members (charlie was added in previous test)
-        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 3)
+        // check we now have 4 members (charlie was added in previous test)
+        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 4)
 
         // open click kebab menu of 3rd member (charlie)
         cy.get('[data-el="members-table"] tbody').find('.ff-kebab-menu').eq(2).click()
@@ -106,7 +106,7 @@ describe('FlowFuse - Team Membership', () => {
         cy.wait(['@getTeamMembers'])
 
         // check it has been deleted
-        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 2)
+        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 3)
     })
 })
 
