@@ -92,16 +92,16 @@ export default {
                 script: {
                     Windows: {
                         title: 'Open an elevated Command Prompt and run:',
-                        command: `powershell -c "irm https://raw.githubusercontent.com/FlowFuse/device-agent/refs/heads/main/installer/get.ps1|iex" && flowfuse-device-agent-installer.exe -o ${this.device.credentials.otc} -u ${this.settings?.base_url}`
+                        command: `powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1|iex" && flowfuse-device-agent-installer.exe -o ${this.device.credentials.otc} -u ${this.settings?.base_url}`
                     },
                     MacOS: {
                         title: 'Open Terminal and run:',
-                        command: '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/FlowFuse/device-agent/refs/heads/main/installer/get.sh)" && \\\n' +
+                        command: '/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && \\\n' +
                                 `./flowfuse-device-agent-installer -o ${this.device.credentials.otc} -u ${this.settings?.base_url}`
                     },
                     Linux: {
                         title: 'Open Terminal and run:',
-                        command: '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/FlowFuse/device-agent/refs/heads/main/installer/get.sh)" && \\\n' +
+                        command: '/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && \\\n' +
                                 `./flowfuse-device-agent-installer -o ${this.device.credentials.otc} -u ${this.settings?.base_url}`
                     }
                 },
