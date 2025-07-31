@@ -308,20 +308,27 @@ module.exports = {
             const teamClient = libPg.newClient(options)
             try {
                 await teamClient.connect()
-                let query = `CREATE TABLE IF NOT EXISTS "${tableName}" (\n`
+                let query = `CREATE TABLE IF NOT EXISTS ${libPg.pg.escapeIdentifier(tableName)} (\n`
                 for (const [i, col] of columns.entries()) {
-                    let column = `"${col.name}" `
-                    if (col.type === 'varchar') {
-                        column += `${col.type}(${col.maxLength}) `
-                    } else {
+                    if (col.name.length === 0 || col.type.length === 0) {
+                        continue
+                    }
+                    let column = `${libPg.pg.escapeIdentifier(col.name)} `
+                    if (['bigint', 'bigserial', 'boolean', 'date', 'timestampz', 'real', 'double precision', 'text'].includes(col.type)) {
                         column += `${col.type} `
+                    } else {
+                        throw new Error('Unsupported column type')
                     }
                     column += `${col.nullable ? '' : 'NOT NULL'} `
                     if (col.default) {
-                        if (typeof col.default === 'string') {
-                            column += `DEFAULT '${col.default}'`
-                        } else {
-                            column += `DEFAULT ${col.default}`
+                        if (typeof col.default === 'string' && col.type === 'text') {
+                            column += `DEFAULT ${libPg.pg.escapeLiteral(col.default)}`
+                        } else if (col.type === 'bigint') {
+                            column += `DEFAULT ${parseInt(col.default)}`
+                        } else if (['real', 'double precision'].includes(col.type)) {
+                            column += `DEFAULT ${parseFloat(column.default)}`
+                        } else if (col.type === 'boolean') {
+                            column += `DEFAULT ${column.default === 'true'}`
                         }
                     }
                     if (i + 1 !== columns.length) {
@@ -329,6 +336,9 @@ module.exports = {
                     } else {
                         query += column + '\n'
                     }
+                }
+                if (query.endsWith(' ,\n')) {
+                    query = query.replace(/ ,\n$/, '\n')
                 }
                 query += ')'
                 await teamClient.query(query)
@@ -357,7 +367,7 @@ module.exports = {
             const teamClient = libPg.newClient(options)
             try {
                 await teamClient.connect()
-                await teamClient.query(`DROP TABLE ${tableName}`)
+                await teamClient.query(`DROP TABLE ${libPg.pg.escapeIdentifier(tableName)}`)
             } finally {
                 teamClient.end()
             }
