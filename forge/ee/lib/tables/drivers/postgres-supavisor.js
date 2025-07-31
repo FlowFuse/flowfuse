@@ -247,7 +247,7 @@ module.exports = {
                         return col
                     })
                 } else {
-                    throw new Error(`Table ${tableName} does not exist in database ${databaseId} for team ${team.hashid}`)
+                    return null
                 }
             } finally {
                 teamClient.end()
@@ -291,8 +291,81 @@ module.exports = {
             throw new Error(`Failed to retrieve table ${table} for team ${team.hashid}: ${err.message}`)
         }
     },
-    createTable: async function (team, databaseId, table) {},
-    dropTable: async function (team, databaseId, tableName) {},
+    createTable: async function (team, databaseId, tableName, columns) {
+        const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
+        if (!databaseExists || databaseExists.TeamId !== team.id) {
+            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
+        }
+        try {
+            const options = {
+                host: this._options.backend.host,
+                port: this._options.backend.port,
+                ssl: this._options.backend.ssl,
+                database: team.hashid,
+                user: this._options.backend.user,
+                password: this._options.backend.password
+            }
+            const teamClient = libPg.newClient(options)
+            try {
+                await teamClient.connect()
+                let query = `CREATE TABLE IF NOT EXISTS "${tableName}" (\n`
+                for (const [i, col] of columns.entries()) {
+                    let column = `"${col.name}" `
+                    if (col.type === 'varchar') {
+                        column += `${col.type}(${col.maxLength}) `
+                    } else {
+                        column += `${col.type} `
+                    }
+                    column += `${col.nullable ? '' : 'NOT NULL'} `
+                    if (col.default) {
+                        if (typeof col.default === 'string') {
+                            column += `DEFAULT '${col.default}'`
+                        } else {
+                            column += `DEFAULT ${col.default}`
+                        }
+                    }
+                    if (i + 1 !== columns.length) {
+                        query += column + ',\n'
+                    } else {
+                        query += column + '\n'
+                    }
+                }
+                query += ')'
+                await teamClient.query(query)
+            } finally {
+                teamClient.end()
+            }
+        } catch (err) {
+            console.error(err)
+            throw new Error(`Failed to create table ${tableName} for team ${team.hashid}: ${err.message}`)
+        }
+    },
+    dropTable: async function (team, databaseId, tableName) {
+        const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
+        if (!databaseExists || databaseExists.TeamId !== team.id) {
+            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
+        }
+        try {
+            const options = {
+                host: this._options.backend.host,
+                port: this._options.backend.port,
+                ssl: this._options.backend.ssl,
+                database: team.hashid,
+                user: this._options.backend.user,
+                password: this._options.backend.password
+            }
+            const teamClient = libPg.newClient(options)
+            try {
+                await teamClient.connect()
+                await teamClient.query(`DROP TABLE ${tableName}`)
+            } finally {
+                teamClient.end()
+            }
+        } catch (err) {
+            console.error('Error retrieving table:', err)
+            throw new Error(`Failed to create table ${tableName} for team ${team.hashid}: ${err.message}`)
+        }
+    },
     createColumn: async function (team, database, table, column) {},
     removeColumn: async function (team, database, table, column) {}
 }
