@@ -179,6 +179,7 @@ module.exports = fp(async function (app, opts) {
                     redirectTo = '/account/settings'
                 }
                 reply.redirect(redirectTo)
+                return
             } else {
                 // Invalid session - user is suspended or similar
                 reply.redirect('/')
