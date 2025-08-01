@@ -187,6 +187,7 @@ const Permissions = {
     // Team Broker
     'broker:clients:list': { description: 'List Team Broker clients', role: Roles.Member },
     'broker:clients:create': { description: 'Create Team Broker clients', role: Roles.Owner },
+    'broker:clients:link': { description: 'Link Team Broker clients', role: Roles.Owner },
     'broker:clients:edit': { description: 'Edit Team Broker clients', role: Roles.Owner },
     'broker:clients:delete': { description: 'Delete Team Broker clients', role: Roles.Owner },
     'broker:topics:list': { description: 'List active Team Broker topics', role: Roles.Member },

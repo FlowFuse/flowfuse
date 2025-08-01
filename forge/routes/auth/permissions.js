@@ -9,7 +9,9 @@ const IMPLICIT_TOKEN_SCOPES = {
     device: [
         'team:projects:list', // permit a device being edited via a tunnel in developer mode to list projects
         'library:entry:create', // permit a device being edited via a tunnel in developer mode to create library entries
-        'library:entry:list' // permit a device being edited via a tunnel in developer mode to list library entries
+        'library:entry:list', // permit a device being edited via a tunnel in developer mode to list library entries
+        'broker:clients:list', // permit ff-mqtt nodes to list broker clients
+        'broker:clients:link' // permit ff-mqtt nodes to link broker clients
     ],
     project: [
         'user:read',
@@ -17,7 +19,9 @@ const IMPLICIT_TOKEN_SCOPES = {
         'project:flows:edit',
         'team:projects:list',
         'library:entry:create',
-        'library:entry:list'
+        'library:entry:list',
+        'broker:clients:list',
+        'broker:clients:link'
     ]
 }
 

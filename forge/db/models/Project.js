@@ -133,6 +133,13 @@ module.exports = {
         this.belongsTo(M.ProjectTemplate)
         this.hasMany(M.ProjectSnapshot)
         this.hasOne(M.StorageFlow)
+        this.hasOne(M.TeamBrokerClient, {
+            foreignKey: 'ownerId',
+            constraints: false,
+            scope: {
+                ownerType: 'project'
+            }
+        })
     },
     hooks: function (M, app) {
         return {
@@ -224,6 +231,16 @@ module.exports = {
                         reference: {
                             [Op.in]: [`instance-crashed:${project.id}`, `instance-safe-mode:${project.id}`, `instance-resource-cpu:${project.id}`, `instance-resource-memory:${project.id}`]
                         }
+                    }
+                })
+                // unlink any team broker clients
+                await M.TeamBrokerClient.update({
+                    ownerId: null,
+                    ownerType: null
+                }, {
+                    where: {
+                        ownerType: 'project',
+                        ownerId: project.id
                     }
                 })
             }
