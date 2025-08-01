@@ -241,7 +241,7 @@ module.exports = {
                         continue
                     }
                     let column = `${libPg.pg.escapeIdentifier(col.name)} `
-                    if (['bigint', 'bigserial', 'boolean', 'date', 'timestampz', 'real', 'double precision', 'text'].includes(col.type)) {
+                    if (['bigint', 'bigserial', 'boolean', 'date', 'timestamptz', 'real', 'double precision', 'text'].includes(col.type)) {
                         column += `${col.type} `
                     } else {
                         throw new Error('Unsupported column type')
