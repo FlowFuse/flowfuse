@@ -302,8 +302,8 @@ module.exports = {
                 port: this._options.backend.port,
                 ssl: this._options.backend.ssl,
                 database: team.hashid,
-                user: this._options.backend.user,
-                password: this._options.backend.password
+                user: team.hashid,
+                password: databaseExists.credentials.password
             }
             const teamClient = libPg.newClient(options)
             try {
@@ -373,7 +373,7 @@ module.exports = {
             }
         } catch (err) {
             console.error('Error retrieving table:', err)
-            throw new Error(`Failed to create table ${tableName} for team ${team.hashid}: ${err.message}`)
+            throw new Error(`Failed to drop table ${tableName} for team ${team.hashid}: ${err.message}`)
         }
     },
     createColumn: async function (team, database, table, column) {},
