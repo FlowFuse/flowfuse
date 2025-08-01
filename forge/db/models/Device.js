@@ -9,7 +9,7 @@ const SemVer = require('semver')
 const { col, fn, DataTypes, Op, where, literal } = require('sequelize')
 
 const Controllers = require('../controllers')
-const { buildPaginationSearchClause } = require('../utils')
+const { generateToken, buildPaginationSearchClause } = require('../utils')
 
 const ALLOWED_SETTINGS = {
     autoSnapshot: 1,
@@ -113,17 +113,12 @@ module.exports = {
                     }
                 }
             },
-            afterBulkUpdate: async (options) => {
+            beforeBulkUpdate: async (options) => {
                 if (options.fields.includes('targetSnapshotId') || options.fields.includes('DeviceGroupId')) {
-                    const devices = await M.Device.findAll({ where: options.where })
-                    for (const device of devices) {
-                        const updated = await device.updateSettingsHash()
-                        if (updated) {
-                            await device.save({
-                                hooks: false,
-                                transaction: options.transaction
-                            })
-                        }
+                    if (!options.fields.includes('settingsHash')) {
+                        // Any update to targetSnapshot or DeviceGroup implicitly triggers a settings hash change.
+                        options.attributes.settingsHash = generateToken(16)
+                        options.fields.push('settingsHash')
                     }
                 }
             },
