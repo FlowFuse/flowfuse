@@ -12,7 +12,7 @@ module.exports = {
         if (context.sequelize.getDialect() === 'postgres') {
             const transaction = await context.sequelize.transaction()
             try {
-                await context.sequelize.query('ALTER TABLE "Applications" DROP CONSTRAINT "Applications_TeamId_fkey;"', { transaction })
+                await context.sequelize.query('ALTER TABLE "Applications" DROP CONSTRAINT "Applications_TeamId_fkey";', { transaction })
                 await context.sequelize.query('ALTER TABLE "Applications" ADD CONSTRAINT "Applications_TeamId_fkey" ' +
                     'FOREIGN KEY ("TeamId")' +
                     'REFERENCES "Teams"("id") ON UPDATE CASCADE ON DELETE CASCADE;', { transaction })
