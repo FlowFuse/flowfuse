@@ -19,8 +19,8 @@ module.exports = {
 
                 await transaction.commit()
             } catch (err) {
-                console.error('Error during migration:', err)
                 await transaction.rollback()
+                throw err
             }
         }
     },
