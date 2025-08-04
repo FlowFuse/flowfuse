@@ -1,5 +1,6 @@
 /**
- * Fix Applications Teams reference
+ * Fix Applications to Teams reference
+ * Remove and re-add the foreign key constraint
  */
 
 module.exports = {
