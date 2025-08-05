@@ -443,6 +443,7 @@ class DeviceCommsHandler {
             }
         }
         clearInterval(this.deviceLogHeartbeatInterval)
+        clearInterval(this.deviceResourcesHeartbeatInterval)
     }
 }
 
