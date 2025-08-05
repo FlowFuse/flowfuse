@@ -1,6 +1,6 @@
 <template>
     <div class="chart-wrapper">
-        <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize @datazoom="onDataZoom" />
+        <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize :loading="loading" @datazoom="onDataZoom" />
     </div>
 </template>
 
@@ -36,7 +36,16 @@ export default {
             type: Object,
             default: null,
             required: false
-
+        },
+        device: {
+            type: Object,
+            default: null,
+            required: false
+        },
+        loading: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     setup () {
@@ -63,7 +72,7 @@ export default {
             return {
                 tooltip: {
                     trigger: 'axis',
-                    formatter: function (params) {
+                    formatter: (params) => {
                         const timestamp = Number(params[0].axisValue)
                         const date = new Date(timestamp)
                         const formattedDate = date.toLocaleString()
@@ -129,6 +138,10 @@ export default {
                     data: this.filteredResources.map(res => {
                         // first responses might not contain relevant info
                         const cpu = res.cpu ?? 0
+
+                        if (this.device) {
+                            return cpu
+                        }
 
                         if (this.instance?.stack?.properties?.cpu) {
                             // scaling down to match stack cpu allocation

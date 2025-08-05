@@ -21,9 +21,9 @@
             </template>
         </empty-state>
     </template>
-    <teamplate v-else>
+    <template v-else>
         <ff-loading v-if="loading" />
-        <template v-else-if="!error">
+        <template v-else>
             <section class="ff-chart-section">
                 <SectionTopMenu>
                     <template #hero>
@@ -34,7 +34,7 @@
                     </template>
                 </SectionTopMenu>
 
-                <CpuChart :resources="resources" :instance="instance" />
+                <CpuChart :resources="resources" :device="device" :loading="resources.length === 0" />
             </section>
 
             <section class="ff-chart-section">
@@ -46,24 +46,10 @@
                         </div>
                     </template>
                 </SectionTopMenu>
-                <MemoryChart :resources="resources" :instance="instance" />
+                <MemoryChart :resources="resources" :device="device" :loading="resources.length === 0" />
             </section>
         </template>
-
-        <empty-state v-else>
-            <template #header>
-                <span v-if="!isInstanceRunning">The Hosted Instance must be running in order to view performance data.</span>
-                <span v-else-if="resources.length === 0">No CPU Data Found</span>
-                <span v-else>Something went wrong!</span>
-            </template>
-            <template #img>
-                <img src="../../../images/empty-states/instance-performance.png" alt="pipelines-logo">
-            </template>
-            <template #message>
-                <p>{{ error }}</p>
-            </template>
-        </empty-state>
-    </teamplate>
+    </template>
 </template>
 
 <script>
@@ -117,7 +103,6 @@ export default {
         return {
             loading: true,
             resources: [],
-            error: null,
             keepAliveInterval: null,
             connection: null,
             client: null

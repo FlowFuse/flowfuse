@@ -1,6 +1,6 @@
 <template>
     <div class="chart-wrapper">
-        <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize @datazoom="onDataZoom" />
+        <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize :loading="loading" @datazoom="onDataZoom" />
     </div>
 </template>
 
@@ -41,6 +41,11 @@ export default {
             type: Object,
             default: null,
             required: false
+        },
+        loading: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     setup () {
