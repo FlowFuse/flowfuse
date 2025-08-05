@@ -34,7 +34,8 @@ export default {
         },
         instance: {
             type: Object,
-            required: true
+            default: null,
+            required: false
 
         }
     },
@@ -69,7 +70,7 @@ export default {
 
                         let content = `${formattedDate}<br/>`
                         params.forEach(item => {
-                            content += `${item.seriesName}: ${item.data.toFixed(2)}%<br/>`
+                            content += `${item.seriesName}: ${item.data.toFixed(2)}mb<br/>`
                         })
                         return content
                     }
@@ -129,7 +130,7 @@ export default {
                         // first responses might not contain relevant info
                         const memory = res.ps ?? 0
 
-                        if (this.instance.stack?.properties?.memory) {
+                        if (this.instance?.stack?.properties?.memory) {
                             // scaling down to match stack memory allocation
                             return this.capGraph((memory / this.instance.stack.properties.memory) * 100)
                         }
@@ -153,15 +154,27 @@ export default {
             }
         },
         yAxis () {
-            return [{
-                type: 'value',
-                position: 'right',
-                axisLabel: {
-                    formatter: function (value) {
-                        return `${value}%`
+            if (this.instance) {
+                return [{
+                    type: 'value',
+                    position: 'right',
+                    axisLabel: {
+                        formatter: function (value) {
+                            return `${value}&`
+                        }
                     }
-                }
-            }]
+                }]
+            } else {
+                return [{
+                    type: 'value',
+                    position: 'right',
+                    axisLabel: {
+                        formatter: function (value) {
+                            return `${value}mb`
+                        }
+                    }
+                }]
+            }
         },
         filteredResources () {
             return this.resources.filter(res => res.ps && res.ts)

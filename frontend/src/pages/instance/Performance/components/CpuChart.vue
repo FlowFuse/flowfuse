@@ -34,7 +34,8 @@ export default {
         },
         instance: {
             type: Object,
-            required: true
+            default: null,
+            required: false
 
         }
     },
@@ -129,7 +130,7 @@ export default {
                         // first responses might not contain relevant info
                         const cpu = res.cpu ?? 0
 
-                        if (this.instance.stack?.properties?.cpu) {
+                        if (this.instance?.stack?.properties?.cpu) {
                             // scaling down to match stack cpu allocation
                             return this.capGraph((cpu / this.instance.stack.properties.cpu) * 100)
                         }

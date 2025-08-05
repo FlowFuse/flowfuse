@@ -54,9 +54,11 @@ class DeviceCommsHandler {
         this.client = client
         this.deviceLogClients = {}
         this.deviceLogHeartbeats = {}
+        this.deviceResourcesHeartbeats = {}
         /** @type {Object.<string, typeof CommandResponseMonitor>} */
         this.inFlightCommands = {}
         this.deviceLogHeartbeatInterval = -1
+        this.deviceResourcesHeartbeatInterval = -1
 
         // Listen for any incoming device status events
         client.on('status/device', (status) => { this.handleStatus(status) })
@@ -79,6 +81,28 @@ class DeviceCommsHandler {
                     this.sendCommand(parts[0], parts[1], 'stopLog', '')
                     this.app.log.info(`Disable device logging ${parts[1]} in team ${parts[0]}`)
                     delete this.deviceLogHeartbeats[key]
+                }
+            }
+        }, 15000)
+
+        client.on('resources/heartbeat', (beat) => {
+            this.deviceResourcesHeartbeats[beat.id] = beat.timestamp
+        })
+        client.on('resources/disconnect', (beat) => {
+            const parts = beat.id.split(':')
+            this.sendCommand(parts[0], parts[1], 'stopResources', '')
+            this.app.log.info(`Disable device logging ${parts[1]} in team ${parts[0]}`)
+            delete this.deviceResourcesHeartbeats[beat.id]
+        })
+
+        this.deviceResourcesHeartbeatInterval = setInterval(() => {
+            const now = Date.now()
+            for (const [key, value] of Object.entries(this.deviceResourcesHeartbeats)) {
+                if (now - value > 12500) {
+                    const parts = key.split(':')
+                    this.sendCommand(parts[0], parts[1], 'stopResources', '')
+                    this.app.log.info(`Disable device resources ${parts[1]} in team ${parts[0]}`)
+                    delete this.deviceResourcesHeartbeats[key]
                 }
             }
         }, 15000)
