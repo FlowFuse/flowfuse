@@ -36,7 +36,11 @@ export default {
             type: Object,
             default: null,
             required: false
-
+        },
+        device: {
+            type: Object,
+            default: null,
+            required: false
         }
     },
     setup () {
@@ -69,8 +73,9 @@ export default {
                         const formattedDate = date.toLocaleString()
 
                         let content = `${formattedDate}<br/>`
+                        const unit = this.instance ? '%' : 'mb'
                         params.forEach(item => {
-                            content += `${item.seriesName}: ${item.data.toFixed(2)}mb<br/>`
+                            content += `${item.seriesName}: ${item.data.toFixed(2)}${unit}<br/>`
                         })
                         return content
                     }
@@ -130,6 +135,10 @@ export default {
                         // first responses might not contain relevant info
                         const memory = res.ps ?? 0
 
+                        if (this.device) {
+                            return memory
+                        }
+
                         if (this.instance?.stack?.properties?.memory) {
                             // scaling down to match stack memory allocation
                             return this.capGraph((memory / this.instance.stack.properties.memory) * 100)
@@ -154,27 +163,17 @@ export default {
             }
         },
         yAxis () {
-            if (this.instance) {
-                return [{
-                    type: 'value',
-                    position: 'right',
-                    axisLabel: {
-                        formatter: function (value) {
-                            return `${value}%`
-                        }
+            return [{
+                type: 'value',
+                position: 'right',
+                axisLabel: {
+                    formatter: (value) => {
+                        const unit = this.instance ? '%' : 'mb'
+
+                        return `${value}${unit}`
                     }
-                }]
-            } else {
-                return [{
-                    type: 'value',
-                    position: 'right',
-                    axisLabel: {
-                        formatter: function (value) {
-                            return `${value}mb`
-                        }
-                    }
-                }]
-            }
+                }
+            }]
         },
         filteredResources () {
             return this.resources.filter(res => res.ps && res.ts)
