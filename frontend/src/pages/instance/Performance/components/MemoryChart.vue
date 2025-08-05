@@ -67,7 +67,7 @@ export default {
             return {
                 tooltip: {
                     trigger: 'axis',
-                    formatter: function (params) {
+                    formatter: (params) => {
                         const timestamp = Number(params[0].axisValue)
                         const date = new Date(timestamp)
                         const formattedDate = date.toLocaleString()
