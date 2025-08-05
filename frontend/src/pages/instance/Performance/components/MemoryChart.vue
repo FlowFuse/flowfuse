@@ -160,7 +160,7 @@ export default {
                     position: 'right',
                     axisLabel: {
                         formatter: function (value) {
-                            return `${value}&`
+                            return `${value}%`
                         }
                     }
                 }]
