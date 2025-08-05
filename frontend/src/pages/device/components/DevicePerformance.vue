@@ -64,11 +64,10 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
+import CpuChart from '../../../components/charts/performance/CpuChart.vue'
+import MemoryChart from '../../../components/charts/performance/MemoryChart.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import featuresMixin from '../../../mixins/Features.js'
-
-import CpuChart from '../../instance/Performance/components/CpuChart.vue'
-import MemoryChart from '../../instance/Performance/components/MemoryChart.vue'
 
 let mqtt
 

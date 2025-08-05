@@ -17,10 +17,10 @@ import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import VChart, { THEME_KEY } from 'vue-echarts'
 
-import { debounce } from '../../../../utils/eventHandling.js'
+import { debounce } from '../../../utils/eventHandling.js'
 
 export default {
-    name: 'CpuChart',
+    name: 'MemoryChart',
     components: {
         VChart
     },
@@ -78,8 +78,9 @@ export default {
                         const formattedDate = date.toLocaleString()
 
                         let content = `${formattedDate}<br/>`
+                        const unit = this.instance ? '%' : 'mb'
                         params.forEach(item => {
-                            content += `${item.seriesName}: ${item.data.toFixed(2)}%<br/>`
+                            content += `${item.seriesName}: ${item.data.toFixed(2)}${unit}<br/>`
                         })
                         return content
                     }
@@ -132,23 +133,23 @@ export default {
         series () {
             return [
                 {
-                    name: 'CPU',
+                    name: 'Memory',
                     type: 'line',
                     stack: 'Total',
                     data: this.filteredResources.map(res => {
                         // first responses might not contain relevant info
-                        const cpu = res.cpu ?? 0
+                        const memory = res.ps ?? 0
 
                         if (this.device) {
-                            return cpu
+                            return memory
                         }
 
-                        if (this.instance?.stack?.properties?.cpu) {
-                            // scaling down to match stack cpu allocation
-                            return this.capGraph((cpu / this.instance.stack.properties.cpu) * 100)
+                        if (this.instance?.stack?.properties?.memory) {
+                            // scaling down to match stack memory allocation
+                            return this.capGraph((memory / this.instance.stack.properties.memory) * 100)
                         }
 
-                        return this.capGraph(cpu)
+                        return this.capGraph(memory)
                     })
                 }
             ]
@@ -171,14 +172,16 @@ export default {
                 type: 'value',
                 position: 'right',
                 axisLabel: {
-                    formatter: function (value) {
-                        return `${value}%`
+                    formatter: (value) => {
+                        const unit = this.instance ? '%' : 'mb'
+
+                        return `${value}${unit}`
                     }
                 }
             }]
         },
         filteredResources () {
-            return this.resources.filter(res => res.cpu && res.ts)
+            return this.resources.filter(res => res.ps && res.ts)
         }
     },
     methods: {
