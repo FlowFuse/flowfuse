@@ -130,7 +130,7 @@ export default {
             return !offline.includes(this.device.status)
         },
         agentSatisfiesVersion () {
-            return this.device && this.device.agentVersion && SemVer.satisfies(this.device.agentVersion, '>=3.5.0')
+            return this.device && this.device.agentVersion && SemVer.satisfies(this.device.agentVersion, '>=3.5.1')
         },
         featureAvailable () {
             return this.isInstanceResourcesFeatureEnabledForPlatform &&
