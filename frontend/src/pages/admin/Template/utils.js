@@ -269,6 +269,16 @@ function prepareTemplateForEdit (template) {
     })
     // `template.settings.env` has to be handled separately
 
+    // httpNodeCORS
+    const policyValue = getObjectValue(template.policy, 'httpNodeCORS')
+    if (policyValue !== undefined) {
+        result.editable.policy.httpNodeCORS = policyValue
+        result.original.policy.httpNodeCORS = policyValue
+    } else {
+        result.editable.policy.httpNodeCORS = defaultTemplatePolicy.httpNodeCORS
+        result.original.policy.httpNodeCORS = defaultTemplatePolicy.httpNodeCORS
+    }
+
     result.editable.settings.env = []
     result.original.settings.envMap = {}
     result.original.settings.env = []

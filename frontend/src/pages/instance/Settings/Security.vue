@@ -225,6 +225,18 @@ export default {
                 setTemplateValue(settings, 'httpNodeAuth_user', '')
                 setTemplateValue(settings, 'httpNodeAuth_pass', '')
             }
+            if (this.editable.settings.httpNodeCORS_enabled !== this.original.httpNodeCORS_enabled) {
+                const fields = [
+                    'httpNodeCORS_origin',
+                    'httpNodeCORS_GET',
+                    'httpNodeCORS_POST',
+                    'httpNodeCORS_PUT',
+                    'httpNodeCORS_HEAD',
+                    'httpNodeCORS_DELETE']
+                fields.forEach(field => {
+                    setTemplateValue(settings, field, this.editable.settings[field])
+                })
+            }
             await InstanceApi.updateInstance(this.project.id, { settings })
             this.$emit('instance-updated')
             // is instance running

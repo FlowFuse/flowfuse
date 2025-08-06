@@ -52,6 +52,13 @@ module.exports = {
                 if (!template || policy) {
                     setTemplateValue(result, name, value)
                 }
+                if (name.startsWith('httpNodeCORS_')) {
+                    policy = !template || getTemplateValue(template.policy, 'httpNodeCORS')
+                    if (policy === undefined) { policy = defaultTemplatePolicy.httpNodeCORS }
+                    if (!template || policy) {
+                        setTemplateValue(result, name, value)
+                    }
+                }
             }
         })
         if (settings.env) {
@@ -235,7 +242,6 @@ module.exports = {
             if (mergeEditorSettings && skipList.includes(name)) {
                 return
             }
-
             // skip if locked in target template
             if (targetTemplate) {
                 // explicit test for false to allow for things not in the policy
