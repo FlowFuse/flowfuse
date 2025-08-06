@@ -114,7 +114,6 @@ describe('Device API', async function () {
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
 
-        TestObjects.defaultTeamType = app.defaultTeamType
         TestObjects.Project1 = app.project
         TestObjects.Application1 = app.application
         TestObjects.provisioningTokens = {
@@ -1415,6 +1414,31 @@ describe('Device API', async function () {
                 liveSettings.should.have.property('security')
                 liveSettings.security.should.have.property('localAuth').and.be.an.Object()
                 liveSettings.security.localAuth.should.have.property('enabled', false)
+            })
+        })
+        describe('device certified nodes', function () {
+            before(async function () {
+                const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
+                await app.close()
+                await setupApp(license)
+            })
+            after(async function () {
+                // After this set of tests, close the app and recreate (ie remove the license)
+                await app.close()
+                await setupApp()
+            })
+            it('can handle Certified Nodes', async function () {
+                await app.settings.set('platform:certifiedNodes:npmRegistryURL', "https://localhost")
+                await app.settings.set('platform:certifiedNodes:token', 'verySecret')
+                await app.settings.set('platform:certifiedNodes:catalogueURL', "https://localhost/catalogue.json")
+                const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+
+                let liveSettings = await getLiveSettings(device)
+                liveSettings.should.have.property('palette')
+                liveSettings.palette.should.have.property('catalogues')
+                liveSettings.palette.catalogues.should.containEql('https://localhost/catalogue.json')
+                liveSettings.palette.should.have.property('npmrc')
+                liveSettings.palette.npmrc.should.equal('@flowfuse-certified-nodes:registry=https://localhost/\n//localhost:_auth="verySecret"\n')
             })
         })
 
