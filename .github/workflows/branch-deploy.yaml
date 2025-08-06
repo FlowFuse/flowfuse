@@ -229,7 +229,7 @@ jobs:
           mask-password: true
 
       - name: Login to GHCR
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -382,7 +382,7 @@ jobs:
           aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
 
       - name: Install 1Password CLI
-        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f # v1.0.0
+        uses: 1password/install-cli-action@707af61a6c8b4fa7f9476328c035208fba6b54d7 # v2.0.0
         with:
           version: 2.25.0
 
