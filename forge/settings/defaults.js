@@ -73,5 +73,5 @@ module.exports = {
     // Certified Nodes
     'platform:certifiedNodes:npmRegistryURL': null, // NPM registry URL for certified nodes
     'platform:certifiedNodes:token': null, // Token for certified nodes
-    'platform:certifiedNodes:catalogueURL': null, // Catalogue URL for certified nodes
+    'platform:certifiedNodes:catalogueURL': null // Catalogue URL for certified nodes
 }

@@ -1428,12 +1428,12 @@ describe('Device API', async function () {
                 await setupApp()
             })
             it('can handle Certified Nodes', async function () {
-                await app.settings.set('platform:certifiedNodes:npmRegistryURL', "https://localhost")
+                await app.settings.set('platform:certifiedNodes:npmRegistryURL', 'https://localhost')
                 await app.settings.set('platform:certifiedNodes:token', 'verySecret')
-                await app.settings.set('platform:certifiedNodes:catalogueURL', "https://localhost/catalogue.json")
+                await app.settings.set('platform:certifiedNodes:catalogueURL', 'https://localhost/catalogue.json')
                 const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
 
-                let liveSettings = await getLiveSettings(device)
+                const liveSettings = await getLiveSettings(device)
                 liveSettings.should.have.property('palette')
                 liveSettings.palette.should.have.property('catalogues')
                 liveSettings.palette.catalogues.should.containEql('https://localhost/catalogue.json')

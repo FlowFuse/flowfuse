@@ -329,7 +329,7 @@ module.exports = async function (app) {
             }
         }
 
-        //Platform wide catalogue and npm registry
+        // Platform wide catalogue and npm registry
         const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes') && !!teamType.getFeatureProperty('certifiedNodes', false)
         if (platformNPMEnabled) {
             const npmRegURLString = app.settings.get('platform:certifiedNodes:npmRegistryURL')
@@ -354,7 +354,7 @@ module.exports = async function (app) {
                         `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
                         `//${npmRegURL.host}:_auth="${token}"\n`
                 } else {
-                   response.palette.npmrc =
+                    response.palette.npmrc =
                         `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
                         `//${npmRegURL.host}:_auth="${token}"\n`
                 }

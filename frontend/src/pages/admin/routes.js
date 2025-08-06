@@ -3,6 +3,7 @@ import { AdjustmentsIcon } from '@heroicons/vue/outline'
 import ensureAdmin from '../../utils/ensureAdmin.js'
 
 import PlatformAuditLog from './AuditLog.vue'
+import AdminCertifiedNodes from './CertifiedNodes/index.vue'
 import AdminFlowBlueprints from './FlowBlueprints/index.vue'
 import AdminInstanceTypes from './InstanceTypes/index.vue'
 import NotificationsHub from './NotificationsHub.vue'
@@ -28,7 +29,6 @@ import AdminUsersInvitations from './Users/Invitations.vue'
 import AdminUserDetails from './Users/UserDetails.vue'
 import AdminCreateUser from './Users/createUser.vue'
 import AdminUsers from './Users/index.vue'
-import AdminCertifiedNodes from './CertifiedNodes/index.vue'
 
 import Admin from './index.vue'
 

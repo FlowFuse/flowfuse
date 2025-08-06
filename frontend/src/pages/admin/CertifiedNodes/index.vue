@@ -34,23 +34,21 @@
 import { mapActions, mapState } from 'vuex'
 
 import settingsApi from '../../../api/settings.js'
-import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import Alerts from '../../../services/alerts.js'
 
 const validSettings = [
     'platform:certifiedNodes:npmRegistryURL',
     'platform:certifiedNodes:token',
-    'platform:certifiedNodes:catalogueURL',
+    'platform:certifiedNodes:catalogueURL'
 ]
 
 export default {
     name: 'AdminCertifiedNodes',
     components: {
-        FormHeading,
         FormRow
     },
-    data() {
+    data () {
         return {
             loading: false,
             input: {},
@@ -89,8 +87,8 @@ export default {
         validate () {
             if (this.input['platform:certifiedNodes:npmRegistryURL']) {
                 try {
-                    new URL(this.input['platform:certifiedNodes:npmRegistryURL'])
-                    const url = URL.parse(this.input['platform:certifiedNodes:npmRegistryURL'])
+                    const url = new URL(this.input['platform:certifiedNodes:npmRegistryURL'])
+                    // const url = URL.parse(this.input['platform:certifiedNodes:npmRegistryURL'])
                     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
                         this.errors['platform:certifiedNodes:npmRegistryURL'] = 'Invalid URL'
                         return false
@@ -98,7 +96,6 @@ export default {
                         this.errors['platform:certifiedNodes:npmRegistryURL'] = ''
                     }
                 } catch (e) {
-                    console.log(e)
                     this.errors['platform:certifiedNodes:npmRegistryURL'] = 'Invalid URL'
                     return false
                 }
@@ -108,8 +105,8 @@ export default {
 
             if (this.input['platform:certifiedNodes:catalogueURL']) {
                 try {
-                    new URL(this.input['platform:certifiedNodes:catalogueURL'])
-                    const url = URL.parse(this.input['platform:certifiedNodes:catalogueURL'])
+                    const url = new URL(this.input['platform:certifiedNodes:catalogueURL'])
+                    // const url = URL.parse(this.input['platform:certifiedNodes:catalogueURL'])
                     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
                         this.errors['platform:certifiedNodes:catalogueURL'] = 'Invalid URL'
                         return false
@@ -117,7 +114,6 @@ export default {
                         this.errors['platform:certifiedNodes:catalogueURL'] = ''
                     }
                 } catch (e) {
-                    console.log(e)
                     this.errors['platform:certifiedNodes:catalogueURL'] = 'Invalid URL'
                     return false
                 }
@@ -125,7 +121,7 @@ export default {
                 this.errors['platform:certifiedNodes:catalogueURL'] = ''
             }
 
-            if (this.input['platform:certifiedNodes:npmRegistryURL'] && 
+            if (this.input['platform:certifiedNodes:npmRegistryURL'] &&
                 this.input['platform:certifiedNodes:catalogueURL'] &&
                 !this.input['platform:certifiedNodes:token']) {
                 this.errors['platform:certifiedNodes:token'] = 'Token is required when NPM Registry URL is set'
@@ -137,7 +133,6 @@ export default {
             return true
         },
         async saveChanges () {
-            console.log('Saving changes', this.input)
             this.loading = true
             const options = {}
             validSettings.forEach((s) => {
@@ -145,7 +140,6 @@ export default {
                     options[s] = this.input[s]
                 }
             })
-            console.log('Options to save:', options)
 
             settingsApi.updateSettings(options)
                 .then(async () => {
