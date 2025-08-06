@@ -103,7 +103,7 @@ module.exports.init = async function (app) {
             if (billableCounts.billingIds.devices.product) {
                 const deviceCount = billableCounts.devices
                 if (deviceCount > 0) {
-                    const deviceFreeAllocation = teamType.getProperty('devices.free', 0)
+                    const deviceFreeAllocation = team.getProperty('devices.free', 0)
                     const billableCount = Math.max(0, deviceCount - deviceFreeAllocation)
                     if (billableCount > 0) {
                         // We have devices to include in the subscription
@@ -263,8 +263,8 @@ module.exports.init = async function (app) {
             }
             const instanceCounts = await team.getBillableInstanceCountByType()
             const deviceCount = await team.deviceCount()
-            let deviceFreeAllocation = 0
-            const deviceCombinedFreeAllocationType = await teamType.getProperty('devices.combinedFreeType', null)
+            const deviceCombinedFreeAllocationType = await team.getProperty('devices.combinedFreeType', null)
+            let deviceFreeAllocation = await team.getProperty('devices.free', null)
 
             const instanceTypes = await app.db.models.ProjectType.findAll()
             const billableCounts = {}
@@ -274,14 +274,12 @@ module.exports.init = async function (app) {
             for (const instanceType of instanceTypes) {
                 billingIds[instanceType.hashid] = await teamType.getInstanceBillingIds(instanceType)
                 const count = instanceCounts[instanceType.hashid] || 0
-                const freeAllowance = await teamType.getInstanceTypeProperty(instanceType, 'free', 0)
+                const freeAllowance = await team.getInstanceTypeProperty(instanceType, 'free', 0)
                 billableCounts[instanceType.hashid] = Math.max(0, count - freeAllowance)
                 remainingFreeAllowance[instanceType.hashid] = Math.max(0, freeAllowance - count)
             }
-            if (deviceCombinedFreeAllocationType) {
+            if (deviceFreeAllocation === null && deviceCombinedFreeAllocationType) {
                 deviceFreeAllocation = remainingFreeAllowance[deviceCombinedFreeAllocationType] || 0
-            } else {
-                deviceFreeAllocation = await teamType.getProperty('devices.free', 0)
             }
             const deviceBillableCount = Math.max(0, deviceCount - deviceFreeAllocation)
             billingIds.devices = await teamType.getDeviceBillingIds()
