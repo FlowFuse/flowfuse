@@ -114,6 +114,7 @@ describe('Device API', async function () {
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
 
+        TestObjects.defaultTeamType = app.defaultTeamType
         TestObjects.Project1 = app.project
         TestObjects.Application1 = app.application
         TestObjects.provisioningTokens = {

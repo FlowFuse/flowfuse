@@ -70,6 +70,13 @@ module.exports = async function (config = {}) {
     defaultTeamTypeProperties.instances = {
         [projectType.hashid]: { active: true }
     }
+    if (defaultTeamTypeProperties.features) {
+        defaultTeamTypeProperties.features.certifiedNodes = true
+    } else {
+        defaultTeamTypeProperties.features = {
+            certifiedNodes: true
+        }
+    }
     forge.defaultTeamType.properties = defaultTeamTypeProperties
     await forge.defaultTeamType.save()
 
