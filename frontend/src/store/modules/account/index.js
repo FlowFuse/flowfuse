@@ -200,6 +200,9 @@ const getters = {
             isPrivateRegistryFeatureEnabledForPlatform: !!state.features?.npm,
             isPrivateRegistryFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.npm,
 
+            // Certified Nodes
+            isCertifiedNodesFeatureEnabledForPlatform: !!state.features?.certifiedNodes,
+
             // Static Assets
             isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
             isStaticAssetsFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.staticAssets,

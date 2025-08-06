@@ -28,6 +28,7 @@ import AdminUsersInvitations from './Users/Invitations.vue'
 import AdminUserDetails from './Users/UserDetails.vue'
 import AdminCreateUser from './Users/createUser.vue'
 import AdminUsers from './Users/index.vue'
+import AdminCertifiedNodes from './CertifiedNodes/index.vue'
 
 import Admin from './index.vue'
 
@@ -211,6 +212,14 @@ export default [
                 component: NotificationsHub,
                 meta: {
                     title: 'Admin - Notifications Hub'
+                }
+            },
+            {
+                name: 'admin-certified-nodes',
+                path: 'certified-nodes',
+                component: AdminCertifiedNodes,
+                meta: {
+                    title: 'Admin - Certified Nodes'
                 }
             }
         ]

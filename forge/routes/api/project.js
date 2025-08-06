@@ -895,6 +895,35 @@ module.exports = async function (app) {
             }
         }
 
+        //Platform wide catalogue and npm registry
+        const platfomrNPMEnabled = app.config.features.enabled('certifiedNodes') && teamType.getFeatureProperty('certifiedNodes', false)
+        if (platfomrNPMEnabled) {
+            const npmRegURLString = app.settings.get('platform:certifiedNodes:npmRegistryURL')
+            const token = app.settings.get('platform:certifiedNodes:token')
+            const catalogueString = app.settings.get('platform:certifiedNodes:catalogueURL')
+            if (npmRegURLString && token && catalogueString) {
+                const npmRegURL = new URL(npmRegURLString)
+                const catalogue = new URL(catalogueString)
+                if (settings.settings?.palette?.catalogue) {
+                    settings.settings.palette.catalogue
+                        .push(catalogue.toString())
+                } else {
+                    settings.settings.palette.catalogue = [
+                        catalogue.toString()
+                    ]
+                }
+                if (settings.settings?.palette?.npmrc) {
+                    settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
+                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `//${npmRegURL.host}:_auth="${token}"\n`
+                } else {
+                    settings.settings.palette.npmrc =
+                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `//${npmRegURL.host}:_auth="${token}"\n`
+                }
+            }
+        }
+
         if (app.config.features.enabled('staticAssets') && teamType.getFeatureProperty('staticAssets', false)) {
             const sharingConfig = await request.project.getSetting(KEY_SHARED_ASSETS) || {}
             // Stored as object with path->config. Need to transform to an array of settings
