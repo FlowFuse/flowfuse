@@ -149,6 +149,9 @@ const templateValidators = {
             if (url.pathname !== '/') {
                 return 'host and port only'
             }
+            if (!['http:', 'https:'].includes(url.protocol)){
+                return 'http or https urls only'
+            }
         } catch (err) {
             return 'Must be a valid URL'
         }
