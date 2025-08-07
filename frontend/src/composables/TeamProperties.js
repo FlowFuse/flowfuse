@@ -23,10 +23,8 @@ function getProperty (properties, key) {
 export function getTeamProperty (team, property, defaultValue) {
     const teamValue = getProperty(team.properties, property)
     if (teamValue === undefined) {
-        // console.log('getTeamProperty - TYPE', property, getProperty(team.type.properties, property) ?? defaultValue)
         // No value found in team properties. Check the TeamType properties
         return getProperty(team.type.properties, property) ?? defaultValue
     }
-    // console.log('getTeamProperty - TEAM', property, teamValue)
     return teamValue
 }
