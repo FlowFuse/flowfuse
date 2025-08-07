@@ -2892,4 +2892,59 @@ describe('Project API', function () {
             response.json().should.have.property('code', 'unauthorized')
         })
     })
+
+    describe('Set a project\'s state', async function () {
+        let testProject
+        before(async function () {
+            testProject = await createInstance(false)
+        })
+
+        it('should return 401 if ownerType is not "project"', async () => {
+            // Mocking session
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${testProject.id}/update-state`,
+                payload: { state: 'running' },
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+
+            response.statusCode.should.equal(401)
+            response.json().should.have.property('code', 'unauthorized')
+        })
+
+        it('should return 400 if "state" param is missing', async () => {
+            const newAccessToken = (await testProject.refreshAuthTokens()).token
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${testProject.id}/update-state`,
+                payload: { },
+                headers: {
+                    'Content-Type': 'application/json',
+                    authorization: `Bearer ${newAccessToken}`
+                }
+            })
+
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'FST_ERR_VALIDATION')
+        })
+
+        it('should return 202 on a valid request', async () => {
+            const newAccessToken = (await testProject.refreshAuthTokens()).token
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${testProject.id}/update-state`,
+                payload: { state: 'running' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    authorization: `Bearer ${newAccessToken}`
+                }
+            })
+
+            response.statusCode.should.equal(202)
+        })
+    })
 })
