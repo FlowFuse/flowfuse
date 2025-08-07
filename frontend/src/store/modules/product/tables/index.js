@@ -1,10 +1,21 @@
 import tablesApi from '../../../../api/tables.js'
-
+const emptyColumn = {
+    name: '',
+    type: '',
+    nullable: false,
+    default: '',
+    hasDefault: false,
+    unsigned: false
+}
 const initialState = () => ({
     databases: {},
     databaseSelection: null,
     tables: {},
-    tableSelection: null
+    tableSelection: null,
+    newTable: {
+        name: '',
+        columns: [{ ...emptyColumn }]
+    }
 })
 
 const meta = {
@@ -12,6 +23,9 @@ const meta = {
         databases: {
             storage: 'localStorage'
             // clearOnLogout: true (cleared by default)
+        },
+        newTable: {
+            storage: 'localStorage'
         }
     }
 }
@@ -74,6 +88,12 @@ const mutations = {
                 state.tables[databaseId][key].data = data
             }
         })
+    },
+    removeNewTableColumn (state, columnKey) {
+        state.newTable.columns.splice(columnKey, 1)
+    },
+    addNewTableColumn (state) {
+        state.newTable.columns.push({ ...emptyColumn })
     }
 }
 const actions = {
@@ -130,11 +150,23 @@ const actions = {
                 commit('setTableData', { databaseId, tableName, data })
             })
     },
-    createTable ({ commit }, { teamId, databaseId, tableName, columns }) {
-        return tablesApi.createTable(teamId, databaseId, { name: tableName, columns })
+    createTable ({ commit, state, rootState }, { databaseId }) {
+        const team = rootState.account?.team
+        const sanitizedColumns = state.newTable.columns.map(col => {
+            if (!col.hasDefault) delete col.default
+            if (!col.unsigned) delete col.unsigned
+            return col
+        })
+        return tablesApi.createTable(team.id, databaseId, { name: state.newTable.name, columns: sanitizedColumns })
     },
     deleteTable ({ commit }, { teamId, databaseId, tableName }) {
         return tablesApi.deleteTable(teamId, databaseId, tableName)
+    },
+    removeNewTableColumn ({ commit }, columnKey) {
+        commit('removeNewTableColumn', columnKey)
+    },
+    addNewTableColumn ({ commit }) {
+        commit('addNewTableColumn')
     }
 }
 

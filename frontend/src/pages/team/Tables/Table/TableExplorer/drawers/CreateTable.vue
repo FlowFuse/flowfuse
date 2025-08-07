@@ -13,7 +13,7 @@
             <div class="section table-name">
                 <h3>Define name</h3>
                 <ff-text-input
-                    v-model="tableName"
+                    v-model="newTable.name"
                     placeholder="Your table's new name"
                     type="string"
                     :error="errors.name"
@@ -34,14 +34,14 @@
                     <!-- <span class="col-span-1 title -ml-2">Unsigned</span>-->
                 </div>
                 <ul class="columns">
-                    <li v-for="(column, $key) in columns" :key="$key">
-                        <table-column :column="column" @remove="removeColumn($key)" />
+                    <li v-for="(column, $key) in newTable.columns" :key="$key">
+                        <table-column :column="column" @remove="removeNewTableColumn($key)" />
                     </li>
                 </ul>
                 <div v-if="errors.columns" data-el="form-row-error" class="ml-4 text-red-400 text-xs text-center p-5">
                     {{ errors.columns }}
                 </div>
-                <ff-button type="button" kind="secondary" class="w-full" @click="onNewColumn">Add a new column</ff-button>
+                <ff-button type="button" kind="secondary" class="w-full" @click="addNewTableColumn">Add a new column</ff-button>
             </div>
         </div>
     </div>
@@ -49,77 +49,54 @@
 
 <script>
 import { defineComponent } from 'vue'
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import TableColumn from './components/TableColumn.vue'
-const emptyColumn = {
-    name: '',
-    type: '',
-    nullable: false,
-    default: '',
-    hasDefault: false,
-    unsigned: false
-}
-
 export default defineComponent({
     name: 'CreateTable',
     components: { TableColumn },
     data () {
         return {
-            columns: [{ ...emptyColumn }],
-            tableName: '',
             errors: { }
         }
     },
     computed: {
         ...mapGetters('account', ['team']),
-        areColumnsValid () {
-            return !this.columns.map(col => {
-                if (col._errors_ === true) return true
-                return !col.name || !col.type
-            }).includes(true)
-        },
-
+        ...mapState('product/tables', ['newTable']),
         hasErrors () {
             return Object.keys(this.errors).length > 0
         }
     },
     watch: {
-        columns: {
+        'newTable.columns': {
             deep: true,
             handler: 'validateForm'
         }
     },
     methods: {
         ...mapActions('ux', ['closeRightDrawer']),
-        ...mapActions('product/tables', ['createTable', 'getTables']),
-        onNewColumn () {
-            this.columns.push({ ...emptyColumn })
-        },
-        removeColumn (key) {
-            this.columns.splice(key, 1)
-        },
+        ...mapActions('product/tables', ['createTable', 'getTables', 'addNewTableColumn', 'removeNewTableColumn']),
         validateForm () {
-            const columnsHaveDuplicateNames = new Set(this.columns.map(col => col.name)).size !== this.columns.length
+            const columnsHaveDuplicateNames = new Set(this.newTable.columns.map(col => col.name)).size !== this.newTable.columns.length
 
             // PostgreSQL identifiers:
             // - max 63 bytes (can be less than 63 characters if multibyte)
             // - must begin with a letter or underscore
             // - can contain letters, digits, and underscores
-            if (typeof this.tableName !== 'string') {
+            if (typeof this.newTable.name !== 'string') {
                 this.errors.name = 'The table name must be a string.'
-            } else if (this.tableName.length === 0) {
+            } else if (this.newTable.name.length === 0) {
                 this.errors.name = 'A table name is mandatory.'
-            } else if (this.tableName.length > 63) {
+            } else if (this.newTable.name.length > 63) {
                 this.errors.name = 'The table name must not exceed 63 characters.'
-            } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(this.tableName)) {
+            } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(this.newTable.name)) {
                 this.errors.name = 'No spaces allowed, must start with a letter or underscore, and only use letters, digits, or underscores.'
             } else {
                 this.errors.name = null
             }
 
             // Handle errors associated to column definitions
-            if (this.columns.length === 0) {
+            if (this.newTable.columns.length === 0) {
                 this.errors.columns = 'The table must have at least one column.'
             } else if (columnsHaveDuplicateNames) {
                 this.errors.columns = 'Columns must have different names.'
@@ -128,17 +105,8 @@ export default defineComponent({
             }
         },
         submit () {
-            const sanitizedColumns = this.columns.map(col => {
-                if (!col.hasDefault) delete col.default
-                if (!col.unsigned) delete col.unsigned
-                return col
-            })
-
             return this.createTable({
-                teamId: this.team.id,
-                databaseId: this.$route.params.id,
-                tableName: this.tableName,
-                columns: sanitizedColumns
+                databaseId: this.$route.params.id
             })
                 .then(() => this.getTables(this.$route.params.id))
                 .then(() => this.closeRightDrawer())
