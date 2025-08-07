@@ -31,7 +31,16 @@ describe('Device Performance', function () {
         })
         await login('bob', 'bbPassword')
 
-        await app.team.addUser(userBob, { through : { role: Roles.Owner }})
+        const userChris = await app.factory.createUser({
+            username: 'chris',
+            name: 'Chris',
+            email: 'chris@example.com',
+            password: 'ccPassword'
+        })
+        await login('chris', 'ccPassword')
+
+        await app.team.addUser(userBob, { through: { role: Roles.Owner } })
+        await app.team.addUser(userChris, { through: { role: Roles.Dashboard } })
     })
 
     after(async function () {
@@ -60,5 +69,14 @@ describe('Device Performance', function () {
         result.should.have.property('password')
         result.should.have.property('url')
         result.should.have.property('username')
+    })
+
+    it('fail to get broker credentials', async function () {
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/devices/${app.device.hashid}/resources`,
+            cookies: { sid: TestObjects.tokens.chris }
+        })
+        response.statusCode.should.equal(403)
     })
 })
