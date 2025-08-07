@@ -49,7 +49,7 @@
                 </div>
                 <LockSetting v-model="editable.policy.httpNodeCORS" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeCORS" />
             </div>
-            <div class="flex flex-col gap-3 ml-5" v-if="editable.settings.httpNodeCORS_enabled">
+            <div v-if="editable.settings.httpNodeCORS_enabled" class="flex flex-col gap-3 ml-5">
                 <div class="flex flex-col sm:flex-row">
                     <div class="w-full sm:mr-8">
                         <FormRow v-model="editable.settings.httpNodeCORS_origin" :disabled="!editTemplate && !editable.policy.httpNodeCORS" :error="editable.errors.httpNodeCORS_origin" :type="(editTemplate||editable.policy.httpNodeCORS)?'text':'uneditable'">
@@ -63,7 +63,7 @@
                 </div>
 
                 <div class="flex flex-row">
-                    <div class="flex flex-col"> 
+                    <div class="flex flex-col">
                         <div class="flex flex-col sm:flex-row">
                             <div class="w-full sm:mr-8">
                                 <FormRow v-model="editable.settings.httpNodeCORS_GET" type="checkbox" :disabled="!editTemplate && !editable.policy.httpNodeCORS">

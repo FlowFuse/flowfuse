@@ -149,7 +149,7 @@ const templateValidators = {
             if (url.pathname !== '/') {
                 return 'host and port only'
             }
-            if (!['http:', 'https:'].includes(url.protocol)){
+            if (!['http:', 'https:'].includes(url.protocol)) {
                 return 'http or https urls only'
             }
         } catch (err) {
