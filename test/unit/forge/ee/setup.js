@@ -75,6 +75,10 @@ async function setup (config = {}) {
     defaultTeamTypeProperties.instances = {
         [projectType.hashid]: { active: true }
     }
+    defaultTeamTypeProperties.features = {
+        ...defaultTeamTypeProperties.features,
+        instanceResources: true
+    }
     forge.defaultTeamType.properties = defaultTeamTypeProperties
     await forge.defaultTeamType.save()
 

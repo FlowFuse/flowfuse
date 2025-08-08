@@ -1,6 +1,6 @@
 <template>
     <div class="chart-wrapper">
-        <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize @datazoom="onDataZoom" />
+        <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize :loading="loading" @datazoom="onDataZoom" />
     </div>
 </template>
 
@@ -17,7 +17,7 @@ import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import VChart, { THEME_KEY } from 'vue-echarts'
 
-import { debounce } from '../../../../utils/eventHandling.js'
+import { debounce } from '../../../utils/eventHandling.js'
 
 export default {
     name: 'MemoryChart',
@@ -34,8 +34,18 @@ export default {
         },
         instance: {
             type: Object,
-            required: true
-
+            default: null,
+            required: false
+        },
+        device: {
+            type: Object,
+            default: null,
+            required: false
+        },
+        loading: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     setup () {
@@ -62,14 +72,15 @@ export default {
             return {
                 tooltip: {
                     trigger: 'axis',
-                    formatter: function (params) {
+                    formatter: (params) => {
                         const timestamp = Number(params[0].axisValue)
                         const date = new Date(timestamp)
                         const formattedDate = date.toLocaleString()
 
                         let content = `${formattedDate}<br/>`
+                        const unit = this.instance ? '%' : 'mb'
                         params.forEach(item => {
-                            content += `${item.seriesName}: ${item.data.toFixed(2)}%<br/>`
+                            content += `${item.seriesName}: ${item.data.toFixed(2)}${unit}<br/>`
                         })
                         return content
                     }
@@ -129,7 +140,11 @@ export default {
                         // first responses might not contain relevant info
                         const memory = res.ps ?? 0
 
-                        if (this.instance.stack?.properties?.memory) {
+                        if (this.device) {
+                            return memory
+                        }
+
+                        if (this.instance?.stack?.properties?.memory) {
                             // scaling down to match stack memory allocation
                             return this.capGraph((memory / this.instance.stack.properties.memory) * 100)
                         }
@@ -157,8 +172,10 @@ export default {
                 type: 'value',
                 position: 'right',
                 axisLabel: {
-                    formatter: function (value) {
-                        return `${value}%`
+                    formatter: (value) => {
+                        const unit = this.instance ? '%' : 'mb'
+
+                        return `${value}${unit}`
                     }
                 }
             }]

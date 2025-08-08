@@ -72,6 +72,21 @@ class CommsClient extends EventEmitter {
                                 })
                             }
                         }
+                    } else if (messageType === 'resources') {
+                        if (topicParts[6] && topicParts[6] === 'heartbeat') {
+                            const payload = message.toString()
+                            if (payload === 'alive') {
+                                // track frontends
+                                this.emit('resources/heartbeat', {
+                                    id: `${topicParts[2]}:${ownerId}`,
+                                    timestamp: Date.now()
+                                })
+                            } else if (payload === 'leaving') {
+                                this.emit('resources/disconnect', {
+                                    id: `${topicParts[2]}:${ownerId}`
+                                })
+                            }
+                        }
                     } else if (messageType === 'response') {
                         const response = {
                             id: ownerId,
@@ -89,7 +104,9 @@ class CommsClient extends EventEmitter {
                 // Device response - not shared subscription
                 'ff/v1/+/d/+/response/' + this.platformId,
                 // Device logs heartbeat
-                'ff/v1/+/d/+/logs/heartbeat'
+                'ff/v1/+/d/+/logs/heartbeat',
+                // Device response heartbeat
+                'ff/v1/+/d/+/resources/heartbeat'
             ])
         }
     }
