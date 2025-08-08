@@ -23,12 +23,17 @@
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"
                             :label="teamType.name" :description="teamType.description"
-                            :price="billingEnabled ? teamType.billingPrice : ''"
-                            :price-interval="billingEnabled ? teamType.billingInterval : ''"
+                            :price="billingEnabled ? (!isAnnualBilling ? teamType.billingPrice : teamType.annualBillingPrice) : ''"
+                            :price-interval="billingEnabled ? (!isAnnualBilling ? teamType.billingInterval : teamType.annualBillingInterval) : ''"
                             :value="teamType.id"
-                            :disabled="isUnmanaged"
+                            :disabled="isUnmanaged || (isAnnualBilling && !teamType.annualBillingPrice && !teamType.properties?.billing?.requireContact)"
                         />
                     </ff-tile-selection>
+                </div>
+                <div v-if="billingEnabled && annualBillingAvailable" class="text-sm font-medium text-gray-400 flex items-center gap-2">
+                    <span :class="{'text-gray-800': !isAnnualBilling }">Monthly</span>
+                    <ff-toggle-switch v-model="isAnnualBilling" />
+                    <span :class="{'text-gray-800': isAnnualBilling }">Yearly</span>
                 </div>
                 <div>
                     <template v-if="upgradeErrors.length > 0">
@@ -52,7 +57,7 @@
                     </template>
                     <div class="flex gap-x-4">
                         <template v-if="!isContactRequired">
-                            <ff-button v-if="!billingEnabled || billingDisabledForSelectedTeamType" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
+                            <ff-button v-if="!billingEnabled || !billingMissing" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
                                 Change team type
                             </ff-button>
                             <ff-button v-else :disabled="!formValid" data-action="setup-team-billing" @click="setupBilling()">
@@ -115,7 +120,9 @@ export default {
             input: {
                 teamTypeId: '',
                 teamType: null
-            }
+            },
+            annualBillingAvailable: false,
+            isAnnualBilling: false
         }
     },
     computed: {
@@ -267,6 +274,13 @@ export default {
         }).sort((a, b) => a.order - b.order)
         this.input.teamTypeId = this.team.type.id
 
+        this.teamTypes.forEach(tt => {
+            // Check if *any* team type has annual billing available
+            if (tt.annualBillingPrice) {
+                this.annualBillingAvailable = true
+            }
+        })
+
         const instanceTypes = (await instanceTypesApi.getInstanceTypes()).types
         instanceTypes.forEach(instanceType => {
             this.instanceTypes[instanceType.id] = instanceType
@@ -283,6 +297,12 @@ export default {
             const opts = {
                 type: this.input.teamTypeId
             }
+            if (this.billingEnabled) {
+                opts.billing = {
+                    interval: this.isAnnualBilling ? 'year' : 'month'
+                }
+            }
+
             teamApi.updateTeam(this.team.id, opts).then(async result => {
                 await this.$store.dispatch('account/refreshTeams')
                 await this.$store.dispatch('account/refreshTeam')
@@ -303,7 +323,8 @@ export default {
         setupBilling: async function () {
             this.loading = true
             try {
-                const response = await billingApi.createSubscription(this.team.id, this.input.teamTypeId)
+                const billingInterval = this.isAnnualBilling ? 'year' : 'month'
+                const response = await billingApi.createSubscription(this.team.id, this.input.teamTypeId, billingInterval)
                 window.open(response.billingURL, '_self')
             } catch (err) {
                 Alerts.emit('Something went wrong with the request. Please try again or contact support for help.', 'info', 15000)

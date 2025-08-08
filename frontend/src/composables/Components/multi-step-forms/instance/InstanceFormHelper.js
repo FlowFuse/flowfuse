@@ -63,7 +63,12 @@ export function useInstanceFormHelper () {
                 if (!instanceType.disabled && !_store.state.account.team.billing?.unmanaged) {
                     let billingDescription
                     const teamTypeFreeCount = getTeamProperty(_store.state.account.team, `instances.${instanceType.id}.free`)
-                    const teamTypeDescription = getTeamProperty(_store.state.account.team, `instances.${instanceType.id}.description`)
+                    // Get the right description based on the billing interval
+                    let descriptionKey = 'description'
+                    if (_store.state.account.team.billing?.interval === 'year') {
+                        descriptionKey = 'yrDescription'
+                    }
+                    const teamTypeDescription = getTeamProperty(_store.state.account.team, `instances.${instanceType.id}.${descriptionKey}`)
                     if (teamTypeDescription) {
                     // TeamType provides metadata to use - do not fall back to instanceType
                         if (existingInstanceCount >= (teamTypeFreeCount || 0)) {

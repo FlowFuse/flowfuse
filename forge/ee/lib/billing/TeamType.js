@@ -41,6 +41,7 @@ module.exports = function (app) {
         }
         const result = {
             price: this.getProperty('billing.priceId', defaults.price),
+            yrPrice: this.getProperty('billing.yrPriceId'),
             product: this.getProperty('billing.productId', defaults.product)
         }
         const trialProduct = this.getProperty('trial.productId')
@@ -66,6 +67,7 @@ module.exports = function (app) {
         }
         return {
             price: this.getProperty('devices.priceId', defaults.price),
+            yrPrice: this.getProperty('devices.yrPriceId'),
             product: this.getProperty('devices.productId', defaults.product)
         }
     }
@@ -86,6 +88,7 @@ module.exports = function (app) {
         }
         return {
             price: this.getInstanceTypeProperty(instanceType, 'priceId', defaults.price),
+            yrPrice: this.getInstanceTypeProperty(instanceType, 'yrPriceId'),
             product: this.getInstanceTypeProperty(instanceType, 'productId', defaults.product)
         }
     }

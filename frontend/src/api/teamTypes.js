@@ -18,24 +18,29 @@ const getTeamTypes = async (cursor, limit, filter) => {
         url += qs
     }
     return client.get(url).then(res => {
-        res.data.types = res.data.types.map(pt => {
-            pt.value = pt.id
-            pt.label = pt.name
-            pt.htmlDescription = marked.parse(pt.description || '')
+        res.data.types = res.data.types.map(teamType => {
+            teamType.value = teamType.id
+            teamType.label = teamType.name
+            teamType.htmlDescription = marked.parse(teamType.description || '')
             // TeamType is considered 'free' if:
             // - no billing settings
             // - billing is explicitly disabled
             // - billing.description is blank or equal 'free'
-            pt.isFree = pt.properties?.billing?.disabled || !pt.properties?.billing?.description || pt.properties?.billing?.description === 'free'
-            if (!pt.isFree) {
-                const [price, interval] = pt.properties?.billing?.description.split('/')
-                pt.billingPrice = price
-                pt.billingInterval = interval
+            teamType.isFree = teamType.properties?.billing?.disabled || !teamType.properties?.billing?.description || teamType.properties?.billing?.description === 'free'
+            if (!teamType.isFree) {
+                const [price, interval] = teamType.properties?.billing?.description.split('/')
+                teamType.billingPrice = price
+                teamType.billingInterval = interval
+                if (teamType.properties?.billing?.yrDescription) {
+                    const [annualPrice, annualInterval] = teamType.properties.billing.yrDescription.split('/')
+                    teamType.annualBillingPrice = annualPrice
+                    teamType.annualBillingInterval = annualInterval
+                }
             } else {
-                pt.billingPrice = 'free'
-                pt.billingInterval = ''
+                teamType.billingPrice = 'free'
+                teamType.billingInterval = ''
             }
-            return pt
+            return teamType
         })
         return res.data
     })
