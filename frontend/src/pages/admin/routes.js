@@ -3,6 +3,7 @@ import { AdjustmentsIcon } from '@heroicons/vue/outline'
 import ensureAdmin from '../../utils/ensureAdmin.js'
 
 import PlatformAuditLog from './AuditLog.vue'
+import AdminCertifiedNodes from './CertifiedNodes/index.vue'
 import AdminFlowBlueprints from './FlowBlueprints/index.vue'
 import AdminInstanceTypes from './InstanceTypes/index.vue'
 import NotificationsHub from './NotificationsHub.vue'
@@ -211,6 +212,14 @@ export default [
                 component: NotificationsHub,
                 meta: {
                     title: 'Admin - Notifications Hub'
+                }
+            },
+            {
+                name: 'admin-certified-nodes',
+                path: 'certified-nodes',
+                component: AdminCertifiedNodes,
+                meta: {
+                    title: 'Admin - Certified Nodes'
                 }
             }
         ]
