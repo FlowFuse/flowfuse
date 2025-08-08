@@ -251,8 +251,10 @@ const iconMap = {
         'team.package.unpublished'
     ],
     tables: [
-        'team.database.create',
-        'team.database.delete'
+        'team.database.created',
+        'team.database.deleted',
+        'team.database.table.created',
+        'team.database.table.deleted'
     ]
 }
 
@@ -313,7 +315,8 @@ export default {
         ExclamationIcon,
         TicketIcon,
         InformationCircleIcon,
-        PuzzleIcon
+        PuzzleIcon,
+        DatabaseIcon
     }
 }
 </script>
