@@ -25,8 +25,8 @@ module.exports = function (env, argv) {
         output: {
             path: getPath('frontend/dist/app'),
             publicPath: '/app/',
-            assetModuleFilename: './assets/[hash][ext][query]',
-            filename: '[name].[contenthash].js',
+            assetModuleFilename: './assets/[hash][ext]',
+            filename: '[name].js',
             clean: true
         },
         module: {
@@ -137,7 +137,9 @@ module.exports = function (env, argv) {
             new DotenvPlugin(),
             new DefinePlugin({
                 __VUE_OPTIONS_API__: true,
-                __VUE_PROD_DEVTOOLS__: argv?.mode === 'development'
+                __VUE_PROD_DEVTOOLS__: argv?.mode === 'development',
+                __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: argv?.mode === 'development',
+                'process.env.hotReloading': argv?.mode === 'development' && process.env.NODE_RUN_HOT === 'hot'
             })
         ],
         optimization: {
@@ -160,9 +162,57 @@ module.exports = function (env, argv) {
                 }
             }
         },
+        stats: {
+            all: undefined,
+            errors: true,
+            warnings: false // hide all warnings
+        },
         devServer: {
-            port: 3000,
-            historyApiFallback: true
+            port: 8080,
+            historyApiFallback: true,
+            static: {
+                directory: getPath('frontend/dist')
+            },
+            compress: true,
+            hot: true,
+            liveReload: false,
+            devMiddleware: {
+                writeToDisk: true
+            },
+            proxy: [
+                {
+                    context: ['/api/v1'],
+                    target: 'http://localhost:3000',
+                    changeOrigin: true
+                },
+                {
+                    context: ['/account/'],
+                    target: 'http://localhost:3000',
+                    changeOrigin: true
+                },
+                {
+                    context: ['/storage'],
+                    target: 'http://localhost:3000',
+                    changeOrigin: true
+                },
+                {
+                    context: ['/ee/billing'],
+                    target: 'http://localhost:3000',
+                    changeOrigin: true
+                },
+                {
+                    context: ['/api'],
+                    target: 'https://registry.npmjs.com',
+                    changeOrigin: true,
+                    pathRewrite: (path, req) => path.replace(/^\/api/, '')
+                },
+                {
+                    context: ['/api/**/projects/**/resources/stream'],
+                    target: 'ws://localhost:3000',
+                    ws: true,
+                    changeOrigin: true
+                }
+            ]
         },
         resolve: {
             alias: {

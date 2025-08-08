@@ -20,6 +20,7 @@
                 <ff-layout-platform>
                     <LicenseBanner />
                     <router-view />
+                    <h1>asd</h1>
                 </ff-layout-platform>
             </template>
             <template v-else-if="pageLayout === 'modal'">
