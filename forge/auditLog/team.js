@@ -214,18 +214,16 @@ module.exports = {
                 },
                 async deleted (actionedBy, error, team, database) {
                     const body = generateBody({ error, team, database })
-                    await log('team.database.deleted', actionedBy, team?.id)
+                    await log('team.database.deleted', actionedBy, team?.id, body)
                 }
             },
             table: {
                 async created (actionedBy, error, team, database, table) {
                     const body = generateBody({ error, team, database, table })
-                    console.log(body)
                     await log('team.database.table.created', actionedBy, team?.id, body)
                 },
                 async deleted (actionedBy, error, team, database, table) {
                     const body = generateBody({ error, team, database, table })
-                    console.log(body)
                     await log('team.database.table.deleted', actionedBy, team?.id, body)
                 }
             }

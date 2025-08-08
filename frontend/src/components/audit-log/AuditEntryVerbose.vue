@@ -154,12 +154,12 @@
     <!-- Team Tables Events-->
     <template v-else-if="entry.event === 'team.database.created'">
         <label>Database Created</label>
-        <span v-if="!error && entry.body">Database name: '{{entry.body.database}}'</span>
+        <span v-if="!error && entry.body">Database name: '{{ entry.body.database }}'</span>
     </template>
 
     <template v-else-if="entry.event === 'team.database.deleted'">
         <label>Database Deleted</label>
-        <span v-if="!error && entry.body">Database name: '{{entry.body.database}}'</span>
+        <span v-if="!error && entry.body">Database name: '{{ entry.body.database }}'</span>
     </template>
 
     <template v-else-if="entry.event === 'team.database.table.created'">
