@@ -181,22 +181,7 @@ module.exports = function (env, argv) {
             },
             proxy: [
                 {
-                    context: ['/api/v1'],
-                    target: 'http://localhost:3000',
-                    changeOrigin: true
-                },
-                {
-                    context: ['/account/'],
-                    target: 'http://localhost:3000',
-                    changeOrigin: true
-                },
-                {
-                    context: ['/storage'],
-                    target: 'http://localhost:3000',
-                    changeOrigin: true
-                },
-                {
-                    context: ['/ee/billing'],
+                    context: ['/api/v1', '/account/', '/storage', '/ee/billing'],
                     target: 'http://localhost:3000',
                     changeOrigin: true
                 },
@@ -204,7 +189,7 @@ module.exports = function (env, argv) {
                     context: ['/api'],
                     target: 'https://registry.npmjs.com',
                     changeOrigin: true,
-                    pathRewrite: (path, req) => path.replace(/^\/api/, '')
+                    pathRewrite: { '^/api': '' }
                 },
                 {
                     context: ['/api/**/projects/**/resources/stream'],
