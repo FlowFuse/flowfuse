@@ -1,8 +1,11 @@
 module.exports = {
-    createSubscription: async function (app, team, subscription, customer) {
+    createSubscription: async function (app, team, subscription, customer, interval) {
         // Check to see if there is an existing subscription for this team.
         const existingSub = await team.getSubscription()
         if (existingSub) {
+            // Nick: we need to revisit this path and what scenarios could lead to the team already having a subscription,
+            // but we come back to update it with new Stripe details. This has a potential issue if the current subscription
+            // is active, but it's going to be overwritten with a new one - leaving the team with two active subscriptions.
             existingSub.customer = customer
             existingSub.subscription = subscription
             if (existingSub.status === app.db.models.Subscription.STATUS.TRIAL) {
@@ -10,6 +13,7 @@ module.exports = {
                 existingSub.trialStatus = app.db.models.Subscription.TRIAL_STATUS.ENDED
             }
             existingSub.status = app.db.models.Subscription.STATUS.ACTIVE
+            existingSub.interval = interval || 'month' // Default to monthly if not specified
             await existingSub.save()
 
             // This *could* be a trial team that has devices in it. In which case,
@@ -20,7 +24,8 @@ module.exports = {
             // Create the subscription
             const newSubscription = await app.db.models.Subscription.create({
                 customer,
-                subscription
+                subscription,
+                interval
             })
             await newSubscription.setTeam(team)
 
