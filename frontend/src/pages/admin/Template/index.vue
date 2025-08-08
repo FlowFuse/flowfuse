@@ -151,6 +151,9 @@ export default {
                             }
                         }
                     })
+                    // httpNodeCORS
+                    this.editable.changed.policy.httpNodeCORS = this.editable.policy.httpNodeCORS !== this.original.policy.httpNodeCORS
+                    changed = changed || this.editable.changed.policy.httpNodeCORS
 
                     let envChanged = false
                     let originalCount = 0
@@ -249,6 +252,8 @@ export default {
                 this.editable.changed.policy[field] = false
                 this.editable.policy[field] = this.original.policy[field]
             })
+            this.editable.changed.policy.httpNodeCORS = false
+            this.editable.policy.httpNodeCORS = this.original.policy.httpNodeCORS
             this.editable.settings.env = this.original.settings.env.map(f => Object.assign({}, f))
             this.editable.errors = {}
         },
