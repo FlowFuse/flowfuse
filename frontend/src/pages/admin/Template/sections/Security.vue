@@ -37,7 +37,7 @@
                 </div>
             </template>
         </template>
-        <template v-if="!device">
+        <template v-if="corsAvailable">
             <FormHeading>HTTP Node CORS</FormHeading>
             <div class="flex flex-col sm:flex-row sm:ml-4">
                 <div class="space-y-4 w-full max-w-md sm:mr-8">
@@ -126,6 +126,24 @@
                 </div>
             </div>
         </template>
+        <template v-else-if="!device && !corsAvailable && instance">
+            <FormHeading>HTTP Node CORS</FormHeading>
+            <FeatureUnavailable>
+                <template #default>
+                    <p class="flex gap-3 items-center">This requires latest version of the Node-RED, please <ff-button size="small" to="../general?highlight=updateStack">Update</ff-button></p>
+                </template>
+            </FeatureUnavailable>
+            <div class="flex flex-col sm:flex-row sm:ml-4">
+                <div class="space-y-4 w-full max-w-md sm:mr-8">
+                    <FormRow v-model="editable.settings.httpNodeCORS_enabled" type="checkbox" :disabled="true">
+                        Enable CORS handling
+                        <template #description>Select How resources can be shared with other hosts</template>
+                        <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_enabled" /></template>
+                    </FormRow>
+                </div>
+                <LockSetting v-model="editable.policy.httpNodeCORS" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeCORS" />
+            </div>
+        </template>
         <FormHeading>HTTP Node Security</FormHeading>
         <div class="flex flex-col sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
@@ -167,6 +185,7 @@ import semver from 'semver'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
@@ -178,6 +197,7 @@ export default {
         FormHeading,
         LockSetting,
         ChangeIndicator,
+        FeatureUnavailable,
         FeatureUnavailableToTeam
     },
     props: {
@@ -194,6 +214,10 @@ export default {
             default: null
         },
         device: {
+            type: Object,
+            default: null
+        },
+        instance: {
             type: Object,
             default: null
         }
@@ -226,6 +250,23 @@ export default {
                 return false
             }
             return semver.gte(this.device.agentVersion, '3.2.0')
+        },
+        corsAvailable () {
+            if (this.device) {
+                return false
+            }
+
+            // template
+            if (!this.instance) {
+                return true
+            } else {
+                const launcherVersion = this.instance.meta?.versions?.launcher
+                if (launcherVersion) {
+                    return semver.gte(launcherVersion, '2.21.0')
+                } else {
+                    return false
+                }
+            }
         },
         authOptions1 () {
             return [

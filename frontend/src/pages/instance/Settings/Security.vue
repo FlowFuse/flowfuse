@@ -1,6 +1,6 @@
 <template>
     <form class="space-y-6">
-        <TemplateSettingsSecurity v-model="editable" :editTemplate="false" :team="team" />
+        <TemplateSettingsSecurity v-model="editable" :editTemplate="false" :instance="project" :team="team" />
         <div v-if="!!settings.features.httpBearerTokens && editable.settings.httpNodeAuth_type === 'flowforge-user'">
             <FormHeading>HTTP Node Bearer Tokens</FormHeading>
             <div v-if="projectLauncherCompatible">
