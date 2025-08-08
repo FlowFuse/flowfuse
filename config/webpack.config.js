@@ -14,10 +14,11 @@ require('dotenv').config()
 function getPath (file) {
     return path.resolve(__dirname, '..', file)
 }
-
 module.exports = function (env, argv) {
+    const isProd = argv.mode === 'production'
+
     const config = {
-        devtool: process.env.mode === 'production' ? 'hidden-source-map' : 'source-map',
+        devtool: isProd ? 'hidden-source-map' : 'source-map',
         entry: {
             main: getPath('frontend/src/main.js'),
             setup: getPath('frontend/src/setup.js')
@@ -25,8 +26,8 @@ module.exports = function (env, argv) {
         output: {
             path: getPath('frontend/dist/app'),
             publicPath: '/app/',
-            assetModuleFilename: './assets/[hash][ext]',
-            filename: '[name].js',
+            assetModuleFilename: isProd ? './assets/[hash][ext][query]' : './assets/[name][ext]',
+            filename: isProd ? '[name].[contenthash].js' : '[name].js',
             clean: true
         },
         module: {
@@ -47,7 +48,7 @@ module.exports = function (env, argv) {
                     include: getPath('frontend/src'),
                     use: [
                         {
-                            loader: MiniCssExtractPlugin.loader,
+                            loader: isProd ? MiniCssExtractPlugin.loader : 'style-loader',
                             options: {}
                         },
                         {
@@ -63,7 +64,8 @@ module.exports = function (env, argv) {
                             }
                         }
                     ]
-                }, {
+                },
+                {
                     test: /\.css$/i,
                     exclude: getPath('frontend/src'),
                     use: [
@@ -76,7 +78,8 @@ module.exports = function (env, argv) {
                             options: { importLoaders: 1 }
                         }
                     ]
-                }, {
+                },
+                {
                     test: /\.scss$/,
                     use: [
                         'style-loader',
@@ -123,9 +126,7 @@ module.exports = function (env, argv) {
                 filename: getPath('frontend/dist-setup/setup.html'),
                 chunks: ['setup']
             }),
-            new MiniCssExtractPlugin({
-                filename: '[name].[contenthash].css'
-            }),
+            ...(isProd ? [new MiniCssExtractPlugin({ filename: '[name].[contenthash].css' })] : []),
             new CopyPlugin({
                 patterns: [
                     { from: getPath('frontend/public'), to: '..' }
@@ -137,11 +138,12 @@ module.exports = function (env, argv) {
             new DotenvPlugin(),
             new DefinePlugin({
                 __VUE_OPTIONS_API__: true,
-                __VUE_PROD_DEVTOOLS__: argv?.mode === 'development',
-                __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: argv?.mode === 'development',
-                'process.env.hotReloading': argv?.mode === 'development' && process.env.NODE_RUN_HOT === 'hot'
+                __VUE_PROD_DEVTOOLS__: !isProd,
+                __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: !isProd,
+                'process.env.hotReloading': !isProd && process.env.NODE_RUN_HOT === 'hot'
             })
         ],
+        cache: { type: 'filesystem' },
         optimization: {
             moduleIds: 'deterministic',
             runtimeChunk: 'single',
@@ -168,6 +170,10 @@ module.exports = function (env, argv) {
             warnings: false // hide all warnings
         },
         devServer: {
+            client: {
+                overlay: { errors: true, warnings: false },
+                logging: 'error'
+            },
             port: 8080,
             historyApiFallback: true,
             static: {
