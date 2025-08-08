@@ -206,6 +206,29 @@ module.exports = {
             }
         }
 
+        const tables = {
+            database: {
+                async created (actionedBy, error, team, database) {
+                    const body = generateBody({ error, team, database })
+                    await log('team.database.created', actionedBy, team?.id, body)
+                },
+                async deleted (actionedBy, error, team, database) {
+                    const body = generateBody({ error, team, database })
+                    await log('team.database.deleted', actionedBy, team?.id, body)
+                }
+            },
+            table: {
+                async created (actionedBy, error, team, database, table) {
+                    const body = generateBody({ error, team, database, table })
+                    await log('team.database.table.created', actionedBy, team?.id, body)
+                },
+                async deleted (actionedBy, error, team, database, table) {
+                    const body = generateBody({ error, team, database, table })
+                    await log('team.database.table.deleted', actionedBy, team?.id, body)
+                }
+            }
+        }
+
         const log = async (event, actionedBy, teamId, body) => {
             try {
                 const trigger = triggerObject(actionedBy)
@@ -223,7 +246,8 @@ module.exports = {
             team,
             application,
             project,
-            billing
+            billing,
+            tables
         }
     }
 }
