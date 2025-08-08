@@ -52,7 +52,7 @@
                     </template>
                     <div class="flex gap-x-4">
                         <template v-if="!isContactRequired">
-                            <ff-button v-if="!billingEnabled || billingDisabledForSelectedTeamType" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
+                            <ff-button v-if="!billingEnabled || !billingMissing" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
                                 Change team type
                             </ff-button>
                             <ff-button v-else :disabled="!formValid" data-action="setup-team-billing" @click="setupBilling()">
