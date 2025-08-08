@@ -8,7 +8,7 @@
             <div class="flex flex-col gap-5">
                 <div class="flex justify-between items-center text-2xl">
                     <label class="font-medium">{{ teamType.name }}</label>
-                    <span v-if="pricing?.value">
+                    <span v-if="pricing?.value && pricing.value.trim() !== ''">
                         {{ pricing.value }} <span class="text-xs">/{{ pricing.interval }}</span>
                     </span>
                 </div>
@@ -16,7 +16,7 @@
             </div>
         </div>
         <template v-if="enableCTA">
-            <ff-button v-if="isTrial(teamType)" kind="primary" class="w-full mt-4" :to="`/team/create?teamType=${teamType.id}`">
+            <ff-button v-if="isTrial(teamType)" kind="primary" class="w-full mt-4" :to="`/team/create?teamType=${teamType.id}` + (billingInterval === 'year' ? '&interval=year' : '')">
                 Start Free Trial
             </ff-button>
             <ff-button v-else-if="isManualBilling(teamType)" kind="secondary" class="w-full mt-4" @click="contactFF(teamType)">
@@ -45,12 +45,17 @@ export default {
         enableCTA: {
             type: Boolean,
             default: true
+        },
+        billingInterval: {
+            type: String,
+            default: 'month'
         }
     },
     computed: {
         ...mapState('account', ['user', 'teams']),
         pricing: function () {
-            const billing = this.teamType.properties?.billing?.description?.split('/')
+            const billingDescriptionKey = this.billingInterval === 'year' ? 'yrDescription' : 'description'
+            const billing = this.teamType.properties?.billing?.[billingDescriptionKey]?.split('/')
             const price = {}
             if (typeof billing !== 'undefined') {
                 price.value = billing[0]

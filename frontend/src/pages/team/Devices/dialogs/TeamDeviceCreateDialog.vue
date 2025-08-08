@@ -128,15 +128,21 @@ export default {
                 freeAllocation <= deviceCount // no remaining free allocation
         },
         deviceBillingInformation () {
-            if (this.deviceIsBillable && getTeamProperty(this.team, 'devices.description')) {
-                const [price, priceInterval] = getTeamProperty(this.team, 'devices.description').split('/')
-                const currency = price.replace(/[\d.]+/, '')
-                const cost = (Number(price.replace(/[^\d.]+/, '')) || 0) * 100
-                return {
-                    name: 'Remote Instance',
-                    currency,
-                    cost,
-                    priceInterval
+            if (this.deviceIsBillable) {
+                let descriptionKey = 'devices.description'
+                if (this.team.billing?.interval === 'year') {
+                    descriptionKey = 'devices.yrDescription'
+                }
+                if (getTeamProperty(this.team, descriptionKey)) {
+                    const [price, priceInterval] = getTeamProperty(this.team, descriptionKey).split('/')
+                    const currency = price.replace(/[\d.]+/, '')
+                    const cost = (Number(price.replace(/[^\d.]+/, '')) || 0) * 100
+                    return {
+                        name: 'Remote Instance',
+                        currency,
+                        cost,
+                        priceInterval
+                    }
                 }
             }
             return null
