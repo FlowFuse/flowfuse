@@ -67,6 +67,7 @@ module.exports = async function (app) {
             result.billing = {}
             const subscription = await team.getSubscription()
             if (subscription) {
+                result.billing.interval = subscription.interval
                 result.billing.active = subscription.isActive()
                 result.billing.unmanaged = subscription.isUnmanaged()
                 result.billing.canceled = subscription.isCanceled()
