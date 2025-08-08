@@ -49,6 +49,7 @@ import devicesApi from '../../../../api/devices.js'
 import teamApi from '../../../../api/team.js'
 
 import FormRow from '../../../../components/FormRow.vue'
+import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 import formatCurrency from '../../../../mixins/Currency.js'
 import alerts from '../../../../services/alerts.js'
 
@@ -115,20 +116,20 @@ export default {
     computed: {
         ...mapState('account', ['features', 'team']),
         deviceIsBillable () {
-            let freeAllocation = this.team.type.properties.devices.free || 0
+            let freeAllocation = getTeamProperty(this.team, 'devices.free') || 0
             let deviceCount = this.teamDeviceCount
-            if (this.team.type.properties.devices?.combinedFreeType) {
-                deviceCount += this.team.instanceCountByType?.[this.team.type.properties.devices.combinedFreeType] || 0
-                freeAllocation = this.team.type.properties.instances[this.team.type.properties.devices.combinedFreeType]?.free || 0
+            if (getTeamProperty(this.team, 'devices.combinedFreeType')) {
+                deviceCount += this.team.instanceCountByType?.[getTeamProperty(this.team, 'devices.combinedFreeType')] || 0
+                freeAllocation = getTeamProperty(this.team, `instances.${getTeamProperty(this.team, 'devices.combinedFreeType')}.free`) || 0
             }
             return this.features.billing && // billing enabled
                 !this.team.billing?.unmanaged &&
-                this.team.type.properties.devices?.description && // >0 per device cost
+                getTeamProperty(this.team, 'devices.description') && // >0 per device cost
                 freeAllocation <= deviceCount // no remaining free allocation
         },
         deviceBillingInformation () {
-            if (this.deviceIsBillable && this.team.type.properties.devices?.description) {
-                const [price, priceInterval] = this.team.type.properties.devices?.description.split('/')
+            if (this.deviceIsBillable && getTeamProperty(this.team, 'devices.description')) {
+                const [price, priceInterval] = getTeamProperty(this.team, 'devices.description').split('/')
                 const currency = price.replace(/[\d.]+/, '')
                 const cost = (Number(price.replace(/[^\d.]+/, '')) || 0) * 100
                 return {

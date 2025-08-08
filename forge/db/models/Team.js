@@ -14,7 +14,17 @@ module.exports = {
         name: { type: DataTypes.STRING, allowNull: false, validate: { not: /:\/\// } },
         slug: { type: DataTypes.STRING, unique: true, validate: { is: /^[a-z0-9-_]+$/i } },
         suspended: { type: DataTypes.BOOLEAN, defaultValue: false },
-        avatar: { type: DataTypes.STRING }
+        avatar: { type: DataTypes.STRING },
+        properties: {
+            type: DataTypes.TEXT,
+            set (value) {
+                this.setDataValue('properties', JSON.stringify(value))
+            },
+            get () {
+                const rawValue = this.getDataValue('properties') || '{}'
+                return JSON.parse(rawValue)
+            }
+        }
     },
     hooks: function (M, app) {
         return {
@@ -394,6 +404,47 @@ module.exports = {
                 deviceCount: async function () {
                     return await M.Device.count({ where: { TeamId: this.id } })
                 },
+                getProperty: function (key, defaultValue) {
+                    let teamValue
+                    if (this.properties) {
+                        const parts = key.split('.')
+                        let props = this.properties
+                        while (parts.length > 0) {
+                            const k = parts.shift()
+                            if (Object.hasOwn(props, k)) {
+                                if (parts.length > 0) {
+                                    props = props[k]
+                                } else {
+                                    teamValue = props[k]
+                                    break
+                                }
+                            } else {
+                                break
+                            }
+                        }
+                    }
+                    // No team override found, default to the TeamType property
+                    if (teamValue === undefined) {
+                        return this.TeamType.getProperty(key, defaultValue)
+                    }
+                    return teamValue
+                },
+                getInstanceTypeProperty: function (instanceType, property, defaultValue) {
+                    // instanceType can be:
+                    // - number (raw id)
+                    // - string (a hashid)
+                    // - a full ProjectType object
+                    // We need the hashid as that is what is used as the key in the
+                    // properties object
+                    if (typeof instanceType === 'number') {
+                        // Raw id
+                        instanceType = M.ProjectType.encodeHashid(instanceType)
+                    } else if (instanceType.hashid) {
+                        // Full ProjectType object
+                        instanceType = instanceType.hashid
+                    }
+                    return this.getProperty(`instances.${instanceType}.${property}`, defaultValue)
+                },
                 /**
                  * Many functions require this.TeamType to exist and be fully populated.
                  * Depending on the route taken, it is possible this property has not
@@ -409,15 +460,15 @@ module.exports = {
                 },
                 getUserLimit: async function () {
                     await this.ensureTeamTypeExists()
-                    return this.TeamType.getProperty('users.limit', -1)
+                    return this.getProperty('users.limit', -1)
                 },
                 getRuntimeLimit: async function () {
                     await this.ensureTeamTypeExists()
-                    return this.TeamType.getProperty('runtimes.limit', -1)
+                    return this.getProperty('runtimes.limit', -1)
                 },
                 getDeviceLimit: async function () {
                     await this.ensureTeamTypeExists()
-                    return this.TeamType.getProperty('devices.limit', -1)
+                    return this.getProperty('devices.limit', -1)
                 },
                 checkDeviceCreateAllowed: async function () {
                     if (this.suspended) {
@@ -456,19 +507,19 @@ module.exports = {
                 },
                 isInstanceTypeAvailable: async function (instanceType) {
                     await this.ensureTeamTypeExists()
-                    return this.TeamType.getInstanceTypeProperty(instanceType, 'active', false)
+                    return this.getInstanceTypeProperty(instanceType, 'active', false)
                 },
                 isInstanceTypeCreatable: async function (instanceType) {
                     await this.ensureTeamTypeExists()
                     // Defaults to true unless explicit disabled
-                    return this.TeamType.getInstanceTypeProperty(instanceType, 'creatable', true)
+                    return this.getInstanceTypeProperty(instanceType, 'creatable', true)
                 },
                 getInstanceTypeLimit: async function (instanceType) {
                     await this.ensureTeamTypeExists()
                     if (!await this.isInstanceTypeAvailable(instanceType)) {
                         return 0
                     }
-                    return this.TeamType.getInstanceTypeProperty(instanceType, 'limit', -1)
+                    return this.getInstanceTypeProperty(instanceType, 'limit', -1)
                 },
                 /**
                  * Checks if this team is allowed to create a new instance of the

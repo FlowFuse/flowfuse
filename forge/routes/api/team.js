@@ -693,7 +693,8 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     slug: { type: 'string' },
                     type: { type: 'string' },
-                    suspended: { type: 'boolean' }
+                    suspended: { type: 'boolean' },
+                    properties: { type: 'object' }
                 }
             },
             response: {
@@ -771,6 +772,23 @@ module.exports = async function (app) {
                     reply.send(app.db.views.Team.team(request.team))
                     return
                 }
+            } else if (Object.hasOwn(request.body, 'properties')) {
+                if (!request.session.User.admin) {
+                    reply.code(403).send({ code: 'forbidden', error: 'Team properties can only be updated by admins' })
+                    return
+                }
+                updates = new app.auditLog.formatters.UpdatesCollection()
+                try {
+                    const oldProps = {}
+                    const newProps = {}
+                    oldProps.properties = typeof request.team.properties === 'string' ? JSON.parse(request.team.properties) : request.team.properties
+                    newProps.properties = typeof request.body.properties === 'string' ? JSON.parse(request.body.properties) : request.body.properties
+                    updates.pushDifferences(oldProps, newProps)
+                } catch (_error) {
+                // Ignore
+                }
+                request.team.properties = request.body.properties || {}
+                await request.team.save()
             } else {
                 updates = new app.auditLog.formatters.UpdatesCollection()
                 if (request.body.name) {
@@ -787,7 +805,10 @@ module.exports = async function (app) {
                 }
                 await request.team.save()
             }
-            auditLogFunc(request.session.User, null, request.team, updates)
+            // Only log if something changes
+            if (updates.length > 0) {
+                auditLogFunc(request.session.User, null, request.team, updates)
+            }
             reply.send(app.db.views.Team.team(request.team))
         } catch (err) {
             auditLogFunc(request.session.User, err, request.team, updates)

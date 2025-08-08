@@ -250,6 +250,7 @@ import AssetDetailDialog from '../../../components/dialogs/AssetDetailDialog.vue
 import BlueprintSelectorDialog from '../../../components/dialogs/BlueprintSelectorDialog.vue'
 
 import ProjectIcon from '../../../components/icons/Projects.js'
+import { getTeamProperty } from '../../../composables/TeamProperties.js'
 
 import NameGenerator from '../../../utils/name-generator/index.js'
 
@@ -444,10 +445,10 @@ export default {
             )
         },
         teamRuntimeLimitReached () {
-            let teamTypeRuntimeLimit = this.team.type.properties?.runtimes?.limit
+            let teamTypeRuntimeLimit = getTeamProperty(this.team, 'runtimes.limit')
             const currentRuntimeCount = this.team.deviceCount + this.team.instanceCount
-            if (this.team.billing?.trial && !this.team.billing?.active && this.team.type.properties?.trial?.runtimesLimit) {
-                teamTypeRuntimeLimit = this.team.type.properties?.trial?.runtimesLimit
+            if (this.team.billing?.trial && !this.team.billing?.active && getTeamProperty('trial.runtimesLimit')) {
+                teamTypeRuntimeLimit = getTeamProperty(this.team, 'trial.runtimesLimit')
             }
             return (teamTypeRuntimeLimit > 0 && currentRuntimeCount >= teamTypeRuntimeLimit)
         },
@@ -526,21 +527,23 @@ export default {
         projectTypes.forEach(pt => {
             // Need to combine the projectType billing info with any overrides
             // from the current teamType
-            const teamTypeInstanceProperties = this.team.type.properties.instances[pt.id]
+            const teamTypeInstanceActive = getTeamProperty(this.team, `instances.${pt.id}.active`)
             const existingInstanceCount = this.team.instanceCountByType?.[pt.id] || 0
             if (this.teamRuntimeLimitReached) {
                 // The overall limit has been reached
                 pt.disabled = true
-            } else if (teamTypeInstanceProperties) {
-                if (!teamTypeInstanceProperties.active) {
+            } else if (teamTypeInstanceActive !== undefined) {
+                const teamTypeInstanceCreatable = getTeamProperty(this.team, `instances.${pt.id}.creatable`)
+                const teamTypeInstanceLimit = getTeamProperty(this.team, `instances.${pt.id}.limit`)
+                if (!teamTypeInstanceActive) {
                     // This instanceType is disabled for this teamType
                     pt.disabled = true
-                } else if (teamTypeInstanceProperties.creatable === false) {
+                } else if (teamTypeInstanceCreatable === false) {
                     // Type is active (it can exist), but not creatable (not allowed to create more) for this team type.
                     // This can happen follow a change of TeamType where different instance types are available.
                     // This check treats undefined as true for backwards compatibility
                     pt.disabled = true
-                } else if (teamTypeInstanceProperties.limit !== null && teamTypeInstanceProperties.limit <= existingInstanceCount) {
+                } else if (teamTypeInstanceLimit !== null && teamTypeInstanceLimit <= existingInstanceCount) {
                     // This team has reached the limit of this instance type
                     pt.disabled = true
                 }
@@ -551,7 +554,7 @@ export default {
         })
 
         if (this.billingEnabled) {
-            if (!this.team.billing?.unmanaged && !this.team.type.properties?.billing?.disabled) {
+            if (!this.team.billing?.unmanaged && !getTeamProperty(this.team, 'billing.disabled')) {
                 try {
                     this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
                 } catch (err) {
@@ -568,9 +571,9 @@ export default {
             projectTypes.forEach(pt => {
                 // Need to combine the projectType billing info with any overrides
                 // from the current teamType
-                const teamTypeInstanceProperties = this.team.type.properties.instances[pt.id]
+                const teamTypeInstanceProperties = getTeamProperty(this.team, `instances.${pt.id}`)
                 let existingInstanceCount = this.team.instanceCountByType?.[pt.id] || 0
-                if (this.team.type.properties.devices?.combinedFreeType === pt.id) {
+                if (getTeamProperty(this.team, 'devices.combinedFreeType') === pt.id) {
                     // Need to include device count as they use a combined free allocation
                     existingInstanceCount += this.team.deviceCount
                 }
@@ -582,8 +585,8 @@ export default {
                     let billingDescription
                     if (teamTypeInstanceProperties) {
                         // TeamType provides meta data to use - do not fall back to instanceType
-                        if (existingInstanceCount >= (teamTypeInstanceProperties.free || 0)) {
-                            billingDescription = teamTypeInstanceProperties.description
+                        if (existingInstanceCount >= (getTeamProperty(this.team, `instances.${pt.id}.free`) || 0)) {
+                            billingDescription = getTeamProperty(this.team, `instances.${pt.id}.description`)
                         } else {
                             // This team is still within its free allowance so clear
                             // the billingDescription
@@ -602,8 +605,8 @@ export default {
                         pt.cost = 0
                     }
                     if (this.team.billing?.trial) {
-                        if (this.team.type.properties?.trial?.instanceType) {
-                            const isTrialProjectType = pt.id === this.team.type.properties?.trial?.instanceType
+                        if (getTeamProperty(this.team, 'trial.instanceType')) {
+                            const isTrialProjectType = pt.id === getTeamProperty(this.team, 'trial.instanceType')
                             if (!this.team.billing?.active) {
                                 // No active billing - only allow the trial instance type
                                 pt.disabled = !isTrialProjectType
@@ -680,7 +683,7 @@ export default {
         if (this.team.billing?.canceled ||
             !this.team.billing?.trial ||
             this.team.billing?.trialEnded ||
-            (this.team.type.properties?.trial?.instanceType && this.team.instanceCount > 0)
+            (getTeamProperty(this.team, 'trial.instanceType') && this.team.instanceCount > 0)
         ) {
             this.$router.push({
                 path: `/team/${this.team.slug}/billing`

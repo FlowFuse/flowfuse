@@ -103,6 +103,7 @@ import templatesApi from '../../../../api/templates.js'
 import {
     useInstanceFormHelper
 } from '../../../../composables/Components/multi-step-forms/instance/InstanceFormHelper.js'
+import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 
 import ExportInstanceComponents from '../../../../pages/instance/components/ExportImportComponents.vue'
 import InstanceChargesTable from '../../../../pages/instance/components/InstanceChargesTable.vue'
@@ -231,7 +232,7 @@ export default {
             this.instanceTypes = decorateInstanceTypes(instanceTypes.types ?? [])
         },
         async getSubscription () {
-            if (this.features?.billing && !this.team?.billing?.unmanaged && !this.team?.type.properties?.billing?.disabled) {
+            if (this.features?.billing && !this.team?.billing?.unmanaged && !getTeamProperty(this.team, 'billing.disabled')) {
                 try {
                     this.subscription = await billingApi.getSubscriptionInfo(this.team?.id)
                 } catch (err) {
