@@ -304,6 +304,7 @@ describe('Project Template controller', function () {
                             origin: '*',
                             GET: true,
                             POST: true,
+                            PATCH: true,
                             PUT: true,
                             DELETE: false,
                             HEAD: true
@@ -318,6 +319,7 @@ describe('Project Template controller', function () {
                             origin: 'foo',
                             GET: true,
                             POST: true,
+                            PATCH: true,
                             PUT: true,
                             DELETE: false,
                             HEAD: true
@@ -332,6 +334,7 @@ describe('Project Template controller', function () {
                             origin: 'http://example.com',
                             GET: true,
                             POST: true,
+                            PATCH: true,
                             PUT: true,
                             DELETE: false,
                             HEAD: true
@@ -346,6 +349,7 @@ describe('Project Template controller', function () {
                             origin: 'wss://example.com',
                             GET: true,
                             POST: true,
+                            PATCH: true,
                             PUT: true,
                             DELETE: false,
                             HEAD: true
@@ -360,6 +364,7 @@ describe('Project Template controller', function () {
                             origin: 'http://example.com/bar',
                             GET: true,
                             POST: true,
+                            PATCH: true,
                             PUT: true,
                             DELETE: false,
                             HEAD: true

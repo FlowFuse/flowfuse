@@ -233,7 +233,7 @@ module.exports = {
             }
             const keys = Object.keys(result.httpNodeCORS)
             keys.splice(keys.indexOf('origin'), 1)
-            const valid = ['GET', 'POST', 'PUT', 'HEAD', 'DELETE']
+            const valid = ['GET', 'POST', 'PUT', 'PATCH', 'HEAD', 'DELETE']
             valid.forEach(method => {
                 if (keys.includes(method)) {
                     if (typeof result.httpNodeCORS[method] !== 'boolean') {

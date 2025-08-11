@@ -38,6 +38,7 @@ module.exports = {
         'httpNodeCORS_GET',
         'httpNodeCORS_POST',
         'httpNodeCORS_PUT',
+        'httpNodeCORS_PATCH',
         'httpNodeCORS_HEAD',
         'httpNodeCORS_DELETE'
     ],
@@ -83,6 +84,7 @@ module.exports = {
         httpNodeCORS_GET: true,
         httpNodeCORS_POST: true,
         httpNodeCORS_PUT: true,
+        httpNodeCORS_PATCH: true,
         httpNodeCORS_HEAD: true,
         httpNodeCORS_DELETE: true
     },

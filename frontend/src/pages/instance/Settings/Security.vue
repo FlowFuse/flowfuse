@@ -231,6 +231,7 @@ export default {
                     'httpNodeCORS_GET',
                     'httpNodeCORS_POST',
                     'httpNodeCORS_PUT',
+                    'httpNodeCORS_PATCH',
                     'httpNodeCORS_HEAD',
                     'httpNodeCORS_DELETE']
                 fields.forEach(field => {

@@ -91,7 +91,7 @@
                                 <FormRow v-model="editable.settings.httpNodeCORS_PUT" type="checkbox" :disabled="!editTemplate && !editable.policy.httpNodeCORS">
                                     PUT
                                     <template #description>
-                                        Allow UT requests
+                                        Allow PUT requests
                                     </template>
                                     <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_PUT" /></template>
                                 </FormRow>
@@ -100,6 +100,17 @@
                     </div>
 
                     <div class="flex flex-col">
+                        <div class="flex flex-col sm:flex-row">
+                            <div class="w-full sm:mr-8">
+                                <FormRow v-model="editable.settings.httpNodeCORS_PATCH" type="checkbox" :disabled="!editTemplate && !editable.policy.httpNodeCORS">
+                                    PATCH
+                                    <template #description>
+                                        Allow PATCH requests
+                                    </template>
+                                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_PATCH" /></template>
+                                </FormRow>
+                            </div>
+                        </div>
                         <div class="flex flex-col sm:flex-row">
                             <div class="w-full sm:mr-8">
                                 <FormRow v-model="editable.settings.httpNodeCORS_HEAD" type="checkbox" :disabled="!editTemplate && !editable.policy.httpNodeCORS">
