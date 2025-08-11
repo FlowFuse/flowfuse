@@ -329,6 +329,8 @@ module.exports = {
                             column += `DEFAULT ${parseFloat(column.default)}`
                         } else if (col.type === 'boolean') {
                             column += `DEFAULT ${column.default === 'true'}`
+                        } else if (col.type === 'timestamptz') {
+                            column += 'DEFAULT NOW()'
                         }
                     }
                     if (i + 1 !== columns.length) {
