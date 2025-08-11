@@ -189,6 +189,16 @@
             </FormRow>
         </template>
 
+        <template v-if="ssoEnabled">
+            <FormHeading>Direct SSO</FormHeading>
+            <FormRow v-model="input['platform:sso:direct']" type="checkbox" data-el="direct-sso">
+                Show buttons on Login page to jump directly to a SAML SSO provider
+                <template #description>
+                    Allows bypassing email matching for SAML SSO logins
+                </template>
+            </FormRow>
+        </template>
+
         <div class="pt-8">
             <ff-button :disabled="!saveEnabled" data-action="save-settings" @click="saveChanges">Save settings</ff-button>
         </div>
@@ -227,7 +237,8 @@ const validSettings = [
     'branding:account:signUpLeftBanner',
     'platform:stats:token',
     'platform:sso:google',
-    'platform:sso:google:clientId'
+    'platform:sso:google:clientId',
+    'platform:sso:direct'
 ]
 
 export default {
