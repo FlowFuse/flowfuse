@@ -2,10 +2,15 @@
     <ff-accordion class="max-w-full w-full broker-client">
         <template #label>
             <div class="username text-left flex">
-                <text-copier :text="client.username + '@' + team.id" confirmation-type="alert" @click.prevent.stop>
-                    <span :title="client.username + '@' + team.id" class="title-wrapper">
-                        <span class="mt-1 font-bold">{{ client.username }}</span>
-                        <span class="italic mt-1">@{{ team.id }}</span>
+                <text-copier :text="username" confirmation-type="alert" @click.prevent.stop>
+                    <span :title="username" class="title-wrapper">
+                        <template v-if="!client.owner">
+                            <span class="mt-1 font-bold">{{ client.username }}</span>
+                            <span class="italic mt-1">@{{ team.id }}</span>
+                        </template>
+                        <span v-else class="mt-1 font-bold">
+                            {{ username }}
+                        </span>
                     </span>
                 </text-copier>
             </div>
@@ -13,8 +18,12 @@
                 <span>{{ client.acls.length }} Rule{{ client.acls.length > 1 ? 's' : '' }}</span>
             </div>
             <div class="rules text-left">
-                <span v-if="client.owner">{{ client.owner.name || client.owner.id }}</span>
-                <span v-else><i>Floating</i></span>
+                <template v-if="client.owner?.instanceType === 'device'">
+                    <router-link class="flex content-center" :to="{ name: 'Device', params: { id:client.owner.id } }"><ChipIcon class="!ml-0 ff-icon relative invisible lg:visible " /></router-link>
+                </template>
+                <template v-else-if="client.owner?.instanceType === 'instance'">
+                    <router-link class="flex content-center" :to="{ name: 'Instance', params: { id:client.owner.id } }"><ProjectsIcon class="!ml-0 ff-icon relative invisible lg:visible" /></router-link>
+                </template>
             </div>
         </template>
         <template #meta>
@@ -50,11 +59,13 @@
 </template>
 
 <script>
-import { PencilIcon, TrashIcon } from '@heroicons/vue/outline'
+import { ChipIcon, PencilIcon, TrashIcon } from '@heroicons/vue/outline'
+
 import { mapState } from 'vuex'
 
 import FfAccordion from '../../../../../components/Accordion.vue'
 import TextCopier from '../../../../../components/TextCopier.vue'
+import ProjectsIcon from '../../../../../components/icons/Projects.js'
 import usePermissions from '../../../../../composables/Permissions.js'
 import { Roles } from '../../../../../utils/roles.js'
 
@@ -64,6 +75,8 @@ export default {
     name: 'BrokerClient',
     components: {
         BrokerAclRule,
+        ChipIcon,
+        ProjectsIcon,
         TextCopier,
         PencilIcon,
         FfAccordion,
@@ -87,6 +100,12 @@ export default {
         ...mapState('account', ['team']),
         Roles () {
             return Roles
+        },
+        username () {
+            if (this.client.owner) {
+                return this.client.owner.name || this.client.owner.id
+            }
+            return `${this.client.username}@${this.team.id}`
         }
     }
 }
