@@ -683,6 +683,7 @@ describe('Audit Log > Team', async function () {
             logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
             logEntry.should.have.property('body').and.be.an.Object()
             logEntry.body.should.only.have.keys('team', 'database')
+            logEntry.database.should.only.have.keys('name').and.be.a.String()
         })
         it('Delete Database', async function () {
             await teamLogger.tables.database.deleted(ACTIONED_BY, null, TEAM, 'DB1')
@@ -691,6 +692,7 @@ describe('Audit Log > Team', async function () {
             logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
             logEntry.should.have.property('body').and.be.an.Object()
             logEntry.body.should.only.have.keys('team', 'database')
+            logEntry.database.should.only.have.keys('name').and.be.a.String()
         })
         it('Create Table', async function () {
             await teamLogger.tables.table.created(ACTIONED_BY, null, TEAM, 'DB1', 'TABLE1')
@@ -698,6 +700,8 @@ describe('Audit Log > Team', async function () {
             logEntry.should.have.property('event', 'team.database.table.created')
             logEntry.should.have.property('body').and.be.an.Object()
             logEntry.body.should.only.have.keys('team', 'database', 'table')
+            logEntry.database.should.only.have.keys('name').and.be.a.String()            
+            logEntry.table.should.only.have.keys('name').and.be.a.String()
         })
         it('Delete Table', async function () {
             await teamLogger.tables.table.deleted(ACTIONED_BY, null, TEAM, 'DB1', 'TABLE1')
@@ -706,6 +710,8 @@ describe('Audit Log > Team', async function () {
             logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
             logEntry.should.have.property('body').and.be.an.Object()
             logEntry.body.should.only.have.keys('team', 'database', 'table')
+            logEntry.database.should.only.have.keys('name').and.be.a.String()            
+            logEntry.table.should.only.have.keys('name').and.be.a.String()
         })
     })
 })
