@@ -10,7 +10,7 @@
         @cancel="clearData"
     >
         <template #default>
-            <div class="mb-5">
+            <div v-if="isEditing && !isOwned" class="mb-5">
                 <FormRow
                     v-model="input.username"
                     :error="errors.username"
@@ -105,6 +105,7 @@ export default {
             },
             showEdit (client) {
                 this.isEditing = true
+                this.isOwned = !!client.owner
                 this.username = client.username
                 this.input = {
                     username: client.username,
@@ -127,6 +128,7 @@ export default {
     data () {
         return {
             isEditing: false,
+            isOwned: false,
             username: '',
             input: {
                 username: '',
