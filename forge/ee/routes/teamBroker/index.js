@@ -1,5 +1,3 @@
-const { generatePassword } = require('../../../lib/userTeam')
-
 const schemaApi = require('./schema')
 
 module.exports = async function (app) {
@@ -347,26 +345,31 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 oneOf: [
-                    // Case 1: Body is an empty object {}
+                    // Case 1: ownerType and ownerId are obtained from the token
                     {
-                        // This matches an empty object.
+                        required: ['password'],
+                        properties: {
+                            password: { type: 'string' }
+                        },
                         additionalProperties: false // Ensures no other properties are allowed for this case
                     },
-                    // Case 2: Body has both ownerType and ownerId
+                    // Case 2: Body has ownerType and ownerId
                     {
                         required: ['ownerType', 'ownerId'],
                         properties: {
                             ownerType: { type: 'string', enum: ['device', 'project', 'instance'] },
-                            ownerId: { type: 'string' }
+                            ownerId: { type: 'string' },
+                            password: { type: 'string' }
                         },
-                        additionalProperties: false // Ensures only these two properties are allowed for this case
+                        additionalProperties: false // Ensures only these properties are allowed for this case
                     }
                 ],
                 // Define properties at the top level so their types are known by the validator
                 // regardless of which oneOf matches (if a body is present).
                 properties: {
                     ownerType: { type: 'string', enum: ['device', 'project', 'instance'] },
-                    ownerId: { type: 'string' }
+                    ownerId: { type: 'string' },
+                    password: { type: 'string' }
                 }
             },
             response: {
@@ -379,12 +382,27 @@ module.exports = async function (app) {
                         owner: {
                             type: 'object',
                             properties: {
-                                instanceType: { type: 'string', enum: ['remote', 'local'] },
+                                type: { type: 'string', enum: ['instance', 'device'] },
                                 id: { type: 'string' },
                                 name: { type: 'string' }
                             }
-                        },
-                        password: { type: 'string' }
+                        }
+                    }
+                },
+                201: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        username: { type: 'string' },
+                        acls: { type: 'array' },
+                        owner: {
+                            type: 'object',
+                            properties: {
+                                instanceType: { type: 'string', enum: ['instance', 'device'] },
+                                id: { type: 'string' },
+                                name: { type: 'string' }
+                            }
+                        }
                     }
                 },
                 '4xx': {
@@ -396,6 +414,22 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        // validate request.params.username format matches instance||device:instanceIdStr
+        if (!/^(instance|device):([a-zA-Z0-9_-]+)$/.test(request.params.username)) {
+            return reply.status(400).send({
+                code: 'invalid_username_format',
+                error: 'Invalid username format. Expected format: instance|device:instanceIdStr'
+            })
+        }
+
+        // ensure password is provided and is not too long
+        if (!request.body.password || request.body.password.length > 128) {
+            return reply.status(400).send({
+                code: 'invalid_password',
+                error: 'Invalid password'
+            })
+        }
+
         let user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
 
         let ownerId = request.body.ownerId
@@ -424,9 +458,6 @@ module.exports = async function (app) {
             }
         }
 
-        // prepare a new password for the user (passwords are hashed in the DB using a non-reversible hash,
-        // so the link operation always needs to generate a new password)
-        const newPassword = generatePassword(16)
         let statusCode = 200
 
         if (!user) {
@@ -452,7 +483,7 @@ module.exports = async function (app) {
             const acls = [
                 {
                     id: generateUuid(),
-                    action: 'both',
+                    action: 'subscribe', // by default allow subscribe only
                     pattern: '#'
                 }
             ]
@@ -464,27 +495,28 @@ module.exports = async function (app) {
             if (newUser.ownerType === 'device') {
                 newUser.ownerId = +newUser.ownerId // ID is a number for devices
             }
-            newUser.password = newPassword
+            newUser.password = request.body.password
             user = await app.db.models.TeamBrokerClient.create({ ...newUser, TeamId: request.team.id })
             statusCode = 201
         } else {
-            // User found - check if it is already linked to a device or project
-            if (user.ownerType && user.ownerId) {
+            // User found - check: if type/id exists, it must match, otherwise return an error
+            const checkOwnerType = user.ownerType || ownerType
+            const checkOwnerId = user.ownerId || ownerId
+            if (checkOwnerType !== ownerType || checkOwnerId !== ownerId) {
                 return reply.status(400).send({
                     code: 'client_already_linked',
-                    error: 'Client is already linked to a device or project'
+                    error: 'Client is linked to different instance'
                 })
             }
             // update the user with the new ownerType and ownerId
             user.ownerType = ownerType
             user.ownerId = ownerId
-            user.password = newPassword
+            user.password = request.body.password
             await user.save()
         }
         // reload the user with the team and instance models
         const updatedUser = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid, true, true)
         const userView = app.db.views.TeamBrokerClient.user(updatedUser)
-        userView.password = newPassword
         reply.status(statusCode).send({ ...userView })
     })
 

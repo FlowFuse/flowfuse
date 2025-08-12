@@ -253,6 +253,9 @@ module.exports = {
                     const authClient = await Controllers.AuthClient.createClientForProject(this)
                     const projectToken = await Controllers.AccessToken.createTokenForProject(this, null)
                     const projectBrokerCredentials = await Controllers.BrokerClient.createClientForProject(this)
+                    if (projectBrokerCredentials) {
+                        await Controllers.TeamBrokerClient.updateNtMqttNodeUserPassword(this.TeamId, 'project', this.id, projectBrokerCredentials.password)
+                    }
                     return {
                         token: projectToken.token,
                         ...authClient,

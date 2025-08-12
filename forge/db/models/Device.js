@@ -196,6 +196,7 @@ module.exports = {
                     }
                     const broker = await Controllers.BrokerClient.createClientForDevice(this)
                     if (broker) {
+                        await Controllers.TeamBrokerClient.updateNtMqttNodeUserPassword(this.TeamId, 'device', this.hashid, broker.password)
                         result.broker = broker
                     }
                     return result
@@ -318,6 +319,7 @@ module.exports = {
                     return {
                         'node-red': this.getDefaultNodeRedVersion(),
                         '@flowfuse/nr-project-nodes': '>0.5.0', // TODO: get this from the "settings" (future)
+                        '@flowfuse/nr-mqtt-nodes': '>=0.1.0', // TODO: get this from the "settings" (future)
                         '@flowfuse/nr-assistant': '>=0.1.0'
                     }
                 }
