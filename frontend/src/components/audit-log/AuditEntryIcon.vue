@@ -24,6 +24,7 @@
     <KeyIcon v-else-if="icon === 'key'" class="ff-icon text-green-700" />
     <KeyIcon v-else-if="icon === 'overage'" class="ff-icon text-red-700" />
     <PuzzleIcon v-else-if="icon === 'package'" class="ff-icon text-green-700" />
+    <DatabaseIcon v-else-if="icon == 'tables'" class="ff-icon text-green-700" />
     <InformationCircleIcon v-else class="ff-icon text-gray-600" />
 </template>
 
@@ -31,7 +32,7 @@
 
 import {
     BeakerIcon, ChipIcon, ClockIcon, CogIcon, ColorSwatchIcon,
-    CurrencyDollarIcon, DesktopComputerIcon, ExclamationCircleIcon,
+    CurrencyDollarIcon, DatabaseIcon, DesktopComputerIcon, ExclamationCircleIcon,
     ExclamationIcon, IdentificationIcon, InformationCircleIcon,
     KeyIcon, LockClosedIcon, LoginIcon, LogoutIcon, MailIcon,
     PuzzleIcon, TemplateIcon, TicketIcon, UserGroupIcon, UserIcon
@@ -248,6 +249,12 @@ const iconMap = {
     package: [
         'team.package.published',
         'team.package.unpublished'
+    ],
+    tables: [
+        'team.database.created',
+        'team.database.deleted',
+        'team.database.table.created',
+        'team.database.table.deleted'
     ]
 }
 
@@ -308,7 +315,8 @@ export default {
         ExclamationIcon,
         TicketIcon,
         InformationCircleIcon,
-        PuzzleIcon
+        PuzzleIcon,
+        DatabaseIcon
     }
 }
 </script>
