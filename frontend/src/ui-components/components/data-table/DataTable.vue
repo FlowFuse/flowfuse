@@ -12,7 +12,7 @@
                 <slot name="actions" />
             </div>
         </div>
-        <table class="ff-data-table--data">
+        <table class="ff-data-table--data" :class="tableClass ?? ''">
             <slot name="table">
                 <thead>
                     <!-- HEADERS -->
@@ -23,13 +23,14 @@
                             </ff-data-table-cell>
                             <ff-data-table-cell
                                 v-for="(col, $index) in columns" :key="$index"
-                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : ''].concat(col.class)"
-                                :style="col.style"
+                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : '', col.headerClass ?? ''].concat(col.class)"
+                                :style="col.headerStyle ?? col.style"
                                 @click="sortBy(col, $index)"
                             >
                                 <!-- Internal div required to have flex w/sorting icons -->
-                                <div>
-                                    {{ col.label }}
+                                <div :class="col.tableCellClass ?? ''">
+                                    <span v-if="col.html" :class="col.tableLabelClass ?? ''" v-html="col.html"> </span>
+                                    <span v-else :class="col.tableLabelClass ?? ''">{{ col.label }}</span>
                                     <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key" class="ff-icon ff-icon-sm" />
                                     <SortAscendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'" class="ff-icon ff-icon-sm icon-sorted" />
                                     <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'" class="ff-icon ff-icon-sm icon-sorted" />
@@ -207,6 +208,11 @@ export default {
             required: false,
             default: false,
             type: Boolean
+        },
+        tableClass: {
+            required: false,
+            default: '',
+            type: String
         }
     },
     emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked'],

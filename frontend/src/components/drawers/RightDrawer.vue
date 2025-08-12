@@ -1,6 +1,11 @@
 <template>
-    <section id="right-drawer" v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}" :class="{open: rightDrawer.state}" data-el="right-drawer">
-        <component :is="rightDrawer.component" v-if="rightDrawer.component" />
+    <section
+        id="right-drawer"
+        v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}"
+        :class="{open: rightDrawer.state, wider: rightDrawer.wider}"
+        data-el="right-drawer"
+    >
+        <component :is="rightDrawer.component" v-if="rightDrawer.component" v-bind="rightDrawer.props" />
     </section>
 </template>
 
@@ -32,7 +37,7 @@ export default {
   height: calc(100% - 60px);
   top: 60px;
   right: -1000px;
-  z-index: 110;
+  z-index: 120;
   width: 100%;
   max-width: 0;
   min-width: 0;
@@ -44,6 +49,10 @@ export default {
     width: 100%;
     max-width: 30vw;
     min-width: 400px;
+
+    &.wider {
+        max-width: 45vw;
+    }
   }
 }
 </style>

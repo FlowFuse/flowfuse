@@ -331,7 +331,7 @@ module.exports.init = async function (app) {
                 if (providerOpts.groupPrefixLength || providerOpts.groupSuffixLength) {
                     const start = providerOpts.groupPrefixLength || 0
                     const end = providerOpts.groupSuffixLength || 0
-                    shortGA = ga.slice(start, (end * -1))
+                    shortGA = ga.slice(start, ga.length - end)
                     app.log.debug(`Converting Group name ${ga} to ${shortGA}`)
                 }
                 // Parse the group name - format: 'ff-SLUG-ROLE'
@@ -473,7 +473,7 @@ module.exports.init = async function (app) {
                 // Trim prefix and postfix
                 const start = providerOpts.groupPrefixLength || 0
                 const end = providerOpts.groupSuffixLength || 0
-                shortCN = searchEntries[i].cn.slice(start, (end * -1))
+                shortCN = searchEntries[i].cn.slice(start, searchEntries[i].cn.length - end)
             }
             const match = groupRegEx.exec(shortCN)
             if (match) {

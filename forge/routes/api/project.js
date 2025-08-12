@@ -833,7 +833,15 @@ module.exports = async function (app) {
         settings.fileStore = app.config.fileStore ? { ...app.config.fileStore } : null
         settings.assistant = {
             enabled: app.config.assistant?.enabled || false,
-            requestTimeout: app.config.assistant?.requestTimeout
+            requestTimeout: app.config.assistant?.requestTimeout || 60000,
+            mcp: { enabled: true }, // default to enabled
+            completions: { enabled: true } // default to enabled
+        }
+        if (app.config.assistant?.mcp && typeof app.config.assistant.mcp === 'object') {
+            settings.assistant.mcp = { ...app.config.assistant.mcp }
+        }
+        if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
+            settings.assistant.completions = { ...app.config.assistant.completions }
         }
         settings.teamID = request.project.Team.hashid
         settings.storageURL = request.project.storageURL
@@ -906,7 +914,8 @@ module.exports = async function (app) {
         settings.features = {
             'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true),
             projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true),
-            teamBroker: app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true)
+            teamBroker: app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true),
+            tables: app.config.features.enabled('tables') && teamType.getFeatureProperty('tables', false)
         }
         reply.send(settings)
     })
@@ -1318,6 +1327,50 @@ module.exports = async function (app) {
             name: instance.name,
             meta: liveState.meta
         })
+    })
+
+    app.post('/:instanceId/update-state', {
+        preHandler: (request, reply, done) => {
+            // check accessToken is project scope
+            // (ownerId already checked at top-level preHandler)
+            if (request.session.ownerType !== 'project') {
+                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+            } else {
+                done()
+            }
+        },
+        schema: {
+            summary: 'Update the live status of an instance',
+            hide: true,
+            tags: ['Instances', 'Live State'],
+            params: {
+                type: 'object',
+                required: ['instanceId'],
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                required: ['state'],
+                properties: {
+                    state: { type: 'string' }
+                }
+            },
+            response: {
+                202: {
+                    type: 'object',
+                    properties: {}
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        app.db.controllers.Project.updateLatestProjectState(request.params.instanceId, request.body.state)
+
+        reply.code(202).send()
     })
 
     /**

@@ -27,6 +27,9 @@ module.exports = fp(async function (app, opts) {
             // Set npm Feature Flag
             app.config.features.register('npm', true, true)
         }
+        if (app.config.tables?.enabled) {
+            app.decorate('tables', await require('./tables').init(app))
+        }
     }
 
     // Set the Team Library Feature Flag

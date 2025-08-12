@@ -290,7 +290,15 @@ module.exports = async function (app) {
         }
         response.assistant = {
             enabled: app.config.assistant?.enabled || false,
-            requestTimeout: app.config.assistant?.requestTimeout || 60000
+            requestTimeout: app.config.assistant?.requestTimeout || 60000,
+            mcp: { enabled: true }, // default to enabled
+            completions: { enabled: true } // default to enabled
+        }
+        if (app.config.assistant?.mcp && typeof app.config.assistant.mcp === 'object') {
+            response.assistant.mcp = { ...app.config.assistant.mcp }
+        }
+        if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
+            response.assistant.completions = { ...app.config.assistant.completions }
         }
 
         const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)

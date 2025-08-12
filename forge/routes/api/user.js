@@ -307,7 +307,10 @@ module.exports = async function (app) {
                 id: { type: 'string' }
             },
             response: {
-                201: {},
+                201: {
+                    type: 'null',
+                    description: 'empty response'
+                },
                 '4xx': {
                     $ref: 'APIError'
                 }

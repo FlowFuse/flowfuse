@@ -28,7 +28,13 @@ module.exports = async function (settings = {}, config = {}) {
         blueprintImport: {
             enabled: false
         },
-        ...config
+        ...config,
+        tables: {
+            enabled: true,
+            driver: {
+                type: 'stub'
+            }
+        }
     }
 
     // mock out stripe JS library
@@ -73,6 +79,9 @@ module.exports = async function (settings = {}, config = {}) {
     // disposable users for offboarding tests
     const userBoba = await factory.createUser({ username: 'boba', name: 'Boba Fett', email: 'boba@example.com', email_verified: true, password: 'ffPassword' })
     const userGrey = await factory.createUser({ username: 'grey', name: 'Grey Grevious', email: 'grey@example.com', email_verified: true, password: 'ggPassword' })
+
+    // dashboard users
+    const userDashboardDave = await factory.createUser({ username: 'dashboard-dave', name: 'Dashboard Dave', email: 'ddave@example.com', password: 'ddPassword', email_verified: true, password_expired: false })
 
     // Platform Setup
     const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
@@ -119,6 +128,7 @@ module.exports = async function (settings = {}, config = {}) {
 
     if (forge.license.active()) {
         teamTypeProperties.features.teamBroker = true
+        teamTypeProperties.features.tables = true
     }
     teamType.properties = teamTypeProperties
     await teamType.save()
@@ -127,6 +137,7 @@ module.exports = async function (settings = {}, config = {}) {
     const team1 = await factory.createTeam({ name: 'ATeam' })
     await team1.addUser(userAlice, { through: { role: Roles.Owner } })
     await team1.addUser(userBob, { through: { role: Roles.Owner } })
+    await team1.addUser(userDashboardDave, { through: { role: Roles.Dashboard } })
 
     // Create a pending invite for Dave to join ATeam
     await factory.createInvitation(team1, userAlice, userDave)
@@ -139,8 +150,33 @@ module.exports = async function (settings = {}, config = {}) {
 
     // Application and Instances
     const application1 = await factory.createApplication({ name: 'application-1' }, team1)
-    await factory.createInstance({ name: 'instance-1-1' }, application1, stack, template, projectType)
-    await factory.createInstance({ name: 'instance-1-2' }, application1, stack2, template, projectType, { start: false })
+    await factory.createInstance({ name: 'instance-1-1' }, application1, stack, template, projectType, {
+        settings: {
+            palette: {
+                modules: [
+                    {
+                        name: '@flowfuse/node-red-dashboard',
+                        version: '~1.25.0',
+                        local: true
+                    }
+                ]
+            }
+        }
+    })
+    await factory.createInstance({ name: 'instance-1-2' }, application1, stack2, template, projectType, {
+        start: false,
+        settings: {
+            palette: {
+                modules: [
+                    {
+                        name: '@flowfuse/node-red-dashboard',
+                        version: '~1.25.0',
+                        local: true
+                    }
+                ]
+            }
+        }
+    })
 
     /// Team 2
     const team2 = await factory.createTeam({ name: 'BTeam' })

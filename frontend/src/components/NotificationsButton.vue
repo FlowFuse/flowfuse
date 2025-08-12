@@ -32,9 +32,7 @@ export default {
     methods: {
         ...mapActions('ux', ['openRightDrawer', 'closeRightDrawer']),
         onClick () {
-            if (this.rightDrawer.state) {
-                this.closeRightDrawer()
-            } else this.openRightDrawer({ component: markRaw(NotificationsDrawer) })
+            this.openRightDrawer({ component: markRaw(NotificationsDrawer) })
         }
     }
 }

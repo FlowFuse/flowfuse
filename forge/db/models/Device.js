@@ -9,7 +9,7 @@ const SemVer = require('semver')
 const { col, fn, DataTypes, Op, where, literal } = require('sequelize')
 
 const Controllers = require('../controllers')
-const { buildPaginationSearchClause } = require('../utils')
+const { generateToken, buildPaginationSearchClause } = require('../utils')
 
 const ALLOWED_SETTINGS = {
     autoSnapshot: 1,
@@ -119,17 +119,12 @@ module.exports = {
                     }
                 }
             },
-            afterBulkUpdate: async (options) => {
+            beforeBulkUpdate: async (options) => {
                 if (options.fields.includes('targetSnapshotId') || options.fields.includes('DeviceGroupId')) {
-                    const devices = await M.Device.findAll({ where: options.where })
-                    for (const device of devices) {
-                        const updated = await device.updateSettingsHash()
-                        if (updated) {
-                            await device.save({
-                                hooks: false,
-                                transaction: options.transaction
-                            })
-                        }
+                    if (!options.fields.includes('settingsHash')) {
+                        // Any update to targetSnapshot or DeviceGroup implicitly triggers a settings hash change.
+                        options.attributes.settingsHash = generateToken(16)
+                        options.fields.push('settingsHash')
                     }
                 }
             },
@@ -635,11 +630,19 @@ module.exports = {
                         })
                     }
                 },
-                countByState: async (states, teamId) => {
+                countByState: async (states, teamId, applicationId) => {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
-                        if (teamId.length === 0) {
+                        if (!teamId || teamId.length === 0) {
                             throw new Error('Invalid TeamId')
+                        }
+                    }
+
+                    if (typeof applicationId === 'string') {
+                        applicationId = M.Application.decodeHashid(applicationId)
+
+                        if (!applicationId || applicationId.length === 0) {
+                            throw new Error('Invalid ApplicationId')
                         }
                     }
 
@@ -649,10 +652,12 @@ module.exports = {
                                 ? {
                                     [Op.or]: states.map(state => ({
                                         state,
-                                        TeamId: teamId
+                                        TeamId: teamId,
+                                        ...(applicationId ? { ApplicationId: applicationId } : {})
                                     }))
                                 }
-                                : { TeamId: teamId })
+                                : { TeamId: teamId }),
+                            ...(applicationId ? { ApplicationId: applicationId } : {})
                         },
                         group: ['state']
                     })

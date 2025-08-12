@@ -8,6 +8,7 @@ import {
 import DeviceGroupOutlineIcon from '../../../components/icons/DeviceGroupOutline.js'
 import PipelinesIcon from '../../../components/icons/Pipelines.js'
 import ProjectsIcon from '../../../components/icons/Projects.js'
+import QueueIcon from '../../../components/icons/Queue.js'
 import usePermissions from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
@@ -20,7 +21,9 @@ const initialState = () => ({
     },
     rightDrawer: {
         state: false,
-        component: null
+        component: null,
+        wider: false,
+        props: {}
     },
     mainNav: {
         context: 'team',
@@ -29,7 +32,8 @@ const initialState = () => ({
     userActions: {
         hasOpenedDeviceEditor: false
     },
-    isNewlyCreatedUser: false
+    isNewlyCreatedUser: false,
+    overlay: false
 })
 
 const meta = {
@@ -92,7 +96,7 @@ const getters = {
                         label: 'Audit Log',
                         to: { name: 'admin-audit-logs' },
                         tag: 'admin-auditlog',
-                        icon: DatabaseIcon
+                        icon: QueueIcon
                     },
                     {
                         label: 'Notifications Hub',
@@ -305,6 +309,15 @@ const getters = {
                             disabled: requiresBilling,
                             featureUnavailable: !features.isInstanceResourcesFeatureEnabled,
                             hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isInstanceResourcesFeatureEnabledForPlatform
+                        },
+                        {
+                            label: 'Tables',
+                            to: { name: 'team-tables', params: { team_slug: team.slug } },
+                            tag: 'team-tables',
+                            icon: DatabaseIcon,
+                            disabled: requiresBilling,
+                            featureUnavailable: !features.isTablesFeatureEnabled,
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isTablesFeatureEnabledForPlatform
                         }
                     ]
                 },
@@ -358,7 +371,7 @@ const getters = {
                                 params: { team_slug: team.slug }
                             },
                             tag: 'team-audit',
-                            icon: DatabaseIcon,
+                            icon: QueueIcon,
                             disabled: requiresBilling,
                             permission: 'team:edit'
                         },
@@ -453,12 +466,15 @@ const getters = {
 }
 
 const mutations = {
-    openRightDrawer (state, { component }) {
+    openRightDrawer (state, { component, wider, props }) {
         state.rightDrawer.state = true
+        state.rightDrawer.wider = wider
         state.rightDrawer.component = component
+        state.rightDrawer.props = props
     },
     closeRightDrawer (state) {
         state.rightDrawer.state = false
+        state.rightDrawer.wider = false
         state.rightDrawer.component = null
     },
     openLeftDrawer (state) {
@@ -486,15 +502,46 @@ const mutations = {
         if (Object.prototype.hasOwnProperty.call(state.userActions, action)) {
             state.userActions[action] = payload
         }
+    },
+    openOverlay (state) {
+        state.overlay = true
+    },
+    closeOverlay (state) {
+        state.overlay = false
     }
 }
 
 const actions = {
-    openRightDrawer ({ commit }, { component }) {
-        commit('openRightDrawer', { component })
+    openRightDrawer ({ state, commit }, { component, wider = false, props = {}, overlay = false }) {
+        if (state.rightDrawer.state && component.name === state.rightDrawer.component.name) return
+
+        if (state.rightDrawer.state) {
+            commit('closeRightDrawer')
+            setTimeout(() => {
+                commit('openRightDrawer', {
+                    component,
+                    wider,
+                    props
+                })
+                if (overlay) {
+                    commit('openOverlay')
+                }
+            }, 300)
+        } else {
+            commit('openRightDrawer', { component, wider, props })
+            if (overlay) {
+                commit('openOverlay')
+            }
+        }
     },
-    closeRightDrawer ({ commit }) {
-        commit('closeRightDrawer')
+    closeRightDrawer ({ commit, state }) {
+        setTimeout(() => {
+            commit('closeRightDrawer')
+
+            if (state.overlay) {
+                commit('closeOverlay')
+            }
+        }, 100)
     },
     openLeftDrawer ({ commit }) {
         commit('openLeftDrawer')

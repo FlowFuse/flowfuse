@@ -2301,6 +2301,63 @@ describe('Project API', function () {
             data3.should.have.property('settings')
             data3.settings.should.have.property('dashboard2UI')
         })
+        describe('Assistant Settings', function () {
+            // these tests are run with a clean app since they change the app config
+            beforeEach(async function () {
+                // Close down the default app
+                if (app) {
+                    await app.close()
+                }
+                app = null
+            })
+            after(async function () {
+                // Once all done, create the clean app for later tests
+                await app.close()
+                await setupApp()
+            })
+
+            it('assistant can be disabled', async function () {
+                app = await setup({
+                    assistant: {
+                        enabled: false,
+                        mcp: { enabled: false },
+                        completions: { enabled: false }
+                    }
+                })
+
+                await login('alice', 'aaPassword')
+                TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
+
+                const body = await getSettings()
+                body.should.have.property('assistant').and.be.an.Object()
+                body.assistant.should.have.property('enabled', false)
+                body.assistant.should.have.property('mcp').and.be.an.Object()
+                body.assistant.mcp.should.have.property('enabled', false)
+                body.assistant.should.have.property('completions').and.be.an.Object()
+                body.assistant.completions.should.have.property('enabled', false)
+            })
+            it('instance settings including assistant completions settings by default', async function () {
+                app = await setup({
+                    assistant: {
+                        enabled: true,
+                        requestTimeout: 12345
+                        // mcp deliberately excluded to check it defaults to enabled
+                        // completions deliberately excluded to check it defaults to enabled
+                    }
+                })
+
+                await login('alice', 'aaPassword')
+                TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
+
+                const body = await getSettings(app.project)
+                body.should.have.property('assistant').and.be.an.Object()
+                body.assistant.should.have.property('enabled', true)
+                body.assistant.should.have.property('mcp').and.be.an.Object()
+                body.assistant.mcp.should.have.property('enabled', true) // defaults to enabled
+                body.assistant.should.have.property('completions').and.be.an.Object()
+                body.assistant.completions.should.have.property('enabled', true) // defaults to enabled
+            })
+        })
     })
 
     describe('Project import flows & credentials', function () {
@@ -2833,6 +2890,61 @@ describe('Project API', function () {
 
             response.statusCode.should.equal(401)
             response.json().should.have.property('code', 'unauthorized')
+        })
+    })
+
+    describe('Set a project\'s state', async function () {
+        let testProject
+        before(async function () {
+            testProject = await createInstance(false)
+        })
+
+        it('should return 401 if ownerType is not "project"', async () => {
+            // Mocking session
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${testProject.id}/update-state`,
+                payload: { state: 'running' },
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+
+            response.statusCode.should.equal(401)
+            response.json().should.have.property('code', 'unauthorized')
+        })
+
+        it('should return 400 if "state" param is missing', async () => {
+            const newAccessToken = (await testProject.refreshAuthTokens()).token
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${testProject.id}/update-state`,
+                payload: { },
+                headers: {
+                    'Content-Type': 'application/json',
+                    authorization: `Bearer ${newAccessToken}`
+                }
+            })
+
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'FST_ERR_VALIDATION')
+        })
+
+        it('should return 202 on a valid request', async () => {
+            const newAccessToken = (await testProject.refreshAuthTokens()).token
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${testProject.id}/update-state`,
+                payload: { state: 'running' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    authorization: `Bearer ${newAccessToken}`
+                }
+            })
+
+            response.statusCode.should.equal(202)
         })
     })
 })

@@ -353,6 +353,11 @@ module.exports = {
                         }
                     } else {
                         result.meta = await app.containers.details(this) || { state: 'unknown' }
+
+                        if (result.meta.state !== this.state) {
+                            Controllers.Project.setLatestProjectState(this.id, result.meta.state)
+                        }
+
                         if (result.meta.versions) {
                             const currentVersionInfo = { ...this.versions }
                             let changed = false
@@ -636,28 +641,45 @@ module.exports = {
                         ]
                     })
                 },
-                countByState: async (states, teamId) => {
+                countByState: async (states, teamId, applicationId) => {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
 
-                        if (teamId.length === 0) {
+                        if (!teamId || teamId.length === 0) {
                             throw new Error('Invalid TeamId')
                         }
                     }
 
-                    return this.count({
-                        where: {
-                            ...(states.length > 0
-                                ? {
-                                    [Op.or]: states.map(state => ({
-                                        state,
-                                        TeamId: teamId
-                                    }))
-                                }
-                                : { TeamId: teamId })
-                        },
-                        group: ['state']
+                    if (typeof applicationId === 'string') {
+                        applicationId = M.Application.decodeHashid(applicationId)
+
+                        if (!applicationId || applicationId.length === 0) {
+                            throw new Error('Invalid ApplicationId')
+                        }
+                    }
+
+                    const statesMap = {}
+                    const results = await this.findAll({
+                        where: states.length > 0
+                            ? {
+                                [Op.or]: states.map(state => ({
+                                    state,
+                                    TeamId: teamId,
+                                    ...(applicationId ? { ApplicationId: applicationId } : {})
+                                }))
+                            }
+                            : {
+                                TeamId: teamId,
+                                ...(applicationId ? { ApplicationId: applicationId } : {})
+                            }
                     })
+
+                    results.forEach(res => {
+                        const state = Controllers.Project.getLatestProjectState(res.id) ?? res.state
+                        statesMap[state] = (statesMap[state] || 0) + 1
+                    })
+
+                    return Object.entries(statesMap).map(([state, count]) => ({ state, count }))
                 },
                 byTeamForSearch: async (teamId, query) => {
                     const queryObject = {
