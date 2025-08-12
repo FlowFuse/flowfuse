@@ -213,6 +213,9 @@ module.exports = async function (app) {
                     if (!settings.modules['@flowfuse/nr-project-nodes'] || SemVer.satisfies(SemVer.coerce(settings.modules['@flowfuse/nr-project-nodes']), '<=0.5.0')) {
                         settings.modules['@flowfuse/nr-project-nodes'] = defaultModules['@flowfuse/nr-project-nodes'] || '>0.5.0'
                     }
+                    if (!settings.modules['@flowfuse/nr-mqtt-nodes']) {
+                        settings.modules['@flowfuse/nr-mqtt-nodes'] = defaultModules['@flowfuse/nr-mqtt-nodes'] || '>0.1.0'
+                    }
                     if (!settings.modules['@flowfuse/nr-assistant']) {
                         settings.modules['@flowfuse/nr-assistant'] = defaultModules['@flowfuse/nr-assistant'] || '>=0.1.0'
                     }
