@@ -60,7 +60,12 @@
                             Cancel
                         </ff-button>
                         <template v-if="!isContactRequired">
-                            <ff-button v-if="!billingEnabled || !billingMissing" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
+                            <ff-button
+                                v-if="!billingEnabled || !billingMissing"
+                                class="flex-1"
+                                :disabled="!formValid" data-action="change-team-type"
+                                @click="updateTeam()"
+                            >
                                 Change team type
                             </ff-button>
                             <ff-button
