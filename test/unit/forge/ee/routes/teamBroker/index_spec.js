@@ -1097,6 +1097,19 @@ describe('Team Broker API', function () {
                 const result = response.json()
                 result.should.have.property('result', 'allow')
 
+                const response2 = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/acls',
+                    body: {
+                        username: `alice@${app.team.hashid}`,
+                        topic: 'foo/sub',
+                        action: 'subscribe'
+                    }
+                })
+                response2.statusCode.should.equal(200)
+                const result2 = response2.json()
+                result2.should.have.property('result', 'allow')
+
                 const topicsResponse = await app.inject({
                     method: 'GET',
                     url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
@@ -1105,8 +1118,10 @@ describe('Team Broker API', function () {
 
                 topicsResponse.statusCode.should.equal(200)
                 const topics = topicsResponse.json()
-                topics.topics.sort(function (A, B) { return A.topic.localeCompare(B.topic) })
-                topics.topics[1].topic.should.containEql('foo/foo')
+                // topics.topics[] should have 'foo/bar'
+                topics.topics.some(t => t.topic === 'foo/bar').should.be.true()
+                // topics.topics[] should not have 'foo/sub'
+                topics.topics.some(t => t.topic === 'foo/sub').should.be.false()
             })
         })
     })
