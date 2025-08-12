@@ -3,37 +3,38 @@
         id="client-dialog"
         ref="dialog"
         data-el="create-client-dialog"
-        :header="isEditing ? `Edit Client: ${input.username}` : 'Create Client'"
+        :header="isEditing ? 'Edit Client' : 'Create Client'"
         :closeOnConfirm="false"
         :disablePrimary="disableConfirm"
         @confirm="confirm"
         @cancel="clearData"
     >
         <template #default>
-            <div v-if="isEditing && !isOwned" class="mb-5">
+            <div v-if="isEditing" class="mb-5">
                 <FormRow
                     v-model="input.username"
                     :error="errors.username"
                     class="mb-2"
                     placeholder="Client Username"
-                    :disabled="isEditing"
+                    :disabled="isEditing || isOwned"
                     data-el="username"
                 >
                     Username
                 </FormRow>
-
-                <FormRow v-model="input.password" class="mb-2" type="password" :placeholder="passwordPlaceholder" data-el="password">
-                    Password
-                </FormRow>
-                <FormRow
-                    v-model="input.passwordConfirm"
-                    class="mb-2" type="password"
-                    :error="errors.password"
-                    :placeholder="passwordConfirmationPlaceholder"
-                    data-el="confirm-password"
-                >
-                    Confirm Password
-                </FormRow>
+                <template v-if="!isOwned">
+                    <FormRow v-model="input.password" class="mb-2" type="password" :placeholder="passwordPlaceholder" data-el="password">
+                        Password
+                    </FormRow>
+                    <FormRow
+                        v-model="input.passwordConfirm"
+                        class="mb-2" type="password"
+                        :error="errors.password"
+                        :placeholder="passwordConfirmationPlaceholder"
+                        data-el="confirm-password"
+                    >
+                        Confirm Password
+                    </FormRow>
+                </template>
             </div>
             <div class="acls">
                 <h3 class="flex justify-between">
