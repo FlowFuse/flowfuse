@@ -896,7 +896,7 @@ module.exports = async function (app) {
         }
 
         // Platform wide catalogue and npm registry
-        const platformNPMEnabled = app.config.features.enabled('certifiedNodes') && teamType.getFeatureProperty('certifiedNodes', false)
+        const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes') && !!teamType.getFeatureProperty('certifiedNodes', false)
         if (platformNPMEnabled) {
             const npmRegURLString = app.settings.get('platform:certifiedNodes:npmRegistryURL')
             const token = app.settings.get('platform:certifiedNodes:token')
