@@ -154,22 +154,22 @@
     <!-- Team Tables Events-->
     <template v-else-if="entry.event === 'team.database.created'">
         <label>Database Created</label>
-        <span v-if="!error && entry.body">Database name: '{{ entry.body.database }}'</span>
+        <span v-if="!error && entry.body">Database name: '{{ entry.body.database.name }}'</span>
     </template>
 
     <template v-else-if="entry.event === 'team.database.deleted'">
         <label>Database Deleted</label>
-        <span v-if="!error && entry.body">Database name: '{{ entry.body.database }}'</span>
+        <span v-if="!error && entry.body">Database name: '{{ entry.body.database.name }}'</span>
     </template>
 
     <template v-else-if="entry.event === 'team.database.table.created'">
         <label>Table Created</label>
-        <span v-if="!error && entry.body">Table '{{ entry.body.table }}'' created in '{{ entry.body.database }}'</span>
+        <span v-if="!error && entry.body">Table '{{ entry.body.table.name }}'' created in '{{ entry.body.database.name }}'</span>
     </template>
 
     <template v-else-if="entry.event === 'team.database.table.deleted'">
         <label>Table Deleted</label>
-        <span v-if="!error && entry.body">Table '{{ entry.body.table }}'' deleted in database '{{ entry.body.database }}'</span>
+        <span v-if="!error && entry.body">Table '{{ entry.body.table.name }}'' deleted in database '{{ entry.body.database.name }}'</span>
     </template>
 
     <!-- Device Actions Events -->

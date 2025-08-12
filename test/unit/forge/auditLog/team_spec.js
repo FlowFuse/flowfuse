@@ -674,4 +674,38 @@ describe('Audit Log > Team', async function () {
         })
     })
     // #endregion
+
+    describe('FF Tables events', function () {
+        it('Create Database', async function () {
+            await teamLogger.tables.database.created(ACTIONED_BY, null, TEAM, 'DB1')
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.database.created')
+            logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+            logEntry.should.have.property('body').and.be.an.Object()
+            logEntry.body.should.only.have.keys('team', 'database')
+        })
+        it('Delete Database', async function () {
+            await teamLogger.tables.database.deleted(ACTIONED_BY, null, TEAM, 'DB1')
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.database.deleted')
+            logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+            logEntry.should.have.property('body').and.be.an.Object()
+            logEntry.body.should.only.have.keys('team', 'database')
+        })
+        it('Create Table', async function () {
+            await teamLogger.tables.table.created(ACTIONED_BY, null, TEAM, 'DB1', 'TABLE1')
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.database.table.created')
+            logEntry.should.have.property('body').and.be.an.Object()
+            logEntry.body.should.only.have.keys('team', 'database', 'table')
+        })
+        it('Delete Table', async function () {
+            await teamLogger.tables.table.deleted(ACTIONED_BY, null, TEAM, 'DB1', 'TABLE1')
+            const logEntry = await getLog()
+            logEntry.should.have.property('event', 'team.database.table.deleted')
+            logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
+            logEntry.should.have.property('body').and.be.an.Object()
+            logEntry.body.should.only.have.keys('team', 'database', 'table')
+        })
+    })
 })

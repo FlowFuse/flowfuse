@@ -111,12 +111,14 @@ const generateBody = ({
         body.threshold = threshold
     }
     if (isObject(database)) {
-        body.database = database.name
+        body.database = { name: database.name }
     } else if (typeof database === 'string') {
-        body.database = database
+        body.database = { name: database }
     }
-    if (table) {
-        body.table = table
+    if (isObject(table)) {
+        body.table = { name: table.name }
+    } else if (typeof table === 'string') {
+        body.table = { name: table }
     }
 
     return body
