@@ -2,17 +2,15 @@
     <ff-accordion class="max-w-full w-full broker-client">
         <template #label>
             <div class="username text-left flex">
-                <text-copier :text="username" confirmation-type="alert" @click.prevent.stop>
+                <text-copier v-if="!client.owner" :text="username" confirmation-type="alert" @click.prevent.stop>
                     <span :title="username" class="title-wrapper">
-                        <template v-if="!client.owner">
-                            <span class="mt-1 font-bold">{{ client.username }}</span>
-                            <span class="italic mt-1">@{{ team.id }}</span>
-                        </template>
-                        <span v-else class="mt-1 font-bold">
-                            {{ username }}
-                        </span>
+                        <span class="mt-1 font-bold">{{ client.username }}</span>
+                        <span class="italic mt-1">@{{ team.id }}</span>
                     </span>
                 </text-copier>
+                <span v-else class="mt-1 font-bold">
+                    {{ username }}
+                </span>
             </div>
             <div class="rules text-left">
                 <span>{{ client.acls.length }} Rule{{ client.acls.length > 1 ? 's' : '' }}</span>
