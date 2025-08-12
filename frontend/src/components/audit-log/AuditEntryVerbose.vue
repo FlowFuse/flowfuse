@@ -151,6 +151,27 @@
         <span v-if="!error && entry.body?.pkg">Version {{ entry.body.pkg.version }} of '{{ entry.body.pkg.name }}' unpublished</span>
     </template>
 
+    <!-- Team Tables Events-->
+    <template v-else-if="entry.event === 'team.database.created'">
+        <label>Database Created</label>
+        <span v-if="!error && entry.body?.database">Database name: '{{ entry.body.database.name }}'</span>
+    </template>
+
+    <template v-else-if="entry.event === 'team.database.deleted'">
+        <label>Database Deleted</label>
+        <span v-if="!error && entry.body?.database">Database name: '{{ entry.body.database.name }}'</span>
+    </template>
+
+    <template v-else-if="entry.event === 'team.database.table.created'">
+        <label>Table Created</label>
+        <span v-if="!error && entry.body?.table">Table '{{ entry.body.table.name }}'' created in '{{ entry.body.database.name }}'</span>
+    </template>
+
+    <template v-else-if="entry.event === 'team.database.table.deleted'">
+        <label>Table Deleted</label>
+        <span v-if="!error && entry.body?.table">Table '{{ entry.body.table.name }}'' deleted in database '{{ entry.body.database.name }}'</span>
+    </template>
+
     <!-- Device Actions Events -->
     <template v-else-if="entry.event === 'device.started'">
         <label>{{ AuditEvents[entry.event] }}</label>

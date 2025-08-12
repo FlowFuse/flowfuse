@@ -333,6 +333,11 @@ module.exports = {
                         }
                     } else {
                         result.meta = await app.containers.details(this) || { state: 'unknown' }
+
+                        if (result.meta.state !== this.state) {
+                            Controllers.Project.setLatestProjectState(this.id, result.meta.state)
+                        }
+
                         if (result.meta.versions) {
                             const currentVersionInfo = { ...this.versions }
                             let changed = false
@@ -633,21 +638,28 @@ module.exports = {
                         }
                     }
 
-                    return this.count({
-                        where: {
-                            ...(states.length > 0
-                                ? {
-                                    [Op.or]: states.map(state => ({
-                                        state,
-                                        TeamId: teamId,
-                                        ...(applicationId ? { ApplicationId: applicationId } : {})
-                                    }))
-                                }
-                                : { TeamId: teamId }),
-                            ...(applicationId ? { ApplicationId: applicationId } : {})
-                        },
-                        group: ['state']
+                    const statesMap = {}
+                    const results = await this.findAll({
+                        where: states.length > 0
+                            ? {
+                                [Op.or]: states.map(state => ({
+                                    state,
+                                    TeamId: teamId,
+                                    ...(applicationId ? { ApplicationId: applicationId } : {})
+                                }))
+                            }
+                            : {
+                                TeamId: teamId,
+                                ...(applicationId ? { ApplicationId: applicationId } : {})
+                            }
                     })
+
+                    results.forEach(res => {
+                        const state = Controllers.Project.getLatestProjectState(res.id) ?? res.state
+                        statesMap[state] = (statesMap[state] || 0) + 1
+                    })
+
+                    return Object.entries(statesMap).map(([state, count]) => ({ state, count }))
                 },
                 byTeamForSearch: async (teamId, query) => {
                     const queryObject = {
