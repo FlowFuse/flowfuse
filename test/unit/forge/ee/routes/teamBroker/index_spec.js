@@ -646,6 +646,50 @@ describe('Team Broker API', function () {
             })
         })
         describe('Test EMQX MQTT Broker user auth', function () {
+            const testProjects = []
+
+            async function createProjectAndUser (name = null, { acls = [] } = {}) {
+                const uniqueName = `${name || 'project'}-${testProjects.length + 1}`
+                const project = await factory.createInstance({ name: uniqueName }, app.application, app.stack, app.template, app.projectType, { start: false })
+                const projectToken = await project.refreshAuthTokens()
+                const username = `instance:${project.id}`
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/broker/client/${username}/link`,
+                    headers: {
+                        authorization: `Bearer ${projectToken.token}`
+                    },
+                    body: {
+                        password: projectToken.broker.password
+                    }
+                })
+                response.statusCode.should.equal(201)
+                const result = response.json()
+                result.should.have.property('acls').and.be.an.Array()
+                result.acls.should.have.lengthOf(1)
+                result.acls[0].should.have.property('id').and.be.a.String()
+                result.acls[0].should.have.property('action', 'subscribe')
+                result.acls[0].should.have.property('pattern', '#') // by default, newly linked broker clients for nr-mqtt nodes get acls of "subscribe" "#"
+                result.should.have.property('owner').and.be.an.Object()
+                result.owner.should.have.property('instanceType', 'instance')
+                result.owner.should.have.property('id', project.id)
+
+                if (acls.length > 0) {
+                    const teamBrokerClient = await app.db.models.TeamBrokerClient.byUsername(username, app.team.hashid)
+                    teamBrokerClient.should.have.property('acls').and.be.a.String()
+                    const newAcls = []
+                    for (let id = 0; id < acls.length; id++) {
+                        const acl = acls[id]
+                        newAcls.push({ id, ...acl })
+                    }
+                    teamBrokerClient.acls = JSON.stringify(newAcls)
+                    await teamBrokerClient.save()
+                }
+
+                testProjects.push(project)
+                return { project, projectToken }
+            }
+
             before(async function () {
                 await app.inject({
                     method: 'POST',
@@ -670,6 +714,16 @@ describe('Team Broker API', function () {
                     cookies: { sid: TestObjects.tokens.bob }
                 })
             })
+            afterEach(async function () {
+                for (const project of testProjects) {
+                    await app.inject({
+                        method: 'DELETE',
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/instance:${project.id}`,
+                        cookies: { sid: TestObjects.tokens.bob }
+                    })
+                    await project.destroy()
+                }
+            })
             it('Test Authentication pass', async function () {
                 const response = await app.inject({
                     method: 'POST',
@@ -687,6 +741,41 @@ describe('Team Broker API', function () {
                 result.should.have.property('is_superuser', false)
                 result.should.have.property('client_attrs')
                 result.client_attrs.should.have.property('team')
+            })
+            it('Test Authentication pass for nr-mqtt-nodes user', async function () {
+                const { project, projectToken } = await createProjectAndUser('TestProjectForMQTTAuth') // this also generates the broker client user via /link
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/auth',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: {
+                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                        password: projectToken.broker.password,
+                        clientId: `mq:hosted:${app.team.hashid}:${project.id}`
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('result', 'allow')
+                result.should.have.property('is_superuser', false)
+                result.should.have.property('client_attrs')
+                result.client_attrs.should.have.property('team')
+            })
+            it('Test Authentication fail for nr-mqtt-nodes user', async function () {
+                const { project } = await createProjectAndUser('TestProjectForMQTTAuth') // this also generates the broker client user via /link
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/auth',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: {
+                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                        password: 'wrong=password',
+                        clientId: `mq:hosted:${app.team.hashid}:${project.id}`
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('result', 'deny')
             })
             it('Test Authentication fail', async function () {
                 const response = await app.inject({
@@ -796,6 +885,22 @@ describe('Team Broker API', function () {
                 const result = response.json()
                 result.should.have.property('result', 'allow')
             })
+            it('Test subscribe allowed for nr-mqtt-nodes user', async function () {
+                const { project } = await createProjectAndUser('TestProjectForMQTTAuth') // by default, a newly linked project will have subscribe only access to '#'
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/acls',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: {
+                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                        topic: 'foo/bar',
+                        action: 'subscribe'
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('result', 'allow')
+            })
             it('Test subscribe not allowed', async function () {
                 const response = await app.inject({
                     method: 'POST',
@@ -804,6 +909,22 @@ describe('Team Broker API', function () {
                     body: {
                         username: `bob@${app.team.hashid}`,
                         topic: 'bar/foo',
+                        action: 'subscribe'
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('result', 'deny')
+            })
+            it('Test subscribe not allowed for nr-mqtt-nodes user', async function () {
+                const { project } = await createProjectAndUser('TestProjectForMQTTAuth', { acls: [{ pattern: 'allowed/#', action: 'subscribe' }] })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/acls',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: {
+                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                        topic: 'not-allowed/bar',
                         action: 'subscribe'
                     }
                 })
@@ -826,6 +947,22 @@ describe('Team Broker API', function () {
                 const result = response.json()
                 result.should.have.property('result', 'allow')
             })
+            it('Test publish allowed for nr-mqtt-nodes user', async function () {
+                const { project } = await createProjectAndUser('TestProjectForMQTTAuth', { acls: [{ pattern: 'allowed/#', action: 'publish' }] })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/acls',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: {
+                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                        topic: 'allowed/foo',
+                        action: 'publish'
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('result', 'allow')
+            })
             it('Test publish not allowed', async function () {
                 const response = await app.inject({
                     method: 'POST',
@@ -834,6 +971,22 @@ describe('Team Broker API', function () {
                     body: {
                         username: `bob@${app.team.hashid}`,
                         topic: 'bar/foo',
+                        action: 'publish'
+                    }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('result', 'deny')
+            })
+            it('Test publish not allowed for nr-mqtt-nodes user', async function () {
+                const { project } = await createProjectAndUser('TestProjectForMQTTAuth') // by default, a newly linked project will have subscribe only access to '#'
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/acls',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    body: {
+                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                        topic: 'foo', // since the by default, an nr-mqtt client has no publish access, this should be denied
                         action: 'publish'
                     }
                 })
