@@ -108,7 +108,14 @@ export default {
 
                         Alerts.emit('The invitation email was sent successfully', 'confirmation')
                     })
-                    .catch((err) => Alerts.emit('Failed to resend invitation: ' + err.toString(), 'warning', 7500))
+                    .catch((err) => {
+                        if (err.status === 429) {
+                            const seconds = err.response?.headers['retry-after']
+                            Alerts.emit(`Failed to resend invitation, rate limit exceeded. Please try again in ${seconds} seconds`, 'warning', 7500)
+                        } else {
+                            Alerts.emit('Failed to resend invitation: ' + err.toString(), 'warning', 7500)
+                        }
+                    })
             })
         },
         async fetchData () {
