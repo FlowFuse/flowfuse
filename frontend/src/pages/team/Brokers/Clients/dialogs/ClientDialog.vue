@@ -10,7 +10,7 @@
         @cancel="clearData"
     >
         <template #default>
-            <div v-if="isEditing" class="mb-5">
+            <div class="mb-5">
                 <FormRow
                     v-model="input.username"
                     :error="errors.username"
