@@ -312,7 +312,7 @@ describe('Project Template controller', function () {
                     })
                 }).not.throw()
             })
-            it('should allow origin foo', async function () {
+            it('should not allow origin foo', async function () {
                 should(() => {
                     app.db.controllers.ProjectTemplate.validateSettings({
                         httpNodeCORS: {
