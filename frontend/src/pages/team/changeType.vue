@@ -263,6 +263,9 @@ export default {
             } else {
                 this.input.teamType = null
             }
+        },
+        isAnnualBilling () {
+            this.input.teamTypeId = this.init.teamTypeId
         }
     },
     async created () {
