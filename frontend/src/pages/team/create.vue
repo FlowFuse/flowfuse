@@ -13,28 +13,36 @@
             <div v-if="presetTeamType" class="w-full">
                 <team-type-tile class="m-auto" :team-type="presetTeamType" :enableCTA="false" :billing-interval="$route.query.interval" />
             </div>
-            <form :class="[presetTeamType ? 'flex flex-col items-center mt-10' : '']">
+            <form class="flex flex-col items-center mt-10 space-y-8">
                 <!-- TeamType Type -->
-                <div v-if="!presetTeamType" class="grid mb-3">
-                    <ff-tile-selection v-model="input.teamTypeId">
+                <div v-if="!presetTeamType" class="flex flex-col items-center mb-3 space-y-8">
+                    <ff-tile-selection v-model="input.teamTypeId" class="flex gap-6 justify-center ">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"
                             :label="teamType.name" :description="teamType.description"
-                            :price="billingEnabled ? teamType.billingPrice : ''"
-                            :price-interval="billingEnabled ? teamType.billingInterval : ''"
+                            :price="billingEnabled ? (!isAnnualBilling ? teamType.billingPrice : teamType.annualBillingPrice) : ''"
+                            :price-interval="billingEnabled ? (!isAnnualBilling ? teamType.billingInterval : teamType.annualBillingInterval) : ''"
                             :value="teamType.id"
+                            :disabled="isAnnualBilling && !teamType.annualBillingPrice && !teamType.properties?.billing?.requireContact"
                         />
                     </ff-tile-selection>
+                    <div class="flex gap-6 justify-center relative z-10 flex-wrap">
+                        <div v-if="billingEnabled && annualBillingAvailable" class="text-sm font-medium text-gray-400 flex items-center gap-2">
+                            <span :class="{'text-gray-800': !isAnnualBilling }">Monthly</span>
+                            <ff-toggle-switch v-model="isAnnualBilling" />
+                            <span :class="{'text-gray-800': isAnnualBilling }">Yearly</span>
+                        </div>
+                    </div>
                 </div>
-                <div v-if="!isContactRequired" class="space-y-3" :class="{'flex flex-col max-w-md': presetTeamType}">
-                    <FormRow id="team" v-model="input.name" :error="errors.name" containerClass="max-w-md">
+                <div v-if="!isContactRequired" class="space-y-3 flex flex-col items-center max-w-md" :class="{'flex flex-col max-w-md': presetTeamType}">
+                    <FormRow id="team" v-model="input.name" :error="errors.name" containerClass="w-full">
                         Team Name
                         <template #description>
                             eg. 'Development'
                         </template>
                     </FormRow>
 
-                    <FormRow id="team" v-model="input.slug" :error="input.slugError" :placeholder="input.defaultSlug" containerClass="max-w-md">
+                    <FormRow id="team" v-model="input.slug" :error="input.slugError" :placeholder="input.defaultSlug" containerClass="w-full">
                         URL Slug
                         <template #description>
                             Use the default slug based on the team name or set your own.<br>
@@ -46,30 +54,30 @@
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
                             <p v-if="(!presetTeamType && isBillingRequired) || (presetTeamType && !isSelectionTrial && !presetTeamType.isFree)">To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
                         </div>
-                        <ff-button v-if="isBillingRequired" :disabled="!formValid" @click="createTeam()">
+                        <ff-button v-if="isBillingRequired" :disabled="!formValid" class="w-full" @click="createTeam()">
                             <template #icon-right><ExternalLinkIcon /></template>
                             Create team and setup payment details
                         </ff-button>
-                        <ff-button v-else-if="isSelectionTrial" :disabled="!formValid" @click="createTeam()">
+                        <ff-button v-else-if="isSelectionTrial" :disabled="!formValid" class="w-full" @click="createTeam()">
                             Start Free Trial
                         </ff-button>
-                        <ff-button v-else :disabled="!formValid" @click="createTeam()">
+                        <ff-button v-else :disabled="!formValid" class="w-full" @click="createTeam()">
                             Create team
                         </ff-button>
                     </template>
-                    <ff-button v-else :disabled="!formValid" @click="createTeam()">
+                    <ff-button v-else :disabled="!formValid" class="w-full" @click="createTeam()">
                         <template v-if="billingEnabled && isSelectionTrial">Start Free Trial</template>
                         <template v-else>Create team</template>
                     </ff-button>
                 </div>
-                <template v-else>
+                <section v-else class="max-w-md">
                     <div class="mb-8 text-sm text-gray-500 space-y-2">
                         <p>To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
                     </div>
-                    <ff-button @click="sendContact()">
+                    <ff-button class="w-full" @click="sendContact()">
                         Talk to Sales
                     </ff-button>
-                </template>
+                </section>
             </form>
         </div>
     </ff-page>
@@ -115,7 +123,9 @@ export default {
             newTeam: null,
             errors: {},
             pendingSlugCheck: null,
-            presetTeamType: false
+            presetTeamType: false,
+            annualBillingAvailable: true,
+            isAnnualBilling: false
         }
     },
     watch: {
@@ -143,6 +153,17 @@ export default {
             } else {
                 this.input.teamType = null
             }
+        },
+        isAnnualBilling (isAnnualBilling) {
+            const teamType = this.teamTypes.find(type => {
+                const hasYearlyPlan = Object.prototype.hasOwnProperty.call(type, 'properties') &&
+                    Object.prototype.hasOwnProperty.call(type.properties, 'billing') &&
+                    Object.prototype.hasOwnProperty.call(type.properties.billing, 'yrPriceId')
+
+                return isAnnualBilling ? hasYearlyPlan : !hasYearlyPlan
+            })
+
+            this.input.teamTypeId = teamType.id
         }
     },
     computed: {
@@ -197,6 +218,13 @@ export default {
     mounted () {
         this.mounted = true
         // was a team type pre-determined
+
+        if (
+            Object.prototype.hasOwnProperty.call(this.$route.query, 'interval') &&
+            ['month', 'year'].includes(this.$route.query.interval)
+        ) {
+            this.isAnnualBilling = this.$route.query.interval !== 'month'
+        }
     },
     methods: {
         createTeam () {
@@ -206,7 +234,7 @@ export default {
                 name: this.input.name,
                 slug: this.input.slug || this.input.defaultSlug,
                 type: this.input.teamTypeId,
-                billingInterval: this.$route.query.interval
+                billingInterval: this.isAnnualBilling ? 'year' : 'month'
             }
             // Check if we should set the trial flag
             if (

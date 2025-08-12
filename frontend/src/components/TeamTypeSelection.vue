@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="space-y-16">
         <div class="flex gap-6 justify-center relative z-10 flex-wrap">
             <team-type-tile
                 v-for="type in types" :key="type.id"
