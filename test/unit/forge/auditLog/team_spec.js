@@ -700,7 +700,7 @@ describe('Audit Log > Team', async function () {
             logEntry.should.have.property('event', 'team.database.table.created')
             logEntry.should.have.property('body').and.be.an.Object()
             logEntry.body.should.only.have.keys('team', 'database', 'table')
-            logEntry.body.database.should.only.have.keys('name').and.be.a.String()
+            logEntry.body.database.should.only.have.keys('name')
             logEntry.body.table.should.only.have.keys('name')
         })
         it('Delete Table', async function () {
@@ -710,7 +710,7 @@ describe('Audit Log > Team', async function () {
             logEntry.should.have.property('scope', { id: TEAM.hashid, type: 'team' })
             logEntry.should.have.property('body').and.be.an.Object()
             logEntry.body.should.only.have.keys('team', 'database', 'table')
-            logEntry.body.database.should.only.have.keys('name').and.be.a.String()
+            logEntry.body.database.should.only.have.keys('name')
             logEntry.body.table.should.only.have.keys('name')
         })
     })
