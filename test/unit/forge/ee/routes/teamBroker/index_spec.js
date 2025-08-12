@@ -1,5 +1,7 @@
 const { Op } = require('sequelize')
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -327,7 +329,7 @@ describe('Team Broker API', function () {
                 response.statusCode.should.equal(404)
             })
 
-            describe('Link and Unlink MQTT Broker Clients from an instance', function () {
+            describe('Links MQTT Broker Clients from an instance or device', function () {
                 const device1Name = 'LinkTestDevice1'
                 const device2Name = 'LinkTestDevice2'
                 const instance1Name = 'LinkTestInstance1'
@@ -390,6 +392,7 @@ describe('Team Broker API', function () {
                 })
 
                 afterEach(async function () {
+                    sinon.restore()
                     // Delete any broker client created in the beforeEach
                     await app.db.models.TeamBrokerClient.destroy({
                         where: {
@@ -400,14 +403,14 @@ describe('Team Broker API', function () {
                     // Delete any broker client created for a device
                     await app.db.models.TeamBrokerClient.destroy({
                         where: {
-                            username: { [Op.like]: 'device-%' },
+                            username: { [Op.like]: 'device:%' },
                             TeamId: app.team.id
                         }
                     })
                     // Delete any broker client created for a project
                     await app.db.models.TeamBrokerClient.destroy({
                         where: {
-                            username: { [Op.like]: 'instance-%' },
+                            username: { [Op.like]: 'instance:%' },
                             TeamId: app.team.id
                         }
                     })
@@ -441,7 +444,7 @@ describe('Team Broker API', function () {
                 it('Create & link a client for a device using a device token', async function () {
                     // add a broker client to the team
                     const { device, deviceToken } = await createDevice(device1Name)
-                    const userName = `device-${device.hashid}`
+                    const userName = `device:${device.hashid}`
 
                     const response = await app.inject({
                         method: 'POST',
@@ -449,27 +452,28 @@ describe('Team Broker API', function () {
                         headers: {
                             Authorization: `Bearer ${deviceToken.token}`
                         },
-                        body: {} // since this is a token-based request, we don't need to provide ownerType or ownerId (they are derived from the token)
+                        body: {
+                            password: 'abc123'
+                        }
                     })
                     response.statusCode.should.equal(201)
                     const result = response.json()
                     result.should.have.property('id')
                     result.should.have.property('username', userName)
-                    result.should.have.property('password').which.is.a.String() // password is to a device/instance so it can immediately be used to connect
                     result.should.have.property('acls').which.is.an.Array()
                     result.acls.should.have.a.lengthOf(1)
                     result.acls[0].should.have.property('id')
-                    result.acls[0].should.have.property('action', 'both')
+                    result.acls[0].should.have.property('action', 'subscribe')
                     result.acls[0].should.have.property('pattern', '#')
                     result.should.have.property('owner').which.is.an.Object()
-                    result.owner.should.have.property('instanceType', 'remote')
+                    result.owner.should.have.property('instanceType', 'device')
                     result.owner.should.have.property('id', device.hashid)
                     result.owner.should.have.property('name', device.name)
                 })
                 it('Create & link a client for a project using a project token', async function () {
                     // add a broker client to the team
                     const { project, projectToken } = await createProject(instance1Name)
-                    const userName = `instance-${project.hashid}`
+                    const userName = `instance:${project.id}`
 
                     const response = await app.inject({
                         method: 'POST',
@@ -477,72 +481,34 @@ describe('Team Broker API', function () {
                         headers: {
                             Authorization: `Bearer ${projectToken.token}`
                         },
-                        body: {} // since this is a token-based request, we don't need to provide ownerType or ownerId (they are derived from the token)
+                        body: {
+                            password: 'abc123'
+                        }
                     })
                     response.statusCode.should.equal(201)
                     const result = response.json()
                     result.should.have.property('id')
                     result.should.have.property('username', userName)
-                    result.should.have.property('password').which.is.a.String() // password is to a device/instance so it can immediately be used to connect
                     result.should.have.property('acls').which.is.an.Array()
                     result.acls.should.have.a.lengthOf(1)
                     result.acls[0].should.have.property('id')
-                    result.acls[0].should.have.property('action', 'both')
+                    result.acls[0].should.have.property('action', 'subscribe')
                     result.acls[0].should.have.property('pattern', '#')
                     result.should.have.property('owner').which.is.an.Object()
-                    result.owner.should.have.property('instanceType', 'hosted')
+                    result.owner.should.have.property('instanceType', 'instance')
                     result.owner.should.have.property('id', project.id)
                     result.owner.should.have.property('name', project.name)
                 })
-                it('Link an existing client to a device using a device token', async function () {
-                    // add a broker client to the team
-                    const { device, deviceToken } = await createDevice(device1Name)
-
+                it('Fails to link a client without password', async function () {
                     const response = await app.inject({
                         method: 'POST',
                         url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
                         headers: {
-                            Authorization: `Bearer ${deviceToken.token}`
+                            Authorization: 'Bearer invalid-token'
                         },
-                        body: {} // since this is a token-based request, we don't need to provide ownerType or ownerId (they are derived from the token)
+                        body: { }
                     })
-                    response.statusCode.should.equal(200)
-                    const result = response.json()
-                    result.should.have.property('id')
-                    result.should.have.property('username', user1Name)
-                    result.should.have.property('password').which.is.a.String() // password is to a device/instance so it can immediately be used to connect
-                    result.should.have.property('acls').which.is.an.Array()
-                    result.acls.should.have.a.lengthOf(1)
-                    result.acls[0].should.have.property('pattern', 'foo/#')
-                    result.should.have.property('owner').which.is.an.Object()
-                    result.owner.should.have.property('instanceType', 'remote')
-                    result.owner.should.have.property('id', device.hashid)
-                    result.owner.should.have.property('name', device.name)
-                })
-                it('Link an existing client to a project using a project token', async function () {
-                    // add a broker client to the team
-                    const { project, projectToken } = await createProject(instance1Name)
-
-                    const response = await app.inject({
-                        method: 'POST',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
-                        headers: {
-                            Authorization: `Bearer ${projectToken.token}`
-                        },
-                        body: {} // since this is a token-based request, we don't need to provide ownerType or ownerId (they are derived from the token)
-                    })
-                    response.statusCode.should.equal(200)
-                    const result = response.json()
-                    result.should.have.property('id')
-                    result.should.have.property('username', user1Name)
-                    result.should.have.property('password').which.is.a.String() // password is to a device/instance so it can immediately be used to connect
-                    result.should.have.property('acls').which.is.an.Array()
-                    result.acls.should.have.a.lengthOf(1)
-                    result.acls[0].should.have.property('pattern', 'foo/#')
-                    result.should.have.property('owner').which.is.an.Object()
-                    result.owner.should.have.property('instanceType', 'hosted')
-                    result.owner.should.have.property('id', project.id)
-                    result.owner.should.have.property('name', project.name)
+                    response.statusCode.should.equal(400)
                 })
                 it('Fails to link a client using an invalid token', async function () {
                     const response = await app.inject({
@@ -551,116 +517,104 @@ describe('Team Broker API', function () {
                         headers: {
                             Authorization: 'Bearer invalid-token'
                         },
-                        body: {}
+                        body: {
+                            password: 'abc123'
+                        }
                     })
                     response.statusCode.should.equal(401)
                     const result = response.json()
                     result.should.have.property('code', 'unauthorized')
                 })
                 it('Cannot link client if client is already linked', async function () {
-                    const { deviceToken: deviceToken1 } = await createDevice(device1Name)
+                    const { device: device1, deviceToken: deviceToken1 } = await createDevice(device1Name)
                     const { deviceToken: deviceToken2 } = await createDevice(device2Name)
+                    const username1 = `device:${device1.hashid}`
 
                     const firstLinkup = await app.inject({
                         method: 'POST',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${username1}/link`,
                         headers: {
                             Authorization: `Bearer ${deviceToken1.token}`
                         },
-                        body: {}
+                        body: {
+                            password: 'abc123'
+                        }
                     })
-                    firstLinkup.statusCode.should.equal(200)
+                    firstLinkup.statusCode.should.equal(201)
 
                     const secondLinkup = await app.inject({
                         method: 'POST',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${username1}/link`,
                         headers: {
                             Authorization: `Bearer ${deviceToken2.token}`
                         },
-                        body: {}
+                        body: {
+                            password: 'abc123'
+                        }
                     })
                     secondLinkup.statusCode.should.equal(400)
                     const result = secondLinkup.json()
                     result.should.have.property('code', 'client_already_linked')
                 })
-                it('Unlinks a client from a device using a device token', async function () {
-                    const { deviceToken } = await createDevice(device1Name)
+                it('Updates team broker client password when instance AuthTokens are refreshed', async function () {
+                    const { project, projectToken } = await createProject(instance1Name)
+                    const userName = `instance:${project.id}`
 
-                    // First link the client to the device
-                    let response = await app.inject({
+                    const response = await app.inject({
                         method: 'POST',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
-                        headers: {
-                            Authorization: `Bearer ${deviceToken.token}`
-                        },
-                        body: {}
-                    })
-                    response.statusCode.should.equal(200)
-
-                    // Now unlink it
-                    response = await app.inject({
-                        method: 'DELETE',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
-                        headers: {
-                            Authorization: `Bearer ${deviceToken.token}`
-                        }
-                    })
-                    response.statusCode.should.equal(200)
-                    const result = response.json()
-                    result.should.have.property('status', 'okay')
-                })
-                it('Unlinks a client from a project using a project token', async function () {
-                    const { projectToken } = await createProject(instance1Name)
-
-                    // First link the client to the project
-                    let response = await app.inject({
-                        method: 'POST',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${userName}/link`,
                         headers: {
                             Authorization: `Bearer ${projectToken.token}`
                         },
-                        body: {}
-                    })
-                    response.statusCode.should.equal(200)
-
-                    // Now unlink it
-                    response = await app.inject({
-                        method: 'DELETE',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
-                        headers: {
-                            Authorization: `Bearer ${projectToken.token}`
+                        body: {
+                            password: 'abc123'
                         }
                     })
-                    response.statusCode.should.equal(200)
-                    const result = response.json()
-                    result.should.have.property('status', 'okay')
+                    response.statusCode.should.equal(201)
+
+                    const teamBrokerClient = await app.db.models.TeamBrokerClient.byUsername(userName, app.team.hashid)
+                    const pw = teamBrokerClient.password
+                    // spy on Controllers.TeamBrokerClient.updateNtMqttNodeUserPassword
+                    const updatePasswordSpy = sinon.spy(app.db.controllers.TeamBrokerClient, 'updateNtMqttNodeUserPassword')
+                    // Simulate refreshing the AuthTokens
+                    const details = await project.refreshAuthTokens(project.id)
+                    updatePasswordSpy.calledOnce.should.be.true()
+                    // should be called with this.TeamId, 'project', this.id, broker.password
+                    updatePasswordSpy.calledWith(app.team.id, 'project', project.id, details.broker.password).should.be.true()
+
+                    const teamBrokerClientUpdated = await app.db.models.TeamBrokerClient.byUsername(userName, app.team.hashid)
+                    const pwUpdated = teamBrokerClientUpdated.password
+                    pwUpdated.should.not.equal(pw)
                 })
-                it('Cannot unlink a client with other valid token', async function () {
-                    const { deviceToken: device1Token } = await createDevice(device1Name)
-                    const { deviceToken: device2Token } = await createDevice(device2Name)
+                it('Updates team broker client password when device AuthTokens are refreshed', async function () {
+                    const { device: device1, deviceToken: deviceToken1 } = await createDevice(device1Name)
+                    const username1 = `device:${device1.hashid}`
 
-                    // First link the client to the device
-                    let response = await app.inject({
+                    const response = await app.inject({
                         method: 'POST',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${username1}/link`,
                         headers: {
-                            Authorization: `Bearer ${device1Token.token}`
+                            Authorization: `Bearer ${deviceToken1.token}`
                         },
-                        body: {}
-                    })
-                    response.statusCode.should.equal(200)
-
-                    // Now try to unlink it with a different token
-                    response = await app.inject({
-                        method: 'DELETE',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
-                        headers: {
-                            Authorization: `Bearer ${device2Token.token}`
+                        body: {
+                            password: 'abc123'
                         }
                     })
-                    response.statusCode.should.equal(400)
-                    const result = response.json()
-                    result.should.have.property('code', 'client_link_mismatch')
+                    response.statusCode.should.equal(201)
+
+                    const teamBrokerClient = await app.db.models.TeamBrokerClient.byUsername(username1, app.team.hashid)
+                    const pw = teamBrokerClient.password
+                    // spy on Controllers.TeamBrokerClient.updateNtMqttNodeUserPassword
+                    const updatePasswordSpy = sinon.spy(app.db.controllers.TeamBrokerClient, 'updateNtMqttNodeUserPassword')
+                    // Simulate refreshing the AuthTokens
+                    const details = await device1.refreshAuthTokens(device1.hashid)
+                    updatePasswordSpy.calledOnce.should.be.true()
+                    // should be called with this.TeamId, 'device', this.hashid, broker.password
+                    updatePasswordSpy.calledWith(app.team.id, 'device', device1.hashid, details.broker.password).should.be.true()
+
+                    const teamBrokerClientUpdated = await app.db.models.TeamBrokerClient.byUsername(username1, app.team.hashid)
+                    const pwUpdated = teamBrokerClientUpdated.password
+                    pwUpdated.should.not.equal(pw)
                 })
                 it('Returns a 403 when no more licenses are available', async function () {
                     // Set the team to have no more licenses (2 are created in the beforeEach, so we set the limit to 2)
@@ -671,13 +625,19 @@ describe('Team Broker API', function () {
                     }
                     app.defaultTeamType.properties = defaultTeamTypeProperties
                     await app.defaultTeamType.save()
+                    const { device: device1, deviceToken: deviceToken1 } = await createDevice(device1Name)
+                    const username1 = `device:${device1.hashid}`
 
                     // Attempt to create & link a new client
                     const response = await app.inject({
                         method: 'POST',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}-new/link`,
-                        cookies: { sid: TestObjects.tokens.bob },
-                        body: {}
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${username1}/link`,
+                        headers: {
+                            Authorization: `Bearer ${deviceToken1.token}`
+                        },
+                        body: {
+                            password: 'abc123'
+                        }
                     })
                     response.statusCode.should.equal(403)
                     const result = response.json()
