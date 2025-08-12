@@ -16,13 +16,13 @@
             </div>
         </div>
         <template v-if="enableCTA">
-            <ff-button v-if="isTrial(teamType)" kind="primary" class="w-full mt-4" :to="`/team/create?teamType=${teamType.id}` + (billingInterval === 'year' ? '&interval=year' : '')">
+            <ff-button v-if="isTrial(teamType)" kind="primary" class="w-full mt-4" :to="toCreateTeam">
                 Start Free Trial
             </ff-button>
             <ff-button v-else-if="isManualBilling(teamType)" kind="secondary" class="w-full mt-4" @click="contactFF(teamType)">
                 Contact FlowFuse
             </ff-button>
-            <ff-button v-else kind="secondary" class="w-full mt-4" :to="`/team/create?teamType=${teamType.id}`">
+            <ff-button v-else kind="secondary" class="w-full mt-4" :to="toCreateTeam">
                 Select
             </ff-button>
         </template>
@@ -62,6 +62,15 @@ export default {
                 price.interval = billing[1]
             }
             return price
+        },
+        toCreateTeam () {
+            return {
+                name: 'CreateTeam',
+                query: {
+                    teamType: this.teamType.id,
+                    interval: this.billingInterval
+                }
+            }
         }
     },
     methods: {

@@ -11,7 +11,7 @@
         <ff-loading v-else-if="loading" message="Creating Team..." />
         <div v-else :class="presetTeamType ? 'flex flex-col gap-4 sm:gap-0' : 'flex flex-col space-y-6 mb-5'">
             <div v-if="presetTeamType" class="w-full">
-                <team-type-tile class="m-auto" :team-type="presetTeamType" :enableCTA="false" />
+                <team-type-tile class="m-auto" :team-type="presetTeamType" :enableCTA="false" :billing-interval="$route.query.interval" />
             </div>
             <form :class="[presetTeamType ? 'flex flex-col items-center mt-10' : '']">
                 <!-- TeamType Type -->
@@ -205,7 +205,8 @@ export default {
             const opts = {
                 name: this.input.name,
                 slug: this.input.slug || this.input.defaultSlug,
-                type: this.input.teamTypeId
+                type: this.input.teamTypeId,
+                billingInterval: this.$route.query.interval
             }
             // Check if we should set the trial flag
             if (
