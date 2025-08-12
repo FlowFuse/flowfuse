@@ -273,7 +273,7 @@ export default {
             } else {
                 const launcherVersion = this.instance.meta?.versions?.launcher
                 if (launcherVersion) {
-                    return semver.gte(launcherVersion, '2.21.0')
+                    return semver.gte(launcherVersion, '2.21.0', { includePrerelease: true })
                 } else {
                     return false
                 }
