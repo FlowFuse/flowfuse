@@ -164,11 +164,6 @@ module.exports = function (env, argv) {
                 }
             }
         },
-        stats: {
-            all: undefined,
-            errors: true,
-            warnings: false // hide all warnings
-        },
         devServer: {
             client: {
                 overlay: { errors: true, warnings: false },
