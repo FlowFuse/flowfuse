@@ -10,7 +10,15 @@ const isObject = (obj) => {
  * @param {{ error?, team?, project?, sourceProject?, targetProject?, device?, sourceDevice?, targetDevice?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType?, info?, deviceGroup?, interval?, threshold?, token?, pkg? } == {}} objects objects to include in body
  * @returns {{ error?, team?, project?, sourceProject?, targetProject?, device?, user?, stack?, billingSession?, subscription?, license?, updates?, snapshot?, pipeline?, pipelineStage?, pipelineStageTarget?, role?, projectType? info?, deviceGroup?, interval?, threshold?, token?, pkg? }}
  */
-const generateBody = ({ error, team, application, project, sourceProject, targetProject, device, sourceDevice, targetDevice, user, stack, billingSession, subscription, license, updates, snapshot, pipeline, pipelineStage, pipelineStageTarget, role, projectType, info, deviceGroup, interval, threshold, token, pkg } = {}) => {
+const generateBody = ({
+    error, team, application,
+    project, sourceProject, targetProject, device,
+    sourceDevice, targetDevice, user, stack, billingSession,
+    subscription, license, updates, snapshot, pipeline,
+    pipelineStage, pipelineStageTarget, role, projectType,
+    info, deviceGroup, interval, threshold, token, pkg,
+    database, table
+} = {}) => {
     const body = {}
 
     if (isObject(error) || typeof error === 'string') {
@@ -102,6 +110,16 @@ const generateBody = ({ error, team, application, project, sourceProject, target
     if (threshold) {
         body.threshold = threshold
     }
+    if (isObject(database)) {
+        body.database = { name: database.name }
+    } else if (typeof database === 'string') {
+        body.database = { name: database }
+    }
+    if (isObject(table)) {
+        body.table = { name: table.name }
+    } else if (typeof table === 'string') {
+        body.table = { name: table }
+    }
 
     return body
 }
@@ -171,7 +189,9 @@ const formatLogEntry = (auditLogDbRow) => {
                 interval: body?.interval,
                 threshold: body?.threshold,
                 token: body?.token,
-                pkg: body?.pkg
+                pkg: body?.pkg,
+                database: body?.database,
+                table: body?.table
             })
 
             // if body has the keys:  `key`, `scope`, and `store` AND `store` === 'memory' or 'persistent'
