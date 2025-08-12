@@ -17,14 +17,14 @@ module.exports = {
         }
         if (result.ownerType === 'device') {
             filtered.owner = {
-                instanceType: 'remote',
+                instanceType: 'device',
                 id: u.Device?.hashid || app.db.models.Device.encodeHashid(u.ownerId),
                 name: result.Device?.name || app.db.models.Device.encodeHashid(u.ownerId),
                 type: result.Device?.type
             }
         } else if (result.ownerType === 'project') {
             filtered.owner = {
-                instanceType: 'hosted',
+                instanceType: 'instance',
                 id: u.Project?.id || u.ownerId,
                 name: result.Project?.name || u.ownerId
             }
