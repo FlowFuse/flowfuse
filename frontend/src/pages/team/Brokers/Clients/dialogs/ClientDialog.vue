@@ -3,7 +3,7 @@
         id="client-dialog"
         ref="dialog"
         data-el="create-client-dialog"
-        header="Create Client"
+        :header="isEditing ? `Edit Client: ${input.username}` : 'Create Client'"
         :closeOnConfirm="false"
         :disablePrimary="disableConfirm"
         @confirm="confirm"
