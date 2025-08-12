@@ -1,4 +1,4 @@
-const { DataTypes, Op } = require('sequelize')
+const { DataTypes, literal } = require('sequelize')
 
 const { hash, buildPaginationSearchClause } = require('../utils')
 
@@ -45,6 +45,25 @@ module.exports = {
         }
     },
     finders: function (M) {
+        const isPG = this.sequelize.getDialect() === 'postgres'
+        const instanceOwnershipJoin = literal(`
+            "TeamBrokerClient"."ownerType" = 'project'
+            AND (
+                CASE
+                    WHEN "TeamBrokerClient"."ownerType" = 'project'
+                    THEN "TeamBrokerClient"."ownerId"${isPG ? '::uuid' : ''}
+                END
+            ) = "Project"."id"
+        `)
+        const deviceOwnershipJoin = literal(`
+            "TeamBrokerClient"."ownerType" = 'device'
+            AND (
+                CASE
+                    WHEN "TeamBrokerClient"."ownerType" = 'device'
+                    THEN "TeamBrokerClient"."ownerId"${isPG ? '::int' : ''}
+                END
+            ) = "Device"."id"
+        `)
         return {
             static: {
                 byUsername: async (username, teamHashId, includeTeam = true, includeInstance = false) => {
@@ -61,19 +80,13 @@ module.exports = {
                             model: M.Project,
                             attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url'],
                             required: false,
-                            on: {
-                                '$TeamBrokerClient.ownerType$': 'project',
-                                '$TeamBrokerClient.ownerId$': { [Op.col]: 'Project.id' }
-                            }
+                            on: instanceOwnershipJoin
                         })
                         include.push({
                             model: M.Device,
                             attributes: ['hashid', 'id', 'name', 'type'],
                             required: false,
-                            on: {
-                                '$TeamBrokerClient.ownerType$': 'device',
-                                '$TeamBrokerClient.ownerId$': { [Op.col]: 'Device.id' }
-                            }
+                            on: deviceOwnershipJoin
                         })
                     }
                     return this.findOne({
@@ -100,19 +113,13 @@ module.exports = {
                                     model: M.Project,
                                     attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url'],
                                     required: false,
-                                    on: {
-                                        '$TeamBrokerClient.ownerType$': 'project',
-                                        '$TeamBrokerClient.ownerId$': { [Op.col]: 'Project.id' }
-                                    }
+                                    on: instanceOwnershipJoin
                                 },
                                 {
                                     model: M.Device,
                                     attributes: ['hashid', 'id', 'name', 'type'],
                                     required: false,
-                                    on: {
-                                        '$TeamBrokerClient.ownerType$': 'device',
-                                        '$TeamBrokerClient.ownerId$': { [Op.col]: 'Device.id' }
-                                    }
+                                    on: deviceOwnershipJoin
                                 }
                             ],
                             order: [['id', 'ASC']],
