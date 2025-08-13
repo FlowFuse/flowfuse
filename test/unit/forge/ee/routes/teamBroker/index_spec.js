@@ -329,16 +329,19 @@ describe('Team Broker API', function () {
                 response.statusCode.should.equal(404)
             })
 
-            describe('Links MQTT Broker Clients from an instance or device', function () {
+            describe('Links MQTT Broker Clients from an instance or device for nr-mqtt-nodes', function () {
                 const device1Name = 'LinkTestDevice1'
                 const device2Name = 'LinkTestDevice2'
                 const instance1Name = 'LinkTestInstance1'
                 const instance2Name = 'LinkTestInstance2'
                 const user1Name = 'LinkTestUser1'
                 const user2Name = 'LinkTestUser2'
+                let team2
 
-                async function createDevice (name) {
-                    const device = await factory.createDevice({ name }, app.team, null, app.application)
+                async function createDevice (name, { team, application } = {}) {
+                    team = team || app.team
+                    application = application || app.application
+                    const device = await app.factory.createDevice({ name }, team, null, application)
                     const deviceToken = await app.db.controllers.AccessToken.createTokenForDevice(device)
                     // reload with team for the refreshAuthTokens call (creates a new broker client and that needs the team)
                     await device.reload({
@@ -350,8 +353,9 @@ describe('Team Broker API', function () {
                     return { device, deviceToken }
                 }
 
-                async function createProject (name) {
-                    const project = await factory.createInstance({ name }, app.application, app.stack, app.template, app.projectType, { start: false })
+                async function createProject (name, { application } = {}) {
+                    application = application || app.application
+                    const project = await factory.createInstance({ name }, application, app.stack, app.template, app.projectType, { start: false })
                     const projectToken = await project.refreshAuthTokens()
                     return { project, projectToken }
                 }
@@ -363,6 +367,9 @@ describe('Team Broker API', function () {
                             TeamId: app.team.id
                         }
                     })
+                    const _team2 = await factory.createTeam({ name: 'otherTeam' })
+                    await _team2.addUser(app.user, { through: { role: Roles.Owner } })
+                    team2 = _team2
                 })
 
                 beforeEach(async function () {
@@ -504,16 +511,154 @@ describe('Team Broker API', function () {
                         method: 'POST',
                         url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
                         headers: {
-                            Authorization: 'Bearer invalid-token'
+                            Authorization: 'Bearer token'
                         },
                         body: { }
                     })
                     response.statusCode.should.equal(400)
                 })
+                it('Returns 400 for invalid username', async function () {
+                    const { project, projectToken } = await createProject(instance1Name)
+                    const userName = `instance@${project.id}` // should be instance|device:id
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${userName}/link`,
+                        headers: {
+                            Authorization: `Bearer ${projectToken.token}`
+                        },
+                        body: {
+                            password: 'abc123'
+                        }
+                    })
+                    const result = response.json()
+                    result.should.have.property('code', 'invalid_username')
+                    response.statusCode.should.equal(400)
+                })
+                it('Returns 400 for invalid password', async function () {
+                    const { project, projectToken } = await createProject(instance1Name)
+                    const userName = `instance:${project.id}` // should be instance|device:id
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${userName}/link`,
+                        headers: {
+                            Authorization: `Bearer ${projectToken.token}`
+                        },
+                        body: {
+                            password: 'a'.repeat(129) // too long
+                        }
+                    })
+                    response.statusCode.should.equal(400)
+                    const result = response.json()
+                    result.should.have.property('code', 'invalid_password')
+                })
+                it('Returns 404 for mismatched instance username / device token', async function () {
+                    const { deviceToken: deviceToken1 } = await createDevice(device1Name)
+                    const { project: project1 } = await createProject(instance1Name)
+                    const userName = `instance:${project1.id}`
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${userName}/link`,
+                        headers: {
+                            Authorization: `Bearer ${deviceToken1.token}`
+                        },
+                        body: {
+                            password: 'abc123'
+                        }
+                    })
+                    response.statusCode.should.equal(404)
+                })
+                it('Returns 404 for mismatched device username / instance token', async function () {
+                    const { device: device1 } = await createDevice(device1Name)
+                    const { projectToken: projectToken1 } = await createProject(instance1Name)
+                    const userName = `device:${device1.hashid}`
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${userName}/link`,
+                        headers: {
+                            Authorization: `Bearer ${projectToken1.token}`
+                        },
+                        body: {
+                            password: 'abc123'
+                        }
+                    })
+                    response.statusCode.should.equal(404)
+                })
+                it('Returns 404 for mismatched team / device token', async function () {
+                    const otherTeamApplication = await factory.createApplication({ name: 'otherTeamApplication' }, team2)
+                    const { deviceToken: device1Token } = await createDevice(device1Name)
+                    const { device: device2 } = await createDevice(device2Name, { team: team2, application: otherTeamApplication })
+                    const userName = `device:${device2.hashid}`
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${team2.hashid}/broker/client/${userName}/link`, // team2 info
+                        headers: {
+                            Authorization: `Bearer ${device1Token.token}` // team 1 token
+                        },
+                        body: {
+                            password: 'abc123'
+                        }
+                    })
+                    response.statusCode.should.equal(404)
+                })
+                it('Returns 404 for mismatched team / device link url', async function () {
+                    const { device, deviceToken: device1Token } = await createDevice(device1Name)
+                    const userName = `device:${device.hashid}`
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${team2.hashid}/broker/client/${userName}/link`, // team2 hash + device from team 1
+                        headers: {
+                            Authorization: `Bearer ${device1Token.token}` // team 1 device token
+                        },
+                        body: {
+                            password: 'abc123'
+                        }
+                    })
+                    response.statusCode.should.equal(404)
+                })
+                it('Returns 404 for mismatched team / instance token', async function () {
+                    const otherTeamApplication = await factory.createApplication({ name: 'otherTeamApplication' }, team2)
+                    const { projectToken: instance1Token } = await createProject(instance1Name)
+                    const { project: instance2 } = await createProject(instance2Name, { application: otherTeamApplication })
+                    const userName = `instance:${instance2.id}`
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${team2.hashid}/broker/client/${userName}/link`, // team2 info
+                        headers: {
+                            Authorization: `Bearer ${instance1Token.token}` // team 1 token
+                        },
+                        body: {
+                            password: 'abc123'
+                        }
+                    })
+                    response.statusCode.should.equal(404)
+                })
+                it('Returns 404 for mismatched team / instance link url', async function () {
+                    const { project: instance, projectToken: instance1Token } = await createProject(instance1Name)
+                    const userName = `instance:${instance.id}`
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${team2.hashid}/broker/client/${userName}/link`, // team2 hash + instance from team 1
+                        headers: {
+                            Authorization: `Bearer ${instance1Token.token}` // team 1 instance token
+                        },
+                        body: {
+                            password: 'abc123'
+                        }
+                    })
+                    response.statusCode.should.equal(404)
+                })
                 it('Fails to link a client using an invalid token', async function () {
                     const response = await app.inject({
                         method: 'POST',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${user1Name}/link`,
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/instance:111222333444/link`,
                         headers: {
                             Authorization: 'Bearer invalid-token'
                         },
@@ -524,37 +669,6 @@ describe('Team Broker API', function () {
                     response.statusCode.should.equal(401)
                     const result = response.json()
                     result.should.have.property('code', 'unauthorized')
-                })
-                it('Cannot link client if client is already linked', async function () {
-                    const { device: device1, deviceToken: deviceToken1 } = await createDevice(device1Name)
-                    const { deviceToken: deviceToken2 } = await createDevice(device2Name)
-                    const username1 = `device:${device1.hashid}`
-
-                    const firstLinkup = await app.inject({
-                        method: 'POST',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${username1}/link`,
-                        headers: {
-                            Authorization: `Bearer ${deviceToken1.token}`
-                        },
-                        body: {
-                            password: 'abc123'
-                        }
-                    })
-                    firstLinkup.statusCode.should.equal(201)
-
-                    const secondLinkup = await app.inject({
-                        method: 'POST',
-                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${username1}/link`,
-                        headers: {
-                            Authorization: `Bearer ${deviceToken2.token}`
-                        },
-                        body: {
-                            password: 'abc123'
-                        }
-                    })
-                    secondLinkup.statusCode.should.equal(400)
-                    const result = secondLinkup.json()
-                    result.should.have.property('code', 'client_already_linked')
                 })
                 it('Updates team broker client password when instance AuthTokens are refreshed', async function () {
                     const { project, projectToken } = await createProject(instance1Name)
@@ -617,11 +731,11 @@ describe('Team Broker API', function () {
                     pwUpdated.should.not.equal(pw)
                 })
                 it('Returns a 403 when no more licenses are available', async function () {
-                    // Set the team to have no more licenses (2 are created in the beforeEach, so we set the limit to 2)
                     const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
                     const defaultTeamTypeProperties = defaultTeamType.properties
+                    const originalLimit = defaultTeamTypeProperties.teamBroker.clients.limit
                     if (defaultTeamTypeProperties.teamBroker) {
-                        defaultTeamTypeProperties.teamBroker.clients.limit = 2
+                        defaultTeamTypeProperties.teamBroker.clients.limit = 1
                     }
                     app.defaultTeamType.properties = defaultTeamTypeProperties
                     await app.defaultTeamType.save()
@@ -642,6 +756,9 @@ describe('Team Broker API', function () {
                     response.statusCode.should.equal(403)
                     const result = response.json()
                     result.should.have.property('code', 'broker_client_limit_reached')
+                    // restore original limit
+                    defaultTeamTypeProperties.teamBroker.clients.limit = originalLimit
+                    await app.defaultTeamType.save()
                 })
             })
         })
@@ -741,41 +858,6 @@ describe('Team Broker API', function () {
                 result.should.have.property('is_superuser', false)
                 result.should.have.property('client_attrs')
                 result.client_attrs.should.have.property('team')
-            })
-            it('Test Authentication pass for nr-mqtt-nodes user', async function () {
-                const { project, projectToken } = await createProjectAndUser('TestProjectForMQTTAuth') // this also generates the broker client user via /link
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/comms/v2/auth',
-                    cookies: { sid: TestObjects.tokens.bob },
-                    body: {
-                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
-                        password: projectToken.broker.password,
-                        clientId: `mq:hosted:${app.team.hashid}:${project.id}`
-                    }
-                })
-                response.statusCode.should.equal(200)
-                const result = response.json()
-                result.should.have.property('result', 'allow')
-                result.should.have.property('is_superuser', false)
-                result.should.have.property('client_attrs')
-                result.client_attrs.should.have.property('team')
-            })
-            it('Test Authentication fail for nr-mqtt-nodes user', async function () {
-                const { project } = await createProjectAndUser('TestProjectForMQTTAuth') // this also generates the broker client user via /link
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/comms/v2/auth',
-                    cookies: { sid: TestObjects.tokens.bob },
-                    body: {
-                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
-                        password: 'wrong=password',
-                        clientId: `mq:hosted:${app.team.hashid}:${project.id}`
-                    }
-                })
-                response.statusCode.should.equal(200)
-                const result = response.json()
-                result.should.have.property('result', 'deny')
             })
             it('Test Authentication fail', async function () {
                 const response = await app.inject({
@@ -885,22 +967,6 @@ describe('Team Broker API', function () {
                 const result = response.json()
                 result.should.have.property('result', 'allow')
             })
-            it('Test subscribe allowed for nr-mqtt-nodes user', async function () {
-                const { project } = await createProjectAndUser('TestProjectForMQTTAuth') // by default, a newly linked project will have subscribe only access to '#'
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/comms/v2/acls',
-                    cookies: { sid: TestObjects.tokens.bob },
-                    body: {
-                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
-                        topic: 'foo/bar',
-                        action: 'subscribe'
-                    }
-                })
-                response.statusCode.should.equal(200)
-                const result = response.json()
-                result.should.have.property('result', 'allow')
-            })
             it('Test subscribe not allowed', async function () {
                 const response = await app.inject({
                     method: 'POST',
@@ -909,22 +975,6 @@ describe('Team Broker API', function () {
                     body: {
                         username: `bob@${app.team.hashid}`,
                         topic: 'bar/foo',
-                        action: 'subscribe'
-                    }
-                })
-                response.statusCode.should.equal(200)
-                const result = response.json()
-                result.should.have.property('result', 'deny')
-            })
-            it('Test subscribe not allowed for nr-mqtt-nodes user', async function () {
-                const { project } = await createProjectAndUser('TestProjectForMQTTAuth', { acls: [{ pattern: 'allowed/#', action: 'subscribe' }] })
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/comms/v2/acls',
-                    cookies: { sid: TestObjects.tokens.bob },
-                    body: {
-                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
-                        topic: 'not-allowed/bar',
                         action: 'subscribe'
                     }
                 })
@@ -947,22 +997,6 @@ describe('Team Broker API', function () {
                 const result = response.json()
                 result.should.have.property('result', 'allow')
             })
-            it('Test publish allowed for nr-mqtt-nodes user', async function () {
-                const { project } = await createProjectAndUser('TestProjectForMQTTAuth', { acls: [{ pattern: 'allowed/#', action: 'publish' }] })
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/comms/v2/acls',
-                    cookies: { sid: TestObjects.tokens.bob },
-                    body: {
-                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
-                        topic: 'allowed/foo',
-                        action: 'publish'
-                    }
-                })
-                response.statusCode.should.equal(200)
-                const result = response.json()
-                result.should.have.property('result', 'allow')
-            })
             it('Test publish not allowed', async function () {
                 const response = await app.inject({
                     method: 'POST',
@@ -971,22 +1005,6 @@ describe('Team Broker API', function () {
                     body: {
                         username: `bob@${app.team.hashid}`,
                         topic: 'bar/foo',
-                        action: 'publish'
-                    }
-                })
-                response.statusCode.should.equal(200)
-                const result = response.json()
-                result.should.have.property('result', 'deny')
-            })
-            it('Test publish not allowed for nr-mqtt-nodes user', async function () {
-                const { project } = await createProjectAndUser('TestProjectForMQTTAuth') // by default, a newly linked project will have subscribe only access to '#'
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/comms/v2/acls',
-                    cookies: { sid: TestObjects.tokens.bob },
-                    body: {
-                        username: `mq:hosted:${app.team.hashid}:${project.id}`,
-                        topic: 'foo', // since the by default, an nr-mqtt client has no publish access, this should be denied
                         action: 'publish'
                     }
                 })
@@ -1056,6 +1074,107 @@ describe('Team Broker API', function () {
                 response.statusCode.should.equal(200)
                 const result = response.json()
                 result.should.have.property('result', 'deny')
+            })
+            describe('for nr-mqtt-nodes', function () {
+                it('Test Authentication pass', async function () {
+                    const { project, projectToken } = await createProjectAndUser('TestProjectForMQTTAuth') // this also generates the broker client user via /link
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/comms/v2/auth',
+                        cookies: { sid: TestObjects.tokens.bob },
+                        body: {
+                            username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                            password: projectToken.broker.password,
+                            clientId: `mq:hosted:${app.team.hashid}:${project.id}`
+                        }
+                    })
+                    response.statusCode.should.equal(200)
+                    const result = response.json()
+                    result.should.have.property('result', 'allow')
+                    result.should.have.property('is_superuser', false)
+                    result.should.have.property('client_attrs')
+                    result.client_attrs.should.have.property('team')
+                })
+                it('Test Authentication fail', async function () {
+                    const { project } = await createProjectAndUser('TestProjectForMQTTAuth') // this also generates the broker client user via /link
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/comms/v2/auth',
+                        cookies: { sid: TestObjects.tokens.bob },
+                        body: {
+                            username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                            password: 'wrong=password',
+                            clientId: `mq:hosted:${app.team.hashid}:${project.id}`
+                        }
+                    })
+                    response.statusCode.should.equal(200)
+                    const result = response.json()
+                    result.should.have.property('result', 'deny')
+                })
+                it('Test subscribe allowed', async function () {
+                    const { project } = await createProjectAndUser('TestProjectForMQTTAuth') // by default, a newly linked project will have subscribe only access to '#'
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/comms/v2/acls',
+                        cookies: { sid: TestObjects.tokens.bob },
+                        body: {
+                            username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                            topic: 'foo/bar',
+                            action: 'subscribe'
+                        }
+                    })
+                    response.statusCode.should.equal(200)
+                    const result = response.json()
+                    result.should.have.property('result', 'allow')
+                })
+                it('Test subscribe not allowed', async function () {
+                    const { project } = await createProjectAndUser('TestProjectForMQTTAuth', { acls: [{ pattern: 'allowed/#', action: 'subscribe' }] })
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/comms/v2/acls',
+                        cookies: { sid: TestObjects.tokens.bob },
+                        body: {
+                            username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                            topic: 'not-allowed/bar',
+                            action: 'subscribe'
+                        }
+                    })
+                    response.statusCode.should.equal(200)
+                    const result = response.json()
+                    result.should.have.property('result', 'deny')
+                })
+                it('Test publish allowed', async function () {
+                    const { project } = await createProjectAndUser('TestProjectForMQTTAuth', { acls: [{ pattern: 'allowed/#', action: 'publish' }] })
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/comms/v2/acls',
+                        cookies: { sid: TestObjects.tokens.bob },
+                        body: {
+                            username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                            topic: 'allowed/foo',
+                            action: 'publish'
+                        }
+                    })
+                    response.statusCode.should.equal(200)
+                    const result = response.json()
+                    result.should.have.property('result', 'allow')
+                })
+                it('Test publish not allowed', async function () {
+                    const { project } = await createProjectAndUser('TestProjectForMQTTAuth') // by default, a newly linked project will have subscribe only access to '#'
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/comms/v2/acls',
+                        cookies: { sid: TestObjects.tokens.bob },
+                        body: {
+                            username: `mq:hosted:${app.team.hashid}:${project.id}`,
+                            topic: 'foo', // since the by default, an nr-mqtt client has no publish access, this should be denied
+                            action: 'publish'
+                        }
+                    })
+                    response.statusCode.should.equal(200)
+                    const result = response.json()
+                    result.should.have.property('result', 'deny')
+                })
             })
         })
         describe('Test Topic listing by Team', function () {

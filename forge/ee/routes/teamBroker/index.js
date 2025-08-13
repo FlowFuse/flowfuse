@@ -357,7 +357,7 @@ module.exports = async function (app) {
                     {
                         required: ['ownerType', 'ownerId'],
                         properties: {
-                            ownerType: { type: 'string', enum: ['device', 'project', 'instance'] },
+                            ownerType: { type: 'string', enum: ['device', 'instance'] },
                             ownerId: { type: 'string' },
                             password: { type: 'string' }
                         },
@@ -367,7 +367,7 @@ module.exports = async function (app) {
                 // Define properties at the top level so their types are known by the validator
                 // regardless of which oneOf matches (if a body is present).
                 properties: {
-                    ownerType: { type: 'string', enum: ['device', 'project', 'instance'] },
+                    ownerType: { type: 'string', enum: ['device', 'instance'] },
                     ownerId: { type: 'string' },
                     password: { type: 'string' }
                 }
@@ -417,7 +417,7 @@ module.exports = async function (app) {
         // validate request.params.username format matches instance||device:instanceIdStr
         if (!/^(instance|device):([a-zA-Z0-9_-]+)$/.test(request.params.username)) {
             return reply.status(400).send({
-                code: 'invalid_username_format',
+                code: 'invalid_username',
                 error: 'Invalid username format. Expected format: instance|device:instanceIdStr'
             })
         }
@@ -430,35 +430,53 @@ module.exports = async function (app) {
             })
         }
 
-        let user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
+        // Extract instance type and instance ID from the proposed username and later,
+        // verify the match the session information.
+        const usernameParts = request.params.username.split(':') // expects format: instance|device:instanceIdStr
+        const usernameOwnerType = usernameParts[0]
+        const usernameOwnerId = usernameParts[1]
 
-        let ownerId = request.body.ownerId
-        let ownerType = request.body.ownerType
+        let sessionOwnerId = request.body.ownerId
+        let sessionOwnerType = request.body.ownerType
         if (request.instanceTokenReq) {
-            ownerId = request.session.ownerId
-            ownerType = request.session.ownerType
-            if (ownerType === 'device') {
-                ownerId = +ownerId // ID is a number for devices
+            sessionOwnerId = request.session.ownerId
+            sessionOwnerType = request.session.ownerType
+            if (sessionOwnerType === 'device') {
+                sessionOwnerId = +sessionOwnerId // ID is a number for devices
             }
-        }
-        if (ownerType === 'instance') {
-            ownerType = 'project' // instance is an alias for project
+            if (sessionOwnerType === 'project') {
+                sessionOwnerType = 'instance' // normalize project to instance
+            }
         }
 
-        if (ownerType === 'device') {
-            const device = await app.db.models.Device.byId(ownerId)
-            if (!device) {
-                return reply.status(404).send({})
+        if (sessionOwnerType !== usernameOwnerType) {
+            return reply.status(404).send({ error: 'not_found', message: 'not found' })
+        }
+
+        if (sessionOwnerType === 'device') {
+            const device = await app.db.models.Device.byId(sessionOwnerId)
+            if (device.hashid !== usernameOwnerId) {
+                return reply.status(404).send({ error: 'not_found', message: 'not found' })
             }
-            ownerId = device.id
-        } else if (ownerType === 'project') {
-            const project = await app.db.models.Project.byId(ownerId)
-            if (!project) {
-                return reply.status(404).send({})
+            if (device.Team.hashid !== request.params.teamId) {
+                return reply.status(404).send({ error: 'not_found', message: 'not found' })
             }
+            sessionOwnerId = device.id
+        } else if (sessionOwnerType === 'instance') {
+            const instance = await app.db.models.Project.byId(sessionOwnerId)
+            if (instance.id !== usernameOwnerId) {
+                return reply.status(404).send({ error: 'not_found', message: 'not found' })
+            }
+            if (instance.Team.hashid !== request.params.teamId) {
+                return reply.status(404).send({ error: 'not_found', message: 'not found' })
+            }
+        } else {
+            // should never reach here
+            return reply.status(404).send({ error: 'not_found', message: 'not found' })
         }
 
         let statusCode = 200
+        let user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
 
         if (!user) {
             // No user found - create a new one
@@ -490,27 +508,29 @@ module.exports = async function (app) {
             const newUser = request.body
             newUser.acls = JSON.stringify(acls)
             newUser.username = request.params.username
-            newUser.ownerType = ownerType
-            newUser.ownerId = ownerId
-            if (newUser.ownerType === 'device') {
-                newUser.ownerId = +newUser.ownerId // ID is a number for devices
+            if (sessionOwnerType === 'device') {
+                newUser.ownerType = 'device'
+                newUser.ownerId = +sessionOwnerId // ID is a number for devices
+            } else if (sessionOwnerType === 'instance') {
+                newUser.ownerType = 'project' // the database relation should be the legacy name
+                newUser.ownerId = sessionOwnerId
             }
             newUser.password = request.body.password
             user = await app.db.models.TeamBrokerClient.create({ ...newUser, TeamId: request.team.id })
             statusCode = 201
         } else {
             // User found - check: if type/id exists, it must match, otherwise return an error
-            const checkOwnerType = user.ownerType || ownerType
-            const checkOwnerId = user.ownerId || ownerId
-            if (checkOwnerType !== ownerType || checkOwnerId !== ownerId) {
+            const checkOwnerType = user.ownerType || sessionOwnerType
+            const checkOwnerId = user.ownerId || sessionOwnerId
+            if (checkOwnerType !== sessionOwnerType || checkOwnerId !== sessionOwnerId) {
                 return reply.status(400).send({
                     code: 'client_already_linked',
                     error: 'Client is linked to different instance'
                 })
             }
             // update the user with the new ownerType and ownerId
-            user.ownerType = ownerType
-            user.ownerId = ownerId
+            user.ownerType = sessionOwnerType
+            user.ownerId = sessionOwnerId
             user.password = request.body.password
             await user.save()
         }
