@@ -37,6 +37,124 @@
                 </div>
             </template>
         </template>
+        <template v-if="corsAvailable">
+            <FormHeading>HTTP Node CORS</FormHeading>
+            <div class="flex flex-col sm:flex-row sm:ml-4">
+                <div class="space-y-4 w-full max-w-md sm:mr-8">
+                    <FormRow v-model="editable.settings.httpNodeCORS_enabled" type="checkbox" :disabled="!editTemplate && !editable.policy.httpNodeCORS">
+                        Enable CORS handling
+                        <template #description>Select How resources can be shared with other hosts</template>
+                        <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_enabled" /></template>
+                    </FormRow>
+                </div>
+                <LockSetting v-model="editable.policy.httpNodeCORS" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeCORS" />
+            </div>
+            <div v-if="editable.settings.httpNodeCORS_enabled" class="flex flex-col gap-3 ml-5">
+                <div class="flex flex-col sm:flex-row">
+                    <div class="w-full sm:mr-8">
+                        <FormRow v-model="editable.settings.httpNodeCORS_origin" :disabled="!editTemplate && !editable.policy.httpNodeCORS" :error="editable.errors.httpNodeCORS_origin" :type="(editTemplate||editable.policy.httpNodeCORS)?'text':'uneditable'">
+                            Allowed Origin
+                            <template #description>
+                                The allowed URL or * for all
+                            </template>
+                            <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_origin" /></template>
+                        </FormRow>
+                    </div>
+                </div>
+
+                <div class="flex flex-row">
+                    <div class="flex flex-col">
+                        <div class="flex flex-col sm:flex-row">
+                            <div class="w-full sm:mr-8">
+                                <FormRow v-model="editable.settings.httpNodeCORS_GET" type="checkbox" :disabled="!editTemplate && !editable.policy.httpNodeCORS">
+                                    GET
+                                    <template #description>
+                                        Allow GET requests
+                                    </template>
+                                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_GET" /></template>
+                                </FormRow>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row">
+                            <div class="w-full sm:mr-8">
+                                <FormRow v-model="editable.settings.httpNodeCORS_POST" type="checkbox" :disabled="!editTemplate && !editable.policy.httpNodeCORS">
+                                    POST
+                                    <template #description>
+                                        Allow POST requests
+                                    </template>
+                                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_POST" /></template>
+                                </FormRow>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row">
+                            <div class="w-full sm:mr-8">
+                                <FormRow v-model="editable.settings.httpNodeCORS_PUT" type="checkbox" :disabled="!editTemplate && !editable.policy.httpNodeCORS">
+                                    PUT
+                                    <template #description>
+                                        Allow PUT requests
+                                    </template>
+                                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_PUT" /></template>
+                                </FormRow>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <div class="flex flex-col sm:flex-row">
+                            <div class="w-full sm:mr-8">
+                                <FormRow v-model="editable.settings.httpNodeCORS_PATCH" type="checkbox" :disabled="!editTemplate && !editable.policy.httpNodeCORS">
+                                    PATCH
+                                    <template #description>
+                                        Allow PATCH requests
+                                    </template>
+                                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_PATCH" /></template>
+                                </FormRow>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row">
+                            <div class="w-full sm:mr-8">
+                                <FormRow v-model="editable.settings.httpNodeCORS_HEAD" type="checkbox" :disabled="!editTemplate && !editable.policy.httpNodeCORS">
+                                    HEAD
+                                    <template #description>
+                                        Allow HEAD requests
+                                    </template>
+                                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_HEAD" /></template>
+                                </FormRow>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row">
+                            <div class="w-full sm:mr-8">
+                                <FormRow v-model="editable.settings.httpNodeCORS_DELETE" type="checkbox" :disabled="!editTemplate && !editable.policy.httpNodeCORS">
+                                    DELETE
+                                    <template #description>
+                                        Allow DELETE requests
+                                    </template>
+                                    <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_DELETE" /></template>
+                                </FormRow>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+        <template v-else-if="!device && !corsAvailable && instance">
+            <FormHeading>HTTP Node CORS</FormHeading>
+            <FeatureUnavailable>
+                <template #default>
+                    <p class="flex gap-3 items-center">This requires latest version of the Node-RED, please <ff-button size="small" to="../general?highlight=updateStack">Update</ff-button></p>
+                </template>
+            </FeatureUnavailable>
+            <div class="flex flex-col sm:flex-row sm:ml-4">
+                <div class="space-y-4 w-full max-w-md sm:mr-8">
+                    <FormRow v-model="editable.settings.httpNodeCORS_enabled" type="checkbox" :disabled="true">
+                        Enable CORS handling
+                        <template #description>Select How resources can be shared with other hosts</template>
+                        <template #append><ChangeIndicator :value="editable.changed.settings.httpNodeCORS_enabled" /></template>
+                    </FormRow>
+                </div>
+                <LockSetting v-model="editable.policy.httpNodeCORS" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.httpNodeCORS" />
+            </div>
+        </template>
         <FormHeading>HTTP Node Security</FormHeading>
         <div class="flex flex-col sm:flex-row sm:ml-4">
             <div class="space-y-4 w-full max-w-md sm:mr-8">
@@ -78,6 +196,7 @@ import semver from 'semver'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
@@ -89,6 +208,7 @@ export default {
         FormHeading,
         LockSetting,
         ChangeIndicator,
+        FeatureUnavailable,
         FeatureUnavailableToTeam
     },
     props: {
@@ -105,6 +225,10 @@ export default {
             default: null
         },
         device: {
+            type: Object,
+            default: null
+        },
+        instance: {
             type: Object,
             default: null
         }
@@ -137,6 +261,23 @@ export default {
                 return false
             }
             return semver.gte(this.device.agentVersion, '3.2.0')
+        },
+        corsAvailable () {
+            if (this.device) {
+                return false
+            }
+
+            // template
+            if (!this.instance) {
+                return true
+            } else {
+                const launcherVersion = this.instance.meta?.versions?.launcher
+                if (launcherVersion) {
+                    return semver.gte(launcherVersion, '2.21.0', { includePrerelease: true })
+                } else {
+                    return false
+                }
+            }
         },
         authOptions1 () {
             return [

@@ -32,7 +32,15 @@ module.exports = {
         'emailAlerts_resource_memory',
         'emailAlerts_recipients',
         'debugMaxLength',
-        'apiMaxLength'
+        'apiMaxLength',
+        'httpNodeCORS_enabled',
+        'httpNodeCORS_origin',
+        'httpNodeCORS_GET',
+        'httpNodeCORS_POST',
+        'httpNodeCORS_PUT',
+        'httpNodeCORS_PATCH',
+        'httpNodeCORS_HEAD',
+        'httpNodeCORS_DELETE'
     ],
     passwordTypes: [
         'httpNodeAuth_pass'
@@ -70,7 +78,15 @@ module.exports = {
         emailAlerts_resource_memory: true,
         emailAlerts_recipients: 'owners',
         debugMaxLength: 1000,
-        apiMaxLength: '5mb'
+        apiMaxLength: '5mb',
+        httpNodeCORS_enabled: false,
+        httpNodeCORS_origin: '*',
+        httpNodeCORS_GET: true,
+        httpNodeCORS_POST: true,
+        httpNodeCORS_PUT: true,
+        httpNodeCORS_PATCH: true,
+        httpNodeCORS_HEAD: true,
+        httpNodeCORS_DELETE: true
     },
     defaultTemplatePolicy: {
         disableEditor: true,
@@ -105,6 +121,7 @@ module.exports = {
         emailAlerts_resource_memory: true,
         emailAlerts_recipients: true,
         debugMaxLength: true,
-        apiMaxLength: true
+        apiMaxLength: true,
+        httpNodeCORS: true
     }
 }

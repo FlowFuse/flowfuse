@@ -296,6 +296,110 @@ describe('Project Template controller', function () {
                 }).throw()
             })
         })
+        describe('httpNodeCORS', function () {
+            it('should allow origin *', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        httpNodeCORS: {
+                            origin: '*',
+                            GET: true,
+                            POST: true,
+                            PATCH: true,
+                            PUT: true,
+                            DELETE: false,
+                            HEAD: true
+                        }
+                    })
+                }).not.throw()
+            })
+            it('should not allow origin foo', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        httpNodeCORS: {
+                            origin: 'foo',
+                            GET: true,
+                            POST: true,
+                            PATCH: true,
+                            PUT: true,
+                            DELETE: false,
+                            HEAD: true
+                        }
+                    })
+                }).throw()
+            })
+            it('should allow origin http://example.com', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        httpNodeCORS: {
+                            origin: 'http://example.com',
+                            GET: true,
+                            POST: true,
+                            PATCH: true,
+                            PUT: true,
+                            DELETE: false,
+                            HEAD: true
+                        }
+                    })
+                }).not.throw()
+            })
+            it('should not allow origin wss://example.com', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        httpNodeCORS: {
+                            origin: 'wss://example.com',
+                            GET: true,
+                            POST: true,
+                            PATCH: true,
+                            PUT: true,
+                            DELETE: false,
+                            HEAD: true
+                        }
+                    })
+                }).throw()
+            })
+            it('should not allow origin http://example.com/bar', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        httpNodeCORS: {
+                            origin: 'http://example.com/bar',
+                            GET: true,
+                            POST: true,
+                            PATCH: true,
+                            PUT: true,
+                            DELETE: false,
+                            HEAD: true
+                        }
+                    })
+                }).throw()
+            })
+            it('should not allow GET = "foo"', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        httpNodeCORS: {
+                            origin: '*',
+                            GET: 'foo',
+                            POST: true,
+                            PUT: true,
+                            DELETE: false,
+                            HEAD: true
+                        }
+                    })
+                }).throw()
+            })
+            it('should not allow missing GET', async function () {
+                should(() => {
+                    app.db.controllers.ProjectTemplate.validateSettings({
+                        httpNodeCORS: {
+                            origin: '*',
+                            POST: true,
+                            PUT: true,
+                            DELETE: false,
+                            HEAD: true
+                        }
+                    })
+                }).throw()
+            })
+        })
     })
 
     describe('mergeSettings', function () {
