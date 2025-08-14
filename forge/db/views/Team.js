@@ -32,6 +32,7 @@ module.exports = function (app) {
         allOf: [{ $ref: 'TeamSummary' }],
         properties: {
             type: { $ref: 'TeamType' },
+            properties: { type: 'object', additionalProperties: true },
             instanceCount: { type: 'number' },
             instanceCountByType: { type: 'object', additionalProperties: true },
             memberCount: { type: 'number' },
@@ -50,6 +51,7 @@ module.exports = function (app) {
                 id: result.hashid,
                 name: result.name,
                 type: app.db.views.TeamType.teamType(result.TeamType),
+                properties: result.properties,
                 slug: result.slug,
                 avatar: result.avatar,
                 suspended: result.suspended,

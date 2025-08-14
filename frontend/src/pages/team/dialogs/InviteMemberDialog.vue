@@ -4,7 +4,7 @@
             <form class="space-y-2" @submit.prevent>
                 <template v-if="!responseErrors">
                     <p v-if="!exceedsUserLimit">Invite a user to join the team by username<span v-if="externalEnabled"> or email</span>. Please use a comma-separated list to invite multiple new users.</p>
-                    <p v-if="hasUserLimit">Your team can have a maximum of {{ team.type.properties.userLimit }} members.</p>
+                    <p v-if="hasUserLimit">Your team can have a maximum of {{ userLimit }} members.</p>
                     <p v-if="exceedsUserLimit">You currently have {{ totalMembers }} (including existing invites) so cannot invite any more.</p>
                     <div v-if="!exceedsUserLimit" class="space-y-4 pt-2">
                         <FormRow id="userInfo" v-model="input.userInfo" :error="errors.userInfo" :placeholder="'username, username2, ...' + (externalEnabled?' or email1, email2, ...':'')" />
@@ -28,6 +28,7 @@ import { mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import FormRow from '../../../components/FormRow.vue'
+import { getTeamProperty } from '../../../composables/TeamProperties.js'
 
 import alerts from '../../../services/alerts.js'
 import { Roles } from '../../../utils/roles.js'
@@ -104,11 +105,14 @@ export default {
             const count = this.userCount + this.inviteCount
             return count + ' member' + (count > 1 ? 's' : '')
         },
+        userLimit () {
+            return getTeamProperty(this.team, 'user.limit') || 0
+        },
         hasUserLimit () {
-            return this.team.type.properties.userLimit > 0
+            return this.userLimit > 0
         },
         exceedsUserLimit () {
-            return this.hasUserLimit && (this.userCount + this.inviteCount) >= this.team.type.properties.userLimit
+            return this.hasUserLimit && (this.userCount + this.inviteCount) >= this.userLimit
         }
     },
     watch: {
