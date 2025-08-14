@@ -186,6 +186,11 @@ const getDeviceLogCreds = async (deviceId) => {
     return client.post(url).then(res => res.data)
 }
 
+const getDeviceResourcesCreds = async (deviceId) => {
+    const url = `/api/v1/devices/${deviceId}/resources`
+    return client.post(url).then(res => res.data)
+}
+
 const startDevice = async (device) => {
     return client.post(`/api/v1/devices/${device.id}/actions/start`).then((res) => {
         productCaptureDeviceAction('start', device)
@@ -238,6 +243,7 @@ export default {
     setSnapshotAsTarget,
     getDeviceAuditLog,
     getDeviceLogCreds,
+    getDeviceResourcesCreds,
     suspendDevice,
     restartDevice,
     startDevice
