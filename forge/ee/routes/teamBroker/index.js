@@ -459,7 +459,7 @@ module.exports = async function (app) {
                 return reply.status(404).send({ error: 'not_found', message: 'not found' })
             }
             sessionOwnerId = device.id
-        } else if (sessionOwnerType === 'instance') {
+        } else if (sessionOwnerType === 'project') {
             const instance = await app.db.models.Project.byId(sessionOwnerId)
             if (instance.id !== usernameOwnerId) {
                 return reply.status(404).send({ error: 'not_found', message: 'not found' })
