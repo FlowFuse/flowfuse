@@ -67,8 +67,14 @@ module.exports = {
         if (teamBrokerClient.ownerType !== parsedUsername.ownerType) { // project or device
             return false
         }
-        if (teamBrokerClient.ownerId !== parsedUsername.ownerId) { // instanceId is the device or project ID
-            return false
+        if (teamBrokerClient.ownerType === 'device') {
+            if (teamBrokerClient.Device.hashid !== parsedUsername.ownerId) {
+                return false
+            }
+        } else if (teamBrokerClient.ownerType === 'project') {
+            if (teamBrokerClient.Project.id !== parsedUsername.ownerId) {
+                return false
+            }
         }
         if (teamBrokerClient.Team.suspended) {
             return false
