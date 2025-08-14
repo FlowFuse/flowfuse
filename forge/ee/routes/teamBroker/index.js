@@ -433,19 +433,16 @@ module.exports = async function (app) {
         // Extract instance type and instance ID from the proposed username and later,
         // verify the match the session information.
         const usernameParts = request.params.username.split(':') // expects format: instance|device:instanceIdStr
-        const usernameOwnerType = usernameParts[0]
+        const usernameOwnerType = usernameParts[0] === 'instance' ? 'project' : usernameParts[0]
         const usernameOwnerId = usernameParts[1]
 
         let sessionOwnerId = request.body.ownerId
-        let sessionOwnerType = request.body.ownerType
+        let sessionOwnerType = request.body.ownerType === 'instance' ? 'project' : request.body.ownerType
         if (request.instanceTokenReq) {
             sessionOwnerId = request.session.ownerId
             sessionOwnerType = request.session.ownerType
             if (sessionOwnerType === 'device') {
                 sessionOwnerId = +sessionOwnerId // ID is a number for devices
-            }
-            if (sessionOwnerType === 'project') {
-                sessionOwnerType = 'instance' // normalize project to instance
             }
         }
 
@@ -508,20 +505,21 @@ module.exports = async function (app) {
             const newUser = request.body
             newUser.acls = JSON.stringify(acls)
             newUser.username = request.params.username
+            newUser.ownerType = sessionOwnerType
+            newUser.ownerId = sessionOwnerId
             if (sessionOwnerType === 'device') {
-                newUser.ownerType = 'device'
                 newUser.ownerId = +sessionOwnerId // ID is a number for devices
-            } else if (sessionOwnerType === 'instance') {
-                newUser.ownerType = 'project' // the database relation should be the legacy name
-                newUser.ownerId = sessionOwnerId
             }
             newUser.password = request.body.password
             user = await app.db.models.TeamBrokerClient.create({ ...newUser, TeamId: request.team.id })
             statusCode = 201
         } else {
             // User found - check: if type/id exists, it must match, otherwise return an error
+            let checkOwnerId = user.ownerId || sessionOwnerId
             const checkOwnerType = user.ownerType || sessionOwnerType
-            const checkOwnerId = user.ownerId || sessionOwnerId
+            if (checkOwnerType === 'device') {
+                checkOwnerId = +checkOwnerId
+            }
             if (checkOwnerType !== sessionOwnerType || checkOwnerId !== sessionOwnerId) {
                 return reply.status(400).send({
                     code: 'client_already_linked',
