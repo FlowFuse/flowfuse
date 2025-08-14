@@ -68,11 +68,11 @@ module.exports = {
             return false
         }
         if (teamBrokerClient.ownerType === 'device') {
-            if (teamBrokerClient.Device.hashid !== parsedUsername.ownerId) {
+            if (teamBrokerClient.Device?.hashid !== parsedUsername.ownerId) {
                 return false
             }
         } else if (teamBrokerClient.ownerType === 'project') {
-            if (teamBrokerClient.Project.id !== parsedUsername.ownerId) {
+            if (teamBrokerClient.Project?.id !== parsedUsername.ownerId) {
                 return false
             }
         }
