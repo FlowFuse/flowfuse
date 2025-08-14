@@ -86,6 +86,8 @@ describe('TeamBrokerClient', function () {
                 ownerType,
                 ownerId,
                 Team: { id: teamId, hashid: teamHash, suspended, TeamType: { properties: { features: { teamBroker: featureEnabled } }, hashid: teamHash } },
+                Device: ownerType === 'device' ? { hashid: ownerId, id: 1, name: 'Device Name', type: 'deviceType' } : null,
+                Project: ownerType === 'project' ? { id: ownerId, name: 'Project Name' } : null,
                 password: hash(password)
             }
         }
@@ -140,60 +142,41 @@ describe('TeamBrokerClient', function () {
 
         it('should return false if ownerType or ownerId do not match', async function () {
             const { hash } = require('../../../../../forge/db/utils')
-            app.db.models.TeamBrokerClient.byUsername.resolves({
-                ownerType: 'device', // should be 'project' to match with the signature of the username which is "mq:hosted:teamHash:oid"
-                ownerId: 'oid',
-                Team: { id: 1, hashid: 'teamHash', suspended: false, TeamType: { properties: { features: { teamBroker: true } } } },
-                password: hash('pass')
-            })
+            // setup a "remote" (device)
+            app.db.models.TeamBrokerClient.byUsername.resolves(fakeBrokerClient({ ownerType: 'device', ownerId: 'oid', password: hash('pass') }))
+            // Now try to authenticate with the "hosted" (instance) credentials
             const result = await TeamBrokerClient.authenticateNrMqttNodeUser(app, 'mq:hosted:teamHash:oid', 'mq:hosted:teamHash:oid', 'pass')
             should(result).be.false('Owner type should not match')
 
-            // since the point at which byUsername is called is after the basic checks and this test should get
-            // there, we can assert this by checking the call parameters
+            // since the point `byUsername` is called is after the basic checks and this, test should get there
+            // therefore we can assert this by checking the call parameters
             app.db.models.TeamBrokerClient.byUsername.calledOnce.should.be.true()
             app.db.models.TeamBrokerClient.byUsername.calledWith('instance:oid', 'teamHash', true, true).should.be.true()
 
-            app.db.models.TeamBrokerClient.byUsername.resolves({
-                ownerType: 'project',
-                ownerId: 'other', // should be 'oid' to match with the signature of the username which is "mq:hosted:teamHash:oid"
-                Team: { id: 1, hashid: 'teamHash', suspended: false, TeamType: { properties: { features: { teamBroker: true } } } },
-                password: hash('pass')
-            })
+            app.db.models.TeamBrokerClient.byUsername.resetHistory()
+            app.db.models.TeamBrokerClient.byUsername.resolves(fakeBrokerClient({ ownerType: 'project', ownerId: 'different-oid' }))
             const result2 = await TeamBrokerClient.authenticateNrMqttNodeUser(app, 'mq:hosted:teamHash:oid', 'mq:hosted:teamHash:oid', 'pass')
             should(result2).be.false('Owner ID should not match')
+
+            app.db.models.TeamBrokerClient.byUsername.calledOnce.should.be.true()
+            app.db.models.TeamBrokerClient.byUsername.calledWith('instance:oid', 'teamHash', true, true).should.be.true()
         })
 
         it('should return false if team is suspended', async function () {
-            app.db.models.TeamBrokerClient.byUsername.resolves({
-                ownerType: 'project',
-                ownerId: 'oid',
-                Team: { suspended: true, TeamType: { properties: { features: { teamBroker: true } } } },
-                password: 'hash'
-            })
+            app.db.models.TeamBrokerClient.byUsername.resolves(fakeBrokerClient({ suspended: true }))
             const result = await TeamBrokerClient.authenticateNrMqttNodeUser(app, 'mq:hosted:teamHash:oid', 'mq:hosted:teamHash:oid', 'pass')
             should(result).be.false()
         })
 
         it('should return false if teamBroker feature is not enabled', async function () {
-            app.db.models.TeamBrokerClient.byUsername.resolves({
-                ownerType: 'project',
-                ownerId: 'oid',
-                Team: { id: 1, hashid: 'teamHash', suspended: false, TeamType: { properties: { features: { teamBroker: false } } } },
-                password: 'hash'
-            })
+            app.db.models.TeamBrokerClient.byUsername.resolves(fakeBrokerClient({ featureEnabled: false }))
             const result = await TeamBrokerClient.authenticateNrMqttNodeUser(app, 'mq:hosted:teamHash:oid', 'mq:hosted:teamHash:oid', 'pass')
             should(result).be.false()
         })
 
         it('should return false if password does not match', async function () {
             const { hash } = require('../../../../../forge/db/utils')
-            app.db.models.TeamBrokerClient.byUsername.resolves({
-                ownerType: 'project',
-                ownerId: 'oid',
-                Team: { id: 1, hashid: 'teamHash', suspended: false, TeamType: { properties: { features: { teamBroker: true } } } },
-                password: hash('pass')
-            })
+            app.db.models.TeamBrokerClient.byUsername.resolves(fakeBrokerClient({ password: hash('pass123') }))
             const result = await TeamBrokerClient.authenticateNrMqttNodeUser(app, 'mq:hosted:teamHash:oid', 'mq:hosted:teamHash:oid', 'wrong-pass')
             should(result).be.false()
         })
