@@ -301,6 +301,15 @@ module.exports = async function (app) {
             response.assistant.completions = { ...app.config.assistant.completions }
         }
 
+        const linkedUsername = `device:${request.device.hashid}`
+        const linkedUser = await app.db.models.TeamBrokerClient.byUsername(linkedUsername, request.device.Team.hashid, false, false)
+        const linked = linkedUser?.ownerType === 'device' && +linkedUser?.ownerId === request.device.id
+        response.mqttNodes = {
+            enabled: !!response.features.teamBroker,
+            username: linked ? linkedUsername : '',
+            linked
+        }
+
         const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)
         if (teamNPMEnabled) {
             const npmRegURL = new URL(app.config.npmRegistry.url)
