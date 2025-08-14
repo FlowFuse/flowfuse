@@ -8,7 +8,7 @@ const execPromised = promisify(exec)
 
 const axios = require('axios')
 
-const { decryptValue } = require('../../../db/utils')
+const { encryptValue, decryptValue } = require('../../../db/utils')
 
 async function cloneRepository (url, branch, workingDir) {
     try {
@@ -119,6 +119,10 @@ module.exports.init = async function (app) {
             }
             const result = await app.db.controllers.Snapshot.exportSnapshot(snapshot, exportOptions)
             const snapshotExport = app.db.views.ProjectSnapshot.snapshotExport(result)
+            if (snapshotExport.settings?.settings?.palette?.npmrc) {
+                const enc = encryptValue(repoOptions.credentialSecret, snapshotExport.settings.settings?.palette?.npmrc)
+                snapshotExport.settings.settings.palette.npmrc = { $: enc }
+            }
             const snapshotFile = path.join(workingDir, repoOptions.path || 'snapshot.json').replace(/"/g, '')
             await fs.writeFile(snapshotFile, JSON.stringify(snapshotExport, null, 4))
 
@@ -201,6 +205,12 @@ module.exports.init = async function (app) {
                             delete env.$
                         }
                     })
+                }
+                if (snapshot.settings?.settings?.palette?.npmrc) {
+                    const npmrc = snapshot.settings.settings.palette.npmrc
+                    if (typeof npmrc === 'object' && npmrc.$) {
+                        snapshot.settings.settings.palette.npmrc = decryptValue(repoOptions.credentialSecret, npmrc.$)
+                    }
                 }
                 return snapshot
             } catch (err) {

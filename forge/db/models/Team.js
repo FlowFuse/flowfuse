@@ -406,7 +406,6 @@ module.exports = {
                 },
                 getProperty: function (key, defaultValue) {
                     let teamValue
-                    // console.log('getPRoperty', this.properties, key)
                     if (this.properties) {
                         const parts = key.split('.')
                         let props = this.properties
