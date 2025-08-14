@@ -191,6 +191,7 @@ module.exports = {
                     }
                     const broker = await Controllers.BrokerClient.createClientForDevice(this)
                     if (broker) {
+                        // sync passwords: the mqtt nodes client connection uses the same password. this permits runtime mqtt connection without restart.
                         await Controllers.TeamBrokerClient.updateNtMqttNodeUserPassword(this.TeamId, 'device', this.hashid, broker.password)
                         result.broker = broker
                     }

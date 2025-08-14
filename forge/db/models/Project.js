@@ -254,6 +254,7 @@ module.exports = {
                     const projectToken = await Controllers.AccessToken.createTokenForProject(this, null)
                     const projectBrokerCredentials = await Controllers.BrokerClient.createClientForProject(this)
                     if (projectBrokerCredentials) {
+                        // sync passwords: the mqtt nodes client connection uses the same password. this permits runtime mqtt connection without restart.
                         await Controllers.TeamBrokerClient.updateNtMqttNodeUserPassword(this.TeamId, 'project', this.id, projectBrokerCredentials.password)
                     }
                     return {
