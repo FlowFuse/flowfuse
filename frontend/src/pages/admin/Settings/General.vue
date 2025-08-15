@@ -192,7 +192,7 @@
         <template v-if="ssoEnabled">
             <FormHeading>Direct SSO Login</FormHeading>
             <FormRow v-model="input['platform:sso:direct']" type="checkbox" data-el="direct-sso">
-                Show buttons on Login page to jump directly to a SAML SSO provider
+                Show buttons on Login page to jump directly to a <a href="https://flowfuse.com/docs/admin/sso/saml/">SAML SSO provider</a>
                 <template #description>
                     Allows bypassing email matching for SAML SSO logins
                 </template>
