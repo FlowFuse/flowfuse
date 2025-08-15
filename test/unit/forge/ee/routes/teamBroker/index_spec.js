@@ -517,6 +517,78 @@ describe('Team Broker API', function () {
                     })
                     response.statusCode.should.equal(400)
                 })
+                it('should delete team broker client when instance is deleted', async function () {
+                    // First create an instance and perform the linkage
+                    const { project, projectToken } = await createProject('new-instance')
+                    const userName = `instance:${project.id}`
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${userName}/link`,
+                        headers: {
+                            Authorization: `Bearer ${projectToken.token}`
+                        },
+                        body: {
+                            password: 'abc123'
+                        }
+                    })
+                    response.statusCode.should.equal(201)
+
+                    // Next, get the client, ensure it exists
+                    const client = await app.db.models.TeamBrokerClient.findOne({
+                        where: {
+                            username: userName
+                        }
+                    })
+                    should(client).and.be.an.Object()
+
+                    // Next, destroy the instance
+                    await project.destroy()
+
+                    // lastly, check that the client was removed as part of the afterDestroy hook
+                    const clientCheck = await app.db.models.TeamBrokerClient.findOne({
+                        where: {
+                            username: userName
+                        }
+                    })
+                    should(clientCheck).be.null()
+                })
+                it('should delete team broker client when device is deleted', async function () {
+                    // First create a device and perform the linkage
+                    const { device, deviceToken } = await createDevice(device1Name)
+                    const userName = `device:${device.hashid}`
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${app.team.hashid}/broker/client/${userName}/link`,
+                        headers: {
+                            Authorization: `Bearer ${deviceToken.token}`
+                        },
+                        body: {
+                            password: 'abc123'
+                        }
+                    })
+                    response.statusCode.should.equal(201)
+
+                    // Next, get the client, ensure it exists
+                    const client = await app.db.models.TeamBrokerClient.findOne({
+                        where: {
+                            username: userName
+                        }
+                    })
+                    should(client).and.be.an.Object()
+
+                    // Next, destroy the instance
+                    await device.destroy()
+
+                    // lastly, check that the client was removed as part of the afterDestroy hook
+                    const clientCheck = await app.db.models.TeamBrokerClient.findOne({
+                        where: {
+                            username: userName
+                        }
+                    })
+                    should(clientCheck).be.null()
+                })
                 it('Returns 400 for invalid username', async function () {
                     const { project, projectToken } = await createProject(instance1Name)
                     const userName = `instance@${project.id}` // should be instance|device:id
