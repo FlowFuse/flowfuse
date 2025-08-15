@@ -68,6 +68,20 @@ module.exports = fp(async function (app, opts) {
                     done(new Error(`No matching SAML provider for email ${request.query.u}`))
                     return
                 }
+            } else if (request.query.p) {
+                const providerId = request.query.p
+                const opts = await app.sso.getProviderOptions(providerId)
+                if (opts) {
+                    request.query.RelayState = JSON.stringify({
+                        provider: providerId,
+                        redirectTo: decodeURIComponent(request.query.r || '/')
+                    })
+                    done(null, opts)
+                    return
+                } else {
+                    done(new Error(`SAML provider for id ${request.query.p} not found`))
+                    return
+                }
             }
             done(new Error('Missing u query parameter'))
         }

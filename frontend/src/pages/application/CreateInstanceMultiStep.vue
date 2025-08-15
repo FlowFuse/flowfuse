@@ -44,6 +44,7 @@ import { mapState } from 'vuex'
 
 import MultiStepInstanceForm from '../../components/multi-step-forms/instance/MultiStepInstanceForm.vue'
 
+import { getTeamProperty } from '../../composables/TeamProperties.js'
 import applicationMixin from '../../mixins/Application.js'
 
 export default {
@@ -91,7 +92,7 @@ export default {
                 this.team.billing?.canceled ||
                 !this.team.billing?.trial ||
                 this.team.billing?.trialEnded ||
-                (this.team.type.properties?.trial?.instanceType && this.team.instanceCount > 0)
+                (getTeamProperty(this.team, 'trial.instanceType') && this.team.instanceCount > 0)
             )
         ) {
             this.$router.push({
