@@ -1,4 +1,5 @@
 const axios = require('axios')
+const subflow = require('./lib/subflow')
 
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
@@ -59,6 +60,80 @@ module.exports = async function (app) {
             reply.send(packages)
         } catch (err) {
             reply.status(500).send({ error: 'unknown_error', message: err.toString() })
+        }
+    })
+
+    /**
+     * 
+     */
+    app.put('/npm/subflow', {
+        preHandler: async (request, reply) => {
+            console.log('pre-handler')
+            if (request.session.ownerType !== 'project') {
+                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+            }
+            console.log('pre-handler - project')
+            const project = await app.db.models.Project.byId(request.session.ownerId)
+            console.log('pre-handler - project')
+            if (request.params.teamId !== project.Team.hashid) {
+                // AccesToken being used - but not owned by project in this team
+                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                return // eslint-disable-line no-useless-return
+            }
+        },
+        schema: {
+            summary: 'Allows Subflow packages to be stored in the Team Registry',
+            tags: ['NPM Package'],
+            body: {
+                type: 'object',
+                // TODO
+                additionalProperties: true
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const package = request.body.package
+        const subflowJSON = request.body.subflow
+        if (!package || !subflowJSON) {
+            reply.status(422).send({})
+            return
+        }
+        const upload = subflow.buildUpdate(package, subflowJSON, app.config.npmRegistry.url)
+
+        console.log(upload)
+
+        try {
+            const response = await axios.put(`${app.config.npmRegistry?.url}/${package.name}`, upload, {
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                auth: {
+                    username: app.config.npmRegistry.admin.username,
+                    password: app.config.npmRegistry.admin.password
+                }
+            })
+            console.log(response.data)
+            reply.status(204).send()
+        } catch (err) {
+            console.log(err.response.data)
+            if (err.status === 409) {
+                reply.status(409).send({})
+            } else {
+                reply.status(400).send({})
+            }
         }
     })
 
