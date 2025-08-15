@@ -970,6 +970,45 @@ describe('Project API', function () {
                 runtimeSettings.settings.palette.should.not.have.property('npmrc')
                 runtimeSettings.settings.palette.should.not.have.property('catalogue')
             })
+            it('Should include certified nodes', async function () {
+                await app.settings.set('platform:certifiedNodes:npmRegistryURL', 'https://localhost')
+                await app.settings.set('platform:certifiedNodes:token', 'verySecret')
+                await app.settings.set('platform:certifiedNodes:catalogueURL', 'https://localhost/catalogue.json')
+
+                const projectName = generateProjectName()
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/projects',
+                    payload: {
+                        name: projectName,
+                        applicationId: TestObjects.ApplicationA.hashid,
+                        projectType: TestObjects.projectType1.hashid,
+                        template: TestObjects.template1.hashid,
+                        stack: TestObjects.stack1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+
+                const newProject = await app.db.models.Project.byId(result.id)
+                const newAccessToken = (await newProject.refreshAuthTokens()).token
+                const runtimeSettings = (await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/projects/${newProject.id}/settings`,
+                    headers: {
+                        authorization: `Bearer ${newAccessToken}`
+                    }
+                })).json()
+
+                const settings = runtimeSettings.settings
+                settings.should.have.property('palette')
+                settings.palette.should.have.property('npmrc')
+                settings.palette.should.have.property('catalogue')
+                settings.palette.catalogue.should.containEql('https://localhost/catalogue.json')
+                settings.palette.should.have.property('npmrc')
+                settings.palette.npmrc.should.equal('@flowfuse-certified-nodes:registry=https://localhost/\n//localhost:_auth="verySecret"\n')
+            })
         })
 
         describe('Apply Flow Blueprint', function () {
