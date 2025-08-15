@@ -1,5 +1,7 @@
 const mqttMatch = require('mqtt-match')
 
+const { parseNrMqttId } = require('../db/utils')
+
 module.exports = async function (app) {
     app.post('/auth', {
         schema: {
@@ -52,29 +54,40 @@ module.exports = async function (app) {
             }
         } else {
             if (app.license.active()) {
-                const auth = await app.db.controllers.TeamBrokerClient.authenticateCredentials(username, password)
-                // this test is to ensure that only a fixed number of clients can connect
-                if (auth && username === clientId) {
+                let teamId = null
+                let authorized = false
+                // mq:hosted/mq:remote are nr-mqtt-nodes node authorization requests
+                if (username.startsWith('mq:hosted:') || username.startsWith('mq:remote:')) {
+                    const auth = await app.db.controllers.TeamBrokerClient.authenticateNrMqttNodeUser(
+                        username,
+                        clientId,
+                        password
+                    )
+                    teamId = auth.teamId
+                    authorized = auth.clientIdValid
+                } else {
                     const parts = username.split('@')
+                    teamId = parts[1]
+                    if (username === clientId) {
+                        authorized = await app.db.controllers.TeamBrokerClient.authenticateCredentials(username, password)
+                    }
+                }
+                // this test is to ensure that only a fixed number of clients can connect
+                if (authorized) {
                     // we might pass ACL values here
                     // const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1])
-                    reply.send({
+                    return reply.send({
                         result: 'allow',
                         is_superuser: false,
                         client_attrs: {
-                            team: `ff/v1/${parts[1]}/c/`
+                            team: `ff/v1/${teamId}/c/`
                         }
                     })
-                } else {
-                    reply.send({
-                        result: 'deny'
-                    })
                 }
-            } else {
-                reply.send({
-                    result: 'deny'
-                })
             }
+            reply.send({
+                result: 'deny'
+            })
         }
     })
 
@@ -123,22 +136,33 @@ module.exports = async function (app) {
             // return
         } else {
             if (app.license.active()) {
-                const parts = request.body.username.split('@')
-                const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1], false)
+                let teamClientUsername
+                let teamId
+                // mq:hosted/mq:remote are nr-mqtt-nodes node acls checks
+                if (username.startsWith('mq:hosted:') || username.startsWith('mq:remote:')) {
+                    const parsedNrMqttId = parseNrMqttId(username)
+                    teamClientUsername = parsedNrMqttId.username // e.g. instance:xxxx or device:xxxx
+                    teamId = parsedNrMqttId.teamId
+                } else {
+                    const parts = username.split('@')
+                    teamClientUsername = parts[0]
+                    teamId = parts[1]
+                }
+                const user = await app.db.models.TeamBrokerClient.byUsername(teamClientUsername, teamId, false, false)
                 if (user) {
                     const acls = JSON.parse(user.acls)
-                    for (const acl in acls) {
+                    for (const acl of acls) {
                         if (request.body.action === 'subscribe') {
-                            if (mqttMatch(acls[acl].pattern, request.body.topic)) {
-                                if (acls[acl].action === 'both' || acls[acl].action === 'subscribe') {
+                            if (mqttMatch(acl.pattern, request.body.topic)) {
+                                if (acl.action === 'both' || acl.action === 'subscribe') {
                                     reply.send({ result: 'allow' })
                                     return
                                 }
                             }
                         } else {
-                            if (mqttMatch(acls[acl].pattern, request.body.topic)) {
-                                if (acls[acl].action === 'both' || acls[acl].action === 'publish') {
-                                    app.teamBroker.addUsedTopic(request.body.topic, parts[1])
+                            if (mqttMatch(acl.pattern, request.body.topic)) {
+                                if (acl.action === 'both' || acl.action === 'publish') {
+                                    app.teamBroker.addUsedTopic(request.body.topic, teamId)
                                     reply.send({ result: 'allow' })
                                     return
                                 }

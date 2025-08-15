@@ -1,3 +1,4 @@
+import teamApi from '../../api/team.js'
 import ensurePermission from '../../utils/ensurePermission.js'
 import ApplicationRoutes from '../application/routes.js'
 
@@ -239,6 +240,34 @@ export default [
         name: 'DeployBlueprint',
         meta: {
             title: 'Deploy Blueprint'
+        }
+    },
+    {
+        name: 'team-by-id-brokers-clients',
+        path: '/team-by-id/:teamid/brokers/:brokerId/client',
+        beforeEnter: async function (to, from, next) {
+            // Since instance/device settings have no awareness of the team slug (only the team ID),
+            // this route provides a means of redirecting the user to the correct team broker clients page
+            // when by way of a separate frontend route that understands the route is explicitly using a teamId
+            // not a slug and can therefore redirect appropriately. For reference, this hyperlink is on the edit
+            // dialog for the in/out nr-mqtt-nodes
+            if (to.params.teamid) {
+                const team = await teamApi.getTeam(to.params.teamid)
+                next({
+                    name: 'team-brokers-clients',
+                    params: {
+                        brokerId: to.params.brokerId,
+                        team_slug: team.slug
+                    },
+                    query: to.query,
+                    replace: true
+                })
+            } else {
+                next({ name: 'home' })
+            }
+        },
+        meta: {
+            title: 'Team - MQTT Broker Clients'
         }
     }
 ]

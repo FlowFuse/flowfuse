@@ -125,13 +125,23 @@ export default {
         }),
         filteredClients () {
             if (!this.filterTerm.length) return this.clients
-
+            const term = this.filterTerm.toLowerCase()
             return this.clients.filter(client => {
+                const username = `${client.username}@${this.team.id}`.toLowerCase()
+                const altUserName = client.owner?.name?.toLowerCase() || ''
                 return [
-                    client.username.toLowerCase().includes(this.filterTerm.toLowerCase())
+                    username.includes(term),
+                    altUserName.includes(term)
                 ].includes(true)
             })
         }
+    },
+    mounted () {
+        if (this.$route?.query?.searchQuery) {
+            this.filterTerm = this.$route.query.searchQuery
+        }
+        // clear the query param when the component is mounted
+        this.$router.replace({ query: { ...this.$route.query, searchQuery: undefined } })
     },
     methods: {
         ...mapActions('product', ['fetchUnsClients']),

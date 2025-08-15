@@ -133,6 +133,13 @@ module.exports = {
         this.belongsTo(M.ProjectTemplate)
         this.hasMany(M.ProjectSnapshot)
         this.hasOne(M.StorageFlow)
+        this.hasOne(M.TeamBrokerClient, {
+            foreignKey: 'ownerId',
+            constraints: false,
+            scope: {
+                ownerType: 'project'
+            }
+        })
     },
     hooks: function (M, app) {
         return {
@@ -226,6 +233,13 @@ module.exports = {
                         }
                     }
                 })
+                // delete auto created team broker client
+                await M.TeamBrokerClient.destroy({
+                    where: {
+                        ownerType: 'project',
+                        ownerId: project.id
+                    }
+                })
             }
         }
     },
@@ -236,6 +250,10 @@ module.exports = {
                     const authClient = await Controllers.AuthClient.createClientForProject(this)
                     const projectToken = await Controllers.AccessToken.createTokenForProject(this, null)
                     const projectBrokerCredentials = await Controllers.BrokerClient.createClientForProject(this)
+                    if (projectBrokerCredentials) {
+                        // sync passwords: the mqtt nodes client connection uses the same password. this permits runtime mqtt connection without restart.
+                        await Controllers.TeamBrokerClient.updateNtMqttNodeUserPassword(this.TeamId, 'project', this.id, projectBrokerCredentials.password)
+                    }
                     return {
                         token: projectToken.token,
                         ...authClient,

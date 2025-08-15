@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize')
+const { DataTypes, literal } = require('sequelize')
 
 const { hash, buildPaginationSearchClause } = require('../utils')
 
@@ -12,13 +12,17 @@ module.exports = {
                 this.setDataValue('password', hash(value))
             }
         },
-        acls: { type: DataTypes.STRING, defaultValue: '{ "action": "both", pattern: "#" }' }
+        acls: { type: DataTypes.STRING, defaultValue: '{ "action": "both", pattern: "#" }' },
+        ownerId: { type: DataTypes.STRING, allowNull: true },
+        ownerType: { type: DataTypes.STRING, allowNull: true }
     },
     indexes: [
         { name: 'broker_users_team_unique', fields: ['username', 'TeamId'], unique: true }
     ],
     associations: function (M) {
         this.belongsTo(M.Team)
+        this.belongsTo(M.Project, { foreignKey: 'ownerId', constraints: false })
+        this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
     },
     hooks: function (M, app) {
         return {
@@ -41,17 +45,53 @@ module.exports = {
         }
     },
     finders: function (M) {
+        const isPG = this.sequelize.getDialect() === 'postgres'
+        const instanceOwnershipJoin = literal(`
+            "TeamBrokerClient"."ownerType" = 'project'
+            AND (
+                CASE
+                    WHEN "TeamBrokerClient"."ownerType" = 'project'
+                    THEN "TeamBrokerClient"."ownerId"${isPG ? '::uuid' : ''}
+                END
+            ) = "Project"."id"
+        `)
+        const deviceOwnershipJoin = literal(`
+            "TeamBrokerClient"."ownerType" = 'device'
+            AND (
+                CASE
+                    WHEN "TeamBrokerClient"."ownerType" = 'device'
+                    THEN "TeamBrokerClient"."ownerId"${isPG ? '::int' : ''}
+                END
+            ) = "Device"."id"
+        `)
         return {
             static: {
-                byUsername: async (username, teamHashId, includeTeam = true) => {
+                byUsername: async (username, teamHashId, includeTeam = true, includeInstance = false) => {
                     let teamId = teamHashId
                     if (typeof teamHashId === 'string') {
                         teamId = M.Team.decodeHashid(teamHashId)
                     }
-                    const incTeam = includeTeam ? { model: M.Team, include: { model: M.TeamType } } : undefined
+                    const include = []
+                    if (includeTeam) {
+                        include.push({ model: M.Team, include: { model: M.TeamType } })
+                    }
+                    if (includeInstance) {
+                        include.push({
+                            model: M.Project,
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url'],
+                            required: false,
+                            on: instanceOwnershipJoin
+                        })
+                        include.push({
+                            model: M.Device,
+                            attributes: ['hashid', 'id', 'name', 'type'],
+                            required: false,
+                            on: deviceOwnershipJoin
+                        })
+                    }
                     return this.findOne({
                         where: { username, TeamId: teamId },
-                        include: incTeam
+                        include
                     })
                 },
                 byTeam: async (teamHashId, pagination = {}, where = {}) => {
@@ -62,12 +102,26 @@ module.exports = {
                     }
                     const [rows, count] = await Promise.all([
                         this.findAll({
-                            where: buildPaginationSearchClause(pagination, where, ['TeamBrokerClient.username']),
-                            include: {
-                                model: M.Team,
-                                attributes: ['name'],
-                                where: { id: teamId }
-                            },
+                            where: buildPaginationSearchClause(pagination, { ...where, TeamId: teamId }, ['TeamBrokerClient.username']),
+                            include: [
+                                {
+                                    model: M.Team,
+                                    attributes: ['name'],
+                                    where: { id: teamId }
+                                },
+                                {
+                                    model: M.Project,
+                                    attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url'],
+                                    required: false,
+                                    on: instanceOwnershipJoin
+                                },
+                                {
+                                    model: M.Device,
+                                    attributes: ['hashid', 'id', 'name', 'type'],
+                                    required: false,
+                                    on: deviceOwnershipJoin
+                                }
+                            ],
                             order: [['id', 'ASC']],
                             limit
                         }),

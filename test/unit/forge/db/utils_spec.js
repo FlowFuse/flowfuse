@@ -105,4 +105,74 @@ describe('db utils', () => {
             result.split('_').should.matchEach(s => s.length.should.be.oneOf([8, 9, 10]))
         })
     })
+
+    describe('parseNrMqttId', () => {
+        it('should be a function', () => {
+            utils.should.have.property('parseNrMqttId').which.is.Function()
+        })
+        it('should parse a regular hosted instance username into correct properties', () => {
+            // The expected format is: `mq:hosted:teamId:instanceId[:haId]`
+            const result = utils.parseNrMqttId('mq:hosted:team1:instance1', 'username')
+            should(result).be.Object()
+            result.should.have.property('username', 'instance:instance1')
+            result.should.have.property('teamId', 'team1')
+            result.should.have.property('ownerType', 'project')
+            result.should.have.property('ownerId', 'instance1')
+            result.should.have.property('haId', null)
+            result.should.have.property('error', null)
+            result.should.have.property('valid', true)
+        })
+        it('should parse a HA hosted instance clientId into correct properties', () => {
+            const result = utils.parseNrMqttId('mq:hosted:team1:instance1:ha1', 'clientId')
+            should(result).be.Object()
+            result.should.have.property('username', 'instance:instance1')
+            result.should.have.property('teamId', 'team1')
+            result.should.have.property('ownerType', 'project')
+            result.should.have.property('ownerId', 'instance1')
+            result.should.have.property('haId', 'ha1')
+            result.should.have.property('error', null)
+            result.should.have.property('valid', true)
+        })
+        it('should parse a remote instance username into correct properties', () => {
+            const result = utils.parseNrMqttId('mq:remote:team1:device1', 'username')
+            should(result).be.Object()
+            result.should.have.property('username', 'device:device1')
+            result.should.have.property('teamId', 'team1')
+            result.should.have.property('ownerType', 'device')
+            result.should.have.property('ownerId', 'device1')
+            result.should.have.property('haId', null)
+            result.should.have.property('error', null)
+            result.should.have.property('valid', true)
+        })
+        it('should set error flag when the header is incorrect', () => {
+            const result = utils.parseNrMqttId('XX:remote:team1:device1', 'username') // ff-mqtt nodes auth request are identified with "mq:"
+            should(result).be.Object()
+            result.should.have.property('error', 'Unknown format')
+            result.should.have.property('valid', false)
+        })
+        it('should set error flag when the type is incorrect', () => {
+            const result = utils.parseNrMqttId('mq:unknown:team1:instance1', 'username') // type should be "instance" or "device"
+            should(result).be.Object()
+            result.should.have.property('error', 'Invalid Type')
+            result.should.have.property('valid', false)
+        })
+        it('should set error flag when the team is missing', () => {
+            const result = utils.parseNrMqttId('mq:unknown:instance1', 'username')
+            should(result).be.Object()
+            result.should.have.property('error', 'Invalid format')
+            result.should.have.property('valid', false)
+        })
+        it('should set error flag when the instance username includes HA', () => {
+            const result = utils.parseNrMqttId('mq:instance:team1:instance1:ha1', 'username') // username should not include the HA
+            should(result).be.Object()
+            result.should.have.property('error', 'Invalid format')
+            result.should.have.property('valid', false)
+        })
+        it('should set error flag when the format is incorrect', () => {
+            const result = utils.parseNrMqttId('mq:remote:team1:device1:ha1', 'username') // devices dont support HA
+            should(result).be.Object()
+            result.should.have.property('error', 'Invalid format')
+            result.should.have.property('valid', false)
+        })
+    })
 })
