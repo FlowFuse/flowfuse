@@ -131,7 +131,7 @@ describe('Tables API', function () {
             method: 'GET',
             url: `/api/v1/teams/${TestObjects.team.hashid}/databases`,
             headers: {
-                'Authorization': `Bearer ${projectTokens.token}`
+                Authorization: `Bearer ${projectTokens.token}`
             }
         })
         response.statusCode.should.equal(200)
@@ -147,7 +147,7 @@ describe('Tables API', function () {
             method: 'GET',
             url: `/api/v1/teams/${TestObjects.team.hashid}/databases`,
             headers: {
-                'Authorization': `Bearer ${deviceToken.token}`
+                Authorization: `Bearer ${deviceToken.token}`
             }
         })
         response.statusCode.should.equal(200)
