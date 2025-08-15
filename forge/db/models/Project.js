@@ -233,11 +233,8 @@ module.exports = {
                         }
                     }
                 })
-                // unlink any team broker clients
-                await M.TeamBrokerClient.update({
-                    ownerId: null,
-                    ownerType: null
-                }, {
+                // delete auto created team broker client
+                await M.TeamBrokerClient.destroy({
                     where: {
                         ownerType: 'project',
                         ownerId: project.id
