@@ -1,3 +1,5 @@
+const crypto = require('crypto')
+
 const schemaApi = require('./schema')
 
 module.exports = async function (app) {
