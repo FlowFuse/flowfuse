@@ -15,16 +15,26 @@
             <div class="rules text-left">
                 <span>{{ client.acls.length }} Rule{{ client.acls.length > 1 ? 's' : '' }}</span>
             </div>
-            <div class="rules text-left">
-                <template v-if="client.owner?.instanceType === 'device'">
-                    <router-link class="flex content-center" :to="{ name: 'Device', params: { id:client.owner.id } }"><ChipIcon class="!ml-0 ff-icon relative invisible lg:visible " /></router-link>
-                </template>
-                <template v-else-if="client.owner?.instanceType === 'instance'">
-                    <router-link class="flex content-center" :to="{ name: 'Instance', params: { id:client.owner.id } }"><ProjectsIcon class="!ml-0 ff-icon relative invisible lg:visible" /></router-link>
-                </template>
-            </div>
         </template>
         <template #meta>
+            <span
+                class="edit hover:cursor-pointer"
+                data-action="nav-to-client-owner"
+            >
+                <ChipIcon
+                    v-if="client.owner?.instanceType === 'device'"
+                    v-ff-tooltip:left="`Client is linked to Device '${client.owner.name || client.owner.id}'`"
+                    class="ff-icon-sm"
+                    @click.prevent.stop="$router.push({ name: 'Device', params: { id: client.owner.id } })"
+                />
+
+                <ProjectsIcon
+                    v-else-if="client.owner?.instanceType === 'instance'"
+                    v-ff-tooltip:left="`Client is linked to Instance '${client.owner.name || client.owner.id}'`"
+                    class="!ml-0 ff-icon-sm"
+                    @click.prevent.stop="$router.push({ name: 'Instance', params: { id:client.owner.id } })"
+                />
+            </span>
             <span
                 class="edit hover:cursor-pointer"
                 data-action="edit-client"
@@ -117,7 +127,7 @@ export default {
         border: none;
         background: none;
         display: grid;
-        grid-template-columns: repeat(7, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 15px;
         padding: 0;
 
