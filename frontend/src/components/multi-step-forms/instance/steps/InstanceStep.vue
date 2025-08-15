@@ -136,6 +136,7 @@ import templatesApi from '../../../../api/templates.js'
 import {
     useInstanceFormHelper
 } from '../../../../composables/Components/multi-step-forms/instance/InstanceFormHelper.js'
+import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 import InstanceChargesTable from '../../../../pages/instance/components/InstanceChargesTable.vue'
 import InstanceCreditBanner from '../../../../pages/instance/components/InstanceCreditBanner.vue'
 import FfListbox from '../../../../ui-components/components/form/ListBox.vue'
@@ -374,7 +375,7 @@ export default {
             }
         },
         async getSubscription () {
-            if (this.features.billing && !this.team.billing?.unmanaged && !this.team.type.properties?.billing?.disabled) {
+            if (this.features.billing && !this.team.billing?.unmanaged && !getTeamProperty(this.team, 'billing.disabled')) {
                 try {
                     this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
                 } catch (err) {
