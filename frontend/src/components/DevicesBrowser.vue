@@ -319,6 +319,7 @@ import { mapGetters, mapState } from 'vuex'
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
 import DropdownMenu from '../components/DropdownMenu.vue'
+import { getTeamProperty } from '../composables/TeamProperties.js'
 import deviceActionsMixin from '../mixins/DeviceActions.js'
 import permissionsMixin from '../mixins/Permissions.js'
 
@@ -469,17 +470,17 @@ export default {
             return !!this.nextCursor
         },
         teamRuntimeLimitReached () {
-            let teamTypeRuntimeLimit = this.team.type.properties?.runtimes?.limit
+            let teamTypeRuntimeLimit = getTeamProperty(this.team, 'runtimes.limit')
             // Uses this.teamDeviceCount as that tracks live updates made in the page
             // that may not have made it to this.team.deviceCount yet
             const currentRuntimeCount = this.teamDeviceCount + this.team.instanceCount
-            if (this.team.billing?.trial && !this.team.billing?.active && this.team.type.properties?.trial?.runtimesLimit) {
-                teamTypeRuntimeLimit = this.team.type.properties?.trial?.runtimesLimit
+            if (this.team.billing?.trial && !this.team.billing?.active && getTeamProperty(this.team, 'trial.runtimesLimit')) {
+                teamTypeRuntimeLimit = getTeamProperty(this.team, 'trial.runtimesLimit')
             }
             return (teamTypeRuntimeLimit > 0 && currentRuntimeCount >= teamTypeRuntimeLimit)
         },
         teamDeviceLimitReached () {
-            const teamTypeDeviceLimit = this.team.type.properties?.devices?.limit
+            const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')
             if (teamTypeDeviceLimit > 0 && this.teamDeviceCount >= teamTypeDeviceLimit) {
                 // Device specific limit has been reached
                 return true
