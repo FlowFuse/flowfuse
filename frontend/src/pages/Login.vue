@@ -50,6 +50,16 @@
                         </GoogleLogin>
                         <span class="ff-error-inline" data-el="errors-googleSSO">{{ errors.googleSSO }}</span>
                     </template>
+                    <template v-if="directSSOEnabled">
+                        <hr class="mb-4">
+                        <ul>
+                            <li v-for="{name, id} in settings['platform:sso:direct:list']" :key="id">
+                                <ff-button kind="secondary" :data-action="`direct-sso-${id}`" @click="directSSO(id)">
+                                    <span>SIGN IN WITH {{ name.toUpperCase() }}</span>
+                                </ff-button>
+                            </li>
+                        </ul>
+                    </template>
                 </div>
             </template>
             <template v-else>
@@ -118,6 +128,11 @@ export default {
         },
         googleSSOEnabled () {
             return this.settings['platform:sso:google'] && this.settings['platform:sso:google:clientId']
+        },
+        directSSOEnabled () {
+            return !!this.settings['platform:sso:direct:list'] &&
+                Array.isArray(this.settings['platform:sso:direct:list']) &&
+                this.settings['platform:sso:direct:list'].length >= 1
         }
     },
     watch: {
@@ -229,6 +244,9 @@ export default {
                 // Handle error response - not sure what this will look like yet
                 console.error(result)
             }
+        },
+        async directSSO (id) {
+            window.location = `/ee/sso/login?p=${id}${this.$route.query.r ? `&r=${this.$route.query.r}` : ''}`
         }
     }
 }
