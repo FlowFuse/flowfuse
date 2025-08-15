@@ -41,6 +41,11 @@ module.exports = async function (app) {
                 if (project.Team.hashid !== request.team.hashid) {
                     return reply.status(401).send({ code: 'unauthorized', error: 'unauthorized' })
                 }
+            } else if (request.session.ownerType === 'device') {
+                const device = await app.db.models.Device.byId(parseInt(request.session.ownerId))
+                if (!device || device.Team.hashid !== request.team.hashid) {
+                    return reply.status(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                }
             } else {
                 await app.needsPermission('team:database:list')(request, reply, done)
             }
