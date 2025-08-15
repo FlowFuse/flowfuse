@@ -190,7 +190,7 @@
         </template>
 
         <template v-if="ssoEnabled">
-            <FormHeading>Direct SSO</FormHeading>
+            <FormHeading>Direct SSO Login</FormHeading>
             <FormRow v-model="input['platform:sso:direct']" type="checkbox" data-el="direct-sso">
                 Show buttons on Login page to jump directly to a SAML SSO provider
                 <template #description>

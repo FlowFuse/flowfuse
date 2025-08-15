@@ -52,11 +52,10 @@
                     </template>
                     <template v-if="directSSOEnabled">
                         <hr class="mb-4">
-                        SSO Direct
                         <ul>
                             <li v-for="{name, id} in settings['platform:sso:direct:list']" :key="id">
                                 <ff-button kind="secondary" :data-action="`direct-sso-${id}`" @click="directSSO(id)">
-                                    <span>{{ name }}</span>
+                                    <span>SIGN IN WITH {{ name.toUpperCase() }}</span>
                                 </ff-button>
                             </li>
                         </ul>
