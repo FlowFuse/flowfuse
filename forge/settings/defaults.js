@@ -68,5 +68,7 @@ module.exports = {
     'team:broker:topics': null,
 
     'platform:sso:google': false, // Is Google SSO enabled?
-    'platform:sso:google:clientId': null // Client ID for Google SSO
+    'platform:sso:google:clientId': null, // Client ID for Google SSO
+
+    'platform:sso:direct': false
 }

@@ -94,6 +94,9 @@ module.exports = async function (app) {
                 response['platform:sso:google'] = true
                 response['platform:sso:google:clientId'] = app.settings.get('platform:sso:google:clientId')
             }
+            if (app.config.features.enabled('sso')) {
+                response['platform:sso:direct'] = app.settings.get('platform:sso:direct')
+            }
             reply.send(response)
         } else {
             // This is for an unauthenticated request. Return settings related
@@ -138,6 +141,16 @@ module.exports = async function (app) {
             if (app.config.features.enabled('sso') && app.settings.get('platform:sso:google') && app.settings.get('platform:sso:google:clientId')) {
                 publicSettings['platform:sso:google'] = true
                 publicSettings['platform:sso:google:clientId'] = app.settings.get('platform:sso:google:clientId')
+            }
+            if (app.config.features.enabled('sso') && app.settings.get('platform:sso:direct')) {
+                const providers = await app.db.models.SAMLProvider.getAll({}, { active: true, type: 'saml' })
+                const SSOList = providers.providers.map((prov) => {
+                    return {
+                        name: prov.name,
+                        id: prov.hashid
+                    }
+                })
+                publicSettings['platform:sso:direct:list'] = SSOList
             }
 
             reply.send(publicSettings)

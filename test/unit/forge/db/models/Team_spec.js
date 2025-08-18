@@ -8,6 +8,7 @@ describe('Team model', function () {
     describe('model properties', async function () {
         let pt1, pt2, pt3, pt4
         let ATeam
+        let defaultTeamType
         let smallerTeamType
         let biggerTeamType
         let combinedLimitsTeamType
@@ -21,6 +22,7 @@ describe('Team model', function () {
 
             // Modify the default teamType to have some limits to test against
             const teamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
+            defaultTeamType = teamType
             const teamTypeProperties = { ...teamType.properties }
             teamTypeProperties.users.limit = 2
             teamTypeProperties.instances = {
@@ -219,6 +221,72 @@ describe('Team model', function () {
             await ATeam.updateTeamType(biggerTeamType)
             const reloadedTeam = await app.db.models.Team.findOne({ where: { name: 'ATeam' } })
             reloadedTeam.TeamTypeId.should.equal(biggerTeamType.id)
+        })
+        describe('Team level limits', function () {
+            let teamWithLimits
+            before(async function () {
+                teamWithLimits = await app.db.models.Team.create({
+                    name: 'TeamWithLimits',
+                    TeamTypeId: defaultTeamType.id,
+                    properties: {
+                        devices: { limit: 27 },
+                        users: { limit: 88 },
+                        instances: {
+                            // Override active
+                            [pt1.hashid]: { active: false },
+                            // Override limit
+                            [pt2.hashid]: { limit: 3 },
+                            // Override active, limit
+                            [pt3.hashid]: { active: true, limit: 2 }
+                        }
+                    }
+                })
+            })
+            it('getUserLimit', async function () {
+                const userLimit = await teamWithLimits.getUserLimit()
+                userLimit.should.equal(88)
+            })
+            it('getDeviceLimit', async function () {
+                const deviceLimit = await teamWithLimits.getDeviceLimit()
+                deviceLimit.should.equal(27)
+            })
+            it('getRuntimeLimit', async function () {
+                const runtimeLimit = await teamWithLimits.getRuntimeLimit()
+                runtimeLimit.should.equal(-1)
+            })
+            it('isInstanceTypeAvailable', async function () {
+                // pit1 available is overriden
+                ;(await teamWithLimits.isInstanceTypeAvailable(pt1)).should.be.false()
+                ;(await teamWithLimits.isInstanceTypeAvailable(pt1.hashid)).should.be.false()
+                ;(await teamWithLimits.isInstanceTypeAvailable(pt1.id)).should.be.false()
+
+                ;(await teamWithLimits.isInstanceTypeAvailable(pt2)).should.be.true()
+                ;(await teamWithLimits.isInstanceTypeAvailable(pt3)).should.be.true()
+                ;(await teamWithLimits.isInstanceTypeAvailable(pt4)).should.be.true()
+            })
+
+            it('isInstanceTypeCreatable', async function () {
+                ;(await teamWithLimits.isInstanceTypeCreatable(pt1)).should.be.true()
+                ;(await teamWithLimits.isInstanceTypeCreatable(pt1.hashid)).should.be.true()
+                ;(await teamWithLimits.isInstanceTypeCreatable(pt1.id)).should.be.true()
+                ;(await teamWithLimits.isInstanceTypeCreatable(pt2)).should.be.true()
+                ;(await teamWithLimits.isInstanceTypeCreatable(pt3)).should.be.true()
+                ;(await teamWithLimits.isInstanceTypeCreatable(pt4)).should.be.false()
+            })
+
+            it('getInstanceTypeLimit', async function () {
+            // Check the function handles all the ways an instance type
+            // might be provided - object, id or hashid.
+                ;(await teamWithLimits.getInstanceTypeLimit(pt1)).should.equal(0)
+                ;(await teamWithLimits.getInstanceTypeLimit(pt1.hashid)).should.equal(0)
+                ;(await teamWithLimits.getInstanceTypeLimit(pt1.id)).should.equal(0)
+                ;(await teamWithLimits.getInstanceTypeLimit(pt2)).should.equal(3)
+                ;(await teamWithLimits.getInstanceTypeLimit(pt2.hashid)).should.equal(3)
+                ;(await teamWithLimits.getInstanceTypeLimit(pt2.id)).should.equal(3)
+                ;(await teamWithLimits.getInstanceTypeLimit(pt3)).should.equal(2)
+                ;(await teamWithLimits.getInstanceTypeLimit(pt3.hashid)).should.equal(2)
+                ;(await teamWithLimits.getInstanceTypeLimit(pt3.id)).should.equal(2)
+            })
         })
 
         describe('Combined limits', function () {

@@ -18,6 +18,14 @@ module.exports = async function (app) {
         if (!request.teamMembership && request.session?.User) {
             request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
         }
+        if (request.params.databaseId !== undefined) {
+            if (!request.database) {
+                request.database = await app.db.models.Table.byId(request.team.hashid, request.params.databaseId)
+                if (!request.database) {
+                    return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
+                }
+            }
+        }
     })
 
     /**
@@ -31,6 +39,11 @@ module.exports = async function (app) {
             if (request.session.ownerType === 'project') {
                 const project = await app.db.models.Project.byId(request.session.ownerId)
                 if (project.Team.hashid !== request.team.hashid) {
+                    return reply.status(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                }
+            } else if (request.session.ownerType === 'device') {
+                const device = await app.db.models.Device.byId(parseInt(request.session.ownerId))
+                if (!device || device.Team.hashid !== request.team.hashid) {
                     return reply.status(401).send({ code: 'unauthorized', error: 'unauthorized' })
                 }
             } else {
@@ -94,8 +107,10 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const creds = await app.tables.createDatabase(request.team, request.body?.name ? request.body.name : request.team.hashid)
+            await app.auditLog.Team.tables.database.created(request.session?.User || 'system', null, request.team, creds)
             reply.send(await app.db.views.Table.table(creds))
         } catch (err) {
+            await app.auditLog.Team.tables.database.created(request.session?.User || 'system', err, request.team, null)
             if (err.message.includes('already exists')) {
                 return reply.status(409).send({ code: 'already_exists', error: 'Database already exists' })
             } else {
@@ -178,7 +193,9 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
+            const dbName = request.database.name
             await app.tables.destroyDatabase(request.team, request.params.databaseId)
+            await app.auditLog.Team.tables.database.created(request.session?.User || 'system', null, request.team, dbName)
             reply.send({})
         } catch (err) {
             // console.log(err)
@@ -286,6 +303,7 @@ module.exports = async function (app) {
             } else {
                 const t = await app.tables.createTable(request.team, request.params.databaseId, request.body.name, request.body.columns)
                 reply.status(201).send(t)
+                await app.auditLog.Team.tables.table.created(request.session?.User || 'system', null, request.team, request.database, request.body.name)
             }
         }
     })
@@ -364,6 +382,7 @@ module.exports = async function (app) {
         if (tables.tables.filter((t) => t.name === request.params.tableName).length === 1) {
             await app.tables.dropTable(request.team, request.params.databaseId, request.params.tableName)
             reply.status(204).send()
+            await app.auditLog.Team.tables.table.deleted(request.session?.User || 'system', null, request.team, request.database, request.params.tableName)
         } else {
             reply.status(404).send({ code: 'table_not_found', error: 'Table not found' })
         }
