@@ -8,6 +8,11 @@ When FlowFuse is deployed with an Enterprise license from v2.11.0 onwards comes 
 
 This is a single shared MQTT broker, but each team has their own separate topic space and the ability to provision credentials for clients.
 
+## Foreword
+FlowFuse now offers zero config MQTT integration with the Team Broker via the [FlowFuse MQTT Nodes](https://flowfuse.com/docs/user/mqtt-nodes/#flowfuse-mqtt-nodes/) that greatly simplifies the whole process by removing the need for manual configuration.
+
+If you wish to continue using traditional MQTT clients, the below sections will guide you through the process of creating clients and connecting to the broker.
+
 ## Creating Clients
 
 When creating clients you can specify a username, it will prepended to the the Team's id e.g.  `alice` will become `alice@32E4NEO5pY`.

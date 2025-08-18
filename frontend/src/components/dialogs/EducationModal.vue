@@ -68,6 +68,10 @@ export default {
                     href: 'https://flowfuse.com/docs/user/projectnodes/#flowfuse-project-nodes/'
                 },
                 {
+                    title: 'Using Team Broker MQTT Nodes',
+                    href: 'https://flowfuse.com/docs/user/mqtt-nodes/#flowfuse-mqtt-nodes/'
+                },
+                {
                     title: 'Build a Dashboard',
                     href: 'https://flowfuse.com/blog/2024/04/how-to-build-an-application-with-node-red-dashboard-2/'
                 },
