@@ -213,6 +213,9 @@ module.exports = async function (app) {
                     if (!settings.modules['@flowfuse/nr-project-nodes'] || SemVer.satisfies(SemVer.coerce(settings.modules['@flowfuse/nr-project-nodes']), '<=0.5.0')) {
                         settings.modules['@flowfuse/nr-project-nodes'] = defaultModules['@flowfuse/nr-project-nodes'] || '>0.5.0'
                     }
+                    if (!settings.modules['@flowfuse/nr-mqtt-nodes']) {
+                        settings.modules['@flowfuse/nr-mqtt-nodes'] = defaultModules['@flowfuse/nr-mqtt-nodes'] || '>0.1.0'
+                    }
                     if (!settings.modules['@flowfuse/nr-assistant']) {
                         settings.modules['@flowfuse/nr-assistant'] = defaultModules['@flowfuse/nr-assistant'] || '>=0.1.0'
                     }
@@ -296,6 +299,15 @@ module.exports = async function (app) {
         }
         if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
             response.assistant.completions = { ...app.config.assistant.completions }
+        }
+
+        const linkedUsername = `device:${request.device.hashid}`
+        const linkedUser = await app.db.models.TeamBrokerClient.byUsername(linkedUsername, request.device.Team.hashid, false, false)
+        const linked = linkedUser?.ownerType === 'device' && +linkedUser?.ownerId === request.device.id
+        response.mqttNodes = {
+            enabled: !!response.features.teamBroker,
+            username: linked ? linkedUsername : '',
+            linked
         }
 
         const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)

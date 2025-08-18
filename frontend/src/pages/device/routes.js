@@ -5,6 +5,7 @@ import DeviceAuditLog from './AuditLog.vue'
 import DeviceDeveloperMode from './DeveloperMode/index.vue'
 import DeviceLogs from './Logs.vue'
 import DeviceOverview from './Overview.vue'
+import DevicePerformance from './Performance.vue'
 import DeviceSettingsDanger from './Settings/Danger.vue'
 import DeviceSettingsEnvironment from './Settings/Environment.vue'
 import DeviceSettingsGeneral from './Settings/General.vue'
@@ -61,6 +62,14 @@ export default [
                 component: DeviceLogs,
                 meta: {
                     title: 'Device - Logs'
+                }
+            },
+            {
+                path: 'performance',
+                name: 'device-performance',
+                component: DevicePerformance,
+                meta: {
+                    title: 'Device - Performance'
                 }
             },
             {
