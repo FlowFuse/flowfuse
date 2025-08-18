@@ -843,6 +843,15 @@ module.exports = async function (app) {
         if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
             settings.assistant.completions = { ...app.config.assistant.completions }
         }
+
+        const linkedUsername = `instance:${request.project.id}`
+        const linkedUser = await app.db.models.TeamBrokerClient.byUsername(linkedUsername, request.project.Team.hashid, false, false)
+        const linked = linkedUser?.ownerType === 'project' && linkedUser?.ownerId === request.project.id
+        settings.mqttNodes = {
+            username: linkedUsername,
+            linked
+        }
+
         settings.teamID = request.project.Team.hashid
         settings.storageURL = request.project.storageURL
         settings.auditURL = request.project.auditURL

@@ -3,7 +3,7 @@
         id="client-dialog"
         ref="dialog"
         data-el="create-client-dialog"
-        header="Create Client"
+        :header="isEditing ? 'Edit Client' : 'Create Client'"
         :closeOnConfirm="false"
         :disablePrimary="disableConfirm"
         @confirm="confirm"
@@ -16,24 +16,25 @@
                     :error="errors.username"
                     class="mb-2"
                     placeholder="Client Username"
-                    :disabled="isEditing"
+                    :disabled="isEditing || isOwned"
                     data-el="username"
                 >
                     Username
                 </FormRow>
-
-                <FormRow v-model="input.password" class="mb-2" type="password" :placeholder="passwordPlaceholder" data-el="password">
-                    Password
-                </FormRow>
-                <FormRow
-                    v-model="input.passwordConfirm"
-                    class="mb-2" type="password"
-                    :error="errors.password"
-                    :placeholder="passwordConfirmationPlaceholder"
-                    data-el="confirm-password"
-                >
-                    Confirm Password
-                </FormRow>
+                <template v-if="!isOwned">
+                    <FormRow v-model="input.password" class="mb-2" type="password" :placeholder="passwordPlaceholder" data-el="password">
+                        Password
+                    </FormRow>
+                    <FormRow
+                        v-model="input.passwordConfirm"
+                        class="mb-2" type="password"
+                        :error="errors.password"
+                        :placeholder="passwordConfirmationPlaceholder"
+                        data-el="confirm-password"
+                    >
+                        Confirm Password
+                    </FormRow>
+                </template>
             </div>
             <div class="acls">
                 <h3 class="flex justify-between">
@@ -105,6 +106,7 @@ export default {
             },
             showEdit (client) {
                 this.isEditing = true
+                this.isOwned = !!client.owner
                 this.username = client.username
                 this.input = {
                     username: client.username,
@@ -127,6 +129,7 @@ export default {
     data () {
         return {
             isEditing: false,
+            isOwned: false,
             username: '',
             input: {
                 username: '',
