@@ -69,7 +69,7 @@ export default {
                 },
                 {
                     title: 'Using Team Broker MQTT Nodes',
-                    href: 'https://flowfuse.com/docs/user/mqtt-nodes/#flowfuse-mqtt-nodes/'
+                    href: 'https://flowfuse.com/docs/user/mqtt-nodes/'
                 },
                 {
                     title: 'Build a Dashboard',
