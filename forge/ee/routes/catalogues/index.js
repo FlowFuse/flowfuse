@@ -129,7 +129,9 @@ module.exports = async function (app) {
             reply.status(422).send({ error: 'bad_version', message: 'Invalid semver' })
             return
         }
-        const upload = subflow.buildUpdate(package, subflowJSON, app.config.npmRegistry.url)
+        console.log('passed tests')
+        const upload = await subflow.buildUpdate(package, subflowJSON, app.config.npmRegistry.url)
+        console.log(upload)
 
         try {
             await axios.put(`${app.config.npmRegistry?.url}/${package.name}`, upload, {

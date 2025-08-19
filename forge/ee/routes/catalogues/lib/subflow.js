@@ -1,7 +1,7 @@
 const crypto = require('crypto')
 const { gzipSync } = require('zlib')
 
-const { tar } = require('tinytar')
+const tar = require('tar-stream')
 
 const WRAPPER = 'const fs = require("fs")\n' +
                 'const path = require("path")\n\n' +
@@ -12,33 +12,41 @@ const WRAPPER = 'const fs = require("fs")\n' +
                 '   RED.nodes.registerSubflow(subflowJSON)\n' +
                 '}'
 
-function buildModuleTar (package, subflow) {
-    const t = tar([
-        {
-            name: 'package.json',
-            data: JSON.stringify(package),
-            mode: 438, // TUREAD | TUWRITE |TGREAD | TGWRITE | TOREAD | TOWRITE
-            prefix: 'package'
-        },
-        {
-            name: 'node.js',
-            data: WRAPPER,
-            mode: 438, // TUREAD | TUWRITE |TGREAD | TGWRITE | TOREAD | TOWRITE
-            prefix: 'package'
-        },
-        {
-            name: 'subflow.json',
-            data: JSON.stringify(subflow),
-            mode: 438, // TUREAD | TUWRITE |TGREAD | TGWRITE | TOREAD | TOWRITE
-            prefix: 'package'
-        }
-    ])
-    const compressed = gzipSync(Buffer.from(t))
+async function streamToBuffer (readableStream) {
+    return new Promise((resolve, reject) => {
+        const chunks = []
+        readableStream.on('data', data => {
+            if (typeof data === 'string') {
+                // Convert string to Buffer assuming UTF-8 encoding
+                chunks.push(Buffer.from(data, 'utf-8'))
+            } else if (data instanceof Buffer) {
+                chunks.push(data)
+            } else {
+                // Convert other data types to JSON and then to a Buffer
+                const jsonData = JSON.stringify(data)
+                chunks.push(Buffer.from(jsonData, 'utf-8'))
+            }
+        })
+        readableStream.on('end', () => {
+            resolve(Buffer.concat(chunks))
+        })
+        readableStream.on('error', reject)
+    })
+}
+
+async function buildModuleTar (package, subflow) {
+    const pack = tar.pack()
+    pack.entry({ name: 'package/package.json' }, JSON.stringify(package))
+    pack.entry({ name: 'package/node.js' }, WRAPPER)
+    pack.entry({ name: 'package/subflow.json' }, JSON.stringify(subflow))
+    pack.finalize()
+    const t = await streamToBuffer(pack)
+    const compressed = gzipSync(t)
     return compressed
 }
 
-function buildUpdate (package, subflow, registry) {
-    const tgz = buildModuleTar(package, subflow)
+async function buildUpdate (package, subflow, registry) {
+    const tgz = await buildModuleTar(package, subflow)
     const shasum = crypto.createHash('sha1')
     shasum.update(tgz)
     const attachments = {
