@@ -197,9 +197,9 @@ module.exports = function (app) {
     /**
      * Updates the team type, taking billing into account.
      */
-    app.db.models.Team.prototype.updateTeamType = async function (teamType) {
+    app.db.models.Team.prototype.updateTeamType = async function (teamType, options = { interval: 'month' }) {
         // Update the subscription on stripe
-        await app.billing.updateTeamType(this, teamType)
+        await app.billing.updateTeamType(this, teamType, options)
         // Update the team type on the model using the CE version of this function
         await this._updateTeamType(teamType)
         // Update the device/instance count items on stripe with the new billing

@@ -8,7 +8,7 @@
             <div class="flex flex-col gap-5">
                 <div class="flex justify-between items-center text-2xl">
                     <label class="font-medium">{{ teamType.name }}</label>
-                    <span v-if="pricing?.value">
+                    <span v-if="pricing?.value && pricing.value.trim() !== ''">
                         {{ pricing.value }} <span class="text-xs">/{{ pricing.interval }}</span>
                     </span>
                 </div>
@@ -16,13 +16,13 @@
             </div>
         </div>
         <template v-if="enableCTA">
-            <ff-button v-if="isTrial(teamType)" kind="primary" class="w-full mt-4" :to="`/team/create?teamType=${teamType.id}`">
+            <ff-button v-if="isTrial(teamType)" kind="primary" class="w-full mt-4" :to="toCreateTeam">
                 Start Free Trial
             </ff-button>
-            <ff-button v-else-if="isManualBilling(teamType)" kind="secondary" class="w-full mt-4" @click="contactFF(teamType)">
+            <ff-button v-else-if="isManualBilling(teamType)" kind="secondary" class="w-full mt-4" @click="sendContact(teamType)">
                 Contact FlowFuse
             </ff-button>
-            <ff-button v-else kind="secondary" class="w-full mt-4" :to="`/team/create?teamType=${teamType.id}`">
+            <ff-button v-else kind="secondary" class="w-full mt-4" :to="toCreateTeam">
                 Select
             </ff-button>
         </template>
@@ -32,8 +32,7 @@
 <script>
 import { mapState } from 'vuex'
 
-import BillingAPI from '../api/billing.js'
-import Alerts from '../services/alerts.js'
+import { useHubspotHelper } from '../composables/Hubspot.js'
 
 export default {
     name: 'TeamTypeTile',
@@ -45,18 +44,37 @@ export default {
         enableCTA: {
             type: Boolean,
             default: true
+        },
+        billingInterval: {
+            type: String,
+            default: 'month'
         }
+    },
+    setup () {
+        const { talkToSalesCalendarModal } = useHubspotHelper()
+
+        return { talkToSalesCalendarModal }
     },
     computed: {
         ...mapState('account', ['user', 'teams']),
         pricing: function () {
-            const billing = this.teamType.properties?.billing?.description?.split('/')
+            const billingDescriptionKey = this.billingInterval === 'year' ? 'yrDescription' : 'description'
+            const billing = this.teamType.properties?.billing?.[billingDescriptionKey]?.split('/')
             const price = {}
             if (typeof billing !== 'undefined') {
                 price.value = billing[0]
                 price.interval = billing[1]
             }
             return price
+        },
+        toCreateTeam () {
+            return {
+                name: 'CreateTeam',
+                query: {
+                    teamType: this.teamType.id,
+                    interval: this.billingInterval
+                }
+            }
         }
     },
     methods: {
@@ -72,13 +90,8 @@ export default {
         isManualBilling (teamType) {
             return teamType.properties?.billing?.requireContact
         },
-        contactFF (teamType) {
-            BillingAPI.sendTeamTypeContact(this.user, teamType, 'Create Team').then(() => {
-                Alerts.emit('A message has been sent to our team. We will contact you soon regarding your request. In the mean time, feel free to choose another plan to get started.', 'confirmation', 20000)
-            }).catch(err => {
-                Alerts.emit('Something went wrong with the request. Please try again or contact support for help.', 'warning', 15000)
-                console.error('Failed to submit hubspot form: ', err)
-            })
+        sendContact (teamType) {
+            this.talkToSalesCalendarModal(this.user, teamType)
         }
     }
 }
