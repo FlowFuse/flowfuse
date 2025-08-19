@@ -341,6 +341,38 @@ module.exports = async function (app) {
             }
         }
 
+        // Platform wide catalogue and npm registry
+        const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes') && !!teamType.getFeatureProperty('certifiedNodes', false)
+        if (platformNPMEnabled) {
+            const npmRegURLString = app.settings.get('platform:certifiedNodes:npmRegistryURL')
+            const token = app.settings.get('platform:certifiedNodes:token')
+            const catalogueString = app.settings.get('platform:certifiedNodes:catalogueURL')
+            if (npmRegURLString && token && catalogueString) {
+                const npmRegURL = new URL(npmRegURLString)
+                const catalogue = new URL(catalogueString)
+                if (!response.palette) {
+                    response.palette = {}
+                }
+                if (response.palette?.catalogues) {
+                    response.palette.catalogues
+                        .push(catalogue.toString())
+                } else {
+                    response.palette.catalogues = [
+                        catalogue.toString()
+                    ]
+                }
+                if (response.palette?.npmrc) {
+                    response.palette.npmrc = `${response.palette.npmrc}\n` +
+                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `//${npmRegURL.host}:_auth="${token}"\n`
+                } else {
+                    response.palette.npmrc =
+                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `//${npmRegURL.host}:_auth="${token}"\n`
+                }
+            }
+        }
+
         if (settings.security?.httpNodeAuth?.type) {
             response.security = settings.security
             if (response.security.httpNodeAuth.type === 'flowforge-user') {
