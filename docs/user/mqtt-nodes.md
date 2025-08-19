@@ -9,7 +9,7 @@ simple to securely connect and send or receive messages between MQTT clients
 in your team or externally connected clients via the [Team Broker](/docs/user/teambroker/#getting-started-with-team-broker).
 
 The nodes are very similar to the Node-RED MQTT nodes, but without the need
-to configure any settings making integration seamless.
+to configure any settings for your broker, making integration seamless.
 
 
 ### Nodes
