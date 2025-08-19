@@ -1,4 +1,5 @@
 const axios = require('axios')
+
 const subflow = require('./lib/subflow')
 
 module.exports = async function (app) {
@@ -64,17 +65,17 @@ module.exports = async function (app) {
     })
 
     /**
-     * 
+     * Uploads a NPM packaged subflow to teams private repo
+     * @name /api/v1/teams/:teamId/npm/subflow
+     * @static
+     * @memberof forge.routes.api.team.npm
      */
     app.put('/npm/subflow', {
         preHandler: async (request, reply) => {
-            console.log('pre-handler')
             if (request.session.ownerType !== 'project') {
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
             }
-            console.log('pre-handler - project')
             const project = await app.db.models.Project.byId(request.session.ownerId)
-            console.log('pre-handler - project')
             if (request.params.teamId !== project.Team.hashid) {
                 // AccesToken being used - but not owned by project in this team
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -86,8 +87,16 @@ module.exports = async function (app) {
             tags: ['NPM Package'],
             body: {
                 type: 'object',
-                // TODO
-                additionalProperties: true
+                properties: {
+                    package: {
+                        type: 'object',
+                        additionalProperties: true
+                    },
+                    subflow: {
+                        type: 'object',
+                        additionalProperties: true
+                    }
+                }
             },
             params: {
                 type: 'object',
@@ -111,24 +120,24 @@ module.exports = async function (app) {
             reply.status(422).send({})
             return
         }
+        if (!package.name.startsWith(`@flowfuse-${request.team.hashid}/`)) {
+            reply.status(403).send({})
+            return
+        }
         const upload = subflow.buildUpdate(package, subflowJSON, app.config.npmRegistry.url)
 
-        console.log(upload)
-
         try {
-            const response = await axios.put(`${app.config.npmRegistry?.url}/${package.name}`, upload, {
+            await axios.put(`${app.config.npmRegistry?.url}/${package.name}`, upload, {
                 headers: {
-                    "Content-Type": "application/json"
+                    'Content-Type': 'application/json'
                 },
                 auth: {
                     username: app.config.npmRegistry.admin.username,
                     password: app.config.npmRegistry.admin.password
                 }
             })
-            console.log(response.data)
             reply.status(204).send()
         } catch (err) {
-            console.log(err.response.data)
             if (err.status === 409) {
                 reply.status(409).send({})
             } else {
