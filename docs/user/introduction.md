@@ -74,6 +74,7 @@ FlowFuse supports reading and writing persistent files and persistent context.
  - [Change Project Stack](/docs/user/changestack.md) - How to change an instance stack, for example to upgrade Node-RED.
  - [Logs](/docs/user/logs.md) - The Logs available in the FlowFuse application.
  - [Project Link Nodes](/docs/user/projectnodes.md) - Custom nodes for sending messages between Node-RED instances and devices.
+ - [MQTT Nodes](/docs/user/mqtt-nodes.md) - Custom nodes for zero config MQTT integration with the team broker.
  - [Instance Settings](/docs/user/instance-settings.md) - Settings available for Node-RED instances.
  - [Shared Team Library](/docs/user/shared-library.md) - Share flows easily between different Node-RED instances in your team.
  - [Node-RED Tools Plugin](/docs/migration/node-red-tools.md) - A plugin for Node-RED that lets you work with your flows outside of FlowFuse.

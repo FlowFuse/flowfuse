@@ -2,18 +2,39 @@
     <ff-accordion class="max-w-full w-full broker-client">
         <template #label>
             <div class="username text-left flex">
-                <text-copier :text="client.username + '@' + team.id" confirmation-type="alert" @click.prevent.stop>
-                    <span :title="client.username + '@' + team.id" class="title-wrapper">
+                <text-copier v-if="!client.owner" :text="username" confirmation-type="alert" @click.prevent.stop>
+                    <span :title="username" class="title-wrapper">
                         <span class="mt-1 font-bold">{{ client.username }}</span>
                         <span class="italic mt-1">@{{ team.id }}</span>
                     </span>
                 </text-copier>
+                <span v-else class="mt-1 font-bold">
+                    {{ username }}
+                </span>
             </div>
             <div class="rules text-left">
                 <span>{{ client.acls.length }} Rule{{ client.acls.length > 1 ? 's' : '' }}</span>
             </div>
         </template>
         <template #meta>
+            <span
+                class="edit hover:cursor-pointer"
+                data-action="nav-to-client-owner"
+            >
+                <ChipIcon
+                    v-if="client.owner?.instanceType === 'device'"
+                    v-ff-tooltip:left="`Client is linked to Device '${client.owner.name || client.owner.id}'`"
+                    class="ff-icon-sm"
+                    @click.prevent.stop="$router.push({ name: 'Device', params: { id: client.owner.id } })"
+                />
+
+                <ProjectsIcon
+                    v-else-if="client.owner?.instanceType === 'instance'"
+                    v-ff-tooltip:left="`Client is linked to Instance '${client.owner.name || client.owner.id}'`"
+                    class="!ml-0 ff-icon-sm"
+                    @click.prevent.stop="$router.push({ name: 'Instance', params: { id:client.owner.id } })"
+                />
+            </span>
             <span
                 class="edit hover:cursor-pointer"
                 data-action="edit-client"
@@ -46,11 +67,13 @@
 </template>
 
 <script>
-import { PencilIcon, TrashIcon } from '@heroicons/vue/outline'
+import { ChipIcon, PencilIcon, TrashIcon } from '@heroicons/vue/outline'
+
 import { mapState } from 'vuex'
 
 import FfAccordion from '../../../../../components/Accordion.vue'
 import TextCopier from '../../../../../components/TextCopier.vue'
+import ProjectsIcon from '../../../../../components/icons/Projects.js'
 import usePermissions from '../../../../../composables/Permissions.js'
 import { Roles } from '../../../../../utils/roles.js'
 
@@ -60,6 +83,8 @@ export default {
     name: 'BrokerClient',
     components: {
         BrokerAclRule,
+        ChipIcon,
+        ProjectsIcon,
         TextCopier,
         PencilIcon,
         FfAccordion,
@@ -83,6 +108,12 @@ export default {
         ...mapState('account', ['team']),
         Roles () {
             return Roles
+        },
+        username () {
+            if (this.client.owner) {
+                return this.client.owner.name || this.client.owner.id
+            }
+            return `${this.client.username}@${this.team.id}`
         }
     }
 }

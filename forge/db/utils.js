@@ -273,6 +273,61 @@ function exportEnvVarObject (envObject) {
     return result
 }
 
+/**
+ * Parses an nr-mqtt Node userId or clientId auth string into its components.
+ * Since the client auth can only pass flags via username/clientId, we have to pass the flags in a specific format.
+ * The expected format is: `mq:hosted:teamId:instanceId[:haId]` or `mq:remote:teamId:deviceId`
+ * This function parses and checks the format of a given username or clientId.
+ * @param {String} id - the ID to parse, expected format: `mq:hosted:teamId:instanceId[:haId]` or `mq:remote:teamId:deviceId`
+ * @param {'username'|'clientId'} [kind='username'] - the kind of ID to parse `'username'` or `'clientId'`
+ * @returns Parsed ID object
+ */
+function parseNrMqttId (id, kind = 'username') {
+    const minLength = 4
+    const maxLength = 5
+    let expectedLength = minLength
+    const result = {
+        kind,
+        teamId: null,
+        ownerId: null,
+        ownerType: null,
+        haId: null,
+        username: null,
+        error: null,
+        valid: false
+    }
+    const parts = id.split(':')
+    if (parts.length < minLength || parts.length > maxLength) {
+        result.error = 'Invalid format'
+    }
+
+    const [mq, instanceType, teamId, instanceId, part5] = parts
+    if (mq !== 'mq') {
+        result.error = 'Unknown format'
+    }
+    result.teamId = teamId
+    result.ownerId = instanceId
+    if (instanceType === 'hosted') {
+        result.ownerType = 'project'
+        result.username = `instance:${instanceId}`
+        if (kind === 'clientId' && parts.length === 5) {
+            expectedLength = 5
+            // since a clientId can have a haId, we need to compute the username accordingly
+            result.haId = part5 || null
+        }
+    } else if (instanceType === 'remote') {
+        result.ownerType = 'device'
+        result.username = `device:${instanceId}`
+    } else {
+        result.error = 'Invalid Type'
+    }
+    if (parts.length !== expectedLength) {
+        result.error = 'Invalid format'
+    }
+    result.valid = result.error === null
+    return result
+}
+
 module.exports = {
     init: _app => { app = _app },
     generateToken: (length, prefix) => (prefix ? prefix + '_' : '') + base64URLEncode(crypto.randomBytes(length || 32)),
@@ -309,5 +364,6 @@ module.exports = {
     mapEnvObjectToArray,
     exportEnvVarObject,
     encryptValue,
-    decryptValue
+    decryptValue,
+    parseNrMqttId
 }

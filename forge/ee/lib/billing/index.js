@@ -46,20 +46,24 @@ module.exports.init = async function (app) {
          * @param {*} team The team to setup billing for
          * @param {*} user An optional user who may have credits associated with them
          * @param {*} teamTypeId An optional teamTypeId if the team is being upgraded at the same time
+         * @param {*} options An optional options object
+         * @param {string} options.interval The billing interval to use, either 'month' or 'year'. Defaults to 'month'
          * @returns A Stripe checkout session object
          */
-        createSubscriptionSession: async (team, user = null, teamTypeId = null) => {
+        createSubscriptionSession: async (team, user = null, teamTypeId = null, options = { interval: 'month' }) => {
             // When setting up the initial subscription we'll default to the billing
             // ids of current team type. However, the subscription setup could be done
             // in conjunction with changing the team type. We do *not* modify
             // the team type here - because the user could abandon the stripe checkout
             // and they will expect to remain in their current trial/type
 
+            const isAnnualBilling = options.interval === 'year'
+
             // Get the specified TeamType, or default to the team's existing type
             const teamType = await (teamTypeId ? app.db.models.TeamType.byId(teamTypeId) : team.getTeamType())
 
             const billingIds = await teamType.getTeamBillingIds()
-            const teamPrice = billingIds.price
+            const teamPrice = isAnnualBilling ? billingIds.yrPrice : billingIds.price
 
             // Use existing Stripe customer
             const existingLocalSubscription = await team.getSubscription()
@@ -67,7 +71,8 @@ module.exports.init = async function (app) {
             const sub = {
                 mode: 'subscription',
                 metadata: {
-                    teamTypeId: teamType.hashid
+                    teamTypeId: teamType.hashid,
+                    interval: options.interval
                 },
                 line_items: [{
                     price: teamPrice,
@@ -103,12 +108,12 @@ module.exports.init = async function (app) {
             if (billableCounts.billingIds.devices.product) {
                 const deviceCount = billableCounts.devices
                 if (deviceCount > 0) {
-                    const deviceFreeAllocation = teamType.getProperty('devices.free', 0)
+                    const deviceFreeAllocation = team.getProperty('devices.free', 0)
                     const billableCount = Math.max(0, deviceCount - deviceFreeAllocation)
                     if (billableCount > 0) {
                         // We have devices to include in the subscription
                         sub.line_items.push({
-                            price: billableCounts.billingIds.devices.price,
+                            price: isAnnualBilling ? billableCounts.billingIds.devices.yrPrice : billableCounts.billingIds.devices.price,
                             quantity: billableCount
                         })
                     }
@@ -120,7 +125,7 @@ module.exports.init = async function (app) {
                 const billableCount = billableCounts.instances[instanceType]
                 if (billableCount > 0) {
                     sub.line_items.push({
-                        price: instanceBillingIds.price,
+                        price: isAnnualBilling ? instanceBillingIds.yrPrice : instanceBillingIds.price,
                         quantity: billableCount
                     })
                 }
@@ -176,7 +181,7 @@ module.exports.init = async function (app) {
                 sub.subscription_data.metadata.free_trial = eligibleForTrial
             }
             const session = await stripe.checkout.sessions.create(sub)
-            app.log.info(`Creating Subscription for team ${team.hashid}` + (sub.discounts ? ` code='${userBillingCode.code}'` : ''))
+            app.log.info(`Creating Subscription for team ${team.hashid} interval=${options.interval}` + (sub.discounts ? ` code='${userBillingCode.code}'` : ''))
             return session
         },
         /**
@@ -263,8 +268,8 @@ module.exports.init = async function (app) {
             }
             const instanceCounts = await team.getBillableInstanceCountByType()
             const deviceCount = await team.deviceCount()
-            let deviceFreeAllocation = 0
-            const deviceCombinedFreeAllocationType = await teamType.getProperty('devices.combinedFreeType', null)
+            const deviceCombinedFreeAllocationType = await team.getProperty('devices.combinedFreeType', null)
+            let deviceFreeAllocation = await team.getProperty('devices.free', null)
 
             const instanceTypes = await app.db.models.ProjectType.findAll()
             const billableCounts = {}
@@ -274,14 +279,12 @@ module.exports.init = async function (app) {
             for (const instanceType of instanceTypes) {
                 billingIds[instanceType.hashid] = await teamType.getInstanceBillingIds(instanceType)
                 const count = instanceCounts[instanceType.hashid] || 0
-                const freeAllowance = await teamType.getInstanceTypeProperty(instanceType, 'free', 0)
+                const freeAllowance = await team.getInstanceTypeProperty(instanceType, 'free', 0)
                 billableCounts[instanceType.hashid] = Math.max(0, count - freeAllowance)
                 remainingFreeAllowance[instanceType.hashid] = Math.max(0, freeAllowance - count)
             }
-            if (deviceCombinedFreeAllocationType) {
+            if (deviceFreeAllocation === null && deviceCombinedFreeAllocationType) {
                 deviceFreeAllocation = remainingFreeAllowance[deviceCombinedFreeAllocationType] || 0
-            } else {
-                deviceFreeAllocation = await teamType.getProperty('devices.free', 0)
             }
             const deviceBillableCount = Math.max(0, deviceCount - deviceFreeAllocation)
             billingIds.devices = await teamType.getDeviceBillingIds()
@@ -307,6 +310,7 @@ module.exports.init = async function (app) {
                 // = do nothing with the subscription
                 return
             }
+            const isAnnualBilling = subscription.interval === 'year'
             const prorationBehavior = await team.getBillingProrationBehavior()
 
             // Get the billable counts of all instance/devices - taking into account free allowances
@@ -330,7 +334,7 @@ module.exports.init = async function (app) {
                     // No existing subscription item, so add one
                     app.log.info(`Updating team ${team.hashid} subscription: set instance type ${instanceType} count to ${billableCount}`)
                     itemsToUpdate.push({
-                        price: instanceBillingIds.price,
+                        price: isAnnualBilling ? instanceBillingIds.yrPrice : instanceBillingIds.price,
                         quantity: billableCount
                     })
                 } else if (instanceItem && instanceItem.quantity !== billableCount) {
@@ -375,7 +379,7 @@ module.exports.init = async function (app) {
                     // No existing device item, so add one
                     app.log.info(`Updating team ${team.hashid} subscription device count to ${deviceBillableCount}`)
                     itemsToUpdate.push({
-                        price: billableCounts.billingIds.devices.price,
+                        price: isAnnualBilling ? billableCounts.billingIds.devices.yrPrice : billableCounts.billingIds.devices.price,
                         quantity: deviceBillableCount
                     })
                 }
@@ -383,10 +387,18 @@ module.exports.init = async function (app) {
             if (itemsToUpdate.length > 0) {
                 // Apply updates to the subscription
                 try {
-                    await stripe.subscriptions.update(subscription.subscription, {
+                    const options = {
                         proration_behavior: prorationBehavior,
                         items: itemsToUpdate
-                    })
+                    }
+                    if (isAnnualBilling) {
+                        // Any additional pending items will get billed pro-rata at the end of the month
+                        options.pending_invoice_item_interval = {
+                            interval: 'month',
+                            interval_count: 1
+                        }
+                    }
+                    await stripe.subscriptions.update(subscription.subscription, options)
                 } catch (error) {
                     app.log.warn(`Problem updating team ${team.hashid} subscription: ${error.message}`)
                 }
@@ -474,7 +486,7 @@ module.exports.init = async function (app) {
          * It does *not* restore the device/instance billing items. They are added
          * back by a later stage of the process in ee/lib/billing/Team.js#updateTeamType
          */
-        updateTeamType: async (team, targetTeamType) => {
+        updateTeamType: async (team, targetTeamType, options = { interval: 'month' }) => {
             const subscription = await team.getSubscription()
             // The team must have billing setup with an active or unmanaged subscription before
             // it can change its type
@@ -507,12 +519,14 @@ module.exports.init = async function (app) {
                 // Get the team billing ids for the new team type
                 const targetTeamBillingIds = await targetTeamType.getTeamBillingIds()
                 const prorationBehavior = await team.getBillingProrationBehavior()
+                const isAnnualBilling = options.interval === 'year'
+                const teamPrice = isAnnualBilling ? targetTeamBillingIds.yrPrice : targetTeamBillingIds.price
 
                 try {
                     // Add the new team plan item
                     app.log.info(`Updating team ${team.hashid} subscription: updating to team plan ${targetTeamBillingIds.price}`)
                     const newItems = [{
-                        price: targetTeamBillingIds.price,
+                        price: teamPrice,
                         quantity: 1
                     }]
                     // Remove all pre-existing items. They will get added back
@@ -527,6 +541,11 @@ module.exports.init = async function (app) {
                         proration_behavior: prorationBehavior,
                         items: newItems
                     })
+
+                    if (subscription.interval !== options.interval) {
+                        subscription.interval = options.interval
+                        await subscription.save()
+                    }
                 } catch (err) {
                     app.log.warn(`Problem updating team ${team.hashid} subscription: ${err.message}`)
                     throw err

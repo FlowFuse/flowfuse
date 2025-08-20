@@ -114,7 +114,9 @@ module.exports = function (app) {
                 // Receive broadcast response notification
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/response(\/[^/]+)?$/ },
                 // ff/v1/<team>/d/<device>/logs/heartbeat
-                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/logs\/heartbeat$/ }
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/logs\/heartbeat$/ },
+                // ff/v1/<team>/d/<device>/resources/heartbeat
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/resources\/heartbeat$/ }
             ],
             pub: [
                 // Send commands to project launchers
@@ -162,18 +164,24 @@ module.exports = function (app) {
                 // - ff/v1/<team>/d/<device/logs
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkTeamAndObjectIds' },
                 // - ff/v1/<team>/d/<device>/response[/<instance>]
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/response(\/[^/]+)?$/, verify: 'checkTeamAndObjectIds' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/response(\/[^/]+)?$/, verify: 'checkTeamAndObjectIds' },
+                // - ff/v1/<team>/d/<device/resources
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources$/, verify: 'checkTeamAndObjectIds' }
             ]
         },
         frontend: {
             // TODO check the verify function is safe
             sub: [
                 // - ff/v1/<team>/d/<device/logs
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkDeviceIsAssigned' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs$/, verify: 'checkDeviceIsAssigned' },
+                // - ff/v1/<team>/d/<device/resources
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources$/, verify: 'checkDeviceIsAssigned' }
             ],
             pub: [
                 // - ff/v1/<team>/d/<device/logs/heartbeat
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs\/heartbeat$/, verify: 'checkDeviceIsAssigned' },
+                // - ff/v1/<team>/d/<device/resources/heartbeat
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
             ]
         }
     }

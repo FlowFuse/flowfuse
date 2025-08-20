@@ -32,6 +32,10 @@ describe('Tables API', function () {
         TestObjects.team = app.team
         TestObjects.application = app.application
         TestObjects.instance = app.instance
+        TestObjects.device = await app.factory.createDevice({
+            name: 'device1',
+            mode: 'developer'
+        }, app.team, app.instance)
 
         TestObjects.alice = await app.db.models.User.byUsername('alice')
         await login('alice', 'aaPassword')
@@ -113,6 +117,38 @@ describe('Tables API', function () {
             method: 'GET',
             url: `/api/v1/teams/${TestObjects.team.hashid}/databases`,
             cookies: { sid: TestObjects.tokens.bob }
+        })
+        response.statusCode.should.equal(200)
+        const dbs = response.json()
+        dbs.should.be.an.Array().and.have.length(1)
+        dbs[0].should.have.property('id')
+        dbs[0].should.have.property('name', TestObjects.team.hashid)
+    })
+
+    it('Get Team database list as Instance', async function () {
+        const projectTokens = await app.instance.refreshAuthTokens()
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/teams/${TestObjects.team.hashid}/databases`,
+            headers: {
+                Authorization: `Bearer ${projectTokens.token}`
+            }
+        })
+        response.statusCode.should.equal(200)
+        const dbs = response.json()
+        dbs.should.be.an.Array().and.have.length(1)
+        dbs[0].should.have.property('id')
+        dbs[0].should.have.property('name', TestObjects.team.hashid)
+    })
+
+    it('Get Team database list as Device', async function () {
+        const deviceToken = await app.db.controllers.AccessToken.createTokenForDevice(TestObjects.device)
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/teams/${TestObjects.team.hashid}/databases`,
+            headers: {
+                Authorization: `Bearer ${deviceToken.token}`
+            }
         })
         response.statusCode.should.equal(200)
         const dbs = response.json()

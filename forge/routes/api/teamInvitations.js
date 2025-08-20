@@ -229,7 +229,7 @@ module.exports = async function (app) {
         config: {
             rateLimit: app.config.rate_limits
                 ? {
-                    max: 1, // Allow one resend per minute
+                    max: 5, // Allow 5 resend per minute
                     timeWindow: 60000,
                     keyGenerator: app.config.rate_limits.keyGenerator,
                     hard: true

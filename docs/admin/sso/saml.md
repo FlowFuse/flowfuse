@@ -181,6 +181,12 @@ that will be used to identify whether a user is an admin or not.
 on the platform. It is *strongly* recommended to have an admin user on the system that is not
 managed via SSO to ensure continued access in case of any issues with the SSO provider.
 
+## Direct SSO Login
+
+For Self Hosted users there is an option in the Admin Settings to enable buttons on the login page for each active SAML SSO provider.
+
+These buttons will redirect to the SSO provider rather than requiring users to enter and email address in the username field to select the correct provider.
+
 ## Providers
 
 The following is a non-exhaustive list of the providers that are known to work

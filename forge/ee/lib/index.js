@@ -30,6 +30,7 @@ module.exports = fp(async function (app, opts) {
         if (app.config.tables?.enabled) {
             app.decorate('tables', await require('./tables').init(app))
         }
+        app.config.features.register('certifiedNodes', true, true)
     }
 
     // Set the Team Library Feature Flag

@@ -843,6 +843,15 @@ module.exports = async function (app) {
         if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
             settings.assistant.completions = { ...app.config.assistant.completions }
         }
+
+        const linkedUsername = `instance:${request.project.id}`
+        const linkedUser = await app.db.models.TeamBrokerClient.byUsername(linkedUsername, request.project.Team.hashid, false, false)
+        const linked = linkedUser?.ownerType === 'project' && linkedUser?.ownerId === request.project.id
+        settings.mqttNodes = {
+            username: linkedUsername,
+            linked
+        }
+
         settings.teamID = request.project.Team.hashid
         settings.storageURL = request.project.storageURL
         settings.auditURL = request.project.auditURL
@@ -892,6 +901,38 @@ module.exports = async function (app) {
                 settings.settings.palette.catalogue = [
                     `${app.config.base_url}/api/v1/teams/${settings.teamID}/npm/catalogue?instance=${request.project.id}`
                 ]
+            }
+        }
+
+        // Platform wide catalogue and npm registry
+        const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes') && !!teamType.getFeatureProperty('certifiedNodes', false)
+        if (platformNPMEnabled) {
+            const npmRegURLString = app.settings.get('platform:certifiedNodes:npmRegistryURL')
+            const token = app.settings.get('platform:certifiedNodes:token')
+            const catalogueString = app.settings.get('platform:certifiedNodes:catalogueURL')
+            if (npmRegURLString && token && catalogueString) {
+                const npmRegURL = new URL(npmRegURLString)
+                const catalogue = new URL(catalogueString)
+                if (!settings.settings?.palette) {
+                    settings.settings.palette = {}
+                }
+                if (settings.settings?.palette?.catalogue) {
+                    settings.settings.palette.catalogue
+                        .push(catalogue.toString())
+                } else {
+                    settings.settings.palette.catalogue = [
+                        catalogue.toString()
+                    ]
+                }
+                if (settings.settings?.palette?.npmrc) {
+                    settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
+                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `//${npmRegURL.host}:_auth="${token}"\n`
+                } else {
+                    settings.settings.palette.npmrc =
+                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `//${npmRegURL.host}:_auth="${token}"\n`
+                }
             }
         }
 
