@@ -138,11 +138,21 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'features']),
         formValid () {
+            const isChangingTeamType = this.input.teamTypeId !== this.team.type.id
+
             return !this.isUnmanaged &&
                     this.input.teamTypeId &&
                     this.isSelectionAvailable &&
-                    (this.billingMissing || this.input.teamTypeId !== this.team.type.id) &&
+                    (this.billingMissing || isChangingTeamType || this.isUpgradingFromMonthlyToYearly) &&
                     this.upgradeErrors.length === 0
+        },
+        isUpgradingFromMonthlyToYearly () {
+            const inputTeamHasAnnual = Object.prototype.hasOwnProperty.call(this.input, 'teamType') &&
+                Object.prototype.hasOwnProperty.call(this.input.teamType, 'properties') &&
+                Object.prototype.hasOwnProperty.call(this.input.teamType.properties, 'billing') &&
+                Object.prototype.hasOwnProperty.call(this.input.teamType.properties.billing, 'yrPriceId')
+
+            return inputTeamHasAnnual && this.team.billing?.interval === 'month' && this.isAnnualBilling
         },
         billingEnabled () {
             return this.features.billing
@@ -298,6 +308,12 @@ export default {
         instanceTypes.forEach(instanceType => {
             this.instanceTypes[instanceType.id] = instanceType
         })
+
+        if (this.team.billing?.interval === 'month') {
+            this.isAnnualBilling = false
+        } else if (this.team.billing?.interval === 'year') {
+            this.isAnnualBilling = true
+        }
     },
     async mounted () {
         this.mounted = true
