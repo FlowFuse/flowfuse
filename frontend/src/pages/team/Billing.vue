@@ -92,7 +92,7 @@
                     </template>
                     <template v-else>
                         <p>
-                            You trial has ended. You will need to setup billing to continuing using this team.
+                            You trial has ended. You will need to setup billing to continue using this team.
                         </p>
                     </template>
                 </template>
