@@ -714,16 +714,30 @@ module.exports = async function (app) {
         try {
             if (request.body.type) {
                 auditLogFunc = app.auditLog.Team.team.type.changed
+                let billingIntervalUpgrade = false
                 const bodyOptions = { ...request.body }
                 const targetTypeId = bodyOptions.type
                 delete bodyOptions.type
                 const billingInterval = bodyOptions.billing?.interval || null
                 delete bodyOptions.billing
+
                 if (Object.keys(bodyOptions).length > 0) {
                     reply.code(400).send({ code: 'invalid_request', error: 'Cannot modify other properties whilst changing type' })
                     return
                 }
-                if (targetTypeId !== request.team.TeamType.hashid) {
+
+                if (app.billing) {
+                    // allow team updates if upgrading to yearly billing
+                    const subscription = await request.team.getSubscription()
+
+                    const currentlyOnMonthlySubscription = subscription.interval === 'month'
+                    const upgradingToYearlySubscription = billingInterval === 'year'
+                    const sameTeamType = targetTypeId === request.team.TeamType.hashid
+
+                    billingIntervalUpgrade = sameTeamType && upgradingToYearlySubscription && currentlyOnMonthlySubscription
+                }
+
+                if (targetTypeId !== request.team.TeamType.hashid || billingIntervalUpgrade) {
                     const targetTeamType = await app.db.models.TeamType.byId(targetTypeId)
                     if (!targetTeamType) {
                         reply.code(400).send({ code: 'invalid_team_type', error: 'Invalid team type' })
