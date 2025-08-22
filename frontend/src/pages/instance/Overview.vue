@@ -67,6 +67,17 @@
                                             None
                                         </template>
                                     </template>
+                                    <template v-else-if="instance.template.settings.httpNodeAuth">
+                                        <template v-if="instance.template.settings.httpNodeAuth.type == 'basic'">
+                                            HTTP basic authentication
+                                        </template>
+                                        <template v-else-if="instance.template.settings.httpNodeAuth.type == 'flowforge-user'">
+                                            FlowFuse User Authentication
+                                        </template>
+                                        <template v-else>
+                                            None
+                                        </template>
+                                    </template>
                                     <span v-else>
                                         None
                                     </span>
