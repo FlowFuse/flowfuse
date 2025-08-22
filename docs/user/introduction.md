@@ -91,4 +91,4 @@ FlowFuse supports reading and writing persistent files and persistent context.
 
  ## Working with FF Tables
 
-  - [FF Tables](/docs/users/ff-tables.md) - Databases
+  - [FF Tables](/docs/user/ff-tables.md) - Databases
