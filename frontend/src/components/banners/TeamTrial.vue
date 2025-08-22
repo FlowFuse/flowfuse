@@ -25,7 +25,7 @@
             <span v-else>
                 Your trial has ended.
                 <span v-if="!team.billing?.active">
-                    You will need to setup billing to continuing using this team.
+                    You will need to setup billing to continue using this team.
                 </span>
             </span>
         </span>
