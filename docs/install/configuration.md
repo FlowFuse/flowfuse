@@ -229,6 +229,15 @@ Option         | Description
 `broker.url`   | The full url to the platform broker. This is used by the platform and Node-RED instances to connect to the broker. For example: `mqtt://localhost:1883`.
 `broker.public_url` | If set, this is the url provided to Devices to connect to the broker with. When running in a Docker or K8S environment, this url should be the externally addressable url the broker is provided on. This could be via WebSockets, for example: `ws://example.com:1884`
 
+## FF Tables
+
+Option         | Description
+---------------|--------------
+`tables.enables` | Enables the FlowFuse Tables feature. Default: `false`
+`tables.driver.type` | Selects the FF Tables driver to use (`postgres-localfs` or `postgres-supavisor`). Default: not set
+`tables.driver.options` | Configuration options for the driver.
+
+
 ## Logging configuration
 
 By default the forge app is set to `info` level logging, with the HTTP routes logged at `warn`
