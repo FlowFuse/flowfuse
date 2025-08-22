@@ -52,6 +52,7 @@
                             <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
                             <p v-if="trialMode && !trialHasEnded">Setting up billing will bring your free trial to an end</p>
                             <p v-if="!isContactRequired && team.suspended">Setting up billing will unsuspend your team</p>
+                            <p v-if="isUpgradingFromMonthlyToYearly">Any additional Hosted or Remote Instances will also switch to yearly billing.</p>
                             <p v-if="!isContactRequired"> Your billing subscription will be updated to reflect the new costs</p>
                         </div>
                     </template>
@@ -66,7 +67,8 @@
                                 :disabled="!formValid" data-action="change-team-type"
                                 @click="updateTeam()"
                             >
-                                Change team type
+                                <span v-if="isUpgradingFromMonthlyToYearly">Switch to Yearly Billing</span>
+                                <span v-else>Change team type</span>
                             </ff-button>
                             <ff-button
                                 v-else :disabled="!formValid"
