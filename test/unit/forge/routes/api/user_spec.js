@@ -929,7 +929,7 @@ describe('User API', async function () {
                 url: '/api/v1/user/tokens/' + testTokens[0].id,
                 cookies: { sid: TestObjects.tokens.alice }
             })
-            response.statusCode.should.equal(201)
+            response.statusCode.should.equal(204)
         })
         it('Delete a missing Token', async function () {
             const response = await app.inject({
