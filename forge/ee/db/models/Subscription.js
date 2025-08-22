@@ -59,7 +59,15 @@ module.exports = {
             allowNull: false,
             defaultValue: TRIAL_STATUS.NONE
         },
-        trialEndsAt: { type: DataTypes.DATE, defaultValue: null, allowNull: true }
+        trialEndsAt: { type: DataTypes.DATE, defaultValue: null, allowNull: true },
+        interval: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            get () {
+                // Default to month if not set. Saves having to check for null everywhere else
+                return this.getDataValue('interval') || 'month'
+            }
+        }
     },
     associations: function (M) {
         this.belongsTo(M.Team)

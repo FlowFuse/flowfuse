@@ -67,6 +67,7 @@ module.exports = async function (app) {
             result.billing = {}
             const subscription = await team.getSubscription()
             if (subscription) {
+                result.billing.interval = subscription.interval
                 result.billing.active = subscription.isActive()
                 result.billing.unmanaged = subscription.isUnmanaged()
                 result.billing.canceled = subscription.isCanceled()
@@ -456,7 +457,8 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     type: { type: 'string' },
                     slug: { type: 'string' },
-                    trial: { type: 'boolean' }
+                    trial: { type: 'boolean' },
+                    billingInterval: { type: 'string', enum: ['month', 'year'] }
                 }
             },
             response: {
@@ -562,7 +564,7 @@ module.exports = async function (app) {
                 } else {
                     const teamBillingDisabled = await teamType.getProperty('billing.disabled', false)
                     if (!teamBillingDisabled) {
-                        const session = await app.billing.createSubscriptionSession(team, request.session.User)
+                        const session = await app.billing.createSubscriptionSession(team, request.session.User, null, { interval: request.body.billingInterval })
                         app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
                         teamView.billingURL = session.url
                     }
@@ -693,7 +695,8 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     slug: { type: 'string' },
                     type: { type: 'string' },
-                    suspended: { type: 'boolean' }
+                    suspended: { type: 'boolean' },
+                    properties: { type: 'object' }
                 }
             },
             response: {
@@ -711,12 +714,17 @@ module.exports = async function (app) {
         try {
             if (request.body.type) {
                 auditLogFunc = app.auditLog.Team.team.type.changed
-                if (Object.keys(request.body).length > 1) {
+                const bodyOptions = { ...request.body }
+                const targetTypeId = bodyOptions.type
+                delete bodyOptions.type
+                const billingInterval = bodyOptions.billing?.interval || null
+                delete bodyOptions.billing
+                if (Object.keys(bodyOptions).length > 0) {
                     reply.code(400).send({ code: 'invalid_request', error: 'Cannot modify other properties whilst changing type' })
                     return
                 }
-                if (request.body.type !== request.team.TeamType.hashid) {
-                    const targetTeamType = await app.db.models.TeamType.byId(request.body.type)
+                if (targetTypeId !== request.team.TeamType.hashid) {
+                    const targetTeamType = await app.db.models.TeamType.byId(targetTypeId)
                     if (!targetTeamType) {
                         reply.code(400).send({ code: 'invalid_team_type', error: 'Invalid team type' })
                         return
@@ -729,7 +737,7 @@ module.exports = async function (app) {
                     // - first we check its allowed.
                     await request.team.checkTeamTypeUpdateAllowed(targetTeamType)
                     // - then we apply it
-                    await request.team.updateTeamType(targetTeamType)
+                    await request.team.updateTeamType(targetTeamType, { interval: billingInterval })
                 } else {
                     reply.send(app.db.views.Team.team(request.team))
                     return
@@ -771,6 +779,23 @@ module.exports = async function (app) {
                     reply.send(app.db.views.Team.team(request.team))
                     return
                 }
+            } else if (Object.hasOwn(request.body, 'properties')) {
+                if (!request.session.User.admin) {
+                    reply.code(403).send({ code: 'forbidden', error: 'Team properties can only be updated by admins' })
+                    return
+                }
+                updates = new app.auditLog.formatters.UpdatesCollection()
+                try {
+                    const oldProps = {}
+                    const newProps = {}
+                    oldProps.properties = typeof request.team.properties === 'string' ? JSON.parse(request.team.properties) : request.team.properties
+                    newProps.properties = typeof request.body.properties === 'string' ? JSON.parse(request.body.properties) : request.body.properties
+                    updates.pushDifferences(oldProps, newProps)
+                } catch (_error) {
+                // Ignore
+                }
+                request.team.properties = request.body.properties || {}
+                await request.team.save()
             } else {
                 updates = new app.auditLog.formatters.UpdatesCollection()
                 if (request.body.name) {
@@ -787,7 +812,10 @@ module.exports = async function (app) {
                 }
                 await request.team.save()
             }
-            auditLogFunc(request.session.User, null, request.team, updates)
+            // Only log if something changes
+            if (updates.length > 0) {
+                auditLogFunc(request.session.User, null, request.team, updates)
+            }
             reply.send(app.db.views.Team.team(request.team))
         } catch (err) {
             auditLogFunc(request.session.User, err, request.team, updates)

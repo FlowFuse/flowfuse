@@ -204,7 +204,7 @@ module.exports = async function (app) {
                 if (teamModified) {
                     await team.save()
                 }
-                await app.db.controllers.Subscription.createSubscription(team, stripeSubscriptionId, stripeCustomerId)
+                await app.db.controllers.Subscription.createSubscription(team, stripeSubscriptionId, stripeCustomerId, metadata.interval || 'month')
                 await app.auditLog.Team.billing.session.completed(request.session?.User || 'system', null, team, event.data.object)
                 app.log.info(`Created Subscription for team '${team.hashid}' (${currentTeamType.name}) with Stripe Customer ID '${stripeCustomerId}'`)
 
@@ -337,9 +337,15 @@ module.exports = async function (app) {
 
             const stripeSubscription = await stripeSubscriptionPromise
             const stripeCustomer = await stripeCustomerPromise
-
             const information = {
-                next_billing_date: stripeSubscription.current_period_end,
+                interval: sub.interval,
+                // If they are an annual subscription, but have pending invoice items, they will be billed at the end of their
+                // current month period - indicated by `next_pending_invoice_item_invoice`
+                // The charges table we show doesn't reflect those pending charges. The latest stripe API provides
+                // `stripe.invoices.createPreview - but we're on an older version.
+                // For now, show the pending invoice date as the next billing date - and we'll need to follow up
+                // to improve the info shown in the billing table.
+                next_billing_date: stripeSubscription.next_pending_invoice_item_invoice || stripeSubscription.current_period_end,
                 items: [],
                 customer: {
                     name: stripeCustomer.name,
@@ -401,7 +407,7 @@ module.exports = async function (app) {
             }
         }
         try {
-            const session = await app.billing.createSubscriptionSession(team, request.session.User, request.body?.teamTypeId)
+            const session = await app.billing.createSubscriptionSession(team, request.session.User, request.body?.teamTypeId, { interval: request.body?.interval })
             await app.auditLog.Team.billing.session.created(request.session.User, null, team, session)
             response.code(200).type('application/json').send({ billingURL: session.url })
         } catch (err) {
