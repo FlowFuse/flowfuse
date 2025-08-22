@@ -88,3 +88,7 @@ FlowFuse supports reading and writing persistent files and persistent context.
 ## Working with Custom Nodes
 
  - [Custom Nodes](/docs/user/custom-npm-packages.md) - Publishing Custom Node-RED Nodes
+
+ ## Working with FF Tables
+
+  - [FF Tables](/docs/users/ff-tables.md) - Databases
