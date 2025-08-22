@@ -46,9 +46,9 @@ module.exports = {
             throw new Error('Database driver does not support destroyDatabase')
         }
     },
-    getTables: async (team, databaseId, paginationOptions) => {
+    getTables: async (team, databaseId, paginationOptions, options) => {
         if (this._driver.getTables) {
-            return this._driver.getTables(team, databaseId)
+            return this._driver.getTables(team, databaseId, paginationOptions, options)
         } else {
             throw new Error('Database driver does not support getTables')
         }
@@ -65,6 +65,23 @@ module.exports = {
             return this._driver.getTableData(team, databaseId, table, paginationOptions)
         } else {
             throw new Error('Database driver does not support getTableData')
+        }
+    },
+    /**
+     * Query data in tables
+     * IMPORTANT: this method is primarily intended for internal usage (like getting AI schema hints)
+     * @param {Object} team - The team object
+     * @param {String} databaseId - The database ID
+     * @param {String} queryText - The SQL query to execute
+     * @param {Array} params - The parameters for the query
+     * @returns {String} - The result(s) of the query
+     * @throws {Error} - If the database does not exist
+     */
+    query: async (team, databaseId, queryText, params) => {
+        if (this._driver.query) {
+            return this._driver.query(team, databaseId, queryText, params)
+        } else {
+            throw new Error('Database driver does not support query')
         }
     },
     createTable: async (team, databaseId, tableName, columns) => {
