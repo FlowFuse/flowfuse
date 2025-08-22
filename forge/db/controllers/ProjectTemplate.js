@@ -52,6 +52,13 @@ module.exports = {
                 if (!template || policy) {
                     setTemplateValue(result, name, value)
                 }
+                if (name.startsWith('httpNodeCORS_')) {
+                    policy = !template || getTemplateValue(template.policy, 'httpNodeCORS')
+                    if (policy === undefined) { policy = defaultTemplatePolicy.httpNodeCORS }
+                    if (!template || policy) {
+                        setTemplateValue(result, name, value)
+                    }
+                }
             }
         })
         if (settings.env) {
@@ -208,6 +215,36 @@ module.exports = {
                 throw new Error('Invalid settings.debugMaxLength')
             }
         }
+        if (result.httpNodeCORS) {
+            if (result.httpNodeCORS?.origin) {
+                if (result.httpNodeCORS.origin !== '*') {
+                    try {
+                        const url = new URL(result.httpNodeCORS.origin)
+                        if (!['http:', 'https:'].includes(url.protocol)) {
+                            throw new Error('Invalid httpNodeCORS.origin protocol')
+                        }
+                        if (url.pathname !== '/') {
+                            throw new Error('Invalid httpNodeCORS.origin path')
+                        }
+                    } catch (err) {
+                        throw new Error(`Invalid httpNodeCORS.origin - ${err.toString()}`)
+                    }
+                }
+            }
+            const keys = Object.keys(result.httpNodeCORS)
+            keys.splice(keys.indexOf('origin'), 1)
+            const valid = ['GET', 'POST', 'PUT', 'PATCH', 'HEAD', 'DELETE']
+            valid.forEach(method => {
+                if (keys.includes(method)) {
+                    if (typeof result.httpNodeCORS[method] !== 'boolean') {
+                        throw new Error(`Invalid httpNodeCORS.${method} type`)
+                    }
+                }
+                if (keys.indexOf(method) === -1) {
+                    throw new Error(`Invalid httpNodeCORS missing ${method}`)
+                }
+            })
+        }
         return result
     },
 
@@ -235,7 +272,6 @@ module.exports = {
             if (mergeEditorSettings && skipList.includes(name)) {
                 return
             }
-
             // skip if locked in target template
             if (targetTemplate) {
                 // explicit test for false to allow for things not in the policy

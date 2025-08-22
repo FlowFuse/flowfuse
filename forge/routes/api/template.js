@@ -68,7 +68,6 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const template = await app.db.models.ProjectTemplate.byId(request.params.templateId)
-
         if (template) {
             const result = app.db.views.ProjectTemplate.template(template)
             if (result.settings?.env) {
