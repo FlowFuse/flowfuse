@@ -538,45 +538,6 @@ module.exports.init = async function (app) {
                         })
                     }
 
-                    if (team.TeamType.id === targetTeamType.id && subscription.interval === 'month' && isAnnualBilling) {
-                        // we're only updating the subscription billing cycle
-
-                        // get additional subscription products
-                        // filter by item.plan.product code starts by prod_
-                        const additionalProducts = []
-                        for (const item of stripeSubscription.items.data) {
-                            if (item.plan?.product && item.plan.product.startsWith('prod_')) {
-                                additionalProducts.push(item)
-                            }
-                        }
-
-                        const properties = targetTeamType.properties
-                        const availableProducts = [
-                            properties.devices,
-                            ...Object.values(properties.instances)
-                        ]
-                        stripeSubscription.items.data.forEach(eProd => {
-                            // exclude the main subscription product
-                            if (eProd.plan.product === targetTeamBillingIds.product) return
-
-                            // replace any additional products with monthly billing cycles with their yearly counterparts
-                            const replacement = availableProducts.find(avProd => {
-                                const productId = avProd.productId
-                                const product = eProd.plan.product
-                                return productId === product
-                            })
-
-                            if (!replacement || !Object.prototype.hasOwnProperty.call((replacement || {}), 'yrPriceId')) {
-                                throw new Error(`No replacement found for product "${eProd.plan.product}" when updating subscription.`)
-                            }
-
-                            newItems.push({
-                                price: replacement.yrPriceId,
-                                quantity: 1
-                            })
-                        })
-                    }
-
                     await stripe.subscriptions.update(subscription.subscription, {
                         proration_behavior: prorationBehavior,
                         items: newItems
