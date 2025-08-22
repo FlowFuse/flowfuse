@@ -260,7 +260,7 @@ function generatePostgreSqlDdl (columns, pks, fks, indexes, comments) {
             // generate CREATE TABLE statements with columns, types and PKs.
             const columns = table.columns.map(col => {
                 let columnDef = `${ei(col.columnName)} ${col.dataType}`
-                if (!col.isNullable && !col.isPrimaryKey) {
+                if (!col.isNullable || col.isPrimaryKey) {
                     columnDef += ' NOT NULL'
                 }
                 if (col.defaultValue) {
