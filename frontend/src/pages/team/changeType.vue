@@ -52,6 +52,7 @@
                             <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
                             <p v-if="trialMode && !trialHasEnded">Setting up billing will bring your free trial to an end</p>
                             <p v-if="!isContactRequired && team.suspended">Setting up billing will unsuspend your team</p>
+                            <p v-if="isUpgradingFromMonthlyToYearly">Any additional Hosted or Remote Instances will also switch to yearly billing.</p>
                             <p v-if="!isContactRequired"> Your billing subscription will be updated to reflect the new costs</p>
                         </div>
                     </template>
@@ -66,7 +67,8 @@
                                 :disabled="!formValid" data-action="change-team-type"
                                 @click="updateTeam()"
                             >
-                                Change team type
+                                <span v-if="isUpgradingFromMonthlyToYearly">Switch to Yearly Billing</span>
+                                <span v-else>Change team type</span>
                             </ff-button>
                             <ff-button
                                 v-else :disabled="!formValid"
@@ -138,11 +140,21 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'features']),
         formValid () {
+            const isChangingTeamType = this.input.teamTypeId !== this.team.type.id
+
             return !this.isUnmanaged &&
                     this.input.teamTypeId &&
                     this.isSelectionAvailable &&
-                    (this.billingMissing || this.input.teamTypeId !== this.team.type.id) &&
+                    (this.billingMissing || isChangingTeamType || this.isUpgradingFromMonthlyToYearly) &&
                     this.upgradeErrors.length === 0
+        },
+        isUpgradingFromMonthlyToYearly () {
+            const inputTeamHasAnnual = Object.prototype.hasOwnProperty.call(this.input, 'teamType') &&
+                Object.prototype.hasOwnProperty.call(this.input.teamType, 'properties') &&
+                Object.prototype.hasOwnProperty.call(this.input.teamType.properties, 'billing') &&
+                Object.prototype.hasOwnProperty.call(this.input.teamType.properties.billing, 'yrPriceId')
+
+            return inputTeamHasAnnual && this.team.billing?.interval === 'month' && this.isAnnualBilling
         },
         billingEnabled () {
             return this.features.billing
@@ -298,6 +310,12 @@ export default {
         instanceTypes.forEach(instanceType => {
             this.instanceTypes[instanceType.id] = instanceType
         })
+
+        if (this.team.billing?.interval === 'month') {
+            this.isAnnualBilling = false
+        } else if (this.team.billing?.interval === 'year') {
+            this.isAnnualBilling = true
+        }
     },
     async mounted () {
         this.mounted = true
