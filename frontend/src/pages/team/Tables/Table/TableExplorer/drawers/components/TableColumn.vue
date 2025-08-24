@@ -18,11 +18,29 @@
         <div class="col-section flex gap-1 col-span-4">
             <ff-checkbox v-model="localColumn.hasDefault" :disabled="cantHaveDefault" />
             <ff-text-input
+                v-if="!hasPreDefinedDefaultValues"
                 v-model="localColumn.default"
                 :disabled="!localColumn.hasDefault"
                 :error="errors.default"
                 placeholder="Default Value"
                 type="text"
+            />
+            <ff-combobox
+                v-else-if="hasPreDefinedDefaultValues && allowsFreeFormPreDefinedValue"
+                v-model="localColumn.default"
+                :disabled="!localColumn.hasDefault"
+                :options="predefinedDefaultValues[localColumn.type].values"
+                :hasCustomValue="true"
+                placeholder="Default Value"
+                option-title-key="title"
+            />
+            <ff-listbox
+                v-else
+                v-model="localColumn.default"
+                :disabled="!localColumn.hasDefault"
+                :options="predefinedDefaultValues[localColumn.type].values"
+                placeholder="Default Value"
+                option-title-key="title"
             />
         </div>
         <!--        <div class="col-section flex gap-1 col-span-2 relative">-->
@@ -131,6 +149,18 @@ export default defineComponent({
                     nullable: false,
                     default: false
                 }
+            },
+            predefinedDefaultValues: {
+                timestamptz: {
+                    allowFreeForm: false,
+                    values: [
+                        {
+                            label: 'NOW()',
+                            value: 'NOW()',
+                            title: 'Now'
+                        }
+                    ]
+                }
             }
         }
     },
@@ -187,6 +217,12 @@ export default defineComponent({
         cantHaveDefault () {
             return Object.prototype.hasOwnProperty.call(this.typeRestrictions, this.localColumn.type) &&
                 Object.prototype.hasOwnProperty.call(this.typeRestrictions[this.localColumn.type], 'default')
+        },
+        hasPreDefinedDefaultValues () {
+            return Object.prototype.hasOwnProperty.call(this.predefinedDefaultValues, this.localColumn.type)
+        },
+        allowsFreeFormPreDefinedValue () {
+            return this.hasPreDefinedDefaultValues && this.predefinedDefaultValues[this.localColumn.type].allowFreeForm
         }
     },
     watch: {
@@ -222,9 +258,10 @@ export default defineComponent({
 .column {
     .col-section {
 
-        .ff-combobox {
-            min-width: 100%;
+        .ff-combobox, .ff-listbox {
+            min-width: 10px; // resetting min-width
             max-width: 100%;
+            width: 100%;
         }
 
         .ff-input {
