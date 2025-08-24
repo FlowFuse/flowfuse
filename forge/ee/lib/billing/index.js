@@ -537,6 +537,7 @@ module.exports.init = async function (app) {
                             deleted: true
                         })
                     }
+
                     await stripe.subscriptions.update(subscription.subscription, {
                         proration_behavior: prorationBehavior,
                         items: newItems
