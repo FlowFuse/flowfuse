@@ -307,7 +307,7 @@ module.exports = async function (app) {
                 id: { type: 'string' }
             },
             response: {
-                201: {
+                204: {
                     type: 'null',
                     description: 'empty response'
                 },
@@ -324,7 +324,7 @@ module.exports = async function (app) {
                 updates.push('id', request.params.id)
                 await app.auditLog.User.user.pat.deleted(request.session.User, null, updates)
                 await token.destroy()
-                reply.code(201).send()
+                reply.code(204).send()
                 return
             }
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
