@@ -405,7 +405,7 @@ jobs:
           aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
 
       - name: Install 1Password CLI
-        uses: 1password/install-cli-action@707af61a6c8b4fa7f9476328c035208fba6b54d7 # v2.0.0
+        uses: 1password/install-cli-action@f5d505685ccf986ef535da41cd180792c8ac3a36 # v2.0.1
         with:
           version: 2.25.0
 
