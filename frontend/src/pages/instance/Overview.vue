@@ -56,31 +56,15 @@
                             <td class="font-medium">Security</td>
                             <td class="py-2">
                                 <div class="flex">
-                                    <template v-if="instance.settings.httpNodeAuth">
-                                        <template v-if="instance.settings.httpNodeAuth.type == 'basic'">
-                                            HTTP basic authentication
-                                        </template>
-                                        <template v-else-if="instance.settings.httpNodeAuth.type == 'flowforge-user'">
-                                            FlowFuse User Authentication
-                                        </template>
-                                        <template v-else>
-                                            None
-                                        </template>
+                                    <template v-if="httpNodeAuthType == 'basic'">
+                                        HTTP basic authentication
                                     </template>
-                                    <template v-else-if="instance.template.settings.httpNodeAuth">
-                                        <template v-if="instance.template.settings.httpNodeAuth.type == 'basic'">
-                                            HTTP basic authentication
-                                        </template>
-                                        <template v-else-if="instance.template.settings.httpNodeAuth.type == 'flowforge-user'">
-                                            FlowFuse User Authentication
-                                        </template>
-                                        <template v-else>
-                                            None
-                                        </template>
+                                    <template v-else-if="httpNodeAuthType == 'flowforge-user'">
+                                        FlowFuse User Authentication
                                     </template>
-                                    <span v-else>
+                                    <template v-else>
                                         None
-                                    </span>
+                                    </template>
                                     <router-link class="mt-0.5 ml-3" :to="{ name: 'instance-settings-security' }"><LinkIcon class="w-4" /></router-link>
                                 </div>
                             </td>
@@ -181,6 +165,12 @@ export default {
         },
         isHA () {
             return this.instance?.ha?.replicas !== undefined
+        },
+        httpNodeAuthType () {
+            if (this.instance.settings.httpNodeAuth) {
+                return this.instance.settings.httpNodeAuth.type
+            }
+            return this.instance.template.settings.httpNodeAuth?.type
         }
     },
     watch: {
