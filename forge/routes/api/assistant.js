@@ -168,20 +168,28 @@ module.exports = async function (app) {
             return reply.code(400).send({ code: 'invalid_method', error: 'Invalid method name' })
         }
 
-        const url = `${serviceUrl.replace(/\/+$/, '')}/${method.replace(/^\/+/, '')}`
-
         // post to the assistant service
         try {
-            const headers = await buildRequestHeaders(request)
-            const response = await axios.post(url, {
-                ...request.body
-            }, {
-                headers,
-                timeout: requestTimeout
-            })
-            if (request.body.transactionId !== response.data.transactionId) {
+            let isTeamOnTrial
+            if (app.billing && request.team.getSubscription) {
+                const subscription = await request.team.getSubscription()
+                isTeamOnTrial = subscription ? subscription.isTrial() : null
+            }
+
+            const response = await app.db.controllers.Assistant.invokeLLM(
+                method, { ...request.body },
+                {
+                    teamHashId: request.team.hashid,
+                    instanceType: request.ownerType,
+                    instanceId: request.ownerId,
+                    additionalHeaders: request.headers,
+                    isTeamOnTrial
+                })
+
+            if (request.body.transactionId !== response.transactionId) {
                 throw new Error('Transaction ID mismatch') // Ensure we are responding to the correct transaction
             }
+
             reply.send(response.data)
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
