@@ -122,10 +122,6 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const package = request.body.package
         const subflowJSON = request.body.subflow
-        if (!package || !subflowJSON) {
-            reply.status(422).send({ error: 'missing_values', message: 'Missing values' })
-            return
-        }
         if (!package.name.startsWith(`@flowfuse-${request.team.hashid}/`)) {
             reply.status(403).send({ error: 'not_authorized', message: 'Not Authorized' })
             return
