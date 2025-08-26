@@ -91,6 +91,11 @@ module.exports = async function (app) {
                 properties: {
                     package: {
                         type: 'object',
+                        properties: {
+                            name: { type: 'string' },
+                            version: { type: 'string' }
+                        },
+                        required: ['name', 'version'],
                         additionalProperties: true
                     },
                     subflow: {
