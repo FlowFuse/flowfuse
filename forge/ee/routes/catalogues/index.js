@@ -126,7 +126,7 @@ module.exports = async function (app) {
             reply.status(403).send({ error: 'not_authorized', message: 'Not Authorized' })
             return
         }
-        if (!package.version || !semver.valid(package.version)) {
+        if (!semver.valid(package.version)) {
             reply.status(422).send({ error: 'bad_version', message: 'Invalid semver' })
             return
         }
