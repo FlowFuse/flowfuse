@@ -1414,6 +1414,56 @@ module.exports = async function (app) {
         reply.code(202).send()
     })
 
+    app.post('/:instanceId/generate/snapshot-description', {
+
+    }, async (request, reply) => {
+        const options = {}
+        let isTeamOnTrial
+        const latestSnapshot = await request.project.getLatestSnapshot()
+        let previousState = {}
+
+        if (app.billing && request.project.Team.getSubscription) {
+            const subscription = await request.project.Team.getSubscription()
+            isTeamOnTrial = subscription ? subscription.isTrial() : null
+        }
+
+        if (latestSnapshot) {
+            const latestSnapshotJson = latestSnapshot.toJSON()
+            previousState = {
+                name: latestSnapshotJson.name,
+                description: latestSnapshotJson.description,
+                settings: latestSnapshotJson.settings,
+                flows: latestSnapshotJson.flows
+            }
+        }
+
+        const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildSnapshot(
+            request.project,
+            request.session.User,
+            options
+        )
+
+        const currentState = {
+            name: currentSnapshot.name,
+            description: currentSnapshot.description,
+            settings: currentSnapshot.settings,
+            flows: currentSnapshot.flows
+        }
+
+        const transactionId = request.params.instanceId + '-' + Date.now() // a unique id for this transaction
+        const res = await app.db.controllers.Assistant.invokeLLM(
+            'snapshot-diff',
+            { transactionId, currentState, previousState, prompt: '' },
+            {
+                teamHashId: request.project.Team.hashid,
+                instanceId: request.project.hashid,
+                instanceType: 'project',
+                isTeamOnTrial
+            })
+
+        reply.send(res)
+    })
+
     /**
      * Merge env vars from 2 arrays.
      *
