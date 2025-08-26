@@ -91,6 +91,11 @@ module.exports = async function (app) {
                 properties: {
                     package: {
                         type: 'object',
+                        properties: {
+                            name: { type: 'string' },
+                            version: { type: 'string' }
+                        },
+                        required: ['name', 'version'],
                         additionalProperties: true
                     },
                     subflow: {
@@ -117,15 +122,11 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const package = request.body.package
         const subflowJSON = request.body.subflow
-        if (!package || !subflowJSON) {
-            reply.status(422).send({ error: 'missing_values', message: 'Missing values' })
-            return
-        }
         if (!package.name.startsWith(`@flowfuse-${request.team.hashid}/`)) {
             reply.status(403).send({ error: 'not_authorized', message: 'Not Authorized' })
             return
         }
-        if (!package.version || !semver.valid(package.version)) {
+        if (!semver.valid(package.version)) {
             reply.status(422).send({ error: 'bad_version', message: 'Invalid semver' })
             return
         }
