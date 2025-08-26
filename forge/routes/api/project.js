@@ -1421,39 +1421,32 @@ module.exports = async function (app) {
         let isTeamOnTrial
 
         const latestSnapshot = await request.project.getLatestSnapshot()
-        // we need to 'build' the snapshot to compare it
         const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildSnapshot(
             request.project,
             request.session.User,
             options
         )
 
-        let previousState = {}
-        if (latestSnapshot) {
-            const latestSnapshotJson = latestSnapshot.toJSON()
-            previousState = {
-                name: latestSnapshotJson.name,
-                description: latestSnapshotJson.description,
-                settings: latestSnapshotJson.settings,
-                flows: latestSnapshotJson.flows
+        const previousState = latestSnapshot
+            ? {
+                settings: latestSnapshot.toJSON().settings,
+                flows: latestSnapshot.toJSON().flows
             }
-        }
+            : {}
 
         const currentState = {
-            name: currentSnapshot.name,
-            description: currentSnapshot.description,
             settings: currentSnapshot.settings,
             flows: currentSnapshot.flows
         }
 
-        const { beforeDiff, afterDiff } = deepDiff(currentState, previousState)
+        const { currentStateDiff, previousStateDiff } = deepDiff(currentState, previousState)
 
         // redact env var values
-        if (beforeDiff.settings?.env) {
-            Object.keys(beforeDiff.settings.env).forEach(k => beforeDiff.settings.env[k] === 'REDACTED')
+        if (currentStateDiff.settings?.env) {
+            Object.keys(currentStateDiff.settings.env).forEach(k => currentStateDiff.settings.env[k] === 'REDACTED')
         }
-        if (afterDiff.settings?.env) {
-            Object.keys(afterDiff.settings.env).forEach(k => afterDiff.settings.env[k] === 'REDACTED')
+        if (previousStateDiff.settings?.env) {
+            Object.keys(previousStateDiff.settings.env).forEach(k => previousStateDiff.settings.env[k] === 'REDACTED')
         }
 
         if (app.billing && request.project.Team.getSubscription) {
@@ -1464,7 +1457,7 @@ module.exports = async function (app) {
         const transactionId = request.params.instanceId + '-' + Date.now() // a unique id for this transaction
         const res = await app.db.controllers.Assistant.invokeLLM(
             'snapshot-diff',
-            { transactionId, currentState: beforeDiff, previousState: afterDiff, prompt: '' },
+            { transactionId, currentState: currentStateDiff, previousState: previousStateDiff, prompt: '' },
             {
                 teamHashId: request.project.Team.hashid,
                 instanceId: request.project.hashid,
@@ -1573,8 +1566,8 @@ module.exports = async function (app) {
 
         const [c, p] = diffNode(currentState, previousState)
         return {
-            afterDiff: c || {},
-            beforeDiff: p || {}
+            currentStateDiff: c || {},
+            previousStateDiff: p || {}
         }
     }
 
