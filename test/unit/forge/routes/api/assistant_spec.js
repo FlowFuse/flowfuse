@@ -5,9 +5,9 @@ const sinon = require('sinon')
 const setup = require('../setup')
 
 describe('Assistant API', async function () {
-    async function setupApp (config = {}) {
+    async function setupApp (config = {}, { tablesFeatureEnabled = true } = {}) {
         const defaultConfig = {
-            features: { devices: true },
+            features: { devices: true, tables: true },
             assistant: {
                 enabled: true,
                 service: {
@@ -17,12 +17,23 @@ describe('Assistant API', async function () {
                 assetCache: {
                     max: 10,
                     ttl: 1000 // 1 second TTL for testing
+                },
+                tablesSchemaCache: {
+                    max: 10,
+                    ttl: 1000 // 1 second TTL for testing
                 }
             }
         }
         const mergedConfig = Object.assign({}, defaultConfig, config)
         const _app = await setup(mergedConfig)
         _app.comms = null // skip all the broker stuff
+        _app.config.features.register('tables', tablesFeatureEnabled, tablesFeatureEnabled)
+        // Enable tables feature for default team type
+        const defaultTeamType = await _app.db.models.TeamType.findOne({ where: { name: 'starter' } })
+        const defaultTeamTypeProperties = defaultTeamType.properties
+        defaultTeamTypeProperties.features.tables = true
+        defaultTeamType.properties = defaultTeamTypeProperties
+        await defaultTeamType.save()
         return _app
     }
     describe('service disabled', async function () {
@@ -264,6 +275,99 @@ describe('Assistant API', async function () {
             })
             describe('json service', async function () {
                 serviceTests('json')
+            })
+            describe('flowfuse-tables-query service', async function () {
+                const serviceName = 'flowfuse-tables-query'
+                let getTablesHintsStub
+                let getDatabasesStub
+                const libAssistant = require('../../../../../forge/lib/assistant.js')
+
+                beforeEach(function () {
+                    getTablesHintsStub = sinon.stub(libAssistant, 'getTablesHints')
+                    app.tables = app.tables || { getDatabases: () => {} }
+                    getDatabasesStub = sinon.stub(app.tables, 'getDatabases').resolves([{ hashid: 'db1', name: 'Database 1' }])
+                })
+                afterEach(function () {
+                    getTablesHintsStub.restore()
+                    getDatabasesStub.restore()
+                    sinon.restore()
+                })
+
+                // standard service tests
+                serviceTests(serviceName)
+
+                // specific tests for tables feature
+                it('should include tables hints in context and cache it for subsequent requests', async function () {
+                    getTablesHintsStub.resolves('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
+                    sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                    await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    axios.post.calledOnce.should.be.true()
+                    getTablesHintsStub.calledOnce.should.be.true()
+                    getDatabasesStub.calledOnce.should.be.true()
+                    // should be called with app, request.team, database.hashid
+                    const callArgs = getTablesHintsStub.getCall(0).args
+                    callArgs[1].should.be.an.Object()
+                    callArgs[1].should.have.property('id', TestObjects.ATeam.id)
+                    callArgs[1].should.have.property('hashid', TestObjects.ATeam.hashid)
+                    callArgs[1].should.have.property('name', TestObjects.ATeam.name)
+                    callArgs[2].should.equal('db1') // instance/device.hashid (mocked in beforeEach)
+
+                    // Second request should hit cache and not call out to getTablesHints a 2nd time
+                    await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    axios.post.calledTwice.should.be.true()
+                    getTablesHintsStub.calledOnce.should.be.true() // still only called once
+                    getDatabasesStub.calledOnce.should.be.true() // still only called once
+                })
+
+                it('should fetch fresh tables context hints after cache expiration', async function () {
+                    getTablesHintsStub.resolves('--empty db')
+                    getTablesHintsStub.resetHistory()
+                    getDatabasesStub.resetHistory()
+                    sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                    await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    axios.post.calledOnce.should.be.true()
+
+                    // Simulate cache expiration
+                    await new Promise(resolve => setTimeout(resolve, 1010)) // wait for over 1 sec
+
+                    // Second request should hit cache and not call out to getTablesHints a 2nd time
+                    getTablesHintsStub.resolves('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
+                    getTablesHintsStub.resetHistory()
+                    getDatabasesStub.resetHistory()
+                    await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    axios.post.calledTwice.should.be.true()
+                    getTablesHintsStub.called.should.be.true()
+                    getDatabasesStub.called.should.be.true()
+                    // should be called with app, request.team, database.hashid
+                    const callArgs = getTablesHintsStub.getCall(0).args
+                    callArgs[1].should.be.an.Object()
+                    callArgs[1].should.have.property('id', TestObjects.ATeam.id)
+                    callArgs[1].should.have.property('hashid', TestObjects.ATeam.hashid)
+                    callArgs[1].should.have.property('name', TestObjects.ATeam.name)
+                    callArgs[2].should.equal('db1') // instance/device.hashid (mocked in beforeEach)
+                    const returnValue = await getTablesHintsStub.getCall(0).returnValue
+                    returnValue.should.equal('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
+                })
             })
         })
 
