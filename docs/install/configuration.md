@@ -235,8 +235,20 @@ Option         | Description
 ---------------|--------------
 `tables.enables` | Enables the FlowFuse Tables feature. Default: `false`
 `tables.driver.type` | Selects the FF Tables driver to use (`postgres-localfs` or `postgres-supavisor`). Default: not set
-`tables.driver.options` | Configuration options for the driver.
+`tables.driver.options` | Configuration options for the driver. Details depend on the driver used. Default: not set
 
+The options for the `postgres-localfs` driver require connection details for an admin user on a Postgres instance e.g.
+
+```
+database:
+  user: root
+  password: password
+  host: localhost
+  port: 5432
+  database: postgres
+  ssl: false
+
+```
 
 ## Logging configuration
 

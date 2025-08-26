@@ -11,7 +11,7 @@ You can create a database by selecting the Tables entry in the left hand menu
 ![Screenshot of FF Tables create database menu](./images/tables/create-database.png){data-zoomable}
 _Screenshot of FF Tables create database menu_
 
-Once you have created a database you can use the wizard to create some tables. The wizard offers a subset of the most used column types and has some 
+Once you have created a database you can use the wizard to create some tables. The wizard offers a subset of the most used column types and has the option to set default values and generate sequences for ids.
 
 ![Screenshot of create tables wizard](./images/tables/create-table-wizard.png){data-zoomable}
 _Screenshot of create tables wizard_
