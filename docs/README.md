@@ -33,7 +33,7 @@ meta:
 
 Welcome to the documentation for FlowFuse, an open-source, industrial data platform that enables engineers to build, manage, scale, and secure their Node-RED solutions.
 
-It covers everything from setup, to usage, and development. All [contributions](http://localhost:8080/docs/contribute/introduction/) are welcome. 
+It covers everything from setup, to usage, and development. All [contributions](/docs/contribute/introduction/) are welcome. 
 
 ## Getting Started
 
