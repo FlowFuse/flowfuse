@@ -214,6 +214,13 @@ const getResources = async (instanceId) => {
     })
 }
 
+const generateSnapshotDescription = async (instanceId) => {
+    return client.post(`/api/v1/projects/${instanceId}/generate/snapshot-description`, {})
+        .then(res => {
+            return res.data.data
+        })
+}
+
 export default {
     create,
     getInstance,
@@ -243,5 +250,6 @@ export default {
     checkCustomHostnameStatus,
     nameCheck,
     getResources,
-    getStatus
+    getStatus,
+    generateSnapshotDescription
 }
