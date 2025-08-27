@@ -23,7 +23,10 @@
                             Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                         </span>
                     </FormRow>
-                    <ff-button kind="tertiary" :disabled="loadingDescription" @click="generateDescription">
+                    <ff-button
+                        v-if="featuresCheck.isGeneratedSnapshotDescriptionEnabled" kind="tertiary"
+                        :disabled="loadingDescription" @click="generateDescription"
+                    >
                         Generate with AI
                         <template #icon-left>
                             <CubeTransparentIcon class="ff-icon" />
@@ -38,6 +41,7 @@
 
 import { CubeTransparentIcon } from '@heroicons/vue/outline'
 import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import { mapGetters } from 'vuex'
 
 import instanceApi from '../../../../../api/instances.js'
 import snapshotApi from '../../../../../api/projectSnapshots.js'
@@ -84,6 +88,7 @@ export default {
         }
     },
     computed: {
+        ...mapGetters('account', ['featuresCheck']),
         formValid () {
             return !this.submitted && !!(this.input.name)
         }
