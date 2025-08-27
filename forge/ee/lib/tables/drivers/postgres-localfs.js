@@ -225,6 +225,33 @@ module.exports = {
             throw new Error(`Failed to retrieve table ${table} for team ${team.hashid}: ${err.message}`)
         }
     },
+    /**
+     * Query data in tables
+     * IMPORTANT: this method is primarily intended for internal usage (like getting AI schema hints)
+     * @param {Object} team - The team object
+     * @param {String} databaseId - The database ID
+     * @param {String} queryText - The SQL query to execute
+     * @param {Array} params - The parameters for the query
+     * @returns {String} - The result(s) of the query
+     * @throws {Error} - If the database does not exist
+     */
+    query: async function (team, databaseId, queryText, params = undefined) {
+        const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
+        if (!databaseExists || databaseExists.TeamId !== team.id) {
+            throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
+        }
+        const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
+        try {
+            await teamClient.connect()
+            const result = await teamClient.query(queryText, params)
+            return result
+        } catch (error) {
+            console.error('Error running query:', error)
+            throw error
+        } finally {
+            await teamClient.end()
+        }
+    },
     createTable: async function (team, databaseId, tableName, columns) {
         const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
@@ -256,6 +283,8 @@ module.exports = {
                             column += `DEFAULT ${parseFloat(column.default)}`
                         } else if (col.type === 'boolean') {
                             column += `DEFAULT ${column.default === 'true'}`
+                        } else if (col.type === 'timestamptz') {
+                            column += 'DEFAULT NOW()'
                         }
                     }
                     if (i + 1 !== columns.length) {

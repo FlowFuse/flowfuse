@@ -1,4 +1,6 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -293,6 +295,119 @@ describe('Team Catalogue', function () {
                 const palette = result.palette
                 palette.npmrc.should.startWith(`@flowfuse-${app.team.hashid}:registry=http://localhost:9752`)
                 palette.catalogues.should.containEql(`http://localhost:3000/api/v1/teams/${app.team.hashid}/npm/catalogue?device=${app.device.hashid}`)
+            })
+        })
+        describe('Subflow Upload', function () {
+            let projectTokens
+            before(async function () {
+                projectTokens = await app.project.refreshAuthTokens()
+            })
+            beforeEach(function () {
+                this.sandbox = sinon.createSandbox()
+            })
+            afterEach(function () {
+                this.sandbox.restore()
+            })
+            it('should upload a valid subflow package', async function () {
+                const pkg = {
+                    name: `@flowfuse-${app.team.hashid}/mysubflow`,
+                    version: '1.0.0',
+                    description: 'A test subflow'
+                }
+                const subflow = { foo: 'bar' }
+                // Mock axios.put to simulate Verdaccio success
+                const axios = require('axios')
+                const putStub = this.sandbox.stub(axios, 'put')
+                putStub.resolves({ status: 204 })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/subflow`,
+                    payload: { package: pkg, subflow },
+                    headers: { Authorization: `Bearer ${projectTokens.token}` }
+                })
+                response.statusCode.should.equal(204)
+            })
+
+            it('should fail if required name property is missing (400)', async function () {
+                const pkg = {
+                    version: '1.0.0',
+                    description: 'A test subflow'
+                }
+                const subflow = { foo: 'bar' }
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/subflow`,
+                    payload: { package: pkg, subflow },
+                    headers: { Authorization: `Bearer ${projectTokens.token}` }
+                })
+                response.statusCode.should.equal(400)
+            })
+
+            it('should fail if required version is missing (400)', async function () {
+                const pkg = {
+                    name: `@flowfuse-${app.team.hashid}/mysubflow`,
+                    description: 'A test subflow'
+                }
+                const subflow = { foo: 'bar' }
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/subflow`,
+                    payload: { package: pkg, subflow },
+                    headers: { Authorization: `Bearer ${projectTokens.token}` }
+                })
+                response.statusCode.should.equal(400)
+            })
+
+            it('should fail with wrong package name (403)', async function () {
+                const pkg = {
+                    name: '@flowfuse-badteamhash/mysubflow',
+                    version: '1.0.0',
+                    description: 'A test subflow'
+                }
+                const subflow = { foo: 'bar' }
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/subflow`,
+                    payload: { package: pkg, subflow },
+                    headers: { Authorization: `Bearer ${projectTokens.token}` }
+                })
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('error', 'not_authorized')
+            })
+
+            it('should fail if version is invalid (422)', async function () {
+                const pkg = {
+                    name: `@flowfuse-${app.team.hashid}/mysubflow`,
+                    version: 'not-a-version',
+                    description: 'A test subflow'
+                }
+                const subflow = { foo: 'bar' }
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/subflow`,
+                    payload: { package: pkg, subflow },
+                    headers: { Authorization: `Bearer ${projectTokens.token}` }
+                })
+                response.statusCode.should.equal(422)
+                response.json().should.have.property('error', 'bad_version')
+            })
+
+            it('should fail if not a project token (401)', async function () {
+                const deviceToken = await app.db.controllers.AccessToken.createTokenForDevice(app.device)
+                const pkg = {
+                    name: `@flowfuse-${app.team.hashid}/mysubflow`,
+                    version: '1.0.0',
+                    description: 'A test subflow'
+                }
+                const subflow = { foo: 'bar' }
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${app.team.hashid}/npm/subflow`,
+                    payload: { package: pkg, subflow },
+                    headers: { Authorization: `Bearer ${deviceToken.token}` }
+                })
+                response.statusCode.should.equal(401)
+                response.json().should.have.property('code', 'unauthorized')
             })
         })
     })
