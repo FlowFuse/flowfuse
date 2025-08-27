@@ -50,4 +50,7 @@ module.exports = fp(async function (app, opts) {
 
     // Set the Editor Limits Feature Flag
     app.config.features.register('editorLimits', true, true)
+
+    // Set the Editor Limits Feature Flag
+    app.config.features.register('generatedSnapshotDescription', true, true)
 }, { name: 'app.ee.lib' })
