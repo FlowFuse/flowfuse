@@ -1416,6 +1416,33 @@ module.exports = async function (app) {
     })
 
     app.post('/:instanceId/generate/snapshot-description', {
+        preHandler: app.needsPermission('snapshot:edit'),
+        schema: {
+            summary: 'Generate a description of changes between a project\'s current state and latest snapshot',
+            tags: ['Instances', 'Snapshots'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                additionalProperties: true
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        transactionId: { type: 'string' },
+                        data: { type: 'object', additionalProperties: true }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
 
     }, async (request, reply) => {
         const options = {}
@@ -1455,18 +1482,27 @@ module.exports = async function (app) {
             isTeamOnTrial = subscription ? subscription.isTrial() : null
         }
 
-        const transactionId = request.params.instanceId + '-' + Date.now() // a unique id for this transaction
-        const res = await app.db.controllers.Assistant.invokeLLM(
-            'snapshot-diff',
-            { transactionId, currentState: currentStateDiff, previousState: previousStateDiff, prompt: '' },
-            {
-                teamHashId: request.project.Team.hashid,
-                instanceId: request.project.hashid,
-                instanceType: 'project',
-                isTeamOnTrial
-            })
+        try {
+            const transactionId = request.params.instanceId + '-' + Date.now() // a unique id for this transaction
+            const res = await app.db.controllers.Assistant.invokeLLM(
+                'snapshot-diff',
+                { transactionId, currentState: currentStateDiff, previousState: previousStateDiff, prompt: '' },
+                {
+                    teamHashId: request.project.Team.hashid,
+                    instanceId: request.project.hashid,
+                    instanceType: 'project',
+                    isTeamOnTrial
+                })
 
-        reply.send(res)
+            reply.send(res)
+        } catch (err) {
+            return reply
+                .code(err.statusCode || 400)
+                .send({
+                    code: err.code || 'unexpected_error',
+                    error: err.error || err.message
+                })
+        }
     })
 
     /**
