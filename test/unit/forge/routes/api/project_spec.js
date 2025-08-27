@@ -3000,11 +3000,17 @@ describe('Project API', function () {
             // Mock billing enabled and ensured the Team instance on the loaded project has getSubscription
             const originalBilling = app.billing
             app.billing = { enabled: true }
+            // Mock license tier and team feature flag
+            const originalLicense = app.license
+            app.license = { get: (k) => (k === 'tier' ? 'enterprise' : undefined) }
             const originalProjectById = app.db.models.Project.byId
             const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
                 const project = await originalProjectById.call(this, id, opts)
                 if (project && project.Team) {
                     project.Team.getSubscription = async () => ({ isTrial: () => true })
+                    project.Team.getTeamType = async () => ({
+                        getFeatureProperty: (name, def) => (name === 'generatedSnapshotDescription' ? true : def)
+                    })
                 }
                 // Mock a previous snapshot
                 project.getLatestSnapshot = async () => ({
@@ -3048,6 +3054,130 @@ describe('Project API', function () {
                 invokeStub.restore()
                 byIdStub.restore()
                 app.billing = originalBilling
+                app.license = originalLicense
+            }
+        })
+
+        it('returns 404 if not enterprise tier or feature disabled', async function () {
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+                settings: {},
+                flows: { flows: [], credentials: {} }
+            })
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({ transactionId: 'x', data: {} })
+
+            // Mock non-enterprise license and disabled feature
+            const originalLicense = app.license
+            app.license = { get: (k) => (k === 'tier' ? 'starter' : undefined) }
+            const originalProjectById = app.db.models.Project.byId
+            const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
+                const project = await originalProjectById.call(this, id, opts)
+                if (project && project.Team) {
+                    project.Team.getTeamType = async () => ({ getFeatureProperty: () => false })
+                }
+                return project
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            try {
+                response.statusCode.should.equal(404)
+                const body = response.json()
+                body.should.have.property('code', 'not_found')
+                // Ensure LLM was not invoked
+                invokeStub.called.should.equal(false)
+            } finally {
+                buildSnapshotStub.restore()
+                invokeStub.restore()
+                byIdStub.restore()
+                app.license = originalLicense
+            }
+        })
+
+        it('returns 404 when license object is missing', async function () {
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+                settings: {},
+                flows: { flows: [], credentials: {} }
+            })
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({ transactionId: 'x', data: {} })
+
+            // Remove license object
+            const originalLicense = app.license
+            app.license = null
+
+            const originalProjectById = app.db.models.Project.byId
+            const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
+                const project = await originalProjectById.call(this, id, opts)
+                if (project && project.Team) {
+                    // Even if team feature is enabled, missing license should cause 404
+                    project.Team.getTeamType = async () => ({
+                        getFeatureProperty: (name, def) => (name === 'generatedSnapshotDescription' ? true : def)
+                    })
+                }
+                return project
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            try {
+                response.statusCode.should.equal(404)
+                const body = response.json()
+                body.should.have.property('code', 'not_found')
+                invokeStub.called.should.equal(false)
+            } finally {
+                buildSnapshotStub.restore()
+                invokeStub.restore()
+                byIdStub.restore()
+                app.license = originalLicense
+            }
+        })
+
+        it('returns 404 when enterprise tier but generatedSnapshotDescription feature disabled', async function () {
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+                settings: {},
+                flows: { flows: [], credentials: {} }
+            })
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({ transactionId: 'x', data: {} })
+
+            // Enterprise tier
+            const originalLicense = app.license
+            app.license = { get: (k) => (k === 'tier' ? 'enterprise' : undefined) }
+
+            const originalProjectById = app.db.models.Project.byId
+            const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
+                const project = await originalProjectById.call(this, id, opts)
+                if (project && project.Team) {
+                    project.Team.getTeamType = async () => ({ getFeatureProperty: () => false })
+                }
+                return project
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            try {
+                response.statusCode.should.equal(404)
+                const body = response.json()
+                body.should.have.property('code', 'not_found')
+                invokeStub.called.should.equal(false)
+            } finally {
+                buildSnapshotStub.restore()
+                invokeStub.restore()
+                byIdStub.restore()
+                app.license = originalLicense
             }
         })
 
@@ -3071,6 +3201,20 @@ describe('Project API', function () {
             const err = { statusCode: 422, code: 'bad_request', message: 'invalid' }
             const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').throws(err)
 
+            // Satisfy preHandler gate: enterprise tier and feature enabled
+            const originalLicense = app.license
+            app.license = { get: (k) => (k === 'tier' ? 'enterprise' : undefined) }
+            const originalProjectById = app.db.models.Project.byId
+            const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
+                const project = await originalProjectById.call(this, id, opts)
+                if (project && project.Team) {
+                    project.Team.getTeamType = async () => ({
+                        getFeatureProperty: (name, def) => (name === 'generatedSnapshotDescription' ? true : def)
+                    })
+                }
+                return project
+            })
+
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
@@ -3086,6 +3230,8 @@ describe('Project API', function () {
             } finally {
                 buildSnapshotStub.restore()
                 invokeStub.restore()
+                byIdStub.restore()
+                app.license = originalLicense
             }
         })
     })

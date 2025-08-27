@@ -1419,12 +1419,16 @@ module.exports = async function (app) {
         preHandler: [
             app.needsPermission('snapshot:edit'),
             async (request, reply) => {
+                if (!app.license) {
+                    return reply.code(404).send({ code: 'not_found' })
+                }
+
                 const teamType = await request.project.Team.getTeamType()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
                 const hasFeature = teamType.getFeatureProperty('generatedSnapshotDescription', false)
 
-                if (!app.license || !isEnterprise || !hasFeature) {
+                if (!isEnterprise || !hasFeature) {
                     return reply.code(404).send({ code: 'not_found' })
                 }
             }
@@ -1469,7 +1473,10 @@ module.exports = async function (app) {
 
         let previousState = {}
         if (latestSnapshot) {
-            const toJSON = latestSnapshot.toJSON()
+            const toJSON = Object.prototype.hasOwnProperty.call(latestSnapshot, 'toJSON')
+                ? latestSnapshot.toJSON()
+                : latestSnapshot
+
             previousState = {
                 settings: toJSON.settings,
                 flows: toJSON.flows
