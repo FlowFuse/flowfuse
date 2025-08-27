@@ -173,8 +173,6 @@ module.exports = async function (app) {
             return reply.code(400).send({ code: 'invalid_method', error: 'Invalid method name' })
         }
 
-        const url = `${serviceUrl.replace(/\/+$/, '')}/${method.replace(/^\/+/, '')}`
-
         // if this is a `flowfuse-tables-query` lets see if tables are enabled and try to get the schema hints
         const tablesFeatureEnabled = app.config.features.enabled('tables') && request.team.TeamType.getFeatureProperty('tables', false)
         const isTablesQuery = tablesFeatureEnabled && method === 'flowfuse-tables-query'
@@ -198,19 +196,30 @@ module.exports = async function (app) {
 
         // post to the assistant service
         try {
-            const headers = await buildRequestHeaders(request)
+            let isTeamOnTrial
+            if (app.billing && request.team.getSubscription) {
+                const subscription = await request.team.getSubscription()
+                isTeamOnTrial = subscription ? subscription.isTrial() : null
+            }
             const data = { ...request.body }
             if (isTablesQuery) {
                 data.context = data.context || {}
                 data.context.tablesSchema = tablesSchemaCache.get(tablesCacheKey)
             }
-            const response = await axios.post(url, data, {
-                headers,
-                timeout: requestTimeout
-            })
-            if (request.body.transactionId !== response.data.transactionId) {
+
+            const response = await app.db.controllers.Assistant.invokeLLM(
+                method, data, {
+                    teamHashId: request.team.hashid,
+                    instanceType: request.ownerType,
+                    instanceId: request.ownerId,
+                    additionalHeaders: request.headers,
+                    isTeamOnTrial
+                })
+
+            if (request.body.transactionId !== response.transactionId) {
                 throw new Error('Transaction ID mismatch') // Ensure we are responding to the correct transaction
             }
+
             reply.send(response.data)
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
