@@ -2986,4 +2986,107 @@ describe('Project API', function () {
             response.statusCode.should.equal(202)
         })
     })
+
+    describe('Generate snapshot change description', function () {
+        it('returns 200 and forwards LLM response', async function () {
+            // Stub buildSnapshot to avoid heavy export logic and signature mismatches
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+                settings: { env: { FOO: 'bar' }, modules: {} },
+                flows: { flows: [{ id: 'n1' }], credentials: {} }
+            })
+            const llmResponse = { transactionId: 'tid-123', data: { summary: 'Some changes' } }
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves(llmResponse)
+
+            // Mock billing enabled and ensured the Team instance on the loaded project has getSubscription
+            const originalBilling = app.billing
+            app.billing = { enabled: true }
+            const originalProjectById = app.db.models.Project.byId
+            const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
+                const project = await originalProjectById.call(this, id, opts)
+                if (project && project.Team) {
+                    project.Team.getSubscription = async () => ({ isTrial: () => true })
+                }
+                // Mock a previous snapshot
+                project.getLatestSnapshot = async () => ({
+                    toJSON: () => ({
+                        settings: { env: { OLD: 'value' }, modules: { oldmod: '0.1.0' } },
+                        flows: { flows: [{ id: 'old' }], credentials: {} }
+                    })
+                })
+                return project
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            try {
+                response.statusCode.should.equal(200)
+                const body = response.json()
+                body.should.have.property('transactionId', 'tid-123')
+                body.should.have.property('data')
+                body.data.should.have.property('summary', 'Some changes')
+
+                // Assert LLM was invoked with correct prompt type and context
+                invokeStub.called.should.equal(true)
+                const args = invokeStub.getCall(0).args
+                args[0].should.equal('snapshot-diff')
+                // payload arg
+                args[1].should.have.property('transactionId')
+                args[1].should.have.property('currentState')
+                args[1].should.have.property('previousState')
+                // context arg
+                args[2].should.have.property('instanceType', 'project')
+                args[2].should.have.property('instanceId', TestObjects.project1.hashid)
+                args[2].should.have.property('teamHashId', TestObjects.ATeam.hashid)
+                args[2].should.have.property('isTeamOnTrial', true)
+            } finally {
+                buildSnapshotStub.restore()
+                invokeStub.restore()
+                byIdStub.restore()
+                app.billing = originalBilling
+            }
+        })
+
+        it('enforces snapshot:edit permission', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.bob } // bob is not an owner of ATeam
+            })
+            response.statusCode.should.equal(403)
+            const result = response.json()
+            result.should.have.property('code', 'unauthorized')
+        })
+
+        it('propagates errors from LLM invocation', async function () {
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+                settings: {},
+                flows: { flows: [], credentials: {} }
+            })
+            const err = { statusCode: 422, code: 'bad_request', message: 'invalid' }
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').throws(err)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            try {
+                response.statusCode.should.equal(422)
+                const body = response.json()
+                body.should.have.property('code', 'bad_request')
+                body.should.have.property('error')
+            } finally {
+                buildSnapshotStub.restore()
+                invokeStub.restore()
+            }
+        })
+    })
 })
