@@ -1419,12 +1419,16 @@ module.exports = async function (app) {
         preHandler: [
             app.needsPermission('snapshot:edit'),
             async (request, reply) => {
+                if (!app.license) {
+                    return reply.code(404).send({ code: 'not_found' })
+                }
+
                 const teamType = await request.project.Team.getTeamType()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
                 const hasFeature = teamType.getFeatureProperty('generatedSnapshotDescription', false)
 
-                if (!app.license || !isEnterprise || !hasFeature) {
+                if (!isEnterprise || !hasFeature) {
                     return reply.code(404).send({ code: 'not_found' })
                 }
             }
@@ -1469,7 +1473,10 @@ module.exports = async function (app) {
 
         let previousState = {}
         if (latestSnapshot) {
-            const toJSON = latestSnapshot.toJSON()
+            const toJSON = Object.prototype.hasOwnProperty.call(latestSnapshot, 'toJSON')
+                ? latestSnapshot.toJSON()
+                : latestSnapshot
+
             previousState = {
                 settings: toJSON.settings,
                 flows: toJSON.flows
@@ -1480,6 +1487,8 @@ module.exports = async function (app) {
             settings: currentSnapshot.settings,
             flows: currentSnapshot.flows
         }
+
+        const { deepDiff } = require('../../lib/objectHelpers.js')
 
         const { currentStateDiff, previousStateDiff } = deepDiff(currentState, previousState)
 
@@ -1540,86 +1549,6 @@ module.exports = async function (app) {
         }))
         const mergedKV = Object.assign({}, incomingKV, existingKV)
         return Object.entries(mergedKV).filter(e => !!e[0]).map(([k, v]) => { return { name: k, value: v } })
-    }
-
-    function deepDiff (currentState, previousState) {
-        const isMergeable = v =>
-            v !== null &&
-            typeof v === 'object' &&
-            (v.constructor === Object || Array.isArray(v))
-
-        const sameMergeableType = (a, b) =>
-            isMergeable(a) && isMergeable(b) &&
-            (Array.isArray(a) === Array.isArray(b))
-
-        function diffNode (a, b) {
-            if (Object.is(a, b)) return [undefined, undefined]
-
-            if (sameMergeableType(a, b)) {
-                const aKeys = a ? Object.keys(a) : []
-                const bKeys = b ? Object.keys(b) : []
-                const keys = new Set([...aKeys, ...bKeys])
-
-                const cOut = Array.isArray(a) ? [] : {}
-                const pOut = Array.isArray(b) ? [] : {}
-
-                let touched = false
-
-                for (const k of keys) {
-                    const aHas = a != null && Object.prototype.hasOwnProperty.call(a, k)
-                    const bHas = b != null && Object.prototype.hasOwnProperty.call(b, k)
-
-                    const aVal = aHas ? a[k] : undefined
-                    const bVal = bHas ? b[k] : undefined
-
-                    // addition -> only record on current side
-                    if (aHas && !bHas) {
-                        cOut[k] = cloneShallow(aVal)
-                        touched = true
-                        continue
-                    }
-                    // removal -> only record on previous side
-                    if (!aHas && bHas) {
-                        pOut[k] = cloneShallow(bVal)
-                        touched = true
-                        continue
-                    }
-
-                    // both present
-                    const [cChild, pChild] = diffNode(aVal, bVal)
-                    if (cChild !== undefined) {
-                        cOut[k] = cChild
-                        touched = true
-                    }
-                    if (pChild !== undefined) {
-                        pOut[k] = pChild
-                        touched = true
-                    }
-                }
-
-                if (!touched) return [undefined, undefined]
-                return [isEmpty(cOut) ? undefined : cOut, isEmpty(pOut) ? undefined : pOut]
-            }
-
-            // value changed (present in both)
-            return [cloneShallow(a), cloneShallow(b)]
-        }
-
-        function isEmpty (x) {
-            return x && typeof x === 'object' && Object.keys(x).length === 0
-        }
-
-        function cloneShallow (v) {
-            if (Array.isArray(v)) return v.slice()
-            if (v && v.constructor === Object) return { ...v }
-            return v
-        }
-
-        const [c, p] = diffNode(currentState, previousState)
-        return {
-            currentStateDiff: c || {},
-            previousStateDiff: p || {}
-        }
     }
 
     // app.get('/:instanceId/ha', {
