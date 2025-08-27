@@ -137,8 +137,9 @@
                     <FormRow v-model="input.properties.features.instanceResources" type="checkbox">Instance Resources</FormRow>
                     <FormRow v-model="input.properties.features.tables" type="checkbox">Tables</FormRow>
                     <FormRow v-model="input.properties.features.certifiedNodes" type="checkbox">Certified Nodes</FormRow>
+                    <FormRow v-model="input.properties.features.generatedSnapshotDescription" type="checkbox">Generated Snapshot Descriptions</FormRow>
                     <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
-                    <span />
+                    <!--                    <span />-->
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>

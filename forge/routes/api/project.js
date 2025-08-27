@@ -1416,7 +1416,19 @@ module.exports = async function (app) {
     })
 
     app.post('/:instanceId/generate/snapshot-description', {
-        preHandler: app.needsPermission('snapshot:edit'),
+        preHandler: [
+            app.needsPermission('snapshot:edit'),
+            async (request, reply) => {
+                const teamType = await request.project.Team.getTeamType()
+                const tier = app.license.get('tier')
+                const isEnterprise = tier === 'enterprise'
+                const hasFeature = teamType.getFeatureProperty('generatedSnapshotDescription', false)
+
+                if (!app.license || !isEnterprise || !hasFeature) {
+                    return reply.code(404).send({ code: 'not_found' })
+                }
+            }
+        ],
         schema: {
             summary: 'Generate a description of changes between a project\'s current state and latest snapshot',
             tags: ['Instances', 'Snapshots'],
