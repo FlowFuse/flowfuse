@@ -1465,7 +1465,7 @@ module.exports = async function (app) {
         let isTeamOnTrial
 
         const latestSnapshot = (await request.project.getLatestSnapshot(true)) ?? {}
-        const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildSnapshot(
+        const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildProjectSnapshot(
             request.project,
             request.session.User,
             options
