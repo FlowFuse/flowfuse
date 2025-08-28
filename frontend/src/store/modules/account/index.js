@@ -239,7 +239,11 @@ const getters = {
 
             // Tables
             isTablesFeatureEnabledForPlatform: !!state.features.tables,
-            isTablesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.tables
+            isTablesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.tables,
+
+            // Generate Snapshot Descriptions with AI
+            isGeneratedSnapshotDescriptionFeatureEnabledForPlatform: !!state.features.generatedSnapshotDescription,
+            isGeneratedSnapshotDescriptionFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.generatedSnapshotDescription
         }
         return {
             ...preCheck,
@@ -257,7 +261,8 @@ const getters = {
             isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups,
             isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration,
             isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
-            isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam
+            isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam,
+            isGeneratedSnapshotDescriptionEnabled: preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForPlatform && preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForTeam
         }
     }
 }
