@@ -1,4 +1,7 @@
 const axios = require('axios')
+const semver = require('semver')
+
+const subflow = require('./lib/subflow')
 
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
@@ -59,6 +62,93 @@ module.exports = async function (app) {
             reply.send(packages)
         } catch (err) {
             reply.status(500).send({ error: 'unknown_error', message: err.toString() })
+        }
+    })
+
+    /**
+     * Uploads a NPM packaged subflow to teams private repo
+     * @name /api/v1/teams/:teamId/npm/subflow
+     * @static
+     * @memberof forge.routes.api.team.npm
+     */
+    app.put('/npm/subflow', {
+        preHandler: async (request, reply) => {
+            if (request.session.ownerType !== 'project') {
+                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+            }
+            const project = await app.db.models.Project.byId(request.session.ownerId)
+            if (request.params.teamId !== project.Team.hashid) {
+                // AccesToken being used - but not owned by project in this team
+                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                return // eslint-disable-line no-useless-return
+            }
+        },
+        schema: {
+            summary: 'Allows Subflow packages to be stored in the Team Registry',
+            tags: ['NPM Package'],
+            body: {
+                type: 'object',
+                properties: {
+                    package: {
+                        type: 'object',
+                        properties: {
+                            name: { type: 'string' },
+                            version: { type: 'string' }
+                        },
+                        required: ['name', 'version'],
+                        additionalProperties: true
+                    },
+                    subflow: {
+                        type: 'object',
+                        additionalProperties: true
+                    }
+                }
+            },
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const package = request.body.package
+        const subflowJSON = request.body.subflow
+        if (!package.name.startsWith(`@flowfuse-${request.team.hashid}/`)) {
+            reply.status(403).send({ error: 'not_authorized', message: 'Not Authorized' })
+            return
+        }
+        if (!semver.valid(package.version)) {
+            reply.status(422).send({ error: 'bad_version', message: 'Invalid semver' })
+            return
+        }
+        const upload = await subflow.buildUpdate(package, subflowJSON, app.config.npmRegistry.url)
+
+        try {
+            await axios.put(`${app.config.npmRegistry?.url}/${package.name}`, upload, {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                auth: {
+                    username: app.config.npmRegistry.admin.username,
+                    password: app.config.npmRegistry.admin.password
+                }
+            })
+            reply.status(204).send()
+        } catch (err) {
+            if (err.status === 409) {
+                reply.status(409).send({})
+            } else {
+                reply.status(400).send({})
+            }
         }
     })
 

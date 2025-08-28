@@ -1,6 +1,6 @@
 <template>
     <div class="chart-wrapper">
-        <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize @datazoom="onDataZoom" />
+        <v-chart class="chart" :option="chartOptions" renderer="canvas" autoresize :loading="loading" @datazoom="onDataZoom" />
     </div>
 </template>
 
@@ -17,7 +17,7 @@ import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import VChart, { THEME_KEY } from 'vue-echarts'
 
-import { debounce } from '../../../../utils/eventHandling.js'
+import { debounce } from '../../../utils/eventHandling.js'
 
 export default {
     name: 'CpuChart',
@@ -34,8 +34,18 @@ export default {
         },
         instance: {
             type: Object,
-            required: true
-
+            default: null,
+            required: false
+        },
+        device: {
+            type: Object,
+            default: null,
+            required: false
+        },
+        loading: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     setup () {
@@ -62,7 +72,7 @@ export default {
             return {
                 tooltip: {
                     trigger: 'axis',
-                    formatter: function (params) {
+                    formatter: (params) => {
                         const timestamp = Number(params[0].axisValue)
                         const date = new Date(timestamp)
                         const formattedDate = date.toLocaleString()
@@ -129,7 +139,11 @@ export default {
                         // first responses might not contain relevant info
                         const cpu = res.cpu ?? 0
 
-                        if (this.instance.stack?.properties?.cpu) {
+                        if (this.device) {
+                            return cpu
+                        }
+
+                        if (this.instance?.stack?.properties?.cpu) {
                             // scaling down to match stack cpu allocation
                             return this.capGraph((cpu / this.instance.stack.properties.cpu) * 100)
                         }

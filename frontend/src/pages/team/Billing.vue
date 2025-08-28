@@ -92,7 +92,7 @@
                     </template>
                     <template v-else>
                         <p>
-                            You trial has ended. You will need to setup billing to continuing using this team.
+                            You trial has ended. You will need to setup billing to continue using this team.
                         </p>
                     </template>
                 </template>
@@ -258,6 +258,8 @@ export default {
             billingApi.toCustomerPortal(this.team.id)
         },
         async setupBilling () {
+            // Nick: this is currently unused. If a subscription has expired, then billingSetUp will be false
+            // and we don't show the 'renew subscription' button that leads here.
             let billingUrl = this.$route.query.billingUrl
             if (!billingUrl) {
                 const response = await billingApi.createSubscription(this.team.id)

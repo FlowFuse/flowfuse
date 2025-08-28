@@ -30,6 +30,7 @@ module.exports = fp(async function (app, opts) {
         if (app.config.tables?.enabled) {
             app.decorate('tables', await require('./tables').init(app))
         }
+        app.config.features.register('certifiedNodes', true, true)
     }
 
     // Set the Team Library Feature Flag
@@ -49,4 +50,7 @@ module.exports = fp(async function (app, opts) {
 
     // Set the Editor Limits Feature Flag
     app.config.features.register('editorLimits', true, true)
+
+    // Set the Editor Limits Feature Flag
+    app.config.features.register('generatedSnapshotDescription', true, true)
 }, { name: 'app.ee.lib' })

@@ -33,7 +33,7 @@ meta:
 
 Welcome to the documentation for FlowFuse, an open-source, industrial data platform that enables engineers to build, manage, scale, and secure their Node-RED solutions.
 
-It covers everything from setup, to usage, and development. All [contributions](http://localhost:8080/docs/contribute/introduction/) are welcome. 
+It covers everything from setup, to usage, and development. All [contributions](/docs/contribute/introduction/) are welcome. 
 
 ## Getting Started
 
@@ -221,6 +221,13 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
       <p>Seamlessly pass data between your Node-RED Instances.<p>
       <ul>
          <li><a href="/docs/user/projectnodes/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+      </ul>
+   </div>
+   <div class="ff-tile ff-offering-tile">
+      <label>FlowFuse MQTT Nodes</label>
+      <p>Integrate seamlessly with your <a href="/docs/user/teambroker/">Team Broker</a> to pass data between your Node-RED Instances and connected clients.</p>
+      <ul>
+         <li><a href="/docs/user/mqtt-nodes/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
       </ul>
    </div>
 </div>

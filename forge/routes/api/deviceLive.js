@@ -213,6 +213,9 @@ module.exports = async function (app) {
                     if (!settings.modules['@flowfuse/nr-project-nodes'] || SemVer.satisfies(SemVer.coerce(settings.modules['@flowfuse/nr-project-nodes']), '<=0.5.0')) {
                         settings.modules['@flowfuse/nr-project-nodes'] = defaultModules['@flowfuse/nr-project-nodes'] || '>0.5.0'
                     }
+                    if (!settings.modules['@flowfuse/nr-mqtt-nodes']) {
+                        settings.modules['@flowfuse/nr-mqtt-nodes'] = defaultModules['@flowfuse/nr-mqtt-nodes'] || '>0.1.0'
+                    }
                     if (!settings.modules['@flowfuse/nr-assistant']) {
                         settings.modules['@flowfuse/nr-assistant'] = defaultModules['@flowfuse/nr-assistant'] || '>=0.1.0'
                     }
@@ -298,6 +301,15 @@ module.exports = async function (app) {
             response.assistant.completions = { ...app.config.assistant.completions }
         }
 
+        const linkedUsername = `device:${request.device.hashid}`
+        const linkedUser = await app.db.models.TeamBrokerClient.byUsername(linkedUsername, request.device.Team.hashid, false, false)
+        const linked = linkedUser?.ownerType === 'device' && +linkedUser?.ownerId === request.device.id
+        response.mqttNodes = {
+            enabled: !!response.features.teamBroker,
+            username: linked ? linkedUsername : '',
+            linked
+        }
+
         const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)
         if (teamNPMEnabled) {
             const npmRegURL = new URL(app.config.npmRegistry.url)
@@ -326,6 +338,38 @@ module.exports = async function (app) {
                     'https://catalogue.nodered.org/catalogue.json',
                     `${app.config.base_url}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`
                 ]
+            }
+        }
+
+        // Platform wide catalogue and npm registry
+        const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes') && !!teamType.getFeatureProperty('certifiedNodes', false)
+        if (platformNPMEnabled) {
+            const npmRegURLString = app.settings.get('platform:certifiedNodes:npmRegistryURL')
+            const token = app.settings.get('platform:certifiedNodes:token')
+            const catalogueString = app.settings.get('platform:certifiedNodes:catalogueURL')
+            if (npmRegURLString && token && catalogueString) {
+                const npmRegURL = new URL(npmRegURLString)
+                const catalogue = new URL(catalogueString)
+                if (!response.palette) {
+                    response.palette = {}
+                }
+                if (response.palette?.catalogues) {
+                    response.palette.catalogues
+                        .push(catalogue.toString())
+                } else {
+                    response.palette.catalogues = [
+                        catalogue.toString()
+                    ]
+                }
+                if (response.palette?.npmrc) {
+                    response.palette.npmrc = `${response.palette.npmrc}\n` +
+                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `//${npmRegURL.host}:_auth="${token}"\n`
+                } else {
+                    response.palette.npmrc =
+                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `//${npmRegURL.host}:_auth="${token}"\n`
+                }
             }
         }
 

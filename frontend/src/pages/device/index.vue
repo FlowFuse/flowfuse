@@ -254,6 +254,7 @@ export default {
                     tag: 'device-logs',
                     icon: TerminalIcon
                 },
+                { label: 'Performance', to: { name: 'device-performance' }, tag: 'device-performance' },
                 { label: 'Settings', to: { name: 'device-settings' }, tag: 'device-settings' },
                 {
                     label: 'Developer Mode',

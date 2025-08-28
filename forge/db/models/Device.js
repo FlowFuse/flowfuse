@@ -9,7 +9,7 @@ const SemVer = require('semver')
 const { col, fn, DataTypes, Op, where, literal } = require('sequelize')
 
 const Controllers = require('../controllers')
-const { buildPaginationSearchClause } = require('../utils')
+const { generateToken, buildPaginationSearchClause } = require('../utils')
 
 const ALLOWED_SETTINGS = {
     autoSnapshot: 1,
@@ -71,7 +71,13 @@ module.exports = {
         this.hasMany(M.DeviceSettings)
         this.hasMany(M.ProjectSnapshot) // associate device at application level with snapshots
         this.belongsTo(M.DeviceGroup, { foreignKey: { allowNull: true } }) // SEE: forge/db/models/DeviceGroup.js for the other side of this relationship
-
+        this.hasOne(M.TeamBrokerClient, {
+            foreignKey: 'ownerId',
+            constraints: false,
+            scope: {
+                ownerType: 'device'
+            }
+        })
         // Also hasOne AuthClient (for ff-auth) - but not adding the association as we don't
         // want the sequelize mixins to be added to the Device model - they don't
         // handle the casting from int to string for the deviceId/ownerId
@@ -113,17 +119,12 @@ module.exports = {
                     }
                 }
             },
-            afterBulkUpdate: async (options) => {
+            beforeBulkUpdate: async (options) => {
                 if (options.fields.includes('targetSnapshotId') || options.fields.includes('DeviceGroupId')) {
-                    const devices = await M.Device.findAll({ where: options.where })
-                    for (const device of devices) {
-                        const updated = await device.updateSettingsHash()
-                        if (updated) {
-                            await device.save({
-                                hooks: false,
-                                transaction: options.transaction
-                            })
-                        }
+                    if (!options.fields.includes('settingsHash')) {
+                        // Any update to targetSnapshot or DeviceGroup implicitly triggers a settings hash change.
+                        options.attributes.settingsHash = generateToken(16)
+                        options.fields.push('settingsHash')
                     }
                 }
             },
@@ -159,6 +160,13 @@ module.exports = {
                         ownerId: '' + device.id
                     }
                 })
+                // delete auto created team broker client
+                await M.TeamBrokerClient.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: '' + device.id
+                    }
+                })
             }
         }
     },
@@ -180,6 +188,8 @@ module.exports = {
                     }
                     const broker = await Controllers.BrokerClient.createClientForDevice(this)
                     if (broker) {
+                        // sync passwords: the mqtt nodes client connection uses the same password. this permits runtime mqtt connection without restart.
+                        await Controllers.TeamBrokerClient.updateNtMqttNodeUserPassword(this.TeamId, 'device', this.hashid, broker.password)
                         result.broker = broker
                     }
                     return result
@@ -302,6 +312,7 @@ module.exports = {
                     return {
                         'node-red': this.getDefaultNodeRedVersion(),
                         '@flowfuse/nr-project-nodes': '>0.5.0', // TODO: get this from the "settings" (future)
+                        '@flowfuse/nr-mqtt-nodes': '>=0.1.0', // TODO: get this from the "settings" (future)
                         '@flowfuse/nr-assistant': '>=0.1.0'
                     }
                 }

@@ -843,6 +843,15 @@ module.exports = async function (app) {
         if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
             settings.assistant.completions = { ...app.config.assistant.completions }
         }
+
+        const linkedUsername = `instance:${request.project.id}`
+        const linkedUser = await app.db.models.TeamBrokerClient.byUsername(linkedUsername, request.project.Team.hashid, false, false)
+        const linked = linkedUser?.ownerType === 'project' && linkedUser?.ownerId === request.project.id
+        settings.mqttNodes = {
+            username: linkedUsername,
+            linked
+        }
+
         settings.teamID = request.project.Team.hashid
         settings.storageURL = request.project.storageURL
         settings.auditURL = request.project.auditURL
@@ -895,6 +904,38 @@ module.exports = async function (app) {
             }
         }
 
+        // Platform wide catalogue and npm registry
+        const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes') && !!teamType.getFeatureProperty('certifiedNodes', false)
+        if (platformNPMEnabled) {
+            const npmRegURLString = app.settings.get('platform:certifiedNodes:npmRegistryURL')
+            const token = app.settings.get('platform:certifiedNodes:token')
+            const catalogueString = app.settings.get('platform:certifiedNodes:catalogueURL')
+            if (npmRegURLString && token && catalogueString) {
+                const npmRegURL = new URL(npmRegURLString)
+                const catalogue = new URL(catalogueString)
+                if (!settings.settings?.palette) {
+                    settings.settings.palette = {}
+                }
+                if (settings.settings?.palette?.catalogue) {
+                    settings.settings.palette.catalogue
+                        .push(catalogue.toString())
+                } else {
+                    settings.settings.palette.catalogue = [
+                        catalogue.toString()
+                    ]
+                }
+                if (settings.settings?.palette?.npmrc) {
+                    settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
+                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `//${npmRegURL.host}:_auth="${token}"\n`
+                } else {
+                    settings.settings.palette.npmrc =
+                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `//${npmRegURL.host}:_auth="${token}"\n`
+                }
+            }
+        }
+
         if (app.config.features.enabled('staticAssets') && teamType.getFeatureProperty('staticAssets', false)) {
             const sharingConfig = await request.project.getSetting(KEY_SHARED_ASSETS) || {}
             // Stored as object with path->config. Need to transform to an array of settings
@@ -915,7 +956,8 @@ module.exports = async function (app) {
             'shared-library': app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true),
             projectComms: app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true),
             teamBroker: app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true),
-            tables: app.config.features.enabled('tables') && teamType.getFeatureProperty('tables', false)
+            tables: app.config.features.enabled('tables') && teamType.getFeatureProperty('tables', false),
+            teamNPM: teamNPMEnabled
         }
         reply.send(settings)
     })
@@ -1327,6 +1369,163 @@ module.exports = async function (app) {
             name: instance.name,
             meta: liveState.meta
         })
+    })
+
+    app.post('/:instanceId/update-state', {
+        preHandler: (request, reply, done) => {
+            // check accessToken is project scope
+            // (ownerId already checked at top-level preHandler)
+            if (request.session.ownerType !== 'project') {
+                reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+            } else {
+                done()
+            }
+        },
+        schema: {
+            summary: 'Update the live status of an instance',
+            hide: true,
+            tags: ['Instances', 'Live State'],
+            params: {
+                type: 'object',
+                required: ['instanceId'],
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                required: ['state'],
+                properties: {
+                    state: { type: 'string' }
+                }
+            },
+            response: {
+                202: {
+                    type: 'object',
+                    properties: {}
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        app.db.controllers.Project.updateLatestProjectState(request.params.instanceId, request.body.state)
+
+        reply.code(202).send()
+    })
+
+    app.post('/:instanceId/generate/snapshot-description', {
+        preHandler: [
+            app.needsPermission('snapshot:edit'),
+            async (request, reply) => {
+                if (!app.license) {
+                    return reply.code(404).send({ code: 'not_found' })
+                }
+
+                const teamType = await request.project.Team.getTeamType()
+                const tier = app.license.get('tier')
+                const isEnterprise = tier === 'enterprise'
+                const hasFeature = teamType.getFeatureProperty('generatedSnapshotDescription', false)
+
+                if (!isEnterprise || !hasFeature) {
+                    return reply.code(404).send({ code: 'not_found' })
+                }
+            }
+        ],
+        schema: {
+            summary: 'Generate a description of changes between a project\'s current state and latest snapshot',
+            tags: ['Instances', 'Snapshots'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                additionalProperties: true
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        transactionId: { type: 'string' },
+                        data: { type: 'object', additionalProperties: true }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+
+    }, async (request, reply) => {
+        const options = {}
+        let isTeamOnTrial
+
+        const latestSnapshot = (await request.project.getLatestSnapshot(true)) ?? {}
+        const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildSnapshot(
+            request.project,
+            request.session.User,
+            options
+        )
+
+        let previousState = {}
+        if (latestSnapshot) {
+            const toJSON = Object.prototype.hasOwnProperty.call(latestSnapshot, 'toJSON')
+                ? latestSnapshot.toJSON()
+                : latestSnapshot
+
+            previousState = {
+                settings: toJSON.settings,
+                flows: toJSON.flows
+            }
+        }
+
+        const currentState = {
+            settings: currentSnapshot.settings,
+            flows: currentSnapshot.flows
+        }
+
+        const { deepDiff } = require('../../lib/objectHelpers.js')
+
+        const { currentStateDiff, previousStateDiff } = deepDiff(currentState, previousState)
+
+        // redact env var values
+        if (currentStateDiff.settings?.env) {
+            Object.keys(currentStateDiff.settings.env).forEach(k => currentStateDiff.settings.env[k] === 'REDACTED')
+        }
+        if (previousStateDiff.settings?.env) {
+            Object.keys(previousStateDiff.settings.env).forEach(k => previousStateDiff.settings.env[k] === 'REDACTED')
+        }
+
+        if (app.billing && request.project.Team.getSubscription) {
+            const subscription = await request.project.Team.getSubscription()
+            isTeamOnTrial = subscription ? subscription.isTrial() : null
+        }
+
+        try {
+            const transactionId = request.params.instanceId + '-' + Date.now() // a unique id for this transaction
+            const res = await app.db.controllers.Assistant.invokeLLM(
+                'snapshot-diff',
+                { transactionId, currentState: currentStateDiff, previousState: previousStateDiff, prompt: '' },
+                {
+                    teamHashId: request.project.Team.hashid,
+                    instanceId: request.project.hashid,
+                    instanceType: 'project',
+                    isTeamOnTrial
+                })
+
+            reply.send(res)
+        } catch (err) {
+            return reply
+                .code(err.statusCode || 400)
+                .send({
+                    code: err.code || 'unexpected_error',
+                    error: err.error || err.message
+                })
+        }
     })
 
     /**

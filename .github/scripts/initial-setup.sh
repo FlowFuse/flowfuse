@@ -65,16 +65,35 @@ create_suspended_instance() {
   local INSTANCE_NAME=$1-$PR_NUMBER
   local TEAM_APPLICATION_ID=$2
   echo "Creating suspended $INSTANCE_NAME@$TEAM_APPLICATION_ID instance"
-  INSTANCE_ID=$(curl -ks -XPOST \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
-  -d '{
-        "name": "'"$INSTANCE_NAME"'",
-        "applicationId": "'"$TEAM_APPLICATION_ID"'",
-        "projectType": "'"$projectTypeId"'",
-        "stack": "'"$stackId"'",
-        "template": "'"$templateId"'"
-      }' https://$FLOWFUSE_URL/api/v1/projects/ | jq -r '.id')
+  
+  local RESPONSE
+  RESPONSE=$(curl -ks -XPOST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
+    -d '{
+          "name": "'"$INSTANCE_NAME"'",
+          "applicationId": "'"$TEAM_APPLICATION_ID"'",
+          "projectType": "'"$projectTypeId"'",
+          "stack": "'"$stackId"'",
+          "template": "'"$templateId"'"
+        }' https://$FLOWFUSE_URL/api/v1/projects/)
+  
+  echo "DEBUG: Raw response from API:"
+  echo "$RESPONSE"
+  echo "DEBUG: Response length: ${#RAW_RESPONSE}"
+  
+  # Check if response is valid JSON before parsing
+  if echo "$RAW_RESPONSE" | jq . > /dev/null 2>&1; then
+    INSTANCE_ID=$(echo "$RAW_RESPONSE" | jq -r '.id')
+    echo "DEBUG: Successfully parsed instance ID: $INSTANCE_ID"
+  else
+    echo "ERROR: Invalid JSON response received"
+    echo "DEBUG: Response from API:"
+    echo "$RESPONSE"
+    echo ""
+    return 1
+  fi
+  
   sleep 5
   curl -ks -w "\n" -XPOST \
     -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \

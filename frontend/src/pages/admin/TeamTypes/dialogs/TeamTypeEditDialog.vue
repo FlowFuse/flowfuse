@@ -33,9 +33,11 @@
                     </div>
                     <template v-if="!input.properties.billing.disabled">
                         <div class="grid gap-2 grid-cols-3">
-                            <FormRow v-model="input.properties.billing.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
-                            <FormRow v-model="input.properties.billing.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
+                            <FormRow v-model="input.properties.billing.productId" :type="editDisabled?'uneditable':''" class="col-span-2">Product Id</FormRow>
+                            <FormRow v-model="input.properties.billing.priceId" :type="editDisabled?'uneditable':''" class="col-span-2">Monthly Price Id</FormRow>
                             <FormRow v-model="input.properties.billing.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                            <FormRow v-model="input.properties.billing.yrPriceId" :type="editDisabled?'uneditable':''" class="col-span-2">Annual Price Id</FormRow>
+                            <FormRow v-model="input.properties.billing.yrDescription" placeholder="eg. $100/year" :type="editDisabled?'uneditable':''">Description</FormRow>
                         </div>
                         <FormRow v-model="input.properties.billing.proration" :options="prorationOptions" class="mb-4">Invoicing</FormRow>
                         <div class="space-y-2">
@@ -64,33 +66,43 @@
                     <FormRow v-model="input.properties.runtimes.limit"># Instances + Devices</FormRow>
                 </div>
                 <div v-for="(instanceType, index) in instanceTypes" :key="index">
-                    <FormHeading>Instance Type: {{ instanceType.name }}</FormHeading>
+                    <FormHeading>{{ instanceType.name }} Instance</FormHeading>
                     <div class="grid gap-3 grid-cols-4">
                         <FormRow v-model="input.properties.instances[instanceType.id].active" type="checkbox" class="mb-4">Available</FormRow>
                         <FormRow v-if="input.properties.instances[instanceType.id].active" v-model="input.properties.instances[instanceType.id].creatable" type="checkbox" class="mb-4">Creatable</FormRow>
                     </div>
-                    <div v-if="input.properties.instances[instanceType.id].active" class="grid gap-3 grid-cols-4 pl-4">
-                        <div class="grid gap-3 grid-cols-2">
+                    <div v-if="input.properties.instances[instanceType.id].active" class="pl-4 grid gap-3 grid-cols-1">
+                        <div class="grid gap-3 grid-cols-5">
                             <FormRow v-model="input.properties.instances[instanceType.id].limit"># Limit</FormRow>
                             <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].free"># Free</FormRow>
                         </div>
                         <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
-                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
-                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                        <div class="grid gap-3 grid-cols-3">
+                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].priceId" :type="editDisabled?'uneditable':''" class="col-span-2">Monthly Price Id</FormRow>
+                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                        </div>
+                        <div class="grid gap-3 grid-cols-3">
+                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].yrPriceId" :type="editDisabled?'uneditable':''" class="col-span-2">Annual Price Id</FormRow>
+                            <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.instances[instanceType.id].yrDescription" placeholder="eg. $100/year" :type="editDisabled?'uneditable':''">Description</FormRow>
+                        </div>
                     </div>
                 </div>
-                <FormHeading>Devices</FormHeading>
-                <div class="grid gap-3 grid-cols-4">
-                    <div class="grid gap-3 grid-cols-2">
+                <FormHeading>Remote Instance</FormHeading>
+                <div class="pl-4 grid gap-3 grid-cols-1">
+                    <div class="grid gap-3 grid-cols-5">
                         <FormRow v-model="input.properties.devices.limit"># Limit</FormRow>
                         <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.free" :disabled="input.properties.devices.combinedFreeType !== '_'"># Free</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.combinedFreeType" :options="deviceFreeOptions" class="col-span-3">Share free allocation with instance type:</FormRow>
                     </div>
                     <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.productId" :type="editDisabled?'uneditable':''">Product Id</FormRow>
-                    <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''">Price Id</FormRow>
-                    <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
-                </div>
-                <div v-if="billingEnabled && !input.properties.billing.disabled" class="grid gap-3 grid-cols-1">
-                    <FormRow v-model="input.properties.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">Share free allocation with instance type:</FormRow>
+                    <div class="grid gap-3 grid-cols-3">
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.priceId" :type="editDisabled?'uneditable':''" class="col-span-2">Monthly Price Id</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.description" placeholder="eg. $10/month" :type="editDisabled?'uneditable':''">Description</FormRow>
+                    </div>
+                    <div class="grid gap-3 grid-cols-3">
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.yrPriceId" :type="editDisabled?'uneditable':''" class="col-span-2">Annual Price Id</FormRow>
+                        <FormRow v-if="billingEnabled && !input.properties.billing.disabled" v-model="input.properties.devices.yrDescription" placeholder="eg. $100/year" :type="editDisabled?'uneditable':''">Description</FormRow>
+                    </div>
                 </div>
 
                 <template v-if="teamBrokerEnabled">
@@ -124,8 +136,10 @@
                     <FormRow v-model="input.properties.features.gitIntegration" type="checkbox">Git Integration</FormRow>
                     <FormRow v-model="input.properties.features.instanceResources" type="checkbox">Instance Resources</FormRow>
                     <FormRow v-model="input.properties.features.tables" type="checkbox">Tables</FormRow>
+                    <FormRow v-model="input.properties.features.certifiedNodes" type="checkbox">Certified Nodes</FormRow>
+                    <FormRow v-model="input.properties.features.generatedSnapshotDescription" type="checkbox">Generated Snapshot Descriptions</FormRow>
                     <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
-                    <!-- <span /> -->
+                    <!--                    <span />-->
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>

@@ -15,9 +15,14 @@ module.exports = async function (app) {
         ttl: app.config.assistant?.assetCache?.ttl || 30 * 60 * 1000, // Defaults to 1/2 hour cache for assets - enough to handle bursts
         updateAgeOnGet: false // do not update the age on get, we want it to expire after the original ttl
     })
+    const tablesSchemaCache = new LRUCache({
+        max: app.config.assistant?.tablesSchemaCache?.max || 100,
+        ttl: app.config.assistant?.tablesSchemaCache?.ttl || 5 * 60 * 1000, // Defaults to 5 mins
+        updateAgeOnGet: false // do not update the age on get, we want it to expire after the original ttl
+    })
 
     // decorate the app with the asset cache
-    app.decorate('assistant', { assetCache })
+    app.decorate('assistant', { assetCache, tablesSchemaCache })
 
     // Get the assistant service configuration
     const serviceUrl = app.config.assistant?.service?.url
@@ -168,20 +173,53 @@ module.exports = async function (app) {
             return reply.code(400).send({ code: 'invalid_method', error: 'Invalid method name' })
         }
 
-        const url = `${serviceUrl.replace(/\/+$/, '')}/${method.replace(/^\/+/, '')}`
+        // if this is a `flowfuse-tables-query` lets see if tables are enabled and try to get the schema hints
+        const tablesFeatureEnabled = app.config.features.enabled('tables') && request.team.TeamType.getFeatureProperty('tables', false)
+        const isTablesQuery = tablesFeatureEnabled && method === 'flowfuse-tables-query'
+        const tablesCacheKey = request.team.hashid + '/tables/schema'
+        if (isTablesQuery) {
+            const { getTablesHints } = require('../../lib/assistant.js')
+            if (!tablesSchemaCache.has(tablesCacheKey)) {
+                const creds = await app.tables.getDatabases(request.team)
+                if (creds && creds.length) {
+                    const database = creds[0] // Get the first database
+                    try {
+                        // Get the DDL
+                        const schemaData = await getTablesHints(app, request.team, database.hashid)
+                        tablesSchemaCache.set(tablesCacheKey, schemaData)
+                    } catch (error) {
+                        tablesSchemaCache.set(tablesCacheKey, '')
+                    }
+                }
+            }
+        }
 
         // post to the assistant service
         try {
-            const headers = await buildRequestHeaders(request)
-            const response = await axios.post(url, {
-                ...request.body
-            }, {
-                headers,
-                timeout: requestTimeout
-            })
-            if (request.body.transactionId !== response.data.transactionId) {
+            let isTeamOnTrial
+            if (app.billing && request.team.getSubscription) {
+                const subscription = await request.team.getSubscription()
+                isTeamOnTrial = subscription ? subscription.isTrial() : null
+            }
+            const data = { ...request.body }
+            if (isTablesQuery) {
+                data.context = data.context || {}
+                data.context.tablesSchema = tablesSchemaCache.get(tablesCacheKey)
+            }
+
+            const response = await app.db.controllers.Assistant.invokeLLM(
+                method, data, {
+                    teamHashId: request.team.hashid,
+                    instanceType: request.ownerType,
+                    instanceId: request.ownerId,
+                    additionalHeaders: request.headers,
+                    isTeamOnTrial
+                })
+
+            if (request.body.transactionId !== response.transactionId) {
                 throw new Error('Transaction ID mismatch') // Ensure we are responding to the correct transaction
             }
+
             reply.send(response.data)
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })

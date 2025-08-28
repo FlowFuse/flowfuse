@@ -2,7 +2,7 @@
     <ff-page>
         <ff-loading v-if="loading" message="Updating Team..." />
         <div v-else>
-            <form class="space-y-6">
+            <form class="space-y-8 flex flex-col items-center">
                 <div>
                     <FormHeading>Change your team type</FormHeading>
                     <div v-if="isUnmanaged" class="space-y-2">
@@ -19,18 +19,23 @@
                 </div>
                 <!-- TeamType Type -->
                 <div class="grid">
-                    <ff-tile-selection v-model="input.teamTypeId" data-form="team-type">
+                    <ff-tile-selection v-model="input.teamTypeId" data-form="team-type" class="justify-center">
                         <ff-tile-selection-option
                             v-for="(teamType, index) in teamTypes" :key="index"
                             :label="teamType.name" :description="teamType.description"
-                            :price="billingEnabled ? teamType.billingPrice : ''"
-                            :price-interval="billingEnabled ? teamType.billingInterval : ''"
+                            :price="billingEnabled ? (!isAnnualBilling ? teamType.billingPrice : teamType.annualBillingPrice) : ''"
+                            :price-interval="billingEnabled ? (!isAnnualBilling ? teamType.billingInterval : teamType.annualBillingInterval) : ''"
                             :value="teamType.id"
-                            :disabled="isUnmanaged"
+                            :disabled="isUnmanaged || (isAnnualBilling && !teamType.annualBillingPrice && !teamType.properties?.billing?.requireContact)"
                         />
                     </ff-tile-selection>
                 </div>
-                <div>
+                <div v-if="billingEnabled && annualBillingAvailable" class="text-sm font-medium text-gray-400 flex items-center gap-2">
+                    <span :class="{'text-gray-800': !isAnnualBilling }">Monthly</span>
+                    <ff-toggle-switch v-model="isAnnualBilling" />
+                    <span :class="{'text-gray-800': isAnnualBilling }">Yearly</span>
+                </div>
+                <div class="max-w-md w-full">
                     <template v-if="upgradeErrors.length > 0">
                         <div class="mb-8 text-sm text-gray-500 space-y-2">
                             <p>Your current usage of the platform is higher than that available to the {{ input.teamType?.name }} team.</p>
@@ -43,30 +48,42 @@
                         </div>
                     </template>
                     <template v-else-if="billingEnabled">
-                        <div class="mb-8 text-sm text-gray-500 space-y-2">
+                        <div class="mb-8 text-sm text-gray-500 space-y-2 text-center">
                             <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
                             <p v-if="trialMode && !trialHasEnded">Setting up billing will bring your free trial to an end</p>
                             <p v-if="!isContactRequired && team.suspended">Setting up billing will unsuspend your team</p>
+                            <p v-if="isUpgradingFromMonthlyToYearly">Any additional Hosted or Remote Instances will also switch to yearly billing.</p>
                             <p v-if="!isContactRequired"> Your billing subscription will be updated to reflect the new costs</p>
                         </div>
                     </template>
                     <div class="flex gap-x-4">
+                        <ff-button kind="secondary" data-action="cancel-change-team-type" class="flex-1" @click="$router.back()">
+                            Cancel
+                        </ff-button>
                         <template v-if="!isContactRequired">
-                            <ff-button v-if="!billingEnabled || billingDisabledForSelectedTeamType" :disabled="!formValid" data-action="change-team-type" @click="updateTeam()">
-                                Change team type
+                            <ff-button
+                                v-if="!billingEnabled || !billingMissing"
+                                class="flex-1"
+                                :disabled="!formValid" data-action="change-team-type"
+                                @click="updateTeam()"
+                            >
+                                <span v-if="isUpgradingFromMonthlyToYearly">Switch to Yearly Billing</span>
+                                <span v-else>Change team type</span>
                             </ff-button>
-                            <ff-button v-else :disabled="!formValid" data-action="setup-team-billing" @click="setupBilling()">
+                            <ff-button
+                                v-else :disabled="!formValid"
+                                data-action="setup-team-billing"
+                                class="flex-1"
+                                @click="setupBilling()"
+                            >
                                 Setup Payment Details
                             </ff-button>
                         </template>
                         <template v-else>
-                            <ff-button :disabled="!formValid" data-action="contact-sales" @click="sendContact()">
+                            <ff-button :disabled="!formValid" data-action="contact-sales" class="flex-1" @click="sendContact()">
                                 Talk to sales
                             </ff-button>
                         </template>
-                        <ff-button kind="secondary" data-action="cancel-change-team-type" @click="$router.back()">
-                            Cancel
-                        </ff-button>
                     </div>
                 </div>
             </form>
@@ -115,17 +132,29 @@ export default {
             input: {
                 teamTypeId: '',
                 teamType: null
-            }
+            },
+            annualBillingAvailable: false,
+            isAnnualBilling: false
         }
     },
     computed: {
         ...mapState('account', ['user', 'team', 'features']),
         formValid () {
+            const isChangingTeamType = this.input.teamTypeId !== this.team.type.id
+
             return !this.isUnmanaged &&
                     this.input.teamTypeId &&
                     this.isSelectionAvailable &&
-                    (this.billingMissing || this.input.teamTypeId !== this.team.type.id) &&
+                    (this.billingMissing || isChangingTeamType || this.isUpgradingFromMonthlyToYearly) &&
                     this.upgradeErrors.length === 0
+        },
+        isUpgradingFromMonthlyToYearly () {
+            const inputTeamHasAnnual = Object.prototype.hasOwnProperty.call(this.input, 'teamType') &&
+                Object.prototype.hasOwnProperty.call(this.input.teamType, 'properties') &&
+                Object.prototype.hasOwnProperty.call(this.input.teamType.properties, 'billing') &&
+                Object.prototype.hasOwnProperty.call(this.input.teamType.properties.billing, 'yrPriceId')
+
+            return inputTeamHasAnnual && this.team.billing?.interval === 'month' && this.isAnnualBilling
         },
         billingEnabled () {
             return this.features.billing
@@ -256,6 +285,9 @@ export default {
             } else {
                 this.input.teamType = null
             }
+        },
+        isAnnualBilling () {
+            this.input.teamTypeId = this.init.teamTypeId
         }
     },
     async created () {
@@ -267,10 +299,23 @@ export default {
         }).sort((a, b) => a.order - b.order)
         this.input.teamTypeId = this.team.type.id
 
+        this.teamTypes.forEach(tt => {
+            // Check if *any* team type has annual billing available
+            if (tt.annualBillingPrice) {
+                this.annualBillingAvailable = true
+            }
+        })
+
         const instanceTypes = (await instanceTypesApi.getInstanceTypes()).types
         instanceTypes.forEach(instanceType => {
             this.instanceTypes[instanceType.id] = instanceType
         })
+
+        if (this.team.billing?.interval === 'month') {
+            this.isAnnualBilling = false
+        } else if (this.team.billing?.interval === 'year') {
+            this.isAnnualBilling = true
+        }
     },
     async mounted () {
         this.mounted = true
@@ -283,6 +328,12 @@ export default {
             const opts = {
                 type: this.input.teamTypeId
             }
+            if (this.billingEnabled) {
+                opts.billing = {
+                    interval: this.isAnnualBilling ? 'year' : 'month'
+                }
+            }
+
             teamApi.updateTeam(this.team.id, opts).then(async result => {
                 await this.$store.dispatch('account/refreshTeams')
                 await this.$store.dispatch('account/refreshTeam')
@@ -303,7 +354,8 @@ export default {
         setupBilling: async function () {
             this.loading = true
             try {
-                const response = await billingApi.createSubscription(this.team.id, this.input.teamTypeId)
+                const billingInterval = this.isAnnualBilling ? 'year' : 'month'
+                const response = await billingApi.createSubscription(this.team.id, this.input.teamTypeId, billingInterval)
                 window.open(response.billingURL, '_self')
             } catch (err) {
                 Alerts.emit('Something went wrong with the request. Please try again or contact support for help.', 'info', 15000)

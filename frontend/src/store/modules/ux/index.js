@@ -139,6 +139,13 @@ const getters = {
                         tag: 'admin-flow-blueprints',
                         icon: TemplateIcon,
                         featureUnavailable: !features.isBlueprintsFeatureEnabledForPlatform
+                    },
+                    {
+                        label: 'Certified Nodes',
+                        to: { name: 'admin-certified-nodes' },
+                        tag: 'admin-certified-nodes',
+                        icon: CollectionIcon,
+                        hidden: features.isCertifiedNodesFeatureEnabledForPlatform
                     }
                 ]
             },

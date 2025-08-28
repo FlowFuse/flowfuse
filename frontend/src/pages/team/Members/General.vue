@@ -31,6 +31,7 @@ import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
+import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog.vue'
@@ -69,10 +70,10 @@ export default {
             return this.hasPermission('team:user:remove') || this.hasPermission('team:user:change-role')
         },
         teamUserLimitReached () {
-            let teamTypeUserLimit = this.team.type.properties?.users?.limit
+            let teamTypeUserLimit = getTeamProperty(this.team, 'users.limit')
             const currentUserCount = this.userCount + this.inviteCount
-            if (this.team.billing?.trial && !this.team.billing?.active && this.team.type.properties?.trial?.usersLimit) {
-                teamTypeUserLimit = this.team.type.properties?.trial?.usersLimit
+            if (this.team.billing?.trial && !this.team.billing?.active && getTeamProperty(this.team, 'trial.usersLimit')) {
+                teamTypeUserLimit = getTeamProperty(this.team, 'trial.usersLimit')
             }
             return (teamTypeUserLimit > 0 && currentUserCount >= teamTypeUserLimit)
         }

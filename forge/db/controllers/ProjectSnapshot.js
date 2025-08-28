@@ -351,14 +351,7 @@ Object.freeze(deviceAutoSnapshotUtils)
 Object.freeze(instanceAutoSnapshotUtils)
 
 module.exports = {
-    /**
-     * Creates a snapshot of the current state of a project.
-     * Patches with flows, credentials, settings modules and env from request, if provided
-     *
-     * @param {*} app
-     * @param {*} project
-     */
-    createSnapshot: async function (app, project, user, options) {
+    async buildSnapshot (app, project, user, options) {
         const projectExport = await app.db.controllers.Project.exportProject(project)
 
         const credentialSecret = await project.getCredentialSecret()
@@ -399,6 +392,19 @@ module.exports = {
                 }, { })
             }
         }
+
+        return snapshotOptions
+    },
+    /**
+     * Creates a snapshot of the current state of a project.
+     * Patches with flows, credentials, settings modules and env from request, if provided
+     *
+     * @param {*} app
+     * @param {*} project
+     */
+    createSnapshot: async function (app, project, user, options) {
+        const snapshotOptions = await module.exports.buildSnapshot(app, project, user, options)
+
         const snapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
         await snapshot.save()
         return snapshot

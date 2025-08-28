@@ -5,6 +5,7 @@ import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import settingsApi from '../../../api/settings.js'
 import teamApi from '../../../api/team.js'
 import userApi from '../../../api/user.js'
+import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
@@ -165,9 +166,11 @@ const getters = {
 
                 let available = false
 
-                // loop over the different instance types
+                // loop over the different instance types. Reference the team type properties to get the list
+                // of instance types, but use getTeamProperty to check the individual types to take into account
+                // any team level overrides
                 for (const instanceType of Object.keys(state.team.type.properties?.instances) || []) {
-                    if (state.team.type.properties?.instances[instanceType].active) {
+                    if (getTeamProperty(state.team, `instances.${instanceType}.active`)) {
                         available = true
                         break
                     }
@@ -199,6 +202,9 @@ const getters = {
             // Private NPM Registry (Custom Nodes)
             isPrivateRegistryFeatureEnabledForPlatform: !!state.features?.npm,
             isPrivateRegistryFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.npm,
+
+            // Certified Nodes
+            isCertifiedNodesFeatureEnabledForPlatform: !!state.features?.certifiedNodes,
 
             // Static Assets
             isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
@@ -233,7 +239,11 @@ const getters = {
 
             // Tables
             isTablesFeatureEnabledForPlatform: !!state.features.tables,
-            isTablesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.tables
+            isTablesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.tables,
+
+            // Generate Snapshot Descriptions with AI
+            isGeneratedSnapshotDescriptionFeatureEnabledForPlatform: !!state.features.generatedSnapshotDescription,
+            isGeneratedSnapshotDescriptionFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.generatedSnapshotDescription
         }
         return {
             ...preCheck,
@@ -251,7 +261,8 @@ const getters = {
             isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups,
             isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration,
             isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
-            isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam
+            isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam,
+            isGeneratedSnapshotDescriptionEnabled: preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForPlatform && preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForTeam
         }
     }
 }

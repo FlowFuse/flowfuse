@@ -136,6 +136,25 @@ const templateValidators = {
                 return 'Must be a comma-separated list of nodes[@version]'
             }
         }
+    },
+    httpNodeCORS_origin: (v) => {
+        if (v.trim() === '') {
+            return 'Must be \'*\' or a Valid Origin URL'
+        }
+        if (v.trim() === '*') {
+            return
+        }
+        try {
+            const url = new URL(v)
+            if (url.pathname !== '/') {
+                return 'host and port only'
+            }
+            if (!['http:', 'https:'].includes(url.protocol)) {
+                return 'http or https urls only'
+            }
+        } catch (err) {
+            return 'Must be a valid URL'
+        }
     }
 }
 function getObjectValue (object, path) {
@@ -268,6 +287,16 @@ function prepareTemplateForEdit (template) {
         result.editable.changed.policy[field] = false
     })
     // `template.settings.env` has to be handled separately
+
+    // httpNodeCORS
+    const policyValue = getObjectValue(template.policy, 'httpNodeCORS')
+    if (policyValue !== undefined) {
+        result.editable.policy.httpNodeCORS = policyValue
+        result.original.policy.httpNodeCORS = policyValue
+    } else {
+        result.editable.policy.httpNodeCORS = defaultTemplatePolicy.httpNodeCORS
+        result.original.policy.httpNodeCORS = defaultTemplatePolicy.httpNodeCORS
+    }
 
     result.editable.settings.env = []
     result.original.settings.envMap = {}
