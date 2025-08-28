@@ -1,3 +1,54 @@
+#### 2.21.0: Release
+
+ - Bump 1password/install-cli-action from 2.0.0 to 2.0.1 (#5952)
+ - Bump flowfuse/github-actions-workflows from 0.40.0 to 0.42.0 (#5953)
+ - Bump codecov/codecov-action from 5.4.3 to 5.5.0 (#5954)
+ - Bump actions/download-artifact from 4.3.0 to 5.0.0 (#5904)
+ - Bump actions/cache from 4.2.3 to 4.2.4 (#5907)
+ - Bump aws-actions/configure-aws-credentials from 4.2.1 to 4.3.1 (#5906)
+ - Bump actions/checkout from 4.2.2 to 5.0.0 (#5905)
+ - Bump 1password/install-cli-action from 1.0.0 to 2.0.0 (#5868)
+ - Bump docker/login-action from 3.4.0 to 3.5.0 (#5869)
+ - Bump cypress-io/github-action from 6.10.1 to 6.10.2 (#5870)
+ - Add support for setting httpNodeCors for hosted insances (#5877) @hardillb
+ - add AI-assisted snapshot description generation in SnapshotCreateDialog (#5957) @cstns
+ - Add api to generate snapshot diff description (#5956) @cstns
+ - Bump brace-expansion (#5955) @app/dependabot
+ - Fix authentication security choice in instance overview (#5945) @GogoVega
+ - Subflow publish (#5928) @hardillb
+ - Assistant for tables (backend) (#5943) @Steve-Mcl
+ - Add timestamptz default now() (#5888) @hardillb
+ - The DELETE request should return code 204 instead of 201 (#5944) @GogoVega
+ - Start of FF Tables docs (#5942) @hardillb
+ - Fix contributions link in README (#5949) @ZJvandeWeg
+ - Update to yearly billing on same team type (#5940) @cstns
+ - Fix typo (#5937) @hardillb
+ - Add MQTT Nodes documentation (#5925) @Steve-Mcl
+ - Rename migration (#5927) @hardillb
+ - Support for annual billing (#5896) @knolleary
+ - Certified nodes configuration (#5874) @hardillb
+ - Add Device Performance monitoring (#5872) @hardillb
+ - broker client link for ff mqtt nodes (#5833) @Steve-Mcl
+ - Allow Direct SSO login (#5903) @hardillb
+ - Allow Devices to get FF Tables creds (#5921) @hardillb
+ - Allow admin to set Team-specific billing overrides (#5875) @knolleary
+ - Retain new table data after closing the create table drawer (#5873) @cstns
+ - ci: Add `nr-tables-nodes` package to the pre-staging environment (#5915) @ppawlowski
+ - Ff tables audit log (#5891) @hardillb
+ - Ensure npmrc is encrypted before pushing to github (#5898) @hardillb
+ - Relax rate limit on Team Invite resend a little. (#5900) @hardillb
+ - Do not trigger stripe checkout if upgrading active team (#5894) @knolleary
+ - Bump tmp from 0.2.3 to 0.2.4 (#5876) @app/dependabot
+ - Bump @node-saml/passport-saml from 5.0.0 to 5.1.0 (#5895) @app/dependabot
+ - ci: Debug `create_suspended_instance` function in pre-staging initialization script (#5892) @ppawlowski
+ - Enhance the latest known project state (#5795) @cstns
+ - Do not trigger full device settings calculation on bulk update (#5864) @knolleary
+ - Ensure tables owned by correct user (#5863) @hardillb
+ - Fix missing `t` in `timestamptz` (#5860) @hardillb
+ - Fix splicing of SAML group names (#5859) @knolleary
+ - Do not fall through to error case after successful SAML login (#5857) @knolleary
+ - Bump on-headers and compression (#5802) @app/dependabot
+
 #### 2.20.0: Release
 
  - Update URL to DAI get scripts (#5849)
