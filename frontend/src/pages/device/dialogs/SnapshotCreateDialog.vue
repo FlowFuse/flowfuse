@@ -2,33 +2,67 @@
     <ff-dialog ref="dialog" :header="title" confirm-label="Create" :disable-primary="!formValid" :closeOnConfirm="false" @confirm="confirm()" @cancel="cancel">
         <template #default>
             <form class="space-y-6 mt-2" @submit.prevent>
-                <FormRow v-model="input.name" :error="errors.name" data-form="snapshot-name">Name</FormRow>
-                <FormRow data-form="snapshot-description">
+                <FormRow
+                    v-model="input.name"
+                    :error="errors.name"
+                    data-form="snapshot-name"
+                    container-class="max-w-full"
+                >
+                    Name
+                </FormRow>
+                <FormRow data-form="snapshot-description" container-class="max-w-full" :disabled="loadingDescription">
                     Description
                     <template #input>
-                        <textarea v-model="input.description" rows="8" class="ff-input ff-text-input" style="height: auto" />
+                        <textarea
+                            v-model="input.description"
+                            rows="8"
+                            class="ff-input ff-text-input"
+                            style="height: auto"
+                            :disabled="loadingDescription"
+                        />
                     </template>
                 </FormRow>
-                <FormRow v-if="showSetAsTarget" v-model="input.setAsTarget" type="checkbox" data-form="set-as-target">
-                    <span v-ff-tooltip:right="setAsTargetToolTip" class="">
-                        Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
-                    </span>
-                </FormRow>
+                <section class="flex flex-row justify-between items-center">
+                    <FormRow
+                        v-if="showSetAsTarget"
+                        v-model="input.setAsTarget"
+                        type="checkbox"
+                        container-class="max-w-full"
+                        data-form="set-as-target"
+                    >
+                        <span v-ff-tooltip:right="setAsTargetToolTip" class="">
+                            Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
+                        </span>
+                    </FormRow>
+                    <ff-button
+                        v-if="featuresCheck.isGeneratedSnapshotDescriptionEnabled" kind="tertiary"
+                        :disabled="loadingDescription" @click="generateDescription"
+                    >
+                        Generate with AI
+                        <template #icon-left>
+                            <CubeTransparentIcon class="ff-icon" />
+                        </template>
+                    </ff-button>
+                </section>
             </form>
         </template>
     </ff-dialog>
 </template>
 <script>
 
+import { CubeTransparentIcon } from '@heroicons/vue/outline'
 import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import { mapGetters } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 
 import FormRow from '../../../components/FormRow.vue'
+import alerts from '../../../services/alerts.js'
 
 export default {
     name: 'SnapshotCreateDialog',
     components: {
+        CubeTransparentIcon,
         FormRow,
         QuestionMarkCircleIcon
     },
@@ -67,10 +101,12 @@ export default {
                 description: '',
                 setAsTarget: false
             },
-            errors: {}
+            errors: {},
+            loadingDescription: false
         }
     },
     computed: {
+        ...mapGetters('account', ['featuresCheck']),
         formValid () {
             return !this.submitted && !!(this.input.name)
         },
@@ -110,6 +146,35 @@ export default {
         cancel () {
             this.$refs.dialog.close()
             this.$emit('canceled')
+        },
+        generateDescription () {
+            this.loadingDescription = true
+            return deviceApi.generateSnapshotDescription(this.device.id)
+                .then(res => {
+                    if (!this.input.name.length) {
+                        this.input.name = res.name
+                    }
+                    delete res.name
+
+                    const payload = []
+                    if (res.overview && res.overview.length) {
+                        payload.push('Overview \n' + res.overview)
+                        delete res.overview
+                    }
+
+                    Object.keys(res).forEach(key => {
+                        if (res[key].length) {
+                            payload.push(key.charAt(0).toUpperCase() + key.slice(1) + '\n' + res[key])
+                        }
+                    })
+                    this.input.description = payload.join('\n\n')
+                })
+                .catch(e => {
+                    alerts.emit('Something went wrong, failed to generate a description.', 'error')
+                })
+                .finally(() => {
+                    this.loadingDescription = false
+                })
         }
     }
 }
