@@ -237,8 +237,8 @@ curl -ks -w "\n" -XPOST \
     "order": 0
   }' https://$FLOWFUSE_URL/api/v1/team-types
 
-### Create Team team type
-echo "Creating Team team type"
+### Create Pro team type
+echo "Creating Pro team type"
 curl -ks -w "\n" -XPOST \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
@@ -270,7 +270,8 @@ curl -ks -w "\n" -XPOST \
                         "customHostnames":true,
                         "staticAssets":true,
                         "projectHistory":true,
-                        "teamBroker":true
+                        "teamBroker":true,
+                        "generatedSnapshotDescription":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
@@ -317,7 +318,8 @@ curl -ks -w "\n" -XPOST \
                         "projectHistory":true,
                         "teamBroker":true,
                         "gitIntegration": true,
-                        "instanceResources":true
+                        "instanceResources":true,
+                        "generatedSnapshotDescription":true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
