@@ -1147,27 +1147,26 @@ module.exports = async function (app) {
             .join('\r\n'))
     })
 
+    /**
+     * @name /api/v1/devices/:deviceId/generate/snapshot-description
+     * @memberof forge.routes.api.devices
+     */
     app.post('/:deviceId/generate/snapshot-description', {
         preHandler: [
             app.needsPermission('snapshot:edit'),
             async (request, reply) => {
-                // if (!app.license) {
-                //     return reply.code(404).send({ code: 'not_found' })
-                // }
-                //
-                // const teamType = await request.project.Team.getTeamType()
-                // const tier = app.license.get('tier')
-                // const isEnterprise = tier === 'enterprise'
-                // const hasFeature = teamType.getFeatureProperty('generatedSnapshotDescription', false)
-                //
-                // if (!isEnterprise || !hasFeature) {
-                //     return reply.code(404).send({ code: 'not_found' })
-                // }
-            },
-            async (request, reply) => {
-                // if (!request.device.Project) {
-                //     return reply.code(400).send({ code: 'bad_request' })
-                // }
+                if (!app.license) {
+                    return reply.code(404).send({ code: 'not_found' })
+                }
+
+                const teamType = await request.device.Team.getTeamType()
+                const tier = app.license.get('tier')
+                const isEnterprise = tier === 'enterprise'
+                const hasFeature = teamType.getFeatureProperty('generatedSnapshotDescription', false)
+
+                if (!isEnterprise || !hasFeature) {
+                    return reply.code(404).send({ code: 'not_found' })
+                }
             }
         ],
         schema: {
