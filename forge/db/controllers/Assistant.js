@@ -41,7 +41,7 @@ module.exports = {
         if (payload.transactionId !== response.data.transactionId) {
             throw new Error('Transaction ID mismatch') // Ensure we are responding to the correct transaction
         }
-        return response.data
+        return response
     },
 
     /**

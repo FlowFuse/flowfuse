@@ -1449,10 +1449,7 @@ module.exports = async function (app) {
             response: {
                 200: {
                     type: 'object',
-                    properties: {
-                        transactionId: { type: 'string' },
-                        data: { type: 'object', additionalProperties: true }
-                    }
+                    additionalProperties: true
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -1521,7 +1518,7 @@ module.exports = async function (app) {
                     isTeamOnTrial
                 })
 
-            reply.send(res)
+            reply.send(res.data)
         } catch (err) {
             return reply
                 .code(err.statusCode || 400)

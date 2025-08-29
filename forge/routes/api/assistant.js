@@ -216,10 +216,6 @@ module.exports = async function (app) {
                     isTeamOnTrial
                 })
 
-            if (request.body.transactionId !== response.transactionId) {
-                throw new Error('Transaction ID mismatch') // Ensure we are responding to the correct transaction
-            }
-
             reply.send(response.data)
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })

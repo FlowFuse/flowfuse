@@ -3032,9 +3032,9 @@ describe('Project API', function () {
             try {
                 response.statusCode.should.equal(200)
                 const body = response.json()
-                body.should.have.property('transactionId', 'tid-123')
-                body.should.have.property('data')
-                body.data.should.have.property('summary', 'Some changes')
+                body.should.not.have.property('transactionId')
+                body.should.not.have.property('data')
+                body.should.have.property('summary', 'Some changes')
 
                 // Assert LLM was invoked with correct prompt type and context
                 invokeStub.called.should.equal(true)
