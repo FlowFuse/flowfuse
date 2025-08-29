@@ -216,6 +216,9 @@ module.exports = async function (app) {
                     if (!settings.modules['@flowfuse/nr-mqtt-nodes']) {
                         settings.modules['@flowfuse/nr-mqtt-nodes'] = defaultModules['@flowfuse/nr-mqtt-nodes'] || '>0.1.0'
                     }
+                    if (!settings.modules['@flowfuse/nr-tables-nodes']) {
+                        settings.modules['@flowfuse/nr-tables-nodes'] = defaultModules['@flowfuse/nr-tables-nodes'] || '>0.1.0'
+                    }
                     if (!settings.modules['@flowfuse/nr-assistant']) {
                         settings.modules['@flowfuse/nr-assistant'] = defaultModules['@flowfuse/nr-assistant'] || '>=0.1.0'
                     }
@@ -286,7 +289,8 @@ module.exports = async function (app) {
         response.features = {
             'shared-library': !!(app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true)),
             projectComms: !!(app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)),
-            teamBroker: !!(app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true))
+            teamBroker: !!(app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true)),
+            tables: !!(app.config.features.enabled('tables') && teamType.getFeatureProperty('tables', true))
         }
         response.assistant = {
             enabled: app.config.assistant?.enabled || false,
