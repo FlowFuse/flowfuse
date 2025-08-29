@@ -80,11 +80,11 @@ create_suspended_instance() {
   
   echo "DEBUG: Raw response from API:"
   echo "$RESPONSE"
-  echo "DEBUG: Response length: ${#RAW_RESPONSE}"
+  echo "DEBUG: Response length: ${#RESPONSE}"
   
   # Check if response is valid JSON before parsing
-  if echo "$RAW_RESPONSE" | jq . > /dev/null 2>&1; then
-    INSTANCE_ID=$(echo "$RAW_RESPONSE" | jq -r '.id')
+  if echo "$RESPONSE" | jq . > /dev/null 2>&1; then
+    INSTANCE_ID=$(echo "$RESPONSE" | jq -r '.id')
     echo "DEBUG: Successfully parsed instance ID: $INSTANCE_ID"
   else
     echo "ERROR: Invalid JSON response received"
