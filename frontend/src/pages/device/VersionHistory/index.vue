@@ -38,7 +38,7 @@
                     <template #icon-left><UploadIcon /></template>Upload Snapshot
                 </ff-button>
                 <ff-button
-                    v-ff-tooltip:left="!canCreateSnapshot ? 'Instance must be in \'Developer Mode\' to create a Snapshot' : 'Capture a Snapshot of this Instance.'"
+                    v-ff-tooltip:left="disabledSnapshotTooltipText"
                     kind="primary"
                     data-action="create-snapshot"
                     :disabled="!canCreateSnapshot"
@@ -151,6 +151,12 @@ export default {
                 return false
             }
             return this.isOwnedByAnApplication
+        },
+        disabledSnapshotTooltipText () {
+            if (this.isOwnedByAnInstance) {
+                return 'Instance must be owned by an Application to create a Snapshot'
+            }
+            return !this.canCreateSnapshot ? 'Instance must be in \'Developer Mode\' to create a Snapshot' : 'Capture a Snapshot of this Instance.'
         }
     },
     methods: {
