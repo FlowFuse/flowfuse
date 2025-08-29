@@ -216,6 +216,9 @@ module.exports = async function (app) {
                     if (!settings.modules['@flowfuse/nr-mqtt-nodes']) {
                         settings.modules['@flowfuse/nr-mqtt-nodes'] = defaultModules['@flowfuse/nr-mqtt-nodes'] || '>0.1.0'
                     }
+                    if (!settings.modules['@flowfuse/nr-tables-nodes']) {
+                        settings.modules['@flowfuse/nr-tables-nodes'] = defaultModules['@flowfuse/nr-tables-nodes'] || '>0.1.0'
+                    }
                     if (!settings.modules['@flowfuse/nr-assistant']) {
                         settings.modules['@flowfuse/nr-assistant'] = defaultModules['@flowfuse/nr-assistant'] || '>=0.1.0'
                     }
