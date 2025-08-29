@@ -1449,10 +1449,7 @@ module.exports = async function (app) {
             response: {
                 200: {
                     type: 'object',
-                    properties: {
-                        transactionId: { type: 'string' },
-                        data: { type: 'object', additionalProperties: true }
-                    }
+                    additionalProperties: true
                 },
                 '4xx': {
                     $ref: 'APIError'
