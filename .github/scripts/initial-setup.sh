@@ -340,7 +340,7 @@ templateId=$(curl -ks -XPOST \
 
 ### Create teams
 create_team "Starter" "Plant Starter"
-create_team "Team" "Plant Team"
+create_team "Pro" "Plant Pro"
 create_team "Enterprise" "Plant Enterprise"
 
 
@@ -358,14 +358,14 @@ starterTeamApplicationId=$(curl -ks -XPOST \
 
 ### Create Team Team Application
 echo "Creating Team Team Application"
-teamTeamId=$(get_team_id "Plant Team")
-teamTeamApplicationId=$(curl -ks -XPOST \
+proTeamId=$(get_team_id "Plant Pro")
+proTeamApplicationId=$(curl -ks -XPOST \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN"  \
   -d '{
         "name": "Acme Plant",
-        "description": "Acme Plant Team Application",
-        "teamId": "'"$teamTeamId"'"
+        "description": "Acme Plant Pro Application",
+        "teamId": "'"$proTeamId"'"
       }' https://$FLOWFUSE_URL/api/v1/applications | jq -r '.id')
 
 ### Create Enterprise Team Application
@@ -398,8 +398,8 @@ create_device "Machine 2" "V2" "Plant Enterprise"
 ### Create instances
 create_suspended_instance "plant-live-00" $starterTeamApplicationId
 create_suspended_instance "plant-develop-00" $starterTeamApplicationId
-create_suspended_instance "plant-live-01" $teamTeamApplicationId
-create_suspended_instance "plant-develop-01" $teamTeamApplicationId
+create_suspended_instance "plant-live-01" $proTeamApplicationId
+create_suspended_instance "plant-develop-01" $proTeamApplicationId
 create_suspended_instance "plant-live-02" $enterpriseTeamApplicationId
 create_suspended_instance "plant-develop-02" $enterpriseTeamApplicationId
 
