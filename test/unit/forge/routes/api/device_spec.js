@@ -2523,4 +2523,258 @@ describe('Device API', async function () {
             app2List.should.have.property('count', 2)
         })
     })
+
+    describe('Generate snapshot description', function () {
+        beforeEach(async function () {
+            // Ensure default team type has the feature enabled
+            const props = TestObjects.defaultTeamType.properties || {}
+            props.features = props.features || {}
+            props.features.generatedSnapshotDescription = true
+            TestObjects.defaultTeamType.properties = props
+            await TestObjects.defaultTeamType.save()
+
+            // Make license tier appear as enterprise for the feature gate
+            if (app.license && app.license.get) {
+                sinon.stub(app.license, 'get').callsFake(function (key) {
+                    if (key === 'tier') {
+                        return 'enterprise'
+                    }
+                    return app.license.get.wrappedMethod
+                        ? app.license.get.wrappedMethod.call(this, key)
+                        : undefined
+                })
+            }
+        })
+
+        afterEach(function () {
+            sinon.restore()
+        })
+
+        it('returns 404 when feature is disabled for the team type', async function () {
+            // Disable feature flag
+            const props = TestObjects.defaultTeamType.properties || {}
+            props.features = props.features || {}
+            props.features.generatedSnapshotDescription = false
+            TestObjects.defaultTeamType.properties = props
+            await TestObjects.defaultTeamType.save()
+
+            const device = await app.db.models.Device.create({ name: 'feat-off', type: 'x', credentialSecret: '' })
+            await device.setTeam(TestObjects.ATeam)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {}
+            })
+
+            response.statusCode.should.equal(404)
+            const body = response.json()
+            body.should.have.property('code', 'not_found')
+        })
+
+        it('generates a description: diffs are redacted and sent to the Assistant', async function () {
+            // Create a project and assign device so instance-owned path is used
+            const instance = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            await instance.setTeam(TestObjects.ATeam)
+
+            const device = await app.db.models.Device.create({ name: 'dev-sd-1', type: 'type-a', credentialSecret: '' })
+            await device.setTeam(TestObjects.ATeam)
+            await device.setProject(instance)
+
+            // Stub latest snapshot to provide a previous state with env values
+            sinon.stub(app.db.models.Device.prototype, 'getLatestSnapshot').resolves({
+                toJSON: () => ({
+                    settings: {
+                        env: { SECRET_A: 'old-secret', KEEP_B: 'keep' }
+                    },
+                    flows: { flows: [] }
+                })
+            })
+
+            // Stub builder to provide current state with env values
+            sinon.stub(app.db.controllers.ProjectSnapshot, 'buildInstanceOwnedDeviceSnapshot').resolves({
+                settings: {
+                    env: { SECRET_A: 'new-secret', KEEP_B: 'keep' }
+                },
+                flows: { flows: [] }
+            })
+
+            // Stub Assistant invocation to capture args and return a payload
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({
+                data: { description: 'Generated summary' }
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {}
+            })
+
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('description', 'Generated summary')
+
+            // Verify Assistant was called with redacted diffs and correct context
+            invokeStub.calledOnce.should.equal(true)
+            const [template, payload, context] = invokeStub.firstCall.args
+            template.should.equal('snapshot-diff')
+
+            payload.should.have.property('currentState').and.be.an.Object()
+            payload.should.have.property('previousState').and.be.an.Object()
+
+            // Redaction checks (env values should be ##REDACTED## in both diffs when present)
+            const csEnv = payload.currentState.settings?.env || {}
+            const psEnv = payload.previousState.settings?.env || {}
+
+            // SECRET_A changed, KEEP_B unchanged (depending on deepDiff implementation, keys may appear if changed)
+            Object.values(csEnv).forEach(v => v.should.equal('##REDACTED##'))
+            Object.values(psEnv).forEach(v => v.should.equal('##REDACTED##'))
+
+            // Context
+            context.should.have.properties('teamHashId', 'instanceId', 'instanceType')
+            context.instanceType.should.equal('device')
+            context.teamHashId.should.equal(TestObjects.ATeam.hashid)
+            context.instanceId.should.equal(device.hashid)
+        })
+
+        it('returns error when Assistant invocation fails', async function () {
+            // Ensure device assigned for route prerequisites
+            const instance = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            await instance.setTeam(TestObjects.ATeam)
+
+            const device = await app.db.models.Device.create({ name: 'dev-sd-err', type: 'type-a', credentialSecret: '' })
+            await device.setTeam(TestObjects.ATeam)
+            await device.setProject(instance)
+
+            sinon.stub(app.db.models.Device.prototype, 'getLatestSnapshot').resolves(null)
+            sinon.stub(app.db.controllers.ProjectSnapshot, 'buildInstanceOwnedDeviceSnapshot').resolves({
+                settings: {},
+                flows: { flows: [] }
+            })
+
+            sinon.stub(app.db.controllers.Assistant, 'invokeLLM').rejects({
+                statusCode: 503,
+                code: 'llm_error',
+                error: 'Service unavailable'
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {}
+            })
+
+            response.statusCode.should.equal(503)
+            const body = response.json()
+            body.should.have.property('code', 'llm_error')
+            body.should.have.property('error', 'Service unavailable')
+        })
+
+        it('passes isTeamOnTrial as undefined when billing is disabled', async function () {
+            // Assign device to a project to use the instance-owned builder path
+            const instance = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            await instance.setTeam(TestObjects.ATeam)
+
+            const device = await app.db.models.Device.create({ name: 'dev-sd-no-billing', type: 'type-a', credentialSecret: '' })
+            await device.setTeam(TestObjects.ATeam)
+            await device.setProject(instance)
+
+            // No previous snapshot
+            sinon.stub(app.db.models.Device.prototype, 'getLatestSnapshot').resolves(null)
+            // Current snapshot builder
+            sinon.stub(app.db.controllers.ProjectSnapshot, 'buildInstanceOwnedDeviceSnapshot').resolves({
+                settings: { env: { A: '1' } },
+                flows: { flows: [] }
+            })
+
+            // Make sure billing is disabled
+            const originalBilling = app.billing
+            delete app.billing
+
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({ data: { description: 'ok' } })
+
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    body: {}
+                })
+
+                response.statusCode.should.equal(200)
+                const [, , context] = invokeStub.firstCall.args
+                // When billing is disabled, isTeamOnTrial should be left undefined
+                should(context).have.property('isTeamOnTrial')
+                should(context.isTeamOnTrial).be.undefined()
+            } finally {
+                // restore billing
+                app.billing = originalBilling
+            }
+        })
+
+        it('passes isTeamOnTrial as null when team has no subscription', async function () {
+            // Assign device to a project to use the instance-owned builder path
+            const instance = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            await instance.setTeam(TestObjects.ATeam)
+
+            const device = await app.db.models.Device.create({ name: 'dev-sd-no-sub', type: 'type-a', credentialSecret: '' })
+            await device.setTeam(TestObjects.ATeam)
+            await device.setProject(instance)
+
+            // Previous snapshot absent, current snapshot minimal
+            sinon.stub(app.db.models.Device.prototype, 'getLatestSnapshot').resolves(null)
+            sinon.stub(app.db.controllers.ProjectSnapshot, 'buildInstanceOwnedDeviceSnapshot').resolves({
+                settings: {},
+                flows: { flows: [] }
+            })
+
+            // Ensure billing is enabled (truthy)
+            const originalBilling = app.billing
+            app.billing = app.billing || {}
+
+            const originalDeviceById = app.db.models.Device.byId
+            // Stub on the Team model used by the loaded device (prototype affects the loaded instance)
+            const byIdStub = sinon.stub(app.db.models.Device, 'byId').callsFake(async function (id, opts) {
+                const device = await originalDeviceById.call(this, id, opts)
+
+                if (device && device.Team) {
+                    device.Team.getSubscription = async () => ({ isTrial: () => false })
+                    device.Team.getTeamType = async () => ({
+                        getFeatureProperty: (name, def) => (name === 'generatedSnapshotDescription' ? true : def)
+                    })
+                }
+                // Mock a previous snapshot
+                device.getLatestSnapshot = async () => ({
+                    toJSON: () => ({
+                        settings: { env: { OLD: 'value' }, modules: { oldmod: '0.1.0' } },
+                        flows: { flows: [{ id: 'old' }], credentials: {} }
+                    })
+                })
+                return device
+            })
+
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({ data: { description: 'ok' } })
+
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
+                    cookies: { sid: TestObjects.tokens.alice },
+                    body: {}
+                })
+
+                response.statusCode.should.equal(200)
+
+                const [, , context] = invokeStub.firstCall.args
+                // With billing enabled and no subscription, isTeamOnTrial should be null
+                should(context).have.property('isTeamOnTrial', false)
+            } finally {
+                app.billing = originalBilling
+                byIdStub.restore()
+            }
+        })
+    })
 })
