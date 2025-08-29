@@ -81,7 +81,7 @@ create_suspended_instance() {
   echo "DEBUG: Raw response from API:"
   echo "$RESPONSE"
   echo "DEBUG: Response length: ${#RESPONSE}"
-  
+
   # Check if response is valid JSON before parsing
   if echo "$RESPONSE" | jq . > /dev/null 2>&1; then
     INSTANCE_ID=$(echo "$RESPONSE" | jq -r '.id')
@@ -243,8 +243,8 @@ curl -ks -w "\n" -XPOST \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
 -d '{
-      "name": "Team",
-      "description": "Team type",
+      "name": "Pro",
+      "description": "Pro type",
       "active": true,
       "properties": {
                     "users": {
@@ -357,7 +357,7 @@ starterTeamApplicationId=$(curl -ks -XPOST \
       }' https://$FLOWFUSE_URL/api/v1/applications | jq -r '.id')
 
 ### Create Team Team Application
-echo "Creating Team Team Application"
+echo "Creating Pro Team Application"
 proTeamId=$(get_team_id "Plant Pro")
 proTeamApplicationId=$(curl -ks -XPOST \
   -H 'Content-Type: application/json' \
