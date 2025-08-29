@@ -1517,7 +1517,7 @@ module.exports = async function (app) {
                     isTeamOnTrial
                 })
 
-            reply.send(res)
+            reply.send(res.data)
         } catch (err) {
             return reply
                 .code(err.statusCode || 400)
