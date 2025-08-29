@@ -1494,10 +1494,14 @@ module.exports = async function (app) {
 
         // redact env var values
         if (currentStateDiff.settings?.env) {
-            Object.keys(currentStateDiff.settings.env).forEach(k => currentStateDiff.settings.env[k] === 'REDACTED')
+            Object.keys(currentStateDiff.settings.env).forEach(k => {
+                currentStateDiff.settings.env[k] = 'REDACTED'
+            })
         }
         if (previousStateDiff.settings?.env) {
-            Object.keys(previousStateDiff.settings.env).forEach(k => previousStateDiff.settings.env[k] === 'REDACTED')
+            Object.keys(previousStateDiff.settings.env).forEach(k => {
+                previousStateDiff.settings.env[k] = 'REDACTED'
+            })
         }
 
         if (app.billing && request.project.Team.getSubscription) {
