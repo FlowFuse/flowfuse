@@ -2311,10 +2311,12 @@ describe('Device API', async function () {
             await dbDevice.save()
             app.config.features.register('projectComms', true, true)
             app.config.features.register('shared-library', true, true)
+            app.config.features.register('tables', true, true)
             const body = await getLiveSettings(device)
             body.should.have.property('features').and.be.an.Object()
             body.features.should.have.property('projectComms', true)
             body.features.should.have.property('shared-library', true)
+            body.features.should.have.property('tables', true)
         })
         it('device downloads settings with editor version specified', async function () {
             const device = await createDevice({ name: 'Ad1', type: 'Ad1_type', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
