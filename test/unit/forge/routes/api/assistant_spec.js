@@ -192,6 +192,10 @@ describe('Assistant API', async function () {
                         payload: { prompt: 'multiply by 5', transactionId: '1234' }
                     })
                     axios.post.calledOnce.should.be.true()
+
+                    const body = response.json()
+                    body.should.have.property('transactionId', '1234')
+
                     response.statusCode.should.equal(200)
                 })
                 it('instance token can access', async function () {
@@ -203,6 +207,8 @@ describe('Assistant API', async function () {
                         payload: { prompt: 'multiply by 5', transactionId: '4321' }
                     })
                     axios.post.calledOnce.should.be.true()
+                    const body = response.json()
+                    body.should.have.property('transactionId', '4321')
                     response.statusCode.should.equal(200)
                 })
                 it('fails when prompt is not supplied', async function () {
@@ -235,7 +241,7 @@ describe('Assistant API', async function () {
                 })
                 it('contains owner info in headers for an instance', async function () {
                     sinon.stub(axios, 'post').resolves({ data: { status: 'ok', transactionId: '11223344' } })
-                    await app.inject({
+                    const response = await app.inject({
                         method: 'POST',
                         url: `/api/v1/assistant/${serviceName}`,
                         headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
@@ -250,10 +256,12 @@ describe('Assistant API', async function () {
                         'ff-license-type': 'CE',
                         'ff-license-tier': null
                     })
+                    const body = response.json()
+                    body.should.have.property('transactionId', '11223344')
                 })
                 it('contains owner info in headers for a device', async function () {
                     sinon.stub(axios, 'post').resolves({ data: { status: 'ok', transactionId: '9876' } })
-                    await app.inject({
+                    const response = await app.inject({
                         method: 'POST',
                         url: `/api/v1/assistant/${serviceName}`,
                         headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
@@ -268,6 +276,8 @@ describe('Assistant API', async function () {
                         'ff-license-type': 'CE',
                         'ff-license-tier': null
                     })
+                    const body = response.json()
+                    body.should.have.property('transactionId', '9876')
                 })
             }
             describe('function service', async function () {
