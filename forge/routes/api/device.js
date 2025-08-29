@@ -1236,10 +1236,24 @@ module.exports = async function (app) {
 
         // redact env var values
         if (currentStateDiff.settings?.env) {
-            Object.keys(currentStateDiff.settings.env).forEach(k => currentStateDiff.settings.env[k] === 'REDACTED')
+            Object.keys(currentStateDiff.settings.env).forEach(k => {
+                currentStateDiff.settings.env[k] = 'REDACTED'
+            })
+        }
+        if (currentStateDiff.flows?.credentials) {
+            Object.keys(currentStateDiff.flows.credentials).forEach(k => {
+                currentStateDiff.flows.credentials[k] = 'REDACTED'
+            })
         }
         if (previousStateDiff.settings?.env) {
-            Object.keys(previousStateDiff.settings.env).forEach(k => previousStateDiff.settings.env[k] === 'REDACTED')
+            Object.keys(previousStateDiff.settings.env).forEach(k => {
+                previousStateDiff.settings.env[k] = 'REDACTED'
+            })
+        }
+        if (previousStateDiff.flows?.credentials) {
+            Object.keys(previousStateDiff.flows.credentials).forEach(k => {
+                previousStateDiff.flows.credentials[k] = 'REDACTED'
+            })
         }
 
         if (app.billing && request.device.Team.getSubscription) {
