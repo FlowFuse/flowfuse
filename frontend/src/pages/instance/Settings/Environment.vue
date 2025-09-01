@@ -27,7 +27,6 @@ export default {
     components: {
         TemplateSettingsEnvironment
     },
-    mixins: [permissionsMixin],
     beforeRouteLeave: async function (_to, _from, next) {
         if (this.unsavedChanges) {
             const dialogOpts = {
