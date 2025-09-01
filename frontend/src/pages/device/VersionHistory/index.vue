@@ -38,6 +38,7 @@
                     <template #icon-left><UploadIcon /></template>Upload Snapshot
                 </ff-button>
                 <ff-button
+                    :key="disabledSnapshotTooltipText"
                     v-ff-tooltip:left="disabledSnapshotTooltipText"
                     kind="primary"
                     data-action="create-snapshot"
