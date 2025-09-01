@@ -1,24 +1,24 @@
 ---
 navGroup: DeviceAgentInstallation
-navTitle: Manual Install (npm)
+navTitle: Manual Install with NPM
 navOrder: 3
 meta:
-   description: Install the FlowFuse Device Agent using npm, configure its working directory and service, and verify the setup.
+   description: Install the FlowFuse Device Agent using NPM, configure its working directory and service, and verify the setup.
    tags:
       - device agent
       - npm
       - installation
 ---
 
-# Manual Install (npm)
+# Manual Install (NPM)
 
 Use this method if you want direct control over the Node.js runtime and filesystem.
 
 ## Prerequisites
 
-- Node.js 18 or later
+- Node.js 18 or later installed
 - Linux, macOS, or Windows
-- Outbound network access to FlowFuse and the npm registry (see below)
+- Outbound network access to FlowFuse platform and the NPM registry
 
 ## Install the Device Agent
 
