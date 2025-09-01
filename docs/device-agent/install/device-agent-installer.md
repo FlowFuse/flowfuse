@@ -203,4 +203,8 @@ journalctl -f -u 'flowfuse-device-agent-<port>'
 Get-Content -Path 'C:\opt\flowfuse-device\flowfuse-device-agent.log' -Wait
 ```
 
+## Further reading
+
+For more detailed technical information about the FlowFuse Device Agent, like list of supported parameters or how to contribute, please refer to the [documentation](https://github.com/FlowFuse/device-agent/blob/main/installer/README.md).
+
 [^1]: Run `powershell -Command "Start-Process 'cmd' -Verb RunAs"` to launch an elevated command prompt window (e.g. as an admin user)
