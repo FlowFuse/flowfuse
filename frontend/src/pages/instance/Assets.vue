@@ -44,6 +44,7 @@ import AssetsAPI from '../../api/assets.js'
 import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
 import FileBrowser from '../../components/file-browser/FileBrowser.vue'
+import usePermissions from '../../composables/Permissions.js'
 import featuresMixin from '../../mixins/Features.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
@@ -65,6 +66,13 @@ export default {
         instance: {
             required: true,
             type: Object
+        }
+    },
+    setup () {
+        const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
+
+        return {
+            hasPermission, hasAMinimumTeamRoleOf
         }
     },
     data () {

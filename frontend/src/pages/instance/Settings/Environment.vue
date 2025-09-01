@@ -14,6 +14,7 @@
 import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
+import usePermissions from '../../../composables/Permissions.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import Dialog from '../../../services/dialog.js'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment.vue'
@@ -53,6 +54,13 @@ export default {
         }
     },
     emits: ['instance-updated', 'save-button-state', 'restart-instance'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return {
+            hasPermission
+        }
+    },
     data () {
         return {
             unsavedChanges: false,

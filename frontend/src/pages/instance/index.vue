@@ -111,10 +111,11 @@ export default {
     },
     mixins: [permissionsMixin, instanceMixin, featuresMixin],
     setup () {
-        const { hasPermission } = usePermissions()
+        const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
 
         return {
-            hasPermission
+            hasPermission,
+            hasAMinimumTeamRoleOf
         }
     },
     data: function () {

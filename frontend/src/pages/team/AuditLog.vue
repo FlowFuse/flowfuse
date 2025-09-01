@@ -43,6 +43,7 @@ import TeamAPI from '../../api/team.js'
 import FormHeading from '../../components/FormHeading.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
+import usePermissions from '../../composables/Permissions.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
@@ -55,6 +56,10 @@ export default {
         SectionTopMenu
     },
     mixins: [permissionsMixin],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             logEntries: [],
