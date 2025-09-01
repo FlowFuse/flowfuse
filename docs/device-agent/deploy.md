@@ -15,7 +15,7 @@ meta:
 Before you're able to deploy your flows to your Remote Instance,
 you will have needed to have completed these steps:
 
-1. [Install the Device Agent on the Device](./install.md) - installs Node-RED and other requirements in order to communicate with FlowFuse.
+1. [Install the Device Agent on the Device](./install/overview.md) - installs Node-RED and other requirements in order to communicate with FlowFuse.
 2. [Register the Remote Instance with FlowFuse](./register.md) - this step will have provided you with a `device.yml` file to move to your Remote Instance.
 3. [Run the Device Agent](./running.md) - starts the Device Agent on the Remote Instance.
 
