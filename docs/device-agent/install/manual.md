@@ -114,7 +114,7 @@ Ensure access to npm registry to download Node-RED and nodes:
 
 - https://registry.npmjs.com
 
-For offline environments, see [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjsorg).
+For offline environments, see [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjs.org).
 
 ## Upgrading the agent
 

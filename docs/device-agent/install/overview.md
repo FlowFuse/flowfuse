@@ -33,7 +33,7 @@ Most users should use the Device Agent Installer. Power users can choose Manual 
   - mqtt.flowfuse.cloud
 - Access to npm registry when snapshots are installed: https://registry.npmjs.com
 
-Note: The Device Agent downloads the required Node-RED version and any nodes specified by the assigned snapshot. Ensure firewall/proxy permits access to the npm registry or see [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjsorg).
+Note: The Device Agent downloads the required Node-RED version and any nodes specified by the assigned snapshot. Ensure firewall/proxy permits access to the npm registry or see [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjs.org).
 
 ## Verify the installation
 

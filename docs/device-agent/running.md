@@ -133,7 +133,7 @@ set of modules.
 
 You can enable this mode by adding `-m` to the command line or adding `moduleCache: true` 
 to the `device.yml` file. This will cause the Device Agent to load the modules from the 
-`module_cache` directory in the Device Agents [Working Directory](./install/manual.md#working-directory) (or whatever is set
+`module_cache` directory in the Device Agents [Working Directory](./install/manual#working-directory) (or whatever is set
 with the `-d` option) (e.g. `/opt/flowfuse-device/module_cache`.).
 
 ### Creating a module cache

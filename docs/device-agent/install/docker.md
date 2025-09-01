@@ -65,4 +65,4 @@ Once running and assigned, access the Node-RED editor at `http://<device-ip>:188
 
 - Device Agent 3.x requires Node.js 18 in the base image; the `latest` tag uses Node.js 18.
 - For 2.x, use a fixed tag like `2.8.0` instead of `latest`.
-- Ensure outbound TCP 443 to `app.flowfuse.com` and `mqtt.flowfuse.cloud` and access to `https://registry.npmjs.com` unless using a module cache. See [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjsorg).
+- Ensure outbound TCP 443 to `app.flowfuse.com` and `mqtt.flowfuse.cloud` and access to `https://registry.npmjs.com` unless using a module cache. See [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjs.org).
