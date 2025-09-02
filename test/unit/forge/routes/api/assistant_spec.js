@@ -20,7 +20,7 @@ describe('Assistant API', async function () {
                 },
                 tablesSchemaCache: {
                     max: 10,
-                    ttl: 1000 // 1 second TTL for testing
+                    ttl: 400 // 400ms TTL for testing
                 }
             }
         }
@@ -317,6 +317,8 @@ describe('Assistant API', async function () {
 
                 // specific tests for tables feature
                 it('should include tables hints in context and cache it for subsequent requests', async function () {
+                    // deliberate pause to ensure getTablesHints cache is expired before starting test
+                    await new Promise(resolve => setTimeout(resolve, 760))
                     getTablesHintsStub.resolves('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
                     sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
                     await app.inject({
@@ -362,7 +364,7 @@ describe('Assistant API', async function () {
                     axios.post.calledOnce.should.be.true()
 
                     // Simulate cache expiration
-                    await new Promise(resolve => setTimeout(resolve, 1010)) // wait for over 1 sec
+                    await new Promise(resolve => setTimeout(resolve, 760)) // wait longer than cache TTL setting
 
                     // Second request should hit cache and not call out to getTablesHints a 2nd time
                     getTablesHintsStub.resolves('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
@@ -410,7 +412,10 @@ describe('Assistant API', async function () {
 
                 // specific tests for tables feature
                 it('should include tables hints in context and cache it for subsequent requests', async function () {
+                    // deliberate pause to ensure getTablesHints cache is expired before starting test
+                    await new Promise(resolve => setTimeout(resolve, 760))
                     getTablesHintsStub.resolves('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
+                    getTablesHintsStub.resetHistory()
                     const serviceName = 'fim/' + encodeURIComponent('@flowfuse/nr-tables-nodes') + '/tables-query'
                     sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
                     await app.inject({
@@ -457,7 +462,7 @@ describe('Assistant API', async function () {
                     axios.post.calledOnce.should.be.true()
 
                     // Simulate cache expiration
-                    await new Promise(resolve => setTimeout(resolve, 1010)) // wait for over 1 sec
+                    await new Promise(resolve => setTimeout(resolve, 760)) // wait longer than cache TTL setting
 
                     // Second request should hit cache and not call out to getTablesHints a 2nd time
                     getTablesHintsStub.resolves('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
