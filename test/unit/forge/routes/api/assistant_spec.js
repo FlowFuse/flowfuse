@@ -21,6 +21,10 @@ describe('Assistant API', async function () {
                 tablesSchemaCache: {
                     max: 10,
                     ttl: 400 // 400ms TTL for testing
+                },
+                completions: {
+                    enabled: true,
+                    inlineEnabled: true
                 }
             }
         }
@@ -410,7 +414,68 @@ describe('Assistant API', async function () {
                 // standard service tests
                 serviceTests(serviceName)
 
-                // specific tests for tables feature
+                // specific tests
+                it('can be disabled', async function () {
+                    sinon.stub(app.config.assistant.completions, 'inlineEnabled').get(() => false)
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    response.statusCode.should.equal(403)
+                })
+                it('should fail for unlicensed requests', async function () {
+                    app.license.active.restore()
+                    sinon.stub(app.license, 'active').callsFake(() => false) // license disabled
+
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/fim/${encodeURIComponent('@flowfuse/nr-tables-nodes')}/tables-query`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    response.statusCode.should.equal(403)
+                    response.json().should.have.property('code', 'forbidden')
+                })
+                it('does not allow starter tier users', async function () {
+                    app.license.active.restore()
+                    sinon.stub(app.license, 'active').callsFake(() => true) // license enabled
+                    app.license.get.restore()
+                    sinon.stub(app.license, 'get').withArgs('tier').returns('starter') // starter tier
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    response.statusCode.should.equal(403)
+                })
+                it('can adjust tier via config', async function () {
+                    app.license.active.restore()
+                    sinon.stub(app.license, 'active').callsFake(() => true) // license enabled
+                    app.license.get.restore()
+                    sinon.stub(app.license, 'get').withArgs('tier').returns('starter') // starter tier
+                    app.config.assistant.completions.inlineMinTier = 'starter'
+                    sinon.stub(axios, 'post').resolves({ data: { transactionId: '666' } })
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '666' }
+                    })
+                    response.statusCode.should.equal(200)
+                })
+                it('does not allow other contrib nodes', async function () {
+                    const serviceName = 'fim/' + encodeURIComponent('@third-party/contrib-node') + '/node-type'
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555', disableTables: true }
+                    })
+                    response.statusCode.should.equal(400)
+                })
                 it('should include tables hints in context and cache it for subsequent requests', async function () {
                     // deliberate pause to ensure getTablesHints cache is expired before starting test
                     await new Promise(resolve => setTimeout(resolve, 760))
@@ -486,32 +551,6 @@ describe('Assistant API', async function () {
                     callArgs[2].should.equal('db1') // instance/device.hashid (mocked in beforeEach)
                     const returnValue = await getTablesHintsStub.getCall(0).returnValue
                     returnValue.should.equal('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
-                })
-                it('should fail for unlicensed requests', async function () {
-                    app.license.active.restore()
-                    sinon.stub(app.license, 'active').callsFake(() => false) // license disabled
-
-                    const response = await app.inject({
-                        method: 'POST',
-                        url: `/api/v1/assistant/fim/${encodeURIComponent('@flowfuse/nr-tables-nodes')}/tables-query`,
-                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
-                        payload: { prompt: 'select all rows from test', transactionId: '555' }
-                    })
-                    response.statusCode.should.equal(403)
-                    response.json().should.have.property('code', 'forbidden')
-                })
-                it('should fail for non pro/enterprise tier requests', async function () {
-                    app.license.get.restore()
-                    sinon.stub(app.license, 'get').callsFake((k) => (k === 'tier' ? 'starter' : undefined))
-
-                    const response = await app.inject({
-                        method: 'POST',
-                        url: `/api/v1/assistant/fim/${encodeURIComponent('@flowfuse/nr-tables-nodes')}/tables-query`,
-                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
-                        payload: { prompt: 'select all rows from test', transactionId: '555' }
-                    })
-                    response.statusCode.should.equal(403)
-                    response.json().should.have.property('code', 'forbidden')
                 })
             })
         })
