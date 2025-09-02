@@ -56,39 +56,6 @@ module.exports = async function (app) {
     })
 
     /**
-     * Endpoint to provide setup instructions to the assistant
-     * This is called when the backend part of the plugin loads
-     * @name /api/v1/assistant/settings
-     * @static
-     * @memberof forge.routes.api.assistant
-     */
-    app.get('/settings', {
-        schema: {
-            response: {
-                200: {
-                    type: 'object',
-                    properties: {
-                        inlineCompletions: {
-                            type: 'boolean'
-                        }
-                    }
-                }
-            }
-        }
-    }, async (_request, reply) => {
-        const options = {}
-        const isLicensed = app.license.active() || false
-        const licenseType = isLicensed ? (app.license.get('dev') ? 'DEV' : 'EE') : 'CE'
-        const tier = isLicensed ? app.license.get('tier') : null
-        const completionsTiers = [
-            'teams', // AKA "pro" tier
-            'enterprise'
-        ]
-        options.inlineCompletions = completionsTiers.includes(tier) || licenseType === 'DEV'
-        reply.send(options)
-    })
-
-    /**
      * Endpoint to serve static assets
      * This is used to serve static assets required by the assistant plugin
      * namely, the models and vocabulary files (typically < 1MB in total).
