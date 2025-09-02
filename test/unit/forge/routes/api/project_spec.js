@@ -2374,9 +2374,11 @@ describe('Project API', function () {
                 body.assistant.mcp.should.have.property('enabled', false)
                 body.assistant.should.have.property('completions').and.be.an.Object()
                 body.assistant.completions.should.have.property('enabled', false)
+                body.assistant.completions.should.have.property('inlineEnabled', false)
             })
             it('instance settings including assistant completions settings by default', async function () {
                 app = await setup({
+                    license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A',
                     assistant: {
                         enabled: true,
                         requestTimeout: 12345
@@ -2395,8 +2397,7 @@ describe('Project API', function () {
                 body.assistant.mcp.should.have.property('enabled', true) // defaults to enabled
                 body.assistant.should.have.property('completions').and.be.an.Object()
                 body.assistant.completions.should.have.property('enabled', true) // defaults to enabled
-                body.assistant.should.have.property('inlineCompletions').and.be.an.Object()
-                body.assistant.inlineCompletions.should.have.property('enabled', false)
+                body.assistant.completions.should.have.property('inlineEnabled', true)
             })
             it('instance settings including assistant inline completions settings enabled', async function () {
                 app = await setup({
