@@ -180,10 +180,15 @@ module.exports = async function (app) {
         const licenseType = isLicensed ? (app.license.get('dev') ? 'DEV' : 'EE') : 'CE'
         const tier = isLicensed ? app.license.get('tier') : null
         const fimTiers = [
+            'starter',
             'teams', // AKA "pro" tier
             'enterprise'
         ]
-        if (!fimTiers.includes(tier) && licenseType !== 'DEV') {
+        const minTier = app.config.assistant?.completions?.inlineMinTier || 'teams'
+        const inlineDisabled = app.config.assistant?.completions?.inlineEnabled === false
+        const enabled = !inlineDisabled && (fimTiers.indexOf(tier) >= fimTiers.indexOf(minTier) || licenseType === 'DEV')
+
+        if (!enabled) {
             return reply.code(403).send({ code: 'forbidden', error: 'Forbidden' })
         }
 

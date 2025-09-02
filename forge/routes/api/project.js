@@ -835,7 +835,7 @@ module.exports = async function (app) {
             enabled: app.config.assistant?.enabled || false,
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
-            completions: { enabled: true } // default to enabled
+            completions: { enabled: true, inlineEnabled: false } // default to enabled
         }
         if (app.config.assistant?.mcp && typeof app.config.assistant.mcp === 'object') {
             settings.assistant.mcp = { ...app.config.assistant.mcp }
@@ -843,6 +843,17 @@ module.exports = async function (app) {
         if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
             settings.assistant.completions = { ...app.config.assistant.completions }
         }
+        const isLicensed = app.license.active() || false
+        const licenseType = isLicensed ? (app.license.get('dev') ? 'DEV' : 'EE') : 'CE'
+        const tier = isLicensed ? app.license.get('tier') : null
+        const completionsTiers = [
+            'starter',
+            'teams', // AKA "pro" tier
+            'enterprise'
+        ]
+        const minTier = app.config.assistant?.completions?.inlineMinTier || 'teams'
+        const inlineDisabled = app.config.assistant?.completions?.inlineEnabled === false
+        settings.assistant.completions.inlineEnabled = !inlineDisabled && (completionsTiers.indexOf(tier) >= completionsTiers.indexOf(minTier) || licenseType === 'DEV')
 
         const linkedUsername = `instance:${request.project.id}`
         const linkedUser = await app.db.models.TeamBrokerClient.byUsername(linkedUsername, request.project.Team.hashid, false, false)
