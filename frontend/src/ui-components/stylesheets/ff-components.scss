@@ -114,7 +114,7 @@
     background-color: $ff-color--action;
     border: 1px solid $ff-color--action;
     color: $ff-grey-50;
-    &:hover {
+    &:hover, &.active {
       background-color: $ff-color--highlight;
     }
   }
@@ -122,7 +122,7 @@
     background-color: $ff-white;
     color: $ff-color--action;
     border: 1px solid $ff-color--action;
-    &:hover {
+    &:hover, &.active {
       background-color: $ff-color--highlight;
       border-color: $ff-color--highlight;
       color: $ff-white;
@@ -130,7 +130,7 @@
   }
   &--tertiary {
     color: $ff-color--action;
-    &:hover {
+    &:hover, &.active {
       background-color: $ff-color--highlight;
       color: $ff-white;
     }
