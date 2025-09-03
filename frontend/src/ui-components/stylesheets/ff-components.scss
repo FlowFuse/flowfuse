@@ -1119,7 +1119,7 @@ $countdown_size: 20px;
   position: absolute;
   z-index: 100;
   font-weight: normal; // prevent parent overriding if embedded in hX
-  white-space: nowrap;
+  white-space: preserve-breaks;
   height: fit-content;
   background-color: black;
   color: white;
