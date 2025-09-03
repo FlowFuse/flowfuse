@@ -25,13 +25,61 @@
                     </FormRow>
                     <ff-button
                         v-if="featuresCheck.isGeneratedSnapshotDescriptionEnabled" kind="tertiary"
-                        :disabled="loadingDescription" @click="generateDescription"
+                        :disabled="loadingDescription" @click.self="generateDescription"
                     >
                         Generate with AI
                         <template #icon-left>
                             <CubeTransparentIcon class="ff-icon" />
                         </template>
                     </ff-button>
+                    <ff-popover button-text="Generate with AI" button-kind="tertiary">
+                        <template #icon-left>
+                            <CubeTransparentIcon class="ff-icon" />
+                        </template>
+                        <template #panel>
+                            <section>
+                                <popover-item
+                                    title="Use latest snapshot"
+                                    description="Compare with latest snapshot [snapshot name]"
+                                >
+                                    <template #icon>
+                                        <ChevronLeftIcon class="ff-icon text-indigo-500" />
+                                    </template>
+                                </popover-item>
+                                <popover-item
+                                    title="Use latest auto-snapshot"
+                                    description="Compare with the latest auto snapshot: [snapshot name]"
+                                >
+                                    <template #icon>
+                                        <ChevronDoubleLeftIcon class="ff-icon text-indigo-500" />
+                                    </template>
+                                </popover-item>
+                                <popover-item
+                                    title="Use latest deploy snapshot"
+                                    description="Compare with the latest deploy snapshot: [snapshot name]"
+                                >
+                                    <template #icon>
+                                        <PipelineIcon class="ff-icon text-indigo-500" />
+                                    </template>
+                                </popover-item>
+                                <popover-item
+                                    title="or search for a specific snapshot"
+                                    class="bg-gray-50"
+                                >
+                                    <template #content>
+                                        <div class="flex gap-1 w-full my-2">
+                                            <ff-combobox class="flex-1" :options="[]" />
+                                            <ff-button kind="secondary">
+                                                <template #icon>
+                                                    <ChevronRightIcon class="ff-icon" />
+                                                </template>
+                                            </ff-button>
+                                        </div>
+                                    </template>
+                                </popover-item>
+                            </section>
+                        </template>
+                    </ff-popover>
                 </section>
             </form>
         </template>
@@ -40,21 +88,28 @@
 <script>
 
 import { CubeTransparentIcon } from '@heroicons/vue/outline'
-import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import { ChevronDoubleLeftIcon, ChevronLeftIcon, ChevronRightIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
 import { mapGetters } from 'vuex'
 
 import instanceApi from '../../../../../api/instances.js'
 import snapshotApi from '../../../../../api/projectSnapshots.js'
 
 import FormRow from '../../../../../components/FormRow.vue'
+import PipelineIcon from '../../../../../components/icons/Pipelines.js'
 import alerts from '../../../../../services/alerts.js'
+import PopoverItem from '../../../../../ui-components/components/PopoverItem.vue'
 
 export default {
     name: 'SnapshotCreateDialog',
     components: {
+        PopoverItem,
+        PipelineIcon,
         FormRow,
         QuestionMarkCircleIcon,
-        CubeTransparentIcon
+        CubeTransparentIcon,
+        ChevronLeftIcon,
+        ChevronDoubleLeftIcon,
+        ChevronRightIcon
     },
     props: {
         project: {
