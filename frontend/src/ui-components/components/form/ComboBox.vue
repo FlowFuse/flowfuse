@@ -224,7 +224,6 @@ export default {
     },
     watch: {
         query () {
-            this.$emit('update:query', this.query)
             if (this.fetchRemoteOptions) {
                 this.debouncedFetchRemoteOptions()
             }
