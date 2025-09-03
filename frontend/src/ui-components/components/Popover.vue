@@ -3,6 +3,7 @@
         <PopoverButton ref="trigger"
                        class="ff-btn ff-btn-icon transition-fade--color"
                        :class="{...buttonClass, active: open}"
+                       :disabled="disabled"
                        @click="() => { $nextTick(() => { updatePosition(); open = true }) }"
         >
             <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
@@ -54,6 +55,11 @@ export default defineComponent({
         buttonKind: {
             default: 'primary',
             type: String // "primary", "secondary", "tertiary"
+        },
+        disabled: {
+            default: false,
+            required: false,
+            type: Boolean
         }
     },
     computed: {
