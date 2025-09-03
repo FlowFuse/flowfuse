@@ -18,9 +18,9 @@
                 v-if="open"
                 class="absolute w-full overflow-auto bg-white  border border-gray-200 rounded-md shadow-md z-[200]"
                 :style="{
-                    top: position.top + 'px',
+                    top: position.top + 10 + 'px',
                     left: position.left + 'px',
-                    width: position.width + 'px'
+                    width: 'fit-content'
                 }"
             >
                 <slot name="panel" />
