@@ -75,6 +75,7 @@ import {
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 
 import BoxOptionsMixin from '../../../mixins/BoxOptionsMixin.js'
+import { debounce } from '../../../utils/eventHandling.js'
 
 export default {
     name: 'ff-combobox',
@@ -133,12 +134,18 @@ export default {
             required: false,
             type: String,
             default: 'Create'
+        },
+        fetchRemoteOptions: {
+            required: false,
+            type: Function,
+            default: null
         }
     },
     emits: ['update:modelValue'],
     data () {
         return {
-            query: ''
+            query: '',
+            remoteOptions: []
         }
     },
     computed: {
@@ -148,7 +155,7 @@ export default {
                     return this.customValue
                 }
 
-                return this.options.find(opt => {
+                return this.localOptions.find(opt => {
                     if (Object.prototype.hasOwnProperty.call(opt, this.valueKey)) {
                         return opt[this.valueKey] === this.modelValue
                     }
@@ -180,7 +187,7 @@ export default {
             })
 
             const query = this.query?.toLowerCase()
-            if (!query) return this.options.map(normalize)
+            if (!query) return this.localOptions.map(normalize)
 
             // Helper function to retrieve a nested value from an object using a dot-separated path.
             // Parameters:
@@ -191,7 +198,7 @@ export default {
                 return path.split('.').reduce((acc, key) => acc?.[key], obj)
             }
 
-            return this.options
+            return this.localOptions
                 .filter(opt => {
                     const label = opt?.[this.labelKey]?.toString().toLowerCase() ?? opt.toString().toLowerCase()
                     if (label.includes(query)) return true
@@ -210,7 +217,26 @@ export default {
             return (hasQuery && noMatchingOptions)
                 ? { [this.valueKey]: this.query, [this.labelKey]: this.query }
                 : null
+        },
+        localOptions () {
+            return [...this.options, ...this.remoteOptions]
         }
+    },
+    watch: {
+        query () {
+            this.$emit('update:query', this.query)
+            if (this.fetchRemoteOptions) {
+                this.debouncedFetchRemoteOptions()
+            }
+        }
+    },
+    created () {
+        this.debouncedFetchRemoteOptions = debounce(() => this.fetchRemoteOptions(this.query)
+            .then(res => {
+                this.remoteOptions = res
+            })
+            .catch(err => err),
+        700)
     },
     methods: {
         compareOptions (modelValue, optionValue) {
