@@ -23,40 +23,30 @@
                             Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                         </span>
                     </FormRow>
-                    <ff-button
-                        v-if="featuresCheck.isGeneratedSnapshotDescriptionEnabled" kind="tertiary"
-                        :disabled="loadingDescription" @click.self="generateDescription"
+                    <ff-popover
+                        v-if="featuresCheck.isGeneratedSnapshotDescriptionEnabled"
+                        button-text="Generate with AI"
+                        button-kind="tertiary"
+                        :disabled="loadingDescription"
                     >
-                        Generate with AI
                         <template #icon-left>
                             <CubeTransparentIcon class="ff-icon" />
                         </template>
-                    </ff-button>
-                    <ff-popover button-text="Generate with AI" button-kind="tertiary">
-                        <template #icon-left>
-                            <CubeTransparentIcon class="ff-icon" />
-                        </template>
-                        <template #panel>
+                        <template #panel="{ close }">
                             <section>
                                 <popover-item
-                                    title="Use latest snapshot"
-                                    description="Compare with latest snapshot [snapshot name]"
+                                    title="Use latest manual snapshot"
+                                    description="Compare with latest manually created snapshot"
+                                    @click="onPopoverItemClick('latest',close)"
                                 >
                                     <template #icon>
                                         <ChevronLeftIcon class="ff-icon text-indigo-500" />
                                     </template>
                                 </popover-item>
                                 <popover-item
-                                    title="Use latest auto-snapshot"
-                                    description="Compare with the latest auto snapshot: [snapshot name]"
-                                >
-                                    <template #icon>
-                                        <ChevronDoubleLeftIcon class="ff-icon text-indigo-500" />
-                                    </template>
-                                </popover-item>
-                                <popover-item
                                     title="Use latest deploy snapshot"
-                                    description="Compare with the latest deploy snapshot: [snapshot name]"
+                                    description="Compare to last pipeline deployment"
+                                    @click="onPopoverItemClick('pipeline',close)"
                                 >
                                     <template #icon>
                                         <PipelineIcon class="ff-icon text-indigo-500" />
@@ -64,12 +54,37 @@
                                 </popover-item>
                                 <popover-item
                                     title="or search for a specific snapshot"
-                                    class="bg-gray-50"
+                                    class="bg-gray-100 hover:bg-gray-100"
                                 >
                                     <template #content>
                                         <div class="flex gap-1 w-full my-2">
-                                            <ff-combobox class="flex-1" :options="[]" />
-                                            <ff-button kind="secondary">
+                                            <ff-combobox
+                                                v-model="selectedSnapshot"
+                                                class="flex-1"
+                                                :fetch-remote-options="searchSnapshots"
+                                                placeholder="Search snapshots"
+                                                :disabled="loadingDescription"
+                                            >
+                                                <template #option="{ option, selected, active }">
+                                                    <div class="ff-option-content" :class="{ selected, active }">
+                                                        <div class="flex justify-between mb-1">
+                                                            <span>{{ option.label }}</span>
+                                                            <span v-if="option.user && option.user.username" class="text-gray-400">{{ option.user.username }}</span>
+                                                        </div>
+                                                        <p
+                                                            :title="option.description"
+                                                            class="text-italic text-gray-400 mb-1 clipped-overflow"
+                                                        >
+                                                            {{ option.description }}
+                                                        </p>
+                                                    </div>
+                                                </template>
+                                            </ff-combobox>
+                                            <ff-button
+                                                kind="secondary"
+                                                :disabled="!selectedSnapshot || loadingDescription"
+                                                @click="onPopoverItemClick('custom',close)"
+                                            >
                                                 <template #icon>
                                                     <ChevronRightIcon class="ff-icon" />
                                                 </template>
@@ -88,7 +103,7 @@
 <script>
 
 import { CubeTransparentIcon } from '@heroicons/vue/outline'
-import { ChevronDoubleLeftIcon, ChevronLeftIcon, ChevronRightIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, ChevronRightIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
 import { mapGetters } from 'vuex'
 
 import instanceApi from '../../../../../api/instances.js'
@@ -108,7 +123,6 @@ export default {
         QuestionMarkCircleIcon,
         CubeTransparentIcon,
         ChevronLeftIcon,
-        ChevronDoubleLeftIcon,
         ChevronRightIcon
     },
     props: {
@@ -139,7 +153,8 @@ export default {
                 setAsTarget: false
             },
             errors: {},
-            loadingDescription: false
+            loadingDescription: false,
+            selectedSnapshot: null
         }
     },
     computed: {
@@ -176,7 +191,7 @@ export default {
         },
         generateDescription () {
             this.loadingDescription = true
-            return instanceApi.generateSnapshotDescription(this.project.id)
+            return instanceApi.generateSnapshotDescription(this.project.id, {})
                 .then(res => {
                     if (!this.input.name.length) {
                         this.input.name = res.name
@@ -202,7 +217,35 @@ export default {
                 .finally(() => {
                     this.loadingDescription = false
                 })
+        },
+        searchSnapshots (query) {
+            return snapshotApi.getInstanceSnapshots(this.project.id, null, 30, query)
+                .then(res => (res.snapshots.map(snapshot => ({
+                    value: snapshot.id,
+                    label: snapshot.name,
+                    id: snapshot.id,
+                    description: snapshot?.description ?? null,
+                    user: snapshot?.user ?? null,
+                    createdAt: snapshot?.createdAt ?? null
+                }))))
+        },
+        onPopoverItemClick (target, close) {
+            close()
+            if (target === 'latest') return this.generateDescription('latest')
+            if (target === 'pipeline') return this.generateDescription('pipeline')
+
+            return this.generateDescription(target)
         }
     }
 }
 </script>
+
+<style scoped lang="scss">
+.clipped-overflow {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;   // number of lines to clip to
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+</style>
