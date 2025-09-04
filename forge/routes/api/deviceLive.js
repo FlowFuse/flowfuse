@@ -292,29 +292,23 @@ module.exports = async function (app) {
             teamBroker: !!(app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true)),
             tables: !!(app.config.features.enabled('tables') && teamType.getFeatureProperty('tables', true))
         }
+
+        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && teamType.getFeatureProperty('assistantInlineCompletions', false))
         response.assistant = {
             enabled: app.config.assistant?.enabled || false,
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
-            completions: { enabled: true, inlineEnabled: false } // default to enabled
+            completions: {
+                enabled: true, // next node completions
+                inlineEnabled: assistantInlineCompletionsFeatureEnabled // FIM style inline code editor completions
+            }
         }
         if (app.config.assistant?.mcp && typeof app.config.assistant.mcp === 'object') {
             response.assistant.mcp = { ...app.config.assistant.mcp }
         }
         if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
-            response.assistant.completions = { ...app.config.assistant.completions }
+            response.assistant.completions = { ...response.assistant.completions, ...app.config.assistant.completions }
         }
-        const isLicensed = app.license.active() || false
-        const licenseType = isLicensed ? (app.license.get('dev') ? 'DEV' : 'EE') : 'CE'
-        const tier = isLicensed ? app.license.get('tier') : null
-        const completionsTiers = [
-            'starter',
-            'teams', // AKA "pro" tier
-            'enterprise'
-        ]
-        const minTier = app.config.assistant?.completions?.inlineMinTier || 'teams'
-        const inlineDisabled = app.config.assistant?.completions?.inlineEnabled === false
-        response.assistant.completions.inlineEnabled = !inlineDisabled && (completionsTiers.indexOf(tier) >= completionsTiers.indexOf(minTier) || licenseType === 'DEV')
 
         const linkedUsername = `device:${request.device.hashid}`
         const linkedUser = await app.db.models.TeamBrokerClient.byUsername(linkedUsername, request.device.Team.hashid, false, false)

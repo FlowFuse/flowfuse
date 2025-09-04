@@ -175,21 +175,12 @@ module.exports = async function (app) {
         }
     },
     async (request, reply) => {
-        // Check license and tier - FIM is only available for certain tiers
-        const isLicensed = app.license?.active() || false
-        const licenseType = isLicensed ? (app.license.get('dev') ? 'DEV' : 'EE') : 'CE'
-        const tier = isLicensed ? app.license.get('tier') : null
-        const fimTiers = [
-            'starter',
-            'teams', // AKA "pro" tier
-            'enterprise'
-        ]
-        const minTier = app.config.assistant?.completions?.inlineMinTier || 'teams'
         const inlineDisabled = app.config.assistant?.completions?.inlineEnabled === false
-        const enabled = !inlineDisabled && (fimTiers.indexOf(tier) >= fimTiers.indexOf(minTier) || licenseType === 'DEV')
-
-        if (!enabled) {
-            return reply.code(403).send({ code: 'forbidden', error: 'Forbidden' })
+        const featureEnabled = app.config.features.enabled('assistantInlineCompletions')
+        const featureEnabledForTeam = request.team.TeamType.getFeatureProperty('assistantInlineCompletions', false)
+        if (inlineDisabled || !featureEnabled || !featureEnabledForTeam) {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found - feature not enabled for team' })
+            return
         }
 
         const nodeModule = request.params.nodeModule

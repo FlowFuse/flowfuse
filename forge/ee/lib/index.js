@@ -53,4 +53,7 @@ module.exports = fp(async function (app, opts) {
 
     // Set the Editor Limits Feature Flag
     app.config.features.register('generatedSnapshotDescription', true, true)
+
+    // Set the assistant inline completions Feature Flag
+    app.config.features.register('assistantInlineCompletions', true, true)
 }, { name: 'app.ee.lib' })
