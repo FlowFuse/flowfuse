@@ -7,6 +7,15 @@ const setup = require('../setup')
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 const dbUtils = FF_UTIL.require('forge/db/utils')
+
+async function enableTeamTypeFeatureFlag (app, enabled, featureName, teamTypeName = 'starter') {
+    const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: teamTypeName } })
+    const defaultTeamTypeProperties = defaultTeamType.properties
+    defaultTeamTypeProperties.features[featureName] = enabled
+    defaultTeamType.properties = defaultTeamTypeProperties
+    await defaultTeamType.save()
+}
+
 /** @type {import("mocha").describe} */
 describe('Device API', async function () {
     let app
@@ -2391,7 +2400,7 @@ describe('Device API', async function () {
             body.assistant.mcp.should.have.property('enabled', true) // defaults to enabled
             body.assistant.should.have.property('completions').and.be.an.Object()
             body.assistant.completions.should.have.property('enabled', true) // defaults to enabled
-            body.assistant.completions.should.have.property('inlineEnabled', true)
+            body.assistant.completions.should.have.property('inlineEnabled', false) // disabled by default (enabled via feature flag assistantInlineCompletions)
         })
         it('device downloads settings including assistant inline completions settings enabled', async function () {
             app = await setup({
@@ -2403,6 +2412,10 @@ describe('Device API', async function () {
                     // completions deliberately excluded to check it defaults to enabled
                 }
             })
+
+            // enable feature flag for the team
+            await enableTeamTypeFeatureFlag(app, true, 'assistantInlineCompletions')
+
             await login('alice', 'aaPassword')
             const device = await createDevice({ name: 'AppDevice2', type: 'AppDevice2_type', team: app.team.hashid, as: TestObjects.tokens.alice })
             const dbDevice = await app.db.models.Device.byId(device.id)

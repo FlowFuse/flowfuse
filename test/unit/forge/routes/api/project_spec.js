@@ -77,6 +77,14 @@ describe('Project API', function () {
         TestObjects.stack1 = app.stack
     }
 
+    async function enableTeamTypeFeatureFlag (app, enabled, featureName, teamTypeName = 'starter') {
+        const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: teamTypeName } })
+        const defaultTeamTypeProperties = defaultTeamType.properties
+        defaultTeamTypeProperties.features[featureName] = enabled
+        defaultTeamType.properties = defaultTeamTypeProperties
+        await defaultTeamType.save()
+    }
+
     before(async function () {
         await setupApp()
     })
@@ -2397,7 +2405,7 @@ describe('Project API', function () {
                 body.assistant.mcp.should.have.property('enabled', true) // defaults to enabled
                 body.assistant.should.have.property('completions').and.be.an.Object()
                 body.assistant.completions.should.have.property('enabled', true) // defaults to enabled
-                body.assistant.completions.should.have.property('inlineEnabled', true)
+                body.assistant.completions.should.have.property('inlineEnabled', false) // disabled by default (enabled via feature flag assistantInlineCompletions)
             })
             it('instance settings including assistant inline completions settings enabled', async function () {
                 app = await setup({
@@ -2409,6 +2417,9 @@ describe('Project API', function () {
                         // completions deliberately excluded to check it defaults to enabled
                     }
                 })
+
+                // enable feature flag for the team
+                await enableTeamTypeFeatureFlag(app, true, 'assistantInlineCompletions')
 
                 await login('alice', 'aaPassword')
                 TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
