@@ -49,7 +49,7 @@ export default defineComponent({
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 5px;
+    padding: 10px 20px;
     cursor: pointer;
 
     .icon {

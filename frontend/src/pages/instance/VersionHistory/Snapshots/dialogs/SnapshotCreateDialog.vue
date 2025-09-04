@@ -54,7 +54,7 @@
                                 </popover-item>
                                 <popover-item
                                     title="or search for a specific snapshot"
-                                    class="bg-gray-100 hover:bg-gray-100"
+                                    class="bg-gray-100 hover:bg-gray-100 border-t border-gray-200"
                                 >
                                     <template #content>
                                         <div class="flex gap-1 w-full my-2">
@@ -83,7 +83,7 @@
                                             <ff-button
                                                 kind="secondary"
                                                 :disabled="!selectedSnapshot || loadingDescription"
-                                                @click="onPopoverItemClick('custom',close)"
+                                                @click="onPopoverItemClick(selectedSnapshot,close)"
                                             >
                                                 <template #icon>
                                                     <ChevronRightIcon class="ff-icon" />
@@ -189,9 +189,9 @@ export default {
                 })
             }
         },
-        generateDescription () {
+        generateDescription (target) {
             this.loadingDescription = true
-            return instanceApi.generateSnapshotDescription(this.project.id, {})
+            return instanceApi.generateSnapshotDescription(this.project.id, { target })
                 .then(res => {
                     if (!this.input.name.length) {
                         this.input.name = res.name
@@ -216,6 +216,7 @@ export default {
                 })
                 .finally(() => {
                     this.loadingDescription = false
+                    this.selectedSnapshot = null
                 })
         },
         searchSnapshots (query) {
