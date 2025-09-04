@@ -4,7 +4,7 @@
             <slot name="row-prepend" :row="data" />
         </ff-data-table-cell>
         <slot>
-            <ff-data-table-cell v-for="(col, $column) in columns"
+            <ff-data-table-cell v-for="(col, $column) in computedColumns"
                                 :key="col.label"
                                 :class="col.class"
                                 :style="col.style"
@@ -15,7 +15,7 @@
                     <component :is="col.component.is"
                                :column="col.key"
                                :style="col.style"
-                               v-bind="{...col.component.extraProps ?? {}, ...getCellData(data, col)}"
+                               v-bind="col._bindings"
                                :row-value="lookupProperty(data, col.key)"
                     />
                 </template>
@@ -71,6 +71,27 @@ export default {
         },
         hasPrepend: function () {
             return this.$slots['row-prepend']
+        },
+        computedColumns () {
+            return this.columns.map((col) => {
+                if (col.component) {
+                    // Get cell data with any mapped properties applied
+                    const data = { ...this.getCellData(this.data, col) }
+                    // If component has bind property, bind only specified properties
+                    const spreadElements = col.component.bind
+                        ? Object.entries(col.component.bind)
+                            .reduce((acc, [key, value]) => {
+                                if (Object.hasOwnProperty.call(data, value)) {
+                                    acc[key] = data[value]
+                                }
+                                return acc
+                            }, {})
+                        : data
+                    // Combine any extra props with the spread elements
+                    col._bindings = { ...col.component.extraProps ?? {}, ...spreadElements }
+                }
+                return col
+            })
         }
     },
     methods: {
