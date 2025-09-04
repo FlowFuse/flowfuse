@@ -313,6 +313,7 @@ module.exports = {
                         'node-red': this.getDefaultNodeRedVersion(),
                         '@flowfuse/nr-project-nodes': '>0.5.0', // TODO: get this from the "settings" (future)
                         '@flowfuse/nr-mqtt-nodes': '>=0.1.0', // TODO: get this from the "settings" (future)
+                        '@flowfuse/nr-tables-nodes': '>=0.1.0', // TODO: get this from the "settings" (future)
                         '@flowfuse/nr-assistant': '>=0.1.0'
                     }
                 }
