@@ -1444,6 +1444,7 @@ module.exports = async function (app) {
             },
             body: {
                 type: 'object',
+                required: ['target'],
                 properties: {
                     target: { type: 'string' }
                 }
@@ -1475,6 +1476,13 @@ module.exports = async function (app) {
         default:
             targetSnapshot = (await app.db.models.ProjectSnapshot.byId(request.body.target)) ?? {}
             break
+        }
+
+        if (!targetSnapshot || Object.keys(targetSnapshot).length === 0) {
+            return reply.code(404).send({
+                code: 'not_found',
+                error: 'Snapshot not found'
+            })
         }
 
         const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildSnapshot(
