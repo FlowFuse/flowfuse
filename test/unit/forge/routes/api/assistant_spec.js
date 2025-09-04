@@ -5,7 +5,7 @@ const sinon = require('sinon')
 const setup = require('../setup')
 
 describe('Assistant API', async function () {
-    async function setupApp (config = {}, { tablesFeatureEnabled = true } = {}) {
+    async function setupApp (config = {}, { tablesFeatureEnabled = true, assistantInlineCompletionsFeatureEnabled = true } = {}) {
         const defaultConfig = {
             features: { devices: true, tables: true },
             assistant: {
@@ -32,6 +32,7 @@ describe('Assistant API', async function () {
         const _app = await setup(mergedConfig)
         _app.comms = null // skip all the broker stuff
         _app.config.features.register('tables', tablesFeatureEnabled, tablesFeatureEnabled)
+        _app.config.features.register('assistantInlineCompletions', assistantInlineCompletionsFeatureEnabled, assistantInlineCompletionsFeatureEnabled)
         // Enable tables feature for default team type
         const defaultTeamType = await _app.db.models.TeamType.findOne({ where: { name: 'starter' } })
         const defaultTeamTypeProperties = defaultTeamType.properties
@@ -39,6 +40,13 @@ describe('Assistant API', async function () {
         defaultTeamType.properties = defaultTeamTypeProperties
         await defaultTeamType.save()
         return _app
+    }
+    async function enableTeamTypeFeatureFlag (app, enabled, featureName, teamTypeName = 'starter') {
+        const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: teamTypeName } })
+        const defaultTeamTypeProperties = defaultTeamType.properties
+        defaultTeamTypeProperties.features[featureName] = enabled
+        defaultTeamType.properties = defaultTeamTypeProperties
+        await defaultTeamType.save()
     }
     describe('service disabled', async function () {
         let app2
@@ -400,10 +408,11 @@ describe('Assistant API', async function () {
                 let getDatabasesStub
                 const libAssistant = require('../../../../../forge/lib/assistant.js')
 
-                beforeEach(function () {
+                beforeEach(async function () {
                     getTablesHintsStub = sinon.stub(libAssistant, 'getTablesHints')
                     app.tables = app.tables || { getDatabases: () => {} }
                     getDatabasesStub = sinon.stub(app.tables, 'getDatabases').resolves([{ hashid: 'db1', name: 'Database 1' }])
+                    await enableTeamTypeFeatureFlag(app, true, 'assistantInlineCompletions')
                 })
                 afterEach(function () {
                     getTablesHintsStub.restore()
@@ -423,48 +432,17 @@ describe('Assistant API', async function () {
                         headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
                         payload: { prompt: 'select all rows from test', transactionId: '555' }
                     })
-                    response.statusCode.should.equal(403)
+                    response.statusCode.should.equal(404)
                 })
-                it('should fail for unlicensed requests', async function () {
-                    app.license.active.restore()
-                    sinon.stub(app.license, 'active').callsFake(() => false) // license disabled
-
-                    const response = await app.inject({
-                        method: 'POST',
-                        url: `/api/v1/assistant/fim/${encodeURIComponent('@flowfuse/nr-tables-nodes')}/tables-query`,
-                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
-                        payload: { prompt: 'select all rows from test', transactionId: '555' }
-                    })
-                    response.statusCode.should.equal(403)
-                    response.json().should.have.property('code', 'forbidden')
-                })
-                it('does not allow starter tier users', async function () {
-                    app.license.active.restore()
-                    sinon.stub(app.license, 'active').callsFake(() => true) // license enabled
-                    app.license.get.restore()
-                    sinon.stub(app.license, 'get').withArgs('tier').returns('starter') // starter tier
+                it('can be disabled via team feature flag', async function () {
+                    await enableTeamTypeFeatureFlag(app, false, 'assistantInlineCompletions')
                     const response = await app.inject({
                         method: 'POST',
                         url: `/api/v1/assistant/${serviceName}`,
                         headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
                         payload: { prompt: 'select all rows from test', transactionId: '555' }
                     })
-                    response.statusCode.should.equal(403)
-                })
-                it('can adjust tier via config', async function () {
-                    app.license.active.restore()
-                    sinon.stub(app.license, 'active').callsFake(() => true) // license enabled
-                    app.license.get.restore()
-                    sinon.stub(app.license, 'get').withArgs('tier').returns('starter') // starter tier
-                    app.config.assistant.completions.inlineMinTier = 'starter'
-                    sinon.stub(axios, 'post').resolves({ data: { transactionId: '666' } })
-                    const response = await app.inject({
-                        method: 'POST',
-                        url: `/api/v1/assistant/${serviceName}`,
-                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
-                        payload: { prompt: 'select all rows from test', transactionId: '666' }
-                    })
-                    response.statusCode.should.equal(200)
+                    response.statusCode.should.equal(404)
                 })
                 it('does not allow other contrib nodes', async function () {
                     const serviceName = 'fim/' + encodeURIComponent('@third-party/contrib-node') + '/node-type'
