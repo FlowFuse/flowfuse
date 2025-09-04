@@ -139,9 +139,9 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    role: { type: 'number' }
-                },
-                required: ['role']
+                    role: { type: 'number' },
+                    permissions: { $ref: 'TeamMemberPermissions' }
+                }
             },
             response: {
                 200: {
@@ -153,28 +153,69 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const newRole = parseInt(request.body.role)
-        if (TeamRoles.includes(newRole)) {
-            try {
-                const result = await app.db.controllers.Team.changeUserRole(request.params.teamId, request.params.userId, newRole)
-                if (result.oldRole !== result.role) {
-                    const updates = new app.auditLog.formatters.UpdatesCollection()
-                    const oldRole = app.auditLog.formatters.roleObject(result.oldRole)
-                    const role = app.auditLog.formatters.roleObject(result.role)
-                    updates.push('role', oldRole?.role || result.oldRole, role?.role || result.role)
-                    await app.auditLog.Team.team.user.roleChanged(request.session.User, null, request.team, result.user, updates)
-                    if (result.role < result.oldRole) {
-                        // We should invalidate session for this user for the teams NR instances if lower
-                        // might want to make this only if it drop under Member
-                        await app.db.controllers.StorageSession.removeUserFromTeamSessions(request.user, request.team)
+        // Can only update role or permissions - not both at the same time
+        const hasRole = request.body.role !== undefined
+        const hasPermissions = request.body.permissions !== undefined
+
+        if (hasRole && hasPermissions) {
+            reply.code(400).send({ code: 'invalid_request', error: 'Invalid request - cannot update role and permissions in single request' })
+            return
+        } else if (!hasRole && !hasPermissions) {
+            reply.code(400).send({ code: 'invalid_request', error: 'Invalid request - missing role or permissions' })
+            return
+        }
+        if (hasRole) {
+            const newRole = parseInt(request.body.role)
+            if (TeamRoles.includes(newRole)) {
+                try {
+                    const result = await app.db.controllers.Team.changeUserRole(request.params.teamId, request.params.userId, newRole)
+                    if (result.oldRole !== result.role) {
+                        const updates = new app.auditLog.formatters.UpdatesCollection()
+                        const oldRole = app.auditLog.formatters.roleObject(result.oldRole)
+                        const role = app.auditLog.formatters.roleObject(result.role)
+                        updates.push('role', oldRole?.role || result.oldRole, role?.role || result.role)
+                        await app.auditLog.Team.team.user.roleChanged(request.session.User, null, request.team, result.user, updates)
+                        if (result.role < result.oldRole) {
+                            // We should invalidate session for this user for the teams NR instances if lower
+                            // might want to make this only if it drop under Member
+                            await app.db.controllers.StorageSession.removeUserFromTeamSessions(request.user, request.team)
+                        }
                     }
+                    reply.send({ status: 'okay' })
+                } catch (err) {
+                    reply.code(403).send({ code: 'invalid_request', error: 'Invalid request' })
                 }
-                reply.send({ status: 'okay' })
-            } catch (err) {
-                reply.code(403).send({ code: 'invalid_request', error: 'Invalid request' })
+            } else {
+                reply.code(400).send({ code: 'invalid_team_role', error: 'invalid role' })
             }
-        } else {
-            reply.code(400).send({ code: 'invalid_team_role', error: 'invalid role' })
+        } else if (hasPermissions) {
+            // Expected permissions object structure:
+            // {
+            //     "applications": {
+            //         "<app-id>: <role-id>
+            //     }
+            // }
+            // 1. Validate app-ids are all in this team
+            // 2. Validate the role-ids are valid
+            const permissionKeys = Object.keys(request.body.permissions)
+            if (permissionKeys.length > 1 || (permissionKeys.length === 0 && permissionKeys[0] !== 'applications')) {
+                reply.code(400).send({ code: 'invalid_request', error: 'Invalid permissions object' })
+                return
+            }
+            if (permissionKeys.applications) {
+                const applicationIds = Object.keys(permissionKeys.applications)
+                // Get a list of all valid applications in the team
+                const applications = await app.db.models.Application.byTeam(request.params.teamId)
+                const knownAppIds = new Set(applications.map(a => a.hashid))
+                const invalidApplications = applicationIds.filter(id => !knownAppIds.has(id) || TeamRoles.includes(permissionKeys.applications[id]))
+                if (invalidApplications.length > 0) {
+                    reply.code(400).send({ code: 'invalid_request', error: 'Invalid permissions object' })
+                    return
+                }
+            }
+            await app.db.controllers.Team.changeUserTeamPermissions(request.params.teamId, request.params.userId, request.body.permissions)
+            // TODO: audit log it
+            reply.send({ status: 'okay' })
         }
     })
 }
