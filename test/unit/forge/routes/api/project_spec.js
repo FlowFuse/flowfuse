@@ -3025,7 +3025,7 @@ describe('Project API', function () {
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
-                payload: {},
+                payload: { target: 'latest' },
                 cookies: { sid: TestObjects.tokens.alice }
             })
 
@@ -3080,7 +3080,7 @@ describe('Project API', function () {
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
-                payload: {},
+                payload: { target: 'latest' },
                 cookies: { sid: TestObjects.tokens.alice }
             })
 
@@ -3124,7 +3124,7 @@ describe('Project API', function () {
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
-                payload: {},
+                payload: { target: 'latest' },
                 cookies: { sid: TestObjects.tokens.alice }
             })
 
@@ -3164,7 +3164,7 @@ describe('Project API', function () {
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
-                payload: {},
+                payload: { target: 'latest' },
                 cookies: { sid: TestObjects.tokens.alice }
             })
 
@@ -3185,7 +3185,7 @@ describe('Project API', function () {
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
-                payload: {},
+                payload: { target: 'latest' },
                 cookies: { sid: TestObjects.tokens.bob } // bob is not an owner of ATeam
             })
             response.statusCode.should.equal(403)
@@ -3212,13 +3212,20 @@ describe('Project API', function () {
                         getFeatureProperty: (name, def) => (name === 'generatedSnapshotDescription' ? true : def)
                     })
                 }
+                // Ensure a target snapshot is found
+                project.getLatestSnapshot = async () => ({
+                    toJSON: () => ({
+                        settings: { env: { OLD: 'value' }, modules: {} },
+                        flows: { flows: [{ id: 'old' }], credentials: {} }
+                    })
+                })
                 return project
             })
 
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
-                payload: {},
+                payload: { target: 'latest' },
                 cookies: { sid: TestObjects.tokens.alice }
             })
 
@@ -3231,6 +3238,209 @@ describe('Project API', function () {
                 buildSnapshotStub.restore()
                 invokeStub.restore()
                 byIdStub.restore()
+                app.license = originalLicense
+            }
+        })
+
+        it('returns 400 when no target param is provided', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(400)
+            const body = response.json()
+            body.should.have.property('code', 'FST_ERR_VALIDATION')
+        })
+
+        it('returns 404 when no target snapshot is found (target=latest)', async function () {
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+                settings: {},
+                flows: { flows: [], credentials: {} }
+            })
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({ transactionId: 'x', data: {} })
+
+            const originalLicense = app.license
+            app.license = { get: (k) => (k === 'tier' ? 'enterprise' : undefined) }
+            const originalProjectById = app.db.models.Project.byId
+            const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
+                const project = await originalProjectById.call(this, id, opts)
+                if (project && project.Team) {
+                    project.Team.getTeamType = async () => ({
+                        getFeatureProperty: (name, def) => (name === 'generatedSnapshotDescription' ? true : def)
+                    })
+                }
+                // Simulate no previous snapshot found
+                project.getLatestSnapshot = async () => null
+                return project
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: { target: 'latest' },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            try {
+                response.statusCode.should.equal(404)
+                const body = response.json()
+                body.should.have.property('code', 'not_found')
+                invokeStub.called.should.equal(false)
+            } finally {
+                buildSnapshotStub.restore()
+                invokeStub.restore()
+                byIdStub.restore()
+                app.license = originalLicense
+            }
+        })
+
+        it('handles target=pipeline and forwards LLM response', async function () {
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+                settings: { env: { FOO: 'bar' }, modules: {} },
+                flows: { flows: [{ id: 'n1' }], credentials: {} }
+            })
+            const llmResponse = { transactionId: 'tid-456', data: { summary: 'Pipeline changes' } }
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves(llmResponse)
+
+            const originalLicense = app.license
+            app.license = { get: (k) => (k === 'tier' ? 'enterprise' : undefined) }
+            const originalProjectById = app.db.models.Project.byId
+            const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
+                const project = await originalProjectById.call(this, id, opts)
+                if (project && project.Team) {
+                    project.Team.getTeamType = async () => ({
+                        getFeatureProperty: (name, def) => (name === 'generatedSnapshotDescription' ? true : def)
+                    })
+                }
+                project.getLatestDeploySnapshot = async () => ({
+                    toJSON: () => ({
+                        settings: { env: { OLD: 'value' }, modules: { oldmod: '0.1.0' } },
+                        flows: { flows: [{ id: 'old' }], credentials: {} }
+                    })
+                })
+                return project
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: { target: 'pipeline' },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            try {
+                response.statusCode.should.equal(200)
+                const body = response.json()
+                body.should.have.property('summary', 'Pipeline changes')
+
+                const args = invokeStub.getCall(0).args
+                args[1].should.have.property('target', 'pipeline')
+            } finally {
+                buildSnapshotStub.restore()
+                invokeStub.restore()
+                byIdStub.restore()
+                app.license = originalLicense
+            }
+        })
+
+        it('handles target as a custom id that is found', async function () {
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+                settings: { env: { FOO: 'bar' }, modules: {} },
+                flows: { flows: [{ id: 'n1' }], credentials: {} }
+            })
+            const llmResponse = { transactionId: 'tid-789', data: { summary: 'Custom id changes' } }
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves(llmResponse)
+
+            const originalLicense = app.license
+            app.license = { get: (k) => (k === 'tier' ? 'enterprise' : undefined) }
+            const originalProjectById = app.db.models.Project.byId
+            const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
+                const project = await originalProjectById.call(this, id, opts)
+                if (project && project.Team) {
+                    project.Team.getTeamType = async () => ({
+                        getFeatureProperty: (name, def) => (name === 'generatedSnapshotDescription' ? true : def)
+                    })
+                }
+                return project
+            })
+
+            const originalSnapshotById = app.db.models.ProjectSnapshot.byId
+            const snapshotByIdStub = sinon.stub(app.db.models.ProjectSnapshot, 'byId').callsFake(async function (sid) {
+                if (sid === 'snap-123') {
+                    return {
+                        toJSON: () => ({
+                            settings: { env: { OLD: 'value' }, modules: { oldmod: '0.1.0' } },
+                            flows: { flows: [{ id: 'old' }], credentials: {} }
+                        })
+                    }
+                }
+                return originalSnapshotById.call(this, sid)
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: { target: 'snap-123' },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            try {
+                response.statusCode.should.equal(200)
+                const body = response.json()
+                body.should.have.property('summary', 'Custom id changes')
+                const args = invokeStub.getCall(0).args
+                args[1].should.have.property('target', 'snap-123')
+            } finally {
+                buildSnapshotStub.restore()
+                invokeStub.restore()
+                byIdStub.restore()
+                snapshotByIdStub.restore()
+                app.license = originalLicense
+            }
+        })
+
+        it('returns 404 when target is a custom id that is not found', async function () {
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+                settings: {},
+                flows: { flows: [], credentials: {} }
+            })
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({ transactionId: 'x', data: {} })
+
+            const originalLicense = app.license
+            app.license = { get: (k) => (k === 'tier' ? 'enterprise' : undefined) }
+            const originalProjectById = app.db.models.Project.byId
+            const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
+                const project = await originalProjectById.call(this, id, opts)
+                if (project && project.Team) {
+                    project.Team.getTeamType = async () => ({
+                        getFeatureProperty: (name, def) => (name === 'generatedSnapshotDescription' ? true : def)
+                    })
+                }
+                return project
+            })
+
+            const snapshotByIdStub = sinon.stub(app.db.models.ProjectSnapshot, 'byId').resolves(null)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: { target: 'does-not-exist' },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            try {
+                response.statusCode.should.equal(404)
+                const body = response.json()
+                body.should.have.property('code', 'not_found')
+                invokeStub.called.should.equal(false)
+            } finally {
+                buildSnapshotStub.restore()
+                invokeStub.restore()
+                byIdStub.restore()
+                snapshotByIdStub.restore()
                 app.license = originalLicense
             }
         })
