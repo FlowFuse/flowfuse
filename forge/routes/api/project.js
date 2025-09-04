@@ -831,17 +831,24 @@ module.exports = async function (app) {
         settings.baseURL = request.project.url
         settings.forgeURL = app.config.base_url
         settings.fileStore = app.config.fileStore ? { ...app.config.fileStore } : null
+
+        const teamType = await request.project.Team.getTeamType()
+
+        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && teamType.getFeatureProperty('assistantInlineCompletions', false))
         settings.assistant = {
             enabled: app.config.assistant?.enabled || false,
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
-            completions: { enabled: true } // default to enabled
+            completions: {
+                enabled: true, // next node completions
+                inlineEnabled: assistantInlineCompletionsFeatureEnabled // FIM style inline code editor completions
+            }
         }
         if (app.config.assistant?.mcp && typeof app.config.assistant.mcp === 'object') {
             settings.assistant.mcp = { ...app.config.assistant.mcp }
         }
         if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
-            settings.assistant.completions = { ...app.config.assistant.completions }
+            settings.assistant.completions = { ...settings.assistant.completions, ...app.config.assistant.completions }
         }
 
         const linkedUsername = `instance:${request.project.id}`
@@ -865,8 +872,6 @@ module.exports = async function (app) {
             delete settings.settings.env
             settings.env = exportEnvVarObject(settings.env)
         }
-
-        const teamType = await request.project.Team.getTeamType()
 
         if (app.config.features.enabled('ha') && teamType.getFeatureProperty('ha', true)) {
             const ha = await request.project.getHASettings()
