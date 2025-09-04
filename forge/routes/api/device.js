@@ -26,6 +26,9 @@ module.exports = async function (app) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
+                    if (request.device.ApplicationId) {
+                        request.applicationId = app.db.models.Application.encodeHashid(request.device.ApplicationId)
+                    }
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)
                     }
