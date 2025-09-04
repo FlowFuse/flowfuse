@@ -74,23 +74,29 @@ export default {
         },
         computedColumns () {
             return this.columns.map((col) => {
-                if (col.component) {
-                    // Get cell data with any mapped properties applied
-                    const data = { ...this.getCellData(this.data, col) }
-                    // If component has bind property, bind only specified properties
-                    const spreadElements = col.component.bind
-                        ? Object.entries(col.component.bind)
-                            .reduce((acc, [key, value]) => {
-                                if (Object.hasOwnProperty.call(data, value)) {
-                                    acc[key] = data[value]
-                                }
-                                return acc
-                            }, {})
-                        : data
-                    // Combine any extra props with the spread elements
-                    col._bindings = { ...col.component.extraProps ?? {}, ...spreadElements }
+                if (!col.component) {
+                    // Return a shallow copy to avoid accidental mutations elsewhere
+                    return { ...col }
                 }
-                return col
+                // Get cell data with any mapped properties applied
+                const data = { ...this.getCellData(this.data, col) }
+
+                // If component has bind property, bind only specified properties
+                const bindings = col.component.bind
+                    ? Object.entries(col.component.bind)
+                        .reduce((acc, [key, value]) => {
+                            if (Object.prototype.hasOwnProperty.call(data, value)) {
+                                acc[key] = data[value]
+                            }
+                            return acc
+                        }, {})
+                    : data
+
+                // Return a new column object with derived _bindings
+                return {
+                    ...col,
+                    _bindings: { ...(col.component.extraProps ?? {}), ...bindings }
+                }
             })
         }
     },
