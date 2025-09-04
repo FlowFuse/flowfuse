@@ -1474,15 +1474,15 @@ module.exports = async function (app) {
             targetSnapshot = (await request.project.getLatestDeploySnapshot()) ?? {}
             break
         default:
-            targetSnapshot = (await app.db.models.ProjectSnapshot.byId(request.body.target)) ?? {}
-            break
-        }
+            targetSnapshot = (await app.db.models.ProjectSnapshot.byId(request.body.target))
 
-        if (!targetSnapshot || Object.keys(targetSnapshot).length === 0) {
-            return reply.code(404).send({
-                code: 'not_found',
-                error: 'Snapshot not found'
-            })
+            if (!targetSnapshot) {
+                return reply.code(404).send({
+                    code: 'not_found',
+                    error: 'Snapshot not found'
+                })
+            }
+            break
         }
 
         const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildSnapshot(

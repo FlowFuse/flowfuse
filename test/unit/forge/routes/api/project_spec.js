@@ -3280,7 +3280,7 @@ describe('Project API', function () {
             const response = await app.inject({
                 method: 'POST',
                 url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
-                payload: { target: 'latest' },
+                payload: { target: 'some-code' },
                 cookies: { sid: TestObjects.tokens.alice }
             })
 
