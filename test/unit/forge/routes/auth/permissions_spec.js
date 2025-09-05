@@ -54,6 +54,7 @@ describe('Permissions API', async () => {
         app.decorate('settings', {
             get: scope => true
         })
+        app.decorate('config', { features: { enabled: feature => feature === 'rbacApplication' } })
         await app.ready()
     })
 

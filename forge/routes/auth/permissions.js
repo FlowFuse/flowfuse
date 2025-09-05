@@ -83,7 +83,7 @@ module.exports = fp(async function (app, opts) {
                     // Granular RBAC; if the request provides an application context for the request, check against
                     // the teamMembership.permissions object
                     const application = request.application?.hashid || request.applicationId
-                    if (application && request.teamMembership.permissions?.applications[application] !== undefined) {
+                    if (application && request.teamMembership.permissions?.applications?.[application] !== undefined) {
                         userRole = request.teamMembership.permissions.applications[application]
                     }
                 }
