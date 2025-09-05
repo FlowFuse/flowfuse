@@ -47,6 +47,17 @@ describe('Permissions API', async () => {
     const PROJECT_TOKEN_NO_SCOPE = {
         session: { ownerType: 'project', scope: [] }
     }
+    const USER_SESSION_APPLICATION_READ = {
+        session: { User: { id: 'u123' } },
+        applicationId: 'app-1',
+        teamMembership: {
+            role: Roles.Owner,
+            permissions: { applications: { 'app-1': Roles.Viewer } }
+        }
+
+    }
+
+    let rbacApplicationEnabled = false
 
     before(async () => {
         app = fastify({})
@@ -54,7 +65,7 @@ describe('Permissions API', async () => {
         app.decorate('settings', {
             get: scope => true
         })
-        app.decorate('config', { features: { enabled: feature => feature === 'rbacApplication' } })
+        app.decorate('config', { features: { enabled: feature => rbacApplicationEnabled && feature === 'rbacApplication' } })
         await app.ready()
     })
 
@@ -89,7 +100,29 @@ describe('Permissions API', async () => {
     function expectFail (response) {
         verifyResponse(false, response)
     }
-
+    describe('hasPermission', () => {
+        it('User role used to verify permission - project:edit', () => {
+            const result = app.hasPermission(USER_SESSION_APPLICATION_READ.teamMembership, 'project:edit', { applicationId: 'app-1' })
+            result.should.be.true()
+        })
+        it('User role used to verify permission - team:edit', () => {
+            const result = app.hasPermission(USER_SESSION_TEAM_MEMBER.teamMembership, 'team:edit', { applicationId: 'app-1' })
+            result.should.be.false()
+        })
+        describe('feature enabled', () => {
+            before(() => { rbacApplicationEnabled = true })
+            after(() => { rbacApplicationEnabled = false })
+            it('User role used to verify permission - project:edit', () => {
+                // With Granular RBAC enabled, this should now fail
+                const result = app.hasPermission(USER_SESSION_APPLICATION_READ.teamMembership, 'project:edit', { applicationId: 'app-1' })
+                result.should.be.false()
+            })
+            it('User role used to verify permission - team:edit', () => {
+                const result = app.hasPermission(USER_SESSION_TEAM_MEMBER.teamMembership, 'team:edit', { applicationId: 'app-1' })
+                result.should.be.false()
+            })
+        })
+    })
     describe('needsPermission', () => {
         it('rejects invalid scope', () => {
             should(() => {
@@ -127,6 +160,30 @@ describe('Permissions API', async () => {
             })
             it('Allows admin to operate on any user', async () => {
                 expectPass(await sendRequest('user:read', ADMIN_SESSION_NO_TEAM, { user: { id: '234' } }))
+            })
+
+            describe('Application RBAC', () => {
+                describe('feature disabled', () => {
+                    before(() => { rbacApplicationEnabled = false })
+                    it('Allows user to operate on application unspecified by app RBAC', async () => {
+                        expectPass(await sendRequest('project:edit', USER_SESSION_APPLICATION_READ, { applicationId: 'app-2' }))
+                    })
+                    it('Allows user to operate on application specified by app RBAC', async () => {
+                        // If rbacApplication is not enabled, this request will pass as the user top level role
+                        // allows it
+                        expectPass(await sendRequest('project:edit', USER_SESSION_APPLICATION_READ, { applicationId: 'app-1' }))
+                    })
+                })
+                describe('feature enabled', () => {
+                    before(() => { rbacApplicationEnabled = true })
+                    after(() => { rbacApplicationEnabled = false })
+                    it('Allows user to operate on application unspecified by app RBAC', async () => {
+                        expectPass(await sendRequest('project:edit', USER_SESSION_APPLICATION_READ, { applicationId: 'app-2' }))
+                    })
+                    it('Prevents user to operate on application specified by app RBAC', async () => {
+                        expectFail(await sendRequest('project:edit', USER_SESSION_APPLICATION_READ, { applicationId: 'app-1' }))
+                    })
+                })
             })
         })
         describe('tokens', () => {
