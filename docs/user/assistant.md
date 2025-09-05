@@ -14,10 +14,11 @@ plugin that aims to helps you work faster and smarter.
 The plugin currently supports 2 features:
 
 1. Function node creation directly from the Node-RED editor toolbar
-2. In-line Function code generation within the function node editor
-3. In-line JSON generation within the JSON editor
+2. In-editor Function code generation within the function node editor
+3. In-editor JSON generation within the JSON editor
 4. Flow Explainer to explain the selected nodes
-5. In-line CSS and HTML generation for FlowFuse Dashboard `ui-template` nodes
+5. In-editor CSS and HTML generation for FlowFuse Dashboard `ui-template` nodes
+6. Inline code completions for Function node, Tables Query node and FlowFuse Dashboard `ui-template` node
 
 To enable the Assistant and any new features, ensure your instance is running the latest Stack and the assistant is updated to the latest version.
 
@@ -42,7 +43,7 @@ If your function node requires multiple outputs, the assistant will know to set 
 on the function node setup.
 
 
-### In-line Function Code Generation
+### Function Code Generation
 
 The FlowFuse Assistant plugin also adds a new code lens to the function node editor that allows you
 to generate code directly within the editor. 
@@ -52,7 +53,7 @@ to generate code directly within the editor.
 This is useful when you want to quickly add code to an
 existing function node without having to generate a full function node from scratch.
 
-### In-line JSON Generation
+### JSON Generation
 
 The FlowFuse Assistant plugin also adds a code lens to the JSON editor that allows you
 to generate JSON directly within the monaco editor.
@@ -66,9 +67,14 @@ any node that the TypedInput offers the JSON editor.
 The FlowFuse Assistant plugin also adds a new button to the Assistant menu that will explain what the selected nodes do.
 To use this feature, simply select the 1 or more nodes that you want to understand and click the "Explain Flows" button in the Assistant menu.
 
-### In-line CSS and HTML Generation for FlowFuse Dashboard
+### CSS and HTML Generation for FlowFuse Dashboard
 
 The FlowFuse Assistant plugin also adds a code lens to the FlowFuse Dashboard `ui-template` node that allows you
 to generate CSS and HTML directly within the code editor. It is aware of the context of the node and will
 generate suitable CSS and HTML components for vuetify and the FlowFuse Dashboard.
 
+### Inline Code Completions
+
+The FlowFuse Assistant plugin also provides inline code completions for Function nodes, Tables Query nodes, and FlowFuse Dashboard `ui-template` nodes.
+This feature helps you quickly complete your code without having to leave the editor.
+It is context-aware and can suggest completions based on the current cursor position and the surrounding code.
