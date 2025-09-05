@@ -117,14 +117,14 @@ jobs:
           app_id: ${{ secrets.GH_BOT_APP_ID }}
           private_key: ${{ secrets.GH_BOT_APP_KEY }}
 
-      - name: Trigger flowforge container build
+      - name: Trigger FlowFuse container build
         uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1.2.4
         with:
-          workflow: flowforge-container.yml
+          workflow: flowfuse-container.yml
           repo: flowfuse/helm
           ref: main
           token: ${{ steps.generate_token.outputs.token }}
-          inputs: '{"flowforge_ref": "${{ github.ref }}", "flowforge_release_name": "${{ env.release_name }}"}'
+          inputs: '{"flowfuse_ref": "${{ github.ref }}", "flowfuse_release_name": "${{ env.release_name }}"}'
 
   notify-slack:
     name: Notify on failure
