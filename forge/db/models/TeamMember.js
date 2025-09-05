@@ -21,6 +21,17 @@ module.exports = {
                     }
                 }
             }
+        },
+        permissions: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            set (value) {
+                this.setDataValue('permissions', JSON.stringify(value))
+            },
+            get () {
+                const rawValue = this.getDataValue('permissions') || '{}'
+                return JSON.parse(rawValue)
+            }
         }
     },
     scopes: {

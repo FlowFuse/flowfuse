@@ -15,6 +15,7 @@ module.exports = async function (app) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
+                    request.applicationId = request.project.Application?.hashid
                     const teamType = await request.project.Team.getTeamType()
                     if (!teamType.getFeatureProperty('staticAssets', false)) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found - not available on team' })

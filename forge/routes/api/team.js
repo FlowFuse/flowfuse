@@ -869,7 +869,8 @@ module.exports = async function (app) {
                 200: {
                     type: 'object',
                     properties: {
-                        role: { type: 'number' }
+                        role: { type: 'number' },
+                        permissions: { $ref: 'TeamMemberPermissions' }
                     }
                 },
                 '4xx': {
@@ -880,12 +881,14 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         if (request.teamMembership) {
             reply.send({
-                role: request.teamMembership.role
+                role: request.teamMembership.role,
+                permissions: request.teamMembership.permissions
             })
             return
         } else if (request.session.User?.admin) {
             reply.send({
-                role: Roles.Admin
+                role: Roles.Admin,
+                permissions: {}
             })
             return
         }
