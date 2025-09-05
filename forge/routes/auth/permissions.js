@@ -35,7 +35,7 @@ module.exports = fp(async function (app, opts) {
         // the teamMembership.permissions object
         if (app.config.features.enabled('rbacApplication')) {
             const application = context?.application?.hashid || context?.applicationId
-            if (application && teamMembership.permissions?.applications[application] !== undefined) {
+            if (application && teamMembership.permissions?.applications?.[application] !== undefined) {
                 userRole = teamMembership.permissions.applications[application]
             }
         }
