@@ -59,7 +59,6 @@
 <script>
 import { FilterIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import ApplicationApi from '../../api/application.js'
 import SnapshotsApi from '../../api/snapshots.js'
@@ -181,7 +180,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         snapshotList () {
             return this.snapshots.map(s => {
                 return {

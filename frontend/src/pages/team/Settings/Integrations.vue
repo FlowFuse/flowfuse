@@ -111,7 +111,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'team']),
         ...mapGetters('account', ['featuresCheck']),
         addEnabled: function () {
             return this.hasPermission('team:git:tokens:create')

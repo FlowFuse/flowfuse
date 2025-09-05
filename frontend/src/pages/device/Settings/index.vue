@@ -26,7 +26,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team'])
+        ...mapState('account', ['teamMembership'])
     },
     mounted () {
         if (this.checkAccess()) {
