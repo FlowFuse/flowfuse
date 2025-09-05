@@ -391,6 +391,18 @@ module.exports = {
                         limit: 1
                     })
                     return snapshots[0]
+                },
+                async getLatestDeploySnapshot () {
+                    const snapshots = await this.getProjectSnapshots({
+                        where: {
+                            name: {
+                                [Op.like]: 'Deploy Snapshot - %'
+                            }
+                        },
+                        order: [['createdAt', 'DESC']],
+                        limit: 1
+                    })
+                    return snapshots[0]
                 }
             },
             static: {

@@ -11,6 +11,7 @@ import FFListItem from './components/ListItem.vue'
 import FFMarkdownViewer from './components/Markdown.vue'
 import FFNotificationPill from './components/NotificationPill.vue'
 import FFNotificationToast from './components/NotificationToast.vue'
+import FFPopover from './components/Popover.vue'
 import FFSpinner from './components/Spinner.vue'
 import FFDataTable from './components/data-table/DataTable.vue'
 import FFDataTableCell from './components/data-table/DataTableCell.vue'
@@ -67,5 +68,6 @@ export default {
     FFNotificationPill,
     FFNotificationToast,
     // Tabs
-    FFTabs
+    FFTabs,
+    FFPopover
 }
