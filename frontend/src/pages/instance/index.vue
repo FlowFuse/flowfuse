@@ -87,7 +87,6 @@ import usePermissions from '../../composables/Permissions.js'
 
 import featuresMixin from '../../mixins/Features.js'
 import instanceMixin from '../../mixins/Instance.js'
-import permissionsMixin from '../../mixins/Permissions.js'
 import { Roles } from '../../utils/roles.js'
 
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
@@ -109,12 +108,13 @@ export default {
         InstanceEditorLink,
         LockClosedIcon
     },
-    mixins: [permissionsMixin, instanceMixin, featuresMixin],
+    mixins: [instanceMixin, featuresMixin],
     setup () {
-        const { hasPermission } = usePermissions()
+        const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
 
         return {
-            hasPermission
+            hasPermission,
+            hasAMinimumTeamRoleOf
         }
     },
     data: function () {
