@@ -13,7 +13,7 @@ meta:
 
 # Device Agent - Hardware
 
-The FlowFuse Device Agent can be installed on any Mac, Linux, or Windows-supported device. If you want to learn more about how to install the Device Agent in general, [click here](/docs/device-agent/install.md). Nevertheless, this overview provides a guide for specific hardware platforms.
+The FlowFuse Device Agent can be installed on any Mac, Linux, or Windows-supported device. If you want to learn more about how to install the Device Agent in general, [click here](/docs/device-agent/install/overview.md). Nevertheless, this overview provides a guide for specific hardware platforms.
 
 ## Official FlowFuse Hardware Partners
 
