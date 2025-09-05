@@ -51,3 +51,44 @@ export const generateUuid = (length = 6) => {
         byte.toString(36).padStart(2, '0')
     ).join('').substring(0, length)
 }
+
+/**
+ * Generates a hash string from a given input string.
+ * The hash value is computed using the FNV-1a hashing algorithm.
+ * The length of the returned hash can be configured.
+ *
+ * @param {string} str - The input string to be hashed.
+ * @param {number} [length=5] - The desired length of the resulting hash string. Defaults to 5 characters.
+ * @returns {string} - The computed hash string truncated to the specified length.
+ */
+export const hashString = (str, length = 5) => {
+    let h = 2166136261 >>> 0
+    for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i)
+        h = Math.imul(h, 16777619)
+    }
+    return (h >>> 0).toString(16).substring(0, length)
+}
+
+/**
+ * Generates a non-deterministic hashed string of a specified length.
+ *
+ * This function asynchronously computes a SHA-1 hash of the input string
+ * and converts the result into a hexadecimal representation. The output
+ * is truncated to the specified length, defaulting to 5 characters.
+ *
+ * Note: Due to the use of SHA-1, this function should not be used
+ * for cryptographic purposes or security-critical applications.
+ *
+ * @param {string} str - The input string to be hashed.
+ * @param {number} [length=5] - The desired length of the resulting hash string.
+ * @returns {Promise<string>} A promise that resolves to the non-deterministic hashed string.
+ */
+export const nonDeterministicHashString = async (str, length = 5) => {
+    const data = new TextEncoder().encode(str)
+    const hashBuffer = await crypto.subtle.digest('SHA-1', data)
+    return Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+        .substring(0, length)
+}

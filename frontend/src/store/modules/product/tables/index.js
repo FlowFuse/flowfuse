@@ -1,4 +1,5 @@
 import tablesApi from '../../../../api/tables.js'
+import { hashString } from '../../../../composables/String.js'
 const emptyColumn = {
     name: '',
     type: '',
@@ -82,10 +83,10 @@ const mutations = {
             }
         })
     },
-    setTableData (state, { databaseId, tableName, data }) {
+    setTableData (state, { databaseId, tableName, payload }) {
         Object.keys(state.tables[databaseId]).forEach(key => {
             if (state.tables[databaseId][key].name === tableName) {
-                state.tables[databaseId][key].data = data
+                state.tables[databaseId][key].payload = payload
             }
         })
     },
@@ -141,13 +142,22 @@ const actions = {
     getTableSchema ({ commit }, { databaseId, tableName, teamId }) {
         return tablesApi.getTableSchema(teamId, databaseId, tableName)
             .then((schema) => {
+                schema.forEach(column => {
+                    column.safeName = hashString(column.name)
+                })
                 commit('setTableSchema', { databaseId, tableName, schema })
             })
     },
     getTableData ({ commit }, { databaseId, tableName, teamId }) {
         return tablesApi.getTableData(teamId, databaseId, tableName)
             .then((data) => {
-                commit('setTableData', { databaseId, tableName, data })
+                const payload = {
+                    data,
+                    safe: data.map(row => Object.fromEntries(
+                        Object.entries(row).map(([key, value]) => [hashString(key), value])
+                    ))
+                }
+                commit('setTableData', { databaseId, tableName, payload })
             })
     },
     createTable ({ commit, state, rootState }, { databaseId }) {
