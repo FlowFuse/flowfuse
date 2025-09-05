@@ -16,8 +16,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import deviceApi from '../../../api/devices.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
 import alerts from '../../../services/alerts.js'
@@ -108,7 +106,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         isUpdateButtonDisabled () {
             if (this.hasError) return true
             return !this.unsavedChanges

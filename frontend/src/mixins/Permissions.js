@@ -1,5 +1,3 @@
-import { mapState } from 'vuex'
-
 import usePermissions from '../composables/Permissions.js'
 
 /**
@@ -9,8 +7,6 @@ import usePermissions from '../composables/Permissions.js'
 // todo in an attempt to sunset the wide use of mixins, the permissions composable should be used instead
 export default {
     computed: {
-        // todo to be removed. A lot of components that use this mixin rely on the state imported here
-        ...mapState('account', ['team', 'teamMembership']),
         isVisitingAdmin () {
             const { isVisitingAdmin } = usePermissions()
             return isVisitingAdmin()

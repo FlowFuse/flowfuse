@@ -35,8 +35,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import ApplicationApi from '../../../../api/application.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
@@ -74,7 +72,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         unsavedChanges () {
             return this.deviceGroup ? (this.input.name !== this.deviceGroup.name || this.input.description !== this.deviceGroup.description) : false
         },

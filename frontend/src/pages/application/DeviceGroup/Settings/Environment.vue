@@ -34,7 +34,6 @@
 
 <script>
 import { ExclamationCircleIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
 
 import applicationApi from '../../../../api/application.js'
 import permissionsMixin from '../../../../mixins/Permissions.js'
@@ -114,7 +113,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         unsavedChanges () {
             return this.editable.changed.env
         }

@@ -40,7 +40,7 @@ export default {
     mixins: [permissionsMixin],
     emits: ['option-selected'],
     computed: {
-        ...mapState('account', ['user', 'team', 'teamMembership', 'features', 'notifications']),
+        ...mapState('account', ['user', 'team', 'features', 'notifications']),
         ...mapState('ux', ['mainNav']),
         ...mapGetters('account', ['requiresBilling']),
         ...mapGetters('ux', ['mainNavContexts', 'mainNavContext']),

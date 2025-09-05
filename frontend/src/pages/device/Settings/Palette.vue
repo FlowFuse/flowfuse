@@ -60,8 +60,6 @@
 <script>
 import { PlusSmIcon, XIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
-
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
@@ -101,7 +99,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         defaultEnabled () {
             return this.urls.includes(this.defaultCatalogue)
         },

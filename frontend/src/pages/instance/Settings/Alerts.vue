@@ -6,7 +6,6 @@
 
 <script>
 import { useRouter } from 'vue-router'
-import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import permissionsMixin from '../../../mixins/Permissions.js'
@@ -55,7 +54,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'features']),
         emailOptions () {
             return [
                 {

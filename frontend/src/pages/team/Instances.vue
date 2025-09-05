@@ -237,7 +237,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapGetters('account', ['featuresCheck', 'team']),
         instances () {
             return Array.from(this.instancesMap.values())
         },

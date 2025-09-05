@@ -26,7 +26,6 @@
 
 <script>
 import semver from 'semver'
-import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 
@@ -85,7 +84,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         securityOptionsSupported () {
             if (!this.device.agentVersion) {
                 // Device has not called home yet - so we don't know what agent

@@ -162,7 +162,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
+        ...mapState('account', ['teamMembership']),
         ...mapGetters('account', ['featuresCheck']),
         cloudColumns () {
             return [

@@ -57,6 +57,7 @@
 <script>
 import { KeyIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
+import { mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
@@ -112,6 +113,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         addEnabled: function () {
             return this.hasPermission('team:device:provisioning-token:create')
         },

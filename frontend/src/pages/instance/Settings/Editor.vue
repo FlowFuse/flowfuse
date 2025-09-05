@@ -56,7 +56,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
+        ...mapState('account', ['team']),
         saveButton () {
             return {
                 visible: true,

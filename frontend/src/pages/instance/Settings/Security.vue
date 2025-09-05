@@ -114,7 +114,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'settings']),
+        ...mapState('account', ['team', 'settings']),
         projectLauncherCompatible () {
             const launcherVersion = this.project?.meta?.versions?.launcher
             if (!launcherVersion) {

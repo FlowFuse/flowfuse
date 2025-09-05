@@ -50,7 +50,7 @@ export default {
     },
     mixins: [permissionsMixin],
     computed: {
-        ...mapState('account', ['teamMembership']),
+        ...mapState('account', ['team', 'teamMembership']),
         billingPath () {
             return '/team/' + this.team.slug + '/settings/change-type'
         },

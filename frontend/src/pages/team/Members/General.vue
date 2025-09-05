@@ -65,7 +65,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user']),
+        ...mapState('account', ['user', 'team']),
         canEditUser: function () {
             return this.hasPermission('team:user:remove') || this.hasPermission('team:user:change-role')
         },
