@@ -14,8 +14,6 @@
 
 import { mapState } from 'vuex'
 
-import permissionsMixin from '../../../mixins/Permissions.js'
-
 import TemplateSectionCatalogue from './sections/Catalogues.vue'
 import TemplateSectionNPM from './sections/NPMRegistry.vue'
 import TemplateSectionPalette from './sections/Palette.vue'
@@ -29,7 +27,6 @@ export default {
         TemplateSectionPalette,
         TemplateSectionPaletteModules
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         project: {

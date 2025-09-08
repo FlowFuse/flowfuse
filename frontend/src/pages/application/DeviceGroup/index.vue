@@ -68,8 +68,7 @@ import ApplicationApi from '../../../api/application.js'
 import SubscriptionExpiredBanner from '../../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../../components/banners/TeamTrial.vue'
 import DeviceSolidIcon from '../../../components/icons/DeviceSolid.js'
-
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 export default {
     name: 'DeviceGroup',
@@ -79,7 +78,11 @@ export default {
         SubscriptionExpiredBanner,
         TeamTrialBanner
     },
-    mixins: [permissionsMixin],
+    setup () {
+        const { isVisitingAdmin } = usePermissions()
+
+        return { isVisitingAdmin }
+    },
     data: function () {
         return {
             mounted: false,

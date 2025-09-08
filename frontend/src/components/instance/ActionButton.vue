@@ -18,7 +18,7 @@
 
 <script>
 import InstanceApi from '../../api/instances.js'
-import permissionsMixin from '../../mixins/Permissions.js'
+import usePermissions from '../../composables/Permissions.js'
 import ConfirmInstanceDeleteDialog from '../../pages/instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
@@ -28,7 +28,6 @@ import DropdownMenu from '../DropdownMenu.vue'
 export default {
     name: 'InstanceActionsButton',
     components: { ConfirmInstanceDeleteDialog, DropdownMenu },
-    mixins: [permissionsMixin],
     props: {
         instance: {
             type: Object,
@@ -36,6 +35,11 @@ export default {
         }
     },
     emits: ['instance-deleted'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             instanceStateMutator: null

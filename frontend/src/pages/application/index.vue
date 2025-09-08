@@ -38,10 +38,10 @@ import { mapState } from 'vuex'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import PipelinesIcon from '../../components/icons/Pipelines.js'
 import ProjectsIcon from '../../components/icons/Projects.js'
+import usePermissions from '../../composables/Permissions.js'
 
 import applicationMixin from '../../mixins/Application.js'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
-import permissionsMixin from '../../mixins/Permissions.js'
 
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
@@ -54,7 +54,12 @@ export default {
         ConfirmInstanceDeleteDialog,
         InstanceStatusPolling
     },
-    mixins: [permissionsMixin, applicationMixin, instanceActionsMixin],
+    mixins: [applicationMixin, instanceActionsMixin],
+    setup () {
+        const { hasPermission, isVisitingAdmin } = usePermissions()
+
+        return { hasPermission, isVisitingAdmin }
+    },
     computed: {
         ...mapState('account', ['features', 'team']),
         navigation () {

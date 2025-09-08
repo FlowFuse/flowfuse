@@ -123,7 +123,7 @@ import InstanceApi from '../../api/instances.js'
 import FormHeading from '../../components/FormHeading.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import AuditLog from '../../components/audit-log/AuditLog.vue'
-import permissionsMixin from '../../mixins/Permissions.js'
+import usePermissions from '../../composables/Permissions.js'
 
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
@@ -140,13 +140,17 @@ export default {
         TemplateIcon,
         TrendingUpIcon
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         instance: {
             required: true,
             type: Object
         }
+    },
+    setup () {
+        const { isVisitingAdmin } = usePermissions()
+
+        return { isVisitingAdmin }
     },
     data () {
         return {

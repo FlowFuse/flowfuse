@@ -17,7 +17,7 @@
 
 <script>
 import deviceApi from '../../../api/devices.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 import alerts from '../../../services/alerts.js'
 import dialog from '../../../services/dialog.js'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment.vue'
@@ -26,7 +26,6 @@ export default {
     name: 'DeviceSettingsEnvironment',
     props: ['device'],
     emits: ['device-updated'],
-    mixins: [permissionsMixin],
     beforeRouteLeave: async function (_to, _from, next) {
         if (this.unsavedChanges) {
             const dialogOpts = {
@@ -79,6 +78,11 @@ export default {
     },
     components: {
         TemplateSettingsEnvironment
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
     },
     data () {
         return {

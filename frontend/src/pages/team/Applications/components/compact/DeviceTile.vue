@@ -55,7 +55,6 @@ import StatusBadge from '../../../../../components/StatusBadge.vue'
 import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
-import permissionsMixin from '../../../../../mixins/Permissions.js'
 import FfKebabMenu from '../../../../../ui-components/components/KebabMenu.vue'
 import DaysSince from '../../../../application/Snapshots/components/cells/DaysSince.vue'
 import InstanceMinimalStatusBadge from '../../../../instance/components/InstanceMinimalStatusBadge.vue'
@@ -69,7 +68,7 @@ export default {
         DaysSince,
         FinishSetupButton
     },
-    mixins: [AuditMixin, permissionsMixin, deviceActionsMixin],
+    mixins: [AuditMixin, deviceActionsMixin],
     props: {
         device: {
             type: Object,

@@ -118,9 +118,8 @@ import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
+import usePermissions from '../../composables/Permissions.js'
 
-import permissionsMixin from '../../mixins/Permissions.js'
-import { Roles } from '../../utils/roles.js'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import DashboardLinkCell from '../instance/components/cells/DashboardLink.vue'
 import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorLink.vue'
@@ -136,7 +135,6 @@ export default {
         EmptyState,
         FeatureUnavailableToTeam
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         application: {
@@ -151,8 +149,11 @@ export default {
     emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start'],
     setup () {
         const { navigateTo } = useNavigationHelper()
+        const { hasPermission, isVisitingAdmin } = usePermissions()
 
         return {
+            hasPermission,
+            isVisitingAdmin,
             navigateTo
         }
     },
@@ -192,9 +193,6 @@ export default {
                 instance.hideDashboard2Button = !instance.settings?.dashboard2UI
                 return instance
             })
-        },
-        isVisitingAdmin () {
-            return this.teamMembership.role === Roles.Admin
         },
         instancesAvailable () {
             return this.featuresCheck?.isHostedInstancesEnabledForTeam

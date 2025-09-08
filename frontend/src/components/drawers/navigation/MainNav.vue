@@ -31,13 +31,11 @@
 import { ChevronLeftIcon } from '@heroicons/vue/outline'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
-import permissionsMixin from '../../../mixins/Permissions.js'
 import NavItem from '../../NavItem.vue'
 
 export default {
     name: 'MainNav',
     components: { NavItem },
-    mixins: [permissionsMixin],
     emits: ['option-selected'],
     computed: {
         ...mapState('account', ['user', 'team', 'features', 'notifications']),

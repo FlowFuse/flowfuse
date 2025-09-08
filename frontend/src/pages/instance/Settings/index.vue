@@ -40,8 +40,8 @@ import { mapState } from 'vuex'
 
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import usePermissions from '../../../composables/Permissions.js'
 import instanceActionsMixin from '../../../mixins/InstanceActions.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
     name: 'InstanceSettings',
@@ -49,7 +49,7 @@ export default {
         SectionTopMenu,
         SectionSideMenu
     },
-    mixins: [permissionsMixin, instanceActionsMixin],
+    mixins: [instanceActionsMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -58,6 +58,11 @@ export default {
         }
     },
     emits: ['instance-updated', 'instance-confirm-delete', 'instance-confirm-suspend'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             sideNavigation: [],

@@ -91,9 +91,9 @@
 import { mapGetters } from 'vuex'
 
 import InstanceStatusPolling from '../../../../../components/InstanceStatusPolling.vue'
+import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import instanceActionsMixin from '../../../../../mixins/InstanceActions.js'
-import permissionsMixin from '../../../../../mixins/Permissions.js'
 
 import FfKebabMenu from '../../../../../ui-components/components/KebabMenu.vue'
 import { InstanceStateMutator } from '../../../../../utils/InstanceStateMutator.js'
@@ -112,7 +112,7 @@ export default {
         InstanceEditorLink,
         InstanceMinimalStatusBadge
     },
-    mixins: [AuditMixin, permissionsMixin, instanceActionsMixin],
+    mixins: [AuditMixin, instanceActionsMixin],
     props: {
         instance: {
             required: true,
@@ -128,6 +128,11 @@ export default {
         }
     },
     emits: ['delete-instance'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             localInstance: this.instance,
