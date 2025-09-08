@@ -5,7 +5,7 @@
             Finish Setup
         </ff-button>
     </template>
-    <DeviceLastSeenBadge v-else :lastSeenAt="lastSeenAt" :lastSeenSince="lastSeenSince" />
+    <DeviceLastSeenBadge v-else :lastSeenAt="lastSeenAt" :lastSeenSince="lastSeenSince" :lastSeenMs="lastSeenMs" />
 </template>
 
 <script>
