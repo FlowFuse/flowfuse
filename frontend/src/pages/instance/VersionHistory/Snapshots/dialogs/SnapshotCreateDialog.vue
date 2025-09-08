@@ -40,7 +40,7 @@
                                     @click="onPopoverItemClick('latest',close)"
                                 >
                                     <template #icon>
-                                        <ChevronLeftIcon class="ff-icon text-indigo-500" />
+                                        <ClockIcon class="ff-icon text-indigo-500" />
                                     </template>
                                 </popover-item>
                                 <popover-item
@@ -102,8 +102,8 @@
 </template>
 <script>
 
-import { CubeTransparentIcon } from '@heroicons/vue/outline'
-import { ChevronLeftIcon, ChevronRightIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import { ClockIcon, CubeTransparentIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
 import { mapGetters } from 'vuex'
 
 import instanceApi from '../../../../../api/instances.js'
@@ -122,8 +122,8 @@ export default {
         FormRow,
         QuestionMarkCircleIcon,
         CubeTransparentIcon,
-        ChevronLeftIcon,
-        ChevronRightIcon
+        ChevronRightIcon,
+        ClockIcon
     },
     props: {
         project: {
@@ -164,6 +164,8 @@ export default {
         }
     },
     mounted () {
+        console.log('SnapshotCreateDialog mounted')
+        console.log(this.featuresCheck)
     },
     methods: {
         confirm () {
