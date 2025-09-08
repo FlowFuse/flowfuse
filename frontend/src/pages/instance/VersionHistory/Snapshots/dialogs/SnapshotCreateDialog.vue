@@ -163,10 +163,7 @@ export default {
             return !this.submitted && !!(this.input.name)
         }
     },
-    mounted () {
-        console.log('SnapshotCreateDialog mounted')
-        console.log(this.featuresCheck)
-    },
+    mounted () { },
     methods: {
         confirm () {
             if (this.formValid) {
