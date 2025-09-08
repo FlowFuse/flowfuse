@@ -39,11 +39,13 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import TeamAPI from '../../api/team.js'
 import FormHeading from '../../components/FormHeading.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
-import permissionsMixin from '../../mixins/Permissions.js'
+import usePermissions from '../../composables/Permissions.js'
 import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
 export default {
@@ -54,7 +56,10 @@ export default {
         FormHeading,
         SectionTopMenu
     },
-    mixins: [permissionsMixin],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             logEntries: [],
@@ -73,6 +78,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team', 'teamMembership']),
         logScope () {
             return !this.auditFilters.selectedEventScope ? 'application' : 'project' // cannot use 'instance' due to legacy naming
         }
