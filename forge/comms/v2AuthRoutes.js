@@ -52,6 +52,23 @@ module.exports = async function (app) {
                     result: 'deny'
                 })
             }
+        } else if (username.startsWith('agent:')) {
+            const parts = username.split('@')
+            const teamId = parts[1]
+            const agent = await app.db.models.TeamBrokerAgent.byTeam(teamId)
+            if (agent && agent.auth == password) { 
+                reply.send({
+                    result: 'allow',
+                    is_superuser: false,
+                    client_attrs: {
+                        team: `ff/v1/${teamId}/c/`
+                    }
+                })
+            } else {
+                reply.send({
+                    result: 'deny'
+                })
+            }
         } else {
             if (app.license.active()) {
                 let teamId = null
@@ -134,6 +151,12 @@ module.exports = async function (app) {
                 reply.send({ result: 'deny' })
             }
             // return
+        } else if (user.startsWith('agent:')) {
+            if (action === 'subscribe') {
+                reply.send({ result: 'allow' })
+            } else {
+                reply.send({ action: 'deny' })
+            }
         } else {
             if (app.license.active()) {
                 let teamClientUsername

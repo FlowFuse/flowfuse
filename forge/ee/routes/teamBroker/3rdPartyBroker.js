@@ -160,6 +160,10 @@ module.exports = async function (app) {
                         if (request.params.teamId !== request.session.Broker.Team.hashid) {
                             reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
                         }
+                    } else if (request.session.ownerType === 'teamBrokerAgent') {
+                        if (request.params.teamId !== request.session.TeamBrokerAgent.Team.hashid) {
+                            reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                        }
                     } else {
                         reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
                     }
@@ -206,6 +210,24 @@ module.exports = async function (app) {
                 reply.send(resp)
             } else {
                 reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+            }
+        } else if (request.params.brokerId === 'team-broker') {
+            // provide team level creds for team broker
+            const agent = await app.db.models.TeamBrokerAgent.byTeam(request.params.teamId)
+            if (agent) {
+                const brokerURL = new URL(app.config.broker.url)
+                reply.send({
+                    host: brokerURL.hostname,
+                    port: brokerURL.port,
+                    protocol: brokerURL.protocol,
+                    ssl: brokerURL.protocol === 'mqtts:' || brokerURL.protocol === 'wss:',
+                    clientId: `${request.params.teamId}-agent@${request.params.teamId}`,
+                    credentials: {
+                        username: `agent:${request.params.teamId}@${request.params.teamId}`,
+                        password: agent.auth
+                    },
+                    topicPrefix: '#'
+                })
             }
         } else {
             reply.status(404).send({ code: 'not_found', error: 'not found' })
@@ -381,7 +403,24 @@ module.exports = async function (app) {
         schema: { }
     }, async (request, reply) => {
         if (request.params.brokerId === 'team-broker') {
-            reply.status(403).send({})
+            const agent = await app.db.models.TeamBrokerAgent.byTeam(request.team.hashid)
+            if (agent && agent.state !== ' running') {
+                await app.containers.sendBrokerAgentCommand(agent, 'start')
+                reply.status(200).send({})
+            } else {
+                const brokerUrl = new URL(app.config.broker.url)
+                const agent = await app.db.models.TeamBrokerAgent.create({
+                    Team: request.team,
+                    settings: {
+                        host: brokerUrl.hostname,
+                        port: brokerUrl.protocol,
+                        protocol: brokerUrl.protocol
+                    }
+                })
+                await app.containers.startBrokerAgent(agent)
+                reply.status(200).send({})
+            }
+            // reply.status(403).send({})
         } else {
             if (request.broker.state === 'running') {
                 await app.containers.sendBrokerAgentCommand(request.broker, 'start')
@@ -405,7 +444,14 @@ module.exports = async function (app) {
         schema: { }
     }, async (request, reply) => {
         if (request.params.brokerId === 'team-broker') {
-            reply.status(403).send({})
+            const agent = await app.db.models.TeamBrokerAgent.byTeam(request.team.hashid)
+            if (agent && agent.state === 'running') {
+                await app.containers.sendBrokerAgentCommand(agent, 'stop')
+                reply.status(200).send({})
+            } else {
+                // hmm shouldn't be able to get here
+            }
+            // reply.status(403).send({})
         } else {
             await app.containers.sendBrokerAgentCommand(request.broker, 'stop')
             reply.status(200).send({})
@@ -423,6 +469,14 @@ module.exports = async function (app) {
         schema: { }
     }, async (request, reply) => {
         if (request.params.brokerId === 'team-broker') {
+            const agent = await app.db.models.TeamBrokerAgent.byTeam(request.team.hashid)
+            if (agent) {
+                await app.containers.stopBrokerAgent(agent)
+                await agent.destroy()
+                reply.status(200).send({})
+            } else {
+                //
+            }
             reply.status(403).send({})
         } else {
             await app.containers.stopBrokerAgent(request.broker)
@@ -667,4 +721,58 @@ module.exports = async function (app) {
             reply.status(404).send({ code: 'not_found', error: 'not found' })
         }
     })
+
+    // app.post('/:brokerId/timeout', {
+    //     preHandler: [
+    //         async (request, reply) => {
+    //             if (request.session?.scope?.includes('broker:topics')) {
+    //                 if (request.session.ownerType === 'broker') {
+    //                     if (request.params.teamId !== request.session.Broker.Team.hashid) {
+    //                         reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+    //                     }
+    //                 } else {
+    //                     reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+    //                 }
+    //             } else {
+    //                 const hasPermission = app.needsPermission('broker:topics:write')
+    //                 await hasPermission(request, reply) // hasPermission sends the error response if required which stops the request
+    //             }
+    //         }
+    //     ],
+    //     schema: {
+    //         summary: 'Record shutdown of schema sampler',
+    //         tags: ['MQTT Broker'],
+    //         params: {
+    //             type: 'object',
+    //             properties: {
+    //                 teamId: { type: 'string' },
+    //                 brokerId: { type: 'string' }
+    //             }
+    //         },
+    //         response: {
+    //             201: {
+    //                 type: 'object',
+    //                 properties: {
+    //                     topic: { type: 'string' }
+    //                 },
+    //                 additionalProperties: true
+    //             },
+    //             '4xx': {
+    //                 $ref: 'APIError'
+    //             },
+    //             500: {
+    //                 $ref: 'APIError'
+    //             }
+    //         }
+    //     }
+    // }, async (request, reply) => {
+    //     const teamId = app.db.models.Team.decodeHashid(request.params.teamId)[0]
+    //     let brokerId
+    //     if (request.params.brokerId !== 'team-broker') {
+    //         brokerId = app.db.models.BrokerCredentials.decodeHashid(request.params.brokerId)[0]
+    //     } else {
+    //         // Get the placeholder creds object id used for team brokers
+    //         brokerId = app.settings.get('team:broker:creds')
+    //     }
+    // })
 }

@@ -39,6 +39,8 @@ async function checkPendingMigrations (transaction) {
     migrationFiles = migrationFiles.filter(name => /^\d\d\d\d\d\d\d\d-\d\d-.*\.js$/.test(name))
     migrationFiles.sort()
 
+    console.log(migrationFiles)
+
     const tables = await app.db.sequelize.getQueryInterface().showAllTables()
 
     if (tables.length === 1) {
