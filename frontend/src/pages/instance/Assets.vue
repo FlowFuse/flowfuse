@@ -68,9 +68,11 @@ export default {
         }
     },
     setup () {
-        const { hasAMinimumTeamRoleOf } = usePermissions()
+        const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
 
-        return { hasAMinimumTeamRoleOf }
+        return {
+            hasPermission, hasAMinimumTeamRoleOf
+        }
     },
     data () {
         return {
