@@ -11,10 +11,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import InstanceApi from '../../../api/instances.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 import Dialog from '../../../services/dialog.js'
 import TemplateSettingsEnvironment from '../../admin/Template/sections/Environment.vue'
 import {
@@ -26,7 +24,6 @@ export default {
     components: {
         TemplateSettingsEnvironment
     },
-    mixins: [permissionsMixin],
     beforeRouteLeave: async function (_to, _from, next) {
         if (this.unsavedChanges) {
             const dialogOpts = {
@@ -53,6 +50,13 @@ export default {
         }
     },
     emits: ['instance-updated', 'save-button-state', 'restart-instance'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return {
+            hasPermission
+        }
+    },
     data () {
         return {
             unsavedChanges: false,
@@ -73,7 +77,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         saveButton () {
             return {
                 visible: this.hasPermission('device:edit-env'),

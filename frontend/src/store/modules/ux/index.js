@@ -9,7 +9,7 @@ import DeviceGroupOutlineIcon from '../../../components/icons/DeviceGroupOutline
 import PipelinesIcon from '../../../components/icons/Pipelines.js'
 import ProjectsIcon from '../../../components/icons/Projects.js'
 import QueueIcon from '../../../components/icons/Queue.js'
-import usePermissions from '../../../composables/Permissions.js'
+import { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
 import tours from './tours/index.js'
@@ -50,15 +50,18 @@ const meta = {
 const state = initialState
 
 const getters = {
+    teamMembership (state, getters, rootState, rootGetters) {
+        return rootGetters['account/teamMembership'] ?? { role: 0 }
+    },
     hiddenLeftDrawer: (state, getters) => {
         return state.leftDrawer.component?.name === 'MainNav' && getters.mainNavContext.length === 0
     },
     mainNavContexts: function (state, getters, rootState, rootGetters) {
-        const { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } = usePermissions()
         const team = rootState.account.team
         const accountFeatures = rootState.account.features
         const requiresBilling = rootGetters['account/requiresBilling']
         const features = rootGetters['account/featuresCheck']
+        const teamMembership = getters.teamMembership
 
         const adminContext = [
             {
@@ -202,7 +205,7 @@ const getters = {
             ? [
                 {
                     title: '',
-                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                     entries: [
                         {
                             label: 'Home',
@@ -218,7 +221,7 @@ const getters = {
                 },
                 {
                     title: 'Instances',
-                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                     entries: [
                         {
                             label: 'Hosted Instances',
@@ -251,7 +254,7 @@ const getters = {
                 },
                 {
                     title: 'Operations',
-                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                     entries: [
                         {
                             label: 'Applications',
@@ -273,7 +276,7 @@ const getters = {
                             icon: DeviceGroupOutlineIcon,
                             disabled: requiresBilling,
                             featureUnavailable: !features.isDeviceGroupsFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member)
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership)
                         },
                         {
                             label: 'Pipelines',
@@ -285,7 +288,7 @@ const getters = {
                             icon: PipelinesIcon,
                             disabled: requiresBilling,
                             featureUnavailable: !features.devOpsPipelinesFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member)
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership)
                         },
                         {
                             label: 'Bill Of Materials',
@@ -297,7 +300,7 @@ const getters = {
                             icon: TableIcon,
                             disabled: requiresBilling,
                             featureUnavailable: !features.isBOMFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner)
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner, teamMembership)
                         },
                         {
                             label: 'Brokers',
@@ -306,7 +309,7 @@ const getters = {
                             icon: RssIcon,
                             disabled: requiresBilling,
                             featureUnavailable: !features.isMqttBrokerFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isMqttBrokerFeatureEnabledForPlatform
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership) && features.isMqttBrokerFeatureEnabledForPlatform
                         },
                         {
                             label: 'Performance',
@@ -315,7 +318,7 @@ const getters = {
                             icon: ChartBarIcon,
                             disabled: requiresBilling,
                             featureUnavailable: !features.isInstanceResourcesFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isInstanceResourcesFeatureEnabledForPlatform
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership) && features.isInstanceResourcesFeatureEnabledForPlatform
                         },
                         {
                             label: 'Tables',
@@ -324,13 +327,13 @@ const getters = {
                             icon: DatabaseIcon,
                             disabled: requiresBilling,
                             featureUnavailable: !features.isTablesFeatureEnabled,
-                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member) && features.isTablesFeatureEnabledForPlatform
+                            hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership) && features.isTablesFeatureEnabledForPlatform
                         }
                     ]
                 },
                 {
                     title: 'Team Management',
-                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                     entries: [
                         {
                             label: 'Library',
@@ -368,7 +371,7 @@ const getters = {
                 },
                 {
                     title: 'Team Admin',
-                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer),
+                    hidden: !hasAMinimumTeamRoleOf(Roles.Viewer, teamMembership),
                     permission: '',
                     entries: [
                         {
@@ -398,7 +401,7 @@ const getters = {
 
                                 // team members that are part of teams that have suspended/no billing setup are forcibly redirected
                                 // to the billing page (even if they don't have permissions to normally access the billing page)
-                                return !!accountFeatures?.billing && hasPermission('team:edit')
+                                return !!accountFeatures?.billing && hasPermission('team:edit', teamMembership)
                             })()
                         },
                         {
@@ -436,6 +439,7 @@ const getters = {
     },
     mainNavContext: (state, getters, rootState) => {
         const team = rootState.account.team
+        const teamMembership = getters.teamMembership
 
         if (!team && !['admin', 'user'].includes(state.mainNav.context)) {
             // todo this compensates for a brief moment after logging in where we don't have a team loaded and can't properly
@@ -443,8 +447,6 @@ const getters = {
             //  app and hydrates vuex stores before attempting to render any data
             return []
         }
-
-        const { hasPermission } = usePermissions()
 
         return getters.mainNavContexts[state.mainNav.context]
             .map(category => {
@@ -455,7 +457,7 @@ const getters = {
                 category.entries = category.entries.filter(entry => {
                     const hasPermissionKey = Object.prototype.hasOwnProperty.call(entry, 'permission')
                     if (hasPermissionKey && entry.permission.length > 0) {
-                        return hasPermission(entry.permission)
+                        return hasPermission(entry.permission, teamMembership)
                     } return true
                 })
 
@@ -464,7 +466,7 @@ const getters = {
             .filter(category => { // filter categories without permission
                 const hasPermissionKey = Object.prototype.hasOwnProperty.call(category, 'permission')
                 if (hasPermissionKey && category.permission.length > 0) {
-                    return hasPermission(category.permission)
+                    return hasPermission(category.permission, teamMembership)
                 } return true
             })
             .filter(category => Object.prototype.hasOwnProperty.call(category, 'hidden') ? !category.hidden : true) // filter hidden categories

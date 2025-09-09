@@ -108,6 +108,7 @@
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
+import { mapState } from 'vuex'
 
 import billingApi from '../../api/billing.js'
 
@@ -183,6 +184,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         billingSetUp () {
             return !this.missingSubscription && this.team.billing?.active
         },

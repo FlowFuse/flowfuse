@@ -175,7 +175,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features', 'teamMembership']),
+        ...mapState('account', ['team', 'features']),
         isLoading () {
             return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
         }

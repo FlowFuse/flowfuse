@@ -30,7 +30,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user'])
+        ...mapState('account', ['user', 'team'])
     },
     watch: {
         teamMembership: 'checkAccess'

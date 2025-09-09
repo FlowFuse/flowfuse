@@ -63,8 +63,8 @@ const getSnapshot = (instanceId, snapshotId) => {
 /**
  * TODO: Currently hits project API
  */
-const getInstanceSnapshots = (instanceId, cursor, limit) => {
-    const url = paginateUrl(`/api/v1/projects/${instanceId}/snapshots`, cursor, limit)
+const getInstanceSnapshots = (instanceId, cursor, limit, query) => {
+    const url = paginateUrl(`/api/v1/projects/${instanceId}/snapshots`, cursor, limit, query)
     return client.get(url).then(res => {
         res.data.snapshots = res.data.snapshots.map(ss => {
             ss.createdSince = daysSince(ss.createdAt)

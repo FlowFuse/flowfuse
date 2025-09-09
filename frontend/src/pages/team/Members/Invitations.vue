@@ -65,7 +65,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings'])
+        ...mapState('account', ['settings', 'team', 'teamMembership'])
     },
     watch: {
         teamMembership: 'fetchData',

@@ -208,7 +208,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
+        ...mapState('account', ['team']),
         canChangeNodeRedVersion () {
             return this.deviceOwnerType === 'application' && this.hasPermission('device:edit')
         },

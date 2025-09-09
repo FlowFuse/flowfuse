@@ -43,7 +43,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team'])
+        ...mapState('account', ['teamMembership'])
     },
     watch: {
         deviceGroup: function (newVal, oldVal) {

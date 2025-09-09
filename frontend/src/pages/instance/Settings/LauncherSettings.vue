@@ -28,12 +28,10 @@
 import SemVer from 'semver'
 import { useRouter } from 'vue-router'
 
-import { mapState } from 'vuex'
-
 import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -43,7 +41,6 @@ export default {
         FormRow,
         FormHeading
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         project: {
@@ -52,6 +49,13 @@ export default {
         }
     },
     emits: ['instance-updated', 'save-button-state', 'restart-instance'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return {
+            hasPermission
+        }
+    },
     data () {
         return {
             mounted: false,
@@ -69,7 +73,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
         unsavedChanges: function () {
             return +this.original.healthCheckInterval !== +this.input.healthCheckInterval ||
                 this.original.disableAutoSafeMode !== this.input.disableAutoSafeMode
