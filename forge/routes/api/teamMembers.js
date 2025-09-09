@@ -189,6 +189,10 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'invalid_team_role', error: 'invalid role' })
             }
         } else if (hasPermissions) {
+            if (!app.config.features.enabled('rbacApplication') || request.team.TeamType.getFeatureProperty('applicationRBAC', false) !== true) {
+                reply.code(400).send({ code: 'invalid_request', error: 'Invalid request - Application RBAC not enabled for team' })
+                return
+            }
             // Expected permissions object structure:
             // {
             //     "applications": {
@@ -197,23 +201,22 @@ module.exports = async function (app) {
             // }
             // 1. Validate app-ids are all in this team
             // 2. Validate the role-ids are valid
-            const permissionKeys = Object.keys(request.body.permissions)
-            if (permissionKeys.length > 1 || (permissionKeys.length === 0 && permissionKeys[0] !== 'applications')) {
+            const newPermissions = request.body.permissions
+            const permissionKeys = Object.keys(newPermissions)
+            if (permissionKeys.length !== 1 || permissionKeys[0] !== 'applications') {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid permissions object' })
                 return
             }
-            if (permissionKeys.applications) {
-                const applicationIds = Object.keys(permissionKeys.applications)
-                // Get a list of all valid applications in the team
-                const applications = await app.db.models.Application.byTeam(request.params.teamId)
-                const knownAppIds = new Set(applications.map(a => a.hashid))
-                const invalidApplications = applicationIds.filter(id => !knownAppIds.has(id) || TeamRoles.includes(permissionKeys.applications[id]))
-                if (invalidApplications.length > 0) {
-                    reply.code(400).send({ code: 'invalid_request', error: 'Invalid permissions object' })
-                    return
-                }
+            const applicationIds = Object.keys(newPermissions.applications)
+            // Get a list of all valid applications in the team
+            const applications = await app.db.models.Application.byTeam(request.params.teamId)
+            const knownAppIds = new Set(applications.map(a => a.hashid))
+            const invalidApplications = applicationIds.filter(id => !knownAppIds.has(id) || !TeamRoles.includes(newPermissions.applications[id]))
+            if (invalidApplications.length > 0) {
+                reply.code(400).send({ code: 'invalid_request', error: 'Invalid permissions object' })
+                return
             }
-            await app.db.controllers.Team.changeUserTeamPermissions(request.params.teamId, request.params.userId, request.body.permissions)
+            await app.db.controllers.Team.changeUserTeamPermissions(request.params.teamId, request.params.userId, newPermissions)
             // TODO: audit log it
             reply.send({ status: 'okay' })
         }
