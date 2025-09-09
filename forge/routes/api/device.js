@@ -1180,7 +1180,10 @@ module.exports = async function (app) {
             },
             body: {
                 type: 'object',
-                additionalProperties: true
+                required: ['target'],
+                properties: {
+                    target: { type: 'string' }
+                }
             },
             response: {
                 200: {
@@ -1195,7 +1198,25 @@ module.exports = async function (app) {
 
     }, async (request, reply) => {
         const options = {}
+
         let isTeamOnTrial
+        let targetSnapshot = {}
+
+        switch (request.body.target) {
+        case 'latest':
+            targetSnapshot = (await request.device.getLatestSnapshot(true)) ?? {}
+            break
+        default:
+            targetSnapshot = (await app.db.models.ProjectSnapshot.byId(request.body.target))
+
+            if (!targetSnapshot) {
+                return reply.code(404).send({
+                    code: 'not_found',
+                    error: 'Snapshot not found'
+                })
+            }
+            break
+        }
 
         const latestSnapshot = (await request.device.getLatestSnapshot(true)) ?? {}
         const buildSnapshot = request.device.Project
