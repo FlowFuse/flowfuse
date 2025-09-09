@@ -211,7 +211,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'features']),
+        ...mapState('account', ['team', 'features']),
         canCreateSnapshot () {
             if (!this.developerMode || this.busy) {
                 return false

@@ -78,7 +78,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'features', 'settings']),
+        ...mapState('account', ['team', 'features', 'settings']),
         navigation () {
             const canEditProject = this.hasPermission('project:edit')
 

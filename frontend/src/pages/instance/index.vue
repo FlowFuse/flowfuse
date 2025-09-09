@@ -126,7 +126,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team']),
+        ...mapState('account', ['team']),
         navigation () {
             if (!this.instance.id) return []
             let versionHistoryRoute
