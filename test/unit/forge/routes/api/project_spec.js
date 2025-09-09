@@ -3293,7 +3293,7 @@ describe('Project API', function () {
         })
 
         it('returns 404 when no target snapshot is found (target=latest)', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: {},
                 flows: { flows: [], credentials: {} }
             })
@@ -3335,7 +3335,7 @@ describe('Project API', function () {
         })
 
         it('handles target=pipeline and forwards LLM response', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: { env: { FOO: 'bar' }, modules: {} },
                 flows: { flows: [{ id: 'n1' }], credentials: {} }
             })
@@ -3384,7 +3384,7 @@ describe('Project API', function () {
         })
 
         it('handles target as a custom id that is found', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: { env: { FOO: 'bar' }, modules: {} },
                 flows: { flows: [{ id: 'n1' }], credentials: {} }
             })
@@ -3440,7 +3440,7 @@ describe('Project API', function () {
         })
 
         it('returns 404 when target is a custom id that is not found', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: {},
                 flows: { flows: [], credentials: {} }
             })

@@ -1490,7 +1490,7 @@ module.exports = async function (app) {
             break
         }
 
-        const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildSnapshot(
+        const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildProjectSnapshot(
             request.project,
             request.session.User,
             options
