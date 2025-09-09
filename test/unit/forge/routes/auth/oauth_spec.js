@@ -39,6 +39,11 @@ describe('OAuth', async function () {
                 password: 'bbPassword'
             })
             await login('bob', 'bbPassword')
+            const defaultTeamTypeProperties = app.defaultTeamType.properties
+            defaultTeamTypeProperties.features = defaultTeamTypeProperties.features || {}
+            defaultTeamTypeProperties.features.applicationRBAC = true
+            app.defaultTeamType.properties = defaultTeamTypeProperties
+            await app.defaultTeamType.save()
         })
         afterEach(async function () {
             await app.db.models.TeamMember.destroy({ where: { UserId: TestObjects.bob.id } })
@@ -261,6 +266,40 @@ describe('OAuth', async function () {
                 cookies: { sid: TestObjects.tokens[TestObjects.bob.username] }
             })
             response2.should.have.property('statusCode', 302)
+        })
+
+        it('completes oauth flow - team owner, application RBAC lowers to read-only access', async function () {
+            await app.team.addUser(TestObjects.bob, { through: { role: app.factory.Roles.Roles.Owner, permissions: { applications: { [app.application.hashid]: app.factory.Roles.Roles.Viewer } } } })
+            const scope = await runFullLogin(TestObjects.bob)
+            scope.should.equal('read')
+        })
+
+        it('denies access - team owner, application RBAC lowers to dashboard access', async function () {
+            await app.team.addUser(TestObjects.bob, { through: { role: app.factory.Roles.Roles.Owner, permissions: { applications: { [app.application.hashid]: app.factory.Roles.Roles.Dashboard } } } })
+            const instanceCreds = await app.project.refreshAuthTokens()
+            const clientID = instanceCreds.clientID
+
+            // 1. Initial request
+            const requestOptions = generateOAuthRequest({ clientID })
+            const response = await app.inject({
+                method: 'GET',
+                url: requestOptions.authURL,
+                cookies: { sid: TestObjects.tokens[TestObjects.bob.username] }
+            })
+            response.should.have.property('statusCode', 302)
+            response.headers.should.have.property('location')
+            const m = /(\/account\/complete\/[^/]+)$/.exec(response.headers.location)
+            should.exist(m, 'location header format incorrect: ' + response.headers.location)
+
+            // 2. Follow the redirect from step 1
+            const completeUrl = m[1]
+            const response2 = await app.inject({
+                method: 'GET',
+                url: completeUrl,
+                cookies: { sid: TestObjects.tokens[TestObjects.bob.username] }
+            })
+            response2.should.have.property('statusCode', 400)
+            response2.body.should.equal('Access Denied: you do not have access to the editor')
         })
 
         it('completes oauth flow - non-member admin - read-only', async function () {
