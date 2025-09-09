@@ -235,8 +235,8 @@ function productCaptureDeviceAction (action, device) {
  * description information.
  * @throws {Error} If the API call fails or an error occurs during the process.
  */
-const generateSnapshotDescription = async (deviceId) => {
-    return client.post(`/api/v1/devices/${deviceId}/generate/snapshot-description`, {})
+const generateSnapshotDescription = async (deviceId, target) => {
+    return client.post(`/api/v1/devices/${deviceId}/generate/snapshot-description`, { target })
         .then(res => {
             return res.data.data
         })
