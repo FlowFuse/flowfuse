@@ -2608,12 +2608,142 @@ describe('Device API', async function () {
                 method: 'POST',
                 url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
                 cookies: { sid: TestObjects.tokens.alice },
-                body: {}
+                body: { target: 'latest' }
             })
 
             response.statusCode.should.equal(404)
             const body = response.json()
             body.should.have.property('code', 'not_found')
+        })
+
+        it('returns validation error when target parameter is missing', async function () {
+            const device = await app.db.models.Device.create({ name: 'missing-target', type: 'x', credentialSecret: '' })
+            await device.setTeam(TestObjects.ATeam)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
+                cookies: { sid: TestObjects.tokens.alice },
+                body: {}
+            })
+
+            response.statusCode.should.equal(400)
+            const body = response.json()
+            body.should.have.property('code', 'FST_ERR_VALIDATION')
+            body.should.have.property('error', 'Bad Request')
+            body.should.have.property('message', 'body must have required property \'target\'')
+        })
+
+        it('returns 404 when target snapshot ID is invalid', async function () {
+            const device = await app.db.models.Device.create({ name: 'invalid-target', type: 'x', credentialSecret: '' })
+            await device.setTeam(TestObjects.ATeam)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
+                cookies: { sid: TestObjects.tokens.alice },
+                body: { target: 'invalid-snapshot-id' }
+            })
+
+            response.statusCode.should.equal(404)
+            const body = response.json()
+            body.should.have.property('code', 'not_found')
+            body.should.have.property('error', 'Snapshot not found')
+        })
+
+        it('generates description with target: latest using latest snapshot', async function () {
+            // Create a project and assign device so instance-owned path is used
+            const instance = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            await instance.setTeam(TestObjects.ATeam)
+
+            const device = await app.db.models.Device.create({ name: 'dev-latest', type: 'type-a', credentialSecret: '' })
+            await device.setTeam(TestObjects.ATeam)
+            await device.setProject(instance)
+
+            // Mock latest snapshot
+            const mockLatestSnapshot = {
+                toJSON: () => ({
+                    settings: { env: { OLD_VAR: 'old-value' } },
+                    flows: { flows: [{ id: 'old-flow' }] }
+                })
+            }
+
+            // Stub getLatestSnapshot to return our mock
+            sinon.stub(app.db.models.Device.prototype, 'getLatestSnapshot').resolves(mockLatestSnapshot)
+
+            // Stub builder to provide current state
+            sinon.stub(app.db.controllers.ProjectSnapshot, 'buildInstanceOwnedDeviceSnapshot').resolves({
+                settings: { env: { NEW_VAR: 'new-value' } },
+                flows: { flows: [{ id: 'new-flow' }] }
+            })
+
+            // Stub Assistant invocation
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({
+                data: { description: 'Generated from latest snapshot' }
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
+                cookies: { sid: TestObjects.tokens.alice },
+                body: { target: 'latest' }
+            })
+
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('description', 'Generated from latest snapshot')
+
+            // Verify getLatestSnapshot was called with true parameter
+            const getLatestSnapshotStub = app.db.models.Device.prototype.getLatestSnapshot
+            getLatestSnapshotStub.calledWith(true).should.equal(true)
+        })
+
+        it('generates description with specific target snapshot ID', async function () {
+            // Create a project and assign device so instance-owned path is used
+            const instance = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+            await instance.setTeam(TestObjects.ATeam)
+
+            const device = await app.db.models.Device.create({ name: 'dev-specific', type: 'type-a', credentialSecret: '' })
+            await device.setTeam(TestObjects.ATeam)
+            await device.setProject(instance)
+
+            // Create a mock snapshot
+            const mockSnapshot = {
+                id: 'specific-snapshot-id',
+                toJSON: () => ({
+                    settings: { env: { SPECIFIC_VAR: 'specific-value' } },
+                    flows: { flows: [{ id: 'specific-flow' }] }
+                })
+            }
+
+            // Stub ProjectSnapshot.byId to return our mock snapshot
+            sinon.stub(app.db.models.ProjectSnapshot, 'byId').resolves(mockSnapshot)
+
+            // Stub builder to provide current state
+            sinon.stub(app.db.controllers.ProjectSnapshot, 'buildInstanceOwnedDeviceSnapshot').resolves({
+                settings: { env: { CURRENT_VAR: 'current-value' } },
+                flows: { flows: [{ id: 'current-flow' }] }
+            })
+
+            // Stub Assistant invocation
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({
+                data: { description: 'Generated from specific snapshot' }
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
+                cookies: { sid: TestObjects.tokens.alice },
+                body: { target: 'specific-snapshot-id' }
+            })
+
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('description', 'Generated from specific snapshot')
+
+            // Verify ProjectSnapshot.byId was called with the correct ID
+            const byIdStub = app.db.models.ProjectSnapshot.byId
+            byIdStub.calledWith('specific-snapshot-id').should.equal(true)
         })
 
         it('generates a description: diffs are redacted and sent to the Assistant', async function () {
@@ -2652,7 +2782,7 @@ describe('Device API', async function () {
                 method: 'POST',
                 url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
                 cookies: { sid: TestObjects.tokens.alice },
-                body: {}
+                body: { target: 'latest' }
             })
 
             response.statusCode.should.equal(200)
@@ -2707,7 +2837,7 @@ describe('Device API', async function () {
                 method: 'POST',
                 url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
                 cookies: { sid: TestObjects.tokens.alice },
-                body: {}
+                body: { target: 'latest' }
             })
 
             response.statusCode.should.equal(503)
@@ -2744,7 +2874,7 @@ describe('Device API', async function () {
                     method: 'POST',
                     url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
                     cookies: { sid: TestObjects.tokens.alice },
-                    body: {}
+                    body: { target: 'latest' }
                 })
 
                 response.statusCode.should.equal(200)
@@ -2806,7 +2936,7 @@ describe('Device API', async function () {
                     method: 'POST',
                     url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
                     cookies: { sid: TestObjects.tokens.alice },
-                    body: {}
+                    body: { target: 'latest' }
                 })
 
                 response.statusCode.should.equal(200)
