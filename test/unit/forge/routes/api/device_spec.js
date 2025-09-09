@@ -2678,7 +2678,7 @@ describe('Device API', async function () {
             })
 
             // Stub Assistant invocation
-            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({
+            sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({
                 data: { description: 'Generated from latest snapshot' }
             })
 
@@ -2726,7 +2726,7 @@ describe('Device API', async function () {
             })
 
             // Stub Assistant invocation
-            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({
+            sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({
                 data: { description: 'Generated from specific snapshot' }
             })
 
