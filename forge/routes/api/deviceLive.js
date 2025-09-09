@@ -216,6 +216,9 @@ module.exports = async function (app) {
                     if (!settings.modules['@flowfuse/nr-mqtt-nodes']) {
                         settings.modules['@flowfuse/nr-mqtt-nodes'] = defaultModules['@flowfuse/nr-mqtt-nodes'] || '>0.1.0'
                     }
+                    if (!settings.modules['@flowfuse/nr-tables-nodes']) {
+                        settings.modules['@flowfuse/nr-tables-nodes'] = defaultModules['@flowfuse/nr-tables-nodes'] || '>0.1.0'
+                    }
                     if (!settings.modules['@flowfuse/nr-assistant']) {
                         settings.modules['@flowfuse/nr-assistant'] = defaultModules['@flowfuse/nr-assistant'] || '>=0.1.0'
                     }
@@ -286,19 +289,25 @@ module.exports = async function (app) {
         response.features = {
             'shared-library': !!(app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true)),
             projectComms: !!(app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)),
-            teamBroker: !!(app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true))
+            teamBroker: !!(app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true)),
+            tables: !!(app.config.features.enabled('tables') && teamType.getFeatureProperty('tables', true))
         }
+
+        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && teamType.getFeatureProperty('assistantInlineCompletions', false))
         response.assistant = {
             enabled: app.config.assistant?.enabled || false,
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
-            completions: { enabled: true } // default to enabled
+            completions: {
+                enabled: true, // next node completions
+                inlineEnabled: assistantInlineCompletionsFeatureEnabled // FIM style inline code editor completions
+            }
         }
         if (app.config.assistant?.mcp && typeof app.config.assistant.mcp === 'object') {
             response.assistant.mcp = { ...app.config.assistant.mcp }
         }
         if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
-            response.assistant.completions = { ...app.config.assistant.completions }
+            response.assistant.completions = { ...response.assistant.completions, ...app.config.assistant.completions }
         }
 
         const linkedUsername = `device:${request.device.hashid}`

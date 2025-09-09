@@ -44,8 +44,8 @@ import AssetsAPI from '../../api/assets.js'
 import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
 import FileBrowser from '../../components/file-browser/FileBrowser.vue'
+import usePermissions from '../../composables/Permissions.js'
 import featuresMixin from '../../mixins/Features.js'
-import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
 import { Roles } from '../../utils/roles.js'
 
@@ -59,12 +59,19 @@ export default {
         FeatureUnavailableToTeam,
         FileBrowser
     },
-    mixins: [permissionsMixin, featuresMixin],
+    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         instance: {
             required: true,
             type: Object
+        }
+    },
+    setup () {
+        const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
+
+        return {
+            hasPermission, hasAMinimumTeamRoleOf
         }
     },
     data () {

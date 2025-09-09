@@ -23,15 +23,78 @@
                             Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                         </span>
                     </FormRow>
-                    <ff-button
-                        v-if="featuresCheck.isGeneratedSnapshotDescriptionEnabled" kind="tertiary"
-                        :disabled="loadingDescription" @click="generateDescription"
+                    <ff-popover
+                        v-if="featuresCheck.isGeneratedSnapshotDescriptionEnabled"
+                        button-text="Generate with AI"
+                        button-kind="tertiary"
+                        :disabled="loadingDescription"
                     >
-                        Generate with AI
                         <template #icon-left>
                             <CubeTransparentIcon class="ff-icon" />
                         </template>
-                    </ff-button>
+                        <template #panel="{ close }">
+                            <section>
+                                <popover-item
+                                    title="Use latest manual snapshot"
+                                    description="Compare with latest manually created snapshot"
+                                    @click="onPopoverItemClick('latest',close)"
+                                >
+                                    <template #icon>
+                                        <ClockIcon class="ff-icon text-indigo-500" />
+                                    </template>
+                                </popover-item>
+                                <popover-item
+                                    title="Use latest deploy snapshot"
+                                    description="Compare to last pipeline deployment"
+                                    @click="onPopoverItemClick('pipeline',close)"
+                                >
+                                    <template #icon>
+                                        <PipelineIcon class="ff-icon text-indigo-500" />
+                                    </template>
+                                </popover-item>
+                                <popover-item
+                                    title="or search for a specific snapshot"
+                                    class="bg-gray-100 hover:bg-gray-100 border-t border-gray-200"
+                                >
+                                    <template #content>
+                                        <div class="flex gap-1 w-full my-2">
+                                            <ff-combobox
+                                                v-model="selectedSnapshot"
+                                                class="flex-1"
+                                                :fetch-remote-options="searchSnapshots"
+                                                placeholder="Search snapshots"
+                                                :disabled="loadingDescription"
+                                            >
+                                                <template #option="{ option, selected, active }">
+                                                    <div class="ff-option-content" :class="{ selected, active }">
+                                                        <div class="flex justify-between mb-1">
+                                                            <span>{{ option.label }}</span>
+                                                            <span v-if="option.user && option.user.username" class="text-gray-400">{{ option.user.username }}</span>
+                                                        </div>
+                                                        <p
+                                                            :title="option.description"
+                                                            class="text-italic text-gray-400 mb-1 clipped-overflow"
+                                                        >
+                                                            {{ option.description }}
+                                                        </p>
+                                                    </div>
+                                                </template>
+                                            </ff-combobox>
+                                            <ff-button
+                                                kind="secondary"
+                                                :disabled="!selectedSnapshot || loadingDescription"
+                                                @click="onPopoverItemClick(selectedSnapshot,close)"
+                                            >
+                                                <template #icon>
+                                                    <ChevronRightIcon class="ff-icon" />
+                                                </template>
+                                            </ff-button>
+                                        </div>
+                                    </template>
+                                </popover-item>
+                            </section>
+                        </template>
+                    </ff-popover>
                 </section>
             </form>
         </template>
@@ -39,22 +102,28 @@
 </template>
 <script>
 
-import { CubeTransparentIcon } from '@heroicons/vue/outline'
-import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import { ClockIcon, CubeTransparentIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
 import { mapGetters } from 'vuex'
 
 import instanceApi from '../../../../../api/instances.js'
 import snapshotApi from '../../../../../api/projectSnapshots.js'
 
 import FormRow from '../../../../../components/FormRow.vue'
+import PipelineIcon from '../../../../../components/icons/Pipelines.js'
 import alerts from '../../../../../services/alerts.js'
+import PopoverItem from '../../../../../ui-components/components/PopoverItem.vue'
 
 export default {
     name: 'SnapshotCreateDialog',
     components: {
+        PopoverItem,
+        PipelineIcon,
         FormRow,
         QuestionMarkCircleIcon,
-        CubeTransparentIcon
+        CubeTransparentIcon,
+        ChevronRightIcon,
+        ClockIcon
     },
     props: {
         project: {
@@ -84,7 +153,8 @@ export default {
                 setAsTarget: false
             },
             errors: {},
-            loadingDescription: false
+            loadingDescription: false,
+            selectedSnapshot: null
         }
     },
     computed: {
@@ -93,8 +163,7 @@ export default {
             return !this.submitted && !!(this.input.name)
         }
     },
-    mounted () {
-    },
+    mounted () { },
     methods: {
         confirm () {
             if (this.formValid) {
@@ -119,9 +188,9 @@ export default {
                 })
             }
         },
-        generateDescription () {
+        generateDescription (target) {
             this.loadingDescription = true
-            return instanceApi.generateSnapshotDescription(this.project.id)
+            return instanceApi.generateSnapshotDescription(this.project.id, { target })
                 .then(res => {
                     if (!this.input.name.length) {
                         this.input.name = res.name
@@ -146,8 +215,37 @@ export default {
                 })
                 .finally(() => {
                     this.loadingDescription = false
+                    this.selectedSnapshot = null
                 })
+        },
+        searchSnapshots (query) {
+            return snapshotApi.getInstanceSnapshots(this.project.id, null, 30, query)
+                .then(res => (res.snapshots.map(snapshot => ({
+                    value: snapshot.id,
+                    label: snapshot.name,
+                    id: snapshot.id,
+                    description: snapshot?.description ?? null,
+                    user: snapshot?.user ?? null,
+                    createdAt: snapshot?.createdAt ?? null
+                }))))
+        },
+        onPopoverItemClick (target, close) {
+            close()
+            if (target === 'latest') return this.generateDescription('latest')
+            if (target === 'pipeline') return this.generateDescription('pipeline')
+
+            return this.generateDescription(target)
         }
     }
 }
 </script>
+
+<style scoped lang="scss">
+.clipped-overflow {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;   // number of lines to clip to
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+</style>

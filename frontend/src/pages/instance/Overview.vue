@@ -119,8 +119,6 @@
 <script>
 import { ExternalLinkIcon, LinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
-
 import InstanceApi from '../../api/instances.js'
 import FormHeading from '../../components/FormHeading.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
@@ -156,7 +154,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },

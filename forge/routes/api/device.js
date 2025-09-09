@@ -1185,10 +1185,7 @@ module.exports = async function (app) {
             response: {
                 200: {
                     type: 'object',
-                    properties: {
-                        transactionId: { type: 'string' },
-                        data: { type: 'object', additionalProperties: true }
-                    }
+                    additionalProperties: true
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -1200,7 +1197,7 @@ module.exports = async function (app) {
         const options = {}
         let isTeamOnTrial
 
-        const latestSnapshot = (await request.device.getLatestSnapshot()) ?? {}
+        const latestSnapshot = (await request.device.getLatestSnapshot(true)) ?? {}
         const buildSnapshot = request.device.Project
             ? app.db.controllers.ProjectSnapshot.buildInstanceOwnedDeviceSnapshot
             : app.db.controllers.ProjectSnapshot.buildApplicationOwnedDeviceSnapshot
@@ -1220,13 +1217,13 @@ module.exports = async function (app) {
 
             previousState = {
                 settings: toJSON.settings,
-                flows: toJSON.flows
+                flows: toJSON.flows?.flows ?? {}
             }
         }
 
         const currentState = {
             settings: currentSnapshot.settings,
-            flows: currentSnapshot.flows
+            flows: currentSnapshot.flows?.flows ?? {}
         }
 
         const { deepDiff } = require('../../lib/objectHelpers.js')
@@ -1239,19 +1236,9 @@ module.exports = async function (app) {
                 currentStateDiff.settings.env[k] = '##REDACTED##'
             })
         }
-        if (currentStateDiff.flows?.credentials) {
-            Object.keys(currentStateDiff.flows.credentials).forEach(k => {
-                currentStateDiff.flows.credentials[k] = '##REDACTED##'
-            })
-        }
         if (previousStateDiff.settings?.env) {
             Object.keys(previousStateDiff.settings.env).forEach(k => {
                 previousStateDiff.settings.env[k] = '##REDACTED##'
-            })
-        }
-        if (previousStateDiff.flows?.credentials) {
-            Object.keys(previousStateDiff.flows.credentials).forEach(k => {
-                previousStateDiff.flows.credentials[k] = '##REDACTED##'
             })
         }
 
@@ -1272,7 +1259,7 @@ module.exports = async function (app) {
                     isTeamOnTrial
                 })
 
-            reply.send(res)
+            reply.send(res.data)
         } catch (err) {
             return reply
                 .code(err.statusCode || 400)

@@ -49,8 +49,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import ApplicationAPI from '../../api/application.js'
 
 import FormHeading from '../../components/FormHeading.vue'
@@ -98,7 +96,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         formValid () {
             return this.input.projectName
         },

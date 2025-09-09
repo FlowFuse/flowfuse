@@ -124,6 +124,128 @@ module.exports = async function (app) {
         }
     })
     /**
+     * Endpoint for FIM (fill-in-the-middle) code completion requests
+     * For now, this is simply a relay to an external assistant service
+     * In the future, we may decide to bring that service inside the core or
+     * use an alternative means of accessing it.
+     * @name /api/v1/assistant/fim/:nodeModule/:nodeType
+     * @static
+     * @memberof forge.routes.api.assistant
+     */
+    app.post('/fim/:nodeModule/:nodeType', {
+        config: {
+            rateLimit: app.config.rate_limits
+                ? {
+                    hook: 'preHandler', // apply the rate as a preHandler so that session is available
+                    max: 60, // max requests per window. Since the assistant plugin debounces requests, this should minimise risk of overuse without impacting user experience
+                    timeWindow: 30000, // 30 seconds window
+                    keyGenerator: (request) => {
+                        return request.ownerId || request.ip
+                    }
+                }
+                : false
+        },
+        schema: {
+            hide: true, // dont show in swagger
+            params: {
+                nodeModule: { type: 'string' },
+                nodeType: { type: 'string' }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    // The prompt to send to the assistant (required)
+                    prompt: { type: 'string' },
+                    // A correlation id for the transaction (required)
+                    transactionId: { type: 'string' },
+                    // Additional context for the completion (optional)
+                    context: { type: 'object', additionalProperties: true }
+                },
+                required: ['prompt', 'transactionId']
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    },
+    async (request, reply) => {
+        const inlineDisabled = app.config.assistant?.completions?.inlineEnabled === false
+        const featureEnabled = app.config.features.enabled('assistantInlineCompletions')
+        const featureEnabledForTeam = request.team.TeamType.getFeatureProperty('assistantInlineCompletions', false)
+        if (inlineDisabled || !featureEnabled || !featureEnabledForTeam) {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found - feature not enabled for team' })
+            return
+        }
+
+        const nodeModule = request.params.nodeModule
+        const nodeType = request.params.nodeType
+        const supported = [
+            { nodeModule: 'node-red', nodeName: 'function' },
+            { nodeModule: '@flowfuse/node-red-dashboard', nodeName: 'ui-template' },
+            { nodeModule: '@flowfuse/nr-tables-nodes', nodeName: 'tables-query' }
+        ]
+        if (supported.findIndex(item => item.nodeModule === nodeModule && item.nodeName === nodeType) === -1) {
+            // unsupported node
+            return reply.code(400).send({ code: 'not_supported', error: 'Not Supported' })
+        }
+
+        // if this is a `flowfuse-tables-query` lets see if tables are enabled and try to get the schema hints
+        let tablesCacheKey = null
+        if (nodeModule === '@flowfuse/nr-tables-nodes' && nodeType === 'tables-query') {
+            const tablesFeatureEnabled = app.config.features.enabled('tables') && request.team.TeamType.getFeatureProperty('tables', false)
+            tablesCacheKey = tablesFeatureEnabled && request.team.hashid + '/tables/schema'
+            if (tablesCacheKey) {
+                if (!tablesSchemaCache.has(tablesCacheKey)) {
+                    const { getTablesHints } = require('../../lib/assistant.js')
+                    const creds = await app.tables.getDatabases(request.team)
+                    if (creds && creds.length) {
+                        const database = creds[0] // Get the first database
+                        try {
+                            // Get the DDL
+                            const schemaData = await getTablesHints(app, request.team, database.hashid)
+                            tablesSchemaCache.set(tablesCacheKey, schemaData)
+                        } catch (error) {
+                            tablesSchemaCache.set(tablesCacheKey, '')
+                        }
+                    }
+                }
+            }
+        }
+
+        // post to the assistant service /fim/:nodeModule/:nodeType endpoint
+        try {
+            let isTeamOnTrial
+            if (app.billing && request.team.getSubscription) {
+                const subscription = await request.team.getSubscription()
+                isTeamOnTrial = subscription ? subscription.isTrial() : null
+            }
+            const data = { ...request.body }
+            if (tablesCacheKey) {
+                data.context = data.context || {}
+                data.context.tablesSchema = tablesSchemaCache.get(tablesCacheKey)
+            }
+
+            const method = `fim/${encodeURIComponent(nodeModule)}/${encodeURIComponent(nodeType)}`
+            const response = await app.db.controllers.Assistant.invokeLLM(method, data, {
+                teamHashId: request.team.hashid,
+                instanceType: request.ownerType,
+                instanceId: request.ownerId,
+                additionalHeaders: request.headers,
+                isTeamOnTrial
+            })
+
+            reply.send(response.data)
+        } catch (error) {
+            reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
+        }
+    })
+    /**
      * Endpoint for assistant methods
      * For now, this is simply a relay to an external assistant service
      * In the future, we may decide to bring that service inside the core or
@@ -215,10 +337,6 @@ module.exports = async function (app) {
                     additionalHeaders: request.headers,
                     isTeamOnTrial
                 })
-
-            if (request.body.transactionId !== response.transactionId) {
-                throw new Error('Transaction ID mismatch') // Ensure we are responding to the correct transaction
-            }
 
             reply.send(response.data)
         } catch (error) {

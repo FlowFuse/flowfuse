@@ -831,17 +831,24 @@ module.exports = async function (app) {
         settings.baseURL = request.project.url
         settings.forgeURL = app.config.base_url
         settings.fileStore = app.config.fileStore ? { ...app.config.fileStore } : null
+
+        const teamType = await request.project.Team.getTeamType()
+
+        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && teamType.getFeatureProperty('assistantInlineCompletions', false))
         settings.assistant = {
             enabled: app.config.assistant?.enabled || false,
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
-            completions: { enabled: true } // default to enabled
+            completions: {
+                enabled: true, // next node completions
+                inlineEnabled: assistantInlineCompletionsFeatureEnabled // FIM style inline code editor completions
+            }
         }
         if (app.config.assistant?.mcp && typeof app.config.assistant.mcp === 'object') {
             settings.assistant.mcp = { ...app.config.assistant.mcp }
         }
         if (app.config.assistant?.completions && typeof app.config.assistant.completions === 'object') {
-            settings.assistant.completions = { ...app.config.assistant.completions }
+            settings.assistant.completions = { ...settings.assistant.completions, ...app.config.assistant.completions }
         }
 
         const linkedUsername = `instance:${request.project.id}`
@@ -865,8 +872,6 @@ module.exports = async function (app) {
             delete settings.settings.env
             settings.env = exportEnvVarObject(settings.env)
         }
-
-        const teamType = await request.project.Team.getTeamType()
 
         if (app.config.features.enabled('ha') && teamType.getFeatureProperty('ha', true)) {
             const ha = await request.project.getHASettings()
@@ -1444,15 +1449,15 @@ module.exports = async function (app) {
             },
             body: {
                 type: 'object',
-                additionalProperties: true
+                required: ['target'],
+                properties: {
+                    target: { type: 'string' }
+                }
             },
             response: {
                 200: {
                     type: 'object',
-                    properties: {
-                        transactionId: { type: 'string' },
-                        data: { type: 'object', additionalProperties: true }
-                    }
+                    additionalProperties: true
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -1464,7 +1469,27 @@ module.exports = async function (app) {
         const options = {}
         let isTeamOnTrial
 
-        const latestSnapshot = (await request.project.getLatestSnapshot(true)) ?? {}
+        let targetSnapshot = {}
+
+        switch (request.body.target) {
+        case 'latest':
+            targetSnapshot = (await request.project.getLatestSnapshot(true)) ?? {}
+            break
+        case 'pipeline':
+            targetSnapshot = (await request.project.getLatestDeploySnapshot()) ?? {}
+            break
+        default:
+            targetSnapshot = (await app.db.models.ProjectSnapshot.byId(request.body.target))
+
+            if (!targetSnapshot) {
+                return reply.code(404).send({
+                    code: 'not_found',
+                    error: 'Snapshot not found'
+                })
+            }
+            break
+        }
+
         const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildProjectSnapshot(
             request.project,
             request.session.User,
@@ -1472,10 +1497,10 @@ module.exports = async function (app) {
         )
 
         let previousState = {}
-        if (latestSnapshot) {
-            const toJSON = Object.prototype.hasOwnProperty.call(latestSnapshot, 'toJSON')
-                ? latestSnapshot.toJSON()
-                : latestSnapshot
+        if (targetSnapshot) {
+            const toJSON = Object.prototype.hasOwnProperty.call(targetSnapshot, 'toJSON')
+                ? targetSnapshot.toJSON()
+                : targetSnapshot
 
             previousState = {
                 settings: toJSON.settings,
@@ -1513,7 +1538,13 @@ module.exports = async function (app) {
             const transactionId = request.params.instanceId + '-' + Date.now() // a unique id for this transaction
             const res = await app.db.controllers.Assistant.invokeLLM(
                 'snapshot-diff',
-                { transactionId, currentState: currentStateDiff, previousState: previousStateDiff, prompt: '' },
+                {
+                    transactionId,
+                    currentState: currentStateDiff,
+                    previousState: previousStateDiff,
+                    prompt: '',
+                    target: request.body.target
+                },
                 {
                     teamHashId: request.project.Team.hashid,
                     instanceId: request.project.hashid,
@@ -1521,7 +1552,7 @@ module.exports = async function (app) {
                     isTeamOnTrial
                 })
 
-            reply.send(res)
+            reply.send(res.data)
         } catch (err) {
             return reply
                 .code(err.statusCode || 400)

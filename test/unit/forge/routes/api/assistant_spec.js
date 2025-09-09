@@ -5,7 +5,7 @@ const sinon = require('sinon')
 const setup = require('../setup')
 
 describe('Assistant API', async function () {
-    async function setupApp (config = {}, { tablesFeatureEnabled = true } = {}) {
+    async function setupApp (config = {}, { tablesFeatureEnabled = true, assistantInlineCompletionsFeatureEnabled = true } = {}) {
         const defaultConfig = {
             features: { devices: true, tables: true },
             assistant: {
@@ -20,7 +20,11 @@ describe('Assistant API', async function () {
                 },
                 tablesSchemaCache: {
                     max: 10,
-                    ttl: 1000 // 1 second TTL for testing
+                    ttl: 400 // 400ms TTL for testing
+                },
+                completions: {
+                    enabled: true,
+                    inlineEnabled: true
                 }
             }
         }
@@ -28,6 +32,7 @@ describe('Assistant API', async function () {
         const _app = await setup(mergedConfig)
         _app.comms = null // skip all the broker stuff
         _app.config.features.register('tables', tablesFeatureEnabled, tablesFeatureEnabled)
+        _app.config.features.register('assistantInlineCompletions', assistantInlineCompletionsFeatureEnabled, assistantInlineCompletionsFeatureEnabled)
         // Enable tables feature for default team type
         const defaultTeamType = await _app.db.models.TeamType.findOne({ where: { name: 'starter' } })
         const defaultTeamTypeProperties = defaultTeamType.properties
@@ -35,6 +40,13 @@ describe('Assistant API', async function () {
         defaultTeamType.properties = defaultTeamTypeProperties
         await defaultTeamType.save()
         return _app
+    }
+    async function enableTeamTypeFeatureFlag (app, enabled, featureName, teamTypeName = 'starter') {
+        const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: teamTypeName } })
+        const defaultTeamTypeProperties = defaultTeamType.properties
+        defaultTeamTypeProperties.features[featureName] = enabled
+        defaultTeamType.properties = defaultTeamTypeProperties
+        await defaultTeamType.save()
     }
     describe('service disabled', async function () {
         let app2
@@ -145,6 +157,15 @@ describe('Assistant API', async function () {
         })
 
         describe('service tests', async function () {
+            beforeEach(async function () {
+                // Mock license tier and team feature flag
+                sinon.stub(app.license, 'get').callsFake((k) => (k === 'tier' ? 'enterprise' : undefined))
+                sinon.stub(app.license, 'active').callsFake(() => true)
+            })
+            afterEach(function () {
+                sinon.restore()
+            })
+
             function serviceTests (serviceName) {
                 it('anonymous cannot access', async function () {
                     const response = await app.inject({
@@ -192,6 +213,10 @@ describe('Assistant API', async function () {
                         payload: { prompt: 'multiply by 5', transactionId: '1234' }
                     })
                     axios.post.calledOnce.should.be.true()
+
+                    const body = response.json()
+                    body.should.have.property('transactionId', '1234')
+
                     response.statusCode.should.equal(200)
                 })
                 it('instance token can access', async function () {
@@ -203,6 +228,8 @@ describe('Assistant API', async function () {
                         payload: { prompt: 'multiply by 5', transactionId: '4321' }
                     })
                     axios.post.calledOnce.should.be.true()
+                    const body = response.json()
+                    body.should.have.property('transactionId', '4321')
                     response.statusCode.should.equal(200)
                 })
                 it('fails when prompt is not supplied', async function () {
@@ -235,7 +262,7 @@ describe('Assistant API', async function () {
                 })
                 it('contains owner info in headers for an instance', async function () {
                     sinon.stub(axios, 'post').resolves({ data: { status: 'ok', transactionId: '11223344' } })
-                    await app.inject({
+                    const response = await app.inject({
                         method: 'POST',
                         url: `/api/v1/assistant/${serviceName}`,
                         headers: { authorization: 'Bearer ' + TestObjects.tokens.instance },
@@ -246,14 +273,16 @@ describe('Assistant API', async function () {
                         'ff-owner-type': 'project',
                         'ff-owner-id': TestObjects.instance.id,
                         'ff-team-id': TestObjects.ATeam.hashid,
-                        'ff-license-active': false,
-                        'ff-license-type': 'CE',
-                        'ff-license-tier': null
+                        'ff-license-active': true,
+                        'ff-license-type': 'EE',
+                        'ff-license-tier': 'enterprise'
                     })
+                    const body = response.json()
+                    body.should.have.property('transactionId', '11223344')
                 })
                 it('contains owner info in headers for a device', async function () {
                     sinon.stub(axios, 'post').resolves({ data: { status: 'ok', transactionId: '9876' } })
-                    await app.inject({
+                    const response = await app.inject({
                         method: 'POST',
                         url: `/api/v1/assistant/${serviceName}`,
                         headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
@@ -264,10 +293,12 @@ describe('Assistant API', async function () {
                         'ff-owner-type': 'device',
                         'ff-owner-id': TestObjects.device.hashid,
                         'ff-team-id': TestObjects.ATeam.hashid,
-                        'ff-license-active': false,
-                        'ff-license-type': 'CE',
-                        'ff-license-tier': null
+                        'ff-license-active': true,
+                        'ff-license-type': 'EE',
+                        'ff-license-tier': 'enterprise'
                     })
+                    const body = response.json()
+                    body.should.have.property('transactionId', '9876')
                 })
             }
             describe('function service', async function () {
@@ -298,6 +329,8 @@ describe('Assistant API', async function () {
 
                 // specific tests for tables feature
                 it('should include tables hints in context and cache it for subsequent requests', async function () {
+                    // deliberate pause to ensure getTablesHints cache is expired before starting test
+                    await new Promise(resolve => setTimeout(resolve, 760))
                     getTablesHintsStub.resolves('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
                     sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
                     await app.inject({
@@ -343,7 +376,136 @@ describe('Assistant API', async function () {
                     axios.post.calledOnce.should.be.true()
 
                     // Simulate cache expiration
-                    await new Promise(resolve => setTimeout(resolve, 1010)) // wait for over 1 sec
+                    await new Promise(resolve => setTimeout(resolve, 760)) // wait longer than cache TTL setting
+
+                    // Second request should hit cache and not call out to getTablesHints a 2nd time
+                    getTablesHintsStub.resolves('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
+                    getTablesHintsStub.resetHistory()
+                    getDatabasesStub.resetHistory()
+                    await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    axios.post.calledTwice.should.be.true()
+                    getTablesHintsStub.called.should.be.true()
+                    getDatabasesStub.called.should.be.true()
+                    // should be called with app, request.team, database.hashid
+                    const callArgs = getTablesHintsStub.getCall(0).args
+                    callArgs[1].should.be.an.Object()
+                    callArgs[1].should.have.property('id', TestObjects.ATeam.id)
+                    callArgs[1].should.have.property('hashid', TestObjects.ATeam.hashid)
+                    callArgs[1].should.have.property('name', TestObjects.ATeam.name)
+                    callArgs[2].should.equal('db1') // instance/device.hashid (mocked in beforeEach)
+                    const returnValue = await getTablesHintsStub.getCall(0).returnValue
+                    returnValue.should.equal('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
+                })
+            })
+            describe('fim code completion service', async function () {
+                const serviceName = 'fim/node-red/function'
+                let getTablesHintsStub
+                let getDatabasesStub
+                const libAssistant = require('../../../../../forge/lib/assistant.js')
+
+                beforeEach(async function () {
+                    getTablesHintsStub = sinon.stub(libAssistant, 'getTablesHints')
+                    app.tables = app.tables || { getDatabases: () => {} }
+                    getDatabasesStub = sinon.stub(app.tables, 'getDatabases').resolves([{ hashid: 'db1', name: 'Database 1' }])
+                    await enableTeamTypeFeatureFlag(app, true, 'assistantInlineCompletions')
+                })
+                afterEach(function () {
+                    getTablesHintsStub.restore()
+                    getDatabasesStub.restore()
+                    sinon.restore()
+                })
+
+                // standard service tests
+                serviceTests(serviceName)
+
+                // specific tests
+                it('can be disabled', async function () {
+                    sinon.stub(app.config.assistant.completions, 'inlineEnabled').get(() => false)
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    response.statusCode.should.equal(404)
+                })
+                it('can be disabled via team feature flag', async function () {
+                    await enableTeamTypeFeatureFlag(app, false, 'assistantInlineCompletions')
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    response.statusCode.should.equal(404)
+                })
+                it('does not allow other contrib nodes', async function () {
+                    const serviceName = 'fim/' + encodeURIComponent('@third-party/contrib-node') + '/node-type'
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555', disableTables: true }
+                    })
+                    response.statusCode.should.equal(400)
+                })
+                it('should include tables hints in context and cache it for subsequent requests', async function () {
+                    // deliberate pause to ensure getTablesHints cache is expired before starting test
+                    await new Promise(resolve => setTimeout(resolve, 760))
+                    getTablesHintsStub.resolves('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')
+                    getTablesHintsStub.resetHistory()
+                    const serviceName = 'fim/' + encodeURIComponent('@flowfuse/nr-tables-nodes') + '/tables-query'
+                    sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                    await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    axios.post.calledOnce.should.be.true()
+                    getTablesHintsStub.calledOnce.should.be.true()
+                    getDatabasesStub.calledOnce.should.be.true()
+                    // should be called with app, request.team, database.hashid
+                    const callArgs = getTablesHintsStub.getCall(0).args
+                    callArgs[1].should.be.an.Object()
+                    callArgs[1].should.have.property('id', TestObjects.ATeam.id)
+                    callArgs[1].should.have.property('hashid', TestObjects.ATeam.hashid)
+                    callArgs[1].should.have.property('name', TestObjects.ATeam.name)
+                    callArgs[2].should.equal('db1') // instance/device.hashid (mocked in beforeEach)
+
+                    // Second request should hit cache and not call out to getTablesHints a 2nd time
+                    await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    axios.post.calledTwice.should.be.true()
+                    getTablesHintsStub.calledOnce.should.be.true() // still only called once
+                    getDatabasesStub.calledOnce.should.be.true() // still only called once
+                })
+
+                it('should fetch fresh tables context hints after cache expiration', async function () {
+                    getTablesHintsStub.resolves('--empty db')
+                    getTablesHintsStub.resetHistory()
+                    getDatabasesStub.resetHistory()
+                    const serviceName = 'fim/' + encodeURIComponent('@flowfuse/nr-tables-nodes') + '/tables-query'
+                    sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                    await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    axios.post.calledOnce.should.be.true()
+
+                    // Simulate cache expiration
+                    await new Promise(resolve => setTimeout(resolve, 760)) // wait longer than cache TTL setting
 
                     // Second request should hit cache and not call out to getTablesHints a 2nd time
                     getTablesHintsStub.resolves('CREATE TABLE test (id INT PRIMARY KEY);\nCREATE TABLE test2 (id INT PRIMARY KEY);\n')

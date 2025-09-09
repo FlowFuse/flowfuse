@@ -214,8 +214,8 @@ const getResources = async (instanceId) => {
     })
 }
 
-const generateSnapshotDescription = async (instanceId) => {
-    return client.post(`/api/v1/projects/${instanceId}/generate/snapshot-description`, {})
+const generateSnapshotDescription = async (instanceId, { target }) => {
+    return client.post(`/api/v1/projects/${instanceId}/generate/snapshot-description`, { target })
         .then(res => {
             return res.data.data
         })

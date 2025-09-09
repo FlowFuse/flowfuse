@@ -1,0 +1,52 @@
+name: Check DB migrations
+
+on:
+  push:
+    branches:
+      - main
+      - maintenance
+  pull_request:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const { execSync } = require('child_process')
+            let firstCommit
+            let lastCommit
+            if (context.eventName === 'push') {
+              firstCommit='HEAD^1'
+              lastCommit='HEAD'
+            } else if (context.eventName === 'pull_request') {
+              firstCommit=context.payload.pull_request.base.sha
+              lastCommit=context.payload.pull_request.head.sha
+            } else {
+              throw new Error('Unsupported event')
+            }
+            // Get the list of files modified
+            const rawFiles = execSync(`git diff --name-only --diff-filter=d "${firstCommit}" "${lastCommit}"`).toString()
+            // Filter for migration files
+            const files = rawFiles.split('\n').filter(f => /^forge\/db\/migrations\/2.*\.js$/.test(f))
+            if (files.length > 0) {
+              console.log('Modified migration files:')
+              files.forEach(f => console.log(` - ${f}`))
+              // Check they are the last files present in the directory
+              const fs = require('fs')
+              const path = require('path')
+              const migrationDir = path.join(process.cwd(), 'forge', 'db', 'migrations')
+              // Get all migration files
+              const allFiles = fs.readdirSync(migrationDir).filter(f => /^2.*\.js$/.test(f)).sort()
+              // Check the last N files are the ones added by the PR
+              const lastFiles = allFiles.slice(-files.length)
+              const invalidFiles = files.filter(f => !lastFiles.includes(path.basename(f)))
+              if (invalidFiles.length > 0) {
+                core.setFailed('Migrations added out of order')
+              }
+            }

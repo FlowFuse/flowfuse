@@ -119,7 +119,7 @@ export default {
         Roles () {
             return Roles
         },
-        ...mapState('account', ['user', 'team', 'teamMembership', 'features']),
+        ...mapState('account', ['user', 'team', 'features']),
         ...mapState('product', {
             clients: state => state.UNS.clients
         }),
