@@ -34,15 +34,69 @@
                             Set as Target <QuestionMarkCircleIcon class="ff-icon" style="margin: 0px 0px 0px 4px; height: 18px;" />
                         </span>
                     </FormRow>
-                    <ff-button
-                        v-if="featuresCheck.isGeneratedSnapshotDescriptionEnabled" kind="tertiary"
-                        :disabled="loadingDescription" @click="generateDescription"
+                    <ff-popover
+                        v-if="featuresCheck.isGeneratedSnapshotDescriptionEnabled"
+                        button-text="Generate with AI"
+                        button-kind="tertiary"
+                        :disabled="loadingDescription"
                     >
-                        Generate with AI
                         <template #icon-left>
                             <CubeTransparentIcon class="ff-icon" />
                         </template>
-                    </ff-button>
+                        <template #panel="{ close }">
+                            <section>
+                                <popover-item
+                                    title="Use latest manual snapshot"
+                                    description="Compare with latest manually created snapshot"
+                                    @click="onPopoverItemClick('latest',close)"
+                                >
+                                    <template #icon>
+                                        <ClockIcon class="ff-icon text-indigo-500" />
+                                    </template>
+                                </popover-item>
+                                <popover-item
+                                    title="or search for a specific snapshot"
+                                    class="bg-gray-100 hover:bg-gray-100 border-t border-gray-200"
+                                >
+                                    <template #content>
+                                        <div class="flex gap-1 w-full my-2">
+                                            <ff-combobox
+                                                v-model="selectedSnapshot"
+                                                class="flex-1"
+                                                :fetch-remote-options="searchSnapshots"
+                                                placeholder="Search snapshots"
+                                                :disabled="loadingDescription"
+                                            >
+                                                <template #option="{ option, selected, active }">
+                                                    <div class="ff-option-content" :class="{ selected, active }">
+                                                        <div class="flex justify-between mb-1">
+                                                            <span>{{ option.label }}</span>
+                                                            <span v-if="option.user && option.user.username" class="text-gray-400">{{ option.user.username }}</span>
+                                                        </div>
+                                                        <p
+                                                            :title="option.description"
+                                                            class="text-italic text-gray-400 mb-1 clipped-overflow--two-lines"
+                                                        >
+                                                            {{ option.description }}
+                                                        </p>
+                                                    </div>
+                                                </template>
+                                            </ff-combobox>
+                                            <ff-button
+                                                kind="secondary"
+                                                :disabled="!selectedSnapshot || loadingDescription"
+                                                @click="onPopoverItemClick(selectedSnapshot,close)"
+                                            >
+                                                <template #icon>
+                                                    <ChevronRightIcon class="ff-icon" />
+                                                </template>
+                                            </ff-button>
+                                        </div>
+                                    </template>
+                                </popover-item>
+                            </section>
+                        </template>
+                    </ff-popover>
                 </section>
             </form>
         </template>
@@ -50,21 +104,26 @@
 </template>
 <script>
 
-import { CubeTransparentIcon } from '@heroicons/vue/outline'
-import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import { ClockIcon, CubeTransparentIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
 import { mapGetters } from 'vuex'
 
+import applicationApi from '../../../api/application.js'
 import deviceApi from '../../../api/devices.js'
 
 import FormRow from '../../../components/FormRow.vue'
 import alerts from '../../../services/alerts.js'
+import PopoverItem from '../../../ui-components/components/PopoverItem.vue'
 
 export default {
     name: 'SnapshotCreateDialog',
     components: {
+        ChevronRightIcon,
+        ClockIcon,
         CubeTransparentIcon,
         FormRow,
-        QuestionMarkCircleIcon
+        QuestionMarkCircleIcon,
+        PopoverItem
     },
     props: {
         device: {
@@ -102,7 +161,8 @@ export default {
                 setAsTarget: false
             },
             errors: {},
-            loadingDescription: false
+            loadingDescription: false,
+            selectedSnapshot: null
         }
     },
     computed: {
@@ -112,7 +172,7 @@ export default {
         },
         setAsTargetToolTip () {
             if (this.device?.ownerType === 'application') {
-                // for an application owned device:
+                // for an application-owned device:
                 return 'If checked, the device will load this as its active snapshot at the next check-in'
             }
             // for default (instance owned device)
@@ -147,9 +207,9 @@ export default {
             this.$refs.dialog.close()
             this.$emit('canceled')
         },
-        generateDescription () {
+        generateDescription (target) {
             this.loadingDescription = true
-            return deviceApi.generateSnapshotDescription(this.device.id)
+            return deviceApi.generateSnapshotDescription(this.device.id, target)
                 .then(res => {
                     if (!this.input.name.length) {
                         this.input.name = res.name
@@ -175,6 +235,30 @@ export default {
                 .finally(() => {
                     this.loadingDescription = false
                 })
+        },
+        onPopoverItemClick (target, close) {
+            close()
+            if (target === 'latest') return this.generateDescription('latest')
+            if (target === 'pipeline') return this.generateDescription('pipeline')
+
+            return this.generateDescription(target)
+        },
+        searchSnapshots (query) {
+            return applicationApi.getSnapshots(
+                this.device.application.id,
+                null,
+                30,
+                { deviceId: this.device.id },
+                (query.length > 0 ? query : null)
+            )
+                .then(res => (res.snapshots.map(snapshot => ({
+                    value: snapshot.id,
+                    label: snapshot.name,
+                    id: snapshot.id,
+                    description: snapshot?.description ?? null,
+                    user: snapshot?.user ?? null,
+                    createdAt: snapshot?.createdAt ?? null
+                }))))
         }
     }
 }
