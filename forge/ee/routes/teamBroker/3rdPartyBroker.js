@@ -217,16 +217,20 @@ module.exports = async function (app) {
             if (agent) {
                 const brokerURL = new URL(app.config.broker.url)
                 reply.send({
+                    id: 'team-broker',
+                    name: 'TeamBroker',
                     host: brokerURL.hostname,
                     port: brokerURL.port,
                     protocol: brokerURL.protocol,
+                    protocolVersion: '4',
                     ssl: brokerURL.protocol === 'mqtts:' || brokerURL.protocol === 'wss:',
+                    verifySSL: true,
                     clientId: `${request.params.teamId}-agent@${request.params.teamId}`,
                     credentials: {
                         username: `agent:${request.params.teamId}@${request.params.teamId}`,
                         password: agent.auth
                     },
-                    topicPrefix: '#'
+                    topicPrefix: ['#']
                 })
             }
         } else {
@@ -338,7 +342,20 @@ module.exports = async function (app) {
                 reply.status(500).send({ error: 'unknown_error', message: err.toString() })
             }
         } else {
-            reply.status(400).send({ error: 'not_supported', message: 'not supported' })
+            const agentStatus = await app.db.models.TeamBrokerAgent.byTeam(request.params.teamId)
+            if (agentStatus) {
+                const clean = agentStatus.toJSON()
+                delete clean.auth
+                clean.status = {
+                    connected: true,
+                    error: null
+                }
+                reply.send(clean)
+            } else {
+                reply.send({
+                    state: 'suspended'
+                })
+            }
         }
     })
 
@@ -408,19 +425,14 @@ module.exports = async function (app) {
                 await app.containers.sendBrokerAgentCommand(agent, 'start')
                 reply.status(200).send({})
             } else {
-                const brokerUrl = new URL(app.config.broker.url)
                 const agent = await app.db.models.TeamBrokerAgent.create({
-                    Team: request.team,
-                    settings: {
-                        host: brokerUrl.hostname,
-                        port: brokerUrl.protocol,
-                        protocol: brokerUrl.protocol
-                    }
+                    state: 'running',
+                    TeamId: request.team.id
                 })
+                await agent.reload({ include: [{ model: app.db.models.Team }] })
                 await app.containers.startBrokerAgent(agent)
                 reply.status(200).send({})
             }
-            // reply.status(403).send({})
         } else {
             if (request.broker.state === 'running') {
                 await app.containers.sendBrokerAgentCommand(request.broker, 'start')
@@ -469,15 +481,16 @@ module.exports = async function (app) {
         schema: { }
     }, async (request, reply) => {
         if (request.params.brokerId === 'team-broker') {
-            const agent = await app.db.models.TeamBrokerAgent.byTeam(request.team.hashid)
+            const agent = await app.db.models.TeamBrokerAgent.byTeam(request.team.id)
             if (agent) {
                 await app.containers.stopBrokerAgent(agent)
-                await agent.destroy()
+                setTimeout(async () => {
+                    await agent.destroy()
+                }, 1500)
                 reply.status(200).send({})
             } else {
-                //
+                reply.status(404).send({})
             }
-            reply.status(403).send({})
         } else {
             await app.containers.stopBrokerAgent(request.broker)
             request.broker.state = 'suspended'
@@ -545,6 +558,10 @@ module.exports = async function (app) {
                 if (request.session?.scope?.includes('broker:topics')) {
                     if (request.session.ownerType === 'broker') {
                         if (request.params.teamId !== request.session.Broker.Team.hashid) {
+                            reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                        }
+                    } else if (request.session.ownerType === 'teamBrokerAgent') {
+                        if (request.params.teamId !== request.session.TeamBrokerAgent.Team.hashid) {
                             reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
                         }
                     } else {

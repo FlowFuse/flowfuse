@@ -1,15 +1,15 @@
 /**
- * 
+ * TeamBrokerAgent table
  */
-const { DataTypes, Model } = require('sequelize')
+const { DataTypes } = require('sequelize')
 
-const Controllers = require('../controllers')
 const { generatePassword } = require('../../lib/userTeam')
+const Controllers = require('../controllers')
 
 module.exports = {
     name: 'TeamBrokerAgent',
     schema: {
-        state: { type: DataTypes.STRING, allowNull: false, default: 'running'},
+        state: { type: DataTypes.STRING, allowNull: false, default: 'running' },
         settings: {
             type: DataTypes.TEXT,
             allowNull: true,
@@ -37,7 +37,7 @@ module.exports = {
         }
     },
     indexes: [
-        { name: 'team_broker_agent_team_unique', fields: ['id', 'TeamId'], unique: true  }
+        { name: 'team_broker_agent_team_unique', fields: ['id', 'TeamId'], unique: true }
     ],
     hooks: function (M, app) {
         return {
@@ -88,7 +88,7 @@ module.exports = {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
                     }
-                    this.findOne({
+                    return this.findOne({
                         include: {
                             model: M.Team,
                             where: { id: teamId }

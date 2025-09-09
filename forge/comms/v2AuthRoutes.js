@@ -56,7 +56,7 @@ module.exports = async function (app) {
             const parts = username.split('@')
             const teamId = parts[1]
             const agent = await app.db.models.TeamBrokerAgent.byTeam(teamId)
-            if (agent && agent.auth == password) { 
+            if (agent && agent.auth === password) {
                 reply.send({
                     result: 'allow',
                     is_superuser: false,
@@ -151,7 +151,7 @@ module.exports = async function (app) {
                 reply.send({ result: 'deny' })
             }
             // return
-        } else if (user.startsWith('agent:')) {
+        } else if (username.startsWith('agent:')) {
             if (action === 'subscribe') {
                 reply.send({ result: 'allow' })
             } else {

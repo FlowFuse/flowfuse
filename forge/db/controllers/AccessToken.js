@@ -437,7 +437,7 @@ module.exports = {
         return { token }
     },
 
-    createTokenForTeamBrokerAgent: async function (app, broker, expiresAt, scope = ['broker:credentials', 'broker:topics']) {
+    createTokenForTeamBrokerAgent: async function (app, broker, expiresAt, scope = ['broker:credentials', 'broker:credentials:edit', 'broker:topics']) {
         const existingBrokerToken = await app.db.models.AccessToken.findOne({
             where: {
                 ownerId: '' + broker.id,

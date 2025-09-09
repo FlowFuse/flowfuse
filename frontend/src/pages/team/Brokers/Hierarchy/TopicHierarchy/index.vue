@@ -2,6 +2,9 @@
     <div class="unified-namespace-hierarchy">
         <main-title title="Topic Hierarchy">
             <template #actions>
+                <ff-button v-if="isTeamBroker" :disabled="isTeamBrokerAgentRunning" kind="secondary" @click="startTeamBrokerAgent()">
+                    Capture payload Schema
+                </ff-button>
                 <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
                     <template #icon><RefreshIcon /></template>
                 </ff-button>
@@ -76,8 +79,10 @@ import { SearchIcon, XIcon } from '@heroicons/vue/outline'
 import { RefreshIcon } from '@heroicons/vue/solid'
 import { mapGetters } from 'vuex'
 
+import brokerApi from '../../../../../api/broker.js'
 import EmptyState from '../../../../../components/EmptyState.vue'
 
+import alerts from '../../../../../services/alerts.js'
 import MainTitle from '../components/MainTitle.vue'
 
 import TopicSegment from '../components/TopicSegment.vue'
@@ -110,14 +115,14 @@ export default {
             required: true
         }
     },
-    emits: ['refresh-hierarchy', 'segment-selected'],
+    emits: ['refresh-hierarchy', 'segment-selected', ''],
     data () {
         return {
             filterTerm: ''
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapGetters('account', ['featuresCheck', 'team']),
         ...mapGetters('product', ['brokerExpandedTopics']),
         brokerId () {
             return this.$route.params.brokerId
@@ -240,6 +245,9 @@ export default {
             // For now, only show schema on Team Broker. This will need to be extended for 3rd party
             // brokers later
             return this.featuresCheck.isMqttBrokerFeatureEnabled
+        },
+        isTeamBrokerAgentRunning () {
+            return this.isTeamBroker && this.brokerState === 'connected'
         }
     },
     methods: {
@@ -249,6 +257,10 @@ export default {
         toggleSegmentVisibility (segment) {
             // trigger's the hierarchy setter
             this.hierarchy = segment
+        },
+        startTeamBrokerAgent () {
+            brokerApi.startBroker(this.team.id, 'team-broker')
+            alerts.emit('MQTT Payload Schema will be collected for the next 24 hours', 'confirmation')
         }
     }
 }

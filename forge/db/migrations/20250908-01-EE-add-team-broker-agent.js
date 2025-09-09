@@ -7,6 +7,7 @@ module.exports = {
     up: async (context) => {
         await context.createTable('TeamBrokerAgents', {
             id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+            state: { type: DataTypes.STRING, allowNull: false, default: 'running' },
             settings: { type: DataTypes.TEXT, allowNull: true },
             auth: { type: DataTypes.STRING, allowNull: false },
             createdAt: { type: DataTypes.DATE, allowNull: false },
