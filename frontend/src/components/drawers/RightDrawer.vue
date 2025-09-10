@@ -15,10 +15,10 @@ import { mapActions, mapState } from 'vuex'
 export default {
     name: 'RightDrawer',
     computed: {
-        ...mapState('ux', ['rightDrawer'])
+        ...mapState('ux/drawers', ['rightDrawer'])
     },
     methods: {
-        ...mapActions('ux', ['closeRightDrawer']),
+        ...mapActions('ux/drawers', ['closeRightDrawer']),
         closeDrawer () {
             if (this.rightDrawer.state) {
                 this.closeRightDrawer()
