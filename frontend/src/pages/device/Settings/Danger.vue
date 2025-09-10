@@ -33,7 +33,7 @@ export default {
         FormHeading
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership'])
+        ...mapState('account', ['team'])
     },
     data () {
         return {

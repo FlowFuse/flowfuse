@@ -17,8 +17,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import InstanceApi from '../../api/instances.js'
 import permissionsMixin from '../../mixins/Permissions.js'
 import ConfirmInstanceDeleteDialog from '../../pages/instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
@@ -44,7 +42,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         flowActionsDisabled () {
             return !(this.instance.meta && this.instance.meta.state !== 'suspended')
         },

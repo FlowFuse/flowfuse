@@ -138,7 +138,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
+        ...mapState('account', ['team']),
         columns () {
             const cols = [
                 {

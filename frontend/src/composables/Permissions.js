@@ -1,19 +1,78 @@
+import { computed } from 'vue'
 import { useStore } from 'vuex'
 
 import { Permissions } from '../../../forge/lib/permissions.js'
 import { Roles } from '../utils/roles.js'
 
 /**
- * Fixes reactivity issue with the useStore utility but throws a warning while in dev mode
- * [Vue warn]: inject() can only be used inside setup() or functional components
- * Since teamMembership is defined outside the composable function and updated conditionally in usePermissions()
+ * Determines if a user is visiting as an admin based on their team membership role.
  *
- * The initialized store returns undefined upon switching teams and looses reactivity afterward. This should
- * warrant more investigations, as this usually happens when the entire store is re-written.
- *
- * @type {{role: number}}
+ * @param {Object} teamMembership - An object representing the user's team membership details.
+ * @param {string} teamMembership.role - The role assigned to the user within the team.
+ * @returns {boolean} True if the user has an admin role, otherwise false.
  */
-let teamMembership = { role: 0 }
+export const isVisitingAdmin = (teamMembership) => {
+    return teamMembership.role === Roles.Admin
+}
+
+/**
+ * Checks if a user has the required permission for a specific scope based on their team membership.
+ *
+ * @param {string} scope - The specific scope for which the permission check is being made.
+ * @param {Object|null} teamMembership - The user's team membership information, typically containing role details. Can be null if the user does not have team membership.
+ * @throws {Error} If the provided scope is not recognized.
+ * @returns {boolean} Returns true if the user has the required permission for the given scope, false otherwise.
+ */
+export const hasPermission = (scope, teamMembership) => {
+    if (!Permissions[scope]) {
+        throw new Error(`Unrecognised scope requested: '${scope}'`)
+    }
+    const permission = Permissions[scope]
+
+    if (permission.role) {
+        if (!teamMembership) {
+            return false
+        }
+        if (teamMembership.role < permission.role) {
+            return false
+        }
+    }
+    return true
+}
+
+/**
+ * Check if the user has the minimum required role.
+ * @param {Role} role - The role to check against.
+ * @param teamMembership
+ * @returns {boolean} True if the user has the minimum required role, otherwise false.
+ * @example
+ * // Check if the user has at least the 'Member' role
+ * const isMemberOrHigher = hasAMinimumTeamRoleOf(Roles.Member)
+ */
+export const hasAMinimumTeamRoleOf = (role, teamMembership) => {
+    if (isVisitingAdmin(teamMembership)) {
+        return true
+    }
+
+    return teamMembership?.role >= role
+}
+
+/**
+ * Check if the user has a lower role than a given role.
+ * @param {Role} role - The role to check against.
+ * @param teamMembership
+ * @returns {boolean} True if the user has a lower role than the given one, otherwise false.
+ * @example
+ // Check if the user has role lower than 'Member' role
+ * const isMemberOrHigher = hasALowerTeamRoleThan(Roles.Member)
+ */
+export const hasALowerOrEqualTeamRoleThan = (role, teamMembership) => {
+    if (isVisitingAdmin(teamMembership)) {
+        return true
+    }
+
+    return role <= teamMembership?.role
+}
 
 /**
  * @typedef {0 | 5 | 10 | 30 | 50 | 99} Role
@@ -22,75 +81,48 @@ let teamMembership = { role: 0 }
 export default function usePermissions () {
     const store = useStore()
 
-    if (store && store?.state?.account?.teamMembership) {
-        teamMembership = store?.state?.account?.teamMembership
-    }
+    const teamMembership = computed(() => store?.state?.account?.teamMembership || { role: 0 })
 
     /**
-         * @returns {boolean}
-         */
-    const isVisitingAdmin = () => {
-        return teamMembership.role === Roles.Admin
-    }
+     * Determines if a user is visiting as an admin based on their team membership role.
+     *
+     * @returns {boolean} True if the user has an admin role, otherwise false.
+     */
+    const _isVisitingAdmin = () => isVisitingAdmin(teamMembership.value)
 
     /**
-         *
-         * @param scope
-         * @returns {boolean}
-         */
-    const hasPermission = (scope) => {
-        if (!Permissions[scope]) {
-            throw new Error(`Unrecognised scope requested: '${scope}'`)
-        }
-        const permission = Permissions[scope]
-
-        if (permission.role) {
-            if (!teamMembership) {
-                return false
-            }
-            if (teamMembership.role < permission.role) {
-                return false
-            }
-        }
-        return true
-    }
+     * Checks if a user has the required permission for a specific scope based on their team membership.
+     *
+     * @param {string} scope - The specific scope for which the permission check is being made.
+     * @throws {Error} If the provided scope is not recognized.
+     * @returns {boolean} Returns true if the user has the required permission for the given scope, false otherwise.
+     */
+    const _hasPermission = (scope) => hasPermission(scope, teamMembership.value)
 
     /**
-         * Check if the user has the minimum required role.
-         * @param {Role} role - The role to check against.
-         * @returns {boolean} True if the user has the minimum required role, otherwise false.
-         * @example
-         * // Check if the user has at least the 'Member' role
-         * const isMemberOrHigher = hasAMinimumTeamRoleOf(Roles.Member)
-         */
-    const hasAMinimumTeamRoleOf = (role) => {
-        if (isVisitingAdmin()) {
-            return true
-        }
-
-        return teamMembership?.role >= role
-    }
+     * Check if the user has the minimum required role.
+     * @param {Role} role - The role to check against.
+     * @returns {boolean} True if the user has the minimum required role, otherwise false.
+     * @example
+     * // Check if the user has at least the 'Member' role
+     * const isMemberOrHigher = hasAMinimumTeamRoleOf(Roles.Member)
+     */
+    const _hasAMinimumTeamRoleOf = (role) => hasAMinimumTeamRoleOf(role, teamMembership.value)
 
     /**
-         * Check if the user has a lower role than given role.
-         * @param {Role} role - The role to check against.
-         * @returns {boolean} True if the user has a lower role than the given one, otherwise false.
-         * @example
-         * // Check if the user has role lower than 'Member' role
-         * const isMemberOrHigher = hasALowerTeamRoleThan(Roles.Member)
-         */
-    const hasALowerOrEqualTeamRoleThan = (role) => {
-        if (isVisitingAdmin()) {
-            return true
-        }
-
-        return role <= teamMembership?.role
-    }
+     * Check if the user has a lower role than a given role.
+     * @param {Role} role - The role to check against.
+     * @returns {boolean} True if the user has a lower role than the given one, otherwise false.
+     * @example
+     // Check if the user has role lower than 'Member' role
+     * const isMemberOrHigher = hasALowerTeamRoleThan(Roles.Member)
+     */
+    const _hasALowerOrEqualTeamRoleThan = (role) => hasALowerOrEqualTeamRoleThan(role, teamMembership.value)
 
     return {
-        isVisitingAdmin,
-        hasPermission,
-        hasAMinimumTeamRoleOf,
-        hasALowerOrEqualTeamRoleThan
+        isVisitingAdmin: _isVisitingAdmin,
+        hasPermission: _hasPermission,
+        hasAMinimumTeamRoleOf: _hasAMinimumTeamRoleOf,
+        hasALowerOrEqualTeamRoleThan: _hasALowerOrEqualTeamRoleThan
     }
 }
