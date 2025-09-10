@@ -147,8 +147,8 @@ const getDeviceSnapshot = (deviceId, snapshotId) => {
 }
 
 // TODO: move to deviceSnapshots.js
-const getDeviceSnapshots = (deviceId, cursor, limit) => {
-    const url = paginateUrl(`/api/v1/devices/${deviceId}/snapshots`, cursor, limit)
+const getDeviceSnapshots = (deviceId, cursor, limit, query = null) => {
+    const url = paginateUrl(`/api/v1/devices/${deviceId}/snapshots`, cursor, limit, query)
     return client.get(url).then(res => {
         res.data.snapshots = res.data.snapshots.map(ss => {
             ss.createdSince = daysSince(ss.createdAt)

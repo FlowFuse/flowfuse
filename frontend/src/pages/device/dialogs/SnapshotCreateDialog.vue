@@ -244,13 +244,22 @@ export default {
             return this.generateDescription(target)
         },
         searchSnapshots (query) {
-            return applicationApi.getSnapshots(
-                this.device.application.id,
-                null,
-                30,
-                { deviceId: this.device.id },
-                (query.length > 0 ? query : null)
-            )
+            const apiEndpoint = this.device.ownerType === 'application'
+                ? applicationApi.getSnapshots(
+                    this.device.application.id,
+                    null,
+                    30,
+                    { deviceId: this.device.id },
+                    (query.length > 0 ? query : null)
+                )
+                : deviceApi.getDeviceSnapshots(
+                    this.device.id,
+                    null,
+                    30,
+                    (query.length > 0 ? query : null)
+                )
+
+            return apiEndpoint
                 .then(res => (res.snapshots.map(snapshot => ({
                     value: snapshot.id,
                     label: snapshot.name,
