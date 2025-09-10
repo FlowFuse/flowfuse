@@ -76,9 +76,6 @@ describe('Team Members API', function () {
         }
     }
 
-    after(async function () {
-        await app.close()
-    })
     beforeEach(async function () {
         await setupUsers()
     })
@@ -90,6 +87,9 @@ describe('Team Members API', function () {
             TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
             TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
             TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam', TeamTypeId: app.defaultTeamType.id })
+        })
+        after(async function () {
+            await app.close()
         })
         describe('List team members', async function () {
             // GET /api/v1/teams/:teamId/members
