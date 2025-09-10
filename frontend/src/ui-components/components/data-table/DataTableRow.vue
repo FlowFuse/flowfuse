@@ -9,7 +9,8 @@
                                 :class="col.class"
                                 :style="col.style"
                                 :highlight="highlightCell === $column"
-                                @mouseup="handleMouseUp"
+                                @click="handleClick"
+                                @click.middle="handleClick"
             >
                 <template v-if="col.component">
                     <component :is="col.component.is"
@@ -110,7 +111,7 @@ export default {
             }
             return obj
         },
-        handleMouseUp (event) {
+        handleClick (event) {
             this.$emit('selected', { ...this.data, _event: event })
         }
     }
