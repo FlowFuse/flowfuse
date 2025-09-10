@@ -56,7 +56,7 @@ export default {
     },
     mixins: [permissionsMixin, applicationMixin, instanceActionsMixin],
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'team']),
         navigation () {
             const routes = [
                 { label: 'Hosted Instances', to: { name: 'ApplicationInstances' }, tag: 'application-overview', icon: ProjectsIcon },

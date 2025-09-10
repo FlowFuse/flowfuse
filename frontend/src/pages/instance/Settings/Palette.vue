@@ -67,7 +67,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'features']),
+        ...mapState('account', ['team', 'features']),
         catalogFeatureEnabledForTeam () {
             if (!this.features.customCatalogs) {
                 return false
