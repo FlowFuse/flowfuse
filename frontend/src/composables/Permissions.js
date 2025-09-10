@@ -1,4 +1,4 @@
-import { computed, toValue } from 'vue'
+import { computed } from 'vue'
 import { useStore } from 'vuex'
 
 import { Permissions } from '../../../forge/lib/permissions.js'
@@ -88,7 +88,7 @@ export default function usePermissions () {
      *
      * @returns {boolean} True if the user has an admin role, otherwise false.
      */
-    const _isVisitingAdmin = toValue(computed(() => isVisitingAdmin(teamMembership.value)))
+    const _isVisitingAdmin = computed(() => isVisitingAdmin(teamMembership.value))
 
     /**
      * Checks if a user has the required permission for a specific scope based on their team membership.
