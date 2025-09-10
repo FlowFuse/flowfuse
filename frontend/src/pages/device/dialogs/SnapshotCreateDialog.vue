@@ -110,6 +110,7 @@ import { mapGetters } from 'vuex'
 
 import applicationApi from '../../../api/application.js'
 import deviceApi from '../../../api/devices.js'
+import snapshotApi from '../../../api/projectSnapshots.js'
 
 import FormRow from '../../../components/FormRow.vue'
 import alerts from '../../../services/alerts.js'
@@ -252,12 +253,7 @@ export default {
                     { deviceId: this.device.id },
                     (query.length > 0 ? query : null)
                 )
-                : deviceApi.getDeviceSnapshots(
-                    this.device.id,
-                    null,
-                    30,
-                    (query.length > 0 ? query : null)
-                )
+                : snapshotApi.getInstanceSnapshots(this.device.instance.id, null, 30, query)
 
             return apiEndpoint
                 .then(res => (res.snapshots.map(snapshot => ({
