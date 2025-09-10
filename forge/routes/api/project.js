@@ -1449,7 +1449,10 @@ module.exports = async function (app) {
             },
             body: {
                 type: 'object',
-                additionalProperties: true
+                required: ['target'],
+                properties: {
+                    target: { type: 'string' }
+                }
             },
             response: {
                 200: {
@@ -1466,7 +1469,27 @@ module.exports = async function (app) {
         const options = {}
         let isTeamOnTrial
 
-        const latestSnapshot = (await request.project.getLatestSnapshot(true)) ?? {}
+        let targetSnapshot = {}
+
+        switch (request.body.target) {
+        case 'latest':
+            targetSnapshot = (await request.project.getLatestSnapshot(true)) ?? {}
+            break
+        case 'pipeline':
+            targetSnapshot = (await request.project.getLatestDeploySnapshot()) ?? {}
+            break
+        default:
+            targetSnapshot = (await app.db.models.ProjectSnapshot.byId(request.body.target))
+
+            if (!targetSnapshot) {
+                return reply.code(404).send({
+                    code: 'not_found',
+                    error: 'Snapshot not found'
+                })
+            }
+            break
+        }
+
         const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildSnapshot(
             request.project,
             request.session.User,
@@ -1474,10 +1497,10 @@ module.exports = async function (app) {
         )
 
         let previousState = {}
-        if (latestSnapshot) {
-            const toJSON = Object.prototype.hasOwnProperty.call(latestSnapshot, 'toJSON')
-                ? latestSnapshot.toJSON()
-                : latestSnapshot
+        if (targetSnapshot) {
+            const toJSON = Object.prototype.hasOwnProperty.call(targetSnapshot, 'toJSON')
+                ? targetSnapshot.toJSON()
+                : targetSnapshot
 
             previousState = {
                 settings: toJSON.settings,
@@ -1511,7 +1534,13 @@ module.exports = async function (app) {
             const transactionId = request.params.instanceId + '-' + Date.now() // a unique id for this transaction
             const res = await app.db.controllers.Assistant.invokeLLM(
                 'snapshot-diff',
-                { transactionId, currentState: currentStateDiff, previousState: previousStateDiff, prompt: '' },
+                {
+                    transactionId,
+                    currentState: currentStateDiff,
+                    previousState: previousStateDiff,
+                    prompt: '',
+                    target: request.body.target
+                },
                 {
                     teamHashId: request.project.Team.hashid,
                     instanceId: request.project.hashid,

@@ -51,3 +51,19 @@ export const generateUuid = (length = 6) => {
         byte.toString(36).padStart(2, '0')
     ).join('').substring(0, length)
 }
+
+/**
+ * Generates a hash string from a given input string.
+ * The hash value is computed using the FNV-1a hashing algorithm.
+ *
+ * @param {string} str - The input string to be hashed.
+ * @returns {string} - The computed hash string truncated to the specified length.
+ */
+export const hashString = (str) => {
+    let h = 2166136261 >>> 0
+    for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i)
+        h = Math.imul(h, 16777619)
+    }
+    return (h >>> 0).toString(16).padStart(8, '0')
+}
