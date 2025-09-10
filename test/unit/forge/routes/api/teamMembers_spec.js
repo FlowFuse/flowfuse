@@ -516,6 +516,9 @@ describe('Team Members API', function () {
             app.defaultTeamType.properties = defaultTeamTypeProperties
             await app.defaultTeamType.save()
         })
+        after(async function () {
+            await app.close()
+        })
 
         it('permissions update fails if invalid application provided', async function () {
             // Bob changes Chris to BTeam owner
