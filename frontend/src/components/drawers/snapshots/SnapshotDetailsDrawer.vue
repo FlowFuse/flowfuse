@@ -1,9 +1,9 @@
 <template>
     <div id="snapshot-details-drawer">
         <div class="container">
-            <section class="flow-viewer">
+            <section v-if="hasPermission('snapshot:full')" class="flow-viewer">
                 <div class="header flex flex-row justify-between">
-                    <span class="title font-bold">Flow:</span>
+                    <span class="title font-bold">Flows:</span>
                     <span class="compare ff-link">compare...</span>
                 </div>
                 <flow-viewer v-if="flows.length" :flow="flows" />
@@ -27,8 +27,6 @@
                 </p>
             </section>
 
-            <hr>
-
             <section v-if="snapshot.createdSince" class="date-created">
                 <div class="header flex flex-row justify-between">
                     <span class="title font-bold">Date Created:</span>
@@ -39,32 +37,36 @@
             </section>
         </div>
 
-        <section class="actions">
+        <div>
+            <hr class="w-1/2 mx-auto">
+        </div>
+
+        <section class="actions flex flex-col gap-3">
             <div class="header flex flex-row justify-between">
                 <span class="title font-bold">Actions:</span>
             </div>
             <div class="flex flex-col gap-2">
                 <div class="flex flex-row gap-1">
-                    <ff-button kind="secondary" class="flex-1">
+                    <ff-button kind="secondary" class="flex-1" :disabled="!hasPermission('project:snapshot:export')">
                         Download Snapshot
                         <template #icon-left>
                             <DownloadIcon class="ff-icon" />
                         </template>
                     </ff-button>
-                    <ff-button kind="secondary" class="flex-1">
+                    <ff-button kind="secondary" class="flex-1" :disabled="!hasPermission('project:snapshot:read')">
                         Download package.json
                         <template #icon-left>
                             <DocumentDownloadIcon class="ff-icon" />
                         </template>
                     </ff-button>
                 </div>
-                <ff-button kind="secondary" class="flex-1">
+                <ff-button kind="secondary" class="flex-1" :disabled="!hasPermission('project:snapshot:set-target')">
                     Set as Device Target
                     <template #icon-left>
                         <DocumentDownloadIcon class="ff-icon" />
                     </template>
                 </ff-button>
-                <ff-button kind="secondary-danger" class="flex-1">
+                <ff-button kind="secondary-danger" class="flex-1" :delete="!hasPermission('project:snapshot:delete')">
                     Delete Snapshot
                     <template #icon-left>
                         <TrashIcon class="ff-icon" />
@@ -81,6 +83,7 @@ import { defineComponent } from 'vue'
 import { mapActions } from 'vuex'
 
 import SnapshotsApi from '../../../api/snapshots.js'
+import usePermissions from '../../../composables/Permissions.js'
 import FlowViewer from '../../flow-viewer/FlowViewer.vue'
 
 export default defineComponent({
@@ -95,6 +98,13 @@ export default defineComponent({
         snapshot: {
             type: Object,
             required: true
+        }
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return {
+            hasPermission
         }
     },
     data () {
@@ -124,13 +134,15 @@ export default defineComponent({
                         label: 'Edit',
                         kind: 'secondary',
                         iconLeft: PencilAltIcon,
-                        handler: () => console.log('edit')
+                        handler: () => console.log('edit'),
+                        hidden: !this.hasPermission('snapshot:edit')
                     },
                     {
                         label: 'Restore',
                         kind: 'primary',
                         iconLeft: ClockIcon,
-                        handler: () => console.log('restore')
+                        handler: () => console.log('restore'),
+                        hidden: !this.hasPermission('project:snapshot:rollback')
                     }
                 ]
             })
