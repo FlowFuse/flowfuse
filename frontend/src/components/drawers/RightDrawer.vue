@@ -5,6 +5,22 @@
         :class="{open: rightDrawer.state, wider: rightDrawer.wider}"
         data-el="right-drawer"
     >
+        <div v-if="rightDrawer?.header" class="flex items-center justify-between p-4 border-b">
+            <div class="title">
+                <h1 class="text-xl font-semibold">{{ rightDrawer.header.title }}</h1>
+            </div>
+            <div class="actions flex flex-row gap-2">
+                <ff-button
+                    v-for="(action, $key) in (rightDrawer?.header?.actions ?? [])"
+                    :key="$key"
+                    :kind="action.kind ?? 'secondary'"
+                    :disabled="action.disabled"
+                    @click="action.handler"
+                >
+                    {{ action.label }}
+                </ff-button>
+            </div>
+        </div>
         <component :is="rightDrawer.component" v-if="rightDrawer.component" v-bind="rightDrawer.props" />
     </section>
 </template>
@@ -25,7 +41,6 @@ export default {
             }
         }
     }
-
 }
 </script>
 
