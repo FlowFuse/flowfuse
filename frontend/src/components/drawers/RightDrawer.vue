@@ -12,12 +12,13 @@
             <div class="actions flex flex-row gap-2">
                 <ff-button
                     v-for="(action, $key) in actions"
-                    :key="$key+action.hidden"
+                    :key="action.label + $key"
                     :kind="action.kind ?? 'secondary'"
                     :disabled="action.disabled"
+                    :has-left-icon="!!action.iconLeft"
                     @click="action.handler"
                 >
-                    <template v-if="action.iconLeft" #icon-left>
+                    <template v-if="!!action.iconLeft" #icon-left>
                         <component :is="action.iconLeft" />
                     </template>
                     {{ action.label }}
