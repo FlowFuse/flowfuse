@@ -9,6 +9,22 @@
                 <flow-viewer v-if="flows.length" :flow="flows" />
             </section>
 
+            <section class="name">
+                <div class="header flex flex-row justify-between">
+                    <span class="title font-bold">Name:</span>
+                </div>
+                <p v-if="!isEditing" class="text-gray-600">
+                    {{ snapshot.name }}
+                </p>
+                <FormRow
+                    v-else
+                    v-model="input.name"
+                    data-form="snapshot-name"
+                    container-class="max-w-full"
+                    :error="errors.name"
+                />
+            </section>
+
             <section v-if="snapshot.user" class="author">
                 <div class="header flex flex-row justify-between">
                     <span class="title font-bold">Author:</span>
@@ -18,13 +34,23 @@
                 </div>
             </section>
 
-            <section v-if="snapshot.description" class="description">
+            <section class="description">
                 <div class="header flex flex-row justify-between">
                     <span class="title font-bold">Description:</span>
                 </div>
-                <p class="text-gray-600">
-                    {{ snapshot.description }}
+                <p v-if="!isEditing" class="text-gray-600">
+                    {{ snapshot.description.length > 0 ? snapshot.description : 'No description provided' }}
                 </p>
+                <FormRow v-else data-form="snapshot-description" container-class="max-w-full" :error="errors.description">
+                    <template #input>
+                        <textarea
+                            v-model="input.description"
+                            rows="8"
+                            class="ff-input ff-text-input"
+                            style="height: auto"
+                        />
+                    </template>
+                </FormRow>
             </section>
 
             <section v-if="snapshot.createdSince" class="date-created">
@@ -98,20 +124,31 @@
 </template>
 
 <script>
-import { ChipIcon, ClockIcon, DocumentDownloadIcon, DownloadIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outline'
+import {
+    ChipIcon,
+    ClockIcon,
+    DocumentDownloadIcon,
+    DownloadIcon,
+    PencilAltIcon,
+    SaveAsIcon,
+    TrashIcon
+} from '@heroicons/vue/outline'
 import { defineComponent } from 'vue'
 import { mapActions } from 'vuex'
 
-import SnapshotsApi from '../../../api/snapshots.js'
+import snapshotsApi from '../../../api/snapshots.js'
 import usePermissions from '../../../composables/Permissions.js'
 import snapshotsMixin from '../../../mixins/Snapshots.js'
 import SnapshotExportDialog from '../../../pages/application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
+import alerts from '../../../services/alerts.js'
+import FormRow from '../../FormRow.vue'
 import AssetCompareDialog from '../../dialogs/AssetCompareDialog.vue'
 import FlowViewer from '../../flow-viewer/FlowViewer.vue'
 
 export default defineComponent({
     name: 'SnapshotDetailsDrawer',
     components: {
+        FormRow,
         AssetCompareDialog,
         ChipIcon,
         FlowViewer,
@@ -145,15 +182,40 @@ export default defineComponent({
     },
     data () {
         return {
-            flows: []
+            flows: [],
+            isEditing: false,
+            input: {
+                name: '',
+                description: ''
+            },
+            errors: {
+                name: '',
+                description: ''
+            }
         }
     },
     computed: {
         createdAt () {
             return this.snapshot.createdAt
+        },
+        hasChanges () {
+            const hasTitleChanged = this.input.name !== this.snapshot.name
+            const hasDescriptionChanged = this.input.description !== this.snapshot.description
+
+            return hasDescriptionChanged || hasTitleChanged
+        }
+    },
+    watch: {
+        isEditing (isEditing) {
+            if (!isEditing) {
+                this.input.description = this.snapshot.description
+                this.input.name = this.snapshot.name
+            }
         }
     },
     mounted () {
+        this.input.name = this.snapshot.name
+        this.input.description = this.snapshot.description
         this.setHeader()
         this.loadFlows()
             .catch(e => {
@@ -163,15 +225,49 @@ export default defineComponent({
     methods: {
         ...mapActions('ux/drawers', ['setRightDrawerHeader']),
         setHeader () {
+            const context = this
             return this.setRightDrawerHeader({
                 title: this.snapshot.name,
                 actions: [
                     {
+                        label: 'Discard',
+                        kind: 'secondary',
+                        handler: () => {
+                            this.isEditing = false
+                        },
+                        hidden: function () {
+                            if (!context.hasPermission('snapshot:edit')) return true
+
+                            if (context.isEditing) {
+                                return !context.hasChanges
+                            }
+
+                            return true
+                        }
+                    },
+                    {
                         label: 'Edit',
                         kind: 'secondary',
                         iconLeft: PencilAltIcon,
-                        handler: () => console.log('edit'),
-                        hidden: !this.hasPermission('snapshot:edit')
+                        handler: () => {
+                            this.isEditing = !this.isEditing
+                        },
+                        hidden: function () {
+                            if (!context.hasPermission('snapshot:edit')) return true
+
+                            return context.hasChanges
+                        }
+                    },
+                    {
+                        label: 'Save',
+                        kind: 'secondary',
+                        iconLeft: SaveAsIcon,
+                        handler: () => {
+                            context.saveSnapshot()
+                        },
+                        hidden: function () {
+                            return !context.hasChanges
+                        }
                     },
                     {
                         label: 'Restore',
@@ -184,10 +280,40 @@ export default defineComponent({
             })
         },
         loadFlows () {
-            return SnapshotsApi.getFullSnapshot(this.snapshot.id)
+            return snapshotsApi.getFullSnapshot(this.snapshot.id)
                 .then(flows => {
                     this.flows = flows.flows.flows
                 })
+        },
+        saveSnapshot () {
+            if (this.validate()) {
+                // this.submitted = true
+                const opts = {
+                    name: this.input.name,
+                    description: this.input.description || ''
+                }
+                snapshotsApi.updateSnapshot(this.snapshot.id, opts).then((data) => {
+                    // todo find a better way of updating the snapshot
+                    // eslint-disable-next-line vue/no-mutating-props
+                    this.snapshot.name = this.input.name
+                    // eslint-disable-next-line vue/no-mutating-props
+                    this.snapshot.description = this.input.description
+                    alerts.emit('Snapshot updated.', 'confirmation')
+                }).catch(err => {
+                    console.error(err)
+                    alerts.emit('Failed to update snapshot.', 'warning')
+                }).finally(() => {
+                    this.isEditing = false
+                })
+            }
+        },
+        validate () {
+            if (!this.input.name) {
+                this.errors.name = 'Name is required'
+            } else {
+                this.errors.name = ''
+            }
+            return !!(this.input.name) && !this.errors.name
         }
     }
 })
