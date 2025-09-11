@@ -1,21 +1,5 @@
 <template>
     <div id="table-schema">
-        <div class="header">
-            <div class="flex content">
-                <h2 class="title flex-grow"><i>{{ table.name }}</i> schema</h2>
-                <div class="flex gap-2">
-                    <ff-button type="button" kind="secondary" class="w-full" @click="closeRightDrawer">Close</ff-button>
-                    <ff-button
-                        type="button"
-                        kind="danger"
-                        class="w-full"
-                        @click="submit"
-                    >
-                        Delete
-                    </ff-button>
-                </div>
-            </div>
-        </div>
         <div class="content-wrapper">
             <h3>Columns</h3>
             <div class="header grid grid-cols-10 gap-1 mb-1">
@@ -58,8 +42,11 @@ export default defineComponent({
     computed: {
         ...mapState('account', ['team'])
     },
+    mounted () {
+        this.setHeader()
+    },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer']),
+        ...mapActions('ux/drawers', ['closeRightDrawer', 'setRightDrawerHeader']),
         ...mapActions('product/tables', ['deleteTable', 'getTables']),
         submit () {
             Dialog.show({
@@ -76,6 +63,15 @@ export default defineComponent({
                 .then(() => this.closeRightDrawer())
                 .then(() => Alerts.emit('Table deleted successfully', 'confirmation'))
                 .catch(e => e))
+        },
+        setHeader () {
+            this.setRightDrawerHeader({
+                title: `${this.table.name} schema`,
+                actions: [
+                    { handler: this.closeRightDrawer, label: 'Close', kind: 'secondary' },
+                    { handler: this.submit, label: 'Delete', kind: 'danger' }
+                ]
+            })
         }
     }
 })
