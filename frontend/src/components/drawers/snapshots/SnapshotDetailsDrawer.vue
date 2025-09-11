@@ -6,9 +6,7 @@
                     <span class="title font-bold">Flow:</span>
                     <span class="compare ff-link">compare...</span>
                 </div>
-                <div>
-                    flow viewer
-                </div>
+                <flow-viewer v-if="flows.length" :flow="flows" />
             </section>
 
             <section v-if="snapshot.user" class="author">
@@ -82,9 +80,13 @@ import { ClockIcon, DocumentDownloadIcon, DownloadIcon, PencilAltIcon, TrashIcon
 import { defineComponent } from 'vue'
 import { mapActions } from 'vuex'
 
+import SnapshotsApi from '../../../api/snapshots.js'
+import FlowViewer from '../../flow-viewer/FlowViewer.vue'
+
 export default defineComponent({
     name: 'SnapshotDetailsDrawer',
     components: {
+        FlowViewer,
         DownloadIcon,
         DocumentDownloadIcon,
         TrashIcon
@@ -95,6 +97,11 @@ export default defineComponent({
             required: true
         }
     },
+    data () {
+        return {
+            flows: []
+        }
+    },
     computed: {
         createdAt () {
             return this.snapshot.createdAt
@@ -102,6 +109,10 @@ export default defineComponent({
     },
     mounted () {
         this.setHeader()
+        this.loadFlows()
+            .catch(e => {
+                console.warn('Error loading flows', e)
+            })
     },
     methods: {
         ...mapActions('ux/drawers', ['setRightDrawerHeader']),
@@ -123,6 +134,12 @@ export default defineComponent({
                     }
                 ]
             })
+        },
+        loadFlows () {
+            return SnapshotsApi.getFullSnapshot(this.snapshot.id)
+                .then(flows => {
+                    this.flows = flows.flows.flows
+                })
         }
     }
 })
@@ -142,6 +159,13 @@ export default defineComponent({
     .description {
         p {
             white-space: break-spaces;
+        }
+    }
+
+    .flow-viewer {
+        .wrapper {
+            max-height: 250px;
+            overflow: auto;
         }
     }
 }
