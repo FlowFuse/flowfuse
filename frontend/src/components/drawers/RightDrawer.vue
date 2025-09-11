@@ -12,7 +12,7 @@
             <div class="actions flex flex-row gap-2">
                 <ff-button
                     v-for="(action, $key) in actions"
-                    :key="$key"
+                    :key="$key+action.hidden"
                     :kind="action.kind ?? 'secondary'"
                     :disabled="action.disabled"
                     @click="action.handler"
@@ -37,7 +37,13 @@ export default {
         ...mapState('ux/drawers', ['rightDrawer']),
         actions () {
             return (this.rightDrawer?.header?.actions ?? [])
-                .filter(action => !action.hidden)
+                .filter(action => {
+                    if (typeof action.hidden === 'function') {
+                        return !action.hidden()
+                    }
+
+                    return !action.hidden
+                })
         }
     },
     methods: {
