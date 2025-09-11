@@ -351,7 +351,7 @@ Object.freeze(deviceAutoSnapshotUtils)
 Object.freeze(instanceAutoSnapshotUtils)
 
 module.exports = {
-    async buildSnapshot (app, project, user, options) {
+    async buildProjectSnapshot (app, project, user, options) {
         const projectExport = await app.db.controllers.Project.exportProject(project)
 
         const credentialSecret = await project.getCredentialSecret()
@@ -395,6 +395,7 @@ module.exports = {
 
         return snapshotOptions
     },
+
     /**
      * Creates a snapshot of the current state of a project.
      * Patches with flows, credentials, settings modules and env from request, if provided
@@ -403,22 +404,14 @@ module.exports = {
      * @param {*} project
      */
     createSnapshot: async function (app, project, user, options) {
-        const snapshotOptions = await module.exports.buildSnapshot(app, project, user, options)
+        const snapshotOptions = await module.exports.buildProjectSnapshot(app, project, user, options)
 
         const snapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
         await snapshot.save()
         return snapshot
     },
 
-    /**
-     * Create a snapshot of an instance owned device
-     * @param {*} app
-     * @param {*} project
-     * @param {*} device
-     * @param {*} user
-     * @param {*} options
-     */
-    createSnapshotFromDevice: async function (app, project, device, user, options) {
+    async buildInstanceOwnedDeviceSnapshot (app, project, device, options, user) {
         const projectExport = await app.db.controllers.Project.exportProject(project)
         const deviceConfig = await app.db.controllers.Device.exportConfig(device)
         const credentialSecret = await project.getCredentialSecret()
@@ -446,27 +439,10 @@ module.exports = {
         if (deviceConfig?.package?.modules) {
             snapshotOptions.settings.modules = deviceConfig.package.modules
         }
-        const snapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
-        await snapshot.save()
-        return snapshot
+        return snapshotOptions
     },
 
-    /**
-     * Create a snapshot of an application owned device
-     * @param {*} app
-     * @param {*} application
-     * @param {*} device
-     * @param {*} user
-     * @param {*} options
-     * @param {String} options.name - name of the snapshot
-     * @param {String} options.description - description of the snapshot
-     * @param {String} [options.credentialSecret] - secret to decrypt deviceConfig credentials with (if any)
-     * @param {Object} [options.deviceConfig] - a set of flows, credentials and packages to use instead of fetching from remote instance
-     * @param {Object} [options.deviceConfig.flows] - device flows to use for the snapshot
-     * @param {Object} [options.deviceConfig.credentials] - device flows credentials to use for the snapshot
-     * @param {Object} [options.deviceConfig.package] - device package to use for the snapshot
-     */
-    createDeviceSnapshot: async function (app, application, device, user, options) {
+    async buildApplicationOwnedDeviceSnapshot (app, options, device, application, user) {
         const deviceConfig = options.deviceConfig || await app.db.controllers.Device.exportConfig(device)
 
         const snapshotOptions = {
@@ -504,11 +480,47 @@ module.exports = {
                 }
             })
         }
+        return snapshotOptions
+    },
+
+    /**
+     * Create a snapshot of an instance owned device
+     * @param {*} app
+     * @param {*} project
+     * @param {*} device
+     * @param {*} user
+     * @param {*} options
+     */
+    createSnapshotFromDevice: async function (app, project, device, user, options) {
+        const snapshotOptions = await this.buildInstanceOwnedDeviceSnapshot(app, project, device, options, user)
+        const snapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
+        await snapshot.save()
+        return snapshot
+    },
+
+    /**
+     * Create a snapshot of an application owned device
+     * @param {*} app
+     * @param {*} application
+     * @param {*} device
+     * @param {*} user
+     * @param {*} options
+     * @param {String} options.name - name of the snapshot
+     * @param {String} options.description - description of the snapshot
+     * @param {String} [options.credentialSecret] - secret to decrypt deviceConfig credentials with (if any)
+     * @param {Object} [options.deviceConfig] - a set of flows, credentials and packages to use instead of fetching from remote instance
+     * @param {Object} [options.deviceConfig.flows] - device flows to use for the snapshot
+     * @param {Object} [options.deviceConfig.credentials] - device flows credentials to use for the snapshot
+     * @param {Object} [options.deviceConfig.package] - device package to use for the snapshot
+     */
+    createDeviceSnapshot: async function (app, application, device, user, options) {
+        const snapshotOptions = await this.buildApplicationOwnedDeviceSnapshot(app, options, device, application, user)
         // calling ProjectSnapshot.create because it's the same model as DeviceSnapshot (the one and only model for snapshots in the db)
         const snapshot = await app.db.models.ProjectSnapshot.create(snapshotOptions)
         await snapshot.save()
         return snapshot
     },
+
     /**
      * Export specific snapshot.
      * @param {*} app

@@ -247,8 +247,10 @@ const updatePipeline = async (applicationId, pipeline) => {
  * @param {string} applicationId - The ID of application to get snapshots for
  * @param {string} cursor
  * @param {string} limit
+ * @param options
+ * @param query
  */
-const getSnapshots = async (applicationId, cursor, limit, options) => {
+const getSnapshots = async (applicationId, cursor, limit, options, query = null) => {
     const extraParams = {}
     if (options?.deviceId) {
         extraParams.deviceId = options.deviceId
@@ -256,7 +258,7 @@ const getSnapshots = async (applicationId, cursor, limit, options) => {
     if (options?.instanceId) {
         extraParams.instanceId = options.instanceId
     }
-    const url = paginateUrl(`/api/v1/applications/${applicationId}/snapshots`, cursor, limit, null, extraParams)
+    const url = paginateUrl(`/api/v1/applications/${applicationId}/snapshots`, cursor, limit, query, extraParams)
     const res = await client.get(url)
 
     res.data.snapshots = res.data.snapshots.map((item) => {

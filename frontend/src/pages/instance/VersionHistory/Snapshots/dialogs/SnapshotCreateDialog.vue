@@ -73,7 +73,7 @@
                                                         </div>
                                                         <p
                                                             :title="option.description"
-                                                            class="text-italic text-gray-400 mb-1 clipped-overflow"
+                                                            class="text-italic text-gray-400 mb-1 clipped-overflow--two-lines"
                                                         >
                                                             {{ option.description }}
                                                         </p>
@@ -239,13 +239,3 @@ export default {
     }
 }
 </script>
-
-<style scoped lang="scss">
-.clipped-overflow {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;   // number of lines to clip to
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-</style>
