@@ -167,7 +167,6 @@ export default defineComponent({
         width: 100%;
         background-color: $ff-grey-50;
         overflow: auto;
-        padding: 12px;
 
        .section {
            padding-bottom: 15px;
