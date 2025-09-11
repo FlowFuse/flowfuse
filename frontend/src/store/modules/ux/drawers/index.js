@@ -4,6 +4,7 @@
  * @property {string|'primary'|'secondary'|'tertiary'|'danger'} kind - Button kind
  * @property {Function} handler - Callback to execute when clicked.
  * @property {boolean} disabled - Disabled state
+ * @property {Component} iconLeft - A heroicon to display on the left side of the button.
  */
 
 const initialState = () => ({
