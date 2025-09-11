@@ -1,5 +1,10 @@
 <template>
-    <div ref="container" class="ff-dialog-container" :class="'ff-dialog-container--' + (open ? 'open' : 'closed')">
+    <div
+        ref="container"
+        class="ff-dialog-container"
+        :class="'ff-dialog-container--' + (open ? 'open' : 'closed')"
+        data-click-exclude="right-drawer"
+    >
         <div class="ff-dialog-box" :class="boxClass">
             <div class="ff-dialog-header" data-sentry-unmask>
                 {{ header }}
