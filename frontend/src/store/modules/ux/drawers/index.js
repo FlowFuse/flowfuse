@@ -1,7 +1,7 @@
 /**
  * @typedef {Object} DrawerAction
  * @property {string} label - Action label.
- * @property {string|'primary'|'secondary'|'tertiary'} kind - Button kind
+ * @property {string|'primary'|'secondary'|'tertiary'|'danger'} kind - Button kind
  * @property {Function} handler - Callback to execute when clicked.
  * @property {boolean} disabled - Disabled state
  */
