@@ -5,19 +5,20 @@
         :class="{open: rightDrawer.state, wider: rightDrawer.wider}"
         data-el="right-drawer"
     >
-        <div v-if="rightDrawer?.header" class="header flex items-center justify-between p-4 border-b">
+        <div v-if="rightDrawer?.header" class="header flex items-center justify-between p-4 border-b gap-2">
             <div class="title clipped-overflow">
                 <h1 class="text-xl font-semibold" :title="rightDrawer.header.title">{{ rightDrawer.header.title }}</h1>
             </div>
             <div class="actions flex flex-row gap-2">
                 <ff-button
-                    v-for="(action, $key) in (rightDrawer?.header?.actions ?? [])"
-                    :key="$key"
+                    v-for="(action, $key) in actions"
+                    :key="action.label + $key"
                     :kind="action.kind ?? 'secondary'"
                     :disabled="action.disabled"
+                    :has-left-icon="!!action.iconLeft"
                     @click="action.handler"
                 >
-                    <template v-if="action.iconLeft" #icon-left>
+                    <template v-if="!!action.iconLeft" #icon-left>
                         <component :is="action.iconLeft" />
                     </template>
                     {{ action.label }}
@@ -34,7 +35,17 @@ import { mapActions, mapState } from 'vuex'
 export default {
     name: 'RightDrawer',
     computed: {
-        ...mapState('ux/drawers', ['rightDrawer'])
+        ...mapState('ux/drawers', ['rightDrawer']),
+        actions () {
+            return (this.rightDrawer?.header?.actions ?? [])
+                .filter(action => {
+                    if (typeof action.hidden === 'function') {
+                        return !action.hidden()
+                    }
+
+                    return !action.hidden
+                })
+        }
     },
     methods: {
         ...mapActions('ux/drawers', ['closeRightDrawer']),
@@ -55,7 +66,7 @@ export default {
     height: calc(100% - 60px);
     top: 60px;
     right: -1000px;
-    z-index: 120;
+    z-index: 110;
     width: 100%;
     max-width: 0;
     min-width: 0;

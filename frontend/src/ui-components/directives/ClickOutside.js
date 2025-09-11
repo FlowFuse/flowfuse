@@ -12,12 +12,17 @@ const directive = {
     mounted (element, options) {
         const handler = function (evt) {
             const excludedNodes = options.value.exclude || []
+            const target = evt.target
+
+            // check if target or any ancestor has data-click-exclude matching
+            const excluded = target.closest('[data-click-exclude]')
+            const excludedKey = excluded?.dataset?.clickExclude
 
             switch (true) {
-            case !evt.target !== element && !element.contains(evt.target) && typeof options.value === 'function':
+            case target !== element && !element.contains(target) && typeof options.value === 'function':
                 return options.value()
-            case !evt.target !== element && !element.contains(evt.target) && typeof options.value === 'object':
-                return excludedNodes.includes(evt.target.dataset?.clickExclude)
+            case target !== element && !element.contains(target) && typeof options.value === 'object':
+                return excludedKey && excludedNodes.includes(excludedKey)
                     ? null
                     : options.value.handler()
             default:
