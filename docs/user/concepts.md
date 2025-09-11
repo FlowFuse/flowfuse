@@ -147,7 +147,7 @@ The dashboard also allows you to see and manage these snapshots.
 
 The FlowFuse platform can be used to manage Node-RED applications running on remote devices.
 A Device runs a software agent that connects back to the platform to receive updates.
-Users must [install the agent](../device-agent/install.md) on the devices.
+Users must [install the agent](../device-agent/install/overview.md) on the devices.
 
 Devices are registered to a Team and then assigned to an individual Node-RED instance or a FlowFuse
 application within that team.

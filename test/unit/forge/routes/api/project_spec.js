@@ -3027,7 +3027,7 @@ describe('Project API', function () {
     describe('Generate snapshot change description', function () {
         it('returns 200 and forwards LLM response', async function () {
             // Stub buildSnapshot to avoid heavy export logic and signature mismatches
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: { env: { FOO: 'bar' }, modules: {} },
                 flows: { flows: [{ id: 'n1' }], credentials: {} }
             })
@@ -3096,7 +3096,7 @@ describe('Project API', function () {
         })
 
         it('returns 404 if not enterprise tier or feature disabled', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: {},
                 flows: { flows: [], credentials: {} }
             })
@@ -3136,7 +3136,7 @@ describe('Project API', function () {
         })
 
         it('returns 404 when license object is missing', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: {},
                 flows: { flows: [], credentials: {} }
             })
@@ -3179,7 +3179,7 @@ describe('Project API', function () {
         })
 
         it('returns 404 when enterprise tier but generatedSnapshotDescription feature disabled', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: {},
                 flows: { flows: [], credentials: {} }
             })
@@ -3231,7 +3231,7 @@ describe('Project API', function () {
         })
 
         it('propagates errors from LLM invocation', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: {},
                 flows: { flows: [], credentials: {} }
             })
@@ -3293,7 +3293,7 @@ describe('Project API', function () {
         })
 
         it('returns 404 when no target snapshot is found (target=latest)', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: {},
                 flows: { flows: [], credentials: {} }
             })
@@ -3335,7 +3335,7 @@ describe('Project API', function () {
         })
 
         it('handles target=pipeline and forwards LLM response', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: { env: { FOO: 'bar' }, modules: {} },
                 flows: { flows: [{ id: 'n1' }], credentials: {} }
             })
@@ -3384,7 +3384,7 @@ describe('Project API', function () {
         })
 
         it('handles target as a custom id that is found', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: { env: { FOO: 'bar' }, modules: {} },
                 flows: { flows: [{ id: 'n1' }], credentials: {} }
             })
@@ -3440,7 +3440,7 @@ describe('Project API', function () {
         })
 
         it('returns 404 when target is a custom id that is not found', async function () {
-            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildSnapshot').resolves({
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 settings: {},
                 flows: { flows: [], credentials: {} }
             })
