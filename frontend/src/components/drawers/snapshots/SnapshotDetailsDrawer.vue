@@ -68,10 +68,15 @@
                         </template>
                     </ff-button>
                 </div>
-                <ff-button kind="secondary" class="flex-1" :disabled="!hasPermission('project:snapshot:set-target')">
+                <ff-button
+                    kind="secondary"
+                    class="flex-1"
+                    :disabled="!hasPermission('project:snapshot:set-target')"
+                    @click="showDeviceTargetDialog(snapshot)"
+                >
                     Set as Device Target
                     <template #icon-left>
-                        <DocumentDownloadIcon class="ff-icon" />
+                        <ChipIcon class="ff-icon" />
                     </template>
                 </ff-button>
                 <ff-button kind="secondary-danger" class="flex-1" :delete="!hasPermission('project:snapshot:delete')">
@@ -88,7 +93,7 @@
 </template>
 
 <script>
-import { ClockIcon, DocumentDownloadIcon, DownloadIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outline'
+import { ChipIcon, ClockIcon, DocumentDownloadIcon, DownloadIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outline'
 import { defineComponent } from 'vue'
 import { mapActions } from 'vuex'
 
@@ -102,11 +107,12 @@ import FlowViewer from '../../flow-viewer/FlowViewer.vue'
 export default defineComponent({
     name: 'SnapshotDetailsDrawer',
     components: {
-        SnapshotExportDialog,
         AssetCompareDialog,
+        ChipIcon,
         FlowViewer,
         DownloadIcon,
         DocumentDownloadIcon,
+        SnapshotExportDialog,
         TrashIcon
     },
     mixins: [snapshotsMixin],
@@ -118,6 +124,11 @@ export default defineComponent({
         snapshotList: {
             type: Object,
             required: true
+        },
+        instance: {
+            type: Object,
+            required: false,
+            default: null
         }
     },
     setup () {

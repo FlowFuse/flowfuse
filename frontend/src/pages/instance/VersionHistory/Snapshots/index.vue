@@ -252,7 +252,7 @@ export default {
         onRowSelected (snapshot) {
             this.openRightDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
-                props: { snapshot, snapshotList: this.snapshotList },
+                props: { snapshot, snapshotList: this.snapshotList, instance: this.instance },
                 overlay: true
             })
         },
