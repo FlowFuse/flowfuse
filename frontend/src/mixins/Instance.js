@@ -2,26 +2,24 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../api/instances.js'
 import SnapshotApi from '../api/projectSnapshots.js'
+import usePermissions from '../composables/Permissions.js'
 import alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { InstanceStateMutator } from '../utils/InstanceStateMutator.js'
-import { Roles } from '../utils/roles.js'
-
-import permissionsMixin from './Permissions.js'
 
 export default {
-    mixins: [permissionsMixin],
     computed: {
         ...mapState('account', ['teamMembership', 'team']),
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },
-        isVisitingAdmin: function () {
-            return this.teamMembership?.role === Roles.Admin
-        },
         isHA () {
             return this.instance?.ha?.replicas !== undefined
         }
+    },
+    setup () {
+        const { isVisitingAdmin } = usePermissions()
+        return { isVisitingAdmin }
     },
     data () {
         return {

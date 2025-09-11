@@ -37,11 +37,15 @@ export default defineComponent({
         columns () {
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {
-                    key: row.name,
+                    key: row.safeName,
                     html: `<span >${row.name}</span> <span class="text-gray-400">${row.type}</span>`,
                     sortable: true,
                     component: {
-                        is: this.getTableComponent(row.type)
+                        is: this.getTableComponent(row.type),
+                        extraProps: {},
+                        bind: {
+                            'row-value': row.safeName
+                        }
                     },
                     tableCellClass: 'truncate',
                     tableLabelClass: 'truncate',
@@ -50,7 +54,7 @@ export default defineComponent({
             })
         },
         rows () {
-            return (this.selectedTable?.data ?? [])
+            return (this.selectedTable?.payload?.safe ?? [])
         }
     },
     watch: {

@@ -28,8 +28,8 @@
 import semver from 'semver'
 
 import deviceApi from '../../../api/devices.js'
+import usePermissions from '../../../composables/Permissions.js'
 
-import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
 import TemplateSettingsSecurity from '../../admin/Template/sections/Security.vue'
@@ -39,11 +39,15 @@ export default {
     components: {
         TemplateSettingsSecurity
     },
-    mixins: [permissionsMixin],
     props: {
         device: { type: Object, default: null }
     },
     emits: ['device-updated', 'assign-device'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             editable: {

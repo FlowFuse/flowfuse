@@ -12,14 +12,17 @@ import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
-
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 export default {
     name: 'DeviceSettings',
     props: ['device'],
     emits: ['device-updated', 'device-refresh', 'assign-device'],
-    mixins: [permissionsMixin],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data: function () {
         return {
             sideNavigation: []

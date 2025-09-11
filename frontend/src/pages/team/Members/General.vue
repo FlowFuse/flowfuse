@@ -31,8 +31,8 @@ import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
+import usePermissions from '../../../composables/Permissions.js'
 import { getTeamProperty } from '../../../composables/TeamProperties.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog.vue'
 import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog.vue'
@@ -47,7 +47,6 @@ export default {
         UserAddIcon,
         InviteMemberDialog
     },
-    mixins: [permissionsMixin],
     props: {
         inviteCount: {
             type: Number,
@@ -55,6 +54,11 @@ export default {
         }
     },
     emits: ['invites-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             loading: false,
