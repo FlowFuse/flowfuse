@@ -1147,6 +1147,150 @@ module.exports = async function (app) {
             .join('\r\n'))
     })
 
+    /**
+     * @name /api/v1/devices/:deviceId/generate/snapshot-description
+     * @memberof forge.routes.api.devices
+     */
+    app.post('/:deviceId/generate/snapshot-description', {
+        preHandler: [
+            app.needsPermission('snapshot:edit'),
+            async (request, reply) => {
+                if (!app.license) {
+                    return reply.code(404).send({ code: 'not_found' })
+                }
+
+                const teamType = await request.device.Team.getTeamType()
+                const tier = app.license.get('tier')
+                const isEnterprise = tier === 'enterprise'
+                const hasFeature = teamType.getFeatureProperty('generatedSnapshotDescription', false)
+
+                if (!isEnterprise || !hasFeature) {
+                    return reply.code(404).send({ code: 'not_found' })
+                }
+            }
+        ],
+        schema: {
+            summary: 'Generate a description of changes between a project\'s current state and latest snapshot',
+            tags: ['Instances', 'Snapshots'],
+            params: {
+                type: 'object',
+                properties: {
+                    instanceId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                required: ['target'],
+                properties: {
+                    target: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+
+    }, async (request, reply) => {
+        const options = {}
+
+        let isTeamOnTrial
+        let targetSnapshot = {}
+
+        switch (request.body.target) {
+        case 'latest':
+            targetSnapshot = (await request.device.getLatestSnapshot(true)) ?? {}
+            break
+        default:
+            targetSnapshot = (await app.db.models.ProjectSnapshot.byId(request.body.target))
+
+            if (!targetSnapshot) {
+                return reply.code(404).send({
+                    code: 'not_found',
+                    error: 'Snapshot not found'
+                })
+            }
+            break
+        }
+
+        const latestSnapshot = (await request.device.getLatestSnapshot(true)) ?? {}
+        const buildSnapshot = request.device.Project
+            ? app.db.controllers.ProjectSnapshot.buildInstanceOwnedDeviceSnapshot
+            : app.db.controllers.ProjectSnapshot.buildApplicationOwnedDeviceSnapshot
+
+        const currentSnapshot = await buildSnapshot(
+            request.device.Project ? request.device.Project : request.device.Application,
+            request.device,
+            options,
+            request.session.User
+        )
+
+        let previousState = {}
+        if (latestSnapshot) {
+            const toJSON = Object.prototype.hasOwnProperty.call(latestSnapshot, 'toJSON')
+                ? latestSnapshot.toJSON()
+                : latestSnapshot
+
+            previousState = {
+                settings: toJSON.settings,
+                flows: toJSON.flows?.flows ?? {}
+            }
+        }
+
+        const currentState = {
+            settings: currentSnapshot.settings,
+            flows: currentSnapshot.flows?.flows ?? {}
+        }
+
+        const { deepDiff } = require('../../lib/objectHelpers.js')
+
+        const { currentStateDiff, previousStateDiff } = deepDiff(currentState, previousState)
+
+        // redact env var values
+        if (currentStateDiff.settings?.env) {
+            Object.keys(currentStateDiff.settings.env).forEach(k => {
+                currentStateDiff.settings.env[k] = '##REDACTED##'
+            })
+        }
+        if (previousStateDiff.settings?.env) {
+            Object.keys(previousStateDiff.settings.env).forEach(k => {
+                previousStateDiff.settings.env[k] = '##REDACTED##'
+            })
+        }
+
+        if (app.billing && request.device.Team.getSubscription) {
+            const subscription = await request.device.Team.getSubscription()
+            isTeamOnTrial = subscription ? subscription.isTrial() : null
+        }
+
+        try {
+            const transactionId = request.params.deviceId + '-' + Date.now() // a unique id for this transaction
+            const res = await app.db.controllers.Assistant.invokeLLM(
+                'snapshot-diff',
+                { transactionId, currentState: currentStateDiff, previousState: previousStateDiff, prompt: '' },
+                {
+                    teamHashId: request.device.Team.hashid,
+                    instanceId: request.device.hashid,
+                    instanceType: 'device',
+                    isTeamOnTrial
+                })
+
+            reply.send(res.data)
+        } catch (err) {
+            return reply
+                .code(err.statusCode || 400)
+                .send({
+                    code: err.code || 'unexpected_error',
+                    error: err.error || err.message
+                })
+        }
+    })
+
     async function assignDeviceToProject (device, project) {
         await device.setProject(project)
         // Set the target snapshot to match the project's one
