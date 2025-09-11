@@ -17,6 +17,9 @@
                     :disabled="action.disabled"
                     @click="action.handler"
                 >
+                    <template v-if="action.iconLeft" #icon-left>
+                        <component :is="action.iconLeft" />
+                    </template>
                     {{ action.label }}
                 </ff-button>
             </div>
