@@ -99,7 +99,7 @@ There are three methods by which you can get this configuration onto your hardwa
 - **[Quick Connect](#quick-connect):** Copy the Setup Command (with one-time passcode) and run it in a terminal window on the hardware. Your hardware will then automatically configure itself.
 - **[Device Agent Web UI](#device-agent-web-ui):** Copy the configuration file (`device.yml`) to your hardware using its built in Web UI.
    * _The Device Agent must be running and the [command line flag](./running.md#device-agent-command-line-options) for the Web UI must be enabled._
-- **[Manual Download](#manual-download):** Download the configuration file directly into the hardware's [Working Directory](./install.md#working-directory).
+- **[Manual Download](#manual-download):** Download the configuration file directly into the hardware's [Working Directory](./install/manual.md#working-directory).
 
 ### Methods
 
@@ -134,7 +134,7 @@ downloaded, the device agent will automatically restart and load the configurati
 #### Manual Download
 
 Place the **Device Configuration** or **Device Provisioning Configuration** file onto your hardware.
-in the [Working Directory](./install.md#working-directory)
+in the [Working Directory](./install/manual.md#working-directory)
 
 By default, the device agent expects the configuration file to be named `device.yml`, if not, you will need to start the device agent with the `-c` [Command Line Option](./running.md#device-agent-command-line-options) and specify the path of the configuration file.
 

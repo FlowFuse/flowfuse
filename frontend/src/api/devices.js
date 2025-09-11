@@ -147,8 +147,8 @@ const getDeviceSnapshot = (deviceId, snapshotId) => {
 }
 
 // TODO: move to deviceSnapshots.js
-const getDeviceSnapshots = (deviceId, cursor, limit) => {
-    const url = paginateUrl(`/api/v1/devices/${deviceId}/snapshots`, cursor, limit)
+const getDeviceSnapshots = (deviceId, cursor, limit, query = null) => {
+    const url = paginateUrl(`/api/v1/devices/${deviceId}/snapshots`, cursor, limit, query)
     return client.get(url).then(res => {
         res.data.snapshots = res.data.snapshots.map(ss => {
             ss.createdSince = daysSince(ss.createdAt)
@@ -223,6 +223,25 @@ function productCaptureDeviceAction (action, device) {
     })
 }
 
+/**
+ * Generates a snapshot description for a specific project instance.
+ *
+ * This asynchronous function interacts with the API to create a snapshot description
+ * for the given device identified by its hash ID.
+ *
+ * @param {string} deviceId - The unique identifier of the project instance for which
+ * the snapshot description is to be generated.
+ * @returns {Promise<Object>} A promise that resolves to the data containing the snapshot
+ * description information.
+ * @throws {Error} If the API call fails or an error occurs during the process.
+ */
+const generateSnapshotDescription = async (deviceId, target) => {
+    return client.post(`/api/v1/devices/${deviceId}/generate/snapshot-description`, { target })
+        .then(res => {
+            return res.data.data
+        })
+}
+
 export default {
     create,
     getDevice,
@@ -246,5 +265,6 @@ export default {
     getDeviceResourcesCreds,
     suspendDevice,
     restartDevice,
-    startDevice
+    startDevice,
+    generateSnapshotDescription
 }
