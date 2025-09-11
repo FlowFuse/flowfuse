@@ -150,7 +150,7 @@ export default defineComponent({
                         label: 'Restore',
                         kind: 'primary',
                         iconLeft: ClockIcon,
-                        handler: () => console.log('restore'),
+                        handler: () => this.showRollbackDialog(this.snapshot),
                         hidden: !this.hasPermission('project:snapshot:rollback')
                     }
                 ]
