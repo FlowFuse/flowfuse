@@ -2,7 +2,16 @@
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0 && !loading">
-            <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshotsFiltered" :show-search="true" search-placeholder="Search Snapshots...">
+            <ff-data-table
+                data-el="snapshots"
+                class="space-y-4"
+                :columns="columns"
+                :rows="snapshotsFiltered"
+                :show-search="true"
+                :rows-selectable="true"
+                search-placeholder="Search Snapshots..."
+                @row-selected="onRowSelected"
+            >
                 <template #actions>
                     <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">
                         <FilterIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
@@ -10,16 +19,16 @@
                         <span class="sr-only">Filter Snapshots</span>
                     </DropdownMenu>
                 </template>
-                <template #context-menu="{row}">
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:rollback')" label="Restore Snapshot" @click="showRollbackDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:export')" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:delete')" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
-                </template>
+                <!--                <template #context-menu="{row}">-->
+                <!--                    <ff-list-item :disabled="!hasPermission('project:snapshot:rollback')" label="Restore Snapshot" @click="showRollbackDialog(row)" />-->
+                <!--                    <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />-->
+                <!--                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />-->
+                <!--                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />-->
+                <!--                    <ff-list-item :disabled="!hasPermission('project:snapshot:export')" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />-->
+                <!--                    <ff-list-item :disabled="!hasPermission('project:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />-->
+                <!--                    <ff-list-item :disabled="!hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)" />-->
+                <!--                    <ff-list-item :disabled="!hasPermission('project:snapshot:delete')" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />-->
+                <!--                </template>-->
             </ff-data-table>
         </template>
         <template v-else-if="!loading">
@@ -51,7 +60,7 @@
 <script>
 import { FilterIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import InstanceApi from '../../../../api/instances.js'
 import SnapshotApi from '../../../../api/projectSnapshots.js'
@@ -61,6 +70,7 @@ import EmptyState from '../../../../components/EmptyState.vue'
 import AssetCompareDialog from '../../../../components/dialogs/AssetCompareDialog.vue'
 import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
 import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
+import SnapshotDetailsDrawer from '../../../../components/drawers/snapshots/SnapshotDetailsDrawer.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
 import permissionsMixin from '../../../../mixins/Permissions.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
@@ -211,6 +221,7 @@ export default {
         this.fetchData()
     },
     methods: {
+        ...mapActions('ux/drawers', ['openRightDrawer']),
         fetchData: async function (withoutAnimation = false) {
             if (this.instance.id) {
                 if (!withoutAnimation) this.loading = true
@@ -237,6 +248,13 @@ export default {
                 return acc
             }, {})
             return deviceCounts
+        },
+        onRowSelected (snapshot) {
+            this.openRightDrawer({
+                component: markRaw(SnapshotDetailsDrawer),
+                props: { snapshot },
+                overlay: true
+            })
         },
         onSnapshotEdit (snapshot) {
             const index = this.snapshots.findIndex(s => s.id === snapshot.id)
