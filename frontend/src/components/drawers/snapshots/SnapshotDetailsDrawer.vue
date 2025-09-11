@@ -57,7 +57,11 @@
                             <DownloadIcon class="ff-icon" />
                         </template>
                     </ff-button>
-                    <ff-button kind="secondary" class="flex-1" :disabled="!hasPermission('project:snapshot:read')">
+                    <ff-button
+                        kind="secondary" class="flex-1"
+                        :disabled="!hasPermission('project:snapshot:read')"
+                        @click="downloadSnapshotPackage(snapshot)"
+                    >
                         Download package.json
                         <template #icon-left>
                             <DocumentDownloadIcon class="ff-icon" />
