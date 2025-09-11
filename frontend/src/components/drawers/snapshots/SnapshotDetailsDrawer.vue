@@ -79,7 +79,12 @@
                         <ChipIcon class="ff-icon" />
                     </template>
                 </ff-button>
-                <ff-button kind="secondary-danger" class="flex-1" :delete="!hasPermission('project:snapshot:delete')">
+                <ff-button
+                    kind="secondary-danger"
+                    class="flex-1"
+                    :delete="!hasPermission('project:snapshot:delete')"
+                    @click="showDeleteSnapshotDialog(snapshot)"
+                >
                     Delete Snapshot
                     <template #icon-left>
                         <TrashIcon class="ff-icon" />
