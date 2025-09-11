@@ -61,6 +61,9 @@ export default {
     min-width: 0;
     transition: ease-in-out .3s;
     box-shadow: -5px 0px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
 
     & > * {
         padding: 1rem;
