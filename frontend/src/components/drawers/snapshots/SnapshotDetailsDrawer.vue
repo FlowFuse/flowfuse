@@ -4,7 +4,7 @@
             <section v-if="hasPermission('snapshot:full')" class="flow-viewer">
                 <div class="header flex flex-row justify-between">
                     <span class="title font-bold">Flows:</span>
-                    <span class="compare ff-link">compare...</span>
+                    <span class="compare ff-link" @click="showCompareSnapshotDialog(snapshot)">compare...</span>
                 </div>
                 <flow-viewer v-if="flows.length" :flow="flows" />
             </section>
@@ -74,6 +74,7 @@
                 </ff-button>
             </div>
         </section>
+        <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
     </div>
 </template>
 
@@ -84,18 +85,26 @@ import { mapActions } from 'vuex'
 
 import SnapshotsApi from '../../../api/snapshots.js'
 import usePermissions from '../../../composables/Permissions.js'
+import snapshotsMixin from '../../../mixins/Snapshots.js'
+import AssetCompareDialog from '../../dialogs/AssetCompareDialog.vue'
 import FlowViewer from '../../flow-viewer/FlowViewer.vue'
 
 export default defineComponent({
     name: 'SnapshotDetailsDrawer',
     components: {
+        AssetCompareDialog,
         FlowViewer,
         DownloadIcon,
         DocumentDownloadIcon,
         TrashIcon
     },
+    mixins: [snapshotsMixin],
     props: {
         snapshot: {
+            type: Object,
+            required: true
+        },
+        snapshotList: {
             type: Object,
             required: true
         }
