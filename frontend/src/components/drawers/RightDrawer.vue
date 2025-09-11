@@ -11,7 +11,7 @@
             </div>
             <div class="actions flex flex-row gap-2">
                 <ff-button
-                    v-for="(action, $key) in (rightDrawer?.header?.actions ?? [])"
+                    v-for="(action, $key) in actions"
                     :key="$key"
                     :kind="action.kind ?? 'secondary'"
                     :disabled="action.disabled"
@@ -34,7 +34,11 @@ import { mapActions, mapState } from 'vuex'
 export default {
     name: 'RightDrawer',
     computed: {
-        ...mapState('ux/drawers', ['rightDrawer'])
+        ...mapState('ux/drawers', ['rightDrawer']),
+        actions () {
+            return (this.rightDrawer?.header?.actions ?? [])
+                .filter(action => !action.hidden)
+        }
     },
     methods: {
         ...mapActions('ux/drawers', ['closeRightDrawer']),
