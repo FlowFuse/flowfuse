@@ -56,9 +56,9 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import BomDependencies from '../../../components/bill-of-materials/BomDependencies.vue'
+import usePermissions from '../../../composables/Permissions.js'
 
 import featuresMixin from '../../../mixins/Features.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
 
 export default {
     name: 'ApplicationDependencies',
@@ -70,13 +70,18 @@ export default {
         SectionTopMenu,
         SearchIcon
     },
-    mixins: [featuresMixin, permissionsMixin],
+    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         application: {
             type: Object,
             required: true
         }
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
     },
     data () {
         return {

@@ -69,10 +69,10 @@ import { ArrowLeftIcon, ChevronDownIcon, ExternalLinkIcon } from '@heroicons/vue
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
+import usePermissions from '../../../composables/Permissions.js'
 
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../components/DashboardLink.vue'
@@ -98,7 +98,12 @@ export default {
         ArrowLeftIcon,
         ResizeBar
     },
-    mixins: [instanceMixin, permissionsMixin],
+    mixins: [instanceMixin],
+    setup () {
+        const { hasAMinimumTeamRoleOf, isVisitingAdmin } = usePermissions()
+
+        return { hasAMinimumTeamRoleOf, isVisitingAdmin }
+    },
     data () {
         return {
             drawer: {

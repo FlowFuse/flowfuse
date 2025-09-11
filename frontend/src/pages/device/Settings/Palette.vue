@@ -64,7 +64,6 @@ import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import UndoIcon from '../../../components/icons/Undo.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
 import alerts from '../../../services/alerts.js'
 
 export default {
@@ -76,7 +75,6 @@ export default {
         UndoIcon,
         XIcon
     },
-    mixins: [permissionsMixin],
     props: {
         device: {
             type: Object,

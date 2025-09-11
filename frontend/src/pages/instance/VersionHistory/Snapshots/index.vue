@@ -62,7 +62,7 @@ import AssetCompareDialog from '../../../../components/dialogs/AssetCompareDialo
 import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
 import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
-import permissionsMixin from '../../../../mixins/Permissions.js'
+import usePermissions from '../../../../composables/Permissions.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
 import { applySystemUserDetails } from '../../../../transformers/snapshots.transformer.js'
 import { isAutoSnapshot } from '../../../../utils/snapshot.js'
@@ -83,7 +83,7 @@ export default {
         SnapshotEditDialog,
         SnapshotExportDialog
     },
-    mixins: [permissionsMixin, snapshotsMixin],
+    mixins: [snapshotsMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -92,6 +92,11 @@ export default {
         }
     },
     emits: ['instance-updated', 'show-import-snapshot-dialog', 'show-create-snapshot-dialog'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             loading: false,

@@ -30,7 +30,7 @@
 import { ChevronRightIcon, ExclamationCircleIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
-import permissionsMixin from '../../mixins/Permissions.js'
+import usePermissions from '../../composables/Permissions.js'
 
 export default {
     name: 'SubscriptionExpired',
@@ -38,7 +38,11 @@ export default {
         ExclamationCircleIcon,
         ChevronRightIcon
     },
-    mixins: [permissionsMixin],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     computed: {
         ...mapState('account', ['team']),
         billingPath () {

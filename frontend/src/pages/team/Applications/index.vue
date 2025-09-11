@@ -107,7 +107,7 @@ import { mapGetters } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 import ApplicationListItem from './components/Application.vue'
 
@@ -119,7 +119,11 @@ export default {
         EmptyState,
         PlusSmIcon
     },
-    mixins: [permissionsMixin],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             loading: false,

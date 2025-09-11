@@ -122,8 +122,8 @@ import SectionNavigationHeader from '../../components/SectionNavigationHeader.vu
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import usePermissions from '../../composables/Permissions.js'
 import deviceActionsMixin from '../../mixins/DeviceActions.js'
-import permissionsMixin from '../../mixins/Permissions.js'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
@@ -170,7 +170,12 @@ export default {
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog
     },
-    mixins: [permissionsMixin, deviceActionsMixin],
+    mixins: [deviceActionsMixin],
+    setup () {
+        const { hasPermission, isVisitingAdmin } = usePermissions()
+
+        return { hasPermission, isVisitingAdmin }
+    },
     data: function () {
         return {
             mounted: false,
@@ -187,9 +192,6 @@ export default {
     },
     computed: {
         ...mapState('account', ['teamMembership', 'team', 'features', 'settings']),
-        isVisitingAdmin: function () {
-            return this.teamMembership.role === Roles.Admin
-        },
         isMember: function () {
             return this.teamMembership.role === Roles.Member || this.teamMembership.role === Roles.Owner
         },

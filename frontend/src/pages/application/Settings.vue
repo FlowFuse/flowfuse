@@ -55,8 +55,8 @@ import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
 import SectionSideMenu from '../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+import usePermissions from '../../composables/Permissions.js'
 
-import permissionsMixin from '../../mixins/Permissions.js'
 import Alerts from '../../services/alerts.js'
 
 export default {
@@ -67,7 +67,6 @@ export default {
         FormHeading,
         FormRow
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         application: {
@@ -76,6 +75,11 @@ export default {
         }
     },
     emits: ['application-delete', 'application-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             sideNavigation: [{

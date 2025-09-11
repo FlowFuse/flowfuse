@@ -17,14 +17,11 @@ import { mapState } from 'vuex'
 import SectionSideMenu from '../../../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../../../components/SectionTopMenu.vue'
 
-import permissionsMixin from '../../../../mixins/Permissions.js'
-
 export default {
     name: 'DeviceGroupSettings',
     components: {
         SectionSideMenu, SectionTopMenu
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         application: {
