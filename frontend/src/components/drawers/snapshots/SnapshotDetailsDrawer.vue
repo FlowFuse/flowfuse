@@ -47,7 +47,11 @@
             </div>
             <div class="flex flex-col gap-2">
                 <div class="flex flex-row gap-1">
-                    <ff-button kind="secondary" class="flex-1" :disabled="!hasPermission('project:snapshot:export')">
+                    <ff-button
+                        kind="secondary" class="flex-1"
+                        :disabled="!hasPermission('project:snapshot:export')"
+                        @click="showDownloadSnapshotDialog(snapshot)"
+                    >
                         Download Snapshot
                         <template #icon-left>
                             <DownloadIcon class="ff-icon" />
@@ -75,6 +79,7 @@
             </div>
         </section>
         <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
+        <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
     </div>
 </template>
 
@@ -86,12 +91,14 @@ import { mapActions } from 'vuex'
 import SnapshotsApi from '../../../api/snapshots.js'
 import usePermissions from '../../../composables/Permissions.js'
 import snapshotsMixin from '../../../mixins/Snapshots.js'
+import SnapshotExportDialog from '../../../pages/application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 import AssetCompareDialog from '../../dialogs/AssetCompareDialog.vue'
 import FlowViewer from '../../flow-viewer/FlowViewer.vue'
 
 export default defineComponent({
     name: 'SnapshotDetailsDrawer',
     components: {
+        SnapshotExportDialog,
         AssetCompareDialog,
         FlowViewer,
         DownloadIcon,
