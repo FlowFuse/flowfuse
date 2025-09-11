@@ -6,8 +6,8 @@
         data-el="right-drawer"
     >
         <div v-if="rightDrawer?.header" class="flex items-center justify-between p-4 border-b">
-            <div class="title">
-                <h1 class="text-xl font-semibold">{{ rightDrawer.header.title }}</h1>
+            <div class="title clipped-overflow">
+                <h1 class="text-xl font-semibold" :title="rightDrawer.header.title">{{ rightDrawer.header.title }}</h1>
             </div>
             <div class="actions flex flex-row gap-2">
                 <ff-button
