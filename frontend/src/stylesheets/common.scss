@@ -206,3 +206,22 @@ label {
         border-radius: 0;
     }
 }
+
+.clipped-overflow {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  // number of lines to clip to
+  &--two-lines {
+    -webkit-line-clamp: 2;
+  }
+  &--three-lines {
+    -webkit-line-clamp: 3;
+  }
+  &--four-lines {
+    -webkit-line-clamp: 4;
+  }
+}
