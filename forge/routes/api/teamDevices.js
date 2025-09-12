@@ -79,8 +79,15 @@ module.exports = async function (app) {
         }
 
         const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: true })
-        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
 
+        if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            devices.devices = devices.devices.filter(device => {
+                return !device.ApplicationId || app.hasPermission(request.teamMembership, 'device:read', { applicationId: app.db.models.Application.encodeHashid(device.ApplicationId) })
+            })
+        }
+        // devices.coint
+        devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
+        devices.count = devices.devices.length
         reply.send(devices)
     })
 
