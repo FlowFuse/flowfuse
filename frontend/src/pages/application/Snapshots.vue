@@ -23,7 +23,7 @@
                     </DropdownMenu>
                 </template>
                 <template #context-menu="{row}">
-                    <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
+                    <ff-list-item :disabled="!hasPermission('snapshot:edit', { application })" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
                     <ff-list-item :disabled="!canViewSnapshot(row)" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
                     <ff-list-item :disabled="!canViewSnapshot(row)" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
                     <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
@@ -214,7 +214,7 @@ export default {
             this.loading = false
         },
         canViewSnapshot: function (row) {
-            return this.hasPermission('snapshot:full')
+            return this.hasPermission('snapshot:full', { application: this.application })
         },
         showViewSnapshotDialog (row) {
             SnapshotsApi.getFullSnapshot(row.id).then((data) => {
@@ -277,19 +277,19 @@ export default {
         },
         // enable/disable snapshot actions
         canDownload (_row) {
-            return this.hasPermission('snapshot:export')
+            return this.hasPermission('snapshot:export', { application: this.application })
         },
         canDownloadPackage (row) {
             if (this.isDevice(row)) {
-                return this.hasPermission('device:snapshot:read')
+                return this.hasPermission('device:snapshot:read', { application: this.application })
             }
-            return this.hasPermission('project:snapshot:read')
+            return this.hasPermission('project:snapshot:read', { application: this.application })
         },
         canDelete (row) {
             if (this.isDevice(row)) {
-                return this.hasPermission('device:snapshot:delete')
+                return this.hasPermission('device:snapshot:delete', { application: this.application })
             }
-            return this.hasPermission('project:snapshot:delete')
+            return this.hasPermission('project:snapshot:delete', { application: this.application })
         }
     }
 }

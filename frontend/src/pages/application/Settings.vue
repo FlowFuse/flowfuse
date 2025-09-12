@@ -16,7 +16,7 @@
                     Description
                 </FormRow>
             </div>
-            <template v-if="hasPermission('project:edit')">
+            <template v-if="hasPermission('project:edit', { application })">
                 <div class="space-x-4 whitespace-nowrap">
                     <template v-if="!editing">
                         <ff-button kind="primary" data-action="application-edit" @click="editName">Edit</ff-button>
@@ -29,7 +29,7 @@
                     </template>
                 </div>
             </template>
-            <template v-if="hasPermission('project:delete')">
+            <template v-if="hasPermission('project:delete', { application })">
                 <FormHeading class="text-red-700">Delete Application</FormHeading>
                 <div class="flex flex-col space-y-4 max-w-2xl">
                     <div class="flex-grow">
