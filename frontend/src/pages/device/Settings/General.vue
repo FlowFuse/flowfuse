@@ -5,7 +5,7 @@
                 General
             </template>
             <template #tools>
-                <div v-if="hasPermission('device:edit')" class="mb-2">
+                <div v-if="hasPermission('device:edit', { application: device.application })" class="mb-2">
                     <ff-button v-if="!editing.deviceName" size="small" kind="primary" @click="editDevice">Edit Device</ff-button>
                     <ff-button v-else kind="primary" size="small" @click="updateDevice">Save Changes</ff-button>
                 </div>
@@ -52,10 +52,10 @@
                 Assignment
             </template>
             <template #tools>
-                <div v-if="hasPermission('device:edit')" class="mb-2">
+                <div v-if="hasPermission('device:edit', { application: device.application })" class="mb-2">
                     <ff-button v-if="!notAssigned" size="small" kind="primary" data-action="unassign-device" @click="unassign">Unassign</ff-button>
                 </div>
-                <div v-if="hasPermission('device:edit')" class="mb-2">
+                <div v-if="hasPermission('device:edit', { application: device.application })" class="mb-2">
                     <ff-button v-if="notAssigned" size="small" kind="primary" data-action="assign-device" @click="assign">Assign</ff-button>
                 </div>
             </template>
@@ -212,7 +212,7 @@ export default {
     computed: {
         ...mapState('account', ['team']),
         canChangeNodeRedVersion () {
-            return this.deviceOwnerType === 'application' && this.hasPermission('device:edit')
+            return this.deviceOwnerType === 'application' && this.hasPermission('device:edit', { application: this.device.application })
         },
         deviceOwnerType () {
             return this.device?.ownerType || ''
