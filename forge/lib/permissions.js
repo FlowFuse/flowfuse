@@ -179,7 +179,7 @@ const Permissions = {
     'saml-provider:edit': { description: 'Edit a SAML Provider', role: Roles.Admin },
 
     // Static Assets
-    'project:files:list': { description: 'List files under a project', role: Roles.Member },
+    'project:files:list': { description: 'List files under a project', role: Roles.Viewer },
     'project:files:create': { description: 'Upload files to a project', role: Roles.Member },
     'project:files:edit': { description: 'Modify files in a project', role: Roles.Member },
     'project:files:delete': { description: 'Delete files in a project', role: Roles.Member },
