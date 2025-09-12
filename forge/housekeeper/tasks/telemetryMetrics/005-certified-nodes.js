@@ -1,4 +1,5 @@
 const { Op } = require('sequelize')
+
 const ProjectSettings = require('../../../db/models/ProjectSettings')
 const ProjectTemplate = require('../../../db/models/ProjectTemplate')
 
@@ -49,7 +50,7 @@ module.exports = async (app) => {
             // all running devices seen in the last 24hrs
             const now = Date.now()
             const runningDevices = await app.db.models.Device.findAll({
-                where: { 
+                where: {
                     state: 'running',
                     lastSeenAt: { [Op.gte]: new Date(now - 1000 * 60 * 60 * 24) }
                 }
@@ -70,7 +71,7 @@ module.exports = async (app) => {
                         const snapshot = await app.db.models.ProjectSnapshot.byId(activeSnapshot)
                         if (snapshot.settings.modules) {
                             const cache = []
-                            for (mod of Object.keys(snapshot.settings.modules)) {
+                            for (const mod of Object.keys(snapshot.settings.modules)) {
                                 if (mod.startsWith(SCOPE)) {
                                     cache.push(mod)
                                     if (response.certifiedNodes[mod]) {
@@ -86,7 +87,7 @@ module.exports = async (app) => {
                 }
             }
         } catch (err) {
-            
+            app.log.error('Failed to gather Certified Nodes usage', err)
         }
     }
     return response
