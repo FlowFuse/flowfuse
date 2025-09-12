@@ -257,16 +257,16 @@ export default {
             handler (id) {
                 this.clearBrokerStatusPollingInterval()
 
-                if (id && id !== 'team-broker') {
-                    this.getBrokerState()
-                        .then(() => {
-                            this.brokerStatusPollingInterval = setInterval(() => this.getBrokerState(), 5000)
-                        })
-                        .catch(e => {
-                            this.brokerState = 'error'
-                            console.error(e)
-                        })
-                }
+                // if (id && id !== 'team-broker') {
+                this.getBrokerState()
+                    .then(() => {
+                        this.brokerStatusPollingInterval = setInterval(() => this.getBrokerState(), 5000)
+                    })
+                    .catch(e => {
+                        this.brokerState = 'error'
+                        console.error(e)
+                    })
+                // }
             },
             immediate: true
         }
