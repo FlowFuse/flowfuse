@@ -23,8 +23,7 @@
         </template>
         <template #tools>
             <ff-button
-
-                v-if="hasPermission('pipeline:create')"
+                v-if="hasPermission('pipeline:create', { application })"
                 data-action="pipeline-add"
                 :to="{
                     name: 'CreatePipeline',
@@ -81,6 +80,7 @@
         </template>
         <template #actions>
             <ff-button
+                v-if="hasPermission('pipeline:create', { application })"
                 :to="{
                     name: 'CreatePipeline',
                     params: { applicationId: application.id },
@@ -160,7 +160,7 @@ export default {
     watch: {
         teamMembership: {
             handler: function () {
-                if (!this.hasPermission('application:pipeline:list')) {
+                if (!this.hasPermission('application:pipeline:list', { application: this.application })) {
                     return this.$router.push({ name: 'Application', params: this.$route.params })
                 }
             },
@@ -311,7 +311,7 @@ export default {
             }
         },
         async loadPipelines () {
-            if (this.hasPermission('application:pipeline:list')) {
+            if (this.hasPermission('application:pipeline:list', { application: this.application })) {
                 this.loading = true
 
                 // getPipelines doesn't include full instance status information, kick this off async

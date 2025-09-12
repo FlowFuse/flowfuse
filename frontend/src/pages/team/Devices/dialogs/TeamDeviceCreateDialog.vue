@@ -49,6 +49,7 @@ import devicesApi from '../../../../api/devices.js'
 import teamApi from '../../../../api/team.js'
 
 import FormRow from '../../../../components/FormRow.vue'
+import usePermissions from '../../../../composables/Permissions.js'
 import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 import formatCurrency from '../../../../mixins/Currency.js'
 import alerts from '../../../../services/alerts.js'
@@ -70,7 +71,9 @@ export default {
     },
     emits: ['deviceUpdated', 'deviceCreating', 'deviceCreated', 'closed'],
     setup () {
+        const { hasPermission } = usePermissions()
         return {
+            hasPermission,
             show (device, instance, application, showApplicationsList = false) {
                 this.$refs.dialog.show()
                 this.instance = instance
@@ -173,7 +176,7 @@ export default {
         loadApplications () {
             this.loading.applications = true
             teamApi.getTeamApplications(this.team.id).then((data) => {
-                this.applications = data.applications
+                this.applications = data.applications.filter(application => this.hasPermission('device:create', { application }))
                 this.loading.applications = false
             }).catch((error) => {
                 console.error(error)
