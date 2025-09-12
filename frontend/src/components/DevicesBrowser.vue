@@ -25,9 +25,9 @@
                 @update:sort="updateSort"
             >
                 <template #actions>
-                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete') || hasPermission('team:device:bulk-edit')" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu>
+                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete', applicationContext) || hasPermission('team:device:bulk-edit', applicationContext)" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu>
                     <ff-button
-                        v-if="displayingInstance && hasPermission('project:snapshot:create')"
+                        v-if="displayingInstance && hasPermission('project:snapshot:create', applicationContext)"
                         data-action="change-target-snapshot"
                         kind="secondary"
                         @click="showSelectTargetSnapshotDialog"
@@ -40,7 +40,7 @@
                         </span>
                     </ff-button>
                     <ff-button
-                        v-if="hasPermission('device:create')"
+                        v-if="hasPermission('device:create', applicationContext)"
                         class="font-normal"
                         data-action="register-device"
                         kind="primary"
@@ -54,7 +54,7 @@
                     </ff-button>
                 </template>
                 <template
-                    v-if="hasPermission('device:edit')"
+                    v-if="hasPermission('device:edit', applicationContext)"
                     #context-menu="{row}"
                 >
                     <ff-list-item
@@ -91,7 +91,7 @@
                         @click="deviceAction('updateCredentials', row.id)"
                     />
                     <ff-list-item
-                        v-if="hasPermission('device:delete')"
+                        v-if="hasPermission('device:delete', applicationContext)"
                         kind="danger"
                         label="Delete Device"
                         @click="deviceAction('delete', row.id)"
@@ -120,7 +120,7 @@
                         </template>
                         <template #actions>
                             <ff-button
-                                v-if="hasPermission('device:create')"
+                                v-if="hasPermission('device:create', applicationContext)"
                                 class="font-normal"
                                 kind="primary"
                                 :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
@@ -159,7 +159,7 @@
                         </template>
                         <template #actions>
                             <ff-button
-                                v-if="hasPermission('device:create')"
+                                v-if="hasPermission('device:create', applicationContext)"
                                 class="font-normal"
                                 kind="primary"
                                 :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
@@ -198,7 +198,7 @@
                         </template>
                         <template #actions>
                             <ff-button
-                                v-if="hasPermission('device:create')"
+                                v-if="hasPermission('device:create', applicationContext)"
                                 class="font-normal"
                                 kind="primary"
                                 :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
@@ -494,8 +494,8 @@ export default {
         },
         bulkActionsDropdownOptions () {
             const actionsEnabled = this.checkedDevices?.length > 0
-            const enableDelete = actionsEnabled && this.hasPermission('team:device:bulk-delete')
-            const enableMove = actionsEnabled && this.hasPermission('team:device:bulk-edit')
+            const enableDelete = actionsEnabled && this.hasPermission('team:device:bulk-delete', this.applicationContext)
+            const enableMove = actionsEnabled && this.hasPermission('team:device:bulk-edit', this.applicationContext)
             const showRemoveFromInstance = this.displayingInstance || this.displayingTeam
             const showRemoveFromApplication = this.displayingApplication || this.displayingTeam
             const menu = []
@@ -510,6 +510,11 @@ export default {
             }
             menu.push({ name: 'Delete', class: ['!text-red-600'], action: this.showTeamBulkDeviceDeleteDialog, disabled: !enableDelete })
             return menu
+        },
+        applicationContext () {
+            return {
+                application: this.application || this.instance?.application
+            }
         }
     },
     watch: {
