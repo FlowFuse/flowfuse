@@ -73,7 +73,8 @@ export default {
     mixins: [AlertsMixin, DialogMixin],
     computed: {
         ...mapState('product', ['interview']),
-        ...mapState('ux', ['leftDrawer', 'overlay']),
+        ...mapState('ux', ['overlay']),
+        ...mapState('ux/drawers', ['leftDrawer']),
         ...mapGetters('account', ['hasAvailableTeams'])
     },
     watch: {

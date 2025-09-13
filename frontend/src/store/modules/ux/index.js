@@ -12,19 +12,10 @@ import QueueIcon from '../../../components/icons/Queue.js'
 import { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
+import drawers from './drawers/index.js'
 import tours from './tours/index.js'
 
 const initialState = () => ({
-    leftDrawer: {
-        state: false,
-        component: null
-    },
-    rightDrawer: {
-        state: false,
-        component: null,
-        wider: false,
-        props: {}
-    },
     mainNav: {
         context: 'team',
         backToButton: null
@@ -52,9 +43,6 @@ const state = initialState
 const getters = {
     teamMembership (state, getters, rootState, rootGetters) {
         return rootGetters['account/teamMembership'] ?? { role: 0 }
-    },
-    hiddenLeftDrawer: (state, getters) => {
-        return state.leftDrawer.component?.name === 'MainNav' && getters.mainNavContext.length === 0
     },
     mainNavContexts: function (state, getters, rootState, rootGetters) {
         const team = rootState.account.team
@@ -475,29 +463,6 @@ const getters = {
 }
 
 const mutations = {
-    openRightDrawer (state, { component, wider, props }) {
-        state.rightDrawer.state = true
-        state.rightDrawer.wider = wider
-        state.rightDrawer.component = component
-        state.rightDrawer.props = props
-    },
-    closeRightDrawer (state) {
-        state.rightDrawer.state = false
-        state.rightDrawer.wider = false
-        state.rightDrawer.component = null
-    },
-    openLeftDrawer (state) {
-        state.leftDrawer.state = true
-    },
-    closeLeftDrawer (state) {
-        state.leftDrawer.state = false
-    },
-    toggleLeftDrawer (state) {
-        state.leftDrawer.state = !state.leftDrawer.state
-    },
-    setLeftDrawer (state, component) {
-        state.leftDrawer.component = component
-    },
     setMainNavContext (state, context) {
         state.mainNav.context = context
     },
@@ -521,49 +486,6 @@ const mutations = {
 }
 
 const actions = {
-    openRightDrawer ({ state, commit }, { component, wider = false, props = {}, overlay = false }) {
-        if (state.rightDrawer.state && component.name === state.rightDrawer.component.name) return
-
-        if (state.rightDrawer.state) {
-            commit('closeRightDrawer')
-            setTimeout(() => {
-                commit('openRightDrawer', {
-                    component,
-                    wider,
-                    props
-                })
-                if (overlay) {
-                    commit('openOverlay')
-                }
-            }, 300)
-        } else {
-            commit('openRightDrawer', { component, wider, props })
-            if (overlay) {
-                commit('openOverlay')
-            }
-        }
-    },
-    closeRightDrawer ({ commit, state }) {
-        setTimeout(() => {
-            commit('closeRightDrawer')
-
-            if (state.overlay) {
-                commit('closeOverlay')
-            }
-        }, 100)
-    },
-    openLeftDrawer ({ commit }) {
-        commit('openLeftDrawer')
-    },
-    closeLeftDrawer ({ commit }) {
-        commit('closeLeftDrawer')
-    },
-    toggleLeftDrawer ({ commit }) {
-        commit('toggleLeftDrawer')
-    },
-    setLeftDrawer ({ commit }, component) {
-        commit('setLeftDrawer', component)
-    },
     setMainNavContext ({ commit }, context) {
         commit('setMainNavContext', context)
     },
@@ -587,7 +509,7 @@ const actions = {
 
 export default {
     namespaced: true,
-    modules: { tours },
+    modules: { tours, drawers },
     state,
     initialState: initialState(),
     getters,

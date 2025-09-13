@@ -131,9 +131,9 @@ export default {
             return Roles
         },
         ...mapState('account', ['user', 'team', 'teams']),
-        ...mapState('ux', ['leftDrawer']),
+        ...mapState('ux/drawers', ['leftDrawer']),
         ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount', 'featuresCheck']),
-        ...mapGetters('ux', ['hiddenLeftDrawer']),
+        ...mapGetters('ux/drawers', ['hiddenLeftDrawer']),
         navigationOptions () {
             return [
                 {
@@ -219,7 +219,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux', ['toggleLeftDrawer']),
+        ...mapActions('ux/drawers', ['toggleLeftDrawer']),
         openEducationModal () {
             this.$store.dispatch('ux/tours/openModal', 'education')
                 .then(() => product.capture('clicked-open-education-modal'))

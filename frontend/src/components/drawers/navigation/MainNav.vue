@@ -126,7 +126,7 @@ export default {
     methods: {
         ...mapActions('ux', ['setMainNavContext', 'setMainNavBackButton']),
         onMenuItemClick () {
-            this.$store.dispatch('ux/closeLeftDrawer')
+            this.$store.dispatch('ux/drawers/closeLeftDrawer')
         },
         setBackButton () {
             if (this.team) {

@@ -18,7 +18,7 @@ export default {
     name: 'NotificationsButton',
     components: { MailIcon },
     computed: {
-        ...mapState('ux', ['rightDrawer']),
+        ...mapState('ux/drawers', ['rightDrawer']),
         ...mapGetters('account', ['hasNotifications']),
         ...mapGetters('account', ['unreadNotificationsCount']),
         notificationsCount: function () {
@@ -30,7 +30,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux', ['openRightDrawer', 'closeRightDrawer']),
+        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
         onClick () {
             this.openRightDrawer({ component: markRaw(NotificationsDrawer) })
         }

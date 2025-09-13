@@ -74,7 +74,7 @@ export default defineComponent({
         }
     },
     methods: {
-        ...mapActions('ux', ['closeRightDrawer']),
+        ...mapActions('ux/drawers', ['closeRightDrawer']),
         ...mapActions('product/tables', ['createTable', 'getTables', 'addNewTableColumn', 'removeNewTableColumn']),
         validateForm () {
             const columnsHaveDuplicateNames = new Set(this.newTable.columns.map(col => col.name)).size !== this.newTable.columns.length

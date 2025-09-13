@@ -69,7 +69,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux', ['closeRightDrawer']),
+        ...mapActions('ux/drawers', ['closeRightDrawer']),
         go (to) {
             this.closeRightDrawer()
             this.markAsRead()

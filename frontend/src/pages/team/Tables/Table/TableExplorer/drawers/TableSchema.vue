@@ -59,7 +59,7 @@ export default defineComponent({
         ...mapState('account', ['team'])
     },
     methods: {
-        ...mapActions('ux', ['closeRightDrawer']),
+        ...mapActions('ux/drawers', ['closeRightDrawer']),
         ...mapActions('product/tables', ['deleteTable', 'getTables']),
         submit () {
             Dialog.show({
