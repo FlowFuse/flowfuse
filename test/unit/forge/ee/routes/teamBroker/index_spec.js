@@ -1444,7 +1444,7 @@ describe('Team Broker API', function () {
                     TeamId: team2.id
                 })
                 const res = await agent2.refreshAuthTokens()
-                agentToken2 = res.token
+                const agentToken2 = res.token
 
                 const result = await app.inject({
                     method: 'GET',
