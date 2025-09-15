@@ -44,7 +44,15 @@ describe('Team Broker API', function () {
         before(async function () {
             // Dev-only Enterprise license that allows 6 MQTT Clients
             const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNDFmNmRjLTBmM2QtNGFmNy1hNzk0LWIyNWFhNGJmYTliZCIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGdXNlIERldmVsb3BtZW50IiwibmJmIjoxNzMwNjc4NDAwLCJleHAiOjIwNzc3NDcyMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxMCwidGVhbXMiOjEwLCJpbnN0YW5jZXMiOjEwLCJtcXR0Q2xpZW50cyI6NiwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTczMDcyMTEyNH0.02KMRf5kogkpH3HXHVSGprUm0QQFLn21-3QIORhxFgRE9N5DIE8YnTH_f8W_21T6TlYbDUmf4PtWyj120HTM2w'
-            app = await setup({ license })
+            app = await setup({
+                license,
+                broker: {
+                    url: 'mqtt://forge:1883',
+                    teamBroker: {
+                        enabled: true
+                    }
+                }
+            })
             factory = app.factory
             await login('alice', 'aaPassword')
 
@@ -1401,6 +1409,23 @@ describe('Team Broker API', function () {
                     ]
                 })
                 result.statusCode.should.equal(201)
+            })
+            it('Team Broker Agent get creds', async function () {
+                const result = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/credentials`,
+                    headers: {
+                        Authorization: `Bearer ${agentToken}`
+                    }
+                })
+                result.statusCode.should.equal(200)
+                const body = result.json()
+                body.should.have.property('id', 'team-broker')
+                body.should.have.property('name', 'TeamBroker')
+                body.should.have.property('host', 'forge')
+                body.should.have.property('credentials')
+                body.credentials.should.have.property('username', `agent:${app.team.hashid}@${app.team.hashid}`)
+                body.credentials.should.have.property('password', agent.auth)
             })
         })
     })
