@@ -257,7 +257,6 @@ export default {
             handler (id) {
                 this.clearBrokerStatusPollingInterval()
 
-                // if (id && id !== 'team-broker') {
                 this.getBrokerState()
                     .then(() => {
                         this.brokerStatusPollingInterval = setInterval(() => this.getBrokerState(), 5000)
@@ -266,7 +265,6 @@ export default {
                         this.brokerState = 'error'
                         console.error(e)
                     })
-                // }
             },
             immediate: true
         }
