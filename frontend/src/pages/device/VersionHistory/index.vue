@@ -29,7 +29,7 @@
                     class="truncate"
                 />
                 <ff-button
-                    v-if="hasPermission('snapshot:import')"
+                    v-if="hasPermission('snapshot:import', { application: device.application })"
                     kind="secondary"
                     data-action="import-snapshot"
                     :disabled="busy || isOwnedByAnInstance || isUnassigned"
@@ -38,6 +38,7 @@
                     <template #icon-left><UploadIcon /></template>Upload Snapshot
                 </ff-button>
                 <ff-button
+                    v-if="hasPermission('device:snapshot:create', { application: device.application })"
                     :key="disabledSnapshotTooltipText"
                     v-ff-tooltip:left="disabledSnapshotTooltipText"
                     kind="primary"

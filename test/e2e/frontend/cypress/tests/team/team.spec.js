@@ -3,7 +3,6 @@ describe('FlowFuse - Team', () => {
     beforeEach(() => {
         cy.login('alice', 'aaPassword')
         cy.home()
-        cy.intercept('GET', '/api/v1/teams/*/applications*').as('getTeamApplications')
         cy.intercept('DELETE', '/api/v1/teams/*').as('deleteTeam')
         cy.intercept('PUT', '/api/v1/teams/*').as('updateTeam')
     })
@@ -22,7 +21,6 @@ describe('FlowFuse - Team', () => {
                 team = response.body
                 cy.visit(`team/${team.slug}`)
                 cy.visit(`team/${team.slug}/settings/danger`)
-                cy.wait('@getTeamApplications')
                 cy.get('[data-action="suspend-team"]').should('not.be.disabled')
                 cy.get('[data-action="unsuspend-team"]').should('not.exist')
 
@@ -75,7 +73,6 @@ describe('FlowFuse - Team', () => {
                 cy.visit(`team/${team.slug}`)
                 cy.visit(`team/${team.slug}/settings/danger`)
                 // cy.get('[data-action="delete-team"]').should('be.disabled')
-                cy.wait('@getTeamApplications')
                 cy.get('[data-action="delete-team"]').should('not.be.disabled')
 
                 cy.get('[data-action="delete-team"]').click()
@@ -124,7 +121,6 @@ describe('FlowFuse - Team', () => {
                 cy.visit(`team/${team.slug}`)
                 cy.visit(`team/${team.slug}/settings/danger`)
                 // cy.get('[data-action="delete-team"]').should('be.disabled')
-                cy.wait('@getTeamApplications')
                 cy.get('[data-action="delete-team"]').should('not.be.disabled')
                 cy.get('[data-action="delete-team"]').click()
 

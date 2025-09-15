@@ -26,6 +26,7 @@
                 Refresh
             </ff-button>
             <ff-button
+                v-if="!isReadOnly"
                 :disabled="disabled"
                 data-action="add-folder"
                 kind="secondary"
@@ -37,6 +38,7 @@
                 New Folder
             </ff-button>
             <ff-button
+                v-if="!isReadOnly"
                 :disabled="disabled"
                 data-action="upload-file"
                 kind="primary"
@@ -49,11 +51,11 @@
             </ff-button>
         </template>
         <template #context-menu="{row}">
-            <template v-if="row.type === 'directory'">
+            <template v-if="!isReadOnly && row.type === 'directory'">
                 <ff-list-item label="Edit Folder" data-action="edit-folder" @click.stop="editFolder(row)" />
                 <ff-list-item kind="danger" data-action="delete-folder" label="Delete Folder" @click.stop="deleteFolder(row)" />
             </template>
-            <template v-if="row.type === 'file'">
+            <template v-if="!isReadOnly && row.type === 'file'">
                 <ff-list-item kind="danger" data-action="delete-file" label="Delete File" @click.stop="deleteFile(row)" />
             </template>
         </template>
@@ -97,6 +99,7 @@ import { markRaw } from 'vue'
 
 import AssetsAPI from '../../api/assets.js'
 import FFFileUpload from '../../components/FileUpload.vue'
+import usePermissions from '../../composables/Permissions.js'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
@@ -139,6 +142,13 @@ export default {
         }
     },
     emits: ['change-directory', 'items-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return {
+            hasPermission
+        }
+    },
     data () {
         return {
             loading: false,
@@ -154,6 +164,9 @@ export default {
         }
     },
     computed: {
+        isReadOnly () {
+            return !this.hasPermission('project:files:create', { application: this.instance.application })
+        },
         folder () {
             return [...this.breadcrumbs].pop()
         },
