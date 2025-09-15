@@ -1317,11 +1317,14 @@ describe('Team Broker API', function () {
         })
         describe('Team Broker MQTT Agent', function () {
             let agent
+            let agentToken
             before(async function () {
                 agent = await app.db.models.TeamBrokerAgent.create({
                     state: 'running',
                     TeamId: app.team.id
                 })
+                const res = await agent.refreshAuthTokens()
+                agentToken = res.token
             })
             after(async function () {
                 await agent.destroy()
@@ -1381,6 +1384,23 @@ describe('Team Broker API', function () {
                 })
                 const body = result.json()
                 body.should.have.property('result', 'deny')
+            })
+            it('Team Broker Agent Publish schema', async function () {
+                const result = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
+                    headers: {
+                        Authorization: `Bearer ${agentToken}`
+                    },
+                    body: [
+                        {
+                            topic: 'foo/bar/baz/qux',
+                            time: 1738236145678,
+                            type: { type: 'string' }
+                        }
+                    ]
+                })
+                result.statusCode.should.equal(201)
             })
         })
     })
