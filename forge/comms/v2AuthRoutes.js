@@ -155,7 +155,7 @@ module.exports = async function (app) {
             if (action === 'subscribe') {
                 reply.send({ result: 'allow' })
             } else {
-                reply.send({ action: 'deny' })
+                reply.send({ result: 'deny' })
             }
         } else {
             if (app.license.active()) {

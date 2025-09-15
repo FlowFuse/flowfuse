@@ -1315,5 +1315,73 @@ describe('Team Broker API', function () {
                 topics.topics.some(t => t.topic === 'foo/sub').should.be.false()
             })
         })
+        describe('Team Broker MQTT Agent', function () {
+            let agent
+            before(async function () {
+                agent = await app.db.models.TeamBrokerAgent.create({
+                    state: 'running',
+                    TeamId: app.team.id
+                })
+            })
+            after(async function () {
+                await agent.destroy()
+            })
+            it('Authenticate Agent', async function () {
+                const result = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/auth',
+                    body: {
+                        username: `agent:${app.team.hashid}@${app.team.hashid}`,
+                        password: agent.auth
+                    }
+                })
+                result.statusCode.should.equal(200)
+                const body = result.json()
+                body.should.have.property('result', 'allow')
+                body.should.have.property('is_superuser', false)
+                body.should.have.property('client_attrs')
+                body.client_attrs.should.have.property('team', `ff/v1/${app.team.hashid}/c/`)
+            })
+            it('Fail to Authenticate Agent with wrong passwod', async function () {
+                const result = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/auth',
+                    body: {
+                        username: `agent:${app.team.hashid}@${app.team.hashid}`,
+                        password: 'fooo'
+                    }
+                })
+                result.statusCode.should.equal(200)
+                const body = result.json()
+                body.should.have.property('result', 'deny')
+            })
+            it('Team Broker ACL subscribe', async function () {
+                const result = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/acls',
+                    body: {
+                        username: `agent:${app.team.hashid}@${app.team.hashid}`,
+                        topic: '#',
+                        action: 'subscribe'
+                    }
+                })
+                result.statusCode.should.equal(200)
+                const body = result.json()
+                body.should.have.property('result', 'allow')
+            })
+            it('Team Broker ACL subscribe', async function () {
+                const result = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/acls',
+                    body: {
+                        username: `agent:${app.team.hashid}@${app.team.hashid}`,
+                        topic: 'foo/bar',
+                        action: 'publish'
+                    }
+                })
+                const body = result.json()
+                body.should.have.property('result', 'deny')
+            })
+        })
     })
 })
