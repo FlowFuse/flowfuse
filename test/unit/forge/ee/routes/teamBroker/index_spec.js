@@ -1427,6 +1427,35 @@ describe('Team Broker API', function () {
                 body.credentials.should.have.property('username', `agent:${app.team.hashid}@${app.team.hashid}`)
                 body.credentials.should.have.property('password', agent.auth)
             })
+            it('Team Broker Agent get creds bad token', async function () {
+                const result = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/credentials`,
+                    headers: {
+                        Authorization: `Bearer ${agentToken}-foo`
+                    }
+                })
+                result.statusCode.should.equal(401)
+            })
+            it('Team Broker Agent get creds wrong teams token', async function () {
+                const team2 = await app.factory.createTeam({ name: 'BTeam' })
+                const agent2 = await app.db.models.TeamBrokerAgent.create({
+                    state: 'running',
+                    TeamId: team2.id
+                })
+                const res = await agent2.refreshAuthTokens()
+                agentToken2 = res.token
+
+                const result = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/credentials`,
+                    headers: {
+                        Authorization: `Bearer ${agentToken2}`
+                    }
+                })
+                result.statusCode.should.equal(401)
+                await agent2.destroy()
+            })
         })
     })
 })
