@@ -12,6 +12,7 @@ const forge = require('./forge')
   * This creates the Fastify server, registers our plugins and starts it listen
   * on `process.env.PORT`.
   *
+  *
   * @namespace forge
   */
 
