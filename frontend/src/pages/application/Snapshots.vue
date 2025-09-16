@@ -71,7 +71,7 @@ import AssetDetailDialog from '../../components/dialogs/AssetDetailDialog.vue'
 import SnapshotEditDialog from '../../components/dialogs/SnapshotEditDialog.vue'
 import UserCell from '../../components/tables/cells/UserCell.vue'
 import { downloadData } from '../../composables/Download.js'
-import permissionsMixin from '../../mixins/Permissions.js'
+import usePermissions from '../../composables/Permissions.js'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import { applySystemUserDetails } from '../../transformers/snapshots.transformer.js'
@@ -95,13 +95,17 @@ export default {
         SnapshotEditDialog,
         SnapshotExportDialog
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         application: {
             type: Object,
             required: true
         }
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
     },
     data () {
         return {

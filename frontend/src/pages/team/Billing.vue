@@ -115,9 +115,9 @@ import billingApi from '../../api/billing.js'
 import EmptyState from '../../components/EmptyState.vue'
 import FormHeading from '../../components/FormHeading.vue'
 import Loading from '../../components/Loading.vue'
+import usePermissions from '../../composables/Permissions.js'
 import formatCurrency from '../../mixins/Currency.js'
 import formatDateMixin from '../../mixins/DateTime.js'
-import permissionsMixin from '../../mixins/Permissions.js'
 
 const priceCell = {
     name: 'PriceCell',
@@ -151,7 +151,12 @@ export default {
         ExternalLinkIcon,
         EmptyState
     },
-    mixins: [formatDateMixin, formatCurrency, permissionsMixin],
+    mixins: [formatDateMixin, formatCurrency],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             loading: false,

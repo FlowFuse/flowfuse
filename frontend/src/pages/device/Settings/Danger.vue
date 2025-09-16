@@ -19,7 +19,7 @@ import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog.vue'
 
@@ -27,13 +27,17 @@ export default {
     name: 'DeviceSettingsDanger',
     props: ['device'],
     emits: ['device-updated'],
-    mixins: [permissionsMixin],
     components: {
         ConfirmDeviceDeleteDialog,
         FormHeading
     },
     computed: {
         ...mapState('account', ['team'])
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
     },
     data () {
         return {

@@ -1,3 +1,23 @@
+#### 2.21.2: Release
+
+ - Bump aws-actions/configure-aws-credentials from 4.3.1 to 5.0.0 (#5994)
+ - Bump actions/github-script from 7.0.1 to 8.0.0 (#5996)
+ - Bump codecov/codecov-action from 5.5.0 to 5.5.1 (#5997)
+ - Bump actions/setup-node from 4.4.0 to 5.0.0 (#5995)
+ - ci: Enable `generatedSnapshotDescription` feature on pre-staging environments (#5965)
+ - Allow Team Private nodes to validate (#5999) @hardillb
+ - Bypass implicit Permissions mixin dependencies (#5992) @cstns
+ - Select which snapshot to generate ai description against (#5985) @cstns
+ - Fix applications constraints (#5867) @hardillb
+ - Fix lefthand side bar missing when accessing from a shared link (#5973) @cstns
+ - Update assistant documentation for inline completions feature (#5981) @Steve-Mcl
+ - Fix inconsistent remote instance status badge color (#5991) @cstns
+ - API for assistant inline code completion (#5979) @Steve-Mcl
+ - Unused device email reminder frequency revision (#5984) @Steve-Mcl
+ - Add nr-tables-node device support (#5969) @hardillb
+ - Add migration check GH action (#5964) @knolleary
+ - fix response content for Assistant (#5967) @Steve-Mcl
+
 #### 2.21.1: Release
 
 
