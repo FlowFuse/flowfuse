@@ -1,6 +1,6 @@
 <template>
     <div
-        id="global-search" :class="{focused: isFocused}" data-el="global-search" tabindex="-1"
+        id="global-search" :class="{focused: isFocused}" data-el="global-search"
         @focusout="handleFocusOut"
     >
         <transition name="fade" mode="out-in">
