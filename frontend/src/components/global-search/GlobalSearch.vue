@@ -1,5 +1,8 @@
 <template>
-    <div id="global-search" :class="{focused: isFocused}" data-el="global-search">
+    <div
+        id="global-search" :class="{focused: isFocused}" data-el="global-search" tabindex="-1"
+        @focusout="handleFocusOut"
+    >
         <transition name="fade" mode="out-in">
             <div v-if="isFocused" class="overlay" @click="deFocusSearch" />
         </transition>
@@ -227,6 +230,11 @@ export default {
         handleEscapeKey (event) {
             if (event.key === 'Escape') {
                 this.onEscKeyPress()
+            }
+        },
+        handleFocusOut (event) {
+            if (!event.relatedTarget || !this.$el.contains(event.relatedTarget)) {
+                this.deFocusSearch()
             }
         },
         getData: debounce(async function () {
