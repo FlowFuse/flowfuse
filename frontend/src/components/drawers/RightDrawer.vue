@@ -17,6 +17,14 @@ export default {
     computed: {
         ...mapState('ux', ['rightDrawer'])
     },
+    watch: {
+        'rightDrawer.state': {
+            handler (isOpen) {
+                const onEsc = (e) => e.key === 'Escape' && this.closeRightDrawer()
+                isOpen ? window.addEventListener('keydown', onEsc) : window.removeEventListener('keydown', onEsc)
+            }
+        }
+    },
     methods: {
         ...mapActions('ux', ['closeRightDrawer']),
         closeDrawer () {
@@ -25,7 +33,6 @@ export default {
             }
         }
     }
-
 }
 </script>
 
