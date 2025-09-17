@@ -26,6 +26,7 @@ export default defineComponent({
             required: true
         }
     },
+    emits: ['application-delete', 'application-updated'],
     data () {
         return {
             searchTerm: '',
