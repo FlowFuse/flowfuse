@@ -3,7 +3,14 @@
     <ff-loading v-if="loading" message="Loading Team..." />
     <form v-else>
         <div class="text-right" />
-        <ff-data-table data-el="members-table" :columns="userColumns" :rows="users" :show-search="true" search-placeholder="Search Team Members..." :search-fields="['name', 'username', 'role']">
+        <ff-data-table
+            data-el="members-table"
+            :columns="columns"
+            :rows="users"
+            :show-search="true" search-placeholder="Search Team Members..."
+            :search-fields="['name', 'username', 'role']"
+            :collapsible-row="collapsibleRow"
+        >
             <template v-if="hasPermission('team:user:invite')" #actions>
                 <ff-button data-action="member-invite-button" :disabled="teamUserLimitReached" kind="primary" @click="inviteMember">
                     <template #icon-left><UserAddIcon class="w-4" /></template>
@@ -11,20 +18,37 @@
                 </ff-button>
             </template>
             <template v-if="canEditUser" #context-menu="{row}">
-                <ff-list-item v-if="hasPermission('team:user:change-role')" data-action="member-change-role" label="Change Role" @click="changeRoleDialog(row)" />
-                <ff-list-item v-if="hasPermission('team:user:remove')" data-action="member-remove-from-team" label="Remove From Team" kind="danger" @click="removeUserDialog(row)" />
+                <ff-list-item
+                    v-if="hasPermission('team:user:change-role')"
+                    data-action="member-change-role"
+                    label="Change Role" @click="changeRoleDialog(row)"
+                />
+                <ff-list-item
+                    v-if="hasPermission('team:user:remove')"
+                    data-action="member-remove-from-team"
+                    label="Remove From Team"
+                    kind="danger"
+                    @click="removeUserDialog(row)"
+                />
             </template>
         </ff-data-table>
     </form>
 
     <ChangeTeamRoleDialog ref="changeTeamRoleDialog" @role-updated="roleUpdated" />
     <ConfirmTeamUserRemoveDialog ref="confirmTeamUserRemoveDialog" @user-removed="userRemoved" />
-    <InviteMemberDialog v-if="hasPermission('team:user:invite')" ref="inviteMemberDialog" :team="team" :inviteCount="inviteCount" :userCount="userCount" @invitation-sent="$emit('invites-updated')" />
+    <InviteMemberDialog
+        v-if="hasPermission('team:user:invite')"
+        ref="inviteMemberDialog"
+        :team="team"
+        :inviteCount="inviteCount"
+        :userCount="userCount"
+        @invitation-sent="$emit('invites-updated')"
+    />
 </template>
 
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
-import { markRaw } from 'vue'
+import { defineComponent, markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
@@ -32,12 +56,15 @@ import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavail
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import { pluralize } from '../../../composables/String.js'
 import { getTeamProperty } from '../../../composables/TeamProperties.js'
+import alerts from '../../../mixins/Alerts.js'
 import { Roles } from '../../../utils/roles.js'
 import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog.vue'
 import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog.vue'
 import InviteMemberDialog from '../dialogs/InviteMemberDialog.vue'
 
+import ApplicationPermissionRow from './components/ApplicationPermissionsRow.vue'
 export default {
     name: 'TeamUsersGeneral',
     components: {
@@ -61,6 +88,7 @@ export default {
     },
     data () {
         return {
+            applications: [],
             loading: false,
             users: [],
             userCount: 0,
@@ -80,14 +108,72 @@ export default {
                 teamTypeUserLimit = getTeamProperty(this.team, 'trial.usersLimit')
             }
             return (teamTypeUserLimit > 0 && currentUserCount >= teamTypeUserLimit)
+        },
+        columns () {
+            return [
+                {
+                    label: 'User',
+                    key: 'name',
+                    sortable: true,
+                    class: ['flex-grow'],
+                    component: { is: markRaw(UserCell) }
+                },
+                {
+                    label: 'Role',
+                    key: 'role',
+                    sortable: true,
+                    class: ['w-40'],
+                    component: { is: markRaw(UserRoleCell) }
+                },
+                {
+                    label: '',
+                    key: 'overrides',
+                    sortable: false,
+                    class: ['w-40'],
+                    component: {
+                        // eslint-disable-next-line vue/one-component-per-file
+                        is: markRaw(defineComponent({
+                            // inheritAttrs: false,
+                            props: ['permissions', 'role'],
+                            setup () { return { pluralize } },
+                            computed: {
+                                alteredPermissions () {
+                                    let counter = 0
+                                    Object.keys((this.permissions?.applications || {})).forEach(key => {
+                                        if (this.permissions.applications[key].role !== this.role) { counter++ }
+                                    })
+
+                                    return counter
+                                }
+                            },
+                            template: `
+                                <span v-if="alteredPermissions === 0" class="opacity-50">None</span>
+                                <span v-else class="text-indigo-500">{{alteredPermissions}} x {{ this.pluralize('Override', 1) }}</span>
+                            `
+                        }))
+                    }
+                }
+            ]
+        },
+        collapsibleRow () {
+            return {
+                is: markRaw(ApplicationPermissionRow),
+                props: {
+                    applications: this.applications
+                }
+            }
         }
     },
     watch: {
-        team: 'fetchData'
+        team: 'fetchTeamMembers'
     },
     mounted () {
-        this.fetchData()
-
+        this.fetchTeamMembers()
+            .then(() => this.fetchApplications())
+            .catch(err => console.warn(err))
+            .finally(() => {
+                this.loading = false
+            })
         // do we auto-open the dialog?
         if (this.$route.query.action === 'invite') {
             this.$router.replace({ query: null })
@@ -105,30 +191,40 @@ export default {
             this.$refs.confirmTeamUserRemoveDialog.show(this.team, row, this.ownerCount)
         },
         roleUpdated (user) {
-            this.fetchData()
+            this.fetchTeamMembers()
         },
         userRemoved (user) {
-            this.fetchData()
+            this.fetchTeamMembers()
         },
-        async fetchData () {
+        fetchTeamMembers () {
             this.loading = true
-            const members = await teamApi.getTeamMembers(this.team.id)
-            this.userCount = members.count
-            this.users = members.members
-            this.ownerCount = 0
 
-            this.userColumns = [
-                { label: 'User', key: 'name', sortable: true, class: ['flex-grow'], component: { is: markRaw(UserCell) } },
-                { label: 'Role', key: 'role', sortable: true, class: ['w-40'], component: { is: markRaw(UserRoleCell) } }
-            ]
-            if (this.users) {
-                this.users.forEach(u => {
-                    if (u.role === Roles.Owner) {
-                        this.ownerCount++
+            return teamApi.getTeamMembers(this.team.id)
+                .then(response => {
+                    this.userCount = response.count
+                    this.users = response.members
+                    this.ownerCount = 0
+
+                    if (this.users) {
+                        this.users.forEach(u => {
+                            if (u.role === Roles.Owner) {
+                                this.ownerCount++
+                            }
+                        })
                     }
                 })
-            }
-            this.loading = false
+                .catch(err => {
+                    alerts.emit('Failed to fetch team members: ' + err.toString(), 'warning')
+                })
+        },
+        fetchApplications () {
+            return teamApi.getTeamApplications(this.team.id)
+                .then(response => {
+                    this.applications = response.applications
+                })
+                .catch(err => {
+                    alerts.emit('Failed to fetch applications: ' + err.toString(), 'warning')
+                })
         }
     }
 }
