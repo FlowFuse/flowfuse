@@ -2,10 +2,10 @@
     <div class="ff-topic-inspector">
         <main-title title="Topic Inspector">
             <template #actions>
-                <ff-toggle-switch v-if="isTeamBroker" v-ff-tooltip:left="'Monitor Broker for Smart Schema Suggestions. This will automatically stop after 24 hours.'" v-model="agentActive" :disabled="agentActive">
+                <ff-toggle-switch v-if="isTeamBroker" v-model="agentActive" v-ff-tooltip:left="'Monitor Broker for Smart Schema Suggestions. This will automatically stop after 24 hours.'" :disabled="agentActive">
                     <StatusOnlineIcon />
                 </ff-toggle-switch>
-                <ff-toggle-switch v-else v-ff-tooltip:left="'FlowFuse will automatically monitor third-party brokers for Schema suggestions'" :disabled="true" v-model="isConnected">
+                <ff-toggle-switch v-else v-model="isConnected" v-ff-tooltip:left="'FlowFuse will automatically monitor third-party brokers for Schema suggestions'" :disabled="true">
                     <StatusOnlineIcon />
                 </ff-toggle-switch>
                 <template v-if="segment">
@@ -46,9 +46,9 @@
 </template>
 
 <script>
+import { StatusOnlineIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
-import { StatusOnlineIcon } from '@heroicons/vue/outline'
 import brokerApi from '../../../../../api/broker.js'
 import EmptyState from '../../../../../components/EmptyState.vue'
 
@@ -129,7 +129,6 @@ export default {
         },
         isTeamBrokerAgentRunning: {
             handler (value) {
-                console.log('agent is running', value)
                 // if it's now connected, display this in the UI
                 if (value === true) {
                     this.agentActive = true
@@ -141,9 +140,6 @@ export default {
         }
     },
     methods: {
-        toggleTeamBrokerAgent () {
-            console.log(this.agentActive)
-        },
         async clearTopicMetaChanges () {
             if (this.localSegment) {
                 this.localSegment.metadata = JSON.parse(JSON.stringify(this.segment.metadata))
@@ -189,7 +185,7 @@ export default {
         },
         startTeamBrokerAgent () {
             brokerApi.startBroker(this.team.id, 'team-broker')
-            alerts.emit('MQTT Payload Schema will be collected for the next 24 hours', 'confirmation')
+            // alerts.emit('MQTT Payload Schema will be collected for the next 24 hours', 'confirmation')
         }
     }
 }

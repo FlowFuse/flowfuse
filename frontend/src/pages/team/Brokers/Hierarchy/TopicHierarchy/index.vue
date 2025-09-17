@@ -5,7 +5,7 @@
                 <ff-toggle-switch v-if="isTeamBroker" v-ff-tooltip:bottom="'FlowFuse Broker is always monitoring for new topics'" :disabled="true" :modelValue="true">
                     <StatusOnlineIcon />
                 </ff-toggle-switch>
-                <ff-toggle-switch v-else v-ff-tooltip:bottom="'FlowFuse will automatically monitor third-party brokers for new topics when connected'" :disabled="true" v-model="isConnected">
+                <ff-toggle-switch v-else v-model="isConnected" v-ff-tooltip:bottom="'FlowFuse will automatically monitor third-party brokers for new topics when connected'" :disabled="true">
                     <StatusOnlineIcon />
                 </ff-toggle-switch>
                 <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
@@ -78,14 +78,12 @@
 </template>
 
 <script>
-import { SearchIcon, XIcon, StatusOnlineIcon } from '@heroicons/vue/outline'
+import { SearchIcon, StatusOnlineIcon, XIcon } from '@heroicons/vue/outline'
 import { RefreshIcon } from '@heroicons/vue/solid'
 import { mapGetters } from 'vuex'
 
-import brokerApi from '../../../../../api/broker.js'
 import EmptyState from '../../../../../components/EmptyState.vue'
 
-import alerts from '../../../../../services/alerts.js'
 import MainTitle from '../components/MainTitle.vue'
 
 import TopicSegment from '../components/TopicSegment.vue'
