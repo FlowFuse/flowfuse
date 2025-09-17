@@ -5,7 +5,7 @@
                 <ff-toggle-switch v-if="isTeamBroker" v-ff-tooltip:left="'Monitor Broker for Smart Schema Suggestions. This will automatically stop after 24 hours.'" v-model="agentActive" :disabled="agentActive">
                     <StatusOnlineIcon />
                 </ff-toggle-switch>
-                <ff-toggle-switch v-else v-ff-tooltip:left="'FlowFuse will automatically monitor third-party brokers for Schema suggestions'" :disabled="true" :modelValue="true">
+                <ff-toggle-switch v-else v-ff-tooltip:left="'FlowFuse will automatically monitor third-party brokers for Schema suggestions'" :disabled="true" v-model="isConnected">
                     <StatusOnlineIcon />
                 </ff-toggle-switch>
                 <template v-if="segment">
@@ -101,12 +101,15 @@ export default {
         hasChildren () {
             return this.localSegment?.childrenCount > 0
         },
+        isConnected () {
+            return this.brokerState === 'connected'
+        },
         isTeamBroker () {
             return this.brokerId === 'team-broker'
         },
         isTeamBrokerAgentRunning () {
             // this.brokerState here refers to the MQTT Agent state, not the broker state
-            return this.isTeamBroker && this.brokerState === 'connected'
+            return this.isTeamBroker && this.isConnected
         }
     },
     watch: {

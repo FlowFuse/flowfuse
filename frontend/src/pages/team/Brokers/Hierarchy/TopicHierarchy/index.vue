@@ -5,7 +5,7 @@
                 <ff-toggle-switch v-if="isTeamBroker" v-ff-tooltip:bottom="'FlowFuse Broker is always monitoring for new topics'" :disabled="true" :modelValue="true">
                     <StatusOnlineIcon />
                 </ff-toggle-switch>
-                <ff-toggle-switch v-else v-ff-tooltip:bottom="'FlowFuse will automatically monitor third-party brokers for new topics when connected'" :disabled="true" :modelValue="true">
+                <ff-toggle-switch v-else v-ff-tooltip:bottom="'FlowFuse will automatically monitor third-party brokers for new topics when connected'" :disabled="true" v-model="isConnected">
                     <StatusOnlineIcon />
                 </ff-toggle-switch>
                 <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
@@ -242,8 +242,11 @@ export default {
         isTeamBroker () {
             return this.brokerId === 'team-broker'
         },
+        isConnected () {
+            return this.brokerState === 'connected'
+        },
         shouldDisplayRefreshButton () {
-            return this.isTeamBroker || this.brokerState === 'connected'
+            return this.isTeamBroker || this.isConnected
         },
         shouldDisplaySchemaButton () {
             // For now, only show schema on Team Broker. This will need to be extended for 3rd party
