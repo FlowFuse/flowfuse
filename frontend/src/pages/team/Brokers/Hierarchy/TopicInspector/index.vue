@@ -1,16 +1,24 @@
 <template>
     <div class="ff-topic-inspector">
         <main-title title="Topic Inspector">
-            <template v-if="segment" #actions>
-                <ff-button kind="danger" :disabled="!hasId || hasChildren" @click="deleteTopic()">
-                    Delete
-                </ff-button>
-                <ff-button :disabled="!hasUnsavedChanges" kind="secondary" @click="clearTopicMetaChanges()">
-                    Cancel
-                </ff-button>
-                <ff-button :disabled="!hasUnsavedChanges" @click="saveTopicMeta()">
-                    Save
-                </ff-button>
+            <template #actions>
+                <ff-toggle-switch v-if="isTeamBroker" v-ff-tooltip:left="'Monitor Broker for Smart Schema Suggestions. This will automatically stop after 24 hours.'" v-model="agentActive" :disabled="agentActive">
+                    <StatusOnlineIcon />
+                </ff-toggle-switch>
+                <ff-toggle-switch v-else v-ff-tooltip:left="'FlowFuse will automatically monitor third-party brokers for Schema suggestions'" :disabled="true" :modelValue="true">
+                    <StatusOnlineIcon />
+                </ff-toggle-switch>
+                <template v-if="segment">
+                    <ff-button kind="danger" :disabled="!hasId || hasChildren" @click="deleteTopic()">
+                        Delete
+                    </ff-button>
+                    <ff-button :disabled="!hasUnsavedChanges" kind="secondary" @click="clearTopicMetaChanges()">
+                        Cancel
+                    </ff-button>
+                    <ff-button :disabled="!hasUnsavedChanges" @click="saveTopicMeta()">
+                        Save
+                    </ff-button>
+                </template>
             </template>
         </main-title>
 
@@ -40,6 +48,7 @@
 <script>
 import { mapState } from 'vuex'
 
+import { StatusOnlineIcon } from '@heroicons/vue/outline'
 import brokerApi from '../../../../../api/broker.js'
 import EmptyState from '../../../../../components/EmptyState.vue'
 
@@ -54,9 +63,14 @@ export default {
         PayloadSchema,
         EmptyState,
         MainTitle,
-        PayloadMetadata
+        PayloadMetadata,
+        StatusOnlineIcon
     },
     props: {
+        brokerState: {
+            type: String,
+            required: true
+        },
         topics: {
             type: Object,
             required: true
@@ -69,7 +83,8 @@ export default {
     emits: ['segment-updated', 'segment-created', 'segment-deleted'],
     data () {
         return {
-            localSegment: { ...this.segment }
+            localSegment: { ...this.segment },
+            agentActive: false
         }
     },
     computed: {
@@ -85,6 +100,13 @@ export default {
         },
         hasChildren () {
             return this.localSegment?.childrenCount > 0
+        },
+        isTeamBroker () {
+            return this.brokerId === 'team-broker'
+        },
+        isTeamBrokerAgentRunning () {
+            // this.brokerState here refers to the MQTT Agent state, not the broker state
+            return this.isTeamBroker && this.brokerState === 'connected'
         }
     },
     watch: {
@@ -93,9 +115,32 @@ export default {
             handler (segment) {
                 this.localSegment = JSON.parse(JSON.stringify(segment))
             }
+        },
+        agentActive (value) {
+            // turn on or off the agent
+            if (value === true) {
+                this.startTeamBrokerAgent()
+            } else {
+                // stop it
+            }
+        },
+        isTeamBrokerAgentRunning: {
+            handler (value) {
+                console.log('agent is running', value)
+                // if it's now connected, display this in the UI
+                if (value === true) {
+                    this.agentActive = true
+                } else {
+                    this.agentActive = false
+                }
+            },
+            immediate: true
         }
     },
     methods: {
+        toggleTeamBrokerAgent () {
+            console.log(this.agentActive)
+        },
         async clearTopicMetaChanges () {
             if (this.localSegment) {
                 this.localSegment.metadata = JSON.parse(JSON.stringify(this.segment.metadata))
@@ -138,6 +183,10 @@ export default {
         onSuggestionCleared () {
             delete this.localSegment.metadata.schema
             this.saveTopicMeta()
+        },
+        startTeamBrokerAgent () {
+            brokerApi.startBroker(this.team.id, 'team-broker')
+            alerts.emit('MQTT Payload Schema will be collected for the next 24 hours', 'confirmation')
         }
     }
 }

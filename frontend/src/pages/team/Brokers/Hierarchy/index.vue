@@ -1,7 +1,7 @@
 <template>
     <BrokerError v-if="brokerState === 'error' && errorCode" :errorCode="errorCode" />
     <div class="ff-broker-hierarchy">
-        <TopicHierarchy
+            <TopicHierarchy
             :broker-state="brokerState"
             :loading="loading"
             :topics="topics"
@@ -12,6 +12,7 @@
 
         <TopicInspector
             v-if="!loading && topics.length > 0"
+            :broker-state="brokerState"
             :topics="topics"
             :segment="selectedSegment"
             @segment-updated="onSegmentUpdate"

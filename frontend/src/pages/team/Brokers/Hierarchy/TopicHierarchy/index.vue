@@ -2,9 +2,12 @@
     <div class="unified-namespace-hierarchy">
         <main-title title="Topic Hierarchy">
             <template #actions>
-                <ff-button v-if="isTeamBroker" :disabled="isTeamBrokerAgentRunning" kind="secondary" @click="startTeamBrokerAgent()">
-                    Capture payload Schema
-                </ff-button>
+                <ff-toggle-switch v-if="isTeamBroker" v-ff-tooltip:bottom="'FlowFuse Broker is always monitoring for new topics'" :disabled="true" :modelValue="true">
+                    <StatusOnlineIcon />
+                </ff-toggle-switch>
+                <ff-toggle-switch v-else v-ff-tooltip:bottom="'FlowFuse will automatically monitor third-party brokers for new topics when connected'" :disabled="true" :modelValue="true">
+                    <StatusOnlineIcon />
+                </ff-toggle-switch>
                 <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
                     <template #icon><RefreshIcon /></template>
                 </ff-button>
@@ -75,7 +78,7 @@
 </template>
 
 <script>
-import { SearchIcon, XIcon } from '@heroicons/vue/outline'
+import { SearchIcon, XIcon, StatusOnlineIcon } from '@heroicons/vue/outline'
 import { RefreshIcon } from '@heroicons/vue/solid'
 import { mapGetters } from 'vuex'
 
@@ -95,7 +98,8 @@ export default {
         EmptyState,
         TopicSegment,
         SearchIcon,
-        XIcon
+        XIcon,
+        StatusOnlineIcon
     },
     props: {
         brokerState: {
@@ -245,9 +249,6 @@ export default {
             // For now, only show schema on Team Broker. This will need to be extended for 3rd party
             // brokers later
             return this.featuresCheck.isMqttBrokerFeatureEnabled
-        },
-        isTeamBrokerAgentRunning () {
-            return this.isTeamBroker && this.brokerState === 'connected'
         }
     },
     methods: {
@@ -257,10 +258,6 @@ export default {
         toggleSegmentVisibility (segment) {
             // trigger's the hierarchy setter
             this.hierarchy = segment
-        },
-        startTeamBrokerAgent () {
-            brokerApi.startBroker(this.team.id, 'team-broker')
-            alerts.emit('MQTT Payload Schema will be collected for the next 24 hours', 'confirmation')
         }
     }
 }
