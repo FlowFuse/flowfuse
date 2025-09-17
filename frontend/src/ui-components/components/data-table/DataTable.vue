@@ -20,7 +20,7 @@
             <slot name="table">
                 <thead>
                     <!-- HEADERS -->
-                    <slot name="header">
+                    <slot v-if="showHeader" name="header">
                         <ff-data-table-row>
                             <ff-data-table-cell v-if="collapsibleRow" class="w-5" />
                             <ff-data-table-cell v-if="showRowCheckboxes" class="w-5">
@@ -212,6 +212,10 @@ export default {
         showSearch: {
             type: Boolean,
             default: false
+        },
+        showHeader: {
+            type: Boolean,
+            default: true
         },
         searchPlaceholder: {
             type: String,
