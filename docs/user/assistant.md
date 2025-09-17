@@ -163,8 +163,19 @@ _Screenshot showing the result of the above FlowFuse Assistant prompt_
 
 The FlowFuse Assistant plugin also adds a code lens to the FlowFuse Dashboard `ui-template` node that allows you
 to generate CSS and HTML directly within the code editor. It is aware of the context of the node and will
-generate suitable CSS and HTML components for vuetify and the FlowFuse Dashboard.
+generate suitable CSS and HTML components for Vuetify and the FlowFuse Dashboard.
 
+## Data Privacy
+
+No data from FlowFuse is used by third-party AI service providers for training models.
+
+### OpenAI API
+
+Some of the above features do utilize the OpenAI API, and as such, some data is sent to OpenAI to process the requests.
+In accordance with the [OpenAI Terms of Service](https://help.openai.com/en/articles/5722486-how-your-data-is-used-to-improve-model-performance?utm_source=chatgpt.com#h_0a0de9d131)
+no data is used for training of future models. 
+
+OpenAI will retain data sent via it's APIs for 30 days for abuse monitoring, it is then permanently deleted.
 
 <style>
   .assistant-feature {
