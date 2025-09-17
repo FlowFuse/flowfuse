@@ -2,7 +2,11 @@
     <SectionTopMenu hero="Application Settings" />
     <div class="flex flex-col sm:flex-row mt-9 ml-6" data-el="application-settings">
         <SectionSideMenu :options="sideNavigation" />
-        <router-view :application="application" />
+        <router-view
+            :application="application"
+            @application-updated="$emit('application-updated')"
+            @application-delete="$emit('application-delete')"
+        />
     </div>
 </template>
 

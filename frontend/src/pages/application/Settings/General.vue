@@ -6,10 +6,16 @@
                 Application ID
             </FormRow>
 
-            <FormRow id="projectName" ref="appName" v-model="input.projectName" data-form="application-name" :type="editing ? 'text' : 'uneditable'">
+            <FormRow
+                id="projectName" ref="appName" v-model="input.projectName" data-form="application-name"
+                :type="editing ? 'text' : 'uneditable'"
+            >
                 Name
             </FormRow>
-            <FormRow id="projectDescription" ref="appDescription" v-model="input.projectDescription" data-form="application-description" :type="editing ? 'text' : 'uneditable'">
+            <FormRow
+                id="projectDescription" ref="appDescription" v-model="input.projectDescription"
+                data-form="application-description" :type="editing ? 'text' : 'uneditable'"
+            >
                 Description
             </FormRow>
         </div>
@@ -21,7 +27,9 @@
                 <template v-else>
                     <div class="flex gap-x-3">
                         <ff-button kind="secondary" @click="cancelEditName">Cancel</ff-button>
-                        <ff-button kind="primary" :disabled="!formValid" data-form="submit" @click="saveApplication">Save</ff-button>
+                        <ff-button kind="primary" :disabled="!formValid" data-form="submit" @click="saveApplication">
+                            Save
+                        </ff-button>
                     </div>
                 </template>
             </div>
@@ -35,7 +43,11 @@
                     </div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
-                    <ff-button data-action="delete-application" kind="danger" :disabled="options.instances > 0" @click="$emit('application-delete')">
+                    <ff-button
+                        data-action="delete-application" kind="danger"
+                        :disabled="options.instances > 0"
+                        @click="$emit('application-delete')"
+                    >
                         Delete Application
                     </ff-button>
                 </div>
@@ -66,6 +78,7 @@ export default defineComponent({
             required: true
         }
     },
+    emits: ['application-updated', 'application-delete'],
     setup () {
         const { hasPermission } = usePermissions()
 
