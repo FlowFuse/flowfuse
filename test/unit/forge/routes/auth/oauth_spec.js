@@ -41,7 +41,7 @@ describe('OAuth', async function () {
             await login('bob', 'bbPassword')
             const defaultTeamTypeProperties = app.defaultTeamType.properties
             defaultTeamTypeProperties.features = defaultTeamTypeProperties.features || {}
-            defaultTeamTypeProperties.features.applicationRBAC = true
+            defaultTeamTypeProperties.features.rbacApplication = true
             app.defaultTeamType.properties = defaultTeamTypeProperties
             await app.defaultTeamType.save()
         })
