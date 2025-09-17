@@ -8,12 +8,11 @@ const { randomInt } = require('../utils')
 
 const SCOPE = '@flowfuse/' // TODO change to certified nodes scope, maybe should be configurable
 const PING_TIME = `${randomInt(0, 59)} ${randomInt(0, 23)} * * *`
-const CERTIFIED_NODES_ENDPOINT = 'http://127.0.0.1:12080/telemetry' // configurable?
+const CERTIFIED_NODES_ENDPOINT = 'http://127.0.0.1:12080/certified-nodes' // configurable?
 
 async function collect (app) {
     const payload = {
         instanceId: app.settings.get('instanceId'),
-        c: 'ben',
         certifiedNodes: {}
     }
     const snapshots = {}
@@ -96,13 +95,16 @@ async function collect (app) {
         } catch (err) {
             app.log.error('Failed to gather Certified Nodes usage', err)
         }
-    }
 
-    // decide where to send response
-    try {
-        await axios.post(CERTIFIED_NODES_ENDPOINT, payload)
-    } catch (err) {
-        app.log.error('Failed to upload Certified Nodes usage', err)
+        // decide where to send response
+        try {
+            await axios.post(CERTIFIED_NODES_ENDPOINT, payload)
+        } catch (err) {
+            app.log.error('Failed to upload Certified Nodes usage', err)
+        }
+    } else {
+        // console.log('NOT ACTIVE')
+        // console.log(catalogueString, npmRegURLString, token)
     }
 }
 
