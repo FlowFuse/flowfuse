@@ -243,7 +243,11 @@ const getters = {
 
             // Generate Snapshot Descriptions with AI
             isGeneratedSnapshotDescriptionFeatureEnabledForPlatform: !!state.features.generatedSnapshotDescription,
-            isGeneratedSnapshotDescriptionFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.generatedSnapshotDescription
+            isGeneratedSnapshotDescriptionFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.generatedSnapshotDescription,
+
+            // Applications Role Based Access Control
+            isApplicationsRBACFeatureEnabledForPlatform: !!state.features.rbacApplication,
+            isApplicationsRBACFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.rbacApplication
         }
         return {
             ...preCheck,
@@ -262,7 +266,8 @@ const getters = {
             isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration,
             isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
             isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam,
-            isGeneratedSnapshotDescriptionEnabled: preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForPlatform && preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForTeam
+            isGeneratedSnapshotDescriptionEnabled: preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForPlatform && preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForTeam,
+            isRBACApplicationFeatureEnabled: preCheck.isApplicationsRBACFeatureEnabledForPlatform && preCheck.isApplicationsRBACFeatureEnabledForTeam
         }
     }
 }
