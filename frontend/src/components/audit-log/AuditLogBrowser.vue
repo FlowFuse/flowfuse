@@ -2,7 +2,7 @@
     <div class="ff-admin-audit">
         <div data-el="audit-log">
             <slot name="title" />
-            <AuditLog :entries="logEntries" :associations="associations" />
+            <AuditLog :entries="logEntries" :associations="associations" :loading="gettingEntries" />
         </div>
         <div>
             <SectionTopMenu hero="Filters" />
@@ -68,8 +68,7 @@ export default {
     emits: ['load-entries'],
     data () {
         return {
-            loading: true,
-            gettingEntries: false,
+            gettingEntries: true,
             auditFilters: {
                 event: '',
                 types: [],
@@ -99,29 +98,33 @@ export default {
     },
     watch: {
         'auditFilters.username': function () {
-            if (this.loading || this.gettingEntries) {
+            if (this.gettingEntries) {
                 return // skip if we're already loading entries
             }
             this.loadEntries()
         },
         'auditFilters.event': function () {
-            if (this.loading || this.gettingEntries) {
+            if (this.gettingEntries) {
                 return // skip if we're already loading entries
             }
             this.loadEntries()
         },
         users: function (users) {
             this.auditFilters.users = users
+        },
+        logEntries: function (entries) {
+            if (entries) {
+                this.gettingEntries = false
+            }
         }
+
     },
     created () {
-        this.loading = true
         this.auditFilters.scope = this.logType // init the scope to the logType set in the component's props
         this.auditFilters.logType = this.logType // init the scope to the logType
         this.auditFilters.users = this.users
         this.loadEventTypes()
         this.loadEntries()
-        this.loading = false
     },
     methods: {
         /**
@@ -153,7 +156,6 @@ export default {
                 params.append('includeChildren', includeChildren)
             }
             this.$emit('load-entries', params)
-            this.gettingEntries = false
         },
         loadEventTypes (scope) {
             scope = scope || this.auditFilters.scope
