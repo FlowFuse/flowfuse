@@ -34,7 +34,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapGetters('account', ['team']),
+        ...mapGetters('account', ['team', 'featuresCheck']),
         columns () {
             return [
                 {
@@ -57,6 +57,9 @@ export default defineComponent({
         }
     },
     mounted () {
+        if (!this.featuresCheck.isRBACApplicationFeatureEnabled || !this.hasPermission('application:access-control')) {
+            return this.$router.push({ name: 'Application', params: { id: this.application.id } })
+        }
         this.getUsers()
             .catch(error => error)
     },
