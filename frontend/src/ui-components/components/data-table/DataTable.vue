@@ -68,6 +68,7 @@
                                 <ff-data-table-row
                                     :data="r" :columns="columns"
                                     :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn"
+                                    :data-el="slugify('row-' + (r.name || r.id || r.label || 'na'))"
                                     @selected="rowClick(r, $event)"
                                 >
                                     <template v-if="collapsibleRow" #row-prepend>
@@ -127,6 +128,8 @@ import {
     SortDescendingIcon,
     SwitchVerticalIcon
 } from '@heroicons/vue/outline'
+
+import { slugify } from '../../../composables/String.js'
 
 import FfDataTableRow from './DataTableRow.vue'
 
@@ -271,6 +274,9 @@ export default {
         }
     },
     emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked'],
+    setup () {
+        return { slugify }
+    },
     data () {
         return {
             checks: {},
