@@ -74,6 +74,7 @@ export default defineComponent({
         onConfirm () {
             const permissions = {
                 applications: {
+                    ...(this.user.permissions?.applications || {}),
                     [this.application.id]: parseInt(this.selection)
                 }
             }
