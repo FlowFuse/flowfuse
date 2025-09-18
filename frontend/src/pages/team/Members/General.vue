@@ -140,7 +140,9 @@ export default {
                                 alteredPermissions () {
                                     let counter = 0
                                     Object.keys((this.permissions?.applications || {})).forEach(key => {
-                                        if (this.permissions.applications[key].role !== this.role) { counter++ }
+                                        const appPerm = parseInt(this.permissions.applications[key])
+                                        const rolePerm = parseInt(this.role)
+                                        if (appPerm !== rolePerm) { counter++ }
                                     })
 
                                     return counter
