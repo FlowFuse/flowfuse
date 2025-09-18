@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div data-el="application-overview-page">
         <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Hosted instances of Node-RED, owned by this application.">
             <template #pictogram>
                 <img src="../../images/pictograms/instance_red.png">
