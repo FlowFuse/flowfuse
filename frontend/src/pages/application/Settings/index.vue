@@ -15,6 +15,8 @@
 
 <script>
 
+import { mapGetters } from 'vuex'
+
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import usePermissions from '../../../composables/Permissions.js'
@@ -38,9 +40,10 @@ export default {
 
         return { hasPermission }
     },
-    data () {
-        return {
-            sideNavigation: [
+    computed: {
+        ...mapGetters('account', ['featuresCheck']),
+        sideNavigation () {
+            return [
                 {
                     name: 'General',
                     path: {
@@ -54,7 +57,8 @@ export default {
                     name: 'User Access',
                     path: {
                         name: 'application-settings-user-access'
-                    }
+                    },
+                    hidden: !this.hasPermission('application:access-control') || !this.featuresCheck.isRBACApplicationFeatureEnabled
                 }
             ]
         }

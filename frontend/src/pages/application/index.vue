@@ -4,7 +4,7 @@
     <main v-else-if="!application?.id">
         <ff-loading message="Loading Application..." />
     </main>
-    <main v-else class="ff-with-status-header flex flex-col h-full w-full overflow-auto">
+    <main v-else class="ff-with-status-header flex flex-col h-full w-full overflow-auto" data-el="application-page">
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
         <ff-page-header :title="application.name" :tabs="navigation">
