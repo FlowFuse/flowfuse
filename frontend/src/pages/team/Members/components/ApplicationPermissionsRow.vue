@@ -1,5 +1,5 @@
 <template>
-    <td colspan="5" :class="collapsed ? 'collapsed' : 'expanded'">
+    <td colspan="5" :class="collapsed ? 'collapsed' : 'expanded'" data-el="application-permissions-row">
         <div class="content">
             <ul>
                 <li v-for="application in rows" :key="application.id" class="application">

@@ -50,7 +50,7 @@
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
 import { defineComponent, markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
@@ -101,6 +101,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'team']),
+        ...mapGetters('account', ['featuresCheck']),
         canEditUser: function () {
             return this.hasPermission('team:user:remove') || this.hasPermission('team:user:change-role')
         },
@@ -161,6 +162,8 @@ export default {
             ]
         },
         collapsibleRow () {
+            if (!this.featuresCheck.isRBACApplicationFeatureEnabled) return null
+
             return {
                 is: markRaw(ApplicationPermissionRow),
                 props: {
