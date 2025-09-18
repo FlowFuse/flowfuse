@@ -112,10 +112,8 @@ export default {
         users: function (users) {
             this.auditFilters.users = users
         },
-        logEntries: function (entries) {
-            if (entries) {
-                this.gettingEntries = false
-            }
+        logEntries: function () {
+            this.gettingEntries = false
         }
 
     },
