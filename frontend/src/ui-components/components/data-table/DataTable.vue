@@ -73,6 +73,7 @@
                                     <template v-if="collapsibleRow" #row-prepend>
                                         <ChevronRightIcon
                                             class="ff-icon ff-icon-sm cursor-pointer"
+                                            data-el="collapsible-row-toggle"
                                             @click="toggleCollapsibleRowVisibility($index)"
                                         />
                                     </template>
