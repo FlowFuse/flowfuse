@@ -67,7 +67,7 @@ export default defineComponent({
                 return {
                     id: application.id,
                     name: application.name,
-                    role: capitalize(this.formatRole(customRole || teamRole)),
+                    role: capitalize(this.formatRole(customRole ?? teamRole)),
                     icon,
                     iconClass,
                     roleClass
