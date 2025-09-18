@@ -91,8 +91,9 @@
                                         <component :is="collapsibleRow.is"
                                                    class="collapsible"
                                                    :data="r"
-                                                   v-bind="collapsibleRow.props"
                                                    :collapsed="!visibleCollapsibleRows.includes($index)"
+                                                   v-bind="collapsibleRow.props"
+                                                   v-on="collapsibleRow.on"
                                         />
                                     </template>
                                 </ff-data-table-row>
