@@ -20,7 +20,9 @@
                             {{ application.role }}
                         </span>
                     </span>
-                    <span class="item w-40" />
+                    <span class="item action w-40 pl-5">
+                        <PencilAltIcon class="ff-icon ff-icon-sm ff-link" @click.prevent="onUpdateRole(application)" />
+                    </span>
                 </li>
             </ul>
         </div>
@@ -28,7 +30,7 @@
 </template>
 
 <script>
-import { ArrowDownIcon, ArrowUpIcon, BanIcon } from '@heroicons/vue/outline'
+import { ArrowDownIcon, ArrowUpIcon, BanIcon, PencilAltIcon } from '@heroicons/vue/outline'
 import { defineComponent } from 'vue'
 
 import FfTeamLink from '../../../../components/router-links/TeamLink.vue'
@@ -38,7 +40,7 @@ import { RoleNames } from '../../../../utils/roles.js'
 
 export default defineComponent({
     name: 'ApplicationPermissionsRow',
-    components: { FfTeamLink },
+    components: { FfTeamLink, PencilAltIcon },
     props: {
         applications: {
             required: true,
@@ -54,6 +56,7 @@ export default defineComponent({
             required: true
         }
     },
+    emits: ['application-role-updated'],
     setup () {
         return { ArrowDownIcon, ArrowUpIcon, BanIcon }
     },
@@ -62,7 +65,7 @@ export default defineComponent({
             return this.applications.map(application => {
                 const teamRole = parseInt(this.data.role)
                 const customRole = this.getCustomRoleForApplication(application)
-                const { icon, iconClass, roleClass } = this.extracted(customRole, teamRole)
+                const { icon, iconClass, roleClass } = this.getRoleIconProperties(customRole, teamRole)
 
                 return {
                     id: application.id,
@@ -88,7 +91,7 @@ export default defineComponent({
 
             return customRole
         },
-        extracted (customRole, teamRole) {
+        getRoleIconProperties (customRole, teamRole) {
             let icon
             let iconClass
             let roleClass = ''
@@ -118,6 +121,13 @@ export default defineComponent({
                 iconClass,
                 roleClass
             }
+        },
+        onUpdateRole (application) {
+            const payload = {
+                application,
+                user: this.data
+            }
+            this.$emit('application-role-updated', payload)
         }
     }
 })
@@ -139,12 +149,29 @@ td {
             display: grid;
             grid-template-columns: 55px repeat(10, 1fr) 56px;
             border-bottom: 1px solid $ff-grey-200;
+            transition: ease-in-out .3s;
 
             .name {
                 grid-column: span 8;
             }
             .role {
                 padding-left: 15px;
+            }
+
+            .action {
+                .ff-icon {
+                    transition: ease-in-out .2s;
+                    opacity: 0;
+                }
+            }
+
+            &:hover {
+                background: $ff-grey-100;
+                .action {
+                    .ff-icon {
+                        opacity: 1;
+                    }
+                }
             }
 
             &:last-of-type {

@@ -44,6 +44,7 @@
         :userCount="userCount"
         @invitation-sent="$emit('invites-updated')"
     />
+    <EditApplicationPermissionsDialog ref="editApplicationPermissionsDialog" @user-updated="fetchTeamMembers(false)" />
 </template>
 
 <script>
@@ -53,6 +54,7 @@ import { mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+import EditApplicationPermissionsDialog from '../../../components/dialogs/EditApplicationPermissionsDialog.vue'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
 import usePermissions from '../../../composables/Permissions.js'
@@ -68,6 +70,7 @@ import ApplicationPermissionRow from './components/ApplicationPermissionsRow.vue
 export default {
     name: 'TeamUsersGeneral',
     components: {
+        EditApplicationPermissionsDialog,
         ChangeTeamRoleDialog,
         ConfirmTeamUserRemoveDialog,
         FeatureUnavailableToTeam,
@@ -162,6 +165,9 @@ export default {
                 is: markRaw(ApplicationPermissionRow),
                 props: {
                     applications: this.applications
+                },
+                on: {
+                    applicationRoleUpdated: this.onApplicationRoleClick
                 }
             }
         }
@@ -193,13 +199,13 @@ export default {
             this.$refs.confirmTeamUserRemoveDialog.show(this.team, row, this.ownerCount)
         },
         roleUpdated (user) {
-            this.fetchTeamMembers()
+            this.fetchTeamMembers(false)
         },
         userRemoved (user) {
             this.fetchTeamMembers()
         },
-        fetchTeamMembers () {
-            this.loading = true
+        fetchTeamMembers (withLoading = true) {
+            this.loading = withLoading
 
             return teamApi.getTeamMembers(this.team.id)
                 .then(response => {
@@ -218,6 +224,9 @@ export default {
                 .catch(err => {
                     alerts.emit('Failed to fetch team members: ' + err.toString(), 'warning')
                 })
+                .finally(() => {
+                    this.loading = false
+                })
         },
         fetchApplications () {
             return teamApi.getTeamApplications(this.team.id)
@@ -227,6 +236,9 @@ export default {
                 .catch(err => {
                     alerts.emit('Failed to fetch applications: ' + err.toString(), 'warning')
                 })
+        },
+        onApplicationRoleClick ({ application, user }) {
+            this.$refs.editApplicationPermissionsDialog.show(user, application)
         }
     }
 }

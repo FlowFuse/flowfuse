@@ -14,8 +14,9 @@ import { mapGetters } from 'vuex'
 
 import teamClient from '../../../api/team.js'
 
+import EditApplicationPermissionsDialog from '../../../components/dialogs/EditApplicationPermissionsDialog.vue'
+
 import RoleRow from './components/RoleRow.vue'
-import EditApplicationPermissionsDialog from './dialogs/EditApplicationPermissionsDialog.vue'
 
 export default defineComponent({
     name: 'UserAccess',
