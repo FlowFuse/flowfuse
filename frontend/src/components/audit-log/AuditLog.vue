@@ -1,22 +1,24 @@
 <template>
     <ff-loading v-if="loading" message="Loading Activity..." />
-    <div v-if="hasNoEntries && !loading" class="ff-no-data ff-no-data-large">
-        No Activity Found
-    </div>
-    <ff-accordion v-for="(logEntries, date, $index) in logEntriesByDate" :key="date" :label="date" :set-open="$index < 3" data-el="accordion" :disabled="disableAccordion">
-        <template #meta>
-            <span>{{ logEntries.length }} Event{{ logEntries.length === 1 ? '' : 's' }}</span>
-        </template>
-        <template #content>
-            <div v-for="entry in logEntries" :key="entry.id">
-                <AuditEntry :entry="entry" :association="getAssociation(entry)" :disableAssociations="disableAssociations" />
-            </div>
-        </template>
-    </ff-accordion>
-    <div v-if="!hasNoEntries && showLoadMore !== false && nextCursor" class="px-8 py-4">
-        <a v-if="!loading" class="forge-button-inline" @click.stop="loadMore">Load more...</a>
-        <div v-else class="text-gray-500">Loading...</div>
-    </div>
+    <template v-else>
+        <div v-if="hasNoEntries && !loading" class="ff-no-data ff-no-data-large">
+            No Activity Found
+        </div>
+        <ff-accordion v-for="(logEntries, date, $index) in logEntriesByDate" :key="date" :label="date" :set-open="$index < 3" data-el="accordion" :disabled="disableAccordion">
+            <template #meta>
+                <span>{{ logEntries.length }} Event{{ logEntries.length === 1 ? '' : 's' }}</span>
+            </template>
+            <template #content>
+                <div v-for="entry in logEntries" :key="entry.id">
+                    <AuditEntry :entry="entry" :association="getAssociation(entry)" :disableAssociations="disableAssociations" />
+                </div>
+            </template>
+        </ff-accordion>
+        <div v-if="!hasNoEntries && showLoadMore !== false && nextCursor" class="px-8 py-4">
+            <a v-if="!loading" class="forge-button-inline" @click.stop="loadMore">Load more...</a>
+            <div v-else class="text-gray-500">Loading...</div>
+        </div>
+    </template>
 </template>
 
 <script>
@@ -52,6 +54,10 @@ export default {
             // should the association be disabled?
             type: Boolean,
             default: false
+        },
+        loading: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['load-more'],
@@ -85,7 +91,6 @@ export default {
     },
     data () {
         return {
-            loading: false,
             nextCursor: false // TODO: drive this properly through pagination
         }
     },
