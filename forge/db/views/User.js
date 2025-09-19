@@ -12,7 +12,8 @@ module.exports = function (app) {
             free_trial_available: { type: 'boolean' },
             tcs_accepted: { type: 'string' },
             password_expired: { type: 'boolean' },
-            pendingEmailChange: { type: 'boolean' }
+            pendingEmailChange: { type: 'boolean' },
+            SSOGroups: { type: 'array' }
         }
     })
     function userProfile (user) {
@@ -63,7 +64,8 @@ module.exports = function (app) {
             'avatar',
             'admin',
             'createdAt',
-            'suspended'
+            'suspended',
+            'SSOGroups'
         ].forEach(p => { result[p] = user[p] })
         return result
     }

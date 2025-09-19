@@ -100,6 +100,11 @@ module.exports = fp(async function (app, opts) {
                         return
                     }
                 }
+                if (providerOpts.exposeGroups) {
+                    // get SAML groups
+                    user.SSOGroups = app.sso.getUserGroups(samlUser, user, providerOpts)
+                    await user.save()
+                }
                 done(null, user)
             } else {
                 const state = JSON.parse(request.body.RelayState)

@@ -42,6 +42,23 @@ module.exports = {
         suspended: {
             type: DataTypes.BOOLEAN,
             defaultValue: false
+        },
+        SSOGroups: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            get () {
+                const rawValue = this.getDataValue('SSOGroups')
+                if (rawValue) {
+                    return JSON.parse(rawValue)
+                } else {
+                    return []
+                }
+            },
+            set (value) {
+                if (value) {
+                    this.setDataValue('SSOGroups', JSON.stringify(value))
+                }
+            }
         }
     },
     indexes: [
