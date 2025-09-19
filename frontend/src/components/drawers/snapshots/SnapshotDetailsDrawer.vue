@@ -273,7 +273,7 @@ export default defineComponent({
                     },
                     {
                         label: 'Save',
-                        kind: 'secondary',
+                        kind: 'primary',
                         iconLeft: SaveAsIcon,
                         handler: () => {
                             context.saveSnapshot()
