@@ -139,7 +139,8 @@ export default {
                     component: {
                         is: markRaw(SnapshotName),
                         extraProps: {
-                            targetSnapshot: this.instance.deviceSettings?.targetSnapshot
+                            targetSnapshot: this.instance.deviceSettings?.targetSnapshot,
+                            clippedDetails: true
                         }
                     }
                 },
