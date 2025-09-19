@@ -89,6 +89,7 @@ export default {
                         const index = this.snapshots.indexOf(snapshot)
                         this.snapshots.splice(index, 1)
                     }
+                    this.$emit('deleted-snapshot', snapshot)
                     Alerts.emit('Successfully deleted snapshot.', 'confirmation')
                     resolve()
                 })
