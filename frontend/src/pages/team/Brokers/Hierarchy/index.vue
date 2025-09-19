@@ -12,6 +12,7 @@
 
         <TopicInspector
             v-if="!loading && topics.length > 0"
+            :broker-state="brokerState"
             :topics="topics"
             :segment="selectedSegment"
             @segment-updated="onSegmentUpdate"

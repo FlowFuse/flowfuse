@@ -131,6 +131,13 @@ async function init (app, opts) {
                             return
                         }
                     }
+                    if (accessToken.ownerType === 'teamBrokerAgent') {
+                        request.session.TeamBrokerAgent = await app.db.models.TeamBrokerAgent.byId(parseInt(accessToken.ownerId))
+                        if (!request.session.TeamBrokerAgent) {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        }
+                    }
                     return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })

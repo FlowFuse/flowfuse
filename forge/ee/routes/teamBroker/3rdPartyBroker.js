@@ -160,6 +160,10 @@ module.exports = async function (app) {
                         if (request.params.teamId !== request.session.Broker.Team.hashid) {
                             reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
                         }
+                    } else if (request.session.ownerType === 'teamBrokerAgent') {
+                        if (request.params.teamId !== request.session.TeamBrokerAgent.Team.hashid) {
+                            reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                        }
                     } else {
                         reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
                     }
@@ -206,6 +210,28 @@ module.exports = async function (app) {
                 reply.send(resp)
             } else {
                 reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+            }
+        } else if (request.params.brokerId === 'team-broker') {
+            // provide team level creds for team broker
+            const agent = await app.db.models.TeamBrokerAgent.byTeam(request.params.teamId)
+            if (agent) {
+                const brokerURL = new URL(app.config.broker.url)
+                reply.send({
+                    id: 'team-broker',
+                    name: 'TeamBroker',
+                    host: brokerURL.hostname,
+                    port: brokerURL.port,
+                    protocol: brokerURL.protocol,
+                    protocolVersion: '4',
+                    ssl: brokerURL.protocol === 'mqtts:' || brokerURL.protocol === 'wss:',
+                    verifySSL: true,
+                    clientId: `${request.params.teamId}-agent@${request.params.teamId}`,
+                    credentials: {
+                        username: `agent:${request.params.teamId}@${request.params.teamId}`,
+                        password: agent.auth
+                    },
+                    topicPrefix: ['#']
+                })
             }
         } else {
             reply.status(404).send({ code: 'not_found', error: 'not found' })
@@ -316,7 +342,20 @@ module.exports = async function (app) {
                 reply.status(500).send({ error: 'unknown_error', message: err.toString() })
             }
         } else {
-            reply.status(400).send({ error: 'not_supported', message: 'not supported' })
+            const agentStatus = await app.db.models.TeamBrokerAgent.byTeam(request.params.teamId)
+            if (agentStatus) {
+                const clean = agentStatus.toJSON()
+                delete clean.auth
+                clean.status = {
+                    connected: true,
+                    error: null
+                }
+                reply.send(clean)
+            } else {
+                reply.send({
+                    state: 'suspended'
+                })
+            }
         }
     })
 
@@ -381,7 +420,19 @@ module.exports = async function (app) {
         schema: { }
     }, async (request, reply) => {
         if (request.params.brokerId === 'team-broker') {
-            reply.status(403).send({})
+            const agent = await app.db.models.TeamBrokerAgent.byTeam(request.team.hashid)
+            if (agent && agent.state !== 'running') {
+                await app.containers.sendBrokerAgentCommand(agent, 'start')
+                reply.status(200).send({})
+            } else if (!agent) {
+                const agent = await app.db.models.TeamBrokerAgent.create({
+                    state: 'running',
+                    TeamId: request.team.id
+                })
+                await agent.reload({ include: [{ model: app.db.models.Team }] })
+                await app.containers.startBrokerAgent(agent)
+                reply.status(200).send({})
+            }
         } else {
             if (request.broker.state === 'running') {
                 await app.containers.sendBrokerAgentCommand(request.broker, 'start')
@@ -405,7 +456,14 @@ module.exports = async function (app) {
         schema: { }
     }, async (request, reply) => {
         if (request.params.brokerId === 'team-broker') {
-            reply.status(403).send({})
+            const agent = await app.db.models.TeamBrokerAgent.byTeam(request.team.hashid)
+            if (agent && agent.state === 'running') {
+                await app.containers.sendBrokerAgentCommand(agent, 'stop')
+                reply.status(200).send({})
+            } else {
+                // hmm shouldn't be able to get here
+            }
+            // reply.status(403).send({})
         } else {
             await app.containers.sendBrokerAgentCommand(request.broker, 'stop')
             reply.status(200).send({})
@@ -423,7 +481,16 @@ module.exports = async function (app) {
         schema: { }
     }, async (request, reply) => {
         if (request.params.brokerId === 'team-broker') {
-            reply.status(403).send({})
+            const agent = await app.db.models.TeamBrokerAgent.byTeam(request.team.id)
+            if (agent) {
+                await app.containers.stopBrokerAgent(agent)
+                setTimeout(async () => {
+                    await agent.destroy()
+                }, 1500)
+                reply.status(200).send({})
+            } else {
+                reply.status(404).send({})
+            }
         } else {
             await app.containers.stopBrokerAgent(request.broker)
             request.broker.state = 'suspended'
@@ -491,6 +558,10 @@ module.exports = async function (app) {
                 if (request.session?.scope?.includes('broker:topics')) {
                     if (request.session.ownerType === 'broker') {
                         if (request.params.teamId !== request.session.Broker.Team.hashid) {
+                            reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                        }
+                    } else if (request.session.ownerType === 'teamBrokerAgent') {
+                        if (request.params.teamId !== request.session.TeamBrokerAgent.Team.hashid) {
                             reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
                         }
                     } else {

@@ -44,7 +44,15 @@ describe('Team Broker API', function () {
         before(async function () {
             // Dev-only Enterprise license that allows 6 MQTT Clients
             const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNDFmNmRjLTBmM2QtNGFmNy1hNzk0LWIyNWFhNGJmYTliZCIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGdXNlIERldmVsb3BtZW50IiwibmJmIjoxNzMwNjc4NDAwLCJleHAiOjIwNzc3NDcyMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxMCwidGVhbXMiOjEwLCJpbnN0YW5jZXMiOjEwLCJtcXR0Q2xpZW50cyI6NiwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTczMDcyMTEyNH0.02KMRf5kogkpH3HXHVSGprUm0QQFLn21-3QIORhxFgRE9N5DIE8YnTH_f8W_21T6TlYbDUmf4PtWyj120HTM2w'
-            app = await setup({ license })
+            app = await setup({
+                license,
+                broker: {
+                    url: 'mqtt://forge:1883',
+                    teamBroker: {
+                        enabled: true
+                    }
+                }
+            })
             factory = app.factory
             await login('alice', 'aaPassword')
 
@@ -1313,6 +1321,140 @@ describe('Team Broker API', function () {
                 topics.topics.some(t => t.topic === 'foo/bar').should.be.true()
                 // topics.topics[] should not have 'foo/sub'
                 topics.topics.some(t => t.topic === 'foo/sub').should.be.false()
+            })
+        })
+        describe('Team Broker MQTT Agent', function () {
+            let agent
+            let agentToken
+            before(async function () {
+                agent = await app.db.models.TeamBrokerAgent.create({
+                    state: 'running',
+                    TeamId: app.team.id
+                })
+                const res = await agent.refreshAuthTokens()
+                agentToken = res.token
+            })
+            after(async function () {
+                await agent.destroy()
+            })
+            it('Authenticate Agent', async function () {
+                const result = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/auth',
+                    body: {
+                        username: `agent:${app.team.hashid}@${app.team.hashid}`,
+                        password: agent.auth
+                    }
+                })
+                result.statusCode.should.equal(200)
+                const body = result.json()
+                body.should.have.property('result', 'allow')
+                body.should.have.property('is_superuser', false)
+                body.should.have.property('client_attrs')
+                body.client_attrs.should.have.property('team', `ff/v1/${app.team.hashid}/c/`)
+            })
+            it('Fail to Authenticate Agent with wrong passwod', async function () {
+                const result = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/auth',
+                    body: {
+                        username: `agent:${app.team.hashid}@${app.team.hashid}`,
+                        password: 'fooo'
+                    }
+                })
+                result.statusCode.should.equal(200)
+                const body = result.json()
+                body.should.have.property('result', 'deny')
+            })
+            it('Team Broker ACL subscribe', async function () {
+                const result = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/acls',
+                    body: {
+                        username: `agent:${app.team.hashid}@${app.team.hashid}`,
+                        topic: '#',
+                        action: 'subscribe'
+                    }
+                })
+                result.statusCode.should.equal(200)
+                const body = result.json()
+                body.should.have.property('result', 'allow')
+            })
+            it('Team Broker ACL subscribe', async function () {
+                const result = await app.inject({
+                    method: 'POST',
+                    url: '/api/comms/v2/acls',
+                    body: {
+                        username: `agent:${app.team.hashid}@${app.team.hashid}`,
+                        topic: 'foo/bar',
+                        action: 'publish'
+                    }
+                })
+                const body = result.json()
+                body.should.have.property('result', 'deny')
+            })
+            it('Team Broker Agent Publish schema', async function () {
+                const result = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/topics`,
+                    headers: {
+                        Authorization: `Bearer ${agentToken}`
+                    },
+                    body: [
+                        {
+                            topic: 'foo/bar/baz/qux',
+                            time: 1738236145678,
+                            type: { type: 'string' }
+                        }
+                    ]
+                })
+                result.statusCode.should.equal(201)
+            })
+            it('Team Broker Agent get creds', async function () {
+                const result = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/credentials`,
+                    headers: {
+                        Authorization: `Bearer ${agentToken}`
+                    }
+                })
+                result.statusCode.should.equal(200)
+                const body = result.json()
+                body.should.have.property('id', 'team-broker')
+                body.should.have.property('name', 'TeamBroker')
+                body.should.have.property('host', 'forge')
+                body.should.have.property('credentials')
+                body.credentials.should.have.property('username', `agent:${app.team.hashid}@${app.team.hashid}`)
+                body.credentials.should.have.property('password', agent.auth)
+            })
+            it('Team Broker Agent get creds bad token', async function () {
+                const result = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/credentials`,
+                    headers: {
+                        Authorization: `Bearer ${agentToken}-foo`
+                    }
+                })
+                result.statusCode.should.equal(401)
+            })
+            it('Team Broker Agent get creds wrong teams token', async function () {
+                const team2 = await app.factory.createTeam({ name: 'BTeam' })
+                const agent2 = await app.db.models.TeamBrokerAgent.create({
+                    state: 'running',
+                    TeamId: team2.id
+                })
+                const res = await agent2.refreshAuthTokens()
+                const agentToken2 = res.token
+
+                const result = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/brokers/team-broker/credentials`,
+                    headers: {
+                        Authorization: `Bearer ${agentToken2}`
+                    }
+                })
+                result.statusCode.should.equal(401)
+                await agent2.destroy()
             })
         })
     })
