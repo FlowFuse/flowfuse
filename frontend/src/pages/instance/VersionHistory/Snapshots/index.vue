@@ -209,7 +209,7 @@ export default {
         this.fetchData()
     },
     methods: {
-        ...mapActions('ux/drawers', ['openRightDrawer']),
+        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
         fetchData: async function (withoutAnimation = false) {
             if (this.instance.id) {
                 if (!withoutAnimation) this.loading = true
@@ -242,7 +242,11 @@ export default {
                 component: markRaw(SnapshotDetailsDrawer),
                 props: { snapshot, snapshotList: this.snapshotList, instance: this.instance },
                 on: {
-                    updatedSnapshot: () => this.fetchData(true)
+                    updatedSnapshot: () => this.fetchData(true),
+                    deletedSnapshot: () => {
+                        this.closeRightDrawer()
+                        this.fetchData(true)
+                    }
                 },
                 overlay: true
             })

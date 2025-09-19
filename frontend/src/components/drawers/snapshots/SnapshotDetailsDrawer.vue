@@ -1,10 +1,15 @@
 <template>
-    <div id="snapshot-details-drawer">
+    <div id="snapshot-details-drawer" data-el="snapshot-details-drawer">
         <div class="container">
             <section v-if="hasPermission('snapshot:full')" class="flow-viewer">
                 <div class="header flex flex-row justify-between">
                     <span class="title font-bold">Flows:</span>
-                    <span class="compare ff-link" @click="showCompareSnapshotDialog(snapshot)">compare...</span>
+                    <span
+                        class="compare ff-link" data-action="compare-snapshot"
+                        @click="showCompareSnapshotDialog(snapshot)"
+                    >
+                        compare...
+                    </span>
                 </div>
                 <flow-viewer v-if="flows.length" :flow="flows" />
             </section>
@@ -76,6 +81,7 @@
                     <ff-button
                         kind="secondary" class="flex-1"
                         :disabled="!hasPermission('project:snapshot:export')"
+                        data-action="download-snapshot"
                         @click="showDownloadSnapshotDialog(snapshot)"
                     >
                         Download Snapshot
@@ -86,6 +92,7 @@
                     <ff-button
                         kind="secondary" class="flex-1"
                         :disabled="!hasPermission('project:snapshot:read')"
+                        data-action="download-package-json"
                         @click="downloadSnapshotPackage(snapshot)"
                     >
                         Download package.json
@@ -98,6 +105,7 @@
                     kind="secondary"
                     class="flex-1"
                     :disabled="!hasPermission('project:snapshot:set-target')"
+                    data-action="set-as"
                     @click="showDeviceTargetDialog(snapshot)"
                 >
                     Set as Device Target
@@ -109,6 +117,7 @@
                     kind="secondary-danger"
                     class="flex-1"
                     :delete="!hasPermission('project:snapshot:delete')"
+                    data-action="delete"
                     @click="showDeleteSnapshotDialog(snapshot)"
                 >
                     Delete Snapshot
@@ -173,7 +182,7 @@ export default defineComponent({
             default: null
         }
     },
-    emits: ['updated-snapshot'],
+    emits: ['updated-snapshot', 'deleted-snapshot'],
     setup () {
         const { hasPermission } = usePermissions()
 
