@@ -240,6 +240,9 @@ export default defineComponent({
                             if (!context.hasPermission('snapshot:edit')) return true
 
                             return !context.isEditing
+                        },
+                        bind: {
+                            'data-action': 'discard'
                         }
                     },
                     {
@@ -254,6 +257,9 @@ export default defineComponent({
                             if (context.isEditing) return true
 
                             return context.hasChanges
+                        },
+                        bind: {
+                            'data-action': 'edit'
                         }
                     },
                     {
@@ -268,6 +274,9 @@ export default defineComponent({
                         },
                         disabled: function () {
                             return !context.hasChanges
+                        },
+                        bind: {
+                            'data-action': 'save'
                         }
                     },
                     {
@@ -280,6 +289,9 @@ export default defineComponent({
                                 return true
                             }
                             return !context.hasPermission('project:snapshot:rollback')
+                        },
+                        bind: {
+                            'data-action': 'restore'
                         }
                     }
                 ]
