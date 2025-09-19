@@ -13,7 +13,11 @@
                 @row-selected="onRowSelected"
             >
                 <template #actions>
-                    <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">
+                    <DropdownMenu
+                        data-el="snapshot-filter"
+                        buttonClass="ff-btn ff-btn--secondary"
+                        :options="snapshotFilterOptions"
+                    >
                         <FilterIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
                         {{ snapshotFilter?.name || 'All Snapshots' }}
                         <span class="sr-only">Filter Snapshots</span>
@@ -237,6 +241,9 @@ export default {
             this.openRightDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
                 props: { snapshot, snapshotList: this.snapshotList, instance: this.instance },
+                on: {
+                    updatedSnapshot: () => this.fetchData(true)
+                },
                 overlay: true
             })
         }

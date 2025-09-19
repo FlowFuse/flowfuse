@@ -25,7 +25,12 @@
                 </ff-button>
             </div>
         </div>
-        <component :is="rightDrawer.component" v-if="rightDrawer.component" v-bind="rightDrawer.props" />
+        <component
+            :is="rightDrawer.component"
+            v-if="rightDrawer.component"
+            v-bind="rightDrawer.props"
+            v-on="rightDrawer.on ?? {}"
+        />
     </section>
 </template>
 

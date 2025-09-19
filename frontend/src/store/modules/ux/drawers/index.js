@@ -17,7 +17,8 @@ const initialState = () => ({
         component: null,
         header: null,
         wider: false,
-        props: {}
+        props: {},
+        on: {}
     }
 })
 
@@ -35,18 +36,21 @@ const getters = {
 }
 
 const mutations = {
-    openRightDrawer (state, { component, header, wider, props }) {
+    openRightDrawer (state, { component, header, wider, props, on }) {
         state.rightDrawer.state = true
         state.rightDrawer.wider = wider
         state.rightDrawer.component = component
         state.rightDrawer.header = header
         state.rightDrawer.props = props
+        state.rightDrawer.on = on
     },
     closeRightDrawer (state) {
         state.rightDrawer.state = false
         state.rightDrawer.wider = false
         state.rightDrawer.component = null
         state.rightDrawer.header = null
+        state.rightDrawer.props = {}
+        state.rightDrawer.on = {}
     },
     setRightDrawerActions (state, actions) {
         if (state.rightDrawer.header) {
@@ -86,6 +90,7 @@ const actions = {
         header = null,
         wider = false,
         props = {},
+        on = {},
         overlay = false
     }) {
         if (state.rightDrawer.state && component.name === state.rightDrawer.component.name) return
@@ -95,7 +100,8 @@ const actions = {
                 component,
                 header,
                 wider,
-                props
+                props,
+                on
             })
             if (overlay) {
                 commit('ux/openOverlay', null, { root: true })

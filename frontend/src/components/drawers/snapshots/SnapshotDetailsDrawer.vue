@@ -173,6 +173,7 @@ export default defineComponent({
             default: null
         }
     },
+    emits: ['updated-snapshot'],
     setup () {
         const { hasPermission } = usePermissions()
 
@@ -299,6 +300,7 @@ export default defineComponent({
                     // eslint-disable-next-line vue/no-mutating-props
                     this.snapshot.description = this.input.description
                     alerts.emit('Snapshot updated.', 'confirmation')
+                    this.$emit('updated-snapshot', this.snapshot)
                 }).catch(err => {
                     console.error(err)
                     alerts.emit('Failed to update snapshot.', 'warning')
