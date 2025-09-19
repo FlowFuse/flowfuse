@@ -2,7 +2,7 @@ const should = require('should') // eslint-disable-line
 const setup = require('../routes/setup')
 const TestModelFactory = require('../../../lib/TestModelFactory') // eslint-disable-line
 
-describe('Broker Auth API', async function () {
+describe('Broker Auth v2 API', async function () {
     let app
     /** @type {TestModelFactory} */
     let factory = null
