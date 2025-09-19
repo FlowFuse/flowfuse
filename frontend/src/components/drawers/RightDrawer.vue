@@ -7,7 +7,7 @@
     >
         <div v-if="rightDrawer?.header" class="header flex items-center justify-between p-4 border-b gap-2">
             <div class="title clipped-overflow">
-                <h1 class="text-xl font-semibold" :title="rightDrawer.header.title">{{ rightDrawer.header.title }}</h1>
+                <h1 class="text-xl font-semibold mb-0" :title="rightDrawer.header.title">{{ rightDrawer.header.title }}</h1>
             </div>
             <div class="actions flex flex-row gap-2">
                 <ff-button
@@ -45,6 +45,14 @@ export default {
 
                     return !action.hidden
                 })
+        }
+    },
+    watch: {
+        'rightDrawer.state': {
+            handler (isOpen) {
+                const onEsc = (e) => e.key === 'Escape' && this.closeRightDrawer()
+                isOpen ? window.addEventListener('keydown', onEsc) : window.removeEventListener('keydown', onEsc)
+            }
         }
     },
     methods: {

@@ -53,9 +53,7 @@ export default {
     setup () {
         const { hasPermission } = usePermissions()
 
-        return {
-            hasPermission
-        }
+        return { hasPermission }
     },
     data () {
         return {

@@ -94,8 +94,8 @@ import { PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
 import ToggleButtonGroup from '../../../components/elements/ToggleButtonGroup.vue'
+import usePermissions from '../../../composables/Permissions.js'
 
-import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
 import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
@@ -110,7 +110,6 @@ export default {
         UploadIcon,
         SectionTopMenu
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         device: {
@@ -119,6 +118,11 @@ export default {
         }
     },
     emits: ['instance-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             reloadHooks: [],

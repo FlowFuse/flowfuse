@@ -111,8 +111,9 @@ import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon,
 import { ref } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
+import usePermissions from '../composables/Permissions.js'
+
 import navigationMixin from '../mixins/Navigation.js'
-import permissionsMixin from '../mixins/Permissions.js'
 import product from '../services/product.js'
 import { Roles } from '../utils/roles.js'
 
@@ -124,7 +125,7 @@ import GlobalSearch from './global-search/GlobalSearch.vue'
 
 export default {
     name: 'PageHeader',
-    mixins: [navigationMixin, permissionsMixin],
+    mixins: [navigationMixin],
     computed: {
         Roles () {
             return Roles
@@ -208,9 +209,13 @@ export default {
     },
     setup () {
         const open = ref(false)
+        const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
+
         return {
             open,
-            plusIcon: PlusIcon
+            plusIcon: PlusIcon,
+            hasPermission,
+            hasAMinimumTeamRoleOf
         }
     },
     methods: {

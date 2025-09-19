@@ -36,7 +36,7 @@
 import { ExclamationCircleIcon } from '@heroicons/vue/outline'
 
 import applicationApi from '../../../../api/application.js'
-import permissionsMixin from '../../../../mixins/Permissions.js'
+import usePermissions from '../../../../composables/Permissions.js'
 import alerts from '../../../../services/alerts.js'
 import dialog from '../../../../services/dialog.js'
 import TemplateSettingsEnvironment from '../../../admin/Template/sections/Environment.vue'
@@ -53,7 +53,6 @@ export default {
         ExclamationCircleIcon,
         TemplateSettingsEnvironment
     },
-    mixins: [permissionsMixin],
     beforeRouteLeave: async function (_to, _from, next) {
         if (this.unsavedChanges) {
             const dialogOpts = {
@@ -83,6 +82,11 @@ export default {
         }
     },
     emits: ['device-group-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             hasError: false,

@@ -139,8 +139,8 @@ import { mapState } from 'vuex'
 import InstanceApi from '../../../api/instances.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
+import usePermissions from '../../../composables/Permissions.js'
 import { scrollToAndJiggleHighlight } from '../../../composables/Ux.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
 import alerts from '../../../services/alerts.js'
 
 import ChangeStackDialog from './dialogs/ChangeStackDialog.vue'
@@ -153,7 +153,6 @@ export default {
         ChangeStackDialog,
         ImportInstanceDialog
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -162,6 +161,11 @@ export default {
         }
     },
     emits: ['instance-updated', 'instance-confirm-delete', 'instance-confirm-suspend'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             loading: {

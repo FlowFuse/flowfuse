@@ -1547,7 +1547,7 @@ module.exports = async function (app) {
                 },
                 {
                     teamHashId: request.project.Team.hashid,
-                    instanceId: request.project.hashid,
+                    instanceId: request.project.id,
                     instanceType: 'project',
                     isTeamOnTrial
                 })
