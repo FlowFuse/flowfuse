@@ -14,7 +14,7 @@
                     v-for="(action, $key) in actions"
                     :key="action.label + $key"
                     :kind="action.kind ?? 'secondary'"
-                    :disabled="action.disabled"
+                    :disabled="typeof action.disabled === 'function' ? action.disabled() : action.disabled"
                     :has-left-icon="!!action.iconLeft"
                     @click="action.handler"
                 >

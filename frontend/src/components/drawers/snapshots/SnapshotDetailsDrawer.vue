@@ -239,11 +239,7 @@ export default defineComponent({
                         hidden: function () {
                             if (!context.hasPermission('snapshot:edit')) return true
 
-                            if (context.isEditing) {
-                                return !context.hasChanges
-                            }
-
-                            return true
+                            return !context.isEditing
                         }
                     },
                     {
@@ -255,6 +251,7 @@ export default defineComponent({
                         },
                         hidden: function () {
                             if (!context.hasPermission('snapshot:edit')) return true
+                            if (context.isEditing) return true
 
                             return context.hasChanges
                         }
@@ -267,6 +264,9 @@ export default defineComponent({
                             context.saveSnapshot()
                         },
                         hidden: function () {
+                            return !context.isEditing
+                        },
+                        disabled: function () {
                             return !context.hasChanges
                         }
                     },
@@ -275,7 +275,12 @@ export default defineComponent({
                         kind: 'primary',
                         iconLeft: ClockIcon,
                         handler: () => this.showRollbackDialog(this.snapshot),
-                        hidden: !this.hasPermission('project:snapshot:rollback')
+                        hidden: function () {
+                            if (context.isEditing) {
+                                return true
+                            }
+                            return !context.hasPermission('project:snapshot:rollback')
+                        }
                     }
                 ]
             })
