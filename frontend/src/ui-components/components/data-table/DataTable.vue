@@ -72,11 +72,12 @@
                                     @selected="rowClick(r, $event)"
                                 >
                                     <template v-if="collapsibleRow" #row-prepend>
-                                        <ChevronRightIcon
-                                            class="ff-icon ff-icon-sm cursor-pointer"
-                                            data-el="collapsible-row-toggle"
-                                            @click="toggleCollapsibleRowVisibility($index)"
-                                        />
+                                        <span data-el="collapsible-row-toggle">
+                                            <ChevronRightIcon
+                                                class="ff-icon ff-icon-sm cursor-pointer"
+                                                @click="toggleCollapsibleRowVisibility($index)"
+                                            />
+                                        </span>
                                     </template>
                                     <template v-else-if="showRowCheckboxes" #row-prepend="{row}">
                                         <ff-checkbox v-model="checks[row[checkKeyProp]]" />
