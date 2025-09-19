@@ -421,7 +421,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         if (request.params.brokerId === 'team-broker') {
             const agent = await app.db.models.TeamBrokerAgent.byTeam(request.team.hashid)
-            if (agent && agent.state !== ' running') {
+            if (agent && agent.state !== 'running') {
                 await app.containers.sendBrokerAgentCommand(agent, 'start')
                 reply.status(200).send({})
             } else {
