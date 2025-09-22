@@ -44,8 +44,8 @@ module.exports = class TestModelFactory {
         return teamType
     }
 
-    async createTeam (teamDetails) {
-        const defaultTeamType = await this.forge.db.models.TeamType.findOne({ where: { name: 'starter' } })
+    async createTeam (teamDetails, teamType = null) {
+        const defaultTeamType = teamType || await this.forge.db.models.TeamType.findOne({ where: { name: 'starter' } })
         const defaultTeamDetails = {
             name: 'unnamed-team',
             TeamTypeId: defaultTeamType.id
