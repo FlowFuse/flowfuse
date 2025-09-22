@@ -46,6 +46,7 @@ export default {
             return [
                 {
                     name: 'General',
+                    key: 'general',
                     path: {
                         name: 'application-settings-general',
                         props: {
@@ -55,6 +56,7 @@ export default {
                 },
                 {
                     name: 'User Access',
+                    key: 'user-access',
                     path: {
                         name: 'application-settings-user-access'
                     },

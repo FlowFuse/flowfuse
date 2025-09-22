@@ -1,11 +1,16 @@
 <template>
-    <ff-data-table :columns="columns" :rows="members" :search="searchTerm" :show-search="true">
-        <template #context-menu="{row}">
-            <ff-list-item data-action="edit-token" label="Edit Permissions" @click="editUserPermissions(row)" />
-        </template>
-    </ff-data-table>
+    <div id="user-access" data-el="application-user-access" class="w-full">
+        <ff-data-table
+            :columns="columns" :rows="members" :search="searchTerm" :show-search="true"
+            data-el="user-access-table"
+        >
+            <template #context-menu="{row}">
+                <ff-list-item data-action="edit-token" label="Edit Permissions" @click="editUserPermissions(row)" />
+            </template>
+        </ff-data-table>
 
-    <EditApplicationPermissionsDialog ref="editApplicationPermissionsDialog" @user-updated="onUserUpdated" />
+        <EditApplicationPermissionsDialog ref="editApplicationPermissionsDialog" @user-updated="onUserUpdated" />
+    </div>
 </template>
 
 <script>
