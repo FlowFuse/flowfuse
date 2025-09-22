@@ -87,7 +87,7 @@ module.exports = async function (settings = {}, config = {}) {
 
     // initialize project types, templates and stacks
     const { type1: projectType, type2: spareProjectType } = await projectTypeFactory.init(forge)
-    const { template } = await projectTemplateFactory.init(forge, userAlice)
+    const { template1: template } = await projectTemplateFactory.init(forge, userAlice)
     const { stack1: stack, stack2 } = await projectStackFactory.init(forge)
 
     // Ensure projectTypes are allowed to be used by the default team type
