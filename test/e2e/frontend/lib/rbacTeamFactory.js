@@ -116,7 +116,7 @@ module.exports = async function (forge) {
     const application2 = await factory.createApplication({ name: 'application-2' }, rbacTeam)
     const application2Instance1 = await factory.createInstance(
         { name: 'application-2-instance-1' },
-        application1,
+        application2,
         stack,
         template,
         projectType
@@ -134,7 +134,7 @@ module.exports = async function (forge) {
     const application3 = await factory.createApplication({ name: 'application-3' }, rbacTeam)
     const application3Instance1 = await factory.createInstance(
         { name: 'application-3-instance-1' },
-        application1,
+        application3,
         stack,
         template,
         projectType
@@ -152,7 +152,7 @@ module.exports = async function (forge) {
     const application4 = await factory.createApplication({ name: 'application-4' }, rbacTeam)
     const application4Instance1 = await factory.createInstance(
         { name: 'application-4-instance-1' },
-        application1,
+        application4,
         stack,
         template,
         projectType
@@ -170,7 +170,7 @@ module.exports = async function (forge) {
     const application5 = await factory.createApplication({ name: 'application-5' }, rbacTeam)
     const application5Instance1 = await factory.createInstance(
         { name: 'application-5-instance-1' },
-        application1,
+        application5,
         stack,
         template,
         projectType
@@ -188,7 +188,7 @@ module.exports = async function (forge) {
     const application6 = await factory.createApplication({ name: 'application-6' }, rbacTeam)
     const application6Instance1 = await factory.createInstance(
         { name: 'application-6-instance-1' },
-        application1,
+        application6,
         stack,
         template,
         projectType
