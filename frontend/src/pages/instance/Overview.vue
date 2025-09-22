@@ -119,13 +119,11 @@
 <script>
 import { ExternalLinkIcon, LinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
-
 import InstanceApi from '../../api/instances.js'
 import FormHeading from '../../components/FormHeading.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import AuditLog from '../../components/audit-log/AuditLog.vue'
-import permissionsMixin from '../../mixins/Permissions.js'
+import usePermissions from '../../composables/Permissions.js'
 
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
@@ -142,7 +140,6 @@ export default {
         TemplateIcon,
         TrendingUpIcon
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -150,13 +147,17 @@ export default {
             type: Object
         }
     },
+    setup () {
+        const { isVisitingAdmin } = usePermissions()
+
+        return { isVisitingAdmin }
+    },
     data () {
         return {
             auditLog: []
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },

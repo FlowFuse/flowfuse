@@ -110,11 +110,12 @@ export default {
     },
     mixins: [instanceMixin, featuresMixin],
     setup () {
-        const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
+        const { hasPermission, hasAMinimumTeamRoleOf, isVisitingAdmin } = usePermissions()
 
         return {
             hasPermission,
-            hasAMinimumTeamRoleOf
+            hasAMinimumTeamRoleOf,
+            isVisitingAdmin
         }
     },
     data: function () {
@@ -126,7 +127,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team']),
+        ...mapState('account', ['team']),
         navigation () {
             if (!this.instance.id) return []
             let versionHistoryRoute

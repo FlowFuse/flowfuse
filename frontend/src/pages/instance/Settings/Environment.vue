@@ -11,8 +11,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import InstanceApi from '../../../api/instances.js'
 import usePermissions from '../../../composables/Permissions.js'
 import Dialog from '../../../services/dialog.js'
@@ -55,9 +53,7 @@ export default {
     setup () {
         const { hasPermission } = usePermissions()
 
-        return {
-            hasPermission
-        }
+        return { hasPermission }
     },
     data () {
         return {
@@ -79,7 +75,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         saveButton () {
             return {
                 visible: this.hasPermission('device:edit-env'),

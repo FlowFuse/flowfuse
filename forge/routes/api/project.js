@@ -1490,7 +1490,7 @@ module.exports = async function (app) {
             break
         }
 
-        const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildSnapshot(
+        const currentSnapshot = await app.db.controllers.ProjectSnapshot.buildProjectSnapshot(
             request.project,
             request.session.User,
             options
@@ -1519,10 +1519,14 @@ module.exports = async function (app) {
 
         // redact env var values
         if (currentStateDiff.settings?.env) {
-            Object.keys(currentStateDiff.settings.env).forEach(k => currentStateDiff.settings.env[k] === 'REDACTED')
+            Object.keys(currentStateDiff.settings.env).forEach(k => {
+                currentStateDiff.settings.env[k] = '##REDACTED##'
+            })
         }
         if (previousStateDiff.settings?.env) {
-            Object.keys(previousStateDiff.settings.env).forEach(k => previousStateDiff.settings.env[k] === 'REDACTED')
+            Object.keys(previousStateDiff.settings.env).forEach(k => {
+                previousStateDiff.settings.env[k] = '##REDACTED##'
+            })
         }
 
         if (app.billing && request.project.Team.getSubscription) {
@@ -1543,7 +1547,7 @@ module.exports = async function (app) {
                 },
                 {
                     teamHashId: request.project.Team.hashid,
-                    instanceId: request.project.hashid,
+                    instanceId: request.project.id,
                     instanceType: 'project',
                     isTeamOnTrial
                 })

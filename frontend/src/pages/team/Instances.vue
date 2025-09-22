@@ -164,8 +164,8 @@ import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
 import { useInstanceStates } from '../../composables/InstanceStates.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
+import usePermissions from '../../composables/Permissions.js'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
-import permissionsMixin from '../../mixins/Permissions.js'
 import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
 import DeploymentName from '../application/components/cells/DeploymentName.vue'
 import SimpleTextCell from '../application/components/cells/SimpleTextCell.vue'
@@ -185,7 +185,7 @@ export default {
         EmptyState,
         FeatureUnavailableToTeam
     },
-    mixins: [permissionsMixin, instanceActionsMixin],
+    mixins: [instanceActionsMixin],
     props: {
         dashboardRoleOnly: {
             required: false,
@@ -196,8 +196,9 @@ export default {
     setup () {
         const { isRunningState } = useInstanceStates()
         const { navigateTo } = useNavigationHelper()
+        const { hasPermission } = usePermissions()
 
-        return { isRunningState, navigateTo }
+        return { hasPermission, isRunningState, navigateTo }
     },
     data () {
         return {
@@ -237,7 +238,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapGetters('account', ['featuresCheck', 'team']),
         instances () {
             return Array.from(this.instancesMap.values())
         },

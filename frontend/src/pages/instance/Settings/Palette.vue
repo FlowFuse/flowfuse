@@ -14,7 +14,7 @@ import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 import Dialog from '../../../services/dialog.js'
 import TemplateSectionCatalogue from '../../admin/Template/sections/Catalogues.vue'
 import TemplateSectionNPM from '../../admin/Template/sections/NPMRegistry.vue'
@@ -37,7 +37,6 @@ export default {
         TemplateSettingsPalette,
         TemplatePaletteModulesEditor
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         project: {
@@ -46,6 +45,11 @@ export default {
         }
     },
     emits: ['instance-updated', 'save-button-state', 'restart-instance'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             // unsavedChanges: false,
@@ -67,7 +71,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'features']),
+        ...mapState('account', ['team', 'features']),
         catalogFeatureEnabledForTeam () {
             if (!this.features.customCatalogs) {
                 return false

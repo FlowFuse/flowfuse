@@ -319,9 +319,9 @@ import { mapGetters, mapState } from 'vuex'
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
 import DropdownMenu from '../components/DropdownMenu.vue'
+import usePermissions from '../composables/Permissions.js'
 import { getTeamProperty } from '../composables/TeamProperties.js'
 import deviceActionsMixin from '../mixins/DeviceActions.js'
-import permissionsMixin from '../mixins/Permissions.js'
 
 import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAssignedToLink.vue'
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
@@ -361,7 +361,7 @@ export default {
         EmptyState,
         DevicesStatusBar
     },
-    mixins: [permissionsMixin, deviceActionsMixin],
+    mixins: [deviceActionsMixin],
     inheritAttrs: false,
     props: {
         // One of the two must be provided
@@ -377,6 +377,11 @@ export default {
         }
     },
     emits: ['instance-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             // Page state

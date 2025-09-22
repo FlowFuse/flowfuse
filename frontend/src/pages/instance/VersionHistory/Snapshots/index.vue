@@ -2,23 +2,26 @@
     <div class="space-y-6">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0 && !loading">
-            <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshotsFiltered" :show-search="true" search-placeholder="Search Snapshots...">
+            <ff-data-table
+                data-el="snapshots"
+                class="space-y-4"
+                :columns="columns"
+                :rows="snapshotsFiltered"
+                :show-search="true"
+                :rows-selectable="true"
+                search-placeholder="Search Snapshots..."
+                @row-selected="onRowSelected"
+            >
                 <template #actions>
-                    <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">
+                    <DropdownMenu
+                        data-el="snapshot-filter"
+                        buttonClass="ff-btn ff-btn--secondary"
+                        :options="snapshotFilterOptions"
+                    >
                         <FilterIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
                         {{ snapshotFilter?.name || 'All Snapshots' }}
                         <span class="sr-only">Filter Snapshots</span>
                     </DropdownMenu>
-                </template>
-                <template #context-menu="{row}">
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:rollback')" label="Restore Snapshot" @click="showRollbackDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('snapshot:full')" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:export')" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:set-target')" label="Set as Device Target" @click="showDeviceTargetDialog(row)" />
-                    <ff-list-item :disabled="!hasPermission('project:snapshot:delete')" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
                 </template>
             </ff-data-table>
         </template>
@@ -41,28 +44,22 @@
                 </template>
             </EmptyState>
         </template>
-        <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="onSnapshotEdit" />
-        <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" :project="instance" />
-        <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
-        <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
     </div>
 </template>
 
 <script>
 import { FilterIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import InstanceApi from '../../../../api/instances.js'
 import SnapshotApi from '../../../../api/projectSnapshots.js'
 import DropdownMenu from '../../../../components/DropdownMenu.vue'
 
 import EmptyState from '../../../../components/EmptyState.vue'
-import AssetCompareDialog from '../../../../components/dialogs/AssetCompareDialog.vue'
-import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
-import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
+import SnapshotDetailsDrawer from '../../../../components/drawers/snapshots/SnapshotDetailsDrawer.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
-import permissionsMixin from '../../../../mixins/Permissions.js'
+import usePermissions from '../../../../composables/Permissions.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
 import { applySystemUserDetails } from '../../../../transformers/snapshots.transformer.js'
 import { isAutoSnapshot } from '../../../../utils/snapshot.js'
@@ -70,20 +67,15 @@ import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import DeviceCount from '../../../application/Snapshots/components/cells/DeviceCount.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
-import SnapshotExportDialog from '../../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 export default {
     name: 'InstanceSnapshots',
     components: {
-        AssetDetailDialog,
-        AssetCompareDialog,
         DropdownMenu,
         EmptyState,
-        FilterIcon,
-        SnapshotEditDialog,
-        SnapshotExportDialog
+        FilterIcon
     },
-    mixins: [permissionsMixin, snapshotsMixin],
+    mixins: [snapshotsMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -92,6 +84,11 @@ export default {
         }
     },
     emits: ['instance-updated', 'show-import-snapshot-dialog', 'show-create-snapshot-dialog'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             loading: false,
@@ -138,7 +135,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
+        ...mapState('account', ['team']),
         columns () {
             const cols = [
                 {
@@ -146,7 +143,8 @@ export default {
                     component: {
                         is: markRaw(SnapshotName),
                         extraProps: {
-                            targetSnapshot: this.instance.deviceSettings?.targetSnapshot
+                            targetSnapshot: this.instance.deviceSettings?.targetSnapshot,
+                            clippedDetails: true
                         }
                     }
                 },
@@ -211,6 +209,7 @@ export default {
         this.fetchData()
     },
     methods: {
+        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
         fetchData: async function (withoutAnimation = false) {
             if (this.instance.id) {
                 if (!withoutAnimation) this.loading = true
@@ -238,12 +237,19 @@ export default {
             }, {})
             return deviceCounts
         },
-        onSnapshotEdit (snapshot) {
-            const index = this.snapshots.findIndex(s => s.id === snapshot.id)
-            if (index >= 0) {
-                this.snapshots[index].name = snapshot.name
-                this.snapshots[index].description = snapshot.description
-            }
+        onRowSelected (snapshot) {
+            this.openRightDrawer({
+                component: markRaw(SnapshotDetailsDrawer),
+                props: { snapshot, snapshotList: this.snapshotList, instance: this.instance },
+                on: {
+                    updatedSnapshot: () => this.fetchData(true),
+                    deletedSnapshot: () => {
+                        this.closeRightDrawer()
+                        this.fetchData(true)
+                    }
+                },
+                overlay: true
+            })
         }
     }
 }

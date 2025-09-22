@@ -123,7 +123,7 @@ import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.
 import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
 import { downloadData } from '../../../../composables/Download.js'
-import permissionsMixin from '../../../../mixins/Permissions.js'
+import usePermissions from '../../../../composables/Permissions.js'
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
 import { applySystemUserDetails } from '../../../../transformers/snapshots.transformer.js'
@@ -146,7 +146,6 @@ export default {
         SnapshotExportDialog,
         UploadIcon
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         device: {
@@ -165,6 +164,11 @@ export default {
         }
     },
     emits: ['device-updated', 'show-import-snapshot-dialog', 'show-create-snapshot-dialog'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             loading: false,
@@ -211,7 +215,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'features']),
+        ...mapState('account', ['team', 'features']),
         canCreateSnapshot () {
             if (!this.developerMode || this.busy) {
                 return false

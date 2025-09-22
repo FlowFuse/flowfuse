@@ -87,9 +87,9 @@ import { mapActions, mapState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
 import EmptyState from '../../../../components/EmptyState.vue'
+import usePermissions from '../../../../composables/Permissions.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
 import featuresMixin from '../../../../mixins/Features.js'
-import permissionsMixin from '../../../../mixins/Permissions.js'
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
 import { Roles } from '../../../../utils/roles.js'
@@ -108,7 +108,12 @@ export default {
         EmptyState,
         ClientDialog
     },
-    mixins: [permissionsMixin, featuresMixin, clipboardMixin],
+    mixins: [featuresMixin, clipboardMixin],
+    setup () {
+        const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
+
+        return { hasPermission, hasAMinimumTeamRoleOf }
+    },
     data () {
         return {
             loading: false,
@@ -119,7 +124,7 @@ export default {
         Roles () {
             return Roles
         },
-        ...mapState('account', ['user', 'team', 'teamMembership', 'features']),
+        ...mapState('account', ['user', 'team', 'features']),
         ...mapState('product', {
             clients: state => state.UNS.clients
         }),

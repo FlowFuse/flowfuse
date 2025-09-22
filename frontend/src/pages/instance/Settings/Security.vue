@@ -47,8 +47,8 @@ import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
+import usePermissions from '../../../composables/Permissions.js'
 import featuresMixin from '../../../mixins/Features.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
 import Dialog from '../../../services/dialog.js'
 import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
 import ExpiryCell from '../../account/components/ExpiryCell.vue'
@@ -74,7 +74,7 @@ export default {
         TokenCreated,
         TokenDialog
     },
-    mixins: [permissionsMixin, featuresMixin],
+    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         project: {
@@ -83,6 +83,11 @@ export default {
         }
     },
     emits: ['instance-updated', 'save-button-state', 'restart-instance'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             unsavedChanges: false,
@@ -114,7 +119,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'settings']),
+        ...mapState('account', ['team', 'settings']),
         projectLauncherCompatible () {
             const launcherVersion = this.project?.meta?.versions?.launcher
             if (!launcherVersion) {

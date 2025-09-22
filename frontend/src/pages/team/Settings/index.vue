@@ -19,11 +19,15 @@
 import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 export default {
     name: 'TeamSettings',
-    mixins: [permissionsMixin],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data: function () {
         return {
             sideOptions: [
@@ -35,7 +39,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features'])
+        ...mapState('account', ['features', 'team', 'teamMembership'])
     },
     watch: {
         teamMembership: 'checkAccess'

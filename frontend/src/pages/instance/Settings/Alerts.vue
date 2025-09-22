@@ -6,10 +6,9 @@
 
 <script>
 import { useRouter } from 'vue-router'
-import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 import Dialog from '../../../services/dialog.js'
 import TemplateSettingsAlert from '../../admin/Template/sections/Alerts.vue'
 import {
@@ -26,7 +25,6 @@ export default {
     components: {
         TemplateSettingsAlert
     },
-    mixins: [permissionsMixin],
     inheritAttrs: false,
     props: {
         project: {
@@ -35,6 +33,11 @@ export default {
         }
     },
     emits: ['instance-updated', 'save-button-state', 'restart-instance'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             unsavedChanges: false,
@@ -55,7 +58,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'features']),
         emailOptions () {
             return [
                 {

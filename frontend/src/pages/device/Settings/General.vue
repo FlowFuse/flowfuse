@@ -137,8 +137,8 @@ import { mapState } from 'vuex'
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import usePermissions from '../../../composables/Permissions.js'
 
-import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -148,7 +148,6 @@ export default {
     name: 'DeviceSettings',
     props: ['device'],
     emits: ['device-updated', 'assign-device'],
-    mixins: [permissionsMixin],
     data () {
         return {
             editing: {
@@ -195,7 +194,10 @@ export default {
         }
     },
     setup () {
+        const { hasPermission } = usePermissions()
+
         return {
+            hasPermission,
             semVer
         }
     },
@@ -208,7 +210,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
+        ...mapState('account', ['team']),
         canChangeNodeRedVersion () {
             return this.deviceOwnerType === 'application' && this.hasPermission('device:edit')
         },

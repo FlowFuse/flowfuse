@@ -57,11 +57,12 @@
 <script>
 import { KeyIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
+import { mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import ProjectsIcon from '../../../components/icons/Projects.js'
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -98,7 +99,11 @@ export default {
         SectionTopMenu,
         PlusSmIcon
     },
-    mixins: [permissionsMixin],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             loading: true,
@@ -112,6 +117,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         addEnabled: function () {
             return this.hasPermission('team:device:provisioning-token:create')
         },

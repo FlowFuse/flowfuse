@@ -13,14 +13,15 @@
 
 <script>
 import { ExclamationCircleIcon } from '@heroicons/vue/outline'
-
-import permissionsMixin from '../../mixins/Permissions.js'
+import { mapState } from 'vuex'
 
 export default {
     name: 'TeamSuspended',
     components: {
         ExclamationCircleIcon
     },
-    mixins: [permissionsMixin]
+    computed: {
+        ...mapState('account', ['team'])
+    }
 }
 </script>

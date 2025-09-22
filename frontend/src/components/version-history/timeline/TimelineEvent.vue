@@ -78,7 +78,7 @@
 <script>
 import { defineComponent } from 'vue'
 
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 import daysSince from '../../../utils/daysSince.js'
 
@@ -88,7 +88,6 @@ import TimelineGraph from './TimelineGraph.vue'
 export default {
     name: 'TimelineEvent',
     components: { TimelineGraph },
-    mixins: [permissionsMixin],
     props: {
         event: {
             type: Object,
@@ -110,6 +109,11 @@ export default {
         'set-device-target',
         'load-more'
     ],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     computed: {
         createdAt () {
             return daysSince(this.event.createdAt, true)

@@ -31,16 +31,14 @@
 import { ChevronLeftIcon } from '@heroicons/vue/outline'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
-import permissionsMixin from '../../../mixins/Permissions.js'
 import NavItem from '../../NavItem.vue'
 
 export default {
     name: 'MainNav',
     components: { NavItem },
-    mixins: [permissionsMixin],
     emits: ['option-selected'],
     computed: {
-        ...mapState('account', ['user', 'team', 'teamMembership', 'features', 'notifications']),
+        ...mapState('account', ['user', 'team', 'features', 'notifications']),
         ...mapState('ux', ['mainNav']),
         ...mapGetters('account', ['requiresBilling']),
         ...mapGetters('ux', ['mainNavContexts', 'mainNavContext']),
@@ -128,7 +126,7 @@ export default {
     methods: {
         ...mapActions('ux', ['setMainNavContext', 'setMainNavBackButton']),
         onMenuItemClick () {
-            this.$store.dispatch('ux/closeLeftDrawer')
+            this.$store.dispatch('ux/drawers/closeLeftDrawer')
         },
         setBackButton () {
             if (this.team) {

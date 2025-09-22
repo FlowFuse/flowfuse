@@ -35,12 +35,10 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import ApplicationApi from '../../../../api/application.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
-import permissionsMixin from '../../../../mixins/Permissions.js'
+import usePermissions from '../../../../composables/Permissions.js'
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
 
@@ -50,7 +48,6 @@ export default {
         FormRow,
         FormHeading
     },
-    mixins: [permissionsMixin],
     props: {
         application: {
             type: Object,
@@ -62,6 +59,11 @@ export default {
         }
     },
     emits: ['device-group-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             input: {
@@ -74,7 +76,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         unsavedChanges () {
             return this.deviceGroup ? (this.input.name !== this.deviceGroup.name || this.input.description !== this.deviceGroup.description) : false
         },

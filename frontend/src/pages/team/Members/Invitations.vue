@@ -37,15 +37,14 @@ import { mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
+import usePermissions from '../../../composables/Permissions.js'
 
-import permissionsMixin from '../../../mixins/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
 export default {
     name: 'MemberInviteTable',
     components: { TrashIcon, RefreshIcon },
-    mixins: [permissionsMixin],
     props: {
         inviteCount: {
             type: Number,
@@ -53,6 +52,11 @@ export default {
         }
     },
     emits: ['updated', 'invites-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             loading: false,
@@ -65,7 +69,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings'])
+        ...mapState('account', ['settings', 'team', 'teamMembership'])
     },
     watch: {
         teamMembership: 'fetchData',

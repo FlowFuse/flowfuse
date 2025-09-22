@@ -12,12 +12,12 @@ jobs:
         with:
           token: ${{ secrets.MAINTENANCE_SYNC_TOKEN }}
           fetch-depth: 0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 18
       - run: npm ci
       - run: npm run build
       # - run: npm run test
-      - uses: JS-DevTools/npm-publish@19c28f1ef146469e409470805ea4279d47c3d35c # v3.1.1
+      - uses: JS-DevTools/npm-publish@d9dc932de083f0e6de6a50f0d1097a7142c3751b # v4.0.0
         with:
           token: ${{ secrets.NPM_PUBLISH_TOKEN }}

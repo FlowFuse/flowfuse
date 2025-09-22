@@ -17,12 +17,15 @@
 import { mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
-
-import permissionsMixin from '../../../mixins/Permissions.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 export default {
     name: 'TeamUsers',
-    mixins: [permissionsMixin],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data: function () {
         return {
             navigation: [],
@@ -30,7 +33,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user'])
+        ...mapState('account', ['user', 'team'])
     },
     watch: {
         teamMembership: 'checkAccess'
