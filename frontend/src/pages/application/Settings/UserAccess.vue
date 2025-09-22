@@ -15,6 +15,7 @@ import { mapGetters } from 'vuex'
 import teamClient from '../../../api/team.js'
 
 import EditApplicationPermissionsDialog from '../../../components/dialogs/EditApplicationPermissionsDialog.vue'
+import usePermissions from '../../../composables/Permissions.js'
 
 import RoleRow from './components/RoleRow.vue'
 
@@ -28,6 +29,10 @@ export default defineComponent({
         }
     },
     emits: ['application-delete', 'application-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             searchTerm: '',
