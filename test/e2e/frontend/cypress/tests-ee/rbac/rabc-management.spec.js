@@ -127,8 +127,8 @@ describe('FlowFuse - RBAC GUI Management', () => {
             // find the next collapsible row which is the application permissions row
             cy.get('[data-el="row-no-role-barry"]').next('.collapsible')
                 .within(() => {
-                    cy.get('[data-el="app-item-application-1"]').contains('None')
-                    cy.get('[data-el="app-item-application-1"] [data-action="update-role"] svg').click()
+                    cy.get('[data-el="app-item-application-6"]').contains('None')
+                    cy.get('[data-el="app-item-application-6"] [data-action="update-role"] svg').click()
                 })
 
             // set the application role viewer to bob
@@ -146,8 +146,8 @@ describe('FlowFuse - RBAC GUI Management', () => {
             // revert bob to a None role
             cy.get('[data-el="row-no-role-barry"]').next('.collapsible')
                 .within(() => {
-                    cy.get('[data-el="app-item-application-1"]').contains('Viewer')
-                    cy.get('[data-el="app-item-application-1"] [data-action="update-role"] svg').click()
+                    cy.get('[data-el="app-item-application-6"]').contains('Viewer')
+                    cy.get('[data-el="app-item-application-6"] [data-action="update-role"] svg').click()
                 })
             cy.get('[data-el="application-permission-dialog"] button').contains('Viewer').click()
             cy.get('[data-el=listbox-options] [data-option="None"]').click()
@@ -194,8 +194,8 @@ describe('FlowFuse - RBAC GUI Management', () => {
             // find the next collapsible row which is the application permissions row
             cy.get('[data-el="row-no-role-barry"]').next('.collapsible')
                 .within(() => {
-                    cy.get('[data-el="app-item-application-1"]').contains('None')
-                    cy.get('[data-el="app-item-application-1"] [data-action="update-role"] svg').click()
+                    cy.get('[data-el="app-item-application-6"]').contains('None')
+                    cy.get('[data-el="app-item-application-6"] [data-action="update-role"] svg').click()
                 })
 
             // set the application role viewer to noRoleBarry
@@ -213,8 +213,8 @@ describe('FlowFuse - RBAC GUI Management', () => {
             // revert noRoleBarry to a None role
             cy.get('[data-el="row-no-role-barry"]').next('.collapsible')
                 .within(() => {
-                    cy.get('[data-el="app-item-application-1"]').contains('Viewer')
-                    cy.get('[data-el="app-item-application-1"] [data-action="update-role"] svg').click()
+                    cy.get('[data-el="app-item-application-6"]').contains('Viewer')
+                    cy.get('[data-el="app-item-application-6"] [data-action="update-role"] svg').click()
                 })
             cy.get('[data-el="application-permission-dialog"] button').contains('Viewer').click()
             cy.get('[data-el=listbox-options] [data-option="None"]').click()
@@ -305,7 +305,8 @@ describe('FlowFuse - RBAC GUI Management', () => {
             cy.get('[data-el="instances-table"] [data-el="row-application-2-instance-1"]').should('exist')
             cy.get('[data-el="instances-table"] [data-el="row-application-3-instance-1"]').should('exist')
             cy.get('[data-el="instances-table"] [data-el="row-application-4-instance-1"]').should('exist')
-            cy.get('[data-el="instances-table"] [data-el="row-application-5-instance-1"]').should('exist')
+            // application 5 should not be visible to anyone
+            cy.get('[data-el="instances-table"] [data-el="row-application-5-instance-1"]').should('not.exist')
             cy.get('[data-el="instances-table"] [data-el="row-application-6-instance-1"]').should('exist')
         })
     })
