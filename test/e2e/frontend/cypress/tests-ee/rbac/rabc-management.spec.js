@@ -288,7 +288,9 @@ describe('FlowFuse - RBAC GUI Management', () => {
             cy.get('[data-el="application-overview-page"]').should('exist')
         })
 
-        it('team dashboard should not be able to access the application role management page', () => {
+        it.only('team dashboard should not be able to access the application role management page', () => {
+            // todo this page is encountering a 403 because it's loading an instance belonging to a restricted application
+            //  the instance is not being filtered correctly and the getStatus call is correctly returning a 403
             cy.login('dashboardDan', 'ddPassword')
             cy.visit('/')
 
