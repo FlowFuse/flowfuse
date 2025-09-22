@@ -101,7 +101,20 @@ module.exports = async function (forge) {
         application1,
         stack,
         template,
-        projectType
+        projectType,
+        {
+            settings: {
+                palette: {
+                    modules: [
+                        {
+                            name: '@flowfuse/node-red-dashboard',
+                            version: '~1.25.0',
+                            local: true
+                        }
+                    ]
+                }
+            }
+        }
     )
     await factory.createDevice({
         name: 'application-1-app-device',
@@ -119,7 +132,20 @@ module.exports = async function (forge) {
         application2,
         stack,
         template,
-        projectType
+        projectType,
+        {
+            settings: {
+                palette: {
+                    modules: [
+                        {
+                            name: '@flowfuse/node-red-dashboard',
+                            version: '~1.25.0',
+                            local: true
+                        }
+                    ]
+                }
+            }
+        }
     )
     await factory.createDevice({
         name: 'application-2-app-device',
@@ -137,7 +163,20 @@ module.exports = async function (forge) {
         application3,
         stack,
         template,
-        projectType
+        projectType,
+        {
+            settings: {
+                palette: {
+                    modules: [
+                        {
+                            name: '@flowfuse/node-red-dashboard',
+                            version: '~1.25.0',
+                            local: true
+                        }
+                    ]
+                }
+            }
+        }
     )
     await factory.createDevice({
         name: 'application-3-app-device',
@@ -155,7 +194,20 @@ module.exports = async function (forge) {
         application4,
         stack,
         template,
-        projectType
+        projectType,
+        {
+            settings: {
+                palette: {
+                    modules: [
+                        {
+                            name: '@flowfuse/node-red-dashboard',
+                            version: '~1.25.0',
+                            local: true
+                        }
+                    ]
+                }
+            }
+        }
     )
     await factory.createDevice({
         name: 'application-4-app-device',
@@ -173,7 +225,20 @@ module.exports = async function (forge) {
         application5,
         stack,
         template,
-        projectType
+        projectType,
+        {
+            settings: {
+                palette: {
+                    modules: [
+                        {
+                            name: '@flowfuse/node-red-dashboard',
+                            version: '~1.25.0',
+                            local: true
+                        }
+                    ]
+                }
+            }
+        }
     )
     await factory.createDevice({
         name: 'application-5-app-device',
@@ -191,7 +256,20 @@ module.exports = async function (forge) {
         application6,
         stack,
         template,
-        projectType
+        projectType,
+        {
+            settings: {
+                palette: {
+                    modules: [
+                        {
+                            name: '@flowfuse/node-red-dashboard',
+                            version: '~1.25.0',
+                            local: true
+                        }
+                    ]
+                }
+            }
+        }
     )
     await factory.createDevice({
         name: 'application-6-app-device',
