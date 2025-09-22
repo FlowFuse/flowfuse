@@ -102,7 +102,7 @@ export default defineComponent({
             let roleClass = ''
 
             switch (true) {
-            case parseInt(customRole) === 0:
+            case parseInt(customRole) === 0 && parseInt(teamRole) !== parseInt(customRole):
                 icon = this.BanIcon
                 iconClass = 'text-red-500'
                 break
