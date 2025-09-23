@@ -20,13 +20,13 @@ import MainNav from './navigation/MainNav.vue'
 export default {
     name: 'LeftDrawer',
     computed: {
-        ...mapState('ux', ['leftDrawer', 'mainNav'])
+        ...mapState('ux/drawers', ['leftDrawer', 'mainNav'])
     },
     mounted () {
         this.setLeftDrawer(markRaw(MainNav))
     },
     methods: {
-        ...mapActions('ux', ['setLeftDrawer', 'closeLeftDrawer']),
+        ...mapActions('ux/drawers', ['setLeftDrawer', 'closeLeftDrawer']),
         handleClickOutside () {
             this.$nextTick(() => this.closeLeftDrawer)
         }

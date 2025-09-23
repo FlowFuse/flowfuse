@@ -932,10 +932,12 @@ module.exports = async function (app) {
                 if (settings.settings?.palette?.npmrc) {
                     settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
                         `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `@flowfuse-nodes:registry=${npmRegURL.toString()}\n` +
                         `//${npmRegURL.host}:_auth="${token}"\n`
                 } else {
                     settings.settings.palette.npmrc =
                         `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
+                        `@flowfuse-nodes:registry=${npmRegURL.toString()}\n` +
                         `//${npmRegURL.host}:_auth="${token}"\n`
                 }
             }
