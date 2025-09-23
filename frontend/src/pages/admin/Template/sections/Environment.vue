@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-4 ff-environment" @submit.prevent>
+    <form class="space-y-4 ff-environment" data-el="instance-environment" @submit.prevent>
         <FormHeading>
             <div class="flex">
                 <div class="mr-4">Environment Variables</div>
@@ -32,7 +32,7 @@
                 <template #actions>
                     <template v-if="!readOnly">
                         <input id="fileUpload" ref="fileUpload" type="file" accept=".env, text/plain, *" class="hidden" hidden>
-                        <ff-button kind="secondary" @click="importEnv">
+                        <ff-button kind="secondary" data-eaction="import-env" @click="importEnv">
                             <template #icon><DocumentDownloadIcon /></template>
                             <span class="hidden sm:flex pl-1">Import .env</span>
                         </ff-button>
