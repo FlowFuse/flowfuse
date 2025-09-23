@@ -46,7 +46,31 @@ module.exports = async function (forge) {
             devices: {},
             users: {},
             features: {
-                rbacApplication: true
+                tables: true,
+                'shared-library': true,
+                ha: true,
+                emailAlerts: true,
+                protectedInstance: true,
+                editorLimits: true,
+                staticAssets: true,
+                teamBroker: true,
+                npm: true,
+                instanceResources: true,
+                gitIntegration: true,
+                projectHistory: true,
+                bom: true,
+                customHostnames: true,
+                instanceAutoSnapshot: true,
+                deviceAutoSnapshot: true,
+                deviceGroups: true,
+                teamHttpSecurity: true,
+                projectComms: true,
+                fileStorageLimit: 100000,
+                contextLimit: 1024,
+                certifiedNodes: true,
+                generatedSnapshotDescription: true,
+                rbacApplication: true,
+                assistantInlineCompletions: true
             },
             billing: {
                 disabled: true
