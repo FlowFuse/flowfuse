@@ -2,7 +2,7 @@
     <div class="ff-admin-audit">
         <div data-el="audit-log">
             <slot name="title" />
-            <AuditLog :entries="logEntries" :associations="associations" :loading="gettingEntries" />
+            <AuditLog :entries="logEntries" :associations="associations" :loading="loading" />
         </div>
         <div>
             <SectionTopMenu hero="Filters" />
@@ -56,6 +56,10 @@ export default {
             type: Array,
             required: true
         },
+        loading: {
+            type: Boolean,
+            required: true
+        },
         associations: {
             type: Object,
             default: () => {}
@@ -68,7 +72,6 @@ export default {
     emits: ['load-entries'],
     data () {
         return {
-            gettingEntries: true,
             auditFilters: {
                 event: '',
                 types: [],
@@ -98,22 +101,19 @@ export default {
     },
     watch: {
         'auditFilters.username': function () {
-            if (this.gettingEntries) {
+            if (this.loading) {
                 return // skip if we're already loading entries
             }
             this.loadEntries()
         },
         'auditFilters.event': function () {
-            if (this.gettingEntries) {
+            if (this.loading) {
                 return // skip if we're already loading entries
             }
             this.loadEntries()
         },
         users: function (users) {
             this.auditFilters.users = users
-        },
-        logEntries: function () {
-            this.gettingEntries = false
         }
 
     },
@@ -133,7 +133,6 @@ export default {
          * @param {string} [logType] The log type to load event type dropdown for
          */
         loadEntries (scope, includeChildren, logType) {
-            this.gettingEntries = true
             logType = logType || this.auditFilters.logType
             if (this.auditFilters.logType !== logType) {
                 this.auditFilters.logType = logType // store the scope for later queries
