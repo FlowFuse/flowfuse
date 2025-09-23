@@ -39,6 +39,7 @@
 </template>
 
 <script>
+import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
@@ -46,6 +47,7 @@ import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -64,6 +66,11 @@ export default {
         }
     },
     emits: ['instance-updated', 'save-button-state'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data: function () {
         return {
             updating: false,
@@ -91,7 +98,15 @@ export default {
             }
         }
     },
+    mounted () {
+        this.checkAccess()
+    },
     methods: {
+        checkAccess: function () {
+            if (!this.hasPermission('project:edit', { application: this.instance.application })) {
+                useRouter().push({ replace: true, path: 'general' })
+            }
+        },
         async enableHA () {
             const msg = {
                 header: 'Enable High Availability mode',
