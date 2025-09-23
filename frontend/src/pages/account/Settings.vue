@@ -29,22 +29,22 @@
             <div class="min-w-fit flex-shrink-0">
                 <ff-button class="warning" kind="danger" data-action="delete-account" :disabled="!canDeleteAccount" @click="deleteAccount">Delete Account</ff-button>
             </div>
-            <div class="flex-grow text-gray-500" v-if="!canDeleteAccount">
+            <div v-if="!canDeleteAccount" class="flex-grow text-gray-500">
                 <div class="max-w-sm text-sm">
                     Before you can delete your account, teams you own must be deleted or have at least 1 other owner.
                 </div>
-            </div>            
+            </div>
         </div>
-        <div class=" max-w-2xl mt-4" v-if="!canDeleteAccount">
+        <div v-if="!canDeleteAccount" class=" max-w-2xl mt-4">
             <h3>Teams</h3>
             <ul class="space-y-2 border-t border-gray-200">
                 <li v-for="team in teams" :key="team.id" class="flex justify-between items-center border-b border-gray-200 h-11">
                     <div class="flex items-center space-x-2">
-                        <label @click="selectTeam(team)" class="ff-link">{{ team.label }}</label>
+                        <label class="ff-link" @click="selectTeam(team)">{{ team.label }}</label>
                         <span class="text-gray-500 text-sm">({{ team.role }})</span>
-                        <span class="text-gray-400 text-sm" v-if="team.owner && team.ownerCount > 1">({{ team.ownerCount }} owners)</span>
+                        <span v-if="team.owner && team.ownerCount > 1" class="text-gray-400 text-sm">({{ team.ownerCount }} owners)</span>
                     </div>
-                    <ff-button kind="secondary-danger" @click="deleteTeam(team.id)" v-if="team.role === 'owner'">Delete Team</ff-button>
+                    <ff-button v-if="team.role === 'owner'" kind="secondary-danger" @click="deleteTeam(team.id)">Delete Team</ff-button>
                 </li>
             </ul>
         </div>
@@ -54,14 +54,14 @@
 <script>
 import { mapState } from 'vuex'
 
-import userApi from '../../api/user.js'
 import teamApi from '../../api/team.js'
+import userApi from '../../api/user.js'
 
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
 import alerts from '../../services/alerts.js'
 import dialog from '../../services/dialog.js'
-import { Roles, RoleNames } from '../../utils/roles.js'
+import { RoleNames, Roles } from '../../utils/roles.js'
 
 export default {
     name: 'AccountSettings',
@@ -151,6 +151,24 @@ export default {
         'input.defaultTeam': function (v) {
             this.changed.defaultTeam = (this.user.defaultTeam !== v)
         }
+    },
+    mounted () {
+        // get the members for each team, and check the owner count
+        this.teams.forEach(team => {
+            if (team.memberCount === 1) {
+                // if memberCount is 1, then they are the owner
+                team.ownerCount = 1
+                return
+            }
+            teamApi.getTeamMembers(team.id)
+                .then(data => {
+                    // find out how many owners are in the team
+                    team.ownerCount = data.members.filter(m => m.role === Roles.Owner).length
+                })
+                .catch(err => {
+                    console.warn(err)
+                })
+        })
     },
     methods: {
         startEdit () {
@@ -258,7 +276,7 @@ export default {
             dialog.show({
                 header: 'Delete Team',
                 kind: 'danger',
-                text: `Are you sure you want to delete this team?`,
+                text: 'Are you sure you want to delete this team?',
                 confirmLabel: 'Delete Team'
             }, async () => {
                 teamApi.deleteTeam(teamId).then(() => {
@@ -281,20 +299,6 @@ export default {
                 }))
                 .catch(e => console.warn(e))
         }
-    },
-    mounted () {
-        // get the members for each team, and check the owner count
-        this.teams.forEach(team => {
-            if (team.memberCount === 1) {
-                // if memberCount is 1, then they are the owner
-                team.ownerCount = 1
-                return
-            }
-            teamApi.getTeamMembers(team.id).then(data => {
-                // find out how many owners are in the team
-                team.ownerCount = data.members.filter(m => m.role === Roles.Owner).length
-            })
-        })
     }
 }
 </script>
