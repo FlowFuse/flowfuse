@@ -104,6 +104,9 @@ module.exports = fp(async function (app, opts) {
                     // get SAML groups
                     user.SSOGroups = app.sso.getUserGroups(samlUser, user, providerOpts)
                     await user.save()
+                } else {
+                    user.SSOGroups = null
+                    await user.save()
                 }
                 done(null, user)
             } else {
@@ -130,6 +133,10 @@ module.exports = fp(async function (app, opts) {
                     }
 
                     userProperties.username = await generateUsernameFromEmail(app, samlUser.nameID)
+
+                    if (providerOpts.exposeGroups) {
+                        userProperties.SSOGroups = app.sso.getUserGroups(samlUser, user, providerOpts)
+                    }
 
                     try {
                         // create user
