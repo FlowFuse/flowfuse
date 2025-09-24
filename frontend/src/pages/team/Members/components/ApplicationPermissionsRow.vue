@@ -189,7 +189,7 @@ td {
 
     &.expanded {
         .content {
-            max-height: 150px;
+            max-height: 200px;
         }
     }
 }
