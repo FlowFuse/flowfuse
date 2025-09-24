@@ -2,6 +2,7 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
     let team
     let instances
     let devices
+    let applications
     before(() => {
         cy.intercept('GET', '/api/*/user/teams').as('getTeams')
 
@@ -29,6 +30,14 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
             })
             .then(({ response }) => {
                 devices = response.body.devices
+            })
+            .then(() => {
+                cy.intercept('GET', `/api/*/teams/${team.id}/applications*`).as('getApplications')
+                cy.get('[data-nav="team-applications"]').click()
+                return cy.wait('@getApplications')
+            })
+            .then(({ response }) => {
+                applications = response.body.applications
             })
             .then(() => cy.logout())
     })
@@ -873,13 +882,219 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
         })
 
         // applications
-        it.skip('should not have direct access to an application when accessing via url', () => {
+        it('should not have restricted applications listed in the applications page', () => {
+            cy.get('[data-nav="team-applications"]').click()
+            cy.get('[data-el="application-item"]').contains('application-1').should('not.exist')
+            cy.get('[data-el="application-item"]').contains('application-2').should('not.exist')
+            cy.get('[data-el="application-item"]').contains('application-3').should('exist')
+            cy.get('[data-el="application-item"]').contains('application-4').should('exist')
+            cy.get('[data-el="application-item"]').contains('application-5').should('exist')
+            cy.get('[data-el="application-item"]').contains('application-6').should('exist')
         })
-        it.skip('should not have restricted applications listed in the applications page', () => {
+        it.skip('should be able to create an application given his team role', () => {
+        // todo the create application multi-step form is broken
         })
-        it.skip('should not allow users with lesser roles than the team role to make changes to the application', () => {
+        it('should not have direct access to an application when accessing via url', () => {
+            const forbiddenApplications = [
+                'application-1',
+                'application-2'
+            ]
+
+            applications.forEach(app => {
+                cy.visit(`/team/${team.slug}/applications/${app.id}`)
+                if (forbiddenApplications.includes(app.name)) {
+                    cy.get('[data-page="not-found"]').should('exist')
+                } else {
+                    cy.get('[data-el="page-name"]').contains(app.name)
+                }
+            })
         })
-        it.skip('should not allow users with greater roles than the team role to make changes to the application', () => {
+        it('should not be able to access application actions of applications he has viewer role', () => {
+            const application = applications.find(i => i.name === 'application-3')
+            cy.get('[data-nav="team-applications"]').click()
+
+            cy.get('[data-el="application-item"]').contains(application.name).click()
+
+            // application instances
+            cy.get('[data-el="row-application-3-instance-1"]').should('exist')
+            cy.get('[data-action="open-editor"]').should('exist')
+            cy.get('[data-action="open-dashboard"]').should('exist')
+
+            // application devices
+            cy.get('[data-nav="application-devices-overview"]').click()
+            cy.get('[data-el="row-application-3-app-device"]').should('exist')
+            // todo the finish setup button should not be visible to users that do not have edit permissions
+            cy.get('[data-el="row-application-3-app-device"]').contains('Finish Setup').should('not.exist')
+            cy.get('[data-el="row-application-3-instance-1-device-1"]').should('not.exist')
+
+            // application device groups
+            cy.get('[data-nav="application-devices-groups-overview"]').should('not.exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/device-groups`)
+            cy.get('[data-el="device-group-list"]').should('not.exist')
+
+            // application snapshots
+            cy.get('[data-nav="application-snapshots"]').click()
+            cy.get('[data-el="application-snapshots"]').should('exist')
+
+            // application pipelines
+            cy.get('[data-nav="application-pipelines"]').should('not.exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/pipelines`)
+            cy.get('[data-el="application-pipelines"]').should('not.exist')
+
+            // application logs
+            cy.get('[data-nav="application-logs"]').click()
+            cy.get('[data-hero="Node-RED Logs"]').should('exist')
+
+            // application audit log
+            cy.get('[data-nav="application-activity"]').should('not.exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/activity`)
+            cy.get('[data-el="audit-log"]').should('not.exist')
+
+            // application dependencies
+            cy.get('[data-nav="application-dependencies"]').should('not.exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/dependencies`)
+            cy.get('[data-el="application-dependencies"]').should('not.exist')
+
+            // application settings
+            cy.get('[data-nav="application-settings"]').should('exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/settings`)
+            cy.get('[data-el="application-settings"]').should('exist')
+            cy.get('[data-el="application-summary"]').should('exist')
+            cy.get('[data-el="application-edit"]').should('not.exist')
+            cy.get('[data-el="application-delete"]').should('not.exist')
+
+            // application settings user-access
+            cy.get('[data-nav="user-access"]').should('not.exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/settings/user-access`)
+            cy.get('[data-el="application-summary"]').should('exist')
+        })
+        it('should be able to access application actions of applications he has member role', () => {
+            const application = applications.find(i => i.name === 'application-4')
+            cy.get('[data-nav="team-applications"]').click()
+
+            cy.get('[data-el="application-item"]').contains(application.name).click()
+
+            // application instances
+            cy.get('[data-el="row-application-4-instance-1"]').should('exist')
+            cy.get('[data-action="open-editor"]').should('exist')
+            cy.get('[data-action="open-dashboard"]').should('exist')
+
+            // application devices
+            cy.get('[data-nav="application-devices-overview"]').click()
+            cy.get('[data-el="row-application-4-app-device"]').should('exist')
+            // todo the finish setup button should not be visible to users that do not have edit permissions
+            cy.get('[data-el="row-application-4-app-device"]').contains('Finish Setup').should('not.exist')
+            cy.get('[data-el="row-application-4-instance-1-device-1"]').should('not.exist')
+
+            // application device groups
+            cy.get('[data-nav="application-devices-groups-overview"]').click()
+            cy.get('[data-el="loading"]').should('not.exist')
+            cy.get('[data-action="create-device-group"]').should('not.exist')
+
+            // todo check that the user can't edit an existing device group
+            //   need to seed device groups to applications
+
+            // application snapshots
+            cy.get('[data-nav="application-snapshots"]').click()
+            cy.get('[data-el="application-snapshots"]').should('exist')
+            // todo check what permissions the user has to do with snapshots
+            //   need to seed snapshots to applications
+            cy.get('[data-nav="application-pipelines"]').click()
+            cy.get('[data-el="empty-state"]').should('exist')
+            cy.get('[data-el="empty-state"] [data-action="pipeline-add"]').should('not.exist')
+            // todo check that the user can deploy a pipeline
+            //   need to seed pipelines to applications
+
+            // application logs
+            cy.get('[data-nav="application-logs"]').click()
+            cy.get('[data-hero="Node-RED Logs"]').should('exist')
+
+            // application audit log
+            cy.get('[data-nav="application-activity"]').should('not.exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/activity`)
+            cy.get('[data-el="audit-log"]').should('not.exist')
+
+            // application dependencies
+            cy.get('[data-nav="application-dependencies"]').should('not.exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/dependencies`)
+            cy.get('[data-el="application-dependencies"]').should('not.exist')
+
+            // application settings
+            cy.get('[data-nav="application-settings"]').should('exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/settings`)
+            cy.get('[data-el="application-settings"]').should('exist')
+            cy.get('[data-el="application-summary"]').should('exist')
+            cy.get('[data-el="application-edit"]').should('not.exist')
+            cy.get('[data-el="application-delete"]').should('not.exist')
+
+            // application settings user-access
+            cy.get('[data-nav="user-access"]').should('not.exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/settings/user-access`)
+            cy.get('[data-el="application-summary"]').should('exist')
+        })
+        it('should be able to access application actions of applications he has owner role', () => {
+            const application = applications.find(i => i.name === 'application-5')
+            cy.get('[data-nav="team-applications"]').click()
+
+            cy.get('[data-el="application-item"]').contains(application.name).click()
+
+            // application instances
+            cy.get('[data-el="row-application-5-instance-1"]').should('exist')
+            cy.get('[data-action="open-editor"]').should('exist')
+            cy.get('[data-action="open-dashboard"]').should('exist')
+
+            // application devices
+            cy.get('[data-nav="application-devices-overview"]').click()
+            cy.get('[data-el="row-application-5-app-device"]').should('exist')
+            // todo the finish setup button should not be visible to users that do not have edit permissions
+            cy.get('[data-el="row-application-4-app-device"]').contains('Finish Setup').should('not.exist')
+            cy.get('[data-el="row-application-5-instance-1-device-1"]').should('not.exist')
+
+            // application device groups
+            cy.get('[data-nav="application-devices-groups-overview"]').click()
+            cy.get('[data-el="loading"]').should('not.exist')
+            cy.get('[data-action="create-device-group"]').should('exist')
+
+            // todo check that the user can't edit an existing device group
+            //   need to seed device groups to applications
+
+            // application snapshots
+            cy.get('[data-nav="application-snapshots"]').click()
+            cy.get('[data-el="application-snapshots"]').should('exist')
+            // todo check what permissions the user has to do with snapshots
+            //   need to seed snapshots to applications
+            cy.get('[data-nav="application-pipelines"]').click()
+            cy.get('[data-el="empty-state"]').should('exist')
+            cy.get('[data-el="empty-state"] [data-action="pipeline-add"]').should('exist')
+            // todo check that the user can deploy a pipeline
+            //   need to seed pipelines to applications
+
+            // application logs
+            cy.get('[data-nav="application-logs"]').click()
+            cy.get('[data-hero="Node-RED Logs"]').should('exist')
+
+            // application audit log
+            cy.get('[data-nav="application-activity"]').should('exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/activity`)
+            cy.get('[data-el="audit-log"]').should('not.exist')
+
+            // application dependencies
+            cy.get('[data-nav="application-dependencies"]').should('exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/dependencies`)
+            cy.get('[data-el="application-dependencies"]').should('exist')
+
+            // application settings
+            cy.get('[data-nav="application-settings"]').should('exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/settings`)
+            cy.get('[data-el="application-settings"]').should('exist')
+            cy.get('[data-el="application-summary"]').should('exist')
+            cy.get('[data-el="application-edit"]').should('exist')
+            cy.get('[data-el="application-delete"]').should('exist')
+
+            // application settings user-access
+            cy.get('[data-nav="user-access"]').should('exist')
+            cy.visit(`/team/${team.slug}/applications/${application.id}/settings/user-access`)
+            cy.get('[data-el="application-user-access"]').should('exist')
         })
 
         // groups
