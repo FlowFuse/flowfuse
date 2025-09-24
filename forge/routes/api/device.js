@@ -21,13 +21,17 @@ module.exports = async function (app) {
         if (request.params.deviceId !== undefined) {
             if (request.params.deviceId) {
                 try {
-                    request.device = await app.db.models.Device.byId(request.params.deviceId)
+                    // Default byId doesn't include associations for performance reasons
+                    // But for this path, we can afford to include them
+                    request.device = await app.db.models.Device.byId(request.params.deviceId, { includeAssociations: true })
                     if (!request.device) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
                     if (request.device.ApplicationId) {
                         request.applicationId = app.db.models.Application.encodeHashid(request.device.ApplicationId)
+                    } else if (request.device.Project?.Application) {
+                        request.applicationId = request.device.Project.Application.hashid
                     }
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)
