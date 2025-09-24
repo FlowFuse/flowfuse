@@ -1155,7 +1155,7 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
         })
 
         // performance
-        it.only('should not have access to instances and their performance data belonging to restricted applications', () => {
+        it('should not have access to instances and their performance data belonging to restricted applications', () => {
             cy.get('[data-nav="team-performance"]').click()
             cy.get('[data-el="loading"]').should('not.exist')
             const restrictedInstances = ['application-1-instance-1', 'application-2-instance-1']
