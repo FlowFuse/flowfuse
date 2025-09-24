@@ -804,7 +804,72 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
                 cy.get(`[data-el="${tabs[tab]}"]`).should('exist')
             })
         })
-        it.skip('should not list restricted applications when creating remote instances', () => {
+        it('should not list restricted applications when creating remote instances', () => {
+            cy.get('[data-nav="team-devices"]').click()
+            cy.get('[data-action="register-device"]').click()
+            cy.get('[data-el="team-device-create-dialog"]').within(() => {
+                cy.get('[data-el="dropdown"]').click()
+            })
+            cy.get('[data-el="listbox-options"] [data-option="application-1"]').should('not.exist')
+            cy.get('[data-el="listbox-options"] [data-option="application-2"]').should('not.exist')
+            cy.get('[data-el="listbox-options"] [data-option="application-3"]').should('not.exist')
+            cy.get('[data-el="listbox-options"] [data-option="application-4"]').should('not.exist')
+            cy.get('[data-el="listbox-options"] [data-option="application-5"]').should('exist')
+            cy.get('[data-el="listbox-options"] [data-option="application-6"]').should('exist')
+        })
+        it.skip('should not have the add remote instance button if the user is not part of any application in which he can do so', () => {
+            // todo functionality not there yet
+        })
+        it('should only be able to list devices belonging to applications of which the user has access to', () => {
+            cy.get('[data-nav="team-devices"]').click()
+
+            // todo application-1 (none role) should be restricted
+            cy.get('[data-el="row-application-1-app-device"]').should('not.exist')
+            cy.get('[data-el="row-application-1-instance-1-device"]').should('not.exist')
+
+            // todo application-2 (dashboard role) should only have dashboard access and devices shouldn't be present
+            cy.get('[data-el="row-application-2-app-device"]').should('not.exist')
+            cy.get('[data-el="row-application-2-instance-1-device"]').should('not.exist')
+
+            // todo application-3 (viewer role) devices should be present but the user shouldn't be able to access device actions
+            cy.get('[data-el="row-application-3-app-device"]').should('exist')
+            cy.get('[data-el="row-application-3-app-device"]').within(() => {
+                cy.get('[data-el="kebab-menu"]').should('not.exist')
+            })
+            cy.get('[data-el="row-application-3-instance-1-device"]').should('exist')
+            cy.get('[data-el="row-application-3-instance-1-device"]').within(() => {
+                cy.get('[data-el="kebab-menu"]').should('not.exist')
+            })
+
+            // application-4 (member role) devices should be present, and the user should be able to access device actions
+            cy.get('[data-el="row-application-4-app-device"]').should('exist')
+            cy.get('[data-el="row-application-4-app-device"]').within(() => {
+                cy.get('[data-el="kebab-menu"]').should('exist')
+            })
+            cy.get('[data-el="row-application-4-instance-1-device"]').should('exist')
+            cy.get('[data-el="row-application-4-instance-1-device"]').within(() => {
+                cy.get('[data-el="kebab-menu"]').should('exist')
+            })
+
+            // application-5 (owner role) devices should be present, and the user should be able to access device actions
+            cy.get('[data-el="row-application-5-app-device"]').should('exist')
+            cy.get('[data-el="row-application-5-app-device"]').within(() => {
+                cy.get('[data-el="kebab-menu"]').should('exist')
+            })
+            cy.get('[data-el="row-application-5-instance-1-device"]').should('exist')
+            cy.get('[data-el="row-application-5-instance-1-device"]').within(() => {
+                cy.get('[data-el="kebab-menu"]').should('exist')
+            })
+
+            // application-6 should have the user's default type access (owner)
+            cy.get('[data-el="row-application-6-app-device"]').should('exist')
+            cy.get('[data-el="row-application-6-app-device"]').within(() => {
+                cy.get('[data-el="kebab-menu"]').should('exist')
+            })
+            cy.get('[data-el="row-application-6-instance-1-device"]').should('exist')
+            cy.get('[data-el="row-application-6-instance-1-device"]').within(() => {
+                cy.get('[data-el="kebab-menu"]').should('exist')
+            })
         })
 
         // applications
