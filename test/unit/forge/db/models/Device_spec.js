@@ -563,7 +563,6 @@ describe('Device model', function () {
             // increase license limits
             app.license.defaults.devices = 20
             app.license.defaults.instances = 20
-            
             // Load TeamType association for TestObjects.team1
             await app.TestObjects.team1.reload({ include: [{ model: app.db.models.TeamType }] })
         })

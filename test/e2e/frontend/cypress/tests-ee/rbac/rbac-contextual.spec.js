@@ -49,7 +49,7 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
         })
 
         // dashboard
-        it.only('should not have restricted remote instances listed on the dashboard page', () => {
+        it('should not have restricted remote instances listed on the dashboard page', () => {
             cy.get('[data-el="dashboard-section-hosted"]').within(() => {
                 // todo: this test is failing because the dashboard is not loading properly
                 // out of 6 teams with 1 instance each, one team has restricted role, for another viewer role

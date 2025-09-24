@@ -498,7 +498,6 @@ describe('Project model', function () {
             const instance7 = await app.db.models.Project.create({ name: 'p7', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
             const instance8 = await app.db.models.Project.create({ name: 'p8', type: '', url: '', state: 'suspended', TeamId: numericTeamId, ApplicationId: numericApp2Id })
 
-            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
             const hashedAppId = app.db.models.Application.encodeHashid(application1.id)
 
             const result = await app.db.models.Project.countByState(states, team, hashedAppId, null)
@@ -547,7 +546,6 @@ describe('Project model', function () {
             const instance7 = await app.db.models.Project.create({ name: 'p7', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
             const instance8 = await app.db.models.Project.create({ name: 'p8', type: '', url: '', state: 'stopped', TeamId: numericTeamId, ApplicationId: numericApp2Id })
 
-            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
             const hashedAppId = app.db.models.Application.encodeHashid(application1.id)
 
             const result = await app.db.models.Project.countByState(states, team, hashedAppId, null)
