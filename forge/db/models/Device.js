@@ -653,7 +653,7 @@ module.exports = {
                     }
 
                     const statesMap = {}
-                    const findAll = this.findAll({
+                    const findAll = await this.findAll({
                         include: [
                             {
                                 model: M.Application,
@@ -674,8 +674,9 @@ module.exports = {
                         }
                     })
 
-                    findAll.filter((project) => {
-                        return app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid })
+                    findAll.filter((device) => {
+                        const context = device.Application ? { applicationId: device.Application.hashid } : {}
+                        return app.hasPermission(membership, 'project:read', context)
                     }).forEach(res => {
                         const state = Controllers.Project.getLatestProjectState(res.id) ?? res.state
                         statesMap[state] = (statesMap[state] || 0) + 1
