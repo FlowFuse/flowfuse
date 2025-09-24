@@ -9,17 +9,7 @@
                             {{ application.name }}
                         </ff-team-link>
                     </span>
-                    <span class="item role w-40 flex gap-1 items-center">
-                        <component
-                            :is="application.icon"
-                            v-if="application.icon"
-                            :class="application.iconClass"
-                            class="ff-icon ff-icon-sm"
-                        />
-                        <span :class="application.roleClass">
-                            {{ application.role }}
-                        </span>
-                    </span>
+                    <RoleCompare :baseRole="data.role" :overrideRole="application.role" class="w-40" />
                     <span class="item action w-40 pl-5">
                         <PencilAltIcon class="ff-icon ff-icon-sm ff-link" @click.prevent="onUpdateRole(application)" />
                     </span>
@@ -33,14 +23,12 @@
 import { ArrowDownIcon, ArrowUpIcon, BanIcon, PencilAltIcon } from '@heroicons/vue/outline'
 import { defineComponent } from 'vue'
 
+import RoleCompare from '../../../../components/permissions/RoleCompare.vue'
 import FfTeamLink from '../../../../components/router-links/TeamLink.vue'
-
-import { capitalize } from '../../../../composables/String.js'
-import { RoleNames } from '../../../../utils/roles.js'
 
 export default defineComponent({
     name: 'ApplicationPermissionsRow',
-    components: { FfTeamLink, PencilAltIcon },
+    components: { FfTeamLink, PencilAltIcon, RoleCompare },
     props: {
         applications: {
             required: true,
@@ -65,21 +53,16 @@ export default defineComponent({
             return this.applications.map(application => {
                 const teamRole = parseInt(this.data.role)
                 const customRole = this.getCustomRoleForApplication(application)
-                const { icon, iconClass, roleClass } = this.getRoleIconProperties(customRole, teamRole)
 
                 return {
                     id: application.id,
                     name: application.name,
-                    role: capitalize(this.formatRole(customRole ?? teamRole)),
-                    icon,
-                    iconClass,
-                    roleClass
+                    role: customRole ?? teamRole
                 }
             })
         }
     },
     methods: {
-        formatRole: r => RoleNames[r] || 'unknown',
         getCustomRoleForApplication (application) {
             let customRole = null
             if (
@@ -90,37 +73,6 @@ export default defineComponent({
             }
 
             return customRole
-        },
-        getRoleIconProperties (customRole, teamRole) {
-            let icon
-            let iconClass
-            let roleClass = ''
-
-            switch (true) {
-            case parseInt(customRole) === 0:
-                icon = this.BanIcon
-                iconClass = 'text-red-500'
-                break
-            case parseInt(customRole) < teamRole:
-                icon = this.ArrowDownIcon
-                iconClass = 'text-red-500'
-                break
-            case parseInt(customRole) > teamRole:
-                icon = this.ArrowUpIcon
-                iconClass = 'text-green-500'
-                break
-            case parseInt(customRole) === null:
-            case parseInt(customRole) === teamRole:
-            case Number.isNaN(customRole):
-            default:
-                roleClass = 'opacity-50'
-                icon = null
-            }
-            return {
-                icon,
-                iconClass,
-                roleClass
-            }
         },
         onUpdateRole (application) {
             const payload = {
