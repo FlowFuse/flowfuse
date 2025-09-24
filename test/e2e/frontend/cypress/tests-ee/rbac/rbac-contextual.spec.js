@@ -1098,26 +1098,70 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
         })
 
         // groups
-        it.skip('should not have direct access to a group when accessing via url', () => {
+        it('should not have restricted applications in the team create group dialog', () => {
+            cy.get('[data-nav="device-groups"]').click()
+            cy.get('[data-action="create-device-group"]').click()
+            cy.get('[data-el="applications-list"]').click()
+            cy.get('[data-option="application-1"]').should('not.exist') // restricted role
+            cy.get('[data-option="application-2"]').should('not.exist') // dashboard role
+            cy.get('[data-option="application-3"]').should('not.exist') // viewer role
+            cy.get('[data-option="application-4"]').should('not.exist') // member role
+            cy.get('[data-option="application-5"]').should('exist') // owner role
+            cy.get('[data-option="application-6"]').should('exist') // default role
         })
-        it.skip('should not have restricted groups listed in the groups page', () => { })
+        it.skip('should not have restricted groups listed in the groups page', () => {
+            cy.get('[data-nav="device-groups"]').click()
+            // todo should seed device groups for each application in order to test
+        })
 
         // pipelines
         it.skip('should not have direct access to a pipeline belonging to a restricted application when accessing via url', () => {
+            cy.get('[data-nav="team-pipelines"]').click()
+            // todo should seed pipelines for each application in order to test
         })
         it.skip('should not have restricted pipelines belonging to a restricted application listed in the pipelines page', () => {
+            cy.get('[data-nav="team-pipelines"]').click()
+            // todo should seed pipelines for each application in order to test
         })
 
         // bill of materials
-        it.skip('should not have instances belonging to restricted applications listed in the bill of materials page', () => {
+        it('should not have instances belonging to restricted applications listed in the bill of materials page', () => {
+            cy.get('[data-nav="team-bom"]').click()
+
+            // open all dependency items and version lists
+            cy.get('[data-el="dependency-item"]').click({ multiple: true })
+            cy.get('[data-el="versions-list"]').click({ multiple: true })
+
+            const restrictedInstances = ['application-1-instance-1', 'application-2-instance-1']
+            instances.forEach(instance => {
+                cy.get(`[data-item="${instance.name}"]`).should(restrictedInstances.includes(instance.name) ? 'not.exist' : 'exist')
+            })
+
+            const restrictedDevices = [
+                'application-1-app-device',
+                'application-1-instance-1-device',
+                'application-2-app-device',
+                'application-2-instance-1-device'
+            ]
+            devices.forEach(device => {
+                cy.get(`[data-item="${device.name}"]`).should(restrictedDevices.includes(device.name) ? 'not.exist' : 'exist')
+            })
         })
 
         // brokers
         it.skip('should not have access to ff-broker clients created by instances belonging to restricted applications', () => {
+            cy.get('[data-nav="team-brokers"]').click()
+            // todo need to seed instance broker clients for each instance in order to test
         })
 
         // performance
-        it.skip('should not have access to instances and their performance data belonging to restricted applications', () => {
+        it.only('should not have access to instances and their performance data belonging to restricted applications', () => {
+            cy.get('[data-nav="team-performance"]').click()
+            cy.get('[data-el="loading"]').should('not.exist')
+            const restrictedInstances = ['application-1-instance-1', 'application-2-instance-1']
+            instances.forEach(instance => {
+                cy.get(`[data-el="row-${instance.name}"]`).should(restrictedInstances.includes(instance.name) ? 'not.exist' : 'exist')
+            })
         })
     })
 })
