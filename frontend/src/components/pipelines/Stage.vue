@@ -10,7 +10,7 @@
             </div>
             <div class="ff-pipeline-actions">
                 <span
-                    v-if="hasPermission('pipeline:edit')"
+                    v-if="hasPermission('pipeline:edit', { application })"
                     v-ff-tooltip:right="'Edit Pipeline Stage'"
                     data-action="stage-edit"
                     @click="edit"
@@ -21,7 +21,7 @@
                     />
                 </span>
                 <span
-                    v-if="hasPermission('pipeline:delete')"
+                    v-if="hasPermission('pipeline:delete',{ application })"
                     v-ff-tooltip:right="'Delete Pipeline Stage'"
                     data-action="stage-delete"
                     @click="deleteStage"
@@ -32,7 +32,7 @@
                     />
                 </span>
                 <span
-                    v-if="hasPermission('pipeline:edit')"
+                    v-if="hasPermission('pipeline:edit',{ application })"
                     v-ff-tooltip:right="'Run Pipeline Stage'"
                     data-action="stage-run"
                     :class="{'ff-disabled': !playEnabled || !pipeline?.id || deploying }"

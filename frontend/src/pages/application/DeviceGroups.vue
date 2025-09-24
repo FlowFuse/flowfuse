@@ -36,7 +36,11 @@
             <p>The device groups can then be set as the target in a Pipeline to update multiple Remote Instances in a single operation</p>
         </template>
         <template #actions>
-            <ff-button data-action="create-device-group" :disabled="!featureEnabled" @click="showCreateDeviceGroupDialog">
+            <ff-button
+                v-if="hasPermission('application:device-group:create', {application: application})"
+                data-action="create-device-group" :disabled="!featureEnabled"
+                @click="showCreateDeviceGroupDialog"
+            >
                 <template #icon-left><PlusSmIcon /></template>
                 Add Device Group
             </ff-button>
