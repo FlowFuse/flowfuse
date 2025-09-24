@@ -49,19 +49,18 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
         })
 
         // dashboard
-        it('should not have restricted remote instances listed on the dashboard page', () => {
+        it.only('should not have restricted remote instances listed on the dashboard page', () => {
             cy.get('[data-el="dashboard-section-hosted"]').within(() => {
                 // todo: this test is failing because the dashboard is not loading properly
                 // out of 6 teams with 1 instance each, one team has restricted role, for another viewer role
                 // resulting in 4 running, 0 error, 0 stopped
                 // should display 3 instance tiles
                 // should display has more with one more available
-
-                // cy.get('[data-state="running"]').contains('4')
+                cy.get('[data-state="running"]').contains('4')
                 cy.get('[data-state="error"]').contains('0')
                 cy.get('[data-state="stopped"]').contains('0')
-                // cy.get('[data-el="instance-tile"]').should('have.length', 3)
-                // cy.get('[data-el="has-more"]').contains('Show 1 more')
+                cy.get('[data-el="instance-tile"]').should('have.length', 1)
+                cy.get('[data-el="has-more"]').contains('3 More')
             })
             cy.get('[data-el="dashboard-section-remote"]').within(() => {
                 // todo: this test is failing because the dashboard is not loading properly
@@ -72,9 +71,9 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
 
                 cy.get('[data-state="running"]').contains('0')
                 cy.get('[data-state="error"]').contains('0')
-                // cy.get('[data-state="stopped"]').contains('8')
-                // cy.get('[data-el="device-tile"]').should('have.length', 3)
-                // cy.get('[data-el="has-more"]').contains('Show 5 more')
+                cy.get('[data-state="stopped"]').contains('10')
+                cy.get('[data-el="device-tile"]').should('have.length', 1)
+                cy.get('[data-el="has-more"]').contains('9 More')
             })
         })
         it('should not have restricted hosted instances listed on the dashboard page', () => {

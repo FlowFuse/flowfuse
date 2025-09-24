@@ -11,7 +11,7 @@
                 />
             </li>
             <li v-if="hasMore" class="device-wrapper flex">
-                <team-link :to="{name: 'TeamDevices'}" class="device-tile has-more hover:text-indigo-700">
+                <team-link :to="{name: 'TeamDevices'}" class="device-tile has-more hover:text-indigo-700" data-el="has-more">
                     <span>{{ instancesLeft }} More</span>
                     <span>
                         <ChevronRightIcon class="ff-icon ff-icon-sm" />
