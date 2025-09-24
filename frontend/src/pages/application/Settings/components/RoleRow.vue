@@ -1,7 +1,7 @@
 <template>
     <div class="role-row-cell">
         <div class="actual-role">
-            <h4 class="font-bold">{{ hasAlteredRole ? readableAlteredRole : readableRole }}</h4>
+            <span class="font-bold">{{ hasAlteredRole ? readableAlteredRole : readableRole }}</span>
         </div>
         <div v-if="hasAlteredRole" class="team-tole text-gray-500 italic flex gap-1">
             <span>Team Role:</span>
