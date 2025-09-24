@@ -231,17 +231,19 @@ describe('FlowFuse - RBAC GUI Management', () => {
             cy.get('[data-el="application-item"]').first().click()
             cy.get('[data-nav="application-settings"]').first().click()
 
-            // check that the user access side tab is present
-            cy.get('[data-nav="user-access"]').should('exist')
-
             // click on the user access tab
-            cy.get('[data-nav="user-access"]').click()
+            cy.get('[data-nav="user-access"]').should('not.exist')
 
-            // check that we can see the user access page
-            cy.get('[data-el="application-user-access"]').should('exist')
+            cy.url().then((url) => {
+                const modifiedUrl = url.split('/').join('/') + '/user-access'
+                cy.visit(modifiedUrl)
+            })
 
-            // check that we can see team members in the user access page
-            cy.get('[data-el="user-access-table"]').should('exist')
+            // check that we can't see the user access page
+            cy.get('[data-el="application-user-access"]').should('not.exist')
+
+            // check that we've been redirected to the application's overview page
+            cy.get('[data-el="application-summary"]').should('exist')
         })
 
         it('team members should not be able to access the team or application role management page', () => {
