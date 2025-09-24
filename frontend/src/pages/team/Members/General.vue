@@ -153,7 +153,7 @@ export default {
                                 }
                             },
                             template: `
-                                <span v-if="alteredPermissions === 0" class="opacity-50">None</span>
+                                <span v-if="alteredPermissions === 0" class="opacity-50">No Overrides</span>
                                 <span v-else>{{alteredPermissions}} x {{ this.pluralize('Override', 1) }}</span>
                             `
                         }))
