@@ -1,7 +1,7 @@
 <template>
     <ff-loading v-if="loading.deleting" message="Deleting Device..." />
     <FormHeading v-if="!loading.deleting" class="text-red-700">Delete Remote Instance</FormHeading>
-    <div v-if="!loading.deleting" class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+    <div v-if="!loading.deleting" class="flex flex-col lg:flex-row max-w-2xl space-y-4" data-el="device-danger">
         <div class="flex-grow">
             <div class="max-w-sm pt-2">
                 Once deleted, your Remote Instance is removed. This cannot be undone.

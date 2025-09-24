@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <form class="space-y-6" data-el="device-security">
         <div
             v-if="!securityOptionsSupported"
             class="ff-page-banner my-4"
