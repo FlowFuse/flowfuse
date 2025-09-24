@@ -27,6 +27,7 @@ export default {
     name: 'DeviceSettingsDanger',
     props: ['device'],
     emits: ['device-updated'],
+    inheritAttrs: false,
     components: {
         ConfirmDeviceDeleteDialog,
         FormHeading
@@ -47,6 +48,9 @@ export default {
         }
     },
     mounted () {
+        if (!this.hasPermission('device:edit', { application: this.device.application })) {
+            return this.$router.replace({ name: 'device-settings' })
+        }
         this.checkAccess()
     },
     methods: {
