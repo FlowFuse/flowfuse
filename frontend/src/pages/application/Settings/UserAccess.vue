@@ -68,8 +68,11 @@ export default defineComponent({
         }
     },
     mounted () {
-        if (!this.featuresCheck.isRBACApplicationFeatureEnabled || !this.hasPermission('application:access-control')) {
-            return this.$router.push({ name: 'Application', params: { id: this.application.id } })
+        if (
+            !this.featuresCheck.isRBACApplicationFeatureEnabled ||
+            !this.hasPermission('application:access-control', { application: this.application })
+        ) {
+            return this.$router.push({ name: 'application-settings', params: { id: this.application.id } })
         }
         this.getUsers()
             .catch(error => error)
