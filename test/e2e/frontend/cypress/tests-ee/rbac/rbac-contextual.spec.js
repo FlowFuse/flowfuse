@@ -41,7 +41,9 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
     //     // hosted instances
     //     it('should not have direct access to a hosted instance when accessing via url', () => {})
     //     it('should not have restricted hosted instances listed in the instances page', () => {})
-    //     it('should not be able to access hosted instance actions belonging to applications of lesser role', () => {})
+    //     it('should not be able to access hosted instance actions belonging to applications of viewer role', () => {})
+    //     it('should be able to access hosted instance actions belonging to applications of member role', () => {})
+    //     it('should be able to access hosted instance actions belonging to applications of owner role', () => {})
     //     it('should not allow users with lesser roles than the team role to make changes to the instance', () => {})
     //     it('should allow users with greater roles than the team role to make changes to the hosted instance', () => {})
     //     it('should not list restricted applications when creating hosted instances', () => {})
@@ -172,51 +174,84 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
                 cy.get('[data-el="row-application-4-instance-1"] [data-el="kebab-menu"]').should('exist')
             })
         })
-        it.only('should not be able to access hosted instance actions belonging to applications of lesser role', () => {
-            // the user should have a viewer role in this application
-            const application3Instance1 = instances.find(i => i.name === 'application-3-instance-1')
-            // the user should have a member role in this application
-            const application4Instance1 = instances.find(i => i.name === 'application-4-instance-1')
-            // the user should have his own role in this application
-            const application5Instance1 = instances.find(i => i.name === 'application-5-instance-1')
+        it('should not be able to access hosted instance actions belonging to applications of viewer role', () => {
+            cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
+            cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
 
-            cy.visit(`/instance/${application4Instance1.id}`)
+            // the user should have a viewer role in this application
+            const applicationViewerRoleApp = instances.find(i => i.name === 'application-3-instance-1')
+
+            cy.visit(`/instance/${applicationViewerRoleApp.id}`)
+
+            // check instance overview page
             cy.get('[data-el="action-button"]').should('not.exist')
             cy.get('[data-action="open-editor"]').should('exist').should('not.be.disabled')
             cy.get('[data-action="open-dashboard"]').should('exist').should('not.be.disabled')
-            // check instance home page for recent activity section being present
+            cy.get('[data-el="recent-activity"]').should('exist')
 
             // go to devices page
             //      check that the user can't add a device
             //      check that the user can't edit a device
             //      check the user can't select devices)
+            cy.get('[data-nav="instance-remote"]').click()
+            cy.wait('@getDevices')
+            cy.get('[data-el="bulk-actions-dropdown"]').should('not.exist')
+            cy.get('[data-action="change-target-snapshot"]').should('not.exist')
+            cy.get('[data-action="register-device"]').should('not.exist')
+            // todo a user with a team role of viewer should not be able to update the target snapshot, register a device or select devices
+            // cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
 
             // go to version history page
             //      check that the user sees the version history
             //      check that the user can download package.json but can't access any other action items on hostory items
+            cy.get('[data-nav="instance-version-history"]').click()
+            cy.get('[data-action="create-snapshot"]').should('not.exist')
 
             // go to version history snapshots page
             //      check that the user sees snapshots'
             //      check that the user can download package json
             //      check that the user can't access any other action items on snapshots
+            // todo add a snapshot to check the above
 
             // check that the user doesn't have access to the assets tab similarly to the team roled user
+            cy.get('[data-nav="instance-assets"]').should('not.exist')
+            cy.visit(`/instance/${applicationViewerRoleApp.id}/assets`)
+            cy.get('[data-el="instance-overview"]').should('exist')
 
             // check that the user has access to the audit log tab similarly to the team roled user
             //      check that the user has access to the audit log
+            cy.get('[data-nav="instance-activity"]').click()
+            cy.get('[data-el="audit-log"]').should('exist')
+            // todo add an audit log event to check that the user can see it
 
             // check that the user has access to the logs tab similarly to the team roled user
             //      check that the user has access to the logs
+            cy.get('[data-nav="instance-logs"]').click()
+            cy.get('[data-el="instance-logs"]').should('exist')
 
             // check that the user has access to the performance tab similarly to the team roled user
             //      check that the user has access to the performance metrics
+            cy.get('[data-nav="instance-performance"]').click()
+            cy.get('[data-el="empty-state"]').contains('Performance Insights')
 
             // check that the user has access to the settings tab similarly to the team roled user
             //      check that the user has access to the general instance details & hosting section
             //      check that the user doesn't have access to the other general details
+            cy.get('[data-nav="instance-settings"]').click()
+            cy.get('[data-el="instance-settings"]').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Instance Details').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Hosting').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Change Instance Node-RED Version').should('not.exist')
+            cy.get('[data-el="instance-settings"]').contains('Copy Instance').should('not.exist')
+            cy.get('[data-el="instance-settings"]').contains('Import Instance').should('not.exist')
+            cy.get('[data-el="instance-settings"]').contains('Change Instance Type').should('not.exist')
+            cy.get('[data-el="instance-settings"]').contains('Suspend Instance').should('not.exist')
+            cy.get('[data-el="instance-settings"]').contains('Delete Instance').should('not.exist')
 
             // check that the user has access to the settings environment tab similarly to the team roled user
-            //      check that the user can't change/add/remove/import environment variables
+            cy.get('[data-nav="environment"]').click()
+            cy.get('[data-action="import-env"]').should('not.exist')
+            cy.get('[data-el="add-variable"]').should('not.exist')
 
             // check that the user doesn't have access to the following settings tab similarly to the team roled user (or direct access to the tabs via url
             //      Protect Instance
@@ -225,47 +260,584 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
             //      Palette
             //      Launcher
             //      Alerts
-
-            // repeat checks for application4Instance1 & application5Instance1
+            cy.get('[data-el="instance-settings"] [data-nav="general"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="environment"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="high-availability"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="protect-instance"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="editor"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="security"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="palette"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="launcher"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="alerts"]').should('not.exist')
+            // check direct url access as well
+            const protectedRoutes = [
+                'protectInstance',
+                'ha',
+                'editor',
+                'security',
+                'palette',
+                'change-type',
+                'launcher',
+                'alerts'
+            ]
+            protectedRoutes.forEach(tab => {
+                cy.visit(`/instance/${applicationViewerRoleApp.id}/settings/${tab}`)
+                cy.get('[data-el="instance-settings-general"]').should('exist')
+            })
         })
-        it('should not allow users with lesser roles than the team role to make changes to the instance', () => {})
-        it('should allow users with greater roles than the team role to make changes to the hosted instance', () => {})
-        it('should not list restricted applications when creating hosted instances', () => {})
-        it('should have member role access to hosted instances belonging to restricted applications', () => {})
-        it('should have viewer role access to hosted instances belonging to restricted applications', () => {})
-        it('should have dashboard role access to hosted instances belonging to restricted applications', () => {})
+        it('should be able to access hosted instance actions belonging to applications of member role', () => {
+            cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
+            cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+
+            // the user should have a member role in this application
+            const memberRoleApp = instances.find(i => i.name === 'application-4-instance-1')
+
+            cy.visit(`/instance/${memberRoleApp.id}`)
+
+            // check instance overview page
+            cy.get('[data-el="action-button"]').should('not.exist')
+            cy.get('[data-action="open-editor"]').should('exist').should('not.be.disabled')
+            cy.get('[data-action="open-dashboard"]').should('exist').should('not.be.disabled')
+            cy.get('[data-el="recent-activity"]').should('exist')
+
+            // go to devices page
+            //      check that the user can't add a device
+            //      check that the user can't edit a device
+            //      check the user can't select devices)
+            cy.get('[data-nav="instance-remote"]').click()
+            cy.wait('@getDevices')
+            cy.get('[data-el="bulk-actions-dropdown"]').should('not.exist')
+            cy.get('[data-action="change-target-snapshot"]').should('exist')
+            cy.get('[data-action="register-device"]').should('not.exist')
+            // todo a user with a team role of member should not be able to update the target snapshot, register a device or select devices
+            // cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
+
+            // go to version history page
+            //      check that the user sees the version history
+            //      check that the user can download package.json but can't access any other action items on hostory items
+            cy.get('[data-nav="instance-version-history"]').click()
+            cy.get('[data-action="create-snapshot"]').should('exist')
+
+            // go to version history snapshots page
+            //      check that the user sees snapshots'
+            //      check that the user can download package json
+            //      check that the user can't access any other action items on snapshots
+            // todo add a snapshot to check the above
+
+            // check that the user doesn't have access to the assets tab similarly to the team roled user
+            cy.get('[data-nav="instance-assets"]').should('exist')
+
+            // check that the user has access to the audit log tab similarly to the team roled user
+            //      check that the user has access to the audit log
+            cy.get('[data-nav="instance-activity"]').click()
+            cy.get('[data-el="audit-log"]').should('exist')
+            // todo add an audit log event to check that the user can see it
+
+            // check that the user has access to the logs tab similarly to the team roled user
+            //      check that the user has access to the logs
+            cy.get('[data-nav="instance-logs"]').click()
+            cy.get('[data-el="instance-logs"]').should('exist')
+
+            // check that the user has access to the performance tab similarly to the team roled user
+            //      check that the user has access to the performance metrics
+            cy.get('[data-nav="instance-performance"]').click()
+            cy.get('[data-el="empty-state"]').contains('Performance Insights')
+
+            // check that the user has access to the settings tab similarly to the team roled user
+            //      check that the user has access to the general instance details & hosting section
+            //      check that the user doesn't have access to the other general details
+            cy.get('[data-nav="instance-settings"]').click()
+            cy.get('[data-el="instance-settings"]').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Instance Details').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Hosting').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Change Instance Node-RED Version').should('not.exist')
+            cy.get('[data-el="instance-settings"]').contains('Copy Instance').should('not.exist')
+            cy.get('[data-el="instance-settings"]').contains('Import Instance').should('not.exist')
+            cy.get('[data-el="instance-settings"]').contains('Change Instance Type').should('not.exist')
+            cy.get('[data-el="instance-settings"]').contains('Suspend Instance').should('not.exist')
+            cy.get('[data-el="instance-settings"]').contains('Delete Instance').should('not.exist')
+
+            // check that the user has access to the settings environment tab similarly to the team roled user
+            cy.get('[data-nav="environment"]').click()
+            cy.get('[data-action="import-env"]').should('exist')
+            cy.get('[data-el="add-variable"]').should('exist')
+
+            // check that the user doesn't have access to the following settings tab similarly to the team roled user (or direct access to the tabs via url
+            //      Protect Instance
+            //      Editor
+            //      Security
+            //      Palette
+            //      Launcher
+            //      Alerts
+            cy.get('[data-el="instance-settings"] [data-nav="general"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="environment"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="high-availability"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="protect-instance"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="editor"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="security"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="palette"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="launcher"]').should('not.exist')
+            cy.get('[data-el="instance-settings"] [data-nav="alerts"]').should('not.exist')
+            // check direct url access as well
+            const protectedRoutes = [
+                'protectInstance',
+                'ha',
+                'editor',
+                'security',
+                'palette',
+                'change-type',
+                'launcher',
+                'alerts'
+            ]
+            protectedRoutes.forEach(tab => {
+                cy.visit(`/instance/${memberRoleApp.id}/settings/${tab}`)
+                cy.get('[data-el="instance-settings-general"]').should('exist')
+            })
+        })
+        it('should be able to access hosted instance actions belonging to applications of owner role', () => {
+            cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
+            cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+
+            // the user should have theowner role in this application
+            const ownerRoleApp = instances.find(i => i.name === 'application-5-instance-1')
+
+            cy.visit(`/instance/${ownerRoleApp.id}`)
+
+            // check instance overview page
+            cy.get('[data-el="action-button"]').should('not.exist')
+            cy.get('[data-action="open-editor"]').should('exist').should('not.be.disabled')
+            cy.get('[data-action="open-dashboard"]').should('exist').should('not.be.disabled')
+            cy.get('[data-el="recent-activity"]').should('exist')
+
+            // go to devices page
+            //      check that the user can't add a device
+            //      check that the user can't edit a device
+            //      check the user can't select devices)
+            cy.get('[data-nav="instance-remote"]').click()
+            cy.wait('@getDevices')
+            cy.get('[data-el="bulk-actions-dropdown"]').should('exist')
+            cy.get('[data-action="change-target-snapshot"]').should('exist')
+            cy.get('[data-action="register-device"]').should('exist')
+            // todo a user with a team role of member should not be able to update the target snapshot, register a device or select devices
+            // cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
+
+            // go to version history page
+            //      check that the user sees the version history
+            //      check that the user can download package.json but can't access any other action items on hostory items
+            cy.get('[data-nav="instance-version-history"]').click()
+            cy.get('[data-action="create-snapshot"]').should('exist')
+
+            // go to version history snapshots page
+            //      check that the user sees snapshots'
+            //      check that the user can download package json
+            //      check that the user can't access any other action items on snapshots
+            // todo add a snapshot to check the above
+
+            // check that the user doesn't have access to the assets tab similarly to the team roled user
+            cy.get('[data-nav="instance-assets"]').should('exist')
+
+            // check that the user has access to the audit log tab similarly to the team roled user
+            //      check that the user has access to the audit log
+            cy.get('[data-nav="instance-activity"]').click()
+            cy.get('[data-el="audit-log"]').should('exist')
+            // todo add an audit log event to check that the user can see it
+
+            // check that the user has access to the logs tab similarly to the team roled user
+            //      check that the user has access to the logs
+            cy.get('[data-nav="instance-logs"]').click()
+            cy.get('[data-el="instance-logs"]').should('exist')
+
+            // check that the user has access to the performance tab similarly to the team roled user
+            //      check that the user has access to the performance metrics
+            cy.get('[data-nav="instance-performance"]').click()
+            cy.get('[data-el="empty-state"]').contains('Performance Insights')
+
+            // check that the user has access to the settings tab similarly to the team roled user
+            //      check that the user has access to the general instance details & hosting section
+            //      check that the user doesn't have access to the other general details
+            cy.get('[data-nav="instance-settings"]').click()
+            cy.get('[data-el="instance-settings"]').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Instance Details').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Hosting').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Change Instance Node-RED Version').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Copy Instance').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Import Instance').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Change Instance Type').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Suspend Instance').should('exist')
+            cy.get('[data-el="instance-settings"]').contains('Delete Instance').should('exist')
+
+            // check that the user has access to the settings environment tab similarly to the team roled user
+            cy.get('[data-nav="environment"]').click()
+            cy.get('[data-action="import-env"]').should('exist')
+            cy.get('[data-el="add-variable"]').should('exist')
+
+            // check that the user doesn't have access to the following settings tab similarly to the team roled user (or direct access to the tabs via url
+            //      Protect Instance
+            //      Editor
+            //      Security
+            //      Palette
+            //      Launcher
+            //      Alerts
+            cy.get('[data-el="instance-settings"] [data-nav="general"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="environment"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="high-availability"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="protect-instance"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="editor"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="security"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="palette"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="launcher"]').should('exist')
+            cy.get('[data-el="instance-settings"] [data-nav="alerts"]').should('exist')
+            // check direct url access as well
+            const protectedRoutes = [
+                { tag: 'protect-instance', check: 'Protect Instance' },
+                { tag: 'high-availability', check: 'High Availability' },
+                { tag: 'editor', check: '', el: 'data-el="instance-editor"' },
+                { tag: 'security', check: 'HTTP Node CORS' },
+                { tag: 'palette', check: '', el: 'data-el="instance-palette"' },
+                { tag: 'launcher', check: 'Launcher Settings' },
+                { tag: 'alerts', check: 'Email Alerts' }
+            ]
+            protectedRoutes.forEach(tab => {
+                cy.get(`[data-nav="${tab.tag}"]`).click()
+                if (tab.el) {
+                    cy.get(`[${tab.el}]`).should('exist')
+                } else {
+                    cy.contains(tab.check)
+                }
+            })
+        })
+        it('should not list restricted applications when creating hosted instances', () => {
+            cy.get('[data-nav="team-instances"]').click()
+            cy.get('[data-action="create-project"]').should('exist')
+            cy.get('[data-action="create-project"]').should('not.be.disabled')
+            cy.get('[data-action="create-project"]').click()
+
+            cy.get('[data-form="multi-step-form"]').contains('Choose an Application')
+
+            cy.get('[data-el="application-item"]').contains('application-1').should('not.exist')
+            cy.get('[data-el="application-item"]').contains('application-2').should('not.exist')
+            cy.get('[data-el="application-item"]').contains('application-3').should('not.exist')
+            cy.get('[data-el="application-item"]').contains('application-4').should('not.exist')
+            cy.get('[data-el="application-item"]').contains('application-5').should('exist')
+            cy.get('[data-el="application-item"]').contains('application-6').should('exist')
+
+            // todo the MultiStepApplicationsInstanceForm form is broken
+        })
+        it('should have dashboard role access to hosted instances belonging to restricted applications', () => {
+            cy.get('[data-nav="team-instances"]').click()
+            // todo instances of application to which the user has dashboard role only should also be exposed in the
+            //  hosted instances list, currently they are not
+        })
 
         // remote instances
-        it('should not have direct access to a remote instance when accessing via url', () => {})
-        it('should not have restricted remote instances listed in the instances page', () => {})
-        it('should not be able to access remote instance actions belonging to applications of lesser role', () => {})
-        it('should not allow users with lesser roles than the team role to make changes to the instance', () => {})
-        it('should allow users with greater roles than the team role to make changes to the hosted instance', () => {})
-        it('should not list restricted applications when creating remote instances', () => {})
-        it('should have member role access to remote instances belonging to restricted applications', () => {})
-        it('should have viewer role access to remote instances belonging to restricted applications', () => {})
+        it('should handle direct url access of remote instances ', () => {
+            const forbiddenApplicationDevice = devices.find(i => i.name === 'application-1-app-device')
+            const forbiddenApplicationInstanceDevice = devices.find(i => i.name === 'application-1-instance-1-device')
+
+            const dashboardRoleApplicationDevice = devices.find(i => i.name === 'application-2-app-device')
+            const dashboardRoleApplicationInstanceDevice = devices.find(i => i.name === 'application-2-instance-1-device')
+
+            const viewRoleApplicationDevice = devices.find(i => i.name === 'application-3-app-device')
+            const viewRoleApplicationInstanceDevice = devices.find(i => i.name === 'application-3-instance-1-device')
+
+            const memberRoleApplicationDevice = devices.find(i => i.name === 'application-4-app-device')
+            const memberRoleApplicationInstanceDevice = devices.find(i => i.name === 'application-4-instance-1-device')
+
+            const ownerRoleApplicationDevice = devices.find(i => i.name === 'application-5-app-device')
+            const ownerRoleApplicationInstanceDevice = devices.find(i => i.name === 'application-5-instance-1-device')
+
+            cy.visit(`/device/${forbiddenApplicationDevice.id}`)
+            cy.get('[data-team="rbac-team"]#team-dashboard').should('exist')
+
+            // todo the backend should return a 403 for devices belonging to instances assigned to restricted applications
+            //  this is happening for forbidden roles
+            cy.visit(`/device/${forbiddenApplicationInstanceDevice.id}`)
+            cy.get('[data-team="rbac-team"]#team-dashboard').should('exist')
+
+            // todo this is also happening for dashboard roles
+            cy.visit(`/device/${dashboardRoleApplicationDevice.id}`)
+            cy.get('[data-page="not-found"]').should('exist')
+
+            // todo this is also happening for dashboard roles
+            cy.visit(`/device/${dashboardRoleApplicationInstanceDevice.id}`)
+            cy.get('[data-page="not-found"]').should('exist')
+
+            cy.visit(`/device/${viewRoleApplicationDevice.id}`)
+            cy.get('[data-el="nav-breadcrumb"]').contains('application-3-app-device')
+
+            cy.visit(`/device/${viewRoleApplicationInstanceDevice.id}`)
+            cy.get('[data-el="nav-breadcrumb"]').contains('application-3-instance-1-device')
+
+            cy.visit(`/device/${memberRoleApplicationDevice.id}`)
+            cy.get('[data-el="nav-breadcrumb"]').contains('application-4-app-device')
+
+            cy.visit(`/device/${memberRoleApplicationInstanceDevice.id}`)
+            cy.get('[data-el="nav-breadcrumb"]').contains('application-4-instance-1-device')
+
+            cy.visit(`/device/${ownerRoleApplicationDevice.id}`)
+            cy.get('[data-el="nav-breadcrumb"]').contains('application-5-app-device')
+
+            cy.visit(`/device/${ownerRoleApplicationInstanceDevice.id}`)
+            cy.get('[data-el="nav-breadcrumb"]').contains('application-5-instance-1-device')
+        })
+        it('should not have restricted remote instances listed in the instances page', () => {
+            cy.intercept('GET', '/api/*/teams/*/devices').as('getDevices')
+            cy.get('[data-nav="team-devices"]').click()
+            cy.get('[data-el="page-name"]').contains('Remote Instances')
+            cy.wait('@getDevices')
+            const devices = {
+                // todo the backend should not return restricted devices
+                // 'application-1-app-device': false,
+                // 'application-1-instance-1-device': false,
+                // 'application-2-app-device': false,
+                // 'application-2-instance-1-device': false,
+                'application-3-app-device': true,
+                'application-3-instance-1-device': true,
+                'application-4-app-device': true,
+                'application-4-instance-1-device': true,
+                'application-5-app-device': true,
+                'application-5-instance-1-device': true,
+                'application-6-app-device': true,
+                'application-6-instance-1-device': true
+            }
+            cy.get('[data-el="loading"]').should('not.exist')
+
+            Object.keys(devices).forEach((key, should) => {
+                const condition = devices[key] ? 'exist' : 'not.exist'
+                cy.get(`[data-el="row-${key}"]`).should(condition)
+            })
+        })
+        it('should not be able to access remote instance actions belonging to applications of viewer role', () => {
+            cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
+            cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+
+            // the user should have a viewer role in this application
+            const applicationViewerRoleApp = devices.find(i => i.name === 'application-3-app-device')
+
+            cy.visit(`/device/${applicationViewerRoleApp.id}`)
+
+            // check remote instance actions
+            cy.get('[data-el="device-devmode-toggle"] label[disabled="true"]').should('exist')
+            cy.get('[data-action="open-editor"]').should('exist').should('be.disabled')
+            // todo the finish setup button should not be visible to users that do not have edit permissions
+            cy.get('[data-action="finish-setup"]').should('not.exist')
+
+            // version history
+            cy.get('[data-nav="version-history"]').click()
+            cy.get('[data-action="create-snapshot"]').should('not.exist')
+            cy.get('[data-action="import-snapshot"]').should('not.exist')
+            cy.get('[data-el="empty-state"]').contains('Nothing to see here just yet!')
+            // todo check timeline actions dropdowns based on role
+            cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
+            // todo check snapshot actions dropdowns based on role & update the text message when the user doesn't have rights to create a snapshot
+            cy.get('[data-el="empty-state"]').contains('Create your First Snapshot')
+
+            // device-audit-log
+            cy.get('[data-nav="device-audit-log"]').click()
+            cy.get('[data-el="audit-log"]').should('exist')
+
+            // device log
+            cy.get('[data-nav="device-logs"]').click()
+            cy.get('[data-hero="Node-RED Logs"]').should('exist')
+
+            // performance
+            cy.get('[data-nav="device-performance"]').click()
+            cy.get('[data-hero="Remote Performance"]').should('exist')
+
+            // settings general
+            cy.get('[data-nav="device-settings"]').click()
+            cy.get('[data-el="device-settings-general"]').contains('General')
+            cy.get('[data-action="edit-device"]').should('not.exist')
+            cy.get('[data-el="change-version"]').should('not.exist')
+            cy.get('[data-el="assignment"]').contains('Assignment')
+
+            // settings environment
+            cy.get('[data-nav="environment"]').click()
+            // todo these action buttons should not be visible to users that do not have edit permissions
+            cy.get('[data-action="import-env"]').should('not.exist')
+            cy.get('[data-el="add-variable"]').should('not.exist')
+            cy.get('[data-el="submit"]').should('not.exist')
+
+            const tabs = [
+                'security',
+                'palette',
+                'danger'
+            ]
+
+            tabs.forEach(tab => {
+                cy.get(`[data-nav="${tab}"]`).should('not.exist')
+
+                cy.visit(`/device/${applicationViewerRoleApp.id}/settings/${tab}`)
+                cy.get('[data-el="device-settings-general"]').should('exist')
+            })
+        })
+        it('should not be able to access remote instance actions belonging to applications of member role', () => {
+            cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
+            cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+
+            // the user should have a viewer role in this application
+            const applicationMemberRoleApp = devices.find(i => i.name === 'application-4-app-device')
+
+            cy.visit(`/device/${applicationMemberRoleApp.id}`)
+
+            // check remote instance actions
+            cy.get('[data-el="device-devmode-toggle"] label[disabled="false"]').should('exist')
+            cy.get('[data-action="open-editor"]').should('exist').should('be.disabled')
+            // todo the finish setup button should not be visible to users that do not have edit permissions
+            cy.get('[data-action="finish-setup"]').should('exist')
+
+            // version history
+            cy.get('[data-nav="version-history"]').click()
+            cy.get('[data-action="create-snapshot"]').should('exist')
+            cy.get('[data-action="import-snapshot"]').should('not.exist')
+            cy.get('[data-el="empty-state"]').contains('Nothing to see here just yet!')
+            // todo check timeline actions dropdowns based on role
+            cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
+            // todo check snapshot actions dropdowns based on role & update the text message when the user doesn't have rights to create a snapshot
+            cy.get('[data-el="empty-state"]').contains('Create your First Snapshot')
+
+            // device-audit-log
+            cy.get('[data-nav="device-audit-log"]').click()
+            cy.get('[data-el="audit-log"]').should('exist')
+
+            // device log
+            // todo VM16940 async-vendors.js:6513 Uncaught (in promise) Error: Missing protocol
+            //     at Object.Pg (VM16940 async-vendors.js:6513:17693)
+            //     at Proxy.connectMQTT (VM16886 main.js:39745:26)
+            cy.get('[data-nav="device-logs"]').click()
+            cy.get('[data-hero="Node-RED Logs"]').should('exist')
+
+            // performance
+            cy.get('[data-nav="device-performance"]').click()
+            cy.get('[data-hero="Remote Performance"]').should('exist')
+
+            // settings general
+            cy.get('[data-nav="device-settings"]').click()
+            cy.get('[data-el="device-settings-general"]').contains('General')
+            cy.get('[data-action="edit-device"]').should('not.exist')
+            cy.get('[data-el="change-version"]').should('not.exist')
+            cy.get('[data-el="assignment"]').contains('Assignment')
+
+            // settings environment
+            cy.get('[data-nav="environment"]').click()
+            // todo these action buttons should not be visible to users that do not have edit permissions
+            cy.get('[data-action="import-env"]').should('exist')
+            cy.get('[data-el="add-variable"]').should('exist')
+            cy.get('[data-el="submit"]').should('exist')
+
+            const tabs = [
+                'security',
+                'palette',
+                'danger'
+            ]
+
+            tabs.forEach(tab => {
+                cy.get(`[data-nav="${tab}"]`).should('not.exist')
+
+                cy.visit(`/device/${applicationMemberRoleApp.id}/settings/${tab}`)
+                cy.get('[data-el="device-settings-general"]').should('exist')
+            })
+        })
+        it('should not be able to access remote instance actions belonging to applications of owner role', () => {
+            cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
+            cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+
+            // the user should have a viewer role in this application
+            const applicationOwnerRoleApp = devices.find(i => i.name === 'application-5-app-device')
+
+            cy.visit(`/device/${applicationOwnerRoleApp.id}`)
+
+            // check remote instance actions
+            cy.get('[data-el="device-devmode-toggle"] label[disabled="false"]').should('exist')
+            cy.get('[data-action="open-editor"]').should('exist').should('be.disabled')
+            // todo the finish setup button should not be visible to users that do not have edit permissions
+            cy.get('[data-action="finish-setup"]').should('exist')
+
+            // version history
+            cy.get('[data-nav="version-history"]').click()
+            cy.get('[data-action="create-snapshot"]').should('exist')
+            cy.get('[data-action="import-snapshot"]').should('exist')
+            cy.get('[data-el="empty-state"]').contains('Nothing to see here just yet!')
+            // todo check timeline actions dropdowns based on role
+            cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
+            // todo check snapshot actions dropdowns based on role & update the text message when the user doesn't have rights to create a snapshot
+            cy.get('[data-el="empty-state"]').contains('Create your First Snapshot')
+
+            // device-audit-log
+            cy.get('[data-nav="device-audit-log"]').click()
+            cy.get('[data-el="audit-log"]').should('exist')
+
+            // device log
+            // todo VM16940 async-vendors.js:6513 Uncaught (in promise) Error: Missing protocol
+            //     at Object.Pg (VM16940 async-vendors.js:6513:17693)
+            //     at Proxy.connectMQTT (VM16886 main.js:39745:26)
+            cy.get('[data-nav="device-logs"]').click()
+            cy.get('[data-hero="Node-RED Logs"]').should('exist')
+
+            // performance
+            cy.get('[data-nav="device-performance"]').click()
+            cy.get('[data-hero="Remote Performance"]').should('exist')
+
+            // settings general
+            cy.get('[data-nav="device-settings"]').click()
+            cy.get('[data-el="device-settings-general"]').contains('General')
+            cy.get('[data-action="edit-device"]').should('exist')
+            cy.get('[data-el="change-version"]').should('exist')
+            cy.get('[data-el="assignment"]').contains('Assignment')
+
+            // settings environment
+            cy.get('[data-nav="environment"]').click()
+            cy.get('[data-action="import-env"]').should('exist')
+            cy.get('[data-el="add-variable"]').should('exist')
+            cy.get('[data-el="submit"]').should('exist')
+
+            const tabs = {
+                security: 'device-security',
+                palette: 'device-palette',
+                danger: 'device-danger'
+            }
+
+            Object.keys(tabs).forEach(tab => {
+                cy.get(`[data-nav="${tab}"]`).should('exist')
+
+                cy.get(`[data-nav="${tab}"]`).click()
+                cy.get(`[data-el="${tabs[tab]}"]`).should('exist')
+            })
+        })
+        it.skip('should not list restricted applications when creating remote instances', () => {
+        })
 
         // applications
-        it('should not have direct access to an application when accessing via url', () => {})
-        it('should not have restricted applications listed in the applications page', () => {})
-        it('should not allow users with lesser roles than the team role to make changes to the application', () => {})
-        it('should not allow users with greater roles than the team role to make changes to the application', () => {})
+        it.skip('should not have direct access to an application when accessing via url', () => {
+        })
+        it.skip('should not have restricted applications listed in the applications page', () => {
+        })
+        it.skip('should not allow users with lesser roles than the team role to make changes to the application', () => {
+        })
+        it.skip('should not allow users with greater roles than the team role to make changes to the application', () => {
+        })
 
         // groups
-        it('should not have direct access to a group when accessing via url', () => {})
-        it('should not have restricted groups listed in the groups page', () => {})
+        it.skip('should not have direct access to a group when accessing via url', () => {
+        })
+        it.skip('should not have restricted groups listed in the groups page', () => { })
 
         // pipelines
-        it('should not have direct access to a pipeline belonging to a restricted application when accessing via url', () => {})
-        it('should not have restricted pipelines belonging to a restricted application listed in the pipelines page', () => {})
+        it.skip('should not have direct access to a pipeline belonging to a restricted application when accessing via url', () => {
+        })
+        it.skip('should not have restricted pipelines belonging to a restricted application listed in the pipelines page', () => {
+        })
 
         // bill of materials
-        it('should not have instances belonging to restricted applications listed in the bill of materials page', () => {})
+        it.skip('should not have instances belonging to restricted applications listed in the bill of materials page', () => {
+        })
 
         // brokers
-        it('should not have access to ff-broker clients created by instances belonging to restricted applications', () => {})
+        it.skip('should not have access to ff-broker clients created by instances belonging to restricted applications', () => {
+        })
 
         // performance
-        it('should not have access to instances and their performance data belonging to restricted applications', () => {})
+        it.skip('should not have access to instances and their performance data belonging to restricted applications', () => {
+        })
     })
 })
