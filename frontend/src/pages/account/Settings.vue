@@ -71,21 +71,8 @@ export default {
     },
     data () {
         const currentUser = this.$store.getters['account/user']
-        const teams = this.$store.getters['account/teams']
-        let defaultTeamName = 'none'
-        const teamOptions = teams.map(team => {
-            if (team.id === currentUser.defaultTeam) {
-                defaultTeamName = team.name
-            }
-            return {
-                id: team.id,
-                label: team.name,
-                slug: team.slug,
-                role: RoleNames[team.role],
-                memberCount: team.memberCount,
-                owner: team.role === Roles.Owner
-            }
-        })
+        const defaultTeamName = 'none'
+
         return {
             loading: false,
             editing: false,
@@ -98,8 +85,8 @@ export default {
                 defaultTeam: currentUser.defaultTeam
             },
             defaultTeamName,
-            changed: {},
-            teams: teamOptions
+            ownerCounts: {},
+            changed: {}
         }
     },
     computed: {
@@ -113,10 +100,27 @@ export default {
         emailEditingEnabled () {
             return this.editing && !this.user.sso_enabled
         },
+        teams () {
+            const currentUser = this.$store.getters['account/user']
+            const teams = this.$store.getters['account/teams']
+            const teamOptions = teams.map(team => {
+                if (team.id === currentUser.defaultTeam) {
+                    this.defaultTeamName = team.name
+                }
+                return {
+                    id: team.id,
+                    label: team.name,
+                    slug: team.slug,
+                    role: RoleNames[team.role],
+                    memberCount: team.memberCount,
+                    owner: team.role === Roles.Owner
+                }
+            })
+            return teamOptions
+        },
         canDeleteAccount () {
             for (let i = 0; i < this.teams.length; i++) {
-                const team = this.teams[i]
-                if (team.ownerCount === 1) {
+                if (!this.ownerCounts[this.teams[i].id]) {
                     return false
                 }
             }
@@ -155,19 +159,15 @@ export default {
     mounted () {
         // get the members for each team, and check the owner count
         this.teams.forEach(team => {
-            if (team.memberCount === 1) {
-                // if memberCount is 1, then they are the owner
-                team.ownerCount = 1
-                return
+            if (team.memberCount !== 1) {
+                teamApi.getTeamMembers(team.id)
+                    .then(data => {
+                        this.ownerCounts[team.id] = data.members.filter(m => m.role === Roles.Owner).length
+                    })
+                    .catch(err => {
+                        console.warn(err)
+                    })
             }
-            teamApi.getTeamMembers(team.id)
-                .then(data => {
-                    // find out how many owners are in the team
-                    team.ownerCount = data.members.filter(m => m.role === Roles.Owner).length
-                })
-                .catch(err => {
-                    console.warn(err)
-                })
         })
     },
     methods: {
