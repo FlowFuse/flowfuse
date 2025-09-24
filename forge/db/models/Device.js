@@ -170,7 +170,7 @@ module.exports = {
             }
         }
     },
-    finders: function (M) {
+    finders: function (M, app) {
         return {
             instance: {
                 async refreshAuthTokens ({ refreshOTC = false } = {}) {
@@ -636,7 +636,7 @@ module.exports = {
                         })
                     }
                 },
-                countByState: async (states, teamId, applicationId) => {
+                countByState: async (states, teamId, applicationId, membership) => {
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
                         if (!teamId || teamId.length === 0) {
@@ -652,7 +652,14 @@ module.exports = {
                         }
                     }
 
-                    return this.count({
+                    const statesMap = {}
+                    const findAll = this.findAll({
+                        include: [
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id']
+                            }
+                        ],
                         where: {
                             ...(states.length > 0
                                 ? {
@@ -664,9 +671,17 @@ module.exports = {
                                 }
                                 : { TeamId: teamId }),
                             ...(applicationId ? { ApplicationId: applicationId } : {})
-                        },
-                        group: ['state']
+                        }
                     })
+
+                    findAll.filter((project) => {
+                        return app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid })
+                    }).forEach(res => {
+                        const state = Controllers.Project.getLatestProjectState(res.id) ?? res.state
+                        statesMap[state] = (statesMap[state] || 0) + 1
+                    })
+
+                    return Object.entries(statesMap).map(([state, count]) => ({ state, count }))
                 },
                 byTeamForSearch: async (teamId, query) => {
                     const queryObject = {
