@@ -13,6 +13,7 @@ import { defineComponent, markRaw } from 'vue'
 import { mapGetters } from 'vuex'
 
 import teamClient from '../../../api/team.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 import RoleRow from './components/RoleRow.vue'
 import EditApplicationPermissionsDialog from './dialogs/EditApplicationPermissionsDialog.vue'
@@ -27,6 +28,10 @@ export default defineComponent({
         }
     },
     emits: ['application-delete', 'application-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             searchTerm: '',
