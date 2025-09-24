@@ -537,6 +537,11 @@ module.exports = async function (app) {
                         reply.code(400).send({ code: 'invalid_instance', error: 'invalid instance' })
                         return
                     }
+                    // Do granular RBAC check for the target application
+                    if (request.session.User && !app.hasPermission(request.teamMembership, 'project:read', { application: assignToProject.Application })) {
+                        reply.code(403).send({ code: 'forbidden', error: 'forbidden' })
+                        return
+                    }
                     // Project exists and is in the right team - assign it to the project
                     sendDeviceUpdate = await assignDeviceToProject(device, assignToProject)
                     postOpAuditLogAction = 'assigned-to-project'
@@ -566,6 +571,11 @@ module.exports = async function (app) {
                     }
                     if (assignToApplication.Team.id !== device.Team.id) {
                         reply.code(400).send({ code: 'invalid_application', error: 'invalid application' })
+                        return
+                    }
+                    // Do granular RBAC check for the target application
+                    if (request.session.User && !app.hasPermission(request.teamMembership, 'project:read', { application: assignToApplication })) {
+                        reply.code(403).send({ code: 'forbidden', error: 'forbidden' })
                         return
                     }
 
