@@ -32,7 +32,7 @@
                 <template #actions>
                     <template v-if="!readOnly">
                         <input id="fileUpload" ref="fileUpload" type="file" accept=".env, text/plain, *" class="hidden" hidden>
-                        <ff-button kind="secondary" data-eaction="import-env" @click="importEnv">
+                        <ff-button kind="secondary" data-action="import-env" @click="importEnv">
                             <template #icon><DocumentDownloadIcon /></template>
                             <span class="hidden sm:flex pl-1">Import .env</span>
                         </ff-button>
