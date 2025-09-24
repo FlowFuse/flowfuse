@@ -563,19 +563,24 @@ describe('Device model', function () {
             // increase license limits
             app.license.defaults.devices = 20
             app.license.defaults.instances = 20
+            
+            // Load TeamType association for TestObjects.team1
+            await app.TestObjects.team1.reload({ include: [{ model: app.db.models.TeamType }] })
         })
 
         it('should count devices grouped by state with valid states and a string TeamId', async function () {
             const states = ['running', 'stopped']
 
             const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            // Load the TeamType association so the team has the getFeatureProperty method
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
             const numericTeamId = team.id
 
             await app.db.models.Device.create({ name: 'p1', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId })
             await app.db.models.Device.create({ name: 'p2', credentialSecret: 'abc', type: 'P1', state: 'stopped', TeamId: numericTeamId })
             await app.db.models.Device.create({ name: 'p3', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId })
 
-            const result = await app.db.models.Device.countByState(states, team.id)
+            const result = await app.db.models.Device.countByState(states, team)
 
             result.should.deepEqual([
                 { state: 'running', count: 2 },
@@ -584,12 +589,13 @@ describe('Device model', function () {
         })
 
         it('should count devices with no state filter (only by TeamId)', async function () {
-            const teamId = app.TestObjects.team1.id
+            const team = app.TestObjects.team1
+            const teamId = team.id
 
             await app.db.models.Device.create({ name: 'p4', credentialSecret: 'abc', type: 'P1', state: 'idle', TeamId: teamId })
             await app.db.models.Device.create({ name: 'p5', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: teamId })
 
-            const result = await app.db.models.Device.countByState([], teamId)
+            const result = await app.db.models.Device.countByState([], team)
 
             result.should.deepEqual([
                 { state: 'idle', count: 1 },
@@ -599,18 +605,18 @@ describe('Device model', function () {
 
         it('should return an empty result when no devices match the given states', async function () {
             const states = ['non-existent-state']
-            const teamId = app.TestObjects.team1.id
+            const team = app.TestObjects.team1
 
-            const result = await app.db.models.Device.countByState(states, teamId)
+            const result = await app.db.models.Device.countByState(states, team)
 
             result.should.eql([])
         })
 
         it('should handle errors gracefully when an invalid teamId is provided', async function () {
-            const teamId = 'invalidTeamId'
+            const invalidTeam = { id: 'invalidTeamId' }
 
             try {
-                await app.db.models.Device.countByState(['running'], teamId)
+                await app.db.models.Device.countByState(['running'], invalidTeam)
                 should.fail('Expected an error to be thrown')
             } catch (err) {
                 err.should.be.an.Error()
@@ -623,15 +629,15 @@ describe('Device model', function () {
             const states = ['running', 'stopped']
 
             const team = await app.db.models.Team.create({ name: 'Another Test Team', TeamTypeId: 1 })
+            // Load the TeamType association so the team has the getFeatureProperty method
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
             const numericTeamId = team.id
 
             await app.db.models.Device.create({ name: 'p1', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId })
             await app.db.models.Device.create({ name: 'p2', credentialSecret: 'abc', type: 'P1', state: 'stopped', TeamId: numericTeamId })
             await app.db.models.Device.create({ name: 'p3', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId })
 
-            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
-
-            const result = await app.db.models.Device.countByState(states, hashedTeamId)
+            const result = await app.db.models.Device.countByState(states, team)
 
             result.should.deepEqual([
                 { state: 'running', count: 2 },
@@ -642,10 +648,11 @@ describe('Device model', function () {
 
         it('should handle invalid string ApplicationId', async () => {
             const team = await app.db.models.Team.create({ name: 'Team Test', TeamTypeId: 1 })
-            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
+            // Load the TeamType association so the team has the getFeatureProperty method
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
 
             try {
-                await app.db.models.Device.countByState([], hashedTeamId, 'invalid-application-id')
+                await app.db.models.Device.countByState([], team, 'invalid-application-id')
                 should.fail('Expected an error to be thrown')
             } catch (err) {
                 err.should.be.an.Error()
@@ -660,6 +667,8 @@ describe('Device model', function () {
             const states = ['running', 'stopped']
 
             const team = await app.db.models.Team.create({ name: 'Team Test', TeamTypeId: 1 })
+            // Load the TeamType association so the team has the getFeatureProperty method
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
             const numericTeamId = team.id
 
             const application1 = await app.db.models.Application.create({ name: 'App 1', TeamId: numericTeamId })
@@ -678,10 +687,9 @@ describe('Device model', function () {
             const device7 = await app.db.models.Device.create({ name: 'p7', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
             const device8 = await app.db.models.Device.create({ name: 'p8', credentialSecret: 'abc', type: 'P1', state: 'suspended', TeamId: numericTeamId, ApplicationId: numericApp2Id })
 
-            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
             const hashedAppId = app.db.models.Application.encodeHashid(application1.id)
 
-            const result = await app.db.models.Device.countByState(states, hashedTeamId, hashedAppId)
+            const result = await app.db.models.Device.countByState(states, team, hashedAppId)
 
             result.should.deepEqual([
                 { state: 'running', count: 2 },
@@ -707,6 +715,8 @@ describe('Device model', function () {
             const states = []
 
             const team = await app.db.models.Team.create({ name: 'Team Test', TeamTypeId: 1 })
+            // Load the TeamType association so the team has the getFeatureProperty method
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
             const numericTeamId = team.id
 
             const application1 = await app.db.models.Application.create({ name: 'App 1', TeamId: numericTeamId })
@@ -725,10 +735,9 @@ describe('Device model', function () {
             const device7 = await app.db.models.Device.create({ name: 'p7', credentialSecret: 'abc', type: 'P1', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
             const device8 = await app.db.models.Device.create({ name: 'p8', credentialSecret: 'abc', type: 'P1', state: 'suspended', TeamId: numericTeamId, ApplicationId: numericApp2Id })
 
-            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
             const hashedAppId = app.db.models.Application.encodeHashid(application1.id)
 
-            const result = await app.db.models.Device.countByState(states, hashedTeamId, hashedAppId)
+            const result = await app.db.models.Device.countByState(states, team, hashedAppId)
 
             result.should.deepEqual([
                 { count: 2, state: 'running' },

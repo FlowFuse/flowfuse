@@ -636,7 +636,9 @@ module.exports = {
                         })
                     }
                 },
-                countByState: async (states, teamId, applicationId, membership) => {
+                countByState: async (states, team, applicationId, membership) => {
+                    let teamId = team.id
+
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
                         if (!teamId || teamId.length === 0) {
@@ -674,11 +676,18 @@ module.exports = {
                         }
                     })
 
+                    const platformRbacEnabled = app.config.features.enabled('rbacApplication')
+                    const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false)
+
                     findAll.filter((device) => {
-                        const context = device.Application ? { applicationId: device.Application.hashid } : {}
+                        // If the device has no application or rbac not enabled, allow it through (devices without applications)
+                        if ((!platformRbacEnabled && !teamRbacEnabled) || !device.Application) {
+                            return true
+                        }
+                        const context = { applicationId: device.Application.hashid }
                         return app.hasPermission(membership, 'project:read', context)
-                    }).forEach(res => {
-                        const state = Controllers.Project.getLatestProjectState(res.id) ?? res.state
+                    }).forEach(device => {
+                        const state = device.state
                         statesMap[state] = (statesMap[state] || 0) + 1
                     })
 
