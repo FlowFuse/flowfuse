@@ -9,7 +9,7 @@ describe('FlowFuse - Role Based Access Control', () => {
         cy.get('[data-el="application-permissions-row"]').should('not.exist')
     })
 
-    it.only('should not be able to access the application role management page if the feature is disabled', () => {
+    it('should not be able to access the application role management page if the feature is disabled', () => {
         cy.login('alice', 'aaPassword')
         cy.home()
 

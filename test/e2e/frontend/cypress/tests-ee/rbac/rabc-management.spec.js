@@ -48,7 +48,7 @@ describe('FlowFuse - RBAC GUI Management', () => {
             })
 
             // check that we've been redirected to the application's overview page
-            cy.get('[data-el="application-overview-page"]').should('exist')
+            cy.get('[data-el="application-summary"]').should('exist')
         })
     })
 
@@ -101,7 +101,7 @@ describe('FlowFuse - RBAC GUI Management', () => {
             })
 
             // check that we've been redirected to the application's overview page
-            cy.get('[data-el="application-overview-page"]').should('exist')
+            cy.get('[data-el="application-summary"]').should('exist')
         })
     })
 
@@ -263,7 +263,7 @@ describe('FlowFuse - RBAC GUI Management', () => {
             })
 
             // check that we've been redirected to the application's overview page
-            cy.get('[data-el="application-overview-page"]').should('exist')
+            cy.get('[data-el="application-summary"]').should('exist')
         })
 
         it('team viewers should not be able to access the team or application role management page', () => {
@@ -285,7 +285,7 @@ describe('FlowFuse - RBAC GUI Management', () => {
             })
 
             // check that we've been redirected to the application's overview page
-            cy.get('[data-el="application-overview-page"]').should('exist')
+            cy.get('[data-el="application-summary"]').should('exist')
         })
 
         it('team dashboard should not be able to access the application role management page', () => {
