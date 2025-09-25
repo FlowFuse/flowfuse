@@ -64,7 +64,7 @@ export default defineComponent({
     computed: {
         ...mapGetters('product/tables', { getTables: 'tables' }),
         ...mapState('product/tables', { tablesState: 'tables', tableSelection: 'tableSelection' }),
-        ...mapState('ux', ['rightDrawer']),
+        ...mapState('ux/drawers', ['rightDrawer']),
         filteredTables () {
             return this.tables.filter(t => (t.name ?? '').toLowerCase().includes(this.filterTerm.toLowerCase()))
         }
@@ -79,7 +79,7 @@ export default defineComponent({
     },
     methods: {
         ...mapActions('product/tables', ['updateTableSelection']),
-        ...mapActions('ux', ['openRightDrawer', 'closeRightDrawer']),
+        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
 
         onCreateTable () {
             this.openRightDrawer({

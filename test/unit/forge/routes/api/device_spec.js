@@ -1448,7 +1448,7 @@ describe('Device API', async function () {
                 liveSettings.palette.should.have.property('catalogues')
                 liveSettings.palette.catalogues.should.containEql('https://localhost/catalogue.json')
                 liveSettings.palette.should.have.property('npmrc')
-                liveSettings.palette.npmrc.should.equal('@flowfuse-certified-nodes:registry=https://localhost/\n//localhost:_auth="verySecret"\n')
+                liveSettings.palette.npmrc.should.equal('@flowfuse-certified-nodes:registry=https://localhost/\n@flowfuse-nodes:registry=https://localhost/\n//localhost:_auth="verySecret"\n')
             })
         })
 
