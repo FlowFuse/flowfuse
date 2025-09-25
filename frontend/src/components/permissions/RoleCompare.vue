@@ -23,6 +23,8 @@
 <script>
 import { ArrowDownIcon, ArrowUpIcon, BanIcon } from '@heroicons/vue/outline'
 
+import { capitalize } from '../../composables/String.js'
+
 import { RoleNames } from '../../utils/roles.js'
 
 export default {
@@ -43,7 +45,7 @@ export default {
     },
     computed: {
         role () {
-            return RoleNames[this.overrideRole] || 'unknown'
+            return this.capitalize(RoleNames[this.overrideRole] || 'unknown')
         },
         readableBaseRole () {
             return RoleNames[this.baseRole] || 'unknown'
@@ -75,6 +77,9 @@ export default {
                 }
             }
         }
+    },
+    methods: {
+        capitalize
     }
 }
 </script>
