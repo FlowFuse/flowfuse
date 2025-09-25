@@ -1015,7 +1015,7 @@ describe('Project API', function () {
                 settings.palette.should.have.property('catalogue')
                 settings.palette.catalogue.should.containEql('https://localhost/catalogue.json')
                 settings.palette.should.have.property('npmrc')
-                settings.palette.npmrc.should.equal('@flowfuse-certified-nodes:registry=https://localhost/\n//localhost:_auth="verySecret"\n')
+                settings.palette.npmrc.should.equal('@flowfuse-certified-nodes:registry=https://localhost/\n@flowfuse-nodes:registry=https://localhost/\n//localhost:_auth="verySecret"\n')
             })
         })
 
@@ -3083,7 +3083,7 @@ describe('Project API', function () {
                 args[1].should.have.property('previousState')
                 // context arg
                 args[2].should.have.property('instanceType', 'project')
-                args[2].should.have.property('instanceId', TestObjects.project1.hashid)
+                args[2].should.have.property('instanceId', TestObjects.project1.id)
                 args[2].should.have.property('teamHashId', TestObjects.ATeam.hashid)
                 args[2].should.have.property('isTeamOnTrial', true)
             } finally {

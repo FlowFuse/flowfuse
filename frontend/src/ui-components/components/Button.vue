@@ -52,7 +52,7 @@ export default {
         },
         kind: {
             default: 'primary',
-            type: String // "primary", "secondary", "tertiary"
+            type: String // "primary", "secondary", "tertiary", "danger", "secondary-danger", "tertiary-danger"
         },
         size: {
             default: 'normal',

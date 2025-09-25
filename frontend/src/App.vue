@@ -95,8 +95,8 @@ export default {
     },
     computed: {
         ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
-        ...mapState('ux', ['leftDrawer']),
-        ...mapGetters('ux', ['hiddenLeftDrawer']),
+        ...mapState('ux/drawers', ['leftDrawer']),
+        ...mapGetters('ux/drawers', ['hiddenLeftDrawer']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },

@@ -338,6 +338,13 @@ httpStatic:
 
 This option can be used to enable local login for the Node-RED editor.  This option is not recommended for day to day use.
 
+It can be configured under the Remote Instance's Settings
+
+![Local Auth settings for Remote Instance](./images/device-local-access.png){data-zoomable}
+_Local Auth settings for Remote Instance_
+
+Or by adding the following to the `device.yml` file
+
 ```yml
 localAuth:
     enabled: true
