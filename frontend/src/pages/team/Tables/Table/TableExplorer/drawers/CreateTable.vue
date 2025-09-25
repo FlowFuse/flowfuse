@@ -1,14 +1,5 @@
 <template>
     <div id="create-table">
-        <div class="header">
-            <div class="flex content">
-                <h2 class="title flex-grow">Create New Table</h2>
-                <div class="flex gap-2">
-                    <ff-button type="button" kind="secondary" class="w-full" @click="closeRightDrawer">Cancel</ff-button>
-                    <ff-button type="button" kind="primary" class="w-full" @click="submit">Save</ff-button>
-                </div>
-            </div>
-        </div>
         <div class="content-wrapper">
             <div class="section table-name">
                 <h3>Define name</h3>
@@ -64,20 +55,29 @@ export default defineComponent({
         ...mapGetters('account', ['team']),
         ...mapState('product/tables', ['newTable']),
         hasErrors () {
-            return Object.keys(this.errors).length > 0
+            return Object.values(this.errors).some(v => v != null)
         }
     },
     watch: {
         'newTable.columns': {
             deep: true,
             handler: 'validateForm'
+        },
+        hasErrors () {
+            // Synchronizes the header buttons' state with form validation, disabling save button when errors exist
+            this.setHeader()
         }
     },
+    mounted () {
+        this.setHeader()
+    },
     methods: {
-        ...mapActions('ux', ['closeRightDrawer']),
+        ...mapActions('ux/drawers', ['closeRightDrawer', 'setRightDrawerHeader']),
         ...mapActions('product/tables', ['createTable', 'getTables', 'addNewTableColumn', 'removeNewTableColumn']),
         validateForm () {
             const columnsHaveDuplicateNames = new Set(this.newTable.columns.map(col => col.name)).size !== this.newTable.columns.length
+            const allColumnDoesntHaveATypeAssigned = this.newTable.columns.some(col => !col.type)
+            const allColumnHasNoName = this.newTable.columns.some(col => !col.name || col.name.trim() === '')
 
             // PostgreSQL identifiers:
             // - max 63 bytes (can be less than 63 characters if multibyte)
@@ -100,17 +100,33 @@ export default defineComponent({
                 this.errors.columns = 'The table must have at least one column.'
             } else if (columnsHaveDuplicateNames) {
                 this.errors.columns = 'Columns must have different names.'
+            } else if (allColumnDoesntHaveATypeAssigned) {
+                this.errors.columns = 'All columns must have a type assigned.'
+            } else if (allColumnHasNoName) {
+                this.errors.columns = 'All columns must have a name.'
             } else {
                 this.errors.columns = null
             }
         },
         submit () {
+            this.validateForm()
+            if (this.hasErrors) return
+
             return this.createTable({
                 databaseId: this.$route.params.id
             })
                 .then(() => this.getTables(this.$route.params.id))
                 .then(() => this.closeRightDrawer())
                 .catch(e => e)
+        },
+        setHeader () {
+            this.setRightDrawerHeader({
+                title: 'Create New Table',
+                actions: [
+                    { handler: this.closeRightDrawer, label: 'Cancel', kind: 'secondary' },
+                    { handler: this.submit, label: 'Save', kind: 'primary', disabled: this.hasErrors }
+                ]
+            })
         }
     }
 })
@@ -151,7 +167,6 @@ export default defineComponent({
         width: 100%;
         background-color: $ff-grey-50;
         overflow: auto;
-        padding: 12px;
 
        .section {
            padding-bottom: 15px;
