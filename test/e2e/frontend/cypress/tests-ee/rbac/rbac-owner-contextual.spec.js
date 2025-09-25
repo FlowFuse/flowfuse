@@ -547,11 +547,10 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="page-name"]').contains('Remote Instances')
         cy.wait('@getDevices')
         const devices = {
-            // todo the backend should not return restricted devices
-            // 'application-1-app-device': false,
-            // 'application-1-instance-1-device': false,
-            // 'application-2-app-device': false,
-            // 'application-2-instance-1-device': false,
+            'application-1-app-device': false,
+            'application-1-instance-1-device': false,
+            'application-2-app-device': false,
+            'application-2-instance-1-device': false,
             'application-3-app-device': true,
             'application-3-instance-1-device': true,
             'application-4-app-device': true,
