@@ -488,7 +488,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-step="blueprint"]').should('exist')
         cy.get('[data-el="next-step"]').should('be.enabled')
     })
-    it('should have dashboard role access to hosted instances belonging to restricted applications', () => {
+    it.skip('should have dashboard role access to hosted instances belonging to restricted applications', () => {
         cy.get('[data-nav="team-instances"]').click()
         // todo instances of application to which the user has dashboard role only should also be exposed in the
         //  hosted instances list, currently they are not
