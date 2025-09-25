@@ -1408,8 +1408,8 @@ describe('Team API', function () {
                 applicationId: 'app-id'
             }
 
-            const stub = sinon.stub(app.db.models.Device, 'countByState').callsFake(async function (states, teamId, applicationId) {
-                teamId.should.equal(expectedArgs.teamId)
+            const stub = sinon.stub(app.db.models.Device, 'countByState').callsFake(async function (states, team, applicationId, membership) {
+                team.id.should.equal(expectedArgs.teamId)
                 applicationId.should.equal(expectedArgs.applicationId)
                 states.should.deepEqual(expectedArgs.states)
             })
@@ -1436,8 +1436,8 @@ describe('Team API', function () {
                 applicationId: 'app-id'
             }
 
-            const stub = sinon.stub(app.db.models.Project, 'countByState').callsFake(async function (states, teamId, applicationId) {
-                teamId.should.equal(expectedArgs.teamId)
+            const stub = sinon.stub(app.db.models.Project, 'countByState').callsFake(async function (states, team, applicationId, membership) {
+                team.id.should.equal(expectedArgs.teamId)
                 applicationId.should.equal(expectedArgs.applicationId)
                 states.should.deepEqual(expectedArgs.states)
             })
