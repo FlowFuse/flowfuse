@@ -579,7 +579,6 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         // check remote instance actions
         cy.get('[data-el="device-devmode-toggle"] label[disabled="true"]').should('exist')
         cy.get('[data-action="open-editor"]').should('exist').should('be.disabled')
-        // todo the finish setup button should not be visible to users that do not have edit permissions
         cy.get('[data-action="finish-setup"]').should('not.exist')
 
         // version history
@@ -613,7 +612,6 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
 
         // settings environment
         cy.get('[data-nav="environment"]').click()
-        // todo these action buttons should not be visible to users that do not have edit permissions
         cy.get('[data-action="import-env"]').should('not.exist')
         cy.get('[data-el="add-variable"]').should('not.exist')
         cy.get('[data-el="submit"]').should('not.exist')
@@ -643,8 +641,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         // check remote instance actions
         cy.get('[data-el="device-devmode-toggle"] label[disabled="false"]').should('exist')
         cy.get('[data-action="open-editor"]').should('exist').should('be.disabled')
-        // todo the finish setup button should not be visible to users that do not have edit permissions
-        cy.get('[data-action="finish-setup"]').should('exist')
+        cy.get('[data-action="finish-setup"]').should('not.exist')
 
         // version history
         cy.get('[data-nav="version-history"]').click()
@@ -783,15 +780,15 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
     it('should only be able to list devices belonging to applications of which the user has access to', () => {
         cy.get('[data-nav="team-devices"]').click()
 
-        // todo application-1 (none role) should be restricted
+        // application-1 (none role) should be restricted
         cy.get('[data-el="row-application-1-app-device"]').should('not.exist')
         cy.get('[data-el="row-application-1-instance-1-device"]').should('not.exist')
 
-        // todo application-2 (dashboard role) should only have dashboard access and devices shouldn't be present
+        // application-2 (dashboard role) should only have dashboard access and devices shouldn't be present
         cy.get('[data-el="row-application-2-app-device"]').should('not.exist')
         cy.get('[data-el="row-application-2-instance-1-device"]').should('not.exist')
 
-        // todo application-3 (viewer role) devices should be present but the user shouldn't be able to access device actions
+        // application-3 (viewer role) devices should be present but the user shouldn't be able to access device actions
         cy.get('[data-el="row-application-3-app-device"]').should('exist')
         cy.get('[data-el="row-application-3-app-device"]').within(() => {
             cy.get('[data-el="kebab-menu"]').should('not.exist')
@@ -801,14 +798,14 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
             cy.get('[data-el="kebab-menu"]').should('not.exist')
         })
 
-        // application-4 (member role) devices should be present, and the user should be able to access device actions
+        // application-4 (member role) devices should be present, and the user should not be able to access device actions
         cy.get('[data-el="row-application-4-app-device"]').should('exist')
         cy.get('[data-el="row-application-4-app-device"]').within(() => {
-            cy.get('[data-el="kebab-menu"]').should('exist')
+            cy.get('[data-el="kebab-menu"]').should('not.exist')
         })
         cy.get('[data-el="row-application-4-instance-1-device"]').should('exist')
         cy.get('[data-el="row-application-4-instance-1-device"]').within(() => {
-            cy.get('[data-el="kebab-menu"]').should('exist')
+            cy.get('[data-el="kebab-menu"]').should('not.exist')
         })
 
         // application-5 (owner role) devices should be present, and the user should be able to access device actions
@@ -984,6 +981,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="application-summary"]').should('exist')
     })
     it('should be able to access application actions of applications he has owner role', () => {
+        // the user should be have an owner role in this application
         const application = applications.find(i => i.name === 'application-5')
         cy.get('[data-nav="team-applications"]').click()
 
@@ -997,8 +995,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         // application devices
         cy.get('[data-nav="application-devices-overview"]').click()
         cy.get('[data-el="row-application-5-app-device"]').should('exist')
-        // todo the finish setup button should not be visible to users that do not have edit permissions
-        cy.get('[data-el="row-application-4-app-device"]').contains('Finish Setup').should('not.exist')
+        cy.get('[data-el="row-application-5-app-device"]').contains('Finish Setup').should('exist')
         cy.get('[data-el="row-application-5-instance-1-device-1"]').should('not.exist')
 
         // application device groups
@@ -1014,6 +1011,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="application-snapshots"]').should('exist')
         // todo check what permissions the user has to do with snapshots
         //   need to seed snapshots to applications
+
         cy.get('[data-nav="application-pipelines"]').click()
         cy.get('[data-el="empty-state"]').should('exist')
         cy.get('[data-el="empty-state"] [data-action="pipeline-add"]').should('exist')
