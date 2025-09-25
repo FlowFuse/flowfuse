@@ -570,6 +570,11 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
     it('should not be able to access remote instance actions belonging to applications of viewer role', () => {
         cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
         cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+        cy.intercept('POST', '/api/*/devices/*/logs*', {
+            url: 'ws://dummy-url',
+            username: 'mock-user',
+            password: 'mock-password'
+        }).as('getLogs')
 
         // the user should have a viewer role in this application
         const applicationViewerRoleApp = devices.find(i => i.name === 'application-3-app-device')
@@ -632,6 +637,11 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
     it('should not be able to access remote instance actions belonging to applications of member role', () => {
         cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
         cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+        cy.intercept('POST', '/api/*/devices/*/logs*', {
+            url: 'ws://dummy-url',
+            username: 'mock-user',
+            password: 'mock-password'
+        }).as('getLogs')
 
         // the user should have a viewer role in this application
         const applicationMemberRoleApp = devices.find(i => i.name === 'application-4-app-device')
@@ -698,6 +708,11 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
     it('should not be able to access remote instance actions belonging to applications of owner role', () => {
         cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
         cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+        cy.intercept('POST', '/api/*/devices/*/logs*', {
+            url: 'ws://dummy-url',
+            username: 'mock-user',
+            password: 'mock-password'
+        }).as('getLogs')
 
         // the user should have a viewer role in this application
         const applicationOwnerRoleApp = devices.find(i => i.name === 'application-5-app-device')
