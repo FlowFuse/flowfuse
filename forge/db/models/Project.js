@@ -658,7 +658,8 @@ module.exports = {
                         ]
                     })
                 },
-                countByState: async (states, teamId, applicationId) => {
+                countByState: async (states, team, applicationId, membership) => {
+                    let teamId = team.id
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
 
@@ -677,6 +678,12 @@ module.exports = {
 
                     const statesMap = {}
                     const results = await this.findAll({
+                        include: [
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id']
+                            }
+                        ],
                         where: states.length > 0
                             ? {
                                 [Op.or]: states.map(state => ({
@@ -691,7 +698,15 @@ module.exports = {
                             }
                     })
 
-                    results.forEach(res => {
+                    const platformRbacEnabled = app.config.features.enabled('rbacApplication')
+                    const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false)
+
+                    results.filter((project) => {
+                        if ((!platformRbacEnabled && !teamRbacEnabled)) {
+                            return true
+                        }
+                        return app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid })
+                    }).forEach(res => {
                         const state = Controllers.Project.getLatestProjectState(res.id) ?? res.state
                         statesMap[state] = (statesMap[state] || 0) + 1
                     })

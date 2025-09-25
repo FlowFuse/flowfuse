@@ -353,20 +353,26 @@ describe('Project model', function () {
     })
 
     describe('Counting Projects by State', function () {
-        beforeEach(() => {
+        beforeEach(async () => {
             app.license.defaults.teams = 20
+            app.license.defaults.instances = 20
+
+            // Load TeamType association for TestObjects.team1
+            await app.TestObjects.team1.reload({ include: [{ model: app.db.models.TeamType }] })
         })
         it('should count projects grouped by state with valid states and a string TeamId', async function () {
             const states = ['running', 'stopped']
 
             const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            // Load the TeamType association so the team has the getFeatureProperty method
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
             const numericTeamId = team.id
 
             const instance1 = await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId })
             const instance2 = await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId })
             const instance3 = await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId })
 
-            const result = await app.db.models.Project.countByState(states, team.id)
+            const result = await app.db.models.Project.countByState(states, team, null, null)
 
             result.should.deepEqual([
                 { state: 'running', count: 2 },
@@ -381,11 +387,13 @@ describe('Project model', function () {
 
         it('should count projects with no state filter (only by TeamId)', async function () {
             const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            // Load the TeamType association so the team has the getFeatureProperty method
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
 
             const instance1 = await app.db.models.Project.create({ name: 'p4', type: '', url: '', state: 'idle', TeamId: team.id })
             const instance2 = await app.db.models.Project.create({ name: 'p5', type: '', url: '', state: 'running', TeamId: team.id })
 
-            const result = await app.db.models.Project.countByState([], team.id)
+            const result = await app.db.models.Project.countByState([], team, null, null)
 
             result.should.deepEqual([
                 { state: 'idle', count: 1 },
@@ -403,8 +411,9 @@ describe('Project model', function () {
                 name: 'Test Team',
                 TeamTypeId: 1
             })
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
 
-            const result = await app.db.models.Project.countByState(states, team.id)
+            const result = await app.db.models.Project.countByState(states, team, null, null)
 
             result.should.eql([])
 
@@ -412,14 +421,14 @@ describe('Project model', function () {
         })
 
         it('should handle errors gracefully when an invalid teamId is provided', async function () {
-            const teamId = 'invalidTeamId'
+            const invalidTeam = { id: 'invalidTeamId' }
 
             try {
-                await app.db.models.Project.countByState(['running'], teamId)
+                await app.db.models.Project.countByState(['running'], invalidTeam, null, null)
                 should.fail('Expected an error to be thrown')
             } catch (err) {
                 err.should.be.an.Error()
-                err.message.should.match(/invalid.+teamId/i)
+                err.message.should.match(/invalid.*teamId/i)
             }
         })
 
@@ -427,15 +436,15 @@ describe('Project model', function () {
             const states = ['running', 'stopped']
 
             const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            // Load the TeamType association so the team has the getFeatureProperty method
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
             const numericTeamId = team.id
 
             const instance1 = await app.db.models.Project.create({ name: 'p1', type: '', url: '', state: 'running', TeamId: numericTeamId })
             const instance2 = await app.db.models.Project.create({ name: 'p2', type: '', url: '', state: 'stopped', TeamId: numericTeamId })
             const instance3 = await app.db.models.Project.create({ name: 'p3', type: '', url: '', state: 'running', TeamId: numericTeamId })
 
-            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
-
-            const result = await app.db.models.Project.countByState(states, hashedTeamId)
+            const result = await app.db.models.Project.countByState(states, team, null, null)
 
             result.should.deepEqual([
                 { state: 'running', count: 2 },
@@ -450,10 +459,11 @@ describe('Project model', function () {
 
         it('should handle invalid string ApplicationId', async () => {
             const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
-            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
+            // Load the TeamType association so the team has the getFeatureProperty method
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
 
             try {
-                await app.db.models.Project.countByState([], hashedTeamId, 'invalid-application-id')
+                await app.db.models.Project.countByState([], team, 'invalid-application-id', null)
                 should.fail('Expected an error to be thrown')
             } catch (err) {
                 err.should.be.an.Error()
@@ -468,6 +478,8 @@ describe('Project model', function () {
             const states = ['running', 'stopped']
 
             const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            // Load the TeamType association so the team has the getFeatureProperty method
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
             const numericTeamId = team.id
 
             const application1 = await app.db.models.Application.create({ name: 'App 1', TeamId: numericTeamId })
@@ -486,10 +498,9 @@ describe('Project model', function () {
             const instance7 = await app.db.models.Project.create({ name: 'p7', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
             const instance8 = await app.db.models.Project.create({ name: 'p8', type: '', url: '', state: 'suspended', TeamId: numericTeamId, ApplicationId: numericApp2Id })
 
-            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
             const hashedAppId = app.db.models.Application.encodeHashid(application1.id)
 
-            const result = await app.db.models.Project.countByState(states, hashedTeamId, hashedAppId)
+            const result = await app.db.models.Project.countByState(states, team, hashedAppId, null)
 
             result.should.deepEqual([
                 { state: 'running', count: 2 },
@@ -515,6 +526,8 @@ describe('Project model', function () {
             const states = []
 
             const team = await app.db.models.Team.create({ name: 'Test Team', TeamTypeId: 1 })
+            // Load the TeamType association so the team has the getFeatureProperty method
+            await team.reload({ include: [{ model: app.db.models.TeamType }] })
             const numericTeamId = team.id
 
             const application1 = await app.db.models.Application.create({ name: 'App 1', TeamId: numericTeamId })
@@ -533,10 +546,9 @@ describe('Project model', function () {
             const instance7 = await app.db.models.Project.create({ name: 'p7', type: '', url: '', state: 'running', TeamId: numericTeamId, ApplicationId: numericApp2Id })
             const instance8 = await app.db.models.Project.create({ name: 'p8', type: '', url: '', state: 'stopped', TeamId: numericTeamId, ApplicationId: numericApp2Id })
 
-            const hashedTeamId = app.db.models.Team.encodeHashid(team.id)
             const hashedAppId = app.db.models.Application.encodeHashid(application1.id)
 
-            const result = await app.db.models.Project.countByState(states, hashedTeamId, hashedAppId)
+            const result = await app.db.models.Project.countByState(states, team, hashedAppId, null)
 
             result.should.deepEqual([
                 { count: 2, state: 'running' },
