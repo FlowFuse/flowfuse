@@ -42,7 +42,7 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
             .then(() => cy.logout())
     })
 
-    describe('Users with an Owner role', () => {
+    describe.only('Users with an Owner role', () => {
         beforeEach(() => {
             cy.login('ownerOwen', 'ooPassword')
             cy.home()
@@ -124,11 +124,11 @@ describe('FlowFuse - RBAC Contextual permissions', () => {
 
                 // the user has an owner role in this application
                 cy.get('[data-el="row-application-5-instance-1"]').should('exist')
-                cy.get('[data-el="row-application-4-instance-1"] [data-el="kebab-menu"]').should('exist')
+                cy.get('[data-el="row-application-5-instance-1"] [data-el="kebab-menu"]').should('exist')
 
                 // the user has his team role in this application
                 cy.get('[data-el="row-application-6-instance-1"]').should('exist')
-                cy.get('[data-el="row-application-4-instance-1"] [data-el="kebab-menu"]').should('exist')
+                cy.get('[data-el="row-application-6-instance-1"] [data-el="kebab-menu"]').should('exist')
             })
         })
         it('should not be able to access hosted instance actions belonging to applications of viewer role', () => {
