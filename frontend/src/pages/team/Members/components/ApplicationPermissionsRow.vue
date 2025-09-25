@@ -15,18 +15,6 @@
                         </ff-team-link>
                     </span>
                     <RoleCompare :baseRole="data.role" :overrideRole="application.role" class="w-40" />
-                    <span class="item action w-40 pl-5">
-                    <span class="item role w-40 flex gap-1 items-center">
-                        <component
-                            :is="application.icon"
-                            v-if="application.icon"
-                            :class="application.iconClass"
-                            class="ff-icon ff-icon-sm"
-                        />
-                        <span :class="application.roleClass" data-el="application-role">
-                            {{ application.role }}
-                        </span>
-                    </span>
                     <span class="item action w-40 pl-5" data-action="update-role">
                         <PencilAltIcon class="ff-icon ff-icon-sm ff-link" @click.prevent="onUpdateRole(application)" />
                     </span>
@@ -43,8 +31,7 @@ import { defineComponent } from 'vue'
 import RoleCompare from '../../../../components/permissions/RoleCompare.vue'
 import FfTeamLink from '../../../../components/router-links/TeamLink.vue'
 
-import { capitalize, slugify } from '../../../../composables/String.js'
-import { RoleNames } from '../../../../utils/roles.js'
+import { slugify } from '../../../../composables/String.js'
 
 export default defineComponent({
     name: 'ApplicationPermissionsRow',
