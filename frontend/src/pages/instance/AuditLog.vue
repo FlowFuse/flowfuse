@@ -1,5 +1,5 @@
 <template>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" logType="project" @load-entries="loadEntries">
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" logType="project" :loading="loading" @load-entries="loadEntries">
         <template #title>
             <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this instance." />
         </template>
@@ -49,6 +49,7 @@ export default {
     data () {
         return {
             logEntries: [],
+            loading: true,
             associations: {}, // devices
             users: [],
             auditFilters: {
@@ -92,25 +93,37 @@ export default {
          * @param cursor - cursor to use for pagination
          */
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
-            if (this.instance.id) {
-                const auditLog = (await InstanceApi.getInstanceAuditLog(this.instance.id, params, cursor, 200))
-                this.logEntries = auditLog.log
-                // dont show associations if we are looking at "this" scope (project)"
-                let showAssociations = false
-                if (this.auditFilters.selectedEventScope === 'device') {
-                    showAssociations = true
+            try {
+                if (this.instance.id) {
+                    const auditLog = (await InstanceApi.getInstanceAuditLog(this.instance.id, params, cursor, 200))
+                    this.logEntries = auditLog.log
+                    // dont show associations if we are looking at "this" scope (project)"
+                    let showAssociations = false
+                    if (this.auditFilters.selectedEventScope === 'device') {
+                        showAssociations = true
+                    }
+                    if (this.auditFilters.selectedEventScope === 'project' && this.auditFilters.includeChildren) {
+                        showAssociations = true
+                    }
+                    this.associations = showAssociations ? auditLog.associations : null
                 }
-                if (this.auditFilters.selectedEventScope === 'project' && this.auditFilters.includeChildren) {
-                    showAssociations = true
-                }
-                this.associations = showAssociations ? auditLog.associations : null
+            } catch (error) {
+                console.error('Failed to load audit logs:', error)
+                this.auditLog = []
+            } finally {
+                this.loading = false
             }
         },
         triggerLoad ({ users = false, events = true } = {}) {
             // if `events` is true, call AuditLogBrowser.loadEntries - this will emit 'load-entries' event which calls this.loadEntries with appropriate params
-            const eventTypes = this.auditFilters.selectedEventScope || 'instance'
-            events && this.$refs.AuditLog?.loadEntries(this.auditFilters.selectedEventScope, this.auditFilters.includeChildren, eventTypes)
-            users && this.loadUsers()
+            if (events) {
+                const eventTypes = this.auditFilters.selectedEventScope || 'instance'
+                this.loading = true
+                this.$refs.AuditLog?.loadEntries(this.auditFilters.selectedEventScope, this.auditFilters.includeChildren, eventTypes)
+            }
+            if (users) {
+                this.loadUsers()
+            }
         }
 
     }
