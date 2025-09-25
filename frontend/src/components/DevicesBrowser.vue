@@ -40,11 +40,11 @@
                         </span>
                     </ff-button>
                     <ff-button
-                        v-if="hasPermission('device:create')"
+                        v-ff-tooltip:left="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                         class="font-normal"
                         data-action="register-device"
                         kind="primary"
-                        :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                        :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create')"
                         @click="showCreateDeviceDialog"
                     >
                         <template #icon-left>
@@ -120,10 +120,10 @@
                         </template>
                         <template #actions>
                             <ff-button
-                                v-if="hasPermission('device:create')"
+                                v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create')"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
@@ -159,10 +159,10 @@
                         </template>
                         <template #actions>
                             <ff-button
-                                v-if="hasPermission('device:create')"
+                                v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create')"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
@@ -198,10 +198,10 @@
                         </template>
                         <template #actions>
                             <ff-button
-                                v-if="hasPermission('device:create')"
+                                v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create')"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
