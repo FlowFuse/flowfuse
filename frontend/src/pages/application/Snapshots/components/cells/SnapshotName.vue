@@ -5,7 +5,7 @@
             <span class="text-base">{{ name }}</span>
             <span class="text-xs text-gray-400">id: {{ id }}</span>
             <template v-if="description">
-                <details class="text-gray-500 float-left">
+                <details v-if="!clippedDetails" class="text-gray-500 float-left">
                     <summary class="cursor-pointer">
                         Description
                     </summary>
@@ -16,6 +16,9 @@
                         {{ description }}
                     </div>
                 </details>
+                <div v-else class="text-gray-500 clipped-overflow max-w-md" :title="description">
+                    {{ description }}
+                </div>
             </template>
         </div>
     </div>
@@ -49,6 +52,11 @@ export default {
             required: false,
             type: String,
             default: null
+        },
+        clippedDetails: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     computed: {
