@@ -79,10 +79,15 @@ module.exports = async function (app) {
         }
 
         const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: true })
-
         if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
             devices.devices = devices.devices.filter(device => {
-                return !device.ApplicationId || app.hasPermission(request.teamMembership, 'device:read', { applicationId: app.db.models.Application.encodeHashid(device.ApplicationId) })
+                let applicationId
+                if (device.Application) {
+                    applicationId = device.Application.hashid
+                } else if (device.Project) {
+                    applicationId = device.Project.Application.hashid
+                }
+                return !applicationId || app.hasPermission(request.teamMembership, 'device:read', { applicationId })
             })
         }
         // devices.coint
