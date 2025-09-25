@@ -95,6 +95,10 @@
                                 Group Assertion Name
                                 <template #description>The name of the SAML Assertion containing group membership details</template>
                             </FormRow>
+                            <FormRow v-model="input.options.exposeGroups" type="checkbox" class="mt-6">
+                                Expose SSO Groups to FlowFuse login
+                                <template #description>Allows Dashboard to know what groups a user is in</template>
+                            </FormRow>
                         </div>
                         <div v-else-if="input.type === 'ldap'">
                             <FormRow v-model="input.options.groupsDN" :error="groupsDNError">
