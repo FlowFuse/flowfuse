@@ -454,8 +454,10 @@ export default {
             const output = this.filteredDevices.map(device => {
                 const statusObject = this.allDeviceStatuses.get(device.id)
                 const ownerKey = this.getOwnerSortKeyForDevice(device)
+                const context = device.application?.id ? { applicationId: device.application?.id } : {}
 
                 return {
+                    hideContextMenu: !this.hasPermission('device:edit', context),
                     ...device,
                     ...statusObject,
                     ...(ownerKey ? { _ownerSortKey: ownerKey } : { _ownerSortKey: undefined })
