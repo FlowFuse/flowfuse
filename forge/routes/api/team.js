@@ -416,7 +416,13 @@ module.exports = async function (app) {
                         hasDashboardInstalled = !!settingEntry.value.palette.modules.find(module => module.name === '@flowfuse/node-red-dashboard')
                     }
 
-                    return isSettingsEntry && hasDashboardInstalled
+                    return isSettingsEntry &&
+                        hasDashboardInstalled &&
+                        app.hasPermission(
+                            request.teamMembership,
+                            'team:projects:list-dashboards',
+                            { applicationId: app.db.models.Application.encodeHashid(project.ApplicationId) }
+                        )
                 }).length > 0
             })
 
