@@ -74,7 +74,8 @@
                                     <template v-if="collapsibleRow" #row-prepend>
                                         <span data-el="collapsible-row-toggle">
                                             <ChevronRightIcon
-                                                class="ff-icon ff-icon-sm cursor-pointer"
+                                                class="ff-icon ff-icon-sm cursor-pointer hover:text-indigo-500 transition-transform"
+                                                :class="{'rotate-90': visibleCollapsibleRows.includes($index)}"
                                                 @click="toggleCollapsibleRowVisibility($index)"
                                             />
                                         </span>
