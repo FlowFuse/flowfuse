@@ -477,7 +477,16 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="application-item"]').contains('application-5').should('exist')
         cy.get('[data-el="application-item"]').contains('application-6').should('exist')
 
-        // todo the MultiStepApplicationsInstanceForm form is broken
+        cy.get('[data-el="application-item"]').contains('application-5').click()
+        cy.get('[data-step="instance"]').should('exist')
+
+        cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()
+        cy.get('[data-form="project-template"] [data-item="tile-selection-option"]').first().click()
+        cy.get('[data-el="node-red-listbox"]').click()
+        cy.get('[data-option="stack 1"]').click()
+        cy.get('[data-el="next-step"]').click()
+        cy.get('[data-step="blueprint"]').should('exist')
+        cy.get('[data-el="next-step"]').should('be.enabled')
     })
     it('should have dashboard role access to hosted instances belonging to restricted applications', () => {
         cy.get('[data-nav="team-instances"]').click()
