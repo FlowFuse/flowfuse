@@ -416,13 +416,19 @@ module.exports = async function (app) {
                         hasDashboardInstalled = !!settingEntry.value.palette.modules.find(module => module.name === '@flowfuse/node-red-dashboard')
                     }
 
-                    return isSettingsEntry &&
-                        hasDashboardInstalled &&
-                        app.hasPermission(
+                    let permissionCheck = true
+                    const platformRbacEnabled = app.config.features.enabled('rbacApplication')
+                    const teamRbacEnabled = request.team.TeamType.getFeatureProperty('rbacApplication', false)
+
+                    if (platformRbacEnabled && teamRbacEnabled) {
+                        permissionCheck = app.hasPermission(
                             request.teamMembership,
                             'team:projects:list-dashboards',
                             { applicationId: app.db.models.Application.encodeHashid(project.ApplicationId) }
                         )
+                    }
+
+                    return isSettingsEntry && hasDashboardInstalled && permissionCheck
                 }).length > 0
             })
 
