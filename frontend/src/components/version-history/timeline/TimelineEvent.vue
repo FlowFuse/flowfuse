@@ -26,39 +26,39 @@
             <div class="actions">
                 <ff-kebab-menu v-if="snapshotExists" ref="kebab">
                     <ff-list-item
-                        :disabled="!hasPermission('project:snapshot:rollback')"
+                        :disabled="!hasPermission('project:snapshot:rollback', {application})"
                         label="Restore Snapshot"
                         @click="$emit('restore-snapshot', event.data.snapshot)"
                     />
                     <ff-list-item
                         label="Edit Snapshot"
-                        :disabled="!hasPermission('snapshot:edit')"
+                        :disabled="!hasPermission('snapshot:edit', {application})"
                         @click="$emit('edit-snapshot', event.data.snapshot)"
                     />
                     <ff-list-item
-                        :disabled="!hasPermission('snapshot:full')"
+                        :disabled="!hasPermission('snapshot:full', {application})"
                         label="View Snapshot"
                         @click="$emit('preview-snapshot', event.data.snapshot)"
                     />
                     <ff-list-item
-                        :disabled="!hasPermission('project:snapshot:export')"
+                        :disabled="!hasPermission('project:snapshot:export', {application})"
                         label="Download Snapshot"
                         @click="$emit('download-snapshot', event.data.snapshot)"
                     />
                     <ff-list-item
-                        :disabled="!hasPermission('project:snapshot:read')"
+                        :disabled="!hasPermission('project:snapshot:read', {application})"
                         label="Download package.json"
                         @click="$emit('download-package-json', event.data.snapshot)"
                     />
                     <!-- Only show this option for Application Snapshot, not at the Device Level -->
                     <ff-list-item
                         v-if="!isADeviceSnapshotEvent"
-                        :disabled="!hasPermission('project:snapshot:set-target')"
+                        :disabled="!hasPermission('project:snapshot:set-target', {application})"
                         label="Set as Device Target"
                         @click="$emit('set-device-target', event.data.snapshot)"
                     />
                     <ff-list-item
-                        :disabled="!hasPermission('project:snapshot:delete')"
+                        :disabled="!hasPermission('project:snapshot:delete', {application})"
                         label="Delete Snapshot"
                         kind="danger"
                         @click="$emit('delete-snapshot', event.data.snapshot)"
@@ -95,6 +95,10 @@ export default {
         },
         timeline: {
             type: Array,
+            required: true
+        },
+        application: {
+            type: Object,
             required: true
         }
     },
