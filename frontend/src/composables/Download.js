@@ -11,6 +11,7 @@ function downloadData (input, filename) {
     try {
         element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data))
         element.setAttribute('download', filename || 'data.json')
+        element.setAttribute('data-click-exclude', 'right-drawer')
         element.style.display = 'none'
         document.body.appendChild(element)
         element.click()

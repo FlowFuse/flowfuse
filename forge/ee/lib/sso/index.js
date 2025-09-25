@@ -304,6 +304,16 @@ module.exports.init = async function (app) {
         return false
     }
 
+    function getUserGroups (samlUser, user, providerOpts) {
+        let groupAssertions = samlUser[providerOpts.groupAssertionName]
+        if (groupAssertions) {
+            if (!Array.isArray(groupAssertions)) {
+                groupAssertions = [groupAssertions]
+            }
+        }
+        return groupAssertions
+    }
+
     /**
      * Update a user's team memberships according to the SAML Assertions
      * received when they logged in.
@@ -594,6 +604,7 @@ module.exports.init = async function (app) {
         getProviderOptions,
         getProviderForEmail,
         updateTeamMembership,
-        isUserMembershipManaged
+        isUserMembershipManaged,
+        getUserGroups
     }
 }

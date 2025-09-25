@@ -437,6 +437,27 @@ module.exports = {
         return { token }
     },
 
+    createTokenForTeamBrokerAgent: async function (app, broker, expiresAt, scope = ['broker:credentials', 'broker:credentials:edit', 'broker:topics']) {
+        const existingBrokerToken = await app.db.models.AccessToken.findOne({
+            where: {
+                ownerId: '' + broker.id,
+                ownerType: 'teamBrokerAgent'
+            }
+        })
+        if (existingBrokerToken) {
+            await existingBrokerToken.destroy()
+        }
+        const token = generateToken(32, 'fftpb')
+        await app.db.models.AccessToken.create({
+            token,
+            expiresAt,
+            scope,
+            ownerId: '' + broker.id,
+            ownerType: 'teamBrokerAgent'
+        })
+        return { token }
+    },
+
     createTokenForNPM: async function (app, entity, team, scope = ['team:packages:read']) {
         // Adding prefix to the entityId of `p-`, `d-` and `u-` rather than relying on
         // no hashid collisions
