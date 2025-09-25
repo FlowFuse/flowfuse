@@ -503,20 +503,16 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         const ownerRoleApplicationInstanceDevice = devices.find(i => i.name === 'application-5-instance-1-device')
 
         cy.visit(`/device/${forbiddenApplicationDevice.id}`)
-        cy.get('[data-team="rbac-team"]#team-dashboard').should('exist')
+        cy.get('[data-team="rbac-team"]#team-dashboard').should('exist') // redirected to home page
 
-        // todo the backend should return a 403 for devices belonging to instances assigned to restricted applications
-        //  this is happening for forbidden roles
         cy.visit(`/device/${forbiddenApplicationInstanceDevice.id}`)
-        cy.get('[data-team="rbac-team"]#team-dashboard').should('exist')
+        cy.get('[data-team="rbac-team"]#team-dashboard').should('exist') // redirected to home page
 
-        // todo this is also happening for dashboard roles
         cy.visit(`/device/${dashboardRoleApplicationDevice.id}`)
-        cy.get('[data-page="not-found"]').should('exist')
+        cy.get('[data-team="rbac-team"]#team-dashboard').should('exist') // redirected to home page
 
-        // todo this is also happening for dashboard roles
         cy.visit(`/device/${dashboardRoleApplicationInstanceDevice.id}`)
-        cy.get('[data-page="not-found"]').should('exist')
+        cy.get('[data-team="rbac-team"]#team-dashboard').should('exist') // redirected to home page
 
         cy.visit(`/device/${viewRoleApplicationDevice.id}`)
         cy.get('[data-el="nav-breadcrumb"]').contains('application-3-app-device')
