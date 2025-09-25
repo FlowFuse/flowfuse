@@ -1,7 +1,7 @@
 <template>
     <form class="space-y-6">
         <TemplateSettingsEnvironment
-            :readOnly="!hasPermission('device:edit-env')"
+            :readOnly="!hasPermission('device:edit-env', applicationContext)"
             v-model="editable"
             :original-env-vars="original?.settings?.env ?? []"
             :editTemplate="false"
@@ -113,6 +113,9 @@ export default {
         isUpdateButtonDisabled () {
             if (this.hasError) return true
             return !this.unsavedChanges
+        },
+        applicationContext () {
+            return this.device.application ? { application: this.device.application } : {}
         }
     },
     mounted () {
