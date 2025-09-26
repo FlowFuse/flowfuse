@@ -1,13 +1,13 @@
 <template>
     <SectionTopMenu hero="Node-RED Logs" help-header="FlowFuse - Node-RED Logs" info="Live logs from your Remote Node-RED Instance">
         <template #tools>
-            <template v-if="connected">
+            <template v-if="deviceOnline && connected">
                 <div class="flex items-center gap-2 text-green-500">
                     <WifiIcon class="ff-icon" />
                     Connected to Live Logs
                 </div>
             </template>
-            <template v-else-if="offline">
+            <template v-else-if="!deviceOnline || offline">
                 <div class="flex items-center gap-2 text-red-500">
                     <WifiIcon class="ff-icon" />
                     Offline
@@ -46,6 +46,12 @@ export default {
         return {
             connected: false,
             offline: false
+        }
+    },
+    computed: {
+        deviceOnline () {
+            const offline = ['stopped', 'offline', 'error']
+            return !offline.includes(this.device?.status)
         }
     }
 }
