@@ -1,0 +1,159 @@
+<template>
+    <div class="space-y-6">
+        <FormHeading class="mb-6">Application Details</FormHeading>
+        <div class="space-y-6">
+            <FormRow id="projectId" v-model="input.projectId" type="uneditable" inputClass="font-mono">
+                Application ID
+            </FormRow>
+
+            <FormRow
+                id="projectName" ref="appName" v-model="input.projectName" data-form="application-name"
+                :type="editing ? 'text' : 'uneditable'"
+            >
+                Name
+            </FormRow>
+            <FormRow
+                id="projectDescription" ref="appDescription" v-model="input.projectDescription"
+                data-form="application-description" :type="editing ? 'text' : 'uneditable'"
+            >
+                Description
+            </FormRow>
+        </div>
+        <template v-if="hasPermission('project:edit', { application })">
+            <div class="space-x-4 whitespace-nowrap">
+                <template v-if="!editing">
+                    <ff-button kind="primary" data-action="application-edit" @click="editName">Edit</ff-button>
+                </template>
+                <template v-else>
+                    <div class="flex gap-x-3">
+                        <ff-button kind="secondary" @click="cancelEditName">Cancel</ff-button>
+                        <ff-button kind="primary" :disabled="!formValid" data-form="submit" @click="saveApplication">
+                            Save
+                        </ff-button>
+                    </div>
+                </template>
+            </div>
+        </template>
+        <template v-if="hasPermission('project:delete', { application })">
+            <FormHeading class="text-red-700">Delete Application</FormHeading>
+            <div class="flex flex-col space-y-4 max-w-2xl">
+                <div class="flex-grow">
+                    <div class="max-w-sm">
+                        {{ getDeleteApplicationText }}
+                    </div>
+                </div>
+                <div class="min-w-fit flex-shrink-0">
+                    <ff-button
+                        data-action="delete-application" kind="danger"
+                        :disabled="options.instances > 0"
+                        @click="$emit('application-delete')"
+                    >
+                        Delete Application
+                    </ff-button>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+import ApplicationAPI from '../../../api/application.js'
+
+import FormHeading from '../../../components/FormHeading.vue'
+import FormRow from '../../../components/FormRow.vue'
+import usePermissions from '../../../composables/Permissions.js'
+import Alerts from '../../../services/alerts.js'
+
+export default defineComponent({
+    name: 'ApplicationSettingsGeneral',
+    components: {
+        FormHeading,
+        FormRow
+    },
+    props: {
+        application: {
+            type: Object,
+            required: true
+        }
+    },
+    emits: ['application-updated', 'application-delete'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
+    data () {
+        return {
+            input: {
+                projectName: this.application.name,
+                projectDescription: this.application.description,
+                projectId: this.application.id,
+                application: this.application
+            },
+            editing: false,
+            options: {
+                instances: []
+            }
+        }
+    },
+    computed: {
+        formValid () {
+            return this.input.projectName
+        },
+        getDeleteApplicationText () {
+            if (this.options.instances === 0) {
+                return 'Once deleted, your application  permanently deleted. This cannot be undone.'
+            } else {
+                return 'Once you delete all your instances of this application, you can delete this application.'
+            }
+        }
+    },
+    mounted () {
+        this.loadInstances(this.application.id)
+    },
+    methods: {
+        editName () {
+            this.editing = true
+            this.$refs.appName.focus()
+        },
+        cancelEditName () {
+            this.editing = false
+            // reset the field if changed
+            this.input.projectName = this.application.name
+            this.input.projectDescription = this.application.description
+        },
+        saveApplication () {
+            ApplicationAPI.updateApplication(
+                this.application.id,
+                this.input.projectName,
+                this.input.projectDescription
+            )
+                .then(() => {
+                    this.$emit('application-updated')
+                    Alerts.emit('Application updated.', 'confirmation')
+                })
+                .finally(() => {
+                    this.editing = false
+                })
+                .catch(() => {
+                    Alerts.emit('Unable to update Application.', 'warning')
+                })
+        },
+        loadInstances (applicationId) {
+            ApplicationAPI.getApplicationInstances(applicationId)
+                .then((instances) => {
+                    this.options.instances = instances?.length || 0
+                })
+                .catch((error) => {
+                    console.error(error)
+                })
+        }
+    }
+})
+</script>
+
+<style scoped lang="scss">
+
+</style>

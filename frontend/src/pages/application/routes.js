@@ -17,7 +17,9 @@ import ApplicationPipelineIndex from './Pipeline/index.vue'
 import ApplicationPipelineStageCreate from './PipelineStage/create.vue'
 import ApplicationPipelineStageEdit from './PipelineStage/edit.vue'
 import ApplicationPipelines from './Pipelines.vue'
-import ApplicationSettings from './Settings.vue'
+import ApplicationSettingsGeneral from './Settings/General.vue'
+import ApplicationSettingsUserAccess from './Settings/UserAccess.vue'
+import ApplicationSettings from './Settings/index.vue'
 import ApplicationSnapshots from './Snapshots.vue'
 import ApplicationIndex from './index.vue'
 
@@ -81,10 +83,26 @@ export default [
             {
                 name: 'application-settings',
                 path: 'settings',
+                redirect: { name: 'application-settings-general' },
                 component: ApplicationSettings,
-                meta: {
-                    title: 'Application - Settings'
-                }
+                children: [
+                    {
+                        path: '',
+                        name: 'application-settings-general',
+                        component: ApplicationSettingsGeneral,
+                        meta: {
+                            title: 'Application Settings - General'
+                        }
+                    },
+                    {
+                        path: 'user-access',
+                        name: 'application-settings-user-access',
+                        component: ApplicationSettingsUserAccess,
+                        meta: {
+                            title: 'Application Settings - User Access'
+                        }
+                    }
+                ]
             },
             {
                 path: 'logs',
