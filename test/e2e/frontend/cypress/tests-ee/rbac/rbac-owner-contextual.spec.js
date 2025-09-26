@@ -161,12 +161,46 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         //      check that the user can download package.json but can't access any other action items on hostory items
         cy.get('[data-nav="instance-version-history"]').click()
         cy.get('[data-action="create-snapshot"]').should('not.exist')
+        cy.get('[data-el="loading"]').should('not.exist')
+        cy.get('[data-el="timeline-list"]').should('exist')
+        cy.get('[data-el="timeline-list"] [data-el="timeline-event-snapshot-created"]')
+            .within(() => {
+                cy.get('[data-el="kebab-menu"]').click()
+            })
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-restore-snapshot"]')
+            .should('exist').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-edit-snapshot"]')
+            .should('exist').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-view-snapshot"]')
+            .should('exist').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-download-snapshot"]')
+            .should('exist').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-download-packagejson"]')
+            .should('exist').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-set-as-device-target"]')
+            .should('exist').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-delete-snapshot"]')
+            .should('exist').should('have.class', 'disabled')
 
         // go to version history snapshots page
         //      check that the user sees snapshots'
         //      check that the user can download package json
         //      check that the user can't access any other action items on snapshots
-        // todo add a snapshot to check the above
+        cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
+        cy.get('[data-el="row-snapshot-1"]').click()
+        cy.get('[data-el="snapshot-details-drawer"]').should('exist')
+        cy.get('[data-action="edit"]').should('not.exist')
+        cy.get('[data-action="restore"]').should('not.exist')
+        cy.get('[data-el="snapshot-details-drawer"]')
+            .within(() => {
+                cy.get('[data-action="download-snapshot"]').should('exist').should('be.disabled')
+                cy.get('[data-action="download-package-json"]').should('exist').should('not.be.disabled')
+                cy.get('[data-action="set-as"]').should('exist').should('be.disabled')
+                cy.get('[data-action="delete"]').should('exist').should('be.disabled')
+            })
+        // close the drawer
+        // eslint-disable-next-line cypress/require-data-selectors
+        cy.get('body').type('{esc}')
 
         // check that the user doesn't have access to the assets tab similarly to the team roled user
         cy.get('[data-nav="instance-assets"]').should('not.exist')
@@ -177,7 +211,8 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         //      check that the user has access to the audit log
         cy.get('[data-nav="instance-activity"]').click()
         cy.get('[data-el="audit-log"]').should('exist')
-        // todo add an audit log event to check that the user can see it
+        cy.get('[data-el="audit-log"]').contains('Instance Snapshot Created')
+        cy.get('[data-el="audit-log"]').contains('Instance Created')
 
         // check that the user has access to the logs tab similarly to the team roled user
         //      check that the user has access to the logs
@@ -271,12 +306,46 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         //      check that the user can download package.json but can't access any other action items on hostory items
         cy.get('[data-nav="instance-version-history"]').click()
         cy.get('[data-action="create-snapshot"]').should('exist')
+        cy.get('[data-nav="instance-version-history"]').click()
+        cy.get('[data-action="create-snapshot"]').should('exist')
+        cy.get('[data-el="loading"]').should('not.exist')
+        cy.get('[data-el="timeline-list"]').should('exist')
+        cy.get('[data-el="timeline-list"] [data-el="timeline-event-snapshot-created"]')
+            .within(() => {
+                cy.get('[data-el="kebab-menu"]').click()
+            })
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-restore-snapshot"]')
+            .should('exist').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-edit-snapshot"]')
+            .should('exist').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-view-snapshot"]')
+            .should('exist').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-download-snapshot"]')
+            .should('exist').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-download-packagejson"]')
+            .should('exist').should('not.not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-set-as-device-target"]')
+            .should('exist').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-delete-snapshot"]')
+            .should('exist').should('have.class', 'disabled')
 
         // go to version history snapshots page
-        //      check that the user sees snapshots'
-        //      check that the user can download package json
-        //      check that the user can't access any other action items on snapshots
-        // todo add a snapshot to check the above
+        cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
+        cy.get('[data-el="row-snapshot-1"]').click()
+        cy.get('[data-el="snapshot-details-drawer"]').should('exist')
+        cy.get('[data-action="edit"]').should('not.exist')
+        cy.get('[data-action="restore"]').should('exist')
+        cy.get('[data-el="snapshot-details-drawer"]')
+            .within(() => {
+                cy.get('[data-action="download-snapshot"]').should('exist').should('not.be.disabled')
+                cy.get('[data-action="download-package-json"]').should('exist').should('not.be.disabled')
+                cy.get('[data-action="set-as"]').should('exist').should('not.be.disabled')
+                cy.get('[data-action="delete"]').should('exist').should('be.disabled')
+            })
+
+        // close the drawer
+        // eslint-disable-next-line cypress/require-data-selectors
+        cy.get('body').type('{esc}')
 
         // check that the user doesn't have access to the assets tab similarly to the team roled user
         cy.get('[data-nav="instance-assets"]').should('exist')
@@ -285,7 +354,9 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         //      check that the user has access to the audit log
         cy.get('[data-nav="instance-activity"]').click()
         cy.get('[data-el="audit-log"]').should('exist')
-        // todo add an audit log event to check that the user can see it
+        cy.get('[data-el="audit-log"]').should('exist')
+        cy.get('[data-el="audit-log"]').contains('Instance Snapshot Created')
+        cy.get('[data-el="audit-log"]').contains('Instance Created')
 
         // check that the user has access to the logs tab similarly to the team roled user
         //      check that the user has access to the logs
@@ -379,21 +450,56 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         //      check that the user can download package.json but can't access any other action items on hostory items
         cy.get('[data-nav="instance-version-history"]').click()
         cy.get('[data-action="create-snapshot"]').should('exist')
+        cy.get('[data-el="loading"]').should('not.exist')
+        cy.get('[data-el="timeline-list"]').should('exist')
+        cy.get('[data-el="timeline-list"] [data-el="timeline-event-snapshot-created"]')
+            .within(() => {
+                cy.get('[data-el="kebab-menu"]').click()
+            })
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-restore-snapshot"]')
+            .should('exist').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-edit-snapshot"]')
+            .should('exist').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-view-snapshot"]')
+            .should('exist').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-download-snapshot"]')
+            .should('exist').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-download-packagejson"]')
+            .should('exist').should('not.not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-set-as-device-target"]')
+            .should('exist').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-options"] [data-el="kebab-item-delete-snapshot"]')
+            .should('exist').should('not.have.class', 'disabled')
 
         // go to version history snapshots page
-        //      check that the user sees snapshots'
-        //      check that the user can download package json
-        //      check that the user can't access any other action items on snapshots
-        // todo add a snapshot to check the above
+        cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
+        cy.get('[data-el="row-snapshot-1"]').click()
+        cy.get('[data-el="snapshot-details-drawer"]').should('exist')
+        cy.get('[data-action="edit"]').should('exist')
+        cy.get('[data-action="restore"]').should('exist')
+        cy.get('[data-el="snapshot-details-drawer"]')
+            .within(() => {
+                cy.get('[data-action="download-snapshot"]').should('exist').should('not.be.disabled')
+                cy.get('[data-action="download-package-json"]').should('exist').should('not.be.disabled')
+                cy.get('[data-action="set-as"]').should('exist').should('not.be.disabled')
+                cy.get('[data-action="delete"]').should('exist').should('not.be.disabled')
+            })
 
-        // check that the user doesn't have access to the assets tab similarly to the team roled user
+        // close the drawer
+        // eslint-disable-next-line cypress/require-data-selectors
+        cy.get('body').type('{esc}')
+
+        // check that the user has access to the assets tab similarly to the team roled user
         cy.get('[data-nav="instance-assets"]').should('exist')
 
         // check that the user has access to the audit log tab similarly to the team roled user
         //      check that the user has access to the audit log
         cy.get('[data-nav="instance-activity"]').click()
         cy.get('[data-el="audit-log"]').should('exist')
-        // todo add an audit log event to check that the user can see it
+        cy.get('[data-el="audit-log"]').should('exist')
+        cy.get('[data-el="audit-log"]').should('exist')
+        cy.get('[data-el="audit-log"]').contains('Instance Snapshot Created')
+        cy.get('[data-el="audit-log"]').contains('Instance Created')
 
         // check that the user has access to the logs tab similarly to the team roled user
         //      check that the user has access to the logs
