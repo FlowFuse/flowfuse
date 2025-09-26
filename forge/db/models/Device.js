@@ -170,7 +170,7 @@ module.exports = {
             }
         }
     },
-    finders: function (M) {
+    finders: function (M, app) {
         return {
             instance: {
                 async refreshAuthTokens ({ refreshOTC = false } = {}) {
@@ -636,7 +636,9 @@ module.exports = {
                         })
                     }
                 },
-                countByState: async (states, teamId, applicationId) => {
+                countByState: async (states, team, applicationId, membership) => {
+                    let teamId = team.id
+
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
                         if (!teamId || teamId.length === 0) {
@@ -652,7 +654,14 @@ module.exports = {
                         }
                     }
 
-                    return this.count({
+                    const statesMap = {}
+                    const findAll = await this.findAll({
+                        include: [
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id']
+                            }
+                        ],
                         where: {
                             ...(states.length > 0
                                 ? {
@@ -664,9 +673,22 @@ module.exports = {
                                 }
                                 : { TeamId: teamId }),
                             ...(applicationId ? { ApplicationId: applicationId } : {})
-                        },
-                        group: ['state']
+                        }
                     })
+
+                    const platformRbacEnabled = app.config.features.enabled('rbacApplication')
+                    const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false)
+                    const rbacEnabled = platformRbacEnabled && teamRbacEnabled
+                    findAll.forEach((device) => {
+                        if (rbacEnabled && device.Application && !app.hasPermission(membership, 'device:read', { applicationId: device.Application.hashid })) {
+                            // This device is not accessible to this user, do not include in states map
+                            return
+                        }
+                        const state = device.state
+                        statesMap[state] = (statesMap[state] || 0) + 1
+                    })
+
+                    return Object.entries(statesMap).map(([state, count]) => ({ state, count }))
                 },
                 byTeamForSearch: async (teamId, query) => {
                     const queryObject = {
