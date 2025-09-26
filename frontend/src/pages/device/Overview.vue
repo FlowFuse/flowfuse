@@ -1,137 +1,155 @@
 <template>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <InfoCard header="Connection:">
-            <template #icon>
-                <WifiIcon />
-            </template>
-            <template #content>
-                <InfoCardRow property="Last Seen:">
-                    <template #value>
-                        <DeviceLastSeenBadge :last-seen-at="lastSeenAt" :last-seen-ms="lastSeenMs" :last-seen-since="lastSeenSince" />
-                    </template>
-                </InfoCardRow>
-                <InfoCardRow property="Status:">
-                    <template #value>
-                        <StatusBadge :status="device.status" :instanceId="device.id" instanceType="device" />
-                    </template>
-                </InfoCardRow>
-                <InfoCardRow property="Agent Version:">
-                    <template #value>
-                        <StatusBadge
-                            :status="agentVersionWarning ? 'error' : 'success'"
-                            :text="device.agentVersion || 'unknown'" v-ff-tooltip="agentVersionWarning"
-                        />
-                    </template>
-                </InfoCardRow>
-                <InfoCardRow property="Node-RED Version:">
-                    <template #value>
-                        <StatusBadge
-                            :status="nrVersionWarning ? 'error' : 'success'"
-                            :text="device.nrVersion || 'unknown'" v-ff-tooltip="agentVersionWarning"
-                        />
-                    </template>
-                </InfoCardRow>
-                <InfoCardRow v-if="nrLocalLoginOptionPossible" property="Node-RED Local Login:">
-                    <template #value>
-                        <div class="flex items-center space-x-2">
+    <div class="ff-device-overview grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-4">
+            <InfoCard header="Connection:">
+                <template #icon>
+                    <WifiIcon />
+                </template>
+                <template #content>
+                    <InfoCardRow property="Last Seen:">
+                        <template #value>
+                            <DeviceLastSeenBadge :last-seen-at="lastSeenAt" :last-seen-ms="lastSeenMs" :last-seen-since="lastSeenSince" />
+                        </template>
+                    </InfoCardRow>
+                    <InfoCardRow property="Status:">
+                        <template #value>
+                            <StatusBadge :status="device.status" :instanceId="device.id" instanceType="device" />
+                        </template>
+                    </InfoCardRow>
+                    <InfoCardRow v-if="nrLocalLoginOptionPossible" property="Node-RED Local Login:">
+                        <template #value>
+                            <div class="flex items-center space-x-2">
+                                <StatusBadge
+                                    :status="nrLocalLoginEnabled ? 'error' : 'success'"
+                                    :text="nrLocalLoginEnabled ? 'enabled' : 'disabled'"
+                                    v-ff-tooltip="nrLocalLoginEnabledWarning"
+                                />
+                                <router-link to="settings/security" class="flex items-center">
+                                    <CogIcon class="w-5 h-5 text-gray-500" />
+                                </router-link>
+                            </div>
+                        </template>
+                    </InfoCardRow>
+                </template>
+            </InfoCard>
+            <InfoCard header="Deployment:">
+                <template #icon>
+                    <TemplateIcon />
+                </template>
+                <template #content>
+                    <InfoCardRow property="Agent Version:">
+                        <template #value>
                             <StatusBadge
-                                :status="nrLocalLoginEnabled ? 'error' : 'success'"
-                                :text="nrLocalLoginEnabled ? 'enabled' : 'disabled'"
-                                v-ff-tooltip="nrLocalLoginEnabledWarning"
+                                :status="agentVersionWarning ? 'error' : 'success'"
+                                :text="device.agentVersion || 'unknown'" v-ff-tooltip="agentVersionWarning"
                             />
-                            <router-link to="settings/security" class="flex items-center">
-                                <CogIcon class="w-5 h-5 text-gray-500" />
+                        </template>
+                    </InfoCardRow>
+                    <InfoCardRow property="Node-RED Version:">
+                        <template #value>
+                            <StatusBadge
+                                :status="nrVersionWarning ? 'error' : 'success'"
+                                :text="device.nrVersion || 'unknown'" v-ff-tooltip="agentVersionWarning"
+                            />
+                        </template>
+                    </InfoCardRow>
+                    <InfoCardRow property="Application:">
+                        <template #value>
+                            <ff-team-link v-if="device?.application" :to="{name: 'Application', params: { id: device.application.id }}">
+                                {{ device.application?.name }}
+                            </ff-team-link>
+                            <span v-else>None</span>
+                        </template>
+                    </InfoCardRow>
+                    <InfoCardRow v-if="device.ownerType!=='application'" property="Instance:">
+                        <template #value>
+                            <router-link v-if="device?.instance" :to="{name: 'Instance', params: { id: device.instance.id }}">
+                                {{ device.instance?.name }}
                             </router-link>
-                        </div>
-                    </template>
-                </InfoCardRow>
-            </template>
-        </InfoCard>
-        <InfoCard header="Deployment:">
-            <template #icon>
-                <TemplateIcon />
-            </template>
-            <template #content>
-                <InfoCardRow property="Application:">
-                    <template #value>
-                        <ff-team-link v-if="device?.application" :to="{name: 'Application', params: { id: device.application.id }}">
-                            {{ device.application?.name }}
-                        </ff-team-link>
-                        <span v-else>None</span>
-                    </template>
-                </InfoCardRow>
-                <InfoCardRow v-if="device.ownerType!=='application'" property="Instance:">
-                    <template #value>
-                        <router-link v-if="device?.instance" :to="{name: 'Instance', params: { id: device.instance.id }}">
-                            {{ device.instance?.name }}
-                        </router-link>
-                        <span v-else>None</span>
-                    </template>
-                </InfoCardRow>
-                <InfoCardRow property="Active Snapshot:">
-                    <template #value>
-                        <span v-ff-tooltip:left="'Set Active Snapshots via Pipelines'" class="flex gap-2 pr-2">
-                            <span class="flex items-center space-x-2 text-gray-500 italic">
-                                <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.activeSnapshot || !targetSnapshotDeployed" />
-                                <CheckCircleIcon class="text-green-700 w-4" v-else />
+                            <span v-else>None</span>
+                        </template>
+                    </InfoCardRow>
+                    <InfoCardRow property="Active Snapshot:">
+                        <template #value>
+                            <span v-ff-tooltip:left="'Set Active Snapshots via Pipelines'" class="flex gap-2 pr-2">
+                                <span class="flex items-center space-x-2 text-gray-500 italic">
+                                    <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.activeSnapshot || !targetSnapshotDeployed" />
+                                    <CheckCircleIcon class="text-green-700 w-4" v-else />
+                                </span>
+
+                                <template v-if="device.activeSnapshot">
+                                    <div class="flex flex-col">
+                                        <span>{{ device.activeSnapshot.name }}</span>
+                                        <span class="text-xs text-gray-500">{{ device.activeSnapshot.id }}</span>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    No Snapshot Deployed
+                                </template>
                             </span>
+                        </template>
+                    </InfoCardRow>
 
-                            <template v-if="device.activeSnapshot">
-                                <div class="flex flex-col">
-                                    <span>{{ device.activeSnapshot.name }}</span>
-                                    <span class="text-xs text-gray-500">{{ device.activeSnapshot.id }}</span>
-                                </div>
-                            </template>
-                            <template v-else>
-                                No Snapshot Deployed
-                            </template>
-                        </span>
-                    </template>
-                </InfoCardRow>
-
-                <InfoCardRow property="Target Snapshot:">
-                    <template #value>
-                        <span v-ff-tooltip:left="'Set Target Snapshots via Pipelines'" class="flex gap-2 pr-2">
-                            <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
-                                <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.targetSnapshot" />
-                                <CheckCircleIcon class="text-green-700 w-4" v-else />
+                    <InfoCardRow property="Target Snapshot:">
+                        <template #value>
+                            <span v-ff-tooltip:left="'Set Target Snapshots via Pipelines'" class="flex gap-2 pr-2">
+                                <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
+                                    <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.targetSnapshot" />
+                                    <CheckCircleIcon class="text-green-700 w-4" v-else />
+                                </span>
+                                <template v-if="device.targetSnapshot">
+                                    <div class="flex flex-col">
+                                        <span>{{ device.targetSnapshot.name }}</span>
+                                        <span class="text-xs text-gray-500">{{ device.targetSnapshot.id }}</span>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    No Target Snapshot Set
+                                </template>
                             </span>
-                            <template v-if="device.targetSnapshot">
-                                <div class="flex flex-col">
-                                    <span>{{ device.targetSnapshot.name }}</span>
-                                    <span class="text-xs text-gray-500">{{ device.targetSnapshot.id }}</span>
-                                </div>
-                            </template>
-                            <template v-else>
-                                No Target Snapshot Set
-                            </template>
-                        </span>
-                    </template>
-                </InfoCardRow>
+                        </template>
+                    </InfoCardRow>
 
-                <InfoCardRow property="Device Mode">
-                    <template #value>
-                        <DeviceModeBadge :mode="device.mode" type="text" />
-                    </template>
-                </InfoCardRow>
-            </template>
-        </InfoCard>
+                    <InfoCardRow property="Device Mode">
+                        <template #value>
+                            <DeviceModeBadge :mode="device.mode" type="text" />
+                        </template>
+                    </InfoCardRow>
+                </template>
+            </InfoCard>
+        </div>
+        <div>
+            <FormHeading>
+                <div class="flex gap-2 items-center text-xl">
+                    <TrendingUpIcon class="ff-icon" />Recent Activity
+                </div>
+            </FormHeading>
+            <div class="ff-device-overview-audit">
+                <AuditLog :entries="auditLog" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
+            </div>
+            <div class="pb-4 text-center">
+                <router-link to="./audit-log" class="forge-button-inline">More...</router-link>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
 
 // utilities
-import { CheckCircleIcon, CogIcon, ExclamationIcon, TemplateIcon, WifiIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, CogIcon, ExclamationIcon, TemplateIcon, TrendingUpIcon, WifiIcon } from '@heroicons/vue/outline'
 
 // api
 import semver from 'semver'
 import { mapState } from 'vuex'
 
 // components
+import DeviceAPI from '../../api/devices.js'
+import FormHeading from '../../components/FormHeading.vue'
 import InfoCard from '../../components/InfoCard.vue'
 import InfoCardRow from '../../components/InfoCardRow.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
+import AuditLog from '../../components/audit-log/AuditLog.vue'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
@@ -144,13 +162,21 @@ export default {
         CheckCircleIcon,
         CogIcon,
         ExclamationIcon,
+        FormHeading,
+        TrendingUpIcon,
         WifiIcon,
         InfoCard,
         InfoCardRow,
         TemplateIcon,
         DeviceModeBadge,
         DeviceLastSeenBadge,
-        StatusBadge
+        StatusBadge,
+        AuditLog
+    },
+    data () {
+        return {
+            auditLog: []
+        }
     },
     computed: {
         ...mapState('account', ['settings', 'features', 'team']),
@@ -204,6 +230,35 @@ export default {
     },
     mounted () {
         this.$emit('device-refresh') // cause parent to refresh device
+        this.loadEntries()
+    },
+    methods: {
+        async loadEntries () {
+            if (this.device && this.device.id) {
+                const deviceId = this.device.id
+                this.auditLog = (await DeviceAPI.getDeviceAuditLog(deviceId, null, undefined, 4)).log
+            }
+        }
     }
 }
 </script>
+
+<style lang="scss">
+.ff-device-overview {
+    h1 {
+        border-bottom: none;
+        margin-bottom: 12px;
+    }
+}
+.ff-device-overview-audit {
+    .ff-accordion {
+        margin-bottom: 12px;
+    }
+    .ff-accordion:last-child {
+        margin-bottom: 0;
+    }
+    .ff-accordion--content {
+        background-color: white;
+    }
+}
+</style>
