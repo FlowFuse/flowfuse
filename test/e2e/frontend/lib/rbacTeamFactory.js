@@ -341,6 +341,13 @@ module.exports = async function (forge) {
         type: 'type2'
     }, rbacTeam, application6Instance1, null)
 
+    await factory.createSnapshot({ name: 'snapshot 1' }, application1Instance1, ownerOwen)
+    await factory.createSnapshot({ name: 'snapshot 1' }, application2Instance1, ownerOwen)
+    await factory.createSnapshot({ name: 'snapshot 1' }, application3Instance1, ownerOwen)
+    await factory.createSnapshot({ name: 'snapshot 1' }, application4Instance1, ownerOwen)
+    await factory.createSnapshot({ name: 'snapshot 1' }, application5Instance1, ownerOwen)
+    await factory.createSnapshot({ name: 'snapshot 1' }, application6Instance1, ownerOwen)
+
     await assignCustomRoleToApplication(ownerOwen, application1, Roles.None)
     await assignCustomRoleToApplication(ownerOwen, application2, Roles.Dashboard)
     await assignCustomRoleToApplication(ownerOwen, application3, Roles.Viewer)
