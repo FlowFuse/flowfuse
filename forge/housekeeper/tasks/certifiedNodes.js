@@ -6,9 +6,10 @@ const ProjectTemplate = require('../../db/models/ProjectTemplate')
 
 const { randomInt } = require('../utils')
 
-const SCOPE = '@flowfuse/' // TODO change to certified nodes scope, maybe should be configurable
+const SCOPE_CERTIFIED = '@flowfuse-certified-nodes/' // TODO change to certified nodes scope, maybe should be configurable
+const SCOPE_NODES = '@flowfuse-nodes/'
 const PING_TIME = `${randomInt(0, 59)} ${randomInt(0, 23)} * * *`
-const CERTIFIED_NODES_ENDPOINT = 'http://127.0.0.1:12080/certified-nodes' // configurable?
+const CERTIFIED_NODES_ENDPOINT = 'https://ff-certified-node.flowfuse.cloud/certified-nodes' // configurable?
 
 async function collect (app) {
     const payload = {
@@ -42,7 +43,7 @@ async function collect (app) {
                 const settings = await app.db.controllers.Project.getRuntimeSettings(project)
                 if (settings.palette?.modules) {
                     for (const mod of Object.keys(settings.palette.modules)) {
-                        if (mod.startsWith(SCOPE)) {
+                        if (mod.startsWith(SCOPE_CERTIFIED) || mod.startsWith(SCOPE_NODES)) {
                             if (payload.certifiedNodes[mod]) {
                                 payload.certifiedNodes[mod]++
                             } else {
@@ -78,7 +79,7 @@ async function collect (app) {
                         if (snapshot.settings.modules) {
                             const cache = []
                             for (const mod of Object.keys(snapshot.settings.modules)) {
-                                if (mod.startsWith(SCOPE)) {
+                                if (mod.startsWith(SCOPE_CERTIFIED) || mod.startsWith(SCOPE_NODES)) {
                                     cache.push(mod)
                                     if (payload.certifiedNodes[mod]) {
                                         payload.certifiedNodes[mod]++
