@@ -205,11 +205,9 @@ journalctl -f -u 'flowfuse-device-agent-<port>'
 Get-Content -Path 'C:\opt\flowfuse-device\flowfuse-device-agent.log' -Wait
 ```
 
-### Disk space check failed error
+### Error: Disk space check failed
 
-```
-[ERROR] Disk space check failed: insufficient disk space in temporary directory (/tmp): need at least 500.0 MB, available 490.4 MB
-```
+> [ERROR] Disk space check failed: insufficient disk space in temporary directory (/tmp): need at least 500.0 MB, available 490.4 MB
 
 #### Cause:
 The `Disk space check failed` error indicates that the installer has detected insufficient disk space in the temporary directory.
