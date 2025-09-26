@@ -678,15 +678,12 @@ module.exports = {
 
                     const platformRbacEnabled = app.config.features.enabled('rbacApplication')
                     const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false)
-
-                    findAll.filter((device) => {
-                        // If the device has no application or rbac not enabled, allow it through (devices without applications)
-                        if ((!platformRbacEnabled && !teamRbacEnabled) || !device.Application) {
-                            return true
+                    const rbacEnabled = platformRbacEnabled && teamRbacEnabled
+                    findAll.forEach((device) => {
+                        if (rbacEnabled && device.Application && !app.hasPermission(membership, 'device:read', { applicationId: device.Application.hashid })) {
+                            // This device is not accessible to this user, do not include in states map
+                            return
                         }
-                        const context = { applicationId: device.Application.hashid }
-                        return app.hasPermission(membership, 'device:read', context)
-                    }).forEach(device => {
                         const state = device.state
                         statesMap[state] = (statesMap[state] || 0) + 1
                     })

@@ -700,14 +700,14 @@ module.exports = {
 
                     const platformRbacEnabled = app.config.features.enabled('rbacApplication')
                     const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false)
+                    const rbacEnabled = platformRbacEnabled && teamRbacEnabled
 
-                    results.filter((project) => {
-                        if ((!platformRbacEnabled && !teamRbacEnabled)) {
-                            return true
+                    results.forEach((project) => {
+                        if (rbacEnabled && !app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid })) {
+                            // This instance is not accessible to this user, do not include in states map
+                            return
                         }
-                        return app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid })
-                    }).forEach(res => {
-                        const state = Controllers.Project.getLatestProjectState(res.id) ?? res.state
+                        const state = Controllers.Project.getLatestProjectState(project.id) ?? project.state
                         statesMap[state] = (statesMap[state] || 0) + 1
                     })
 

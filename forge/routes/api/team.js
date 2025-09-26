@@ -1095,8 +1095,7 @@ module.exports = async function (app) {
             const model = request.query.instanceType === 'hosted'
                 ? app.db.models.Project
                 : app.db.models.Device
-            const membership = await request.session.User.getTeamMembership(request.team.id)
-
+            const membership = request.teamMembership
             const stateCounters = await model.countByState(request.query.state, request.team, request.query.applicationId, membership) ?? []
             const response = {}
 
