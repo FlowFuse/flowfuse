@@ -8,7 +8,7 @@
 
                 <template #status>
                     <BrokerStatusBadge v-if="broker?.id !== 'team-broker' && !isCreationPage" :status="brokerState" :pendingStateChange="!brokerState" />
-                    <BrokerStatusBadge v-else :status="'connected'" />
+                    <BrokerStatusBadge v-else-if="activeBrokerId" :status="'connected'" />
                 </template>
 
                 <template #pictogram>
@@ -258,20 +258,22 @@ export default {
         activeBrokerId: {
             handler (id) {
                 this.clearBrokerStatusPollingInterval()
-
-                this.getBrokerState()
-                    .then(() => {
-                        this.brokerStatusPollingInterval = setInterval(() => this.getBrokerState(), 5000)
-                    })
-                    .catch(e => {
-                        this.brokerState = 'error'
-                        console.error(e)
-                    })
+                if (id && this.featuresCheck.isMqttBrokerFeatureEnabled) {
+                    this.getBrokerState()
+                        .then(() => {
+                            this.brokerStatusPollingInterval = setInterval(() => this.getBrokerState(), 5000)
+                        })
+                        .catch(e => {
+                            this.brokerState = 'error'
+                            console.error(e)
+                        })
+                }
             },
             immediate: true
         }
     },
     mounted () {
+        // redirect if no minimum role
         if (!this.hasAMinimumTeamRoleOf(Roles.Member)) {
             return this.$router.push({ name: 'Home' })
         }
