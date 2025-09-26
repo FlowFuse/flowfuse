@@ -159,6 +159,7 @@ module.exports = class TestModelFactory {
                 { model: this.forge.db.models.ProjectSettings }
             ]
         })
+        await this.forge.auditLog.Project.project.created(null, null, { id: application.TeamId }, instance)
         if (start) {
             const result = await this.forge.containers.start(instance) // ensure project is initialized
             await result.started
@@ -228,10 +229,14 @@ module.exports = class TestModelFactory {
             name: 'unnamed-snapshot',
             description: ''
         }
-        return await this.forge.db.controllers.ProjectSnapshot.createSnapshot(project, user, {
+        const snapshot = await this.forge.db.controllers.ProjectSnapshot.createSnapshot(project, user, {
             ...defaultSnapshotDetails,
             ...snapshotDetails
         })
+
+        await this.forge.auditLog.Project.project.snapshot.created(user, null, { id: project.id }, snapshot)
+
+        return snapshot
     }
 
     async createDeviceSnapshot (snapshotDetails, device, user) {
