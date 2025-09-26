@@ -160,7 +160,7 @@ export default {
         },
         teamMembership: {
             handler: function () {
-                if (!this.hasPermission('application:device-group:list')) {
+                if (!this.hasPermission('application:device-group:list', { application: this.application })) {
                     return this.$router.push({ name: 'Application', params: this.$route.params })
                 }
             },
@@ -204,7 +204,7 @@ export default {
             this.$router.push(route)
         },
         async loadDeviceGroups () {
-            if (this.hasPermission('application:device-group:list')) {
+            if (this.hasPermission('application:device-group:list', { application: this.application })) {
                 this.loading = true
                 ApplicationAPI.getDeviceGroups(this.application.id)
                     .then((groups) => {

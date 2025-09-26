@@ -80,7 +80,7 @@ export default {
     computed: {
         ...mapState('account', ['team', 'features', 'settings']),
         navigation () {
-            const canEditProject = this.hasPermission('project:edit')
+            const canEditProject = this.hasPermission('project:edit', { application: this.instance.application })
 
             const routes = [
                 { name: 'General', path: { name: 'instance-settings-general' } },

@@ -5,7 +5,7 @@
 
             <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
 
-            <div v-if="applications.length > 5" class="search-wrapper flex justify-center my-2">
+            <div v-if="writableApplications.length > 5" class="search-wrapper flex justify-center my-2">
                 <ff-text-input
                     v-model="searchTerm" class="ff-data-table--search max-w-2xl w-full col-span-3 relative"
                     data-form="search" placeholder="Search applications"
@@ -110,6 +110,8 @@
 <script>
 import { SearchIcon, XIcon } from '@heroicons/vue/outline'
 
+import usePermissions from '../../../../composables/Permissions.js'
+
 import FormRow from '../../../FormRow.vue'
 import IconDeviceSolid from '../../../icons/DeviceSolid.js'
 
@@ -145,8 +147,11 @@ export default {
     },
     emits: ['step-updated', 'next-step'],
     setup (props) {
+        const { hasPermission } = usePermissions()
+
         return {
-            initialState: props.state
+            initialState: props.state,
+            hasPermission
         }
     },
     data () {
@@ -162,12 +167,15 @@ export default {
     },
     computed: {
         hasApplications () {
-            return this.applications.length > 0
+            return this.writableApplications.length > 0
+        },
+        writableApplications () {
+            return this.applications.filter(application => this.hasPermission('project:create', { application }))
         },
         filteredApplications () {
-            if (!this.searchTerm.length) return this.applications
+            if (!this.searchTerm.length) return this.writableApplications
 
-            return this.applications.filter(app => app.label.toLowerCase().includes(this.searchTerm.toLowerCase()))
+            return this.writableApplications.filter(app => app.label.toLowerCase().includes(this.searchTerm.toLowerCase()))
         }
     },
     watch: {
@@ -226,7 +234,7 @@ export default {
     },
     methods: {
         selectApplication (application) {
-            if (this.selection?.id === application?.id && (this.applications && this.applications.length > 1)) {
+            if (this.selection?.id === application?.id && (this.writableApplications && this.writableApplications.length > 1)) {
                 this.selection = null
             } else {
                 this.selection = application
