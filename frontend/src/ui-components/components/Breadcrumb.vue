@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-nav-breadcrumb" :class="{'ff-nav-breadcrumb--active': !to}">
+    <div class="ff-nav-breadcrumb" :class="{'ff-nav-breadcrumb--active': !to}" data-el="nav-breadcrumb">
         <router-link v-if="to" :to="to">
             <slot>
                 {{ label }}

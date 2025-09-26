@@ -12,9 +12,11 @@
 </template>
 
 <script>
+import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
+import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
 import InstanceForm from '../components/InstanceForm.vue'
@@ -32,6 +34,11 @@ export default {
         }
     },
     emits: ['instance-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             saving: false,
@@ -41,7 +48,15 @@ export default {
     computed: {
         ...mapState('account', ['team', 'features'])
     },
+    mounted () {
+        this.checkAccess()
+    },
     methods: {
+        checkAccess: function () {
+            if (!this.hasPermission('project:edit', { application: this.instance.application })) {
+                useRouter().push({ replace: true, path: 'general' })
+            }
+        },
         changeInstanceDefinition (instanceDetails) {
             if (typeof instanceDetails.projectType !== 'string' || instanceDetails.projectType === '') {
                 Alerts.emit('No instance is selected. Try refreshing your browser and try again', 'warning', 3500)

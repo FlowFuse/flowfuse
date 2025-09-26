@@ -6,11 +6,11 @@
                 <label>
                     {{ pipeline.name }}
                 </label>
-                <div v-if="hasPermission('pipeline:edit')" v-ff-tooltip:right="'Edit Pipeline Name'">
+                <div v-if="hasPermission('pipeline:edit',{ application })" v-ff-tooltip:right="'Edit Pipeline Name'">
                     <PencilAltIcon v-if="!editing.name" class="ml-4 ff-icon ff-clickable" @click="edit" />
                 </div>
             </div>
-            <div v-if="hasPermission('pipeline:delete')" class="flex gap-2">
+            <div v-if="hasPermission('pipeline:delete',{ application })" class="flex gap-2">
                 <div v-if="!editing.name" v-ff-tooltip:left="'Delete Pipeline'" data-action="delete-pipeline">
                     <TrashIcon class="ff-icon ff-clickable" @click="deletePipeline" />
                 </div>
@@ -128,7 +128,7 @@ export default {
             return this.scopedPipeline.name?.length > 0
         },
         addStageAvailable () {
-            return this.hasPermission('pipeline:edit')
+            return this.hasPermission('pipeline:edit', { application: this.application })
         },
         stagesWithStates () {
             return this.pipeline.stages.map((stage) => {

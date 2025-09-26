@@ -1,5 +1,5 @@
 <template>
-    <template v-if="neverConnected && hasPermission('device:edit')">
+    <template v-if="neverConnected && hasPermission('device:edit', { application })">
         <ff-button kind="secondary" @click="finishSetup">
             <template #icon-left><ExclamationIcon class="ff-icon" /></template>
             Finish Setup
@@ -39,6 +39,10 @@ export default {
         },
         lastSeenMs: {
             type: Number,
+            default: null
+        },
+        application: {
+            type: Object,
             default: null
         }
     },

@@ -73,7 +73,6 @@ export default {
     },
     computed: {
         ...mapState('account', ['team']),
-        ...mapGetters('account', ['isFreeTeamType']),
         formSteps () {
             return [
                 {
@@ -129,10 +128,6 @@ export default {
             return true
         },
         shouldHideInstanceSteps () {
-            if (this.isFreeTeamType) {
-                return true
-            }
-
             return !this.instanceFollowUp
         },
         localApplications () {
@@ -183,7 +178,7 @@ export default {
                             })
                             createdApplication = application
 
-                            if (!this.instanceFollowUp || this.isFreeTeamType) {
+                            if (!this.instanceFollowUp) {
                                 this.$emit('form-success', {
                                     application
                                 })

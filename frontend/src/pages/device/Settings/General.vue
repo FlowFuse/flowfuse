@@ -1,12 +1,17 @@
 <template>
-    <form class="space-y-6">
+    <form class="space-y-6" data-el="device-settings-general">
         <FormHeading>
             <template #default>
                 General
             </template>
             <template #tools>
                 <div v-if="hasPermission('device:edit', { application: device.application })" class="mb-2">
-                    <ff-button v-if="!editing.deviceName" size="small" kind="primary" @click="editDevice">Edit Device</ff-button>
+                    <ff-button
+                        v-if="!editing.deviceName" size="small" kind="primary" @click="editDevice"
+                        data-action="edit-device"
+                    >
+                        Edit Device
+                    </ff-button>
                     <ff-button v-else kind="primary" size="small" @click="updateDevice">Save Changes</ff-button>
                 </div>
             </template>
@@ -21,7 +26,7 @@
     </form>
 
     <!-- Node-RED Version -->
-    <form v-if="canChangeNodeRedVersion" class="my-6 space-y-6" @submit.prevent.stop>
+    <form v-if="canChangeNodeRedVersion" class="my-6 space-y-6" @submit.prevent.stop data-el="change-version">
         <FormHeading class="pb-2">
             Change Node-RED Version
             <span class="italic text-md px-2 text-gray-400">(Current: {{ displayNrVersion }})</span>
@@ -46,7 +51,7 @@
         </div>
     </form>
 
-    <form class="mt-12 space-y-6">
+    <form class="mt-12 space-y-6" data-el="assignment">
         <FormHeading>
             <template #default>
                 Assignment

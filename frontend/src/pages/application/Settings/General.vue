@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-6">
         <FormHeading class="mb-6">Application Details</FormHeading>
-        <div class="space-y-6">
+        <div class="space-y-6" data-el="application-summary">
             <FormRow id="projectId" v-model="input.projectId" type="uneditable" inputClass="font-mono">
                 Application ID
             </FormRow>
@@ -20,7 +20,7 @@
             </FormRow>
         </div>
         <template v-if="hasPermission('project:edit', { application })">
-            <div class="space-x-4 whitespace-nowrap">
+            <div class="space-x-4 whitespace-nowrap" data-el="application-edit">
                 <template v-if="!editing">
                     <ff-button kind="primary" data-action="application-edit" @click="editName">Edit</ff-button>
                 </template>
@@ -36,7 +36,7 @@
         </template>
         <template v-if="hasPermission('project:delete', { application })">
             <FormHeading class="text-red-700">Delete Application</FormHeading>
-            <div class="flex flex-col space-y-4 max-w-2xl">
+            <div class="flex flex-col space-y-4 max-w-2xl" data-el="application-delete">
                 <div class="flex-grow">
                     <div class="max-w-sm">
                         {{ getDeleteApplicationText }}

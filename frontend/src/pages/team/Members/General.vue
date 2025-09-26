@@ -162,7 +162,10 @@ export default {
             ]
         },
         collapsibleRow () {
-            if (!this.featuresCheck.isRBACApplicationFeatureEnabled) return null
+            if (
+                !this.featuresCheck.isRBACApplicationFeatureEnabled ||
+                !this.hasPermission('application:access-control')
+            ) return null
 
             return {
                 is: markRaw(ApplicationPermissionRow),

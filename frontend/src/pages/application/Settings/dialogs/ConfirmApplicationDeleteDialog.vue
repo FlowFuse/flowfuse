@@ -14,7 +14,7 @@
                     Are you sure you want to delete this application? Once deleted, there is no going back.
                 </p>
                 <p>
-                    Name: <span class="font-bold">{{ application?.name }}</span>
+                    Name: <span class="font-bold" data-el="application-name">{{ application?.name }}</span>
                 </p>
                 <p>
                     Please type in the application name to confirm.

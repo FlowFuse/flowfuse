@@ -1,5 +1,5 @@
 <template>
-    <div class="mb-3">
+    <div class="mb-3" data-el="instance-logs">
         <SectionTopMenu hero="Node-RED Logs" info="">
             <template #tools>
                 <div style="display: flex;align-items: center;">

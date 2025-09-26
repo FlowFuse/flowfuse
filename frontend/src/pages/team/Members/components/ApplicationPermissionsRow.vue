@@ -2,15 +2,20 @@
     <td colspan="5" :class="collapsed ? 'collapsed' : 'expanded'" data-el="application-permissions-row">
         <div class="content">
             <ul>
-                <li v-for="application in rows" :key="application.id" class="application">
+                <li
+                    v-for="application in rows"
+                    :key="application.id"
+                    class="application"
+                    :data-el="'app-item-' + slugify(application.name)"
+                >
                     <span class="item" />
-                    <span class="item name">
+                    <span class="item name" data-el="application-name">
                         <ff-team-link :to="{name: 'application-settings-user-access', params: {id: application.id}}" class="ff-link">
                             {{ application.name }}
                         </ff-team-link>
                     </span>
                     <RoleCompare :baseRole="data.role" :overrideRole="application.role" class="w-40" />
-                    <span class="item action w-40 pl-5">
+                    <span class="item action w-40 pl-5" data-action="update-role">
                         <PencilAltIcon class="ff-icon ff-icon-sm ff-link" @click.prevent="onUpdateRole(application)" />
                     </span>
                 </li>
@@ -25,6 +30,8 @@ import { defineComponent } from 'vue'
 
 import RoleCompare from '../../../../components/permissions/RoleCompare.vue'
 import FfTeamLink from '../../../../components/router-links/TeamLink.vue'
+
+import { slugify } from '../../../../composables/String.js'
 
 export default defineComponent({
     name: 'ApplicationPermissionsRow',
@@ -46,7 +53,7 @@ export default defineComponent({
     },
     emits: ['application-role-updated'],
     setup () {
-        return { ArrowDownIcon, ArrowUpIcon, BanIcon }
+        return { ArrowDownIcon, ArrowUpIcon, BanIcon, slugify }
     },
     computed: {
         rows () {
@@ -73,6 +80,37 @@ export default defineComponent({
             }
 
             return customRole
+        },
+        getRoleIconProperties (customRole, teamRole) {
+            let icon
+            let iconClass
+            let roleClass = ''
+
+            switch (true) {
+            case parseInt(customRole) === 0 && parseInt(teamRole) !== parseInt(customRole):
+                icon = this.BanIcon
+                iconClass = 'text-red-500'
+                break
+            case parseInt(customRole) < teamRole:
+                icon = this.ArrowDownIcon
+                iconClass = 'text-red-500'
+                break
+            case parseInt(customRole) > teamRole:
+                icon = this.ArrowUpIcon
+                iconClass = 'text-green-500'
+                break
+            case parseInt(customRole) === null:
+            case parseInt(customRole) === teamRole:
+            case Number.isNaN(customRole):
+            default:
+                roleClass = 'opacity-50'
+                icon = null
+            }
+            return {
+                icon,
+                iconClass,
+                roleClass
+            }
         },
         onUpdateRole (application) {
             const payload = {

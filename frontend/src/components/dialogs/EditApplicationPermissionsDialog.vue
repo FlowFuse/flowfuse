@@ -2,6 +2,7 @@
     <ff-dialog
         v-if="isVisible"
         ref="dialog"
+        data-el="application-permission-dialog"
         :disable-primary="!isDirty"
         :close-on-confirm="false"
         header="Set a new role"

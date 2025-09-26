@@ -46,6 +46,7 @@ export default {
             return [
                 {
                     name: 'General',
+                    key: 'general',
                     path: {
                         name: 'application-settings-general',
                         props: {
@@ -55,10 +56,12 @@ export default {
                 },
                 {
                     name: 'User Access',
+                    key: 'user-access',
                     path: {
                         name: 'application-settings-user-access'
                     },
-                    hidden: !this.hasPermission('application:access-control') || !this.featuresCheck.isRBACApplicationFeatureEnabled
+                    hidden: !this.hasPermission('application:access-control', { application: this.application }) ||
+                        !this.featuresCheck.isRBACApplicationFeatureEnabled
                 }
             ]
         }

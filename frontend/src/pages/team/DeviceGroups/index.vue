@@ -193,7 +193,9 @@ export default {
     computed: {
         ...mapGetters('account', ['featuresCheck', 'team']),
         applicationOptions () {
-            return this.applications.map(app => ({ label: app.name, value: app.id }))
+            return this.applications
+                .filter(application => this.hasPermission('device:create', { application }))
+                .map(app => ({ label: app.name, value: app.id }))
         }
     },
     mounted () {

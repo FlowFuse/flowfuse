@@ -1,25 +1,29 @@
 <template>
-    <span class="item role flex gap-1 items-center">
-        <component
-            :is="style.icon"
-            v-if="style.icon"
-            :class="style.iconClass"
-            class="ff-icon ff-icon-sm"
-        />
-        <span :class="style.roleClass" class="capitalize">
-            {{ role }}
+    <div>
+        <span class="item role flex gap-1 items-center">
+            <component
+                :is="style.icon"
+                v-if="style.icon"
+                :class="style.iconClass"
+                class="ff-icon ff-icon-sm"
+            />
+            <span :class="style.roleClass" class="capitalize">
+                {{ role }}
+            </span>
         </span>
-    </span>
-    <span v-if="showOverrideRole" class="text-gray-500 italic flex gap-1">
-        <span>Team Role:</span>
-        <span :class="style.roleClass" class="capitalize">
-            {{ readableBaseRole }}
+        <span v-if="showOverrideRole" class="text-gray-500 italic flex gap-1">
+            <span>Team Role:</span>
+            <span :class="style.roleClass" class="capitalize">
+                {{ readableBaseRole }}
+            </span>
         </span>
-    </span>
+    </div>
 </template>
 
 <script>
 import { ArrowDownIcon, ArrowUpIcon, BanIcon } from '@heroicons/vue/outline'
+
+import { capitalize } from '../../composables/String.js'
 
 import { RoleNames } from '../../utils/roles.js'
 
@@ -41,7 +45,7 @@ export default {
     },
     computed: {
         role () {
-            return RoleNames[this.overrideRole] || 'unknown'
+            return this.capitalize(RoleNames[this.overrideRole] || 'unknown')
         },
         readableBaseRole () {
             return RoleNames[this.baseRole] || 'unknown'
@@ -73,6 +77,9 @@ export default {
                 }
             }
         }
+    },
+    methods: {
+        capitalize
     }
 }
 </script>

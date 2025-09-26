@@ -45,7 +45,7 @@
                             </span>
                         </button>
                     </template>
-                    <FinishSetupButton v-if="neverConnected" :device="device" />
+                    <FinishSetupButton v-if="hasPermission('device:create', {application: device.application}) && neverConnected" :device="device" />
                     <DropdownMenu v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                 </div>
             </template>
@@ -303,7 +303,6 @@ export default {
     async mounted () {
         this.mounted = true
         await this.loadDevice()
-        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
     },
     unmounted () {
         this.pollTimer?.stop()
@@ -331,7 +330,19 @@ export default {
             }
         },
         loadDevice: async function () {
-            this.device = await deviceApi.getDevice(this.$route.params.id)
+            try {
+                this.device = await deviceApi.getDevice(this.$route.params.id)
+            } catch (err) {
+                if (err.status === 403) {
+                    this.pollTimer?.stop()
+                    clearTimeout(this.openTunnelTimeout)
+                    return this.$router.push({ name: 'Home' })
+                }
+            }
+            if (!this.pollTimer) {
+                this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
+            }
+
             if (this.deviceStateMutator) {
                 this.deviceStateMutator.clearState()
             }

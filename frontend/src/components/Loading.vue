@@ -1,5 +1,9 @@
 <template>
-    <div class="ff-loading flex-grow flex flex-col items-center justify-center mx-auto" :class="{'theme-light': color == 'black', 'theme-dark': color == 'white'}">
+    <div
+        class="ff-loading flex-grow flex flex-col items-center justify-center mx-auto"
+        :class="{'theme-light': color == 'black', 'theme-dark': color == 'white'}"
+        data-el="loading"
+    >
         <div class="text-center w-64">
             <lottie-animation v-if="color == 'white'" :animationData="require('../images/lottie/ff-loading-white.json')" :loop="true" />
             <lottie-animation v-else-if="color == 'black'" :animationData="require('../images/lottie/ff-loading-black.json')" :loop="true" />

@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <form class="space-y-6" data-el="device-security">
         <div
             v-if="!securityOptionsSupported"
             class="ff-page-banner my-4"
@@ -26,6 +26,7 @@
 
 <script>
 import semver from 'semver'
+import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 import usePermissions from '../../../composables/Permissions.js'
@@ -88,6 +89,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['team']),
         securityOptionsSupported () {
             if (!this.device.agentVersion) {
                 // Device has not called home yet - so we don't know what agent
@@ -137,6 +139,10 @@ export default {
         }
     },
     mounted () {
+        if (!this.hasPermission('device:edit', { application: this.device.application })) {
+            return this.$router.replace({ name: 'device-settings' })
+        }
+
         this.getSettings()
     },
     methods: {
