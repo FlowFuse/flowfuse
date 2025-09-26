@@ -18,7 +18,7 @@
                 search-placeholder="Search Remote Instances"
                 :show-load-more="moreThanOnePage"
                 :check-key="row => row.id"
-                :show-row-checkboxes="true"
+                :show-row-checkboxes="hasPermission('team:device:bulk-edit', applicationContext)"
                 @rows-checked="checkedDevices = $event"
                 @load-more="loadMoreDevices"
                 @update:search="updateSearch"
