@@ -2,6 +2,7 @@
     <div
         class="event flex justify-between gap-1 items-center"
         :class="{'is-snapshot': isSnapshot, 'load-more': isLoadMore}"
+        :data-el="'timeline-event-' + slugify(shortTitle)"
         @click="loadMore"
     >
         <timeline-graph :event="event" :timeline="timeline" />
@@ -79,7 +80,7 @@
 import { defineComponent } from 'vue'
 
 import usePermissions from '../../../composables/Permissions.js'
-
+import { slugify } from '../../../composables/String.js'
 import daysSince from '../../../utils/daysSince.js'
 
 import TimelineGraph from './TimelineGraph.vue'
@@ -335,6 +336,7 @@ export default {
         }
     },
     methods: {
+        slugify,
         openInstance () {
             this.$router.push({ name: 'instance-overview', params: { id: this.event.data.sourceProject.id } })
         },
