@@ -931,7 +931,6 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         // application devices
         cy.get('[data-nav="application-devices-overview"]').click()
         cy.get('[data-el="row-application-3-app-device"]').should('exist')
-        // todo the finish setup button should not be visible to users that do not have edit permissions
         cy.get('[data-el="row-application-3-app-device"]').contains('Finish Setup').should('not.exist')
         cy.get('[data-el="row-application-3-instance-1-device-1"]').should('not.exist')
 
@@ -990,7 +989,6 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         // application devices
         cy.get('[data-nav="application-devices-overview"]').click()
         cy.get('[data-el="row-application-4-app-device"]').should('exist')
-        // todo the finish setup button should not be visible to users that do not have edit permissions
         cy.get('[data-el="row-application-4-app-device"]').contains('Finish Setup').should('not.exist')
         cy.get('[data-el="row-application-4-instance-1-device-1"]').should('not.exist')
 
