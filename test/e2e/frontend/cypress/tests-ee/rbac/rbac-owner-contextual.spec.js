@@ -154,8 +154,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="bulk-actions-dropdown"]').should('not.exist')
         cy.get('[data-action="change-target-snapshot"]').should('not.exist')
         cy.get('[data-action="register-device"]').should('not.exist')
-        // todo a user with a team role of viewer should not be able to update the target snapshot, register a device or select devices
-        // cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
+        cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
 
         // go to version history page
         //      check that the user sees the version history
@@ -265,8 +264,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="bulk-actions-dropdown"]').should('not.exist')
         cy.get('[data-action="change-target-snapshot"]').should('exist')
         cy.get('[data-action="register-device"]').should('not.exist')
-        // todo a user with a team role of member should not be able to update the target snapshot, register a device or select devices
-        // cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
+        cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
 
         // go to version history page
         //      check that the user sees the version history
@@ -354,7 +352,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
         cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
 
-        // the user should have theowner role in this application
+        // the user should have the owner role in this application
         const ownerRoleApp = instances.find(i => i.name === 'application-5-instance-1')
 
         cy.visit(`/instance/${ownerRoleApp.id}`)
@@ -374,8 +372,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="bulk-actions-dropdown"]').should('exist')
         cy.get('[data-action="change-target-snapshot"]').should('exist')
         cy.get('[data-action="register-device"]').should('exist')
-        // todo a user with a team role of member should not be able to update the target snapshot, register a device or select devices
-        // cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
+        cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('exist')
 
         // go to version history page
         //      check that the user sees the version history
@@ -722,7 +719,6 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         // check remote instance actions
         cy.get('[data-el="device-devmode-toggle"] label[disabled="false"]').should('exist')
         cy.get('[data-action="open-editor"]').should('exist').should('be.disabled')
-        // todo the finish setup button should not be visible to users that do not have edit permissions
         cy.get('[data-action="finish-setup"]').should('exist')
 
         // version history
@@ -854,8 +850,57 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="application-item"]').contains('application-5').should('exist')
         cy.get('[data-el="application-item"]').contains('application-6').should('exist')
     })
-    it.skip('should be able to create an application given his team role', () => {
-        // todo the create application multi-step form is broken
+    it('should be able to create an application given his team role', () => {
+        cy.intercept('DELETE', '/api/*/projects/*').as('deleteApplication')
+        cy.get('[data-nav="team-applications"]').click()
+        cy.get('[data-action="create-application"]').click()
+
+        cy.get('[data-form="multi-step-form"]').should('exist')
+        cy.get('[data-step="application"]').should('exist')
+        cy.get('[data-form="application-name"] input').type('test-app')
+
+        cy.get('[data-el="next-step"]').click()
+        cy.get('[data-step="instance"]').should('exist')
+
+        cy.get('[data-form="project-type"] [data-item="tile-selection-option"]').first().click()
+        cy.get('[data-form="project-template"] [data-item="tile-selection-option"]').first().click()
+        cy.get('[data-el="node-red-listbox"]').click()
+        cy.get('[data-el="listbox-options"]').first().click()
+
+        cy.get('[data-el="next-step"]').click()
+        cy.get('[data-step="blueprint"]').should('exist')
+
+        cy.get('[data-el="next-step"]').click()
+
+        cy.get('[data-el="cloud-instances"] tbody tr').first().within(() => {
+            cy.get('[data-el="kebab-menu"]').click()
+        })
+        cy.get('[data-el="kebab-options"]').contains('Delete').click()
+
+        cy.get('[data-el="instance-name"]').invoke('text').then(value => {
+            cy.get('[data-form="instance-name"] input').type(value)
+        })
+
+        cy.get('[data-el="delete-instance-dialog"]').within(() => {
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
+        cy.wait('@deleteApplication')
+        cy.get('[data-nav="application-settings"]').click()
+
+        cy.get('[data-el="application-delete"]').should('exist')
+        cy.get('[data-action="delete-application"]').should('not.be.disabled')
+        cy.get('[data-action="delete-application"]').click()
+
+        cy.get('[data-el="application-name"]').invoke('text').then(value => {
+            cy.get('[data-form="application-name"] input').type(value)
+        })
+
+        cy.get('[data-el="delete-application-dialog"]').within(() => {
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
+
+        // check redirect back to applications listing after deletion
+        cy.get('[data-el="applications-list"]').should('exist')
     })
     it('should not have direct access to an application when accessing via url', () => {
         const forbiddenApplications = [
