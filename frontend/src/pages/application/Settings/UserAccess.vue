@@ -13,10 +13,10 @@ import { defineComponent, markRaw } from 'vue'
 import { mapGetters } from 'vuex'
 
 import teamClient from '../../../api/team.js'
+import EditApplicationPermissionsDialog from '../../../components/dialogs/EditApplicationPermissionsDialog.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import RoleRow from './components/RoleRow.vue'
-import EditApplicationPermissionsDialog from './dialogs/EditApplicationPermissionsDialog.vue'
 
 export default defineComponent({
     name: 'UserAccess',

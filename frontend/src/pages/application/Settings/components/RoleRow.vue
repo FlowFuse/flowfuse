@@ -1,21 +1,20 @@
 <template>
     <div class="role-row-cell">
-        <div class="actual-role">
+        <div v-if="!hasAlteredRole" class="actual-role">
             <span class="font-bold">{{ hasAlteredRole ? readableAlteredRole : readableRole }}</span>
         </div>
-        <div v-if="hasAlteredRole" class="team-tole text-gray-500 italic flex gap-1">
-            <span>Team Role:</span>
-            <span>{{ readableRole }}</span>
-        </div>
+        <RoleCompare v-else :baseRole="role" :overrideRole="contextualRole" :show-override-role="true" class="w-40" />
     </div>
 </template>
 
 <script>
 import { defineComponent } from 'vue'
 
+import RoleCompare from '../../../../components/permissions/RoleCompare.vue'
 import { RoleNames } from '../../../../utils/roles.js'
 export default defineComponent({
     name: 'ApplicationRoleRow',
+    components: { RoleCompare },
     props: {
         role: {
             type: Number,
@@ -55,7 +54,7 @@ export default defineComponent({
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .role-row-cell {
     display: flex;
     flex-direction: column;
@@ -68,9 +67,11 @@ export default defineComponent({
         flex-direction: column;
     }
 
-    .team-tole {
+    .team-role {
         flex: 1;
-
+    }
+    .role {
+        font-weight: bold;
     }
 }
 </style>

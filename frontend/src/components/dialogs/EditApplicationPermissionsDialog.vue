@@ -19,10 +19,10 @@
 import { defineComponent } from 'vue'
 import { mapState } from 'vuex'
 
-import teamApi from '../../../../api/team.js'
-import { capitalize } from '../../../../composables/String.js'
-import alerts from '../../../../services/alerts.js'
-import { RoleNames } from '../../../../utils/roles.js'
+import teamApi from '../../api/team.js'
+import { capitalize } from '../../composables/String.js'
+import alerts from '../../services/alerts.js'
+import { RoleNames } from '../../utils/roles.js'
 
 export default defineComponent({
     name: 'EditApplicationPermissionsDialog',
@@ -74,6 +74,7 @@ export default defineComponent({
         onConfirm () {
             const permissions = {
                 applications: {
+                    ...(this.user.permissions?.applications || {}),
                     [this.application.id]: parseInt(this.selection)
                 }
             }

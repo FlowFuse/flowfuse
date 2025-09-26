@@ -11,11 +11,11 @@ describe('FlowFuse - Team Membership', () => {
         cy.visit('team/ateam/members/general')
         cy.wait('@getTeamsInvitations')
         // starts off with alice, bob and dashboard-dave as members
-        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 3) // should be 3 members
+        cy.get('[data-el="members-table"] tbody tr:not(.collapsible)').should('have.length', 3) // should be 3 members
 
         cy.visit('team/ateam/members/invitations')
         // starts off with one invitation already
-        cy.get('[data-el="invites-table"] tbody').find('tr').then(el => {
+        cy.get('[data-el="invites-table"] tbody tr:not(.collapsible)').then(el => {
             // This is tiresome. We might have a 'No Data Found' row. But I simply
             // cannot find a way to filter them out. Cypress docs claim .filter is
             // the opposite of .not - yet .filter supports :contains, but .not does not.
@@ -45,7 +45,7 @@ describe('FlowFuse - Team Membership', () => {
         cy.intercept('/api/*/teams/*/invitations').as('getTeamsInvitations')
         cy.visit('team/ateam/members/invitations')
         cy.wait('@getTeamsInvitations')
-        cy.get('[data-el="invites-table"] tbody').find('tr').should('have.length', startingInviteCount + 1)
+        cy.get('[data-el="invites-table"] tbody tr:not(.collapsible)').should('have.length', startingInviteCount + 1)
     })
 
     it('user can accept a team invite', () => {
@@ -88,7 +88,7 @@ describe('FlowFuse - Team Membership', () => {
         cy.wait(['@getTeamMembers'])
 
         // check we now have 4 members (charlie was added in previous test)
-        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 4)
+        cy.get('[data-el="members-table"] tbody tr:not(.collapsible)').should('have.length', 4)
 
         // open click kebab menu of 3rd member (charlie)
         cy.get('[data-el="members-table"] tbody').find('.ff-kebab-menu').eq(2).click()
@@ -106,7 +106,7 @@ describe('FlowFuse - Team Membership', () => {
         cy.wait(['@getTeamMembers'])
 
         // check it has been deleted
-        cy.get('[data-el="members-table"] tbody').find('tr').should('have.length', 3)
+        cy.get('[data-el="members-table"] tbody tr:not(.collapsible)').should('have.length', 3)
     })
 })
 
