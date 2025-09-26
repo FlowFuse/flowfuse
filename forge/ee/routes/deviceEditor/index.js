@@ -41,6 +41,9 @@ module.exports = async function (app) {
                             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                             return // eslint-disable-line no-useless-return
                         }
+                        if (request.device.ApplicationId) {
+                            request.applicationId = app.db.models.Application.encodeHashid(request.device.ApplicationId)
+                        }
                     }
                 } catch (err) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })

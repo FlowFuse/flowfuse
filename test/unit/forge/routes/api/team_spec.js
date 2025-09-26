@@ -800,6 +800,226 @@ describe('Team API', function () {
         })
     })
 
+    describe('Dashboard instances with Application RBAC', function () {
+        let rbacTeam, rbacUser, rbacApplication1, rbacApplication2
+
+        beforeEach(async function () {
+            // Create a team with RBAC enabled
+            rbacTeam = await app.db.models.Team.create({ name: 'rbac-team', TeamTypeId: app.defaultTeamType.id })
+
+            // Create a user for RBAC testing
+            rbacUser = await app.db.models.User.create({
+                username: 'rbacuser',
+                name: 'RBAC User',
+                email: 'rbac@example.com',
+                email_verified: true,
+                password: 'rbacPassword'
+            })
+
+            // Add user to team with Dashboard role
+            await rbacTeam.addUser(rbacUser, { through: { role: Roles.Dashboard } })
+
+            // Create applications
+            rbacApplication1 = await app.factory.createApplication({ name: 'rbac-app-1' }, rbacTeam)
+            rbacApplication2 = await app.factory.createApplication({ name: 'rbac-app-2' }, rbacTeam)
+
+            // Create instances with dashboard modules
+            await app.factory.createInstance(
+                { name: 'rbac-instance-1' },
+                rbacApplication1,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false,
+                    settings: {
+                        palette: { modules: [{ name: '@flowfuse/node-red-dashboard', version: '~1.15.0', local: true }] }
+                    }
+                }
+            )
+
+            await app.factory.createInstance(
+                { name: 'rbac-instance-2' },
+                rbacApplication2,
+                app.stack,
+                app.template,
+                app.projectType,
+                {
+                    start: false,
+                    settings: {
+                        palette: { modules: [{ name: '@flowfuse/node-red-dashboard', version: '~1.15.0', local: true }] }
+                    }
+                }
+            )
+
+            // Login as the RBAC user
+            await login('rbacuser', 'rbacPassword')
+        })
+
+        afterEach(async function () {
+            // Clean up
+            await app.db.models.Project.destroy({ where: { name: ['rbac-instance-1', 'rbac-instance-2'] } })
+            await app.db.models.Application.destroy({ where: { name: ['rbac-app-1', 'rbac-app-2'] } })
+            await app.db.models.Team.destroy({ where: { name: 'rbac-team' } })
+            await app.db.models.User.destroy({ where: { username: 'rbacuser' } })
+        })
+
+        describe('RBAC disabled', function () {
+            it('should return all dashboard instances when RBAC is disabled', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${rbacTeam.hashid}/dashboard-instances`,
+                    cookies: { sid: TestObjects.tokens.rbacuser }
+                })
+
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('projects').and.be.an.Array()
+                result.projects.should.have.a.property('length', 2)
+            })
+        })
+
+        describe('RBAC enabled', function () {
+            beforeEach(async function () {
+                // Enable RBAC for the team
+                const defaultTeamTypeProperties = app.defaultTeamType.properties
+                defaultTeamTypeProperties.features = defaultTeamTypeProperties.features || {}
+                defaultTeamTypeProperties.features.rbacApplication = true
+                app.defaultTeamType.properties = defaultTeamTypeProperties
+                await app.defaultTeamType.save()
+
+                // Enable platform RBAC
+                app.config.features.register('rbacApplication', true, false)
+            })
+
+            afterEach(async function () {
+                // Disable RBAC
+                const defaultTeamTypeProperties = app.defaultTeamType.properties
+                defaultTeamTypeProperties.features.rbacApplication = false
+                app.defaultTeamType.properties = defaultTeamTypeProperties
+                await app.defaultTeamType.save()
+
+                app.config.features.register('rbacApplication', false, false)
+            })
+
+            it('should return all dashboard instances when user has access to all applications', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${rbacTeam.hashid}/dashboard-instances`,
+                    cookies: { sid: TestObjects.tokens.rbacuser }
+                })
+
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('projects').and.be.an.Array()
+                result.projects.should.have.a.property('length', 2)
+            })
+
+            it('should filter out instances from applications user has no access to', async function () {
+                // Remove user's access to application 2
+                const teamMembership = await app.db.models.TeamMember.findOne({
+                    where: { TeamId: rbacTeam.id, UserId: rbacUser.id }
+                })
+                teamMembership.permissions = {
+                    applications: {
+                        [rbacApplication2.hashid]: Roles.None
+                    }
+                }
+                await teamMembership.save()
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${rbacTeam.hashid}/dashboard-instances`,
+                    cookies: { sid: TestObjects.tokens.rbacuser }
+                })
+
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('projects').and.be.an.Array()
+                result.projects.should.have.a.property('length', 1)
+                result.projects[0].name.should.equal('rbac-instance-1')
+            })
+
+            it('should return empty list when user has no access to any applications', async function () {
+                // Remove user's access to both applications
+                const teamMembership = await app.db.models.TeamMember.findOne({
+                    where: { TeamId: rbacTeam.id, UserId: rbacUser.id }
+                })
+                teamMembership.permissions = {
+                    applications: {
+                        [rbacApplication1.hashid]: Roles.None,
+                        [rbacApplication2.hashid]: Roles.None
+                    }
+                }
+                await teamMembership.save()
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${rbacTeam.hashid}/dashboard-instances`,
+                    cookies: { sid: TestObjects.tokens.rbacuser }
+                })
+
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('count', 0)
+                result.should.have.property('projects').and.be.an.Array()
+                result.projects.should.have.a.property('length', 0)
+            })
+
+            it('should respect application-specific role permissions', async function () {
+                // Give user Viewer role for app1 (should have access) and None for app2
+                const teamMembership = await app.db.models.TeamMember.findOne({
+                    where: { TeamId: rbacTeam.id, UserId: rbacUser.id }
+                })
+                teamMembership.permissions = {
+                    applications: {
+                        [rbacApplication1.hashid]: Roles.Viewer, // Should have access (Viewer >= Dashboard)
+                        [rbacApplication2.hashid]: Roles.None // Should not have access
+                    }
+                }
+                await teamMembership.save()
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${rbacTeam.hashid}/dashboard-instances`,
+                    cookies: { sid: TestObjects.tokens.rbacuser }
+                })
+
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('projects').and.be.an.Array()
+                result.projects.should.have.a.property('length', 1)
+                result.projects[0].name.should.equal('rbac-instance-1')
+            })
+
+            it('should deny access when user has insufficient role for specific application', async function () {
+                // Give user None role for app1 (should not have access)
+                const teamMembership = await app.db.models.TeamMember.findOne({
+                    where: { TeamId: rbacTeam.id, UserId: rbacUser.id }
+                })
+                teamMembership.permissions = {
+                    applications: {
+                        [rbacApplication1.hashid]: Roles.None, // Should not have access
+                        [rbacApplication2.hashid]: Roles.Viewer // Should have access
+                    }
+                }
+                await teamMembership.save()
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${rbacTeam.hashid}/dashboard-instances`,
+                    cookies: { sid: TestObjects.tokens.rbacuser }
+                })
+
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.should.have.property('projects').and.be.an.Array()
+                result.projects.should.have.a.property('length', 1)
+                result.projects[0].name.should.equal('rbac-instance-2')
+            })
+        })
+    })
+
     describe('Create team', async function () {
         // POST /api/v1/teams
         // - Admin/Owner/Member
@@ -1408,8 +1628,8 @@ describe('Team API', function () {
                 applicationId: 'app-id'
             }
 
-            const stub = sinon.stub(app.db.models.Device, 'countByState').callsFake(async function (states, teamId, applicationId) {
-                teamId.should.equal(expectedArgs.teamId)
+            const stub = sinon.stub(app.db.models.Device, 'countByState').callsFake(async function (states, team, applicationId, membership) {
+                team.id.should.equal(expectedArgs.teamId)
                 applicationId.should.equal(expectedArgs.applicationId)
                 states.should.deepEqual(expectedArgs.states)
             })
@@ -1436,8 +1656,8 @@ describe('Team API', function () {
                 applicationId: 'app-id'
             }
 
-            const stub = sinon.stub(app.db.models.Project, 'countByState').callsFake(async function (states, teamId, applicationId) {
-                teamId.should.equal(expectedArgs.teamId)
+            const stub = sinon.stub(app.db.models.Project, 'countByState').callsFake(async function (states, team, applicationId, membership) {
+                team.id.should.equal(expectedArgs.teamId)
                 applicationId.should.equal(expectedArgs.applicationId)
                 states.should.deepEqual(expectedArgs.states)
             })
