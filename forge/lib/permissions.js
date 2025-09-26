@@ -38,6 +38,7 @@ const Permissions = {
     'application:audit-log': { description: 'Access Application Audit Log', role: Roles.Owner },
     // Projects
     'team:projects:list': { description: 'List Team Projects', role: Roles.Viewer },
+    'team:projects:list-dashboards': { description: 'List Team Projects', role: Roles.Dashboard },
     'project:create': { description: 'Create Project', role: Roles.Owner },
     'project:delete': { description: 'Delete Project', role: Roles.Owner },
     'project:read': { description: 'View a Project', role: Roles.Viewer },
