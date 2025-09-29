@@ -29,7 +29,7 @@ The FlowFuse Device Agent Installer is the easiest way to get the FlowFuse Devic
 
 ### Networking requirements
 
-Please see [Networking requirements](../running.md#networking-requirements).
+Please see [Networking requirements](./overview.md#networking-requirements).
 
 ## Use the FlowFuse Device Agent Installer to install or update the FlowFuse Device Agent
 

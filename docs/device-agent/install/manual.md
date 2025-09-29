@@ -22,7 +22,7 @@ Use this method if you want direct control over the Node.js runtime and filesyst
 
 ### Networking requirements
 
-Please see [Networking requirements](../running.md#networking-requirements).
+Please see [Networking requirements](./overview.md#networking-requirements).
 
 ## Install the Device Agent
 
