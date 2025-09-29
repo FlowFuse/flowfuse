@@ -17,6 +17,7 @@ const KEY_HEALTH_CHECK_INTERVAL = 'healthCheckInterval'
 const KEY_CUSTOM_HOSTNAME = 'customHostname'
 const KEY_SHARED_ASSETS = 'sharedAssets'
 const KEY_DISABLE_AUTO_SAFE_MODE = 'disableAutoSafeMode'
+const KEY_STACK_UPGRADE_HOUR = 'stackUpgradeHour'
 
 module.exports = {
     KEY_SETTINGS,
@@ -70,6 +71,19 @@ module.exports = {
                         where: { key: KEY_CUSTOM_HOSTNAME, value: hostname.toLowerCase() }
                     })
                     return count !== 0 || this.isHostnameUsed(hostname)
+                },
+                upgradeStack: async (hour, day) => {
+                    return await this.findAll({
+                        where: {
+                            key: KEY_STACK_UPGRADE_HOUR, value: `${JSON.stringify({hour, day})}`
+                        },
+                        include: {
+                            model: M.Project,
+                            include: {
+                                model: M.ProjectStack
+                            }
+                        }
+                    })
                 }
             }
         }
