@@ -543,6 +543,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         protectedRoutes.forEach(tab => {
             cy.get(`[data-nav="${tab.tag}"]`).click()
             if (tab.el) {
+                // eslint-disable-next-line cypress/require-data-selectors
                 cy.get(`[${tab.el}]`).should('exist')
             } else {
                 cy.contains(tab.check)
@@ -649,7 +650,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         }
         cy.get('[data-el="loading"]').should('not.exist')
 
-        Object.keys(devices).forEach((key, should) => {
+        Object.keys(devices).forEach((key) => {
             const condition = devices[key] ? 'exist' : 'not.exist'
             cy.get(`[data-el="row-${key}"]`).should(condition)
         })
