@@ -19,13 +19,11 @@ module.exports = {
             for (const project of projectList) {
                 // we should probably rate limit this to not restart lots of projects at once
                 if (project.Project.ProjectStack.replacedBy) {
-                    console.log('UPDATING', JSON.stringify(project.Project, null, 2))
                     // need to add audit logging
                     try {
-                        const newStack  = await app.db.models.ProjectStack.byId(project.Project.ProjectStack.replacedBy)
+                        const newStack = await app.db.models.ProjectStack.byId(project.Project.ProjectStack.replacedBy)
                         app.log.info(`Updating project ${project.Project.id} to  stack: '${newStack.hashid}'`)
-                        
-                        
+
                         const suspendOptions = {
                             skipBilling: true
                         }
@@ -38,9 +36,9 @@ module.exports = {
 
                         await app.auditLog.Project.project.stack.changed(null, null, project.Project, newStack)
 
-                        await unSuspendProject(project.Project, result.resumeProject, result.targetState )
+                        await unSuspendProject(project.Project, result.resumeProject, result.targetState)
                     } catch (err) {
-                        console.log(err)
+                        app.log.info(`Problem updating project ${project.Project.id} - ${err.toString()}`)
                     }
                 } else {
                     // no upgrade)
