@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-pipeline-stage">
+    <div class="ff-pipeline-stage" :data-stage="slugify(stage.name)">
         <span class="truncate">
             {{ stage.name }}
         </span>
@@ -18,7 +18,7 @@ import DeviceGroupSolidIcon from '../../../../components/icons/DeviceGroupSolid.
 import DeviceSolid from '../../../../components/icons/DeviceSolid.js'
 import IconGit from '../../../../components/icons/Git.js'
 import IconNodeRedSolid from '../../../../components/icons/NodeRedSolid.js'
-
+import { slugify } from '../../../../composables/String.js'
 export default {
     name: 'TeamPipelineStage',
     components: {
@@ -93,7 +93,8 @@ export default {
                 return '#'
             }
         }
-    }
+    },
+    methods: { slugify }
 }
 </script>
 

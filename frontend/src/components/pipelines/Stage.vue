@@ -1,5 +1,10 @@
 <template>
-    <div v-if="stage" class="ff-pipeline-stage" data-el="ff-pipeline-stage" :class="{'ff-pipeline-stage--error': inDeveloperMode && stageIndex > 0}">
+    <div
+        v-if="stage" class="ff-pipeline-stage"
+        data-el="ff-pipeline-stage"
+        :data-stage="slugify(stage.name)"
+        :class="{'ff-pipeline-stage--error': inDeveloperMode && stageIndex > 0}"
+    >
         <div class="ff-pipeline-stage-banner">
             <div class="ff-pipeline-stage-banner-name">
                 <label>{{ stage.name }}</label>
@@ -207,6 +212,7 @@ import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 
 import StatusBadge from '../../components/StatusBadge.vue'
 import usePermissions from '../../composables/Permissions.js'
+import { slugify } from '../../composables/String.js'
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
 import Alerts from '../../services/alerts.js'
@@ -296,6 +302,7 @@ export default {
     },
     methods: {
         daysSince,
+        slugify,
         runStage: async function () {
             // get target stage
             const target = await PipelineAPI.getPipelineStage(
