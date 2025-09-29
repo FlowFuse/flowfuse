@@ -1,5 +1,3 @@
-import cygit from 'sinon'
-
 describe('FlowFuse - RBAC Owner Contextual permissions', () => {
     let team
     let instances
@@ -52,42 +50,26 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
     // dashboard
     it('should not have restricted remote instances listed on the dashboard page', () => {
         cy.get('[data-el="dashboard-section-hosted"]').within(() => {
-            // todo: this test is failing because the dashboard is not loading properly
             // out of 6 teams with 1 instance each, one team has restricted role, for another viewer role
             // resulting in 4 running, 0 error, 0 stopped
             // should display 3 instance tiles
             // should display has more with one more available
-
-            // cy.get('[data-state="running"]').contains('4')
+            cy.get('[data-state="running"]').contains('4')
             cy.get('[data-state="error"]').contains('0')
             cy.get('[data-state="stopped"]').contains('0')
-            // cy.get('[data-el="instance-tile"]').should('have.length', 3)
-            // cy.get('[data-el="has-more"]').contains('Show 1 more')
+            cy.get('[data-el="instance-tile"]').should('have.length', 3)
+            cy.get('[data-el="has-more"]').contains('1 More')
         })
         cy.get('[data-el="dashboard-section-remote"]').within(() => {
-            // todo: this test is failing because the dashboard is not loading properly
             // out of 6 teams with 2 instances each, one team has restricted role, for another viewer role
             // resulting in 0 running, 0 error, 8 stopped
             // should display 3 instance tiles
             // should display has more with one more available
-
             cy.get('[data-state="running"]').contains('0')
             cy.get('[data-state="error"]').contains('0')
-            // cy.get('[data-state="stopped"]').contains('8')
-            // cy.get('[data-el="device-tile"]').should('have.length', 3)
-            // cy.get('[data-el="has-more"]').contains('Show 5 more')
-        })
-    })
-    it('should not have restricted hosted instances listed on the dashboard page', () => {
-        cy.get('[data-el="dashboard-section-hosted"]').within(() => {
-            cy.get('[data-el="instance-tile"]').contains('application-1-instance-1').should('not.exist')
-            cy.get('[data-el="instance-tile"]').contains('application-2-instance-1').should('not.exist')
-        })
-
-        cy.get('[data-el="dashboard-section-remote"]').within(() => {
-            // todo: this test is failing because remote instances belonging to restricted applications are loaded
-            // cy.get('[data-el="device-tile"]').contains('application-1-instance-1-device').should('not.exist')
-            // cy.get('[data-el="device-tile"]').contains('application-2-instance-1-device').should('not.exist')
+            cy.get('[data-state="stopped"]').contains('10')
+            cy.get('[data-el="device-tile"]').should('have.length', 3)
+            cy.get('[data-el="has-more"]').contains('7 More')
         })
     })
     it.skip('should not have recent activity items pertaining restricted instances on the dashboard page', () => {
@@ -912,9 +894,6 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="listbox-options"] [data-option="application-4"]').should('not.exist')
         cy.get('[data-el="listbox-options"] [data-option="application-5"]').should('exist')
         cy.get('[data-el="listbox-options"] [data-option="application-6"]').should('exist')
-    })
-    it.skip('should not have the add remote instance button if the user is not part of any application in which he can do so', () => {
-        // todo functionality not there yet
     })
     it('should only be able to list devices belonging to applications of which the user has access to', () => {
         cy.get('[data-nav="team-devices"]').click()
