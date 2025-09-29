@@ -185,6 +185,38 @@ sc.exe stop flowfuse-device-agent-<port>
 sc.exe query flowfuse-device-agent-<port>
 ```
 
+### Check the Device Agent service status
+
+#### Linux (systemd)
+
+```bash
+sudo systemctl status flowfuse-device-agent-<port>
+```
+
+#### Linux (SysVinit)
+
+```bash
+sudo service flowfuse-device-agent-<port> status
+```
+
+#### Linux (OpenRC)
+
+```bash
+sudo rc-service flowfuse-device-agent-<port> status
+```
+
+#### macOS (launchd)
+
+```bash
+sudo launchctl print system/com.flowfuse.device-agent-<port>
+```
+
+#### Windows (Service Control)
+
+```bash
+sc.exe query flowfuse-device-agent-<port>
+```
+
 ### Viewing Device Agent log files
 
 Adjust the path if custom directory has been specified during installation.
