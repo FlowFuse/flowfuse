@@ -75,7 +75,7 @@ describe('Team Devices API', function () {
 
         const defaultTeamTypeProperties = app.defaultTeamType.properties
         defaultTeamTypeProperties.features = defaultTeamTypeProperties.features || {}
-        defaultTeamTypeProperties.features.applicationRBAC = true
+        defaultTeamTypeProperties.features.rbacApplication = true
         app.defaultTeamType.properties = defaultTeamTypeProperties
         await app.defaultTeamType.save()
 
@@ -945,6 +945,8 @@ describe('Team Devices API', function () {
                 TestObjects.rbacDevice4 = await app.factory.createDevice({ name: 'device rbac 4', type: 'Application Assigned (allowed)' }, TestObjects.BTeam, null, TestObjects.BTeamApplication4)
             }
             before(async function () {
+                // Enable platform RBAC
+                app.config.features.register('rbacApplication', true, false)
                 TestObjects.BTeamApplication3 = await app.factory.createApplication({ name: 'application-3' }, TestObjects.BTeam)
                 TestObjects.BTeamApplication4 = await app.factory.createApplication({ name: 'application-4' }, TestObjects.BTeam)
 
