@@ -102,7 +102,7 @@ export default {
         teams () {
             const currentUser = this.$store.getters['account/user']
             const teams = this.$store.getters['account/teams']
-            const teamOptions = teams.map(team => {
+            const teamOptions = teams?.map(team => {
                 if (team.id === currentUser.defaultTeam) {
                     this.defaultTeamName = team.name
                 }
@@ -124,8 +124,8 @@ export default {
             })
         },
         canDeleteAccount () {
-            for (let i = 0; i < this.teams.length; i++) {
-                if (!this.ownerCounts[this.teams[i].id] || this.ownerCounts[this.teams[i].id] === 1) {
+            for (let i = 0; i < this.teams?.length; i++) {
+                if (!this.ownerCounts[this.teams[i].id] || (this.ownerCounts[this.teams[i].id] === 1 && this.teams[i].owner)) {
                     return false
                 }
             }
@@ -163,7 +163,7 @@ export default {
     },
     mounted () {
         // get the members for each team, and check the owner count
-        this.teams.forEach(team => {
+        this.teams?.forEach(team => {
             if (team.memberCount !== 1) {
                 teamApi.getTeamMembers(team.id)
                     .then(data => {
@@ -227,7 +227,7 @@ export default {
                         }, 800)
                     }
                     this.user = response
-                    this.teams.forEach(team => {
+                    this.teams?.forEach(team => {
                         if (team.id === this.user.defaultTeam) {
                             this.defaultTeamName = team.label
                         }
