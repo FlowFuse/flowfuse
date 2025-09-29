@@ -38,11 +38,10 @@
         <div v-if="!canDeleteAccount" class=" max-w-2xl mt-4">
             <h3>Teams</h3>
             <ul class="space-y-2 border-t border-gray-200">
-                <li v-for="team in teams" :key="team.id" class="flex justify-between items-center border-b border-gray-200 h-11">
+                <li v-for="team in teamsToDelete" :key="team.id" class="flex justify-between items-center border-b border-gray-200 h-11">
                     <div class="flex items-center space-x-2">
                         <label class="ff-link" @click="selectTeam(team)">{{ team.label }}</label>
                         <span class="text-gray-500 text-sm">({{ team.role }})</span>
-                        <span v-if="team.owner && team.ownerCount > 1" class="text-gray-400 text-sm">({{ team.ownerCount }} owners)</span>
                     </div>
                     <ff-button v-if="team.role === 'owner'" kind="secondary-danger" @click="deleteTeam(team.id)">Delete Team</ff-button>
                 </li>
@@ -118,9 +117,15 @@ export default {
             })
             return teamOptions
         },
+        teamsToDelete () {
+            return this.teams?.filter(team => {
+                // user is the owner and the only owner
+                return team.owner && this.ownerCounts[team.id] === 1
+            })
+        },
         canDeleteAccount () {
             for (let i = 0; i < this.teams.length; i++) {
-                if (!this.ownerCounts[this.teams[i].id]) {
+                if (!this.ownerCounts[this.teams[i].id] || this.ownerCounts[this.teams[i].id] === 1) {
                     return false
                 }
             }
@@ -167,6 +172,8 @@ export default {
                     .catch(err => {
                         console.warn(err)
                     })
+            } else {
+                this.ownerCounts[team.id] = 1
             }
         })
     },
@@ -276,7 +283,7 @@ export default {
             dialog.show({
                 header: 'Delete Team',
                 kind: 'danger',
-                text: 'Are you sure you want to delete this team?',
+                text: 'Are you sure you want to delete this team? This cannot be undone. All Instances and resources within this team will be removed.',
                 confirmLabel: 'Delete Team'
             }, async () => {
                 teamApi.deleteTeam(teamId).then(() => {
