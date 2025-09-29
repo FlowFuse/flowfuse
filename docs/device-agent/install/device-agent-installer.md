@@ -243,7 +243,7 @@ Get-Content -Path 'C:\opt\flowfuse-device\flowfuse-device-agent.log' -Wait
 [ERROR] Disk space check failed: insufficient disk space in temporary directory (/tmp): need at least 500.0 MB, available 490.4 MB
 ```
 
-#### Cause:
+##### Cause:
 The `Disk space check failed` error indicates that the installer has detected insufficient disk space in the temporary directory.
 The FlowFuse Device Agent Installer requires a minimum of 500MB of free disk space in the temporary directory to ensure proper installation.
 
@@ -251,7 +251,7 @@ This error might also appear if there is not enough space on the disk partition 
 Make sure that the target installation directory has at least 500MB of free space available.
 [Adjust installation directory](/docs/device-agent/install/device-agent-installer/#install-in-custom-directory) accordingly.
 
-#### Solution:
+##### Solution:
 To fix this issue, you can try to free up some disk space by deleting unnecessary files or moving them to another location.
 Alternatively, you can specify a different temporary directory with sufficient space by setting proper environmental variable before running the installer.
 
