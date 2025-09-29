@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'vuex'
 
 import applicationApi from '../../../api/application.js'
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
