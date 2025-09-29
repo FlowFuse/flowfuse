@@ -607,7 +607,110 @@ describe('Team API', function () {
     describe('Get list of a teams projects', async function () {
         // GET /api/v1/teams/:teamId/projects
         // - Admin/Owner/Member/project-token/device-token
+        let teamAApplication1
+        let teamAApplication2
+        let teamAInstance3
+        beforeEach(async function () {
+            // Create some applications and instances in the team
+            teamAApplication1 = await app.factory.createApplication({ name: 'application-1' }, TestObjects.ATeam)
+            teamAApplication2 = await app.factory.createApplication({ name: 'application-2' }, TestObjects.ATeam)
+            await app.factory.createInstance(
+                { name: 'list-instance-1' },
+                teamAApplication1,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            await app.factory.createInstance(
+                { name: 'list-instance-2' },
+                teamAApplication1,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            teamAInstance3 = await app.factory.createInstance(
+                { name: 'list-instance-3' },
+                teamAApplication2,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+        })
+        it('User can get a list of team projects', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('projects').and.be.an.Array()
+            result.projects.should.have.a.property('length', 4)
+        })
+        it('RBAC filters team project list', async function () {
+            // Create a user for RBAC testing
+            const rbacUser = await app.db.models.User.create({
+                username: 'rbacuser',
+                name: 'RBAC User',
+                email: 'rbac@example.com',
+                email_verified: true,
+                password: 'rbacPassword'
+            })
 
+            // Add user to team with Dashboard role
+            await TestObjects.ATeam.addUser(rbacUser, { through: { role: Roles.Member } })
+
+            // Enable RBAC for the team
+            const defaultTeamTypeProperties = app.defaultTeamType.properties
+            defaultTeamTypeProperties.features = defaultTeamTypeProperties.features || {}
+            defaultTeamTypeProperties.features.rbacApplication = true
+            app.defaultTeamType.properties = defaultTeamTypeProperties
+            await app.defaultTeamType.save()
+            // console.log(TestObjects.ATeam.TeamType.id)
+            await TestObjects.ATeam.reload({ include: [app.db.models.TeamType] })
+
+            // Enable platform RBAC
+            app.config.features.register('rbacApplication', true, false)
+
+            // Remove user's access to application 2
+            const teamMembership = await app.db.models.TeamMember.findOne({
+                where: { TeamId: TestObjects.ATeam.id, UserId: rbacUser.id }
+            })
+            teamMembership.permissions = {
+                applications: {
+                    [teamAApplication1.hashid]: Roles.None
+                }
+            }
+            await teamMembership.save()
+
+            await login('rbacuser', 'rbacPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects`,
+                cookies: { sid: TestObjects.tokens.rbacuser }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('projects').and.be.an.Array()
+            result.projects.should.length(2)
+            result.projects[0].should.have.property('id', app.project.id)
+
+            // Verify limit query param
+            const response2 = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?limit=2`,
+                cookies: { sid: TestObjects.tokens.rbacuser }
+            })
+            response2.statusCode.should.equal(200)
+            const result2 = response2.json()
+            result2.should.have.property('projects').and.be.an.Array()
+            result2.projects.should.length(2)
+            result2.projects[0].should.have.property('id', app.project.id)
+            result2.projects[1].should.have.property('id', teamAInstance3.id)
+        })
         it('Device can get a list of team projects', async function () {
             // GET /api/v1/team/:teamId/devices
             // This test is for the case where a device requests a list of projects (i.e. the project-link nodes "target" dropdown)
@@ -622,7 +725,7 @@ describe('Team API', function () {
             response.statusCode.should.equal(200)
             const result = response.json()
             result.should.have.property('projects').and.be.an.Array()
-            result.projects.should.have.a.property('length', 1)
+            result.projects.should.have.a.property('length', 4)
         })
 
         it('Device can not get a list of team projects without a valid token', async function () {
