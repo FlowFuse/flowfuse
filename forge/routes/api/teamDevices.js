@@ -77,20 +77,21 @@ module.exports = async function (app) {
         const where = {
             TeamId: request.team.id
         }
-
-        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: true })
-        if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
-            devices.devices = devices.devices.filter(device => {
-                let applicationId
-                if (device.Application) {
-                    applicationId = device.Application.hashid
-                } else if (device.Project) {
-                    applicationId = device.Project.Application.hashid
-                }
-                return !applicationId || app.hasPermission(request.teamMembership, 'device:read', { applicationId })
-            })
+        const options = {
+            includeInstanceApplication: true
         }
-        // devices.coint
+        if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            const excludeApplications = []
+            Object.keys(request.teamMembership.permissions.applications).forEach(appId => {
+                if (!app.hasPermission(request.teamMembership, 'device:read', { applicationId: appId })) {
+                    excludeApplications.push(app.db.models.Application.decodeHashid(appId))
+                }
+            })
+            if (excludeApplications.length) {
+                options.excludeApplications = excludeApplications
+            }
+        }
+        const devices = await app.db.models.Device.getAll(paginationOptions, where, options)
         devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
         devices.count = devices.devices.length
         reply.send(devices)

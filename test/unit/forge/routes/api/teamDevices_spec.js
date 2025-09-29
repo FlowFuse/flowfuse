@@ -16,7 +16,7 @@ describe('Team Devices API', function () {
     let AccessTokenController
     const TestObjects = {}
 
-    const queryDevices = async (url, expectedStatusCode = 200, token) => {
+    const queryDevices = async (url, expectedStatusCode = 200, token, returnFullObject = false) => {
         // Match device on name
         const response = await app.inject({
             method: 'GET',
@@ -28,7 +28,9 @@ describe('Team Devices API', function () {
         result.should.have.property('devices').and.be.an.Array()
 
         response.statusCode.should.equal(expectedStatusCode)
-
+        if (returnFullObject) {
+            return result
+        }
         return result.devices
     }
 
@@ -933,6 +935,7 @@ describe('Team Devices API', function () {
         describe('Supports granular RBAC', function () {
             before(async function () {
                 const application3 = await app.factory.createApplication({ name: 'application-3' }, TestObjects.BTeam)
+                const application4 = await app.factory.createApplication({ name: 'application-4' }, TestObjects.BTeam)
 
                 const instance3 = await app.factory.createInstance(
                     { name: 'instance-3' },
@@ -943,10 +946,11 @@ describe('Team Devices API', function () {
                     { start: false }
                 )
 
-                // Add 3 more devices
-                await app.factory.createDevice({ name: 'device rbac 1' }, TestObjects.BTeam, null, application3)
-                await app.factory.createDevice({ name: 'device rbac 2', type: 'it is another type of device' }, TestObjects.BTeam, instance3)
-                await app.factory.createDevice({ name: 'device rbac 3', type: 'it is another type of device, no instance' }, TestObjects.BTeam)
+                // Add more devices
+                await app.factory.createDevice({ name: 'device rbac 1', type: 'Application Assigned' }, TestObjects.BTeam, null, application3)
+                await app.factory.createDevice({ name: 'device rbac 2', type: 'Instance Assigned' }, TestObjects.BTeam, instance3)
+                await app.factory.createDevice({ name: 'device rbac 3', type: 'Unassigned' }, TestObjects.BTeam)
+                await app.factory.createDevice({ name: 'device rbac 4', type: 'Unassigned' }, TestObjects.BTeam, null, application4)
 
                 await TestObjects.BTeam.addUser(TestObjects.eric, { through: { role: Roles.Member } })
 
@@ -962,16 +966,30 @@ describe('Team Devices API', function () {
             after(async function () {
                 await app.db.models.Device.destroy({
                     where: {
-                        name: ['device rbac 1', 'device rbac 2', 'device rbac 3']
+                        name: { [Op.like]: 'device rbac %' }
                     }
                 })
             })
 
             it('applies granular rbac when listing team devices', async function () {
                 const devices = await queryDevices(`/api/v1/teams/${TestObjects.BTeam.hashid}/devices`, 200, TestObjects.tokens.eric)
-                // Only 'device rbac 3' is accessible to Eric
-                devices.should.length(1)
+                // Only 'device rbac 3/4' is accessible to Eric
+                devices.should.length(2)
                 devices[0].should.have.property('name', 'device rbac 3')
+                devices[1].should.have.property('name', 'device rbac 4')
+            })
+            it('applies granular rbac when listing team devices - with limit', async function () {
+                // Get the full api response (3rd true arg to queryDevices)
+                const devices = await queryDevices(`/api/v1/teams/${TestObjects.BTeam.hashid}/devices?limit=1`, 200, TestObjects.tokens.eric, true)
+                // Only 'device rbac 3/4' is accessible to Eric, verify limit returns device 3
+                devices.devices.should.length(1)
+                devices.meta.should.have.property('next_cursor')
+                devices.devices[0].should.have.property('name', 'device rbac 3')
+                const devices2 = await queryDevices(`/api/v1/teams/${TestObjects.BTeam.hashid}/devices?limit=1&cursor=${devices.meta.next_cursor}`, 200, TestObjects.tokens.eric, true)
+                // Only 'device rbac 3/4' is accessible to Eric, verify second page returns device 4
+                devices2.devices.should.length(1)
+                devices2.meta.should.have.property('next_cursor')
+                devices2.devices[0].should.have.property('name', 'device rbac 4')
             })
         })
     })
