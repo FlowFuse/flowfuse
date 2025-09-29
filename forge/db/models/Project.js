@@ -543,7 +543,8 @@ module.exports = {
                     includeSettings = false,
                     includeMeta = false,
                     limit = null,
-                    orderByMostRecentFlows = false
+                    orderByMostRecentFlows = false,
+                    excludeApplications = null
                 } = {}) => {
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
@@ -619,6 +620,16 @@ module.exports = {
                             fn('lower', col('Project.name')),
                             { [Op.like]: `%${query.toLowerCase()}%` }
                         )
+                    }
+                    if (excludeApplications) {
+                        const excludeQuery = {
+                            ApplicationId: { [Op.notIn]: excludeApplications }
+                        }
+                        if (queryObject.where) {
+                            queryObject.where = { [Op.and]: [queryObject.where, excludeQuery] }
+                        } else {
+                            queryObject.where = excludeQuery
+                        }
                     }
 
                     return this.findAll(queryObject)
