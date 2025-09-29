@@ -286,14 +286,25 @@ export default {
                 text: 'Are you sure you want to delete this team? This cannot be undone. All Instances and resources within this team will be removed.',
                 confirmLabel: 'Delete Team'
             }, async () => {
-                teamApi.deleteTeam(teamId).then(() => {
-                    alerts.emit('Team successfully deleted', 'confirmation')
-                    // refresh teams
-                    this.$store.dispatch('account/refreshTeams')
-                }).catch(err => {
-                    alerts.emit('Problem deleting team', 'warning')
-                    console.warn(err)
-                })
+                teamApi.deleteTeam(teamId)
+                    .then(() => {
+                        alerts.emit('Team successfully deleted', 'confirmation')
+                        // refresh teams
+                        return this.$store.dispatch('account/refreshTeams')
+                    }).then(() => {
+                        const activeTeam = this.$store.getters['account/team']
+                        // check if the active team is one deleted
+                        if (activeTeam?.id === teamId) {
+                            const teams = this.$store.getters['account/teams']
+                            if (teams.length > 0) {
+                                // get another team
+                                this.$store.dispatch('account/setTeam', teams[0].slug)
+                            }
+                        }
+                    }).catch(err => {
+                        alerts.emit('Problem deleting team', 'warning')
+                        console.warn(err)
+                    })
             })
         },
         selectTeam (team) {
