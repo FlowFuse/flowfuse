@@ -187,6 +187,12 @@ module.exports = async function (forge) {
         await factory.createSnapshot({ name: 'snapshot 1' }, instance, ownerOwen)
         await factory.createDeviceSnapshot({ name: 'device snapshot 1' }, appDevice, ownerOwen)
 
+        // create Device Groups
+        await factory.createApplicationDeviceGroup({
+            name: `${name} group 1`,
+            description: `${name} group 1 description`
+        }, application)
+
         return {
             application,
             instance,

@@ -1150,10 +1150,24 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         // application device groups
         cy.get('[data-nav="application-devices-groups-overview"]').click()
         cy.get('[data-el="loading"]').should('not.exist')
-        cy.get('[data-action="create-device-group"]').should('not.exist')
+        cy.get('[data-action="create-device-group"]').should('be.disabled')
+        cy.get('[data-el="row-application-4-group-1"]').should('exist')
+        cy.get('[data-el="row-application-4-group-1"]').click()
+        cy.get('[data-el="device-group-devices"]').should('exist')
+        cy.get('[data-el="device-group-members"]').should('exist')
+        cy.get('[data-action="edit-device-group"]').should('be.disabled')
+        cy.get('[data-nav="application-device-group-settings"]').click()
+        cy.get('[data-el="device-group-settings-general"]').should('exist')
+        cy.get('[data-action="save-general-settings"]').should('not.exist')
+        cy.get('[data-el="target-snapshot"]').should('not.exist')
+        cy.get('[data-el="delete-device-group"]').should('not.exist')
+        cy.get('[data-nav="environment"]').click()
+        cy.get('[data-form="device-group-settings-env"]').should('exist')
+        cy.get('[data-action="save-env-settings"]').should('not.exist')
+        cy.get('[data-action="import-env"]').should('not.exist')
+        cy.get('[data-el="add-variable"]').should('not.exist')
 
-        // todo check that the user can't edit an existing device group
-        //   need to seed device groups to applications
+        cy.get('[data-el="nav-breadcrumb"]').contains(application.name).click()
 
         // application snapshots
         cy.get('[data-nav="application-snapshots"]').click()
@@ -1242,10 +1256,24 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         // application device groups
         cy.get('[data-nav="application-devices-groups-overview"]').click()
         cy.get('[data-el="loading"]').should('not.exist')
-        cy.get('[data-action="create-device-group"]').should('exist')
+        cy.get('[data-action="create-device-group"]').should('not.be.disabled')
+        cy.get('[data-el="row-application-5-group-1"]').should('exist')
+        cy.get('[data-el="row-application-5-group-1"]').click()
+        cy.get('[data-el="device-group-devices"]').should('exist')
+        cy.get('[data-el="device-group-members"]').should('exist')
+        cy.get('[data-action="edit-device-group"]').should('not.be.disabled')
+        cy.get('[data-nav="application-device-group-settings"]').click()
+        cy.get('[data-el="device-group-settings-general"]').should('exist')
+        cy.get('[data-action="save-general-settings"]').should('exist')
+        cy.get('[data-el="target-snapshot"]').should('exist')
+        cy.get('[data-el="delete-device-group"]').should('exist')
+        cy.get('[data-nav="environment"]').click()
+        cy.get('[data-form="device-group-settings-env"]').should('exist')
+        cy.get('[data-action="save-env-settings"]').should('exist')
+        cy.get('[data-action="import-env"]').should('exist')
+        cy.get('[data-el="add-variable"]').should('exist')
 
-        // todo check that the user can't edit an existing device group
-        //   need to seed device groups to applications
+        cy.get('[data-el="nav-breadcrumb"]').contains(application.name).click()
 
         // application snapshots
         cy.get('[data-nav="application-snapshots"]').click()
@@ -1326,9 +1354,16 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-option="application-5"]').should('exist') // owner role
         cy.get('[data-option="application-6"]').should('exist') // default role
     })
-    it.skip('should not have restricted groups listed in the groups page', () => {
+    it('should not have restricted groups listed in the groups page', () => {
         cy.get('[data-nav="device-groups"]').click()
-        // todo should seed device groups for each application in order to test
+        cy.get('[data-el=device-groups-table]').within(() => {
+            cy.get('[data-el="row-application-1-group-1"]').should('not.exist')
+            cy.get('[data-el="row-application-2-group-1"]').should('not.exist')
+            cy.get('[data-el="row-application-3-group-1"]').should('exist')
+            cy.get('[data-el="row-application-4-group-1"]').should('exist')
+            cy.get('[data-el="row-application-5-group-1"]').should('exist')
+            cy.get('[data-el="row-application-6-group-1"]').should('exist')
+        })
     })
 
     // pipelines
