@@ -77,7 +77,9 @@ module.exports = async function (app) {
         const where = {
             TeamId: request.team.id
         }
-        const options = {}
+        const options = {
+            includeInstanceApplication: true
+        }
         if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
             const excludeApplications = []
             Object.keys(request.teamMembership.permissions.applications).forEach(appId => {

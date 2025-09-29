@@ -462,7 +462,7 @@ module.exports = {
                     if (typeof where.ApplicationId === 'string') {
                         where.ApplicationId = M.Application.decodeHashid(where.ApplicationId)
                     }
-                    if (excludeApplications || filteringOnInstanceApplication) {
+                    if (excludeApplications || includeInstanceApplication) {
                         projectInclude.include = {
                             model: M.Application,
                             attributes: ['hashid', 'id', 'name', 'links']
@@ -481,9 +481,10 @@ module.exports = {
                             // projectInclude.include.required = true
                         }
 
-                        if (filteringOnInstanceApplication) {
+                        if (includeInstanceApplication) {
                             projectInclude.include.required = true
-                        } else if (excludeApplications) {
+                        }
+                        if (excludeApplications) {
                             // This query will filter for devices that are either directly assigned
                             // to the application, or assigned to an instance that is assigned to the application
                             where[Op.or] = {
