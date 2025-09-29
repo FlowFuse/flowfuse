@@ -27,6 +27,10 @@ The FlowFuse Device Agent Installer is the easiest way to get the FlowFuse Devic
 - Internet connection for downloading dependencies
 - Administrator/root privileges for system service installation
 
+### Networking requirements
+
+Please see [Networking requirements](./overview.md#networking-requirements).
+
 ## Use the FlowFuse Device Agent Installer to install or update the FlowFuse Device Agent
 
 ### One-line install
@@ -185,6 +189,7 @@ sc.exe stop flowfuse-device-agent-<port>
 sc.exe query flowfuse-device-agent-<port>
 ```
 
+
 ### Check the Device Agent service status
 
 #### Linux (systemd)
@@ -237,11 +242,9 @@ journalctl -f -u 'flowfuse-device-agent-<port>'
 Get-Content -Path 'C:\opt\flowfuse-device\flowfuse-device-agent.log' -Wait
 ```
 
-### Disk space check failed error
+### Error: Disk space check failed
 
-```
-[ERROR] Disk space check failed: insufficient disk space in temporary directory (/tmp): need at least 500.0 MB, available 490.4 MB
-```
+> [ERROR] Disk space check failed: insufficient disk space in temporary directory (/tmp): need at least 500.0 MB, available 490.4 MB
 
 ##### Cause:
 The `Disk space check failed` error indicates that the installer has detected insufficient disk space in the temporary directory.
