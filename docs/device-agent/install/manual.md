@@ -20,6 +20,10 @@ Use this method if you want direct control over the Node.js runtime and filesyst
 - Linux, macOS, or Windows
 - Outbound network access to FlowFuse platform and the NPM registry
 
+### Networking requirements
+
+Please see [Networking requirements](../running.md#networking-requirements).
+
 ## Install the Device Agent
 
 The Device Agent is published to npm as [@flowfuse/device-agent](https://www.npmjs.com/package/@flowfuse/device-agent).
@@ -102,19 +106,6 @@ flowfuse-device-agent -v
 ```
 
 Once assigned, access the Node-RED editor at `http://<device-ip>:1880`.
-
-## Networking requirements
-
-Allow outbound TCP 443 to:
-
-- app.flowfuse.com
-- mqtt.flowfuse.cloud
-
-Ensure access to npm registry to download Node-RED and nodes:
-
-- https://registry.npmjs.com
-
-For offline environments, see [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjs.org).
 
 ## Upgrading the agent
 

@@ -147,3 +147,18 @@ OS and Architecture as your target device, and then copy the modules on to your 
 3. Run `npm install` to install the modules. This will create a `node_modules` directory.
 4. On your target Remote Instance, create a directory called `module_cache` inside the Device Agent Configuration directory.
 5. Copy the `node_modules` directory from your local instance to the target instance so that it is under the `module_cache` directory.
+
+## Networking requirements
+
+If you're working behind a firewall, and need to configure it to allow the Device Agent to connect to FlowFuse and the npm registry, see the following:
+
+Allow outbound TCP 443 to:
+
+- app.flowfuse.com
+- mqtt.flowfuse.cloud
+
+Ensure access to npm registry to download Node-RED and nodes:
+
+- https://registry.npmjs.com
+
+For offline environments, see [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjs.org).

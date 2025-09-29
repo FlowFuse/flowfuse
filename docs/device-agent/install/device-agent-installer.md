@@ -27,6 +27,10 @@ The FlowFuse Device Agent Installer is the easiest way to get the FlowFuse Devic
 - Internet connection for downloading dependencies
 - Administrator/root privileges for system service installation
 
+### Networking requirements
+
+Please see [Networking requirements](../running.md#networking-requirements).
+
 ## Use the FlowFuse Device Agent Installer to install or update the FlowFuse Device Agent
 
 ### One-line install
