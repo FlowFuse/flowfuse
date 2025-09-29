@@ -697,7 +697,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
 
         // version history snapshots
         cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
-        cy.get('[data-el="row-snapshot-1"]').within(() => {
+        cy.get('[data-el="row-device-snapshot-1"]').within(() => {
             cy.get('[data-el="kebab-menu"]').click()
         })
         cy.get('[data-el="kebab-item-restore-snapshot"]').should('have.class', 'disabled')
@@ -773,7 +773,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
 
         // version history snapshots
         cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
-        cy.get('[data-el="row-snapshot-1"]').within(() => {
+        cy.get('[data-el="row-device-snapshot-1"]').within(() => {
             cy.get('[data-el="kebab-menu"]').click()
         })
         cy.get('[data-el="kebab-item-restore-snapshot"]').should('have.class', 'disabled')
@@ -849,7 +849,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
 
         // version history snapshots
         cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
-        cy.get('[data-el="row-snapshot-1"]').within(() => {
+        cy.get('[data-el="row-device-snapshot-1"]').within(() => {
             cy.get('[data-el="kebab-menu"]').click()
         })
         cy.get('[data-el="kebab-item-restore-snapshot"]').should('not.have.class', 'disabled')
@@ -865,9 +865,6 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="audit-log"]').should('exist')
 
         // device log
-        // todo VM16940 async-vendors.js:6513 Uncaught (in promise) Error: Missing protocol
-        //     at Object.Pg (VM16940 async-vendors.js:6513:17693)
-        //     at Proxy.connectMQTT (VM16886 main.js:39745:26)
         cy.get('[data-nav="device-logs"]').click()
         cy.get('[data-hero="Node-RED Logs"]').should('exist')
 

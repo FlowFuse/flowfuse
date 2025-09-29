@@ -348,12 +348,12 @@ module.exports = async function (forge) {
     await factory.createSnapshot({ name: 'snapshot 1' }, application5Instance1, ownerOwen)
     await factory.createSnapshot({ name: 'snapshot 1' }, application6Instance1, ownerOwen)
 
-    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application1Device, ownerOwen)
-    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application2Device, ownerOwen)
-    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application3Device, ownerOwen)
-    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application4Device, ownerOwen)
-    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application5Device, ownerOwen)
-    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application6Device, ownerOwen)
+    await factory.createDeviceSnapshot({ name: 'device snapshot 1' }, application1Device, ownerOwen)
+    await factory.createDeviceSnapshot({ name: 'device snapshot 1' }, application2Device, ownerOwen)
+    await factory.createDeviceSnapshot({ name: 'device snapshot 1' }, application3Device, ownerOwen)
+    await factory.createDeviceSnapshot({ name: 'device snapshot 1' }, application4Device, ownerOwen)
+    await factory.createDeviceSnapshot({ name: 'device snapshot 1' }, application5Device, ownerOwen)
+    await factory.createDeviceSnapshot({ name: 'device snapshot 1' }, application6Device, ownerOwen)
 
     await assignCustomRoleToApplication(ownerOwen, application1, Roles.None)
     await assignCustomRoleToApplication(ownerOwen, application2, Roles.Dashboard)
