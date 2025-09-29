@@ -376,7 +376,14 @@ module.exports = {
                     }
                     return this.getAll({}, queryObject.where)
                 },
-                getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false, includeDeviceGroup = false } = {}) => {
+                /**
+                 * includeInstanceApplication:
+                 */
+                getAll: async (pagination = {}, where = {}, {
+                    excludeApplications = null,
+                    includeInstanceApplication = false,
+                    includeDeviceGroup = false
+                } = {}) => {
                     // Pagination
                     const limit = Math.min(parseInt(pagination.limit) || 100, 100)
                     if (pagination.cursor) {
@@ -452,21 +459,51 @@ module.exports = {
                     }
 
                     // Naive filter on Devices->Application
-                    if (where.ApplicationId) {
+                    if (typeof where.ApplicationId === 'string') {
                         where.ApplicationId = M.Application.decodeHashid(where.ApplicationId)
                     }
-                    if (includeInstanceApplication || filteringOnInstanceApplication) {
+                    if (excludeApplications || includeInstanceApplication) {
                         projectInclude.include = {
                             model: M.Application,
                             attributes: ['hashid', 'id', 'name', 'links']
                         }
-
-                        // Handle Applications included via Device->Instance->Application
                         if (filteringOnInstanceApplication) {
                             projectInclude.include.where = { id: where.ApplicationId }
-                            projectInclude.include.required = true
-                            delete where.ApplicationId
+                        } else if (excludeApplications) {
+                            projectInclude.include.where = {
+                                id: {
+                                    [Op.and]: {
+                                        [Op.not]: null,
+                                        [Op.notIn]: excludeApplications
+                                    }
+                                }
+                            }
+                            // projectInclude.include.required = true
                         }
+
+                        if (includeInstanceApplication) {
+                            projectInclude.include.required = true
+                        }
+                        if (excludeApplications) {
+                            // This query will filter for devices that are either directly assigned
+                            // to the application, or assigned to an instance that is assigned to the application
+                            where[Op.or] = {
+                                [Op.and]: {
+                                    ApplicationId: { [Op.is]: null },
+                                    [Op.or]: {
+                                        ProjectId: { [Op.is]: null },
+                                        '$Project->Application.id$': { [Op.not]: null }
+                                    }
+                                },
+                                ApplicationId: {
+                                    [Op.or]: {
+                                        // [Op.not]: null,
+                                        [Op.notIn]: excludeApplications
+                                    }
+                                }
+                            }
+                        }
+                        delete where.ApplicationId
                     }
 
                     const includes = [
