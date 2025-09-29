@@ -193,6 +193,22 @@ module.exports = async function (forge) {
             description: `${name} group 1 description`
         }, application)
 
+        // create a pipeline
+        const pipeline = await factory.createPipeline({
+            name: `${name} pipeline`
+        }, application)
+        const stage = await factory.createPipelineStage({
+            name: `${name} stage 1`,
+            instanceId: instance.id,
+            action: 'create_snapshot'
+        }, pipeline)
+        await factory.createPipelineStage({
+            name: `${name} stage 2`,
+            deviceId: appDevice.id,
+            source: stage.hashid,
+            action: 'use_latest_snapshot'
+        }, pipeline)
+
         return {
             application,
             instance,

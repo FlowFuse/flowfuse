@@ -1,3 +1,5 @@
+import cygit from 'sinon'
+
 describe('FlowFuse - RBAC Owner Contextual permissions', () => {
     let team
     let instances
@@ -1202,11 +1204,22 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="kebab-item-download-packagejson"]').should('not.have.class', 'disabled')
         cy.get('[data-el="kebab-item-delete-snapshot"]').should('have.class', 'disabled')
 
+        // application pipelines
         cy.get('[data-nav="application-pipelines"]').click()
-        cy.get('[data-el="empty-state"]').should('exist')
-        cy.get('[data-el="empty-state"] [data-action="pipeline-add"]').should('not.exist')
-        // todo check that the user can deploy a pipeline
-        //   need to seed pipelines to applications
+        cy.get('[data-action="pipeline-add"]').should('not.exist')
+        cy.get('[data-el="pipelines-list"]').should('exist')
+        cy.get('[data-pipeline="application-4-pipeline"]').should('exist')
+        cy.get('[data-stage="application-4-stage-1"]').within(() => {
+            cy.get('[data-action="stage-edit"]').should('not.exist')
+            cy.get('[data-action="stage-delete"]').should('not.exist')
+            cy.get('[data-action="stage-run"]').should('not.exist')
+        })
+        cy.get('[data-stage="application-4-stage-2"]').within(() => {
+            cy.get('[data-action="stage-edit"]').should('not.exist')
+            cy.get('[data-action="stage-delete"]').should('not.exist')
+            cy.get('[data-action="stage-run"]').should('not.exist')
+        })
+        cy.get('[data-action="add-stage"]').should('not.exist')
 
         // application logs
         cy.get('[data-nav="application-logs"]').click()
@@ -1236,7 +1249,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="application-summary"]').should('exist')
     })
     it('should be able to access application actions of applications he has owner role', () => {
-        // the user should be have an owner role in this application
+        // the user should have an owner role in this application
         const application = applications.find(i => i.name === 'application-5')
         cy.get('[data-nav="team-applications"]').click()
 
@@ -1308,11 +1321,22 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="kebab-item-download-packagejson"]').should('not.have.class', 'disabled')
         cy.get('[data-el="kebab-item-delete-snapshot"]').should('not.have.class', 'disabled')
 
+        // application pipelines
         cy.get('[data-nav="application-pipelines"]').click()
-        cy.get('[data-el="empty-state"]').should('exist')
-        cy.get('[data-el="empty-state"] [data-action="pipeline-add"]').should('exist')
-        // todo check that the user can deploy a pipeline
-        //   need to seed pipelines to applications
+        cy.get('[data-action="pipeline-add"]').should('exist')
+        cy.get('[data-el="pipelines-list"]').should('exist')
+        cy.get('[data-pipeline="application-5-pipeline"]').should('exist')
+        cy.get('[data-stage="application-5-stage-1"]').within(() => {
+            cy.get('[data-action="stage-edit"]').should('exist')
+            cy.get('[data-action="stage-delete"]').should('exist')
+            cy.get('[data-action="stage-run"]').should('exist')
+        })
+        cy.get('[data-stage="application-5-stage-2"]').within(() => {
+            cy.get('[data-action="stage-edit"]').should('exist')
+            cy.get('[data-action="stage-delete"]').should('exist')
+            cy.get('[data-action="stage-run"]').should('exist')
+        })
+        cy.get('[data-action="add-stage"]').should('exist')
 
         // application logs
         cy.get('[data-nav="application-logs"]').click()
@@ -1367,13 +1391,30 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
     })
 
     // pipelines
-    it.skip('should not have direct access to a pipeline belonging to a restricted application when accessing via url', () => {
+    it('should not have direct access to a pipeline belonging to a restricted application when accessing via url', () => {
         cy.get('[data-nav="team-pipelines"]').click()
-        // todo should seed pipelines for each application in order to test
-    })
-    it.skip('should not have restricted pipelines belonging to a restricted application listed in the pipelines page', () => {
-        cy.get('[data-nav="team-pipelines"]').click()
-        // todo should seed pipelines for each application in order to test
+        cy.get('[data-pipeline="application-1-pipeline"]').should('not.exist')
+        cy.get('[data-pipeline="application-2-pipeline"]').should('not.exist')
+        cy.get('[data-pipeline="application-3-pipeline"]').should('exist')
+        cy.get('[data-pipeline="application-3-pipeline"]').within(() => {
+            cy.get('[data-stage="application-3-stage-1"]')
+            cy.get('[data-stage="application-3-stage-2"]')
+        })
+        cy.get('[data-pipeline="application-4-pipeline"]').should('exist')
+        cy.get('[data-pipeline="application-4-pipeline"]').within(() => {
+            cy.get('[data-stage="application-4-stage-1"]')
+            cy.get('[data-stage="application-4-stage-2"]')
+        })
+        cy.get('[data-pipeline="application-5-pipeline"]').should('exist')
+        cy.get('[data-pipeline="application-5-pipeline"]').within(() => {
+            cy.get('[data-stage="application-5-stage-1"]')
+            cy.get('[data-stage="application-5-stage-2"]')
+        })
+        cy.get('[data-pipeline="application-6-pipeline"]').should('exist')
+        cy.get('[data-pipeline="application-6-pipeline"]').within(() => {
+            cy.get('[data-stage="application-6-stage-1"]')
+            cy.get('[data-stage="application-6-stage-2"]')
+        })
     })
 
     // bill of materials
