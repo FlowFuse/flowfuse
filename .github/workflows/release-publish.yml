@@ -18,6 +18,6 @@ jobs:
       - run: npm ci
       - run: npm run build
       # - run: npm run test
-      - uses: JS-DevTools/npm-publish@ad693561f8a5b5d4c76f14407da60aa15cb10f90 # v4.0.1
+      - uses: JS-DevTools/npm-publish@7f8fe47b3bea1be0c3aec2b717c5ec1f3e03410b # v4.1.1
         with:
           token: ${{ secrets.NPM_PUBLISH_TOKEN }}
