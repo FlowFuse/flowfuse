@@ -135,7 +135,9 @@ To update the Device Agent package, use the `--update-agent` flag, optionally sp
 
 Specifying `--update-agent` without the `--agent-version` flag will update to the latest available version.
 
-## Managing
+## Troubleshooting
+
+### Managing the Device Agent service
 
 Services are named per-port, for example `flowfuse-device-agent-1880`. On macOS, the launchd label is `com.flowfuse.device-agent-1880`.
 
@@ -183,7 +185,7 @@ sc.exe stop flowfuse-device-agent-<port>
 sc.exe query flowfuse-device-agent-<port>
 ```
 
-## Viewing Device Agent log files
+### Viewing Device Agent log files
 
 Adjust the path if custom directory has been specified during installation.
 
@@ -202,6 +204,35 @@ journalctl -f -u 'flowfuse-device-agent-<port>'
 ```powershell
 Get-Content -Path 'C:\opt\flowfuse-device\flowfuse-device-agent.log' -Wait
 ```
+
+### Error: Disk space check failed
+
+> [ERROR] Disk space check failed: insufficient disk space in temporary directory (/tmp): need at least 500.0 MB, available 490.4 MB
+
+#### Cause:
+The `Disk space check failed` error indicates that the installer has detected insufficient disk space in the temporary directory.
+The FlowFuse Device Agent Installer requires a minimum of 500MB of free disk space in the temporary directory to ensure proper installation.
+
+This error might also appear if there is not enough space on the disk partition where the Device Agent is being installed.
+Make sure that the target installation directory has at least 500MB of free space available.
+[Adjust installation directory](/docs/device-agent/install/device-agent-installer/#install-in-custom-directory) accordingly.
+
+#### Solution:
+To fix this issue, you can try to free up some disk space by deleting unnecessary files or moving them to another location.
+Alternatively, you can specify a different temporary directory with sufficient space by setting proper environmental variable before running the installer.
+
+**On Linux/macOS**, set the `TMPDIR` environment variable:
+
+```bash
+export TMPDIR=/path/to/existing/directory/with/sufficient/space
+```
+
+**On Windows**, you can set the `TEMP` or `TMP` environment variable:
+```powershell
+Set TMP="C:\path\to\existing\directory\with\sufficient\space"
+```
+
+Retry installation after making these adjustments.
 
 ## Further reading
 
