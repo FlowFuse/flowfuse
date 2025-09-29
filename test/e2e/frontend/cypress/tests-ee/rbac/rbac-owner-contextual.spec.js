@@ -689,15 +689,24 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-action="open-editor"]').should('exist').should('be.disabled')
         cy.get('[data-action="finish-setup"]').should('not.exist')
 
-        // version history
+        // version history timeline
         cy.get('[data-nav="version-history"]').click()
         cy.get('[data-action="create-snapshot"]').should('not.exist')
         cy.get('[data-action="import-snapshot"]').should('not.exist')
         cy.get('[data-el="empty-state"]').contains('Nothing to see here just yet!')
-        // todo check timeline actions dropdowns based on role
+
+        // version history snapshots
         cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
-        // todo check snapshot actions dropdowns based on role & update the text message when the user doesn't have rights to create a snapshot
-        cy.get('[data-el="empty-state"]').contains('Create your First Snapshot')
+        cy.get('[data-el="row-snapshot-1"]').within(() => {
+            cy.get('[data-el="kebab-menu"]').click()
+        })
+        cy.get('[data-el="kebab-item-restore-snapshot"]').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-item-edit-snapshot"]').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-item-view-snapshot"]').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-item-compare-snapshot"]').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-item-download-snapshot"]').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-item-download-packagejson"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-item-delete-snapshot"]').should('have.class', 'disabled')
 
         // device-audit-log
         cy.get('[data-nav="device-audit-log"]').click()
@@ -756,24 +765,30 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-action="open-editor"]').should('exist').should('be.disabled')
         cy.get('[data-action="finish-setup"]').should('not.exist')
 
-        // version history
+        // version history timeline
         cy.get('[data-nav="version-history"]').click()
         cy.get('[data-action="create-snapshot"]').should('exist')
         cy.get('[data-action="import-snapshot"]').should('not.exist')
         cy.get('[data-el="empty-state"]').contains('Nothing to see here just yet!')
-        // todo check timeline actions dropdowns based on role
+
+        // version history snapshots
         cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
-        // todo check snapshot actions dropdowns based on role & update the text message when the user doesn't have rights to create a snapshot
-        cy.get('[data-el="empty-state"]').contains('Create your First Snapshot')
+        cy.get('[data-el="row-snapshot-1"]').within(() => {
+            cy.get('[data-el="kebab-menu"]').click()
+        })
+        cy.get('[data-el="kebab-item-restore-snapshot"]').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-item-edit-snapshot"]').should('have.class', 'disabled')
+        cy.get('[data-el="kebab-item-view-snapshot"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-item-compare-snapshot"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-item-download-snapshot"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-item-download-packagejson"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-item-delete-snapshot"]').should('have.class', 'disabled')
 
         // device-audit-log
         cy.get('[data-nav="device-audit-log"]').click()
         cy.get('[data-el="audit-log"]').should('exist')
 
         // device log
-        // todo VM16940 async-vendors.js:6513 Uncaught (in promise) Error: Missing protocol
-        //     at Object.Pg (VM16940 async-vendors.js:6513:17693)
-        //     at Proxy.connectMQTT (VM16886 main.js:39745:26)
         cy.get('[data-nav="device-logs"]').click()
         cy.get('[data-hero="Node-RED Logs"]').should('exist')
 
@@ -790,7 +805,6 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
 
         // settings environment
         cy.get('[data-nav="environment"]').click()
-        // todo these action buttons should not be visible to users that do not have edit permissions
         cy.get('[data-action="import-env"]').should('exist')
         cy.get('[data-el="add-variable"]').should('exist')
         cy.get('[data-el="submit"]').should('exist')
@@ -827,15 +841,24 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-action="open-editor"]').should('exist').should('be.disabled')
         cy.get('[data-action="finish-setup"]').should('exist')
 
-        // version history
+        // version history timeline
         cy.get('[data-nav="version-history"]').click()
         cy.get('[data-action="create-snapshot"]').should('exist')
         cy.get('[data-action="import-snapshot"]').should('exist')
         cy.get('[data-el="empty-state"]').contains('Nothing to see here just yet!')
-        // todo check timeline actions dropdowns based on role
+
+        // version history snapshots
         cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
-        // todo check snapshot actions dropdowns based on role & update the text message when the user doesn't have rights to create a snapshot
-        cy.get('[data-el="empty-state"]').contains('Create your First Snapshot')
+        cy.get('[data-el="row-snapshot-1"]').within(() => {
+            cy.get('[data-el="kebab-menu"]').click()
+        })
+        cy.get('[data-el="kebab-item-restore-snapshot"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-item-edit-snapshot"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-item-view-snapshot"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-item-compare-snapshot"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-item-download-snapshot"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-item-download-packagejson"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="kebab-item-delete-snapshot"]').should('not.have.class', 'disabled')
 
         // device-audit-log
         cy.get('[data-nav="device-audit-log"]').click()

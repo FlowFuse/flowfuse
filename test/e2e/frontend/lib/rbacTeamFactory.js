@@ -162,7 +162,7 @@ module.exports = async function (forge) {
             }
         }
     )
-    await factory.createDevice({
+    const application1Device = await factory.createDevice({
         name: 'application-1-app-device',
         type: 'type2'
     }, rbacTeam, null, application1)
@@ -196,7 +196,7 @@ module.exports = async function (forge) {
             }
         }
     )
-    await factory.createDevice({
+    const application2Device = await factory.createDevice({
         name: 'application-2-app-device',
         type: 'type2'
     }, rbacTeam, null, application2)
@@ -230,7 +230,7 @@ module.exports = async function (forge) {
             }
         }
     )
-    await factory.createDevice({
+    const application3Device = await factory.createDevice({
         name: 'application-3-app-device',
         type: 'type2'
     }, rbacTeam, null, application3)
@@ -264,7 +264,7 @@ module.exports = async function (forge) {
             }
         }
     )
-    await factory.createDevice({
+    const application4Device = await factory.createDevice({
         name: 'application-4-app-device',
         type: 'type2'
     }, rbacTeam, null, application4)
@@ -298,7 +298,7 @@ module.exports = async function (forge) {
             }
         }
     )
-    await factory.createDevice({
+    const application5Device = await factory.createDevice({
         name: 'application-5-app-device',
         type: 'type2'
     }, rbacTeam, null, application5)
@@ -332,7 +332,7 @@ module.exports = async function (forge) {
             }
         }
     )
-    await factory.createDevice({
+    const application6Device = await factory.createDevice({
         name: 'application-6-app-device',
         type: 'type2'
     }, rbacTeam, null, application6)
@@ -347,6 +347,13 @@ module.exports = async function (forge) {
     await factory.createSnapshot({ name: 'snapshot 1' }, application4Instance1, ownerOwen)
     await factory.createSnapshot({ name: 'snapshot 1' }, application5Instance1, ownerOwen)
     await factory.createSnapshot({ name: 'snapshot 1' }, application6Instance1, ownerOwen)
+
+    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application1Device, ownerOwen)
+    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application2Device, ownerOwen)
+    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application3Device, ownerOwen)
+    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application4Device, ownerOwen)
+    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application5Device, ownerOwen)
+    await factory.createDeviceSnapshot({ name: 'snapshot 1' }, application6Device, ownerOwen)
 
     await assignCustomRoleToApplication(ownerOwen, application1, Roles.None)
     await assignCustomRoleToApplication(ownerOwen, application2, Roles.Dashboard)
