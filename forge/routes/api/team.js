@@ -358,25 +358,29 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const includeMeta = request.query.includeMeta
-        const limit = request.query.limit
-        const orderByMostRecentFlows = request.query.orderByMostRecentFlows
-
-        let projects = await app.db.models.Project.byTeam(request.params.teamId, {
+        const options = {
             includeSettings: true,
-            limit,
+            limit: request.query.limit,
             includeMeta,
-            orderByMostRecentFlows
-        })
+            orderByMostRecentFlows: request.query.orderByMostRecentFlows
+        }
+
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.TeamType.getFeatureProperty('rbacApplication', false)
+        if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            const excludeApplications = []
+            Object.keys(request.teamMembership.permissions.applications).forEach(appId => {
+                if (!app.hasPermission(request.teamMembership, 'project:read', { applicationId: appId })) {
+                    excludeApplications.push(app.db.models.Application.decodeHashid(appId))
+                }
+            })
+            if (excludeApplications.length) {
+                options.excludeApplications = excludeApplications
+            }
+        }
+
+        const projects = await app.db.models.Project.byTeam(request.params.teamId, options)
 
         if (projects) {
-            if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
-                projects = projects.filter(projects => {
-                    // todo improve filtering/query because by filtering post query, the limit request attribute is redundant because we're initially
-                    //  finding n results but then filtering ones that might not match the permission schema so
-                    //  we might be returning less than n results as initially requested
-                    return app.hasPermission(request.teamMembership, 'project:read', { applicationId: app.db.models.Application.encodeHashid(projects.ApplicationId) })
-                })
-            }
             let result = await app.db.views.Project.instancesList(projects, {
                 includeSettings: true,
                 includeMeta
