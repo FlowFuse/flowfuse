@@ -43,6 +43,8 @@ Allow outbound TCP 443 to:
 
 - app.flowfuse.com
 - mqtt.flowfuse.cloud
+- registry.flowfuse.cloud
+- registry.flowfuse.com
 
 Ensure access to npm registry to download Node-RED and nodes:
 
