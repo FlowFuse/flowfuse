@@ -308,6 +308,29 @@ module.exports = class TestModelFactory {
         return await this.forge.db.models.FlowTemplate.create(blueprintDetails)
     }
 
+    async createTeamBrokerClient ({ team, instance, device, acls = {} }) {
+        const defaultAcls = [
+            {
+                id: '##uuid##',
+                action: 'subscribe', // by default allow subscribe only
+                pattern: '#'
+            }
+        ]
+        const username = instance ? instance.name : device.name
+        const ownerId = instance ? instance.id : device.id
+        const ownerType = instance ? 'project' : 'device'
+        const password = 'super-secret'
+
+        return this.forge.db.models.TeamBrokerClient.create({
+            username,
+            ownerType,
+            ownerId,
+            password,
+            acls: JSON.stringify(defaultAcls),
+            TeamId: team.id
+        })
+    }
+
     get Roles () {
         return { ...Roles }
     }

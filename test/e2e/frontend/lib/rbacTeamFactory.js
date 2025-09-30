@@ -209,6 +209,16 @@ module.exports = async function (forge) {
             action: 'use_latest_snapshot'
         }, pipeline)
 
+        await factory.createTeamBrokerClient({
+            team: rbacTeam, instance
+        })
+        await factory.createTeamBrokerClient({
+            team: rbacTeam, device: appDevice
+        })
+        await factory.createTeamBrokerClient({
+            team: rbacTeam, device: instanceDevice
+        })
+
         return {
             application,
             instance,

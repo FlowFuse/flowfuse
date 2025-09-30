@@ -1422,9 +1422,33 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
     })
 
     // brokers
-    it.skip('should not have access to ff-broker clients created by instances belonging to restricted applications', () => {
+    it('should not have access to ff-broker clients created by instances belonging to restricted applications', () => {
         cy.get('[data-nav="team-brokers"]').click()
-        // todo need to seed instance broker clients for each instance in order to test
+        cy.get('[data-nav="team-brokers-clients"]').click()
+
+        cy.get('[data-client="application-1-instance-1"]').should('not.exist')
+        cy.get('[data-client="application-1-app-device"]').should('not.exist')
+        cy.get('[data-client="application-1-instance-1-device"]').should('not.exist')
+
+        cy.get('[data-client="application-2-instance-1"]').should('not.exist')
+        cy.get('[data-client="application-2-app-device"]').should('not.exist')
+        cy.get('[data-client="application-2-instance-1-device"]').should('not.exist')
+
+        cy.get('[data-client="application-3-instance-1"]').should('not.exist')
+        cy.get('[data-client="application-3-app-device"]').should('not.exist')
+        cy.get('[data-client="application-3-instance-1-device"]').should('not.exist')
+
+        cy.get('[data-client="application-4-instance-1"]').should('exist')
+        cy.get('[data-client="application-4-app-device"]').should('exist')
+        cy.get('[data-client="application-4-instance-1-device"]').should('exist')
+
+        cy.get('[data-client="application-5-instance-1"]').should('exist')
+        cy.get('[data-client="application-5-app-device"]').should('exist')
+        cy.get('[data-client="application-5-instance-1-device"]').should('exist')
+
+        cy.get('[data-client="application-6-instance-1"]').should('exist')
+        cy.get('[data-client="application-6-app-device"]').should('exist')
+        cy.get('[data-client="application-6-instance-1-device"]').should('exist')
     })
 
     // performance
