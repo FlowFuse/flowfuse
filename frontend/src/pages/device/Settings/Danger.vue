@@ -48,15 +48,12 @@ export default {
         }
     },
     mounted () {
-        if (!this.hasPermission('device:edit', { application: this.device.application })) {
-            return this.$router.replace({ name: 'device-settings' })
-        }
         this.checkAccess()
     },
     methods: {
         checkAccess: async function () {
-            if (!this.hasPermission('device:edit')) {
-                useRouter().push({ replace: true, path: 'general' })
+            if (!this.hasPermission('device:edit', { application: this.device.application })) {
+                return this.$router.replace({ name: 'device-settings' })
             }
         },
         showConfirmDeleteDialog () {
