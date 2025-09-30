@@ -49,7 +49,7 @@
 
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
-import { defineComponent, markRaw } from 'vue'
+import { markRaw } from 'vue'
 import { mapGetters, mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
@@ -58,13 +58,14 @@ import EditApplicationPermissionsDialog from '../../../components/dialogs/EditAp
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
 import usePermissions from '../../../composables/Permissions.js'
-import { pluralize } from '../../../composables/String.js'
 import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import alerts from '../../../mixins/Alerts.js'
 import { Roles } from '../../../utils/roles.js'
 import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog.vue'
 import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog.vue'
 import InviteMemberDialog from '../dialogs/InviteMemberDialog.vue'
+
+import ApplicationPermissionOverride from './components/ApplicationPermissionOverride.vue'
 
 import ApplicationPermissionRow from './components/ApplicationPermissionsRow.vue'
 export default {
@@ -135,28 +136,7 @@ export default {
                     sortable: false,
                     class: ['w-40'],
                     component: {
-                        // eslint-disable-next-line vue/one-component-per-file
-                        is: markRaw(defineComponent({
-                            // inheritAttrs: false,
-                            props: ['permissions', 'role'],
-                            setup () { return { pluralize } },
-                            computed: {
-                                alteredPermissions () {
-                                    let counter = 0
-                                    Object.keys((this.permissions?.applications || {})).forEach(key => {
-                                        const appPerm = parseInt(this.permissions.applications[key])
-                                        const rolePerm = parseInt(this.role)
-                                        if (appPerm !== rolePerm) { counter++ }
-                                    })
-
-                                    return counter
-                                }
-                            },
-                            template: `
-                                <span v-if="alteredPermissions === 0" class="opacity-50">No Overrides</span>
-                                <span v-else>{{alteredPermissions}} x {{ this.pluralize('Override', 1) }}</span>
-                            `
-                        }))
+                        is: markRaw(ApplicationPermissionOverride)
                     }
                 }
             ]

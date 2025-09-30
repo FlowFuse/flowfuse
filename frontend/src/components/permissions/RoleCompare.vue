@@ -1,21 +1,23 @@
 <template>
-    <span class="item role flex gap-1 items-center">
-        <component
-            :is="style.icon"
-            v-if="style.icon"
-            :class="style.iconClass"
-            class="ff-icon ff-icon-sm"
-        />
-        <span :class="style.roleClass" class="capitalize">
-            {{ role }}
+    <div data-el="role-compare">
+        <span class="item role flex gap-1 items-center">
+            <component
+                :is="style.icon"
+                v-if="style.icon"
+                :class="style.iconClass"
+                class="ff-icon ff-icon-sm"
+            />
+            <span :class="style.roleClass" class="capitalize">
+                {{ role }}
+            </span>
         </span>
-    </span>
-    <span v-if="showOverrideRole" class="text-gray-500 italic flex gap-1">
-        <span>Team Role:</span>
-        <span :class="style.roleClass" class="capitalize">
-            {{ readableBaseRole }}
+        <span v-if="showOverrideRole" class="text-gray-500 italic flex gap-1">
+            <span>Team Role:</span>
+            <span :class="style.roleClass" class="capitalize">
+                {{ readableBaseRole }}
+            </span>
         </span>
-    </span>
+    </div>
 </template>
 
 <script>
