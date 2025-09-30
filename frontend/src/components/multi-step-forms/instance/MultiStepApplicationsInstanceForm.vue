@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import applicationApi from '../../../api/application.js'
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
@@ -73,6 +73,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['team']),
+        ...mapGetters('account', ['isFreeTeamType']),
         formSteps () {
             return [
                 {
@@ -128,6 +129,10 @@ export default {
             return true
         },
         shouldHideInstanceSteps () {
+            if (this.isFreeTeamType) {
+                return true
+            }
+
             return !this.instanceFollowUp
         },
         localApplications () {
@@ -178,7 +183,7 @@ export default {
                             })
                             createdApplication = application
 
-                            if (!this.instanceFollowUp) {
+                            if (!this.instanceFollowUp || this.isFreeTeamType) {
                                 this.$emit('form-success', {
                                     application
                                 })
