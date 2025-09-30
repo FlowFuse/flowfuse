@@ -7,7 +7,7 @@
             :editTemplate="false"
             @validated="onFormValidated"
         />
-        <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
+        <div v-if="hasPermission('device:edit-env', applicationContext)" class="space-x-4 whitespace-nowrap">
             <ff-button
                 size="small" :disabled="isUpdateButtonDisabled" @click="saveSettings()" data-el="submit"
                 v-if="hasPermission('device:edit-env', applicationContext)"

@@ -31,7 +31,7 @@
         </EmptyState>
 
         <template v-else>
-            <div id="team-device-groups" class="space-y-6">
+            <div id="team-device-groups" class="space-y-6" data-page="team-device-groups">
                 <ff-loading v-if="loading" message="Loading Groups..." />
 
                 <template v-else>
@@ -201,6 +201,8 @@ export default {
     mounted () {
         if (this.hasPermission('team:device-group:list')) {
             this.loadTeamDeviceGroups()
+        } else {
+            this.$router.replace({ name: 'Home' })
         }
     },
     methods: {
