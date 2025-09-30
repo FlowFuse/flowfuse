@@ -265,12 +265,10 @@ export default {
         showCreateDeviceDialog () {
             this.modals.addDevice = true
             this.$nextTick(() => {
-                console.log('showCreateDeviceDialog', this.$refs.teamDeviceCreateDialog)
                 this.$refs.teamDeviceCreateDialog.show(null, null, null, true)
             })
         },
         deviceCreated (device) {
-            console.log('deviceCreated', device)
             // navigate to the new Remote Instance
             this.$router.push({ name: 'DeviceOverview', params: { id: device.id } })
         }
