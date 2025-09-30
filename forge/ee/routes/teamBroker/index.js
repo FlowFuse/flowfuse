@@ -200,12 +200,17 @@ module.exports = async function (app) {
                         username: { type: 'string' },
                         acls: { type: 'array' },
                         owner: {
-                            type: 'object',
-                            properties: {
-                                instanceType: { type: 'string', enum: ['instance', 'device'] },
-                                id: { type: 'string' },
-                                name: { type: 'string' }
-                            }
+                            anyOf: [
+                                { type: 'null' },
+                                {
+                                    type: 'object',
+                                    properties: {
+                                        instanceType: { type: 'string', enum: ['instance', 'device'] },
+                                        id: { type: 'string' },
+                                        name: { type: 'string' }
+                                    }
+                                }
+                            ]
                         }
                     }
                 },
