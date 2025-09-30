@@ -14,7 +14,6 @@
     </div>
 </template>
 <script>
-import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
