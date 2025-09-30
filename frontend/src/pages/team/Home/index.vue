@@ -34,6 +34,21 @@
                                 />
                             </div>
 
+                            <template #actions>
+                                <ff-button
+                                    v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
+                                    data-action="create-project"
+                                    kind="secondary"
+                                    :to="{name: 'CreateInstance'}"
+                                    :disabled="!hasPermission('project:create')"
+                                >
+                                    <template #icon-left>
+                                        <PlusIcon class="ff-icon" />
+                                    </template>
+                                    Add Instance
+                                </ff-button>
+                            </template>
+
                             <RecentlyModifiedInstances :total-instances="totalInstances" @delete-instance="openDeleteInstanceForm" />
                         </DashboardSection>
 
@@ -57,6 +72,21 @@
                                 />
                             </div>
 
+                            <template #actions>
+                                <ff-button
+                                    v-ff-tooltip:left="!hasPermission('device:create') && 'Your role does not allow creating new remote instances. Contact a team admin to change your role.'"
+                                    data-action="create-project"
+                                    kind="secondary"
+                                    :disabled="!hasPermission('device:create')"
+                                    @click="showCreateDeviceDialog"
+                                >
+                                    <template #icon-left>
+                                        <PlusIcon class="ff-icon" />
+                                    </template>
+                                    Add Instance
+                                </ff-button>
+                            </template>
+
                             <RecentlyModifiedDevices :total-devices="totalDevices" />
                         </DashboardSection>
                     </section>
@@ -78,21 +108,39 @@
             </transition>
         </div>
     </ff-page>
+    <TeamDeviceCreateDialog
+        v-if="team && modals.addDevice"
+        ref="teamDeviceCreateDialog"
+        :team="team"
+        :teamDeviceCount="totalDevices"
+        @device-created="deviceCreated"
+        @close="modals.addDevice = false"
+    >
+        <template #description>
+            <p v-if="!featuresCheck?.isHostedInstancesEnabledForTeam && tours.firstDevice">
+                Describe your new Remote Instance here, e.g. "Raspberry Pi", "Allen-Bradley PLC", etc.
+            </p>
+            <p v-else>
+                Remote Instances are managed using the <a href="https://flowfuse.com/docs/user/devices/" target="_blank">FlowFuse Device Agent</a>. The agent will need to be setup on the hardware where you want your Remote Instance to run.
+            </p>
+        </template>
+    </TeamDeviceCreateDialog>
 </template>
 
 <script>
-import { ChipIcon, DatabaseIcon } from '@heroicons/vue/outline'
+import { ChipIcon, DatabaseIcon, PlusIcon } from '@heroicons/vue/outline'
 
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import TeamAPI from '../../../api/team.js'
 import AuditLog from '../../../components/audit-log/AuditLog.vue'
-
 import ProjectsIcon from '../../../components/icons/Projects.js'
 import InstanceStat from '../../../components/tiles/InstanceCounter.vue'
 import { useInstanceStates } from '../../../composables/InstanceStates.js'
+import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+import TeamDeviceCreateDialog from '../Devices/dialogs/TeamDeviceCreateDialog.vue'
 
 import DashboardSection from './components/DashboardSection.vue'
 import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
@@ -109,14 +157,18 @@ export default {
         ChipIcon,
         ProjectsIcon,
         DatabaseIcon,
-        RecentlyModifiedDevices
+        PlusIcon,
+        RecentlyModifiedDevices,
+        TeamDeviceCreateDialog
     },
     setup () {
         const { groupBySimplifiedStates, statesMap: instanceStatesMap } = useInstanceStates()
 
+        const { hasPermission } = usePermissions()
         return {
             groupBySimplifiedStates,
-            instanceStatesMap
+            instanceStatesMap,
+            hasPermission
         }
     },
     data () {
@@ -127,11 +179,15 @@ export default {
             instanceStateCounts: {},
             deviceStateCounts: {},
             isDeleteInstanceDialogOpen: false,
-            devices: []
+            devices: [],
+            modals: {
+                addDevice: false
+            }
         }
     },
     computed: {
-        ...mapGetters('account', ['team', 'pendingTeamChange']),
+        ...mapState('ux/tours', ['tours']),
+        ...mapGetters('account', ['team', 'pendingTeamChange', 'featuresCheck']),
         instanceStats () {
             return this.groupBySimplifiedStates(this.instanceStateCounts)
         },
@@ -205,6 +261,18 @@ export default {
             this.isDeleteInstanceDialogOpen = false
             // get the new number of instances which triggers a recently modified instances list refresh
             this.getInstanceStateCounts()
+        },
+        showCreateDeviceDialog () {
+            this.modals.addDevice = true
+            this.$nextTick(() => {
+                console.log('showCreateDeviceDialog', this.$refs.teamDeviceCreateDialog)
+                this.$refs.teamDeviceCreateDialog.show(null, null, null, true)
+            })
+        },
+        deviceCreated (device) {
+            console.log('deviceCreated', device)
+            // navigate to the new Remote Instance
+            this.$router.push({ name: 'DeviceOverview', params: { id: device.id } })
         }
     }
 }
