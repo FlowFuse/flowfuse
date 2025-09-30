@@ -36,24 +36,20 @@
                 />
             </span>
             <span
+                v-if="hasPermission('broker:clients:edit', applicationContext)"
                 class="edit hover:cursor-pointer"
                 data-action="edit-client"
                 @click.prevent.stop="$emit('edit-client', client)"
             >
-                <PencilIcon
-                    v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
-                    class="ff-icon-sm"
-                />
+                <PencilIcon class="ff-icon-sm" />
             </span>
             <span
+                v-if="hasPermission('broker:clients:delete', applicationContext)"
                 class="delete hover:cursor-pointer "
                 data-action="delete-client"
                 @click.prevent.stop="$emit('delete-client',client)"
             >
-                <TrashIcon
-                    v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
-                    class="ff-icon-sm text-red-500"
-                />
+                <TrashIcon class="ff-icon-sm text-red-500" />
             </span>
         </template>
         <template #content>
@@ -98,10 +94,10 @@ export default {
     },
     emits: ['edit-client', 'delete-client'],
     setup () {
-        const { hasAMinimumTeamRoleOf } = usePermissions()
+        const { hasPermission } = usePermissions()
 
         return {
-            hasAMinimumTeamRoleOf
+            hasPermission
         }
     },
     computed: {
@@ -114,6 +110,16 @@ export default {
                 return this.client.owner.name || this.client.owner.id
             }
             return `${this.client.username}@${this.team.id}`
+        },
+        applicationContext () {
+            let applicationId = null
+            if (Object.prototype.hasOwnProperty.call(this.client, 'applicationId')) {
+                applicationId = this.client.applicationId
+            } else if (Object.prototype.hasOwnProperty.call(this.client?.owner ?? {}, 'applicationId')) {
+                applicationId = this.client.owner.applicationId
+            }
+
+            return applicationId ? { applicationId } : {}
         }
     }
 }
