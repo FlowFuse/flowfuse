@@ -92,7 +92,7 @@ Before you begin, ensure you have the following:
      - [Digital Ocean](digital-ocean.md)
      - MicroK8s
 5. **Ingress Controller:** An Ingress controller installed on the kubernetes cluster. FlowFuse Helm chart uses the [Ingress NGINX Controller](https://github.com/kubernetes/ingress-nginx) by default.
-6. **EMQX Operator:** This is required to install the required MQTT broker when the Team Broker features are enabled. Instuctions for installing the operator can be found [here](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator)
+6. **EMQX Operator:** This is required to install the required MQTT broker when the Team Broker features are enabled. Instructions for installing the operator can be found [here](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator)
 
 For a production-ready environment, we also recommend: 
 * **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
