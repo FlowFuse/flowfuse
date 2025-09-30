@@ -71,15 +71,12 @@ module.exports = async function (forge) {
                 generatedSnapshotDescription: true,
                 rbacApplication: true,
                 assistantInlineCompletions: true
-            },
-            billing: {
-                disabled: true
             }
         }
     })
-
     // Create RBAC Team
     const rbacTeam = await factory.createTeam({ name: 'RBAC Team' }, rbacTeamType)
+    await factory.createSubscription(rbacTeam)
 
     const adminAllan = await factory.createUser({
         admin: true,
