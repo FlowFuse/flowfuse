@@ -189,7 +189,7 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'invalid_team_role', error: 'invalid role' })
             }
         } else if (hasPermissions) {
-            if (!app.config.features.enabled('rbacApplication') || request.team.TeamType.getFeatureProperty('applicationRBAC', false) !== true) {
+            if (!app.config.features.enabled('rbacApplication') || request.team.TeamType.getFeatureProperty('rbacApplication', false) !== true) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid request - Application RBAC not enabled for team' })
                 return
             }
@@ -211,7 +211,11 @@ module.exports = async function (app) {
             // Get a list of all valid applications in the team
             const applications = await app.db.models.Application.byTeam(request.params.teamId)
             const knownAppIds = new Set(applications.map(a => a.hashid))
-            const invalidApplications = applicationIds.filter(id => !knownAppIds.has(id) || !TeamRoles.includes(newPermissions.applications[id]))
+            // adding 0 to the list of valid roles to allow for the "no role" option and not break existing functionality
+            const teamRoles = [0, ...TeamRoles]
+            const invalidApplications = applicationIds.filter(id =>
+                !knownAppIds.has(id) || !teamRoles.includes(newPermissions.applications[id])
+            )
             if (invalidApplications.length > 0) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid permissions object' })
                 return
