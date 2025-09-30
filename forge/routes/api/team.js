@@ -365,7 +365,7 @@ module.exports = async function (app) {
             orderByMostRecentFlows: request.query.orderByMostRecentFlows
         }
 
-        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.TeamType.getFeatureProperty('rbacApplication', false)
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
         if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
             const excludeApplications = []
             Object.keys(request.teamMembership.permissions.applications).forEach(appId => {
