@@ -1,5 +1,5 @@
 <template>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" :logType="logScope" @load-entries="loadEntries">
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" :logType="logScope" :loading="loading" @load-entries="loadEntries">
         <template #title>
             <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in within this application." />
         </template>
@@ -61,6 +61,7 @@ export default {
     data () {
         return {
             logEntries: [],
+            loading: true,
             associations: {}, // applications, instances, devices
             users: [],
             auditFilters: {
@@ -122,16 +123,22 @@ export default {
                 }
                 params.set('includeChildren', includeChildren)
                 params.set('scope', paramScope)
-                if (this.applicationId) {
-                    let log
-                    if (paramScope === 'application') {
-                        log = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200))
-                    } else {
-                        const instanceId = this.auditFilters.selectedEventScope
-                        log = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200))
+                try {
+                    if (this.applicationId) {
+                        let log
+                        if (paramScope === 'application') {
+                            log = (await ApplicationApi.getApplicationAuditLog(this.applicationId, params, cursor, 200))
+                        } else {
+                            const instanceId = this.auditFilters.selectedEventScope
+                            log = (await InstanceApi.getInstanceAuditLog(instanceId, params, cursor, 200))
+                        }
+                        this.logEntries = log.log
+                        this.associations = includeChildren ? log.associations : null
                     }
-                    this.logEntries = log.log
-                    this.associations = includeChildren ? log.associations : null
+                } catch (error) {
+                    console.error('Failed to load audit logs:', error)
+                } finally {
+                    this.loading = false
                 }
             }
         },

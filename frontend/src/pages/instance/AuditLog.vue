@@ -109,21 +109,15 @@ export default {
                 }
             } catch (error) {
                 console.error('Failed to load audit logs:', error)
-                this.auditLog = []
             } finally {
                 this.loading = false
             }
         },
         triggerLoad ({ users = false, events = true } = {}) {
             // if `events` is true, call AuditLogBrowser.loadEntries - this will emit 'load-entries' event which calls this.loadEntries with appropriate params
-            if (events) {
-                const eventTypes = this.auditFilters.selectedEventScope || 'instance'
-                this.loading = true
-                this.$refs.AuditLog?.loadEntries(this.auditFilters.selectedEventScope, this.auditFilters.includeChildren, eventTypes)
-            }
-            if (users) {
-                this.loadUsers()
-            }
+            const eventTypes = this.auditFilters.selectedEventScope || 'instance'
+            events && this.$refs.AuditLog?.loadEntries(this.auditFilters.selectedEventScope, this.auditFilters.includeChildren, eventTypes)
+            users && this.loadUsers()
         }
 
     }
