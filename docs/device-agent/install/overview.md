@@ -35,6 +35,24 @@ Most users should use the Device Agent Installer. Power users can choose Manual 
 
 Note: The Device Agent downloads the required Node-RED version and any nodes specified by the assigned snapshot. Ensure firewall/proxy permits access to the npm registry or see [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjs.org).
 
+### Networking requirements
+
+If you're working behind a firewall, and need to configure it to allow the Device Agent to connect to FlowFuse and the npm registry, see the following:
+
+Allow outbound TCP 443 to:
+
+- app.flowfuse.com
+- mqtt.flowfuse.cloud
+- registry.flowfuse.cloud
+- registry.flowfuse.com
+
+Ensure access to npm registry to download Node-RED and nodes:
+
+- https://registry.npmjs.com
+
+For offline environments, see [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjs.org).
+
+
 ## Verify the installation
 
 After installing by any method:
