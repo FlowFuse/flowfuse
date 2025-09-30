@@ -53,10 +53,7 @@
                         Add Remote Instance
                     </ff-button>
                 </template>
-                <template
-                    v-if="hasPermission('device:edit', applicationContext)"
-                    #context-menu="{row}"
-                >
+                <template #context-menu="{row}">
                     <ff-list-item
                         label="Edit Details"
                         @click="deviceAction('edit', row.id)"
@@ -455,7 +452,6 @@ export default {
                 const statusObject = this.allDeviceStatuses.get(device.id)
                 const ownerKey = this.getOwnerSortKeyForDevice(device)
                 const context = device.application?.id ? { applicationId: device.application?.id } : {}
-
                 return {
                     hideContextMenu: !this.hasPermission('device:edit', context),
                     ...device,
