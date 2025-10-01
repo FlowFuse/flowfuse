@@ -54,6 +54,7 @@ describe('FlowFuse - Team Membership', () => {
         cy.visit('account/settings') // go to admin settings
 
         cy.wait(['@getSettings'])
+        cy.wait(['@getTeamMembers'])
 
         cy.get('[data-action="delete-account"]').click()
 
@@ -82,6 +83,7 @@ describe('FlowFuse - Team Membership', () => {
         cy.visit('account/settings') // go to admin settings
 
         cy.wait(['@getSettings'])
+        cy.wait(['@getTeamMembers'])
 
         cy.get('[data-action="delete-account"]').click()
         cy.get('[data-action="dialog-confirm"]').click()

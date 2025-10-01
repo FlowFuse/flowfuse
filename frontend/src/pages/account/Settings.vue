@@ -25,15 +25,27 @@
         </form>
 
         <FormHeading class="text-red-700 mt-6">Delete Account</FormHeading>
-        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
-                <div class="max-w-sm">
+        <div class="flex flex-col space-y-4 max-w-2xl mt-3">
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button class="warning" kind="danger" data-action="delete-account" :disabled="!canDeleteAccount" @click="deleteAccount">Delete Account</ff-button>
+            </div>
+            <div v-if="!canDeleteAccount" class="flex-grow text-gray-500">
+                <div class="max-w-sm text-sm">
                     Before you can delete your account, teams you own must be deleted or have at least 1 other owner.
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
-                <ff-button class="warning" kind="danger" data-action="delete-account" @click="deleteAccount">Delete Account</ff-button>
-            </div>
+        </div>
+        <div v-if="!canDeleteAccount" class=" max-w-2xl mt-4">
+            <h3>Teams</h3>
+            <ul class="space-y-2 border-t border-gray-200">
+                <li v-for="team in teamsToDelete" :key="team.id" class="flex justify-between items-center border-b border-gray-200 h-11">
+                    <div class="flex items-center space-x-2">
+                        <label class="ff-link" @click="selectTeam(team)">{{ team.label }}</label>
+                        <span class="text-gray-500 text-sm">({{ team.role }})</span>
+                    </div>
+                    <ff-button v-if="team.role === 'owner'" kind="secondary-danger" @click="deleteTeam(team.id)">Delete Team</ff-button>
+                </li>
+            </ul>
         </div>
     </div>
 </template>
@@ -41,12 +53,14 @@
 <script>
 import { mapState } from 'vuex'
 
+import teamApi from '../../api/team.js'
 import userApi from '../../api/user.js'
 
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
 import alerts from '../../services/alerts.js'
 import dialog from '../../services/dialog.js'
+import { RoleNames, Roles } from '../../utils/roles.js'
 
 export default {
     name: 'AccountSettings',
@@ -56,17 +70,8 @@ export default {
     },
     data () {
         const currentUser = this.$store.getters['account/user']
-        const teams = this.$store.getters['account/teams']
-        let defaultTeamName = 'none'
-        const teamOptions = teams.map(team => {
-            if (team.id === currentUser.defaultTeam) {
-                defaultTeamName = team.name
-            }
-            return {
-                value: team.id,
-                label: team.name
-            }
-        })
+        const defaultTeamName = 'none'
+
         return {
             loading: false,
             editing: false,
@@ -79,8 +84,8 @@ export default {
                 defaultTeam: currentUser.defaultTeam
             },
             defaultTeamName,
-            changed: {},
-            teams: teamOptions
+            ownerCounts: {},
+            changed: {}
         }
     },
     computed: {
@@ -93,6 +98,38 @@ export default {
         },
         emailEditingEnabled () {
             return this.editing && !this.user.sso_enabled
+        },
+        teams () {
+            const currentUser = this.$store.getters['account/user']
+            const teams = this.$store.getters['account/teams']
+            const teamOptions = teams?.map(team => {
+                if (team.id === currentUser.defaultTeam) {
+                    this.defaultTeamName = team.name
+                }
+                return {
+                    id: team.id,
+                    label: team.name,
+                    slug: team.slug,
+                    role: RoleNames[team.role],
+                    memberCount: team.memberCount,
+                    owner: team.role === Roles.Owner
+                }
+            })
+            return teamOptions
+        },
+        teamsToDelete () {
+            return this.teams?.filter(team => {
+                // user is the owner and the only owner
+                return team.owner && this.ownerCounts[team.id] === 1
+            })
+        },
+        canDeleteAccount () {
+            for (let i = 0; i < this.teams?.length; i++) {
+                if (!this.ownerCounts[this.teams[i].id] || (this.ownerCounts[this.teams[i].id] === 1 && this.teams[i].owner)) {
+                    return false
+                }
+            }
+            return true
         }
     },
     watch: {
@@ -123,6 +160,22 @@ export default {
         'input.defaultTeam': function (v) {
             this.changed.defaultTeam = (this.user.defaultTeam !== v)
         }
+    },
+    mounted () {
+        // get the members for each team, and check the owner count
+        this.teams?.forEach(team => {
+            if (team.memberCount !== 1) {
+                teamApi.getTeamMembers(team.id)
+                    .then(data => {
+                        this.ownerCounts[team.id] = data.members.filter(m => m.role === Roles.Owner).length
+                    })
+                    .catch(err => {
+                        console.warn(err)
+                    })
+            } else {
+                this.ownerCounts[team.id] = 1
+            }
+        })
     },
     methods: {
         startEdit () {
@@ -174,8 +227,8 @@ export default {
                         }, 800)
                     }
                     this.user = response
-                    this.teams.forEach(team => {
-                        if (team.value === this.user.defaultTeam) {
+                    this.teams?.forEach(team => {
+                        if (team.id === this.user.defaultTeam) {
                             this.defaultTeamName = team.label
                         }
                     })
@@ -225,6 +278,44 @@ export default {
                         alerts.emit(msg, 'warning')
                     })
             })
+        },
+        deleteTeam (teamId) {
+            dialog.show({
+                header: 'Delete Team',
+                kind: 'danger',
+                text: 'Are you sure you want to delete this team? This cannot be undone. All Instances and resources within this team will be removed.',
+                confirmLabel: 'Delete Team'
+            }, async () => {
+                teamApi.deleteTeam(teamId)
+                    .then(() => {
+                        alerts.emit('Team successfully deleted', 'confirmation')
+                        // refresh teams
+                        return this.$store.dispatch('account/refreshTeams')
+                    }).then(() => {
+                        const activeTeam = this.$store.getters['account/team']
+                        // check if the active team is one deleted
+                        if (activeTeam?.id === teamId) {
+                            const teams = this.$store.getters['account/teams']
+                            if (teams.length > 0) {
+                                // get another team
+                                this.$store.dispatch('account/setTeam', teams[0].slug)
+                            }
+                        }
+                    }).catch(err => {
+                        alerts.emit('Problem deleting team', 'warning')
+                        console.warn(err)
+                    })
+            })
+        },
+        selectTeam (team) {
+            this.$store.dispatch('account/setTeam', team.slug)
+                .then(() => this.$router.push({
+                    name: 'Team',
+                    params: {
+                        team_slug: team.slug
+                    }
+                }))
+                .catch(e => console.warn(e))
         }
     }
 }
