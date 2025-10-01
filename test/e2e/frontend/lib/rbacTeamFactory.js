@@ -228,11 +228,11 @@ module.exports = async function (forge) {
     const applicationConfigs = [
         {
             name: 'application-1',
-            description: 'Every user will have the Owner role'
+            description: 'Every user will have the None role'
         },
         {
             name: 'application-2',
-            description: 'Every user will have the Member role'
+            description: 'Every user will have the Dashboard role'
         },
         {
             name: 'application-3',
@@ -240,11 +240,11 @@ module.exports = async function (forge) {
         },
         {
             name: 'application-4',
-            description: 'Every user will have the Dashboard role'
+            description: 'Every user will have the Member role'
         },
         {
             name: 'application-5',
-            description: 'Every user will have the None role'
+            description: 'Every user will have the Owner role'
         },
         {
             name: 'application-6',
