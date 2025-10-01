@@ -25,7 +25,7 @@
             </ff-button>
         </section>
 
-        <section v-if="hasPermission('application:device-group:update', { application })">
+        <section v-if="hasPermission('application:device-group:update', { application })" data-el="target-snapshot">
             <FormHeading class="text-red-700">Clear Target Snapshot</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">

@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <form class="space-y-6" data-form="device-group-settings-env">
         <TemplateSettingsEnvironment
             v-model="editable"
             :readOnly="!hasPermission('application:device-group:update', {application})"
@@ -26,7 +26,7 @@
                 <span class="relative top-0.5">Note: Updating environment variables can cause devices in the group to be restarted.</span>
             </span>
         </div>
-        <div v-if="hasPermission('application:device-group:update', {application})" class="space-x-4 whitespace-nowrap">
+        <div v-if="hasPermission('application:device-group:update', {application})" class="space-x-4 whitespace-nowrap" data-action="save-env-settings">
             <ff-button :disabled="!unsavedChanges || hasError" @click="saveSettings()">Save Settings</ff-button>
         </div>
     </form>
