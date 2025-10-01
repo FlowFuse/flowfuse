@@ -2,6 +2,9 @@ forge:
   domain: flowfuse.dev
   https: true
   localPostgresql: true
+  projectLabels:
+    environment: ci
+    owner: ppawlowski
   broker:
     enabled: true
     teamBroker:
