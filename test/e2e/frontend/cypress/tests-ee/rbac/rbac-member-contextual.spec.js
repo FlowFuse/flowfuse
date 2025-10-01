@@ -137,7 +137,8 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
         cy.wait('@getDevices')
         cy.get('[data-el="bulk-actions-dropdown"]').should('not.exist')
         cy.get('[data-action="change-target-snapshot"]').should('not.exist')
-        cy.get('[data-action="register-device"]').should('not.exist')
+        cy.get('[data-action="register-device"]').should('exist')
+        cy.get('[data-action="register-device"]').should('be.disabled')
         cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
 
         // go to version history page
@@ -282,7 +283,8 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
         cy.wait('@getDevices')
         cy.get('[data-el="bulk-actions-dropdown"]').should('not.exist')
         cy.get('[data-action="change-target-snapshot"]').should('exist')
-        cy.get('[data-action="register-device"]').should('not.exist')
+        cy.get('[data-action="register-device"]').should('exist')
+        cy.get('[data-action="register-device"]').should('be.disabled')
         cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
 
         // go to version history page
@@ -532,13 +534,36 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
         cy.get('[data-el="instance-settings"] [data-nav="alerts"]').should('exist')
         // check direct url access as well
         const protectedRoutes = [
-            { tag: 'protect-instance', check: 'Protect Instance' },
-            { tag: 'high-availability', check: 'High Availability' },
-            { tag: 'editor', check: '', el: 'data-el="instance-editor"' },
-            { tag: 'security', check: 'HTTP Node CORS' },
-            { tag: 'palette', check: '', el: 'data-el="instance-palette"' },
-            { tag: 'launcher', check: 'Launcher Settings' },
-            { tag: 'alerts', check: 'Email Alerts' }
+            {
+                tag: 'protect-instance',
+                check: 'Protect Instance'
+            },
+            {
+                tag: 'high-availability',
+                check: 'High Availability'
+            },
+            {
+                tag: 'editor',
+                check: '',
+                el: 'data-el="instance-editor"'
+            },
+            {
+                tag: 'security',
+                check: 'HTTP Node CORS'
+            },
+            {
+                tag: 'palette',
+                check: '',
+                el: 'data-el="instance-palette"'
+            },
+            {
+                tag: 'launcher',
+                check: 'Launcher Settings'
+            },
+            {
+                tag: 'alerts',
+                check: 'Email Alerts'
+            }
         ]
         protectedRoutes.forEach(tab => {
             cy.get(`[data-nav="${tab.tag}"]`).click()
@@ -869,7 +894,8 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
     })
     it('should not allow users without the team permissions to create devices', () => {
         cy.get('[data-nav="team-devices"]').click()
-        cy.get('[data-action="register-device"]').should('not.exist')
+        cy.get('[data-action="register-device"]').should('exist')
+        cy.get('[data-action="register-device"]').should('be.disabled')
     })
     it('should only be able to list devices belonging to applications of which the user has access to', () => {
         cy.get('[data-nav="team-devices"]').click()

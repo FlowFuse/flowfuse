@@ -137,7 +137,8 @@ describe('FlowFuse - RBAC Viewer Contextual permissions', () => {
         cy.wait('@getDevices')
         cy.get('[data-el="bulk-actions-dropdown"]').should('not.exist')
         cy.get('[data-action="change-target-snapshot"]').should('not.exist')
-        cy.get('[data-action="register-device"]').should('not.exist')
+        cy.get('[data-action="register-device"]').should('exist')
+        cy.get('[data-action="register-device"]').should('be.disabled')
         cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
 
         // go to version history page
@@ -282,7 +283,8 @@ describe('FlowFuse - RBAC Viewer Contextual permissions', () => {
         cy.wait('@getDevices')
         cy.get('[data-el="bulk-actions-dropdown"]').should('not.exist')
         cy.get('[data-action="change-target-snapshot"]').should('exist')
-        cy.get('[data-action="register-device"]').should('not.exist')
+        cy.get('[data-action="register-device"]').should('exist')
+        cy.get('[data-action="register-device"]').should('be.disabled')
         cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
 
         // go to version history page
@@ -869,7 +871,8 @@ describe('FlowFuse - RBAC Viewer Contextual permissions', () => {
     })
     it('should not allow users without the team permissions to create devices', () => {
         cy.get('[data-nav="team-devices"]').click()
-        cy.get('[data-action="register-device"]').should('not.exist')
+        cy.get('[data-action="register-device"]').should('exist')
+        cy.get('[data-action="register-device"]').should('be.disabled')
     })
     it('should only be able to list devices belonging to applications of which the user has access to', () => {
         cy.get('[data-nav="team-devices"]').click()

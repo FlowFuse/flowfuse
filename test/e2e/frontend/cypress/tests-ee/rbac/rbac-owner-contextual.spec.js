@@ -137,7 +137,8 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.wait('@getDevices')
         cy.get('[data-el="bulk-actions-dropdown"]').should('not.exist')
         cy.get('[data-action="change-target-snapshot"]').should('not.exist')
-        cy.get('[data-action="register-device"]').should('not.exist')
+        cy.get('[data-action="register-device"]').should('exist')
+        cy.get('[data-action="register-device"]').should('be.disabled')
         cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
 
         // go to version history page
@@ -282,7 +283,8 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.wait('@getDevices')
         cy.get('[data-el="bulk-actions-dropdown"]').should('not.exist')
         cy.get('[data-action="change-target-snapshot"]').should('exist')
-        cy.get('[data-action="register-device"]').should('not.exist')
+        cy.get('[data-action="register-device"]').should('exist')
+        cy.get('[data-action="register-device"]').should('be.disabled')
         cy.get('[data-el="ff-data-cell"] .ff-checkbox').should('not.exist')
 
         // go to version history page
