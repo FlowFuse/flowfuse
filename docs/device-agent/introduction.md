@@ -19,6 +19,8 @@ The FlowFuse platform can be used to manage Node-RED Remote Instances running on
 
 By installing the FlowFuse Device Agent, you can securely connect your hardware to FlowFuse in order to manage and deploy Node-RED flows remotely.
 
+**Note:** The FlowFuse Device Agent will install Node-RED when the agent receives a snapshot to run from FlowFuse.
+
 In order to connect your device to FlowFuse, and to allow FlowFuse to manage it, you'll need to do the following steps:
 
 - [Quick Start Guide](/docs/device-agent/quickstart.md) - Install on a device and remotely edit through FlowFuse Cloud.

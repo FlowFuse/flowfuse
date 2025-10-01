@@ -16,7 +16,7 @@ module.exports = {
             allowNull: false,
             validate: {
                 isValid (role) {
-                    if (!TeamRoles.includes(role)) {
+                    if (![...TeamRoles, 0].includes(role)) {
                         throw new Error('Invalid team role')
                     }
                 }
