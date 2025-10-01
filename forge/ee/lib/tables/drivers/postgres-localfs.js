@@ -57,7 +57,7 @@ module.exports = {
             const escapedDatabaseName = libPg.pg.escapeIdentifier(team.hashid)
             await this._adminClient.query(`CREATE DATABASE ${escapedDatabaseName}`)
             await this._adminClient.query(`REVOKE connect ON DATABASE ${escapedDatabaseName} FROM PUBLIC;`)
-            await this._adminClient.query(`ALTER DATABASE ${escapedDatabaseName} SET statement_timeout='30s'`)
+            await this._adminClient.query(`ALTER DATABASE ${escapedDatabaseName} SET statement_timeout='30s';`)
             const teamClient = libPg.newClient({ ...this._options.database, database: team.hashid })
             const password = generatePassword()
             try {
