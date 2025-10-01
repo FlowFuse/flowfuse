@@ -19,6 +19,7 @@ import DeviceSolid from '../../../../components/icons/DeviceSolid.js'
 import IconGit from '../../../../components/icons/Git.js'
 import IconNodeRedSolid from '../../../../components/icons/NodeRedSolid.js'
 import { slugify } from '../../../../composables/String.js'
+
 export default {
     name: 'TeamPipelineStage',
     components: {

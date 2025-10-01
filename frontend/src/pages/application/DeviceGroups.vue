@@ -20,7 +20,8 @@
         <ff-data-table v-model:search="tableSearch" :columns="tableColumns" :rows="deviceGroups" :show-search="true" search-placeholder="Filter..." data-el="device-groups-table" :rows-selectable="true" @row-selected="editDeviceGroup">
             <template #actions>
                 <ff-button
-                    data-action="create-device-group" :disabled="!featureEnabled || !hasPermission('application:device-group:create', {application: application})"
+                    data-action="create-device-group"
+                    :disabled="!featureEnabled || !hasPermission('application:device-group:create', {application: application})"
                     @click="showCreateDeviceGroupDialog"
                 >
                     <template #icon-left><PlusSmIcon /></template>
