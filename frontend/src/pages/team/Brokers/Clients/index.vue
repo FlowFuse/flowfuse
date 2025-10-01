@@ -19,7 +19,7 @@
                             <template #icon><SearchIcon /></template>
                         </ff-text-input>
                         <ff-button
-                            v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
+                            v-if="hasPermission('broker:clients:create')"
                             data-action="create-client"
                             kind="primary"
                             @click="createClient()"

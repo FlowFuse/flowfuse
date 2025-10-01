@@ -14,7 +14,6 @@
     </div>
 </template>
 <script>
-import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
@@ -27,6 +26,7 @@ export default {
     name: 'DeviceSettingsDanger',
     props: ['device'],
     emits: ['device-updated'],
+    inheritAttrs: false,
     components: {
         ConfirmDeviceDeleteDialog,
         FormHeading
@@ -51,8 +51,8 @@ export default {
     },
     methods: {
         checkAccess: async function () {
-            if (!this.hasPermission('device:edit')) {
-                useRouter().push({ replace: true, path: 'general' })
+            if (!this.hasPermission('device:edit', { application: this.device.application })) {
+                return this.$router.replace({ name: 'device-settings' })
             }
         },
         showConfirmDeleteDialog () {

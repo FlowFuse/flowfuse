@@ -19,7 +19,11 @@
     <div v-else-if="deviceGroups?.length > 0" class="pt-4 space-y-6" data-el="device-group-list">
         <ff-data-table v-model:search="tableSearch" :columns="tableColumns" :rows="deviceGroups" :show-search="true" search-placeholder="Filter..." data-el="device-groups-table" :rows-selectable="true" @row-selected="editDeviceGroup">
             <template #actions>
-                <ff-button data-action="create-device-group" :disabled="!featureEnabled" @click="showCreateDeviceGroupDialog">
+                <ff-button
+                    data-action="create-device-group"
+                    :disabled="!featureEnabled || !hasPermission('application:device-group:create', {application: application})"
+                    @click="showCreateDeviceGroupDialog"
+                >
                     <template #icon-left><PlusSmIcon /></template>
                     Add Device Group
                 </ff-button>
@@ -36,7 +40,11 @@
             <p>The device groups can then be set as the target in a Pipeline to update multiple Remote Instances in a single operation</p>
         </template>
         <template #actions>
-            <ff-button data-action="create-device-group" :disabled="!featureEnabled" @click="showCreateDeviceGroupDialog">
+            <ff-button
+                v-if="hasPermission('application:device-group:create', {application: application})"
+                data-action="create-device-group" :disabled="!featureEnabled"
+                @click="showCreateDeviceGroupDialog"
+            >
                 <template #icon-left><PlusSmIcon /></template>
                 Add Device Group
             </ff-button>

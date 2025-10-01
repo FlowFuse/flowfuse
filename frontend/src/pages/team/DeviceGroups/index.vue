@@ -193,12 +193,16 @@ export default {
     computed: {
         ...mapGetters('account', ['featuresCheck', 'team']),
         applicationOptions () {
-            return this.applications.map(app => ({ label: app.name, value: app.id }))
+            return this.applications
+                .filter(application => this.hasPermission('device:create', { application }))
+                .map(app => ({ label: app.name, value: app.id }))
         }
     },
     mounted () {
         if (this.hasPermission('team:device-group:list')) {
             this.loadTeamDeviceGroups()
+        } else {
+            this.$router.replace({ name: 'Home' })
         }
     },
     methods: {
