@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div data-el="role-compare">
         <span class="item role flex gap-1 items-center">
             <component
                 :is="style.icon"
