@@ -58,7 +58,8 @@ export default {
                     path: {
                         name: 'application-settings-user-access'
                     },
-                    hidden: !this.hasPermission('application:access-control') || !this.featuresCheck.isRBACApplicationFeatureEnabled
+                    hidden: !this.hasPermission('application:access-control', { application: this.application }) ||
+                        !this.featuresCheck.isRBACApplicationFeatureEnabled
                 }
             ]
         }

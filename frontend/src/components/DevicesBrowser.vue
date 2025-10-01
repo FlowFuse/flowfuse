@@ -18,7 +18,7 @@
                 search-placeholder="Search Remote Instances"
                 :show-load-more="moreThanOnePage"
                 :check-key="row => row.id"
-                :show-row-checkboxes="true"
+                :show-row-checkboxes="hasPermission('team:device:bulk-edit', applicationContext)"
                 @rows-checked="checkedDevices = $event"
                 @load-more="loadMoreDevices"
                 @update:search="updateSearch"
@@ -53,10 +53,7 @@
                         Add Remote Instance
                     </ff-button>
                 </template>
-                <template
-                    v-if="hasPermission('device:edit', applicationContext)"
-                    #context-menu="{row}"
-                >
+                <template #context-menu="{row}">
                     <ff-list-item
                         label="Edit Details"
                         @click="deviceAction('edit', row.id)"
@@ -454,8 +451,9 @@ export default {
             const output = this.filteredDevices.map(device => {
                 const statusObject = this.allDeviceStatuses.get(device.id)
                 const ownerKey = this.getOwnerSortKeyForDevice(device)
-
+                const context = device.application?.id ? { applicationId: device.application?.id } : {}
                 return {
+                    hideContextMenu: !this.hasPermission('device:edit', context),
                     ...device,
                     ...statusObject,
                     ...(ownerKey ? { _ownerSortKey: ownerKey } : { _ownerSortKey: undefined })

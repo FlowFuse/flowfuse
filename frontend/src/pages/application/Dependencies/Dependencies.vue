@@ -92,7 +92,7 @@ export default {
     },
     computed: {
         hasTeamPermission () {
-            return this.hasPermission('application:bom')
+            return this.hasPermission('application:bom', { application: this.application })
         },
         hasInstances () {
             return !(!this.payload || this.payload.children.length === 0)

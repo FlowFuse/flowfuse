@@ -446,7 +446,7 @@ export default {
         },
         // enable/disable snapshot actions
         canDeploy (_row) {
-            return !this.developerMode && this.hasPermission('device:snapshot:set-target', { application: this.device.application })
+            return !this.developerMode && this.hasPermission('device:edit', { application: this.device.application })
         },
         canDownload (_row) {
             return this.hasPermission('snapshot:export', { application: this.device.application })
