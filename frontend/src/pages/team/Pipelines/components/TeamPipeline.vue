@@ -32,7 +32,6 @@ import { ChevronRightIcon } from '@heroicons/vue/outline'
 import { slugify } from '../../../../composables/String.js'
 
 import TeamPipelineStage from './TeamPipelineStage.vue'
-
 export default {
     name: 'TeamPipeline',
     components: {
