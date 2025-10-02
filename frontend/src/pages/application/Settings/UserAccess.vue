@@ -1,6 +1,6 @@
 <template>
     <ff-data-table :columns="columns" :rows="members" :search="searchTerm" :show-search="true">
-        <template #context-menu="{row}">
+        <template v-if="hasPermission('team:user:change-role')" #context-menu="{row}">
             <ff-list-item data-action="edit-token" label="Edit Permissions" @click="editUserPermissions(row)" />
         </template>
     </ff-data-table>
