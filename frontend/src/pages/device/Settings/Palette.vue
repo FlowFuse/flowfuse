@@ -1,5 +1,5 @@
 <template>
-    <div v-if="device.ownerType == 'application'">
+    <div v-if="device.ownerType == 'application'" data-el="device-palette">
         <form class="space-y-6 max-w-2xl" @submit.prevent>
             <FormHeading>
                 <template #default>

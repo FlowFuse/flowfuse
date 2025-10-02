@@ -68,14 +68,17 @@
                                 <ff-data-table-row
                                     :data="r" :columns="columns"
                                     :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn"
+                                    :data-el="slugify('row-' + (r.name || r.id || r.label || 'na'))"
                                     @selected="rowClick(r, $event)"
                                 >
                                     <template v-if="collapsibleRow" #row-prepend>
-                                        <ChevronRightIcon
-                                            class="ff-icon ff-icon-sm cursor-pointer hover:text-indigo-500 transition-transform"
-                                            :class="{'rotate-90': visibleCollapsibleRows.includes($index)}"
-                                            @click="toggleCollapsibleRowVisibility($index)"
-                                        />
+                                        <span data-el="collapsible-row-toggle">
+                                            <ChevronRightIcon
+                                                class="ff-icon ff-icon-sm cursor-pointer hover:text-indigo-500 transition-transform"
+                                                :class="{'rotate-90': visibleCollapsibleRows.includes($index)}"
+                                                @click="toggleCollapsibleRowVisibility($index)"
+                                            />
+                                        </span>
                                     </template>
                                     <template v-else-if="showRowCheckboxes" #row-prepend="{row}">
                                         <ff-checkbox v-model="checks[row[checkKeyProp]]" />
@@ -127,6 +130,8 @@ import {
     SortDescendingIcon,
     SwitchVerticalIcon
 } from '@heroicons/vue/outline'
+
+import { slugify } from '../../../composables/String.js'
 
 import FfDataTableRow from './DataTableRow.vue'
 
@@ -271,6 +276,9 @@ export default {
         }
     },
     emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked'],
+    setup () {
+        return { slugify }
+    },
     data () {
         return {
             checks: {},

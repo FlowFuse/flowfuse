@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <form class="space-y-6" data-el="instance-palette">
         <TemplateSettingsPalette v-model="editable" :editTemplate="false" />
         <TemplateSectionCatalogue v-model="editable" :editTemplate="false" :readOnly="!catalogueEditable" :project="project" />
         <TemplateSectionNPM v-model="editable" :editTemplate="false" :readOnly="!npmEditable" :project="project" />

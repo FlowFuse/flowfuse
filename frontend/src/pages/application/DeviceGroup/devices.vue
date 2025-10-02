@@ -2,7 +2,7 @@
     <main v-if="!deviceGroup?.id">
         <ff-loading message="Loading Device Group..." />
     </main>
-    <div v-else class="w-full">
+    <div v-else class="w-full" data-el="device-group-devices">
         <div class="mb-3">
             <SectionTopMenu hero="Device Group Membership" info="">
                 <template #tools>
