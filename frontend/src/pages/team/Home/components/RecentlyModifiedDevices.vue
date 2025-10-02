@@ -10,7 +10,7 @@
                     @device-action="onDeviceAction"
                 />
             </li>
-            <li v-if="hasMore" class="device-wrapper flex">
+            <li v-if="hasMore" class="device-wrapper flex" data-el="has-more">
                 <team-link :to="{name: 'TeamDevices'}" class="device-tile has-more hover:text-indigo-700">
                     <span>{{ instancesLeft }} More</span>
                     <span>

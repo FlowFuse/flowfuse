@@ -77,15 +77,22 @@ module.exports = async function (app) {
         const where = {
             TeamId: request.team.id
         }
-
-        const devices = await app.db.models.Device.getAll(paginationOptions, where, { includeInstanceApplication: true })
-
-        if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
-            devices.devices = devices.devices.filter(device => {
-                return !device.ApplicationId || app.hasPermission(request.teamMembership, 'device:read', { applicationId: app.db.models.Application.encodeHashid(device.ApplicationId) })
-            })
+        const options = {
+            includeInstanceApplication: true
         }
-        // devices.coint
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            const excludeApplications = []
+            Object.keys(request.teamMembership.permissions.applications).forEach(appId => {
+                if (!app.hasPermission(request.teamMembership, 'device:read', { applicationId: appId })) {
+                    excludeApplications.push(app.db.models.Application.decodeHashid(appId))
+                }
+            })
+            if (excludeApplications.length) {
+                options.excludeApplications = excludeApplications
+            }
+        }
+        const devices = await app.db.models.Device.getAll(paginationOptions, where, options)
         devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
         devices.count = devices.devices.length
         reply.send(devices)
@@ -429,7 +436,9 @@ module.exports = async function (app) {
         try {
             /** @type {typeof import('../../db/controllers/Device.js')} */
             const deviceController = app.db.controllers.Device
-            await deviceController.bulkDelete(request.team, request.body?.devices, request.session?.User)
+            const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.TeamType.getFeatureProperty('rbacApplication', false)
+            // Only pass through the teamMembership object if application RBAC is enabled
+            await deviceController.bulkDelete(request.team, request.body?.devices, request.session?.User, applicationRBACEnabled ? request.teamMembership : null)
             reply.send({ status: 'okay' })
         } catch (err) {
             return handleError(err, reply)
@@ -485,7 +494,9 @@ module.exports = async function (app) {
                 throw new ControllerError('invalid_input', 'Invalid device id', 400)
             }
             if (request.body.instance !== undefined || request.body.application !== undefined) {
-                const updatedDevices = await deviceController.moveDevices(request.body.devices, request.body.application, request.body.instance, request.session?.User)
+                const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.TeamType.getFeatureProperty('rbacApplication', false)
+                // Only pass through the teamMembership object if application RBAC is enabled
+                const updatedDevices = await deviceController.moveDevices(request.body.devices, request.body.application, request.body.instance, request.session?.User, applicationRBACEnabled ? request.teamMembership : null)
                 updatedDevices.devices = updatedDevices.devices.map(d => app.db.views.Device.device(d))
                 reply.send(updatedDevices)
             } else {

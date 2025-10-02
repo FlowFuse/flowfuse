@@ -1,3 +1,26 @@
+#### 2.22.0: Release
+
+ - docs: Rearrange Device Agent documentation (#5977)
+ - Expose SAML SSO groups to Dashboard (#6041) @hardillb
+ - Update device local auth docs (#6047) @hardillb
+ - Bump JS-DevTools/npm-publish from 4.0.0 to 4.0.1 (#6048) @app/dependabot
+ - Add @flowfuse-nodes scope to Certified Nodes (#6045) @hardillb
+ - Team broker schema agent (#6003) @hardillb
+ - Revised snapshot descriptions (#6014) @cstns
+ - Standardize right drawer header (#6013) @cstns
+ - Modularize drawer logic by extracting them into a dedicated vuex module (#6004) @cstns
+ - Docs: Adds clarification of data retention for FlowFuse Assistant (#6030) @joepavitt
+ - Docs: Modernise the FlowFuse Assistant documentation (#6026) @joepavitt
+ - fix: close search overlay when tabbing out of search control (#6024) @harshrajeevsingh
+ - Adds support for closing the right drawer when pressing the Escape key (#6010) @cstns
+ - Bump vite from 6.3.5 to 6.3.6 (#6000) @app/dependabot
+ - Bump JS-DevTools/npm-publish from 3.1.1 to 4.0.0 (#6023) @app/dependabot
+ - Bump axios from 1.8.3 to 1.12.1 (#6020) @app/dependabot
+ - Fix owner id in snapshot AI request (#6016) @Steve-Mcl
+ - Replace the permissions mixin with it's composable counterpart (#5993) @cstns
+ - Add api to generate remote instance snapshot description (#5966) @cstns
+ - Fix UI lock up when binding tables values with non utf encodings (#5986) @cstns
+
 #### 2.21.2: Release
 
  - Bump aws-actions/configure-aws-credentials from 4.3.1 to 5.0.0 (#5994)

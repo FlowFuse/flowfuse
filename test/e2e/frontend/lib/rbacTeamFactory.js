@@ -71,15 +71,12 @@ module.exports = async function (forge) {
                 generatedSnapshotDescription: true,
                 rbacApplication: true,
                 assistantInlineCompletions: true
-            },
-            billing: {
-                disabled: true
             }
         }
     })
-
     // Create RBAC Team
     const rbacTeam = await factory.createTeam({ name: 'RBAC Team' }, rbacTeamType)
+    await factory.createSubscription(rbacTeam)
 
     const adminAllan = await factory.createUser({
         admin: true,
@@ -137,237 +134,175 @@ module.exports = async function (forge) {
     await rbacTeam.addUser(dashboardDan, { through: { role: Roles.Dashboard } })
     await rbacTeam.addUser(noRoleBarry, { through: { role: Roles.None } })
 
-    // create application1 with one instance, one device owned by the application, and one device owned by the instance
-    const application1 = await factory.createApplication({
-        name: 'application-1',
-        description: 'Every user will have the Owner role'
-    }, rbacTeam)
-    const application1Instance1 = await factory.createInstance(
-        { name: 'application-1-instance-1' },
-        application1,
-        stack,
-        template,
-        projectType,
-        {
-            settings: {
-                palette: {
-                    modules: [
-                        {
-                            name: '@flowfuse/node-red-dashboard',
-                            version: '~1.25.0',
-                            local: true
-                        }
-                    ]
+    // Factory function to create applications with full resources
+    async function createApplicationWithResources (applicationConfig) {
+        const {
+            name,
+            description
+        } = applicationConfig
+
+        // Create application
+        const application = await factory.createApplication({
+            name,
+            description
+        }, rbacTeam)
+
+        // Create instance
+        const instance = await factory.createInstance(
+            { name: `${name}-instance-1` },
+            application,
+            stack,
+            template,
+            projectType,
+            {
+                settings: {
+                    palette: {
+                        modules: [
+                            {
+                                name: '@flowfuse/node-red-dashboard',
+                                version: '~1.25.0',
+                                local: true
+                            }
+                        ]
+                    }
                 }
             }
-        }
-    )
-    await factory.createDevice({
-        name: 'application-1-app-device',
-        type: 'type2'
-    }, rbacTeam, null, application1)
-    await factory.createDevice({
-        name: 'application-1-instance-1-device',
-        type: 'type2'
-    }, rbacTeam, application1Instance1, null)
+        )
 
-    // create application2 with one instance, one device owned by the application, and one device owned by the instance
-    const application2 = await factory.createApplication({
-        name: 'application-2',
-        description: 'Every user will have the Member role'
-    }, rbacTeam)
-    const application2Instance1 = await factory.createInstance(
-        { name: 'application-2-instance-1' },
-        application2,
-        stack,
-        template,
-        projectType,
+        // Create devices
+        const appDevice = await factory.createDevice({
+            name: `${name}-app-device`,
+            type: 'type2'
+        }, rbacTeam, null, application)
+
+        const instanceDevice = await factory.createDevice({
+            name: `${name}-instance-1-device`,
+            type: 'type2'
+        }, rbacTeam, instance, null)
+
+        // Create snapshots
+        await factory.createSnapshot({ name: 'snapshot 1' }, instance, ownerOwen)
+        await factory.createDeviceSnapshot({ name: 'device snapshot 1' }, appDevice, ownerOwen)
+
+        // create Device Groups
+        await factory.createApplicationDeviceGroup({
+            name: `${name} group 1`,
+            description: `${name} group 1 description`
+        }, application)
+
+        // create a pipeline
+        const pipeline = await factory.createPipeline({
+            name: `${name} pipeline`
+        }, application)
+        const stage = await factory.createPipelineStage({
+            name: `${name} stage 1`,
+            instanceId: instance.id,
+            action: 'create_snapshot'
+        }, pipeline)
+        await factory.createPipelineStage({
+            name: `${name} stage 2`,
+            deviceId: appDevice.id,
+            source: stage.hashid,
+            action: 'use_latest_snapshot'
+        }, pipeline)
+
+        await factory.createTeamBrokerClient({
+            team: rbacTeam, instance
+        })
+        await factory.createTeamBrokerClient({
+            team: rbacTeam, device: appDevice
+        })
+        await factory.createTeamBrokerClient({
+            team: rbacTeam, device: instanceDevice
+        })
+
+        return {
+            application,
+            instance,
+            appDevice,
+            instanceDevice
+        }
+    }
+
+    // Create all applications using the factory
+    const applicationConfigs = [
         {
-            settings: {
-                palette: {
-                    modules: [
-                        {
-                            name: '@flowfuse/node-red-dashboard',
-                            version: '~1.25.0',
-                            local: true
-                        }
-                    ]
-                }
-            }
-        }
-    )
-    await factory.createDevice({
-        name: 'application-2-app-device',
-        type: 'type2'
-    }, rbacTeam, null, application2)
-    await factory.createDevice({
-        name: 'application-2-instance-1-device',
-        type: 'type2'
-    }, rbacTeam, application2Instance1, null)
-
-    // create application3 with one instance, one device owned by the application, and one device owned by the instance
-    const application3 = await factory.createApplication({
-        name: 'application-3',
-        description: 'Every user will have the Viewer role'
-    }, rbacTeam)
-    const application3Instance1 = await factory.createInstance(
-        { name: 'application-3-instance-1' },
-        application3,
-        stack,
-        template,
-        projectType,
+            name: 'application-1',
+            description: 'Every user will have the None role'
+        },
         {
-            settings: {
-                palette: {
-                    modules: [
-                        {
-                            name: '@flowfuse/node-red-dashboard',
-                            version: '~1.25.0',
-                            local: true
-                        }
-                    ]
-                }
-            }
-        }
-    )
-    await factory.createDevice({
-        name: 'application-3-app-device',
-        type: 'type2'
-    }, rbacTeam, null, application3)
-    await factory.createDevice({
-        name: 'application-3-instance-1-device',
-        type: 'type2'
-    }, rbacTeam, application3Instance1, null)
-
-    // create application4 with one instance, one device owned by the application, and one device owned by the instance
-    const application4 = await factory.createApplication({
-        name: 'application-4',
-        description: 'Every user will have the Dashboard role'
-    }, rbacTeam)
-    const application4Instance1 = await factory.createInstance(
-        { name: 'application-4-instance-1' },
-        application4,
-        stack,
-        template,
-        projectType,
+            name: 'application-2',
+            description: 'Every user will have the Dashboard role'
+        },
         {
-            settings: {
-                palette: {
-                    modules: [
-                        {
-                            name: '@flowfuse/node-red-dashboard',
-                            version: '~1.25.0',
-                            local: true
-                        }
-                    ]
-                }
-            }
-        }
-    )
-    await factory.createDevice({
-        name: 'application-4-app-device',
-        type: 'type2'
-    }, rbacTeam, null, application4)
-    await factory.createDevice({
-        name: 'application-4-instance-1-device',
-        type: 'type2'
-    }, rbacTeam, application4Instance1, null)
-
-    // create application6 with one instance, one device owned by the application, and one device owned by the instance
-    const application5 = await factory.createApplication({
-        name: 'application-5',
-        description: 'Every user will have the None role'
-    }, rbacTeam)
-    const application5Instance1 = await factory.createInstance(
-        { name: 'application-5-instance-1' },
-        application5,
-        stack,
-        template,
-        projectType,
+            name: 'application-3',
+            description: 'Every user will have the Viewer role'
+        },
         {
-            settings: {
-                palette: {
-                    modules: [
-                        {
-                            name: '@flowfuse/node-red-dashboard',
-                            version: '~1.25.0',
-                            local: true
-                        }
-                    ]
-                }
-            }
-        }
-    )
-    await factory.createDevice({
-        name: 'application-5-app-device',
-        type: 'type2'
-    }, rbacTeam, null, application5)
-    await factory.createDevice({
-        name: 'application-5-instance-1-device',
-        type: 'type2'
-    }, rbacTeam, application5Instance1, null)
-
-    // create application6 with one instance, one device owned by the application, and one device owned by the instance
-    const application6 = await factory.createApplication({
-        name: 'application-6',
-        description: 'Every user will have their original team role'
-    }, rbacTeam)
-    const application6Instance1 = await factory.createInstance(
-        { name: 'application-6-instance-1' },
-        application6,
-        stack,
-        template,
-        projectType,
+            name: 'application-4',
+            description: 'Every user will have the Member role'
+        },
         {
-            settings: {
-                palette: {
-                    modules: [
-                        {
-                            name: '@flowfuse/node-red-dashboard',
-                            version: '~1.25.0',
-                            local: true
-                        }
-                    ]
-                }
-            }
+            name: 'application-5',
+            description: 'Every user will have the Owner role'
+        },
+        {
+            name: 'application-6',
+            description: 'Every user will have their original team role'
         }
-    )
-    await factory.createDevice({
-        name: 'application-6-app-device',
-        type: 'type2'
-    }, rbacTeam, null, application6)
-    await factory.createDevice({
-        name: 'application-6-instance-1-device',
-        type: 'type2'
-    }, rbacTeam, application6Instance1, null)
+    ]
 
-    await assignCustomRoleToApplication(ownerOwen, application1, Roles.None)
-    await assignCustomRoleToApplication(ownerOwen, application2, Roles.Dashboard)
-    await assignCustomRoleToApplication(ownerOwen, application3, Roles.Viewer)
-    await assignCustomRoleToApplication(ownerOwen, application4, Roles.Member)
-    await assignCustomRoleToApplication(ownerOwen, application5, Roles.Owner)
+    const applications = []
+    for (const config of applicationConfigs) {
+        const appData = await createApplicationWithResources(config)
+        applications.push({
+            ...appData,
+            config
+        })
+    }
 
-    await assignCustomRoleToApplication(memberMike, application1, Roles.None)
-    await assignCustomRoleToApplication(memberMike, application2, Roles.Dashboard)
-    await assignCustomRoleToApplication(memberMike, application3, Roles.Viewer)
-    await assignCustomRoleToApplication(memberMike, application4, Roles.Member)
-    await assignCustomRoleToApplication(memberMike, application5, Roles.Owner)
+    // Extract applications for role assignment (excluding app-6 which is not assigned a custom application role)
+    const [application1, application2, application3, application4, application5] = applications.slice(0, 5).map(app => app.application)
 
-    await assignCustomRoleToApplication(viewerVictor, application1, Roles.None)
-    await assignCustomRoleToApplication(viewerVictor, application2, Roles.Dashboard)
-    await assignCustomRoleToApplication(viewerVictor, application3, Roles.Viewer)
-    await assignCustomRoleToApplication(viewerVictor, application4, Roles.Member)
-    await assignCustomRoleToApplication(viewerVictor, application5, Roles.Owner)
+    const roleAssignments = [
+        {
+            user: ownerOwen,
+            applications: [application1, application2, application3, application4, application5],
+            roles: [Roles.None, Roles.Dashboard, Roles.Viewer, Roles.Member, Roles.Owner]
+        },
+        {
+            user: memberMike,
+            applications: [application1, application2, application3, application4, application5],
+            roles: [Roles.None, Roles.Dashboard, Roles.Viewer, Roles.Member, Roles.Owner]
+        },
+        {
+            user: viewerVictor,
+            applications: [application1, application2, application3, application4, application5],
+            roles: [Roles.None, Roles.Dashboard, Roles.Viewer, Roles.Member, Roles.Owner]
+        },
+        {
+            user: dashboardDan,
+            applications: [application1, application2, application3, application4, application5],
+            roles: [Roles.None, Roles.Dashboard, Roles.Viewer, Roles.Member, Roles.Owner]
+        },
+        {
+            user: noRoleBarry,
+            applications: [application1, application2, application3, application4, application5],
+            roles: [Roles.None, Roles.Dashboard, Roles.Viewer, Roles.Member, Roles.Owner]
+        }
+    ]
 
-    await assignCustomRoleToApplication(dashboardDan, application1, Roles.None)
-    await assignCustomRoleToApplication(dashboardDan, application2, Roles.Dashboard)
-    await assignCustomRoleToApplication(dashboardDan, application3, Roles.Viewer)
-    await assignCustomRoleToApplication(dashboardDan, application4, Roles.Member)
-    await assignCustomRoleToApplication(dashboardDan, application5, Roles.Owner)
-
-    await assignCustomRoleToApplication(noRoleBarry, application1, Roles.None)
-    await assignCustomRoleToApplication(noRoleBarry, application2, Roles.Dashboard)
-    await assignCustomRoleToApplication(noRoleBarry, application3, Roles.Viewer)
-    await assignCustomRoleToApplication(noRoleBarry, application4, Roles.Member)
-    await assignCustomRoleToApplication(noRoleBarry, application5, Roles.Owner)
+    // Assign roles using the configuration
+    //  Each user will have:
+    //      - Restricted role (0) on application 1
+    //      - Dashboard role (5) on application 2
+    //      - Viewer role (10) on application 3
+    //      - Member role (30) on application 4
+    //      - Owner role (50) on application 5
+    //      - Default team role on application 6
+    for (const assignment of roleAssignments) {
+        for (let i = 0; i < assignment.applications.length; i++) {
+            await assignCustomRoleToApplication(assignment.user, assignment.applications[i], assignment.roles[i])
+        }
+    }
 }

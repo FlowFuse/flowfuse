@@ -44,10 +44,11 @@
                 >
                     <template #actions>
                         <ff-button
-                            v-if="hasPermission('project:create')"
+                            v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             data-action="create-project"
                             kind="primary"
                             :to="{name: 'CreateInstance'}"
+                            :disabled="!hasPermission('project:create')"
                         >
                             <template #icon-left>
                                 <PlusSmIcon />
@@ -117,9 +118,10 @@
                     </template>
                     <template #actions>
                         <ff-button
-                            v-if="hasPermission('project:create')"
+                            v-ff-tooltip:bottom="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             kind="primary"
                             :to="{name: 'CreateInstance'}"
+                            :disabled="!hasPermission('project:create')"
                         >
                             <template #icon-left>
                                 <PlusSmIcon />

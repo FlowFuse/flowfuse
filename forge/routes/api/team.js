@@ -358,22 +358,29 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const includeMeta = request.query.includeMeta
-        const limit = request.query.limit
-        const orderByMostRecentFlows = request.query.orderByMostRecentFlows
-
-        let projects = await app.db.models.Project.byTeam(request.params.teamId, {
+        const options = {
             includeSettings: true,
-            limit,
+            limit: request.query.limit,
             includeMeta,
-            orderByMostRecentFlows
-        })
+            orderByMostRecentFlows: request.query.orderByMostRecentFlows
+        }
+
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            const excludeApplications = []
+            Object.keys(request.teamMembership.permissions.applications).forEach(appId => {
+                if (!app.hasPermission(request.teamMembership, 'project:read', { applicationId: appId })) {
+                    excludeApplications.push(app.db.models.Application.decodeHashid(appId))
+                }
+            })
+            if (excludeApplications.length) {
+                options.excludeApplications = excludeApplications
+            }
+        }
+
+        const projects = await app.db.models.Project.byTeam(request.params.teamId, options)
 
         if (projects) {
-            if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
-                projects = projects.filter(projects => {
-                    return app.hasPermission(request.teamMembership, 'project:read', { applicationId: app.db.models.Application.encodeHashid(projects.ApplicationId) })
-                })
-            }
             let result = await app.db.views.Project.instancesList(projects, {
                 includeSettings: true,
                 includeMeta
@@ -416,7 +423,19 @@ module.exports = async function (app) {
                         hasDashboardInstalled = !!settingEntry.value.palette.modules.find(module => module.name === '@flowfuse/node-red-dashboard')
                     }
 
-                    return isSettingsEntry && hasDashboardInstalled
+                    let permissionCheck = true
+                    const platformRbacEnabled = app.config.features.enabled('rbacApplication')
+                    const teamRbacEnabled = request.team.TeamType.getFeatureProperty('rbacApplication', false)
+
+                    if (platformRbacEnabled && teamRbacEnabled) {
+                        permissionCheck = app.hasPermission(
+                            request.teamMembership,
+                            'team:projects:list-dashboards',
+                            { applicationId: app.db.models.Application.encodeHashid(project.ApplicationId) }
+                        )
+                    }
+
+                    return isSettingsEntry && hasDashboardInstalled && permissionCheck
                 }).length > 0
             })
 
@@ -1092,8 +1111,8 @@ module.exports = async function (app) {
             const model = request.query.instanceType === 'hosted'
                 ? app.db.models.Project
                 : app.db.models.Device
-
-            const stateCounters = await model.countByState(request.query.state, request.team.id, request.query.applicationId) ?? []
+            const membership = request.teamMembership
+            const stateCounters = await model.countByState(request.query.state, request.team, request.query.applicationId, membership) ?? []
             const response = {}
 
             stateCounters.forEach(res => {

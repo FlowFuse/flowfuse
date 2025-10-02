@@ -1,15 +1,31 @@
 <template>
     <form class="space-y-4" @submit.prevent>
-        <FormHeading class="mt-0.5">Device Group Settings</FormHeading>
-        <FormRow v-model="input.name" data-el="application-device-group-name" type="text" :error="errors.name" :disabled="!!errors.name">
-            The name of the group
-        </FormRow>
-        <FormRow v-model="input.description" data-el="application-device-group-description" type="text">
-            A description of the group
-        </FormRow>
-        <ff-button size="small" :disabled="!unsavedChanges || hasError" @click="saveSettings()">Save Settings</ff-button>
+        <section data-el="device-group-settings-general">
+            <FormHeading class="mt-0.5">Device Group Settings</FormHeading>
+            <FormRow
+                v-model="input.name" data-el="application-device-group-name"
+                :type="!hasPermission('application:device-group:update', { application }) ? 'uneditable' : 'text'"
+                :error="errors.name"
+                :disabled="!!errors.name"
+            >
+                The name of the group
+            </FormRow>
+            <FormRow
+                v-model="input.description" data-el="application-device-group-description"
+                :type="!hasPermission('application:device-group:update', { application }) ? 'uneditable' : 'text'"
+            >
+                A description of the group
+            </FormRow>
+            <ff-button
+                v-if="hasPermission('application:device-group:update', { application })"
+                size="small" :disabled="!unsavedChanges || hasError" data-action="save-general-settings"
+                @click="saveSettings()"
+            >
+                Save Settings
+            </ff-button>
+        </section>
 
-        <template v-if="hasPermission('application:device-group:update')">
+        <section v-if="hasPermission('application:device-group:update', { application })" data-el="target-snapshot">
             <FormHeading class="text-red-700">Clear Target Snapshot</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
@@ -19,8 +35,9 @@
                     <ff-button class="w-36" kind="danger" data-action="clear-device-group-target-snapshot" :disabled="!hasTargetSnapshot" @click="clearTargetSnapshot">Clear Target</ff-button>
                 </div>
             </div>
-        </template>
-        <template v-if="hasPermission('application:device-group:delete')">
+        </section>
+
+        <section v-if="hasPermission('application:device-group:delete', { application })" data-el="delete-device-group">
             <FormHeading class="text-red-700">Delete Device Group</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
@@ -30,7 +47,7 @@
                     <ff-button class="w-36" kind="danger" data-action="delete-device-group" @click="deleteGroup">Delete Group</ff-button>
                 </div>
             </div>
-        </template>
+        </section>
     </form>
 </template>
 

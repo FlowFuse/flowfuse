@@ -8,6 +8,7 @@
 
                 <template #status>
                     <BrokerStatusBadge v-if="broker?.id !== 'team-broker' && !isCreationPage" :status="brokerState" :pendingStateChange="!brokerState" />
+                    <BrokerStatusBadge v-else-if="activeBrokerId" :status="'connected'" />
                 </template>
 
                 <template #pictogram>
@@ -27,7 +28,8 @@
 
                 <template #tools>
                     <section v-if="!loading && shouldDisplayTools && featuresCheck.isExternalMqttBrokerFeatureEnabled" class="flex gap-3 flex-wrap">
-                        <ff-toggle-switch v-if="activeBrokerId !== 'team-broker'" v-model="active" mode="async" :loading="statePending" @click="toggleAgent" />
+                        <ff-toggle-switch v-if="activeBrokerId !== 'team-broker'" v-ff-tooltip:bottom="'Connect to Third Party Broker'" :modelValue="active" mode="async" :loading="statePending" @click="toggleAgent" />
+                        <ff-toggle-switch v-else v-ff-tooltip:bottom="'Team Broker is always connected'" :modelValue="true" mode="async" :loading="statePending" :disabled="true" />
                         <ff-listbox
                             v-if="brokers.length > 1"
                             v-model="activeBrokerId"
@@ -256,8 +258,7 @@ export default {
         activeBrokerId: {
             handler (id) {
                 this.clearBrokerStatusPollingInterval()
-
-                if (id && id !== 'team-broker') {
+                if (id && this.featuresCheck.isMqttBrokerFeatureEnabled) {
                     this.getBrokerState()
                         .then(() => {
                             this.brokerStatusPollingInterval = setInterval(() => this.getBrokerState(), 5000)
@@ -272,6 +273,7 @@ export default {
         }
     },
     mounted () {
+        // redirect if no minimum role
         if (!this.hasAMinimumTeamRoleOf(Roles.Member)) {
             return this.$router.push({ name: 'Home' })
         }

@@ -4,7 +4,7 @@
             :columns="columns" :rows="members" :search="searchTerm" :show-search="true"
             data-el="user-access-table"
         >
-            <template #context-menu="{row}">
+            <template v-if="hasPermission('team:user:change-role')" #context-menu="{row}">
                 <ff-list-item data-action="edit-token" label="Edit Permissions" @click="editUserPermissions(row)" />
             </template>
         </ff-data-table>
@@ -18,7 +18,6 @@ import { defineComponent, markRaw } from 'vue'
 import { mapGetters } from 'vuex'
 
 import teamClient from '../../../api/team.js'
-
 import EditApplicationPermissionsDialog from '../../../components/dialogs/EditApplicationPermissionsDialog.vue'
 import usePermissions from '../../../composables/Permissions.js'
 

@@ -1,16 +1,16 @@
 <template>
-    <div class="ff-pipeline" data-el="pipeline-row">
+    <div class="ff-pipeline" data-el="pipeline-row" :data-pipeline="slugify(pipeline.name)">
         <div class="ff-pipeline-banner">
             <ff-text-input v-if="editing.name" ref="pipelineName" v-model="input.pipelineName" />
             <div v-else class="flex items-center">
                 <label>
                     {{ pipeline.name }}
                 </label>
-                <div v-if="hasPermission('pipeline:edit',{ application })" v-ff-tooltip:right="'Edit Pipeline Name'">
+                <div v-if="hasPermission('pipeline:edit', { application })" v-ff-tooltip:right="'Edit Pipeline Name'">
                     <PencilAltIcon v-if="!editing.name" class="ml-4 ff-icon ff-clickable" @click="edit" />
                 </div>
             </div>
-            <div v-if="hasPermission('pipeline:delete',{ application })" class="flex gap-2">
+            <div v-if="hasPermission('pipeline:delete', { application })" class="flex gap-2">
                 <div v-if="!editing.name" v-ff-tooltip:left="'Delete Pipeline'" data-action="delete-pipeline">
                     <TrashIcon class="ff-icon ff-clickable" @click="deletePipeline" />
                 </div>
@@ -64,6 +64,7 @@ import ApplicationAPI from '../../api/application.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
 import usePermissions from '../../composables/Permissions.js'
 
+import { slugify } from '../../composables/String.js'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import { Roles } from '../../utils/roles.js'
@@ -181,6 +182,7 @@ export default {
         this.StageType = StageType
     },
     methods: {
+        slugify,
         addStage: function () {
             const route = {
                 name: 'CreatePipelineStage',

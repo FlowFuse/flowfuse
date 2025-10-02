@@ -45,7 +45,7 @@
                             </span>
                         </button>
                     </template>
-                    <FinishSetupButton v-if="neverConnected" :device="device" />
+                    <FinishSetupButton v-if="hasPermission('device:create', {application: device.application}) && neverConnected" :device="device" />
                     <DropdownMenu v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                 </div>
             </template>

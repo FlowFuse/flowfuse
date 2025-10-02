@@ -4,7 +4,7 @@
                  class="ff-btn transition-fade--color"
                  :target="target"
                  :class="computedClass"
-                 :to="to ?? '#'"
+                 :to="(!to || disabled) ? '' : to"
                  :aria-disabled="htmlDisabled"
                  :disabled="htmlDisabled"
     >
@@ -52,7 +52,7 @@ export default {
         },
         kind: {
             default: 'primary',
-            type: String // "primary", "secondary", "tertiary"
+            type: String // "primary", "secondary", "tertiary", "danger", "secondary-danger", "tertiary-danger"
         },
         size: {
             default: 'normal',

@@ -12,7 +12,6 @@
 </template>
 
 <script>
-import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
@@ -54,7 +53,7 @@ export default {
     methods: {
         checkAccess: function () {
             if (!this.hasPermission('project:edit', { application: this.instance.application })) {
-                useRouter().push({ replace: true, path: 'general' })
+                this.$router.push({ replace: true, path: 'general' })
             }
         },
         changeInstanceDefinition (instanceDetails) {

@@ -129,6 +129,10 @@ export default {
             return true
         },
         shouldHideInstanceSteps () {
+            if (this.isFreeTeamType) {
+                return true
+            }
+
             return !this.instanceFollowUp
         },
         localApplications () {
