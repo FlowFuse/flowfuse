@@ -124,7 +124,7 @@ export default {
                         blueprints: this.blueprints
                     }
                 }
-            ]
+            ].filter(step => !step.hidden)
         },
         hasNoBlueprints () {
             return this.blueprints.length === 0
