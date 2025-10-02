@@ -67,9 +67,9 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
             // should display has more with one more available
             cy.get('[data-state="running"]').contains('0')
             cy.get('[data-state="error"]').contains('0')
-            cy.get('[data-state="stopped"]').contains('10')
+            cy.get('[data-state="stopped"]').contains('8')
             cy.get('[data-el="device-tile"]').should('have.length', 3)
-            cy.get('[data-el="has-more"]').contains('7 More')
+            cy.get('[data-el="has-more"]').contains('5 More')
         })
     })
     it.skip('should not have recent activity items pertaining restricted instances on the dashboard page', () => {
