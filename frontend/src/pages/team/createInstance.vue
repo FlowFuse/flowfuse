@@ -35,7 +35,7 @@
             v-else
             ref="multiStepForm"
             :applications="applications"
-            :has-team-step="true"
+            :has-team-step="$route.name === 'DeployBlueprint'"
             @form-success="onInstanceCreated"
             @previous-step-state-changed="form.previousButtonState = $event"
             @next-step-state-changed="form.nextButtonState = $event"
