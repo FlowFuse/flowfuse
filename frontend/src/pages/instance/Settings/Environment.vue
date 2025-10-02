@@ -2,7 +2,7 @@
     <form class="space-y-6">
         <TemplateSettingsEnvironment
             v-model="editable"
-            :readOnly="!hasPermission('device:edit-env')"
+            :readOnly="!hasPermission('project:edit-env', { application: project.application })"
             :editTemplate="false"
             :original-env-vars="original?.settings?.env ?? []"
             @validated="onFormValidated"
@@ -77,7 +77,7 @@ export default {
     computed: {
         saveButton () {
             return {
-                visible: this.hasPermission('device:edit-env'),
+                visible: this.hasPermission('project:edit-env', { application: this.project.application }),
                 disabled: !this.unsavedChanges || this.hasErrors
             }
         }

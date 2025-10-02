@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-pipeline">
+    <div class="ff-pipeline" :data-pipeline="slugify(pipeline.name)">
         <router-link
             :to="{name: 'ApplicationPipelines', params: {id: pipeline.application.id}}"
             class="ff-pipeline-header flex gap-5 self-end items-center truncate"
@@ -29,8 +29,9 @@
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/outline'
 
-import TeamPipelineStage from './TeamPipelineStage.vue'
+import { slugify } from '../../../../composables/String.js'
 
+import TeamPipelineStage from './TeamPipelineStage.vue'
 export default {
     name: 'TeamPipeline',
     components: {
@@ -42,6 +43,9 @@ export default {
             required: true,
             type: Object
         }
+    },
+    methods: {
+        slugify
     }
 }
 </script>
