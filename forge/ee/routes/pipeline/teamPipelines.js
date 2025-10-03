@@ -32,8 +32,13 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const pipelines = await app.db.models.Pipeline.byTeamId(request.params.teamId)
+        let pipelines = await app.db.models.Pipeline.byTeamId(request.params.teamId)
         if (pipelines) {
+            if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+                pipelines = pipelines.filter(pipeline => {
+                    return app.hasPermission(request.teamMembership, 'project:read', { applicationId: app.db.models.Application.encodeHashid(pipeline.ApplicationId) })
+                })
+            }
             reply.send({
                 count: pipelines.length,
                 pipelines: await app.db.views.Pipeline.teamPipelineList(pipelines)

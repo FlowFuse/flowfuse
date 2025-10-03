@@ -90,7 +90,7 @@ describe('Team - Bill Of Materials', () => {
 
             cy.visit('/team/ateam/bill-of-materials')
 
-            cy.url().should('include', 'applications')
+            cy.get('[data-team="ateam"]').should('exist') // redirected to home page
         })
 
         it('should redirect viewer users away and not display the menu entry for the bom page', () => {
@@ -106,7 +106,7 @@ describe('Team - Bill Of Materials', () => {
 
             cy.visit('/team/ateam/bill-of-materials')
 
-            cy.url().should('include', 'applications')
+            cy.get('[data-team="ateam"]').should('exist') // redirected to home page
         })
 
         it('should redirect dashboard users away and not display the menu entry for the bom page', () => {

@@ -78,15 +78,19 @@ module.exports = {
                     if (includeInstance) {
                         include.push({
                             model: M.Project,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url', 'ApplicationId'],
                             required: false,
                             on: instanceOwnershipJoin
                         })
                         include.push({
                             model: M.Device,
-                            attributes: ['hashid', 'id', 'name', 'type'],
+                            attributes: ['hashid', 'id', 'name', 'type', 'ApplicationId'],
                             required: false,
-                            on: deviceOwnershipJoin
+                            on: deviceOwnershipJoin,
+                            include: {
+                                model: M.Project,
+                                attributes: ['ApplicationId']
+                            }
                         })
                     }
                     return this.findOne({
@@ -94,7 +98,7 @@ module.exports = {
                         include
                     })
                 },
-                byTeam: async (teamHashId, pagination = {}, where = {}) => {
+                byTeam: async (teamHashId, pagination = {}, where = {}, options = {}) => {
                     const teamId = M.Team.decodeHashid(teamHashId)
                     const limit = Math.min(parseInt(pagination.limit) || 100, 100)
                     if (pagination.cursor) {
@@ -111,15 +115,19 @@ module.exports = {
                                 },
                                 {
                                     model: M.Project,
-                                    attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url'],
+                                    attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url', 'ApplicationId'],
                                     required: false,
                                     on: instanceOwnershipJoin
                                 },
                                 {
                                     model: M.Device,
-                                    attributes: ['hashid', 'id', 'name', 'type'],
+                                    attributes: ['hashid', 'id', 'name', 'type', 'ApplicationId'],
                                     required: false,
-                                    on: deviceOwnershipJoin
+                                    on: deviceOwnershipJoin,
+                                    include: {
+                                        model: M.Project,
+                                        attributes: ['ApplicationId']
+                                    }
                                 }
                             ],
                             order: [['id', 'ASC']],

@@ -95,12 +95,15 @@ export default {
             this.triggerLoad({ users: true, events: true })
         },
         teamMembership () {
-            if (!this.hasPermission('application:audit-log')) {
+            if (!this.hasPermission('application:audit-log', { applicationId: this.applicationId })) {
                 return this.$router.push({ name: 'Application', params: this.$route.params })
             }
         }
     },
     created () {
+        if (!this.hasPermission('application:audit-log', { applicationId: this.applicationId })) {
+            return this.$router.replace({ name: 'Application', params: this.$route.params })
+        }
         this.triggerLoad({ users: true, events: true })
     },
     methods: {
@@ -115,7 +118,7 @@ export default {
          * @param cursor - cursor to use for pagination
          */
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
-            if (this.hasPermission('application:audit-log')) {
+            if (this.hasPermission('application:audit-log', { applicationId: this.applicationId })) {
                 const paramScope = (params.has('scope') ? params.get('scope') : this.auditFilters.selectedEventScope) || 'application'
                 let includeChildren = this.auditFilters.includeChildren
                 if (params.has('includeChildren')) {
@@ -143,7 +146,7 @@ export default {
             }
         },
         triggerLoad ({ users = false, events = true } = {}) {
-            if (this.hasPermission('application:audit-log')) {
+            if (this.hasPermission('application:audit-log', { applicationId: this.applicationId })) {
                 // if `events` is true, call AuditLogBrowser.loadEntries - this will emit 'load-entries' event which calls this.loadEntries with appropriate params
                 const scope = !this.auditFilters.selectedEventScope ? 'application' : 'project'
                 events && this.$refs.AuditLog?.loadEntries(scope, this.auditFilters.includeChildren, scope)

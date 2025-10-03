@@ -78,8 +78,14 @@ module.exports = async function (app) {
 
         const applications = await app.db.models.Application.byTeam(request.team.id)
 
+        let applicationIds = applications.map(app => app.dataValues.id)
+        if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            applicationIds = applicationIds.filter(applicationId => {
+                return app.hasPermission(request.teamMembership, 'project:read', { applicationId: app.db.models.Application.encodeHashid(applicationId) })
+            })
+        }
         const where = {
-            ApplicationId: applications.map(app => app.dataValues.id)
+            ApplicationId: applicationIds
         }
 
         const groupData = await app.db.models.DeviceGroup.getAll(paginationOptions, where, { includeApplication: true })

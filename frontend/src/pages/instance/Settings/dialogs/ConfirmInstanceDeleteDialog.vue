@@ -15,7 +15,7 @@
                     Are you sure you want to delete this instance? Once deleted, there is no going back.
                 </p>
                 <p>
-                    Name: <span class="font-bold">{{ localInstance?.name }}</span>
+                    Name: <span class="font-bold" data-el="instance-name">{{ localInstance?.name }}</span>
                 </p>
                 <p>
                     Please type in the instance name to confirm.

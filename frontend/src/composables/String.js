@@ -67,3 +67,17 @@ export const hashString = (str) => {
     }
     return (h >>> 0).toString(16).padStart(8, '0')
 }
+
+/**
+ * Convert a string to slug format
+ * @param {String} str - The string to convert to slug format
+ * @returns {String} - slug
+ */
+export const slugify = (str) => {
+    return str
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+}

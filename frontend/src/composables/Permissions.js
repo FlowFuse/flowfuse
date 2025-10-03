@@ -20,20 +20,30 @@ export const isVisitingAdmin = (teamMembership) => {
  *
  * @param {string} scope - The specific scope for which the permission check is being made.
  * @param {Object|null} teamMembership - The user's team membership information, typically containing role details. Can be null if the user does not have team membership.
+ * @param {Object|null} context - The context in which the permission check is being made. Can be null if not applicable.
  * @throws {Error} If the provided scope is not recognized.
  * @returns {boolean} Returns true if the user has the required permission for the given scope, false otherwise.
  */
-export const hasPermission = (scope, teamMembership) => {
+export const hasPermission = (scope, teamMembership, context) => {
     if (!Permissions[scope]) {
         throw new Error(`Unrecognised scope requested: '${scope}'`)
     }
+
     const permission = Permissions[scope]
 
     if (permission.role) {
         if (!teamMembership) {
             return false
         }
-        if (teamMembership.role < permission.role) {
+        let userRole = teamMembership.role
+        // TODO: check platform feature flag 'rbacApplication'
+        const application = context?.application?.id || context?.applicationId
+        if (application && teamMembership.permissions?.applications?.[application] !== undefined) {
+            userRole = teamMembership.permissions.applications[application]
+        }
+        // Useful debug to track down RBAC issues. Logs the permission being checked, the user's team role and the computed granular rbac role
+        // console.warn('hasPermission', scope, teamMembership.role, userRole)
+        if (userRole < permission.role) {
             return false
         }
     }
@@ -94,10 +104,11 @@ export default function usePermissions () {
      * Checks if a user has the required permission for a specific scope based on their team membership.
      *
      * @param {string} scope - The specific scope for which the permission check is being made.
+     * @param {string} context - The context in which the permission check is being made.
      * @throws {Error} If the provided scope is not recognized.
      * @returns {boolean} Returns true if the user has the required permission for the given scope, false otherwise.
      */
-    const _hasPermission = (scope) => hasPermission(scope, teamMembership.value)
+    const _hasPermission = (scope, context) => hasPermission(scope, teamMembership.value, context)
 
     /**
      * Check if the user has the minimum required role.

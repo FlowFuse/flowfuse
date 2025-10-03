@@ -69,19 +69,29 @@ module.exports = function (app) {
         ].forEach(p => { result[p] = user[p] })
         return result
     }
-
+    app.addSchema({
+        $id: 'TeamMemberPermissions',
+        type: 'object',
+        properties: {
+            applications: { type: 'object', additionalProperties: true }
+        }
+    })
     app.addSchema({
         $id: 'TeamMemberList',
         type: 'array',
         items: {
             allOf: [{ $ref: 'UserSummary' }],
-            properties: { role: { type: 'number' } }
+            properties: {
+                role: { type: 'number' },
+                permissions: { $ref: 'TeamMemberPermissions' }
+            }
         }
     })
     function teamMemberList (users) {
         const result = users.map(u => {
             const user = userSummary(u)
             user.role = u.Teams[0].TeamMember.role
+            user.permissions = u.Teams[0].TeamMember.permissions
             return user
         })
         return result

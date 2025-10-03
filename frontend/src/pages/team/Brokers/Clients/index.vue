@@ -19,7 +19,7 @@
                             <template #icon><SearchIcon /></template>
                         </ff-text-input>
                         <ff-button
-                            v-if="hasAMinimumTeamRoleOf(Roles.Owner)"
+                            v-if="hasPermission('broker:clients:create')"
                             data-action="create-client"
                             kind="primary"
                             @click="createClient()"
@@ -36,7 +36,10 @@
                             <span class="rules">Rules</span>
                         </div>
                         <ul data-el="clients-list" class="clients-list">
-                            <li v-for="client in filteredClients" :key="client.id" class="client" data-el="client">
+                            <li
+                                v-for="client in filteredClients" :key="client.id" class="client"
+                                data-el="client" :data-client="slugify(client.owner ? client.owner.name : client.username)"
+                            >
                                 <broker-client
                                     :client="client"
                                     @edit-client="onEditClient"
@@ -88,6 +91,7 @@ import { mapActions, mapState } from 'vuex'
 import brokerApi from '../../../../api/broker.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 import usePermissions from '../../../../composables/Permissions.js'
+import { slugify } from '../../../../composables/String.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
 import featuresMixin from '../../../../mixins/Features.js'
 import Alerts from '../../../../services/alerts.js'
@@ -149,6 +153,7 @@ export default {
         this.$router.replace({ query: { ...this.$route.query, searchQuery: undefined } })
     },
     methods: {
+        slugify,
         ...mapActions('product', ['fetchUnsClients']),
         async createClient () {
             this.$refs.clientDialog.showCreate()

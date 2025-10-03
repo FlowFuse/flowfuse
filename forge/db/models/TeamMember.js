@@ -16,10 +16,21 @@ module.exports = {
             allowNull: false,
             validate: {
                 isValid (role) {
-                    if (!TeamRoles.includes(role)) {
+                    if (![...TeamRoles, 0].includes(role)) {
                         throw new Error('Invalid team role')
                     }
                 }
+            }
+        },
+        permissions: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            set (value) {
+                this.setDataValue('permissions', JSON.stringify(value))
+            },
+            get () {
+                const rawValue = this.getDataValue('permissions') || '{}'
+                return JSON.parse(rawValue)
             }
         }
     },

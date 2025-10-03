@@ -18,9 +18,9 @@
                         A Remote Instance must be in Developer Mode and online to create a Snapshot.
                     </p>
                 </template>
-                <template v-if="hasPermission('device:snapshot:create')" #actions>
+                <template v-if="hasPermission('device:snapshot:create', { application: device.application })" #actions>
                     <ff-button
-                        v-if="hasPermission('snapshot:import')"
+                        v-if="hasPermission('snapshot:import', { application: device.application })"
                         kind="secondary" :disabled="busy || !features.deviceEditor || device.ownerType !== 'application'"
                         data-action="import-snapshot"
                         @click="$emit('show-import-snapshot-dialog')"
@@ -28,6 +28,7 @@
                         <template #icon-left><UploadIcon /></template>Upload Snapshot
                     </ff-button>
                     <ff-button
+                        v-if="hasPermission('device:snapshot:create', { application: device.application })"
                         kind="primary"
                         :disabled="!developerMode || busy || !features.deviceEditor || device.ownerType !== 'application'"
                         data-action="create-snapshot"
@@ -51,11 +52,11 @@
                     </template>
                     <template #context-menu="{row}">
                         <ff-list-item :disabled="!canDeploy(row)" label="Restore Snapshot" @click="showDeploySnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('snapshot:edit')" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('snapshot:full')" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('snapshot:full')" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
+                        <ff-list-item :disabled="!hasPermission('snapshot:edit', { application: device.application })" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
+                        <ff-list-item :disabled="!hasPermission('snapshot:full', { application: device.application })" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
+                        <ff-list-item :disabled="!hasPermission('snapshot:full', { application: device.application })" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
                         <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('device:snapshot:read')" label="Download package.json" @click="downloadSnapshotPackage(row)" />
+                        <ff-list-item :disabled="!hasPermission('device:snapshot:read', { application: device.application })" label="Download package.json" @click="downloadSnapshotPackage(row)" />
                         <ff-list-item :disabled="!canDelete(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
                     </template>
                 </ff-data-table>
@@ -78,9 +79,9 @@
                             A Remote Instance must be in Developer Mode and online to create a Snapshot.
                         </p>
                     </template>
-                    <template v-if="hasPermission('device:snapshot:create')" #actions>
+                    <template v-if="hasPermission('device:snapshot:create', { application: device.application })" #actions>
                         <ff-button
-                            v-if="hasPermission('snapshot:import')"
+                            v-if="hasPermission('snapshot:import', { application: device.application })"
                             kind="secondary" :disabled="busy || !features.deviceEditor || device.ownerType !== 'application'"
                             data-action="import-snapshot"
                             @click="$emit('show-import-snapshot-dialog')"
@@ -166,7 +167,6 @@ export default {
     emits: ['device-updated', 'show-import-snapshot-dialog', 'show-create-snapshot-dialog'],
     setup () {
         const { hasPermission } = usePermissions()
-
         return { hasPermission }
     },
     data () {
@@ -446,14 +446,14 @@ export default {
         },
         // enable/disable snapshot actions
         canDeploy (_row) {
-            return !this.developerMode && this.hasPermission('device:snapshot:set-target')
+            return !this.developerMode && this.hasPermission('device:edit', { application: this.device.application })
         },
         canDownload (_row) {
-            return this.hasPermission('snapshot:export')
+            return this.hasPermission('snapshot:export', { application: this.device.application })
         },
         canDelete (row) {
             if (this.rowIsThisDevice(row)) {
-                return this.hasPermission('device:snapshot:delete')
+                return this.hasPermission('device:snapshot:delete', { application: this.device.application })
             }
             return false // only permit deletion of snapshots created by this device
         }

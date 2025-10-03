@@ -22,7 +22,7 @@
         <template #tools>
             <section class="flex gap-2 items-center self-center">
                 <ff-button
-                    v-if="hasPermission('snapshot:import')"
+                    v-if="hasPermission('snapshot:import', { application: instance.application })"
                     kind="secondary"
                     data-action="import-snapshot"
                     @click="showImportSnapshotDialog"
@@ -30,6 +30,7 @@
                     <template #icon-left><UploadIcon /></template>Upload Snapshot
                 </ff-button>
                 <ff-button
+                    v-if="hasPermission('project:snapshot:create', { application: instance.application })"
                     kind="primary"
                     data-action="create-snapshot"
                     @click="showCreateSnapshotDialog"

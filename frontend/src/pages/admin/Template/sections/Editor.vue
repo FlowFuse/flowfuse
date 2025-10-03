@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-4" @submit.prevent>
+    <form class="space-y-4" data-el="instance-editor" @submit.prevent>
         <FormHeading>Editor</FormHeading>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">

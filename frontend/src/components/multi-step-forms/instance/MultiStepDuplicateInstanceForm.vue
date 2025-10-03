@@ -21,6 +21,8 @@ import { mapState } from 'vuex'
 
 import instanceApi from '../../../api/instances.js'
 import teamApi from '../../../api/team.js'
+import usePermissions from '../../../composables/Permissions.js'
+
 import Alerts from '../../../services/alerts.js'
 import NameGenerator from '../../../utils/name-generator/index.js'
 import MultiStepForm from '../MultiStepForm.vue'
@@ -44,6 +46,10 @@ export default {
         }
     },
     emits: ['instance-created', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             applications: [],
@@ -160,6 +166,7 @@ export default {
         async getApplications () {
             const data = await teamApi.getTeamApplications(this.team.id)
             this.applications = data.applications
+                .filter(application => this.hasPermission('project:create', { application }))
                 .map((a) => {
                     return {
                         label: a.name,

@@ -1,7 +1,7 @@
 <template>
     <ff-loading v-if="loading.deleting" message="Deleting Device..." />
     <FormHeading v-if="!loading.deleting" class="text-red-700">Delete Remote Instance</FormHeading>
-    <div v-if="!loading.deleting" class="flex flex-col lg:flex-row max-w-2xl space-y-4">
+    <div v-if="!loading.deleting" class="flex flex-col lg:flex-row max-w-2xl space-y-4" data-el="device-danger">
         <div class="flex-grow">
             <div class="max-w-sm pt-2">
                 Once deleted, your Remote Instance is removed. This cannot be undone.
@@ -14,7 +14,6 @@
     </div>
 </template>
 <script>
-import { useRouter } from 'vue-router'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
@@ -27,6 +26,7 @@ export default {
     name: 'DeviceSettingsDanger',
     props: ['device'],
     emits: ['device-updated'],
+    inheritAttrs: false,
     components: {
         ConfirmDeviceDeleteDialog,
         FormHeading
@@ -51,8 +51,8 @@ export default {
     },
     methods: {
         checkAccess: async function () {
-            if (!this.hasPermission('device:edit')) {
-                useRouter().push({ replace: true, path: 'general' })
+            if (!this.hasPermission('device:edit', { application: this.device.application })) {
+                return this.$router.replace({ name: 'device-settings' })
             }
         },
         showConfirmDeleteDialog () {

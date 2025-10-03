@@ -88,8 +88,23 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
-        const users = await app.db.models.TeamBrokerClient.byTeam(request.team.hashid, paginationOptions)
-        reply.send(app.db.views.TeamBrokerClient.users(users))
+        const clients = await app.db.models.TeamBrokerClient.byTeam(request.team.hashid, paginationOptions)
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            // Ideally, we'd do this on the query side so that `limits` can be properly honoured. Currently, we don't use the limits
+            // query param with this endpoint, so making do with post-query filtering.
+            clients.clients = clients.clients.filter(client => {
+                const applicationId = client.Device?.Project?.ApplicationId || client.Device?.ApplicationId || client.Project?.ApplicationId
+                if (applicationId) {
+                    if (!app.hasPermission(request.teamMembership, 'broker:clients:list', { applicationId: app.db.models.Application.encodeHashid(applicationId) })) {
+                        clients.count--
+                        return false
+                    }
+                }
+                return true
+            })
+        }
+        reply.send(app.db.views.TeamBrokerClient.users(clients))
     })
 
     /**
@@ -184,7 +199,19 @@ module.exports = async function (app) {
                         id: { type: 'string' },
                         username: { type: 'string' },
                         acls: { type: 'array' },
-                        owner: { type: 'object' }
+                        owner: {
+                            anyOf: [
+                                { type: 'null' },
+                                {
+                                    type: 'object',
+                                    properties: {
+                                        instanceType: { type: 'string', enum: ['instance', 'device'] },
+                                        id: { type: 'string' },
+                                        name: { type: 'string' }
+                                    }
+                                }
+                            ]
+                        }
                     }
                 },
                 '4xx': {
@@ -196,9 +223,19 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
-        if (user) {
-            reply.send(app.db.views.TeamBrokerClient.user(user))
+        let client = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid, true, true)
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            const applicationId = client?.Device?.Project?.ApplicationId || client?.Device?.ApplicationId || client?.Project?.ApplicationId
+            if (applicationId) {
+                if (!app.hasPermission(request.teamMembership, 'broker:clients:list', { applicationId: app.db.models.Application.encodeHashid(applicationId) })) {
+                    client = null
+                }
+            }
+        }
+
+        if (client) {
+            reply.send(app.db.views.TeamBrokerClient.user(client))
         } else {
             reply.status(404).send({})
         }
@@ -264,18 +301,28 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
-            if (!user) {
+            let client = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid, true, true)
+            const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+            if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+                const applicationId = client?.Device?.Project?.ApplicationId || client?.Device?.ApplicationId || client?.Project?.ApplicationId
+                if (applicationId) {
+                    if (!app.hasPermission(request.teamMembership, 'broker:clients:edit', { applicationId: app.db.models.Application.encodeHashid(applicationId) })) {
+                        client = null
+                    }
+                }
+            }
+
+            if (!client) {
                 return reply.status(404).send({})
             }
             if (request.body.password) {
-                user.password = request.body.password
+                client.password = request.body.password
             }
             if (request.body.acls) {
-                user.acls = JSON.stringify(request.body.acls)
+                client.acls = JSON.stringify(request.body.acls)
             }
-            await user.save()
-            reply.status(201).send(app.db.views.TeamBrokerClient.user(user))
+            await client.save()
+            reply.status(201).send(app.db.views.TeamBrokerClient.user(client))
         } catch (err) {
             return reply
                 .code(err.statusCode || 400)
@@ -317,9 +364,19 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const user = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
-        if (user) {
-            await user.destroy()
+        let client = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            const applicationId = client?.Device?.Project?.ApplicationId || client?.Device?.ApplicationId || client?.Project?.ApplicationId
+            if (applicationId) {
+                if (!app.hasPermission(request.teamMembership, 'broker:clients:delete', { applicationId: app.db.models.Application.encodeHashid(applicationId) })) {
+                    client = null
+                }
+            }
+        }
+
+        if (client) {
+            await client.destroy()
             reply.send({ status: 'okay' })
         } else {
             reply.status(404).send({})

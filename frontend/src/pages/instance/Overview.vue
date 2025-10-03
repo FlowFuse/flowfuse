@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-project-overview space-y-4">
+    <div class="ff-project-overview space-y-4" data-el="instance-overview">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <div class="ff-instance-info">
@@ -105,7 +105,7 @@
                     </table>
                 </div>
             </div>
-            <div class="ff-instance-info">
+            <div class="ff-instance-info" data-el="recent-activity">
                 <FormHeading><TrendingUpIcon />Recent Activity</FormHeading>
                 <AuditLog :entries="auditLog" :loading="loading" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
                 <div v-if="!loading" class="pb-4 text-center">

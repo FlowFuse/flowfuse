@@ -2,7 +2,7 @@
     <main v-if="!pipeline?.id">
         <ff-loading message="Loading Pipeline..." />
     </main>
-    <div v-else class="flex flex-col sm:flex-row">
+    <div v-else class="flex flex-col sm:flex-row" data-el="application-pipelines">
         <router-view
             :application="application"
             :applicationDevices="devices"

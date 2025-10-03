@@ -34,6 +34,9 @@ module.exports = async function (app) {
         const applications = await app.db.models.Application.byTeam(request.params.teamId)
         const results = []
         for (const application of applications) {
+            if (!request.session?.User?.admin && !app.hasPermission(request.teamMembership, 'project:read', { application })) {
+                continue
+            }
             const dependants = await application.getChildren({ includeDependencies: true })
             const childrenView = dependants.map(child => app.db.views.BOM.dependant(child.model, child.dependencies))
             const result = {

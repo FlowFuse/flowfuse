@@ -15,7 +15,7 @@
             </template>
         </SectionTopMenu>
     </div>
-    <div class="flex flex-col sm:flex-row">
+    <div class="flex flex-col sm:flex-row" data-el="instance-settings">
         <SectionSideMenu :options="navigation" />
         <div class="flex-grow">
             <router-view v-slot="{ Component }">
@@ -80,18 +80,20 @@ export default {
     computed: {
         ...mapState('account', ['team', 'features', 'settings']),
         navigation () {
-            const canEditProject = this.hasPermission('project:edit')
+            const canEditProject = this.hasPermission('project:edit', { application: this.instance.application })
 
             const routes = [
                 { name: 'General', path: { name: 'instance-settings-general' } },
                 { name: 'Environment', path: { name: 'instance-settings-environment' } },
                 {
                     name: 'High Availability',
+                    key: 'high-availability',
                     path: { name: 'instance-settings-ha' },
                     hidden: !canEditProject || !!this.features.ha === false
                 },
                 {
                     name: 'Protect Instance',
+                    key: 'protect-instance',
                     path: { name: 'instance-settings-protect' },
                     hidden: !canEditProject ||
                         !!this.features?.protectedInstance === false ||

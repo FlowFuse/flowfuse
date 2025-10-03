@@ -493,7 +493,7 @@ describe('License API', async function () {
         async function getLogs () {
             const logs = await app.db.models.AuditLog.forEntity()
             const formatted = await app.db.views.AuditLog.auditLog({ log: logs.log })
-            formatted.log.should.have.length(2)
+            formatted.log.should.have.length(3)
             return formatted
         }
         it('should suspend all instances', async function () {

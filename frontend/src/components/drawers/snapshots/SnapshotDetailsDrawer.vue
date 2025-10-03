@@ -1,7 +1,7 @@
 <template>
     <div id="snapshot-details-drawer" data-el="snapshot-details-drawer">
         <div class="container">
-            <section v-if="hasPermission('snapshot:full')" class="flow-viewer">
+            <section v-if="hasPermission('snapshot:full', applicationContext)" class="flow-viewer">
                 <div class="header flex flex-row justify-between">
                     <span class="title font-bold">Flows:</span>
                     <span
@@ -80,7 +80,7 @@
                 <div class="flex flex-row gap-1">
                     <ff-button
                         kind="secondary" class="flex-1"
-                        :disabled="!hasPermission('project:snapshot:export')"
+                        :disabled="!hasPermission('project:snapshot:export', applicationContext)"
                         data-action="download-snapshot"
                         @click="showDownloadSnapshotDialog(snapshot)"
                     >
@@ -91,7 +91,7 @@
                     </ff-button>
                     <ff-button
                         kind="secondary" class="flex-1"
-                        :disabled="!hasPermission('project:snapshot:read')"
+                        :disabled="!hasPermission('project:snapshot:read', applicationContext)"
                         data-action="download-package-json"
                         @click="downloadSnapshotPackage(snapshot)"
                     >
@@ -104,7 +104,7 @@
                 <ff-button
                     kind="secondary"
                     class="flex-1"
-                    :disabled="!hasPermission('project:snapshot:set-target')"
+                    :disabled="!hasPermission('project:snapshot:set-target', applicationContext)"
                     data-action="set-as"
                     @click="showDeviceTargetDialog(snapshot)"
                 >
@@ -116,7 +116,7 @@
                 <ff-button
                     kind="secondary-danger"
                     class="flex-1"
-                    :delete="!hasPermission('project:snapshot:delete')"
+                    :disabled="!hasPermission('project:snapshot:delete', applicationContext)"
                     data-action="delete"
                     @click="showDeleteSnapshotDialog(snapshot)"
                 >
@@ -213,6 +213,9 @@ export default defineComponent({
             const hasDescriptionChanged = this.input.description !== this.snapshot.description
 
             return hasDescriptionChanged || hasTitleChanged
+        },
+        applicationContext () {
+            return this.instance?.application ? { application: this.instance.application } : {}
         }
     },
     watch: {
@@ -246,7 +249,7 @@ export default defineComponent({
                             this.isEditing = false
                         },
                         hidden: function () {
-                            if (!context.hasPermission('snapshot:edit')) return true
+                            if (!context.hasPermission('snapshot:edit', context.applicationContext)) return true
 
                             return !context.isEditing
                         },
@@ -262,7 +265,7 @@ export default defineComponent({
                             this.isEditing = !this.isEditing
                         },
                         hidden: function () {
-                            if (!context.hasPermission('snapshot:edit')) return true
+                            if (!context.hasPermission('snapshot:edit', context.applicationContext)) return true
                             if (context.isEditing) return true
 
                             return context.hasChanges
@@ -297,7 +300,7 @@ export default defineComponent({
                             if (context.isEditing) {
                                 return true
                             }
-                            return !context.hasPermission('project:snapshot:rollback')
+                            return !context.hasPermission('project:snapshot:rollback', context.applicationContext)
                         },
                         bind: {
                             'data-action': 'restore'

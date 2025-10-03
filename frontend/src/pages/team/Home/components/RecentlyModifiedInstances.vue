@@ -6,7 +6,7 @@
                 <InstanceTile :instance="instance" :minimal-view="true" @delete-instance="$emit('delete-instance', $event)" />
             </li>
             <li v-if="hasMore" class="instance-wrapper flex">
-                <team-link :to="{name: 'Instances'}" class="instance-tile has-more hover:text-indigo-700">
+                <team-link :to="{name: 'Instances'}" class="instance-tile has-more hover:text-indigo-700" data-el="has-more">
                     <span>{{ instancesLeft }} More</span>
                     <span>
                         <ChevronRightIcon class="ff-icon ff-icon-sm" />

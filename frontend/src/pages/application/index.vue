@@ -4,7 +4,7 @@
     <main v-else-if="!application?.id">
         <ff-loading message="Loading Application..." />
     </main>
-    <main v-else class="ff-with-status-header flex flex-col h-full w-full overflow-auto">
+    <main v-else class="ff-with-status-header flex flex-col h-full w-full overflow-auto" data-el="application-page">
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
         <ff-page-header :title="application.name" :tabs="navigation">
@@ -71,7 +71,7 @@ export default {
                     to: { name: 'ApplicationDeviceGroups' },
                     tag: 'application-devices-groups-overview',
                     icon: ChipIcon,
-                    hidden: !this.hasPermission('application:device-group:list'),
+                    hidden: !this.hasPermission('application:device-group:list', { application: this.application }),
                     featureUnavailable: !this.features?.deviceGroups
                 },
                 { label: 'Snapshots', to: { name: 'ApplicationSnapshots' }, tag: 'application-snapshots', icon: ClockIcon },
@@ -80,7 +80,7 @@ export default {
                     to: { name: 'ApplicationPipelines' },
                     tag: 'application-pipelines',
                     icon: PipelinesIcon,
-                    hidden: !this.hasPermission('application:pipeline:list'),
+                    hidden: !this.hasPermission('application:pipeline:list', { application: this.application }),
                     featureUnavailable: !this.features?.['devops-pipelines']
                 },
                 { label: 'Logs', to: { name: 'application-logs' }, tag: 'application-logs', icon: TerminalIcon },
@@ -89,14 +89,14 @@ export default {
                     to: { name: 'application-activity' },
                     tag: 'application-activity',
                     icon: ViewListIcon,
-                    hidden: !this.hasPermission('application:audit-log')
+                    hidden: !this.hasPermission('application:audit-log', { application: this.application })
                 },
                 {
                     label: 'Dependencies',
                     to: { name: 'application-dependencies' },
                     tag: 'application-dependencies',
                     icon: CogIcon,
-                    hidden: !this.hasPermission('application:bom')
+                    hidden: !this.hasPermission('application:bom', { application: this.application })
                 },
                 { label: 'Settings', to: { name: 'application-settings' }, tag: 'application-settings', icon: CogIcon }
             ]
