@@ -239,7 +239,16 @@ export default [
         component: CreateInstance,
         name: 'DeployBlueprint',
         meta: {
-            title: 'Deploy Blueprint'
+            title: 'Deploy Blueprint',
+            menu: {
+                type: 'back',
+                backTo: ({ team }) => {
+                    return {
+                        label: 'Back to Dashboard',
+                        to: { name: 'Team', params: { team_slug: team?.slug } }
+                    }
+                }
+            }
         }
     },
     {
