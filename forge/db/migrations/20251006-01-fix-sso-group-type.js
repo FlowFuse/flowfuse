@@ -14,7 +14,7 @@ module.exports = {
                 return // Nothing to do
             }
 
-            //Check if the DDL is as expected already
+            // Check if the DDL is as expected already
             const ddl = results[0].sql
             const re = /(`SSOGroups`[^,]+?VARCHAR\(255\))/.exec(ddl)
             if (!re || re.length < 2) {
@@ -37,7 +37,6 @@ module.exports = {
                 allowNull: true
             })
         }
-
     },
     down: async (useContext, Sequelize) => {
     }
