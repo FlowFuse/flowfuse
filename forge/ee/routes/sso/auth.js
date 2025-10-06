@@ -100,13 +100,17 @@ module.exports = fp(async function (app, opts) {
                         return
                     }
                 }
-                if (providerOpts.exposeGroups) {
-                    // get SAML groups
-                    user.SSOGroups = app.sso.getUserGroups(samlUser, user, providerOpts)
-                    await user.save()
-                } else {
-                    user.SSOGroups = null
-                    await user.save()
+                try {
+                    if (providerOpts.exposeGroups) {
+                        // get SAML groups
+                        user.SSOGroups = app.sso.getUserGroups(samlUser, user, providerOpts)
+                        await user.save()
+                    } else {
+                        user.SSOGroups = null
+                        await user.save()
+                    }
+                } catch (err) {
+                    app.log.error(`SAML SSOGroups error: ${err.toString()} ${err.stack}`)
                 }
                 done(null, user)
             } else {

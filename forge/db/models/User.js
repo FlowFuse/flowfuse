@@ -44,7 +44,7 @@ module.exports = {
             defaultValue: false
         },
         SSOGroups: {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
             allowNull: true,
             get () {
                 const rawValue = this.getDataValue('SSOGroups')
