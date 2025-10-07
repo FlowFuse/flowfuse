@@ -370,11 +370,11 @@ module.exports = async function (app) {
                 if (certNodesCatalogue || ffNodesCatalogue) {
                     // At least one is configured - so initialise the settings
                     response.palette = response.palette || {}
-                    response.palette.catalogue = response.palette.catalogue || []
+                    response.palette.catalogues = response.palette.catalogues || []
                 }
                 function updateSettingsForCatalogue (scope, catalogueString) {
                     const catalogue = new URL(catalogueString)
-                    response.palette.catalogue.push(catalogue.toString())
+                    response.palette.catalogues.push(catalogue.toString())
                     const npmrcEntry = `${scope}:registry=${npmRegURL.toString()}\n` +
                           `//${npmRegURL.host}:_auth="${token}"\n`
                     if (response.palette.npmrc) {

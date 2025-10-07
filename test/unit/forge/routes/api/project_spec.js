@@ -978,10 +978,21 @@ describe('Project API', function () {
                 runtimeSettings.settings.palette.should.not.have.property('npmrc')
                 runtimeSettings.settings.palette.should.not.have.property('catalogue')
             })
+            async function setTeamFlags (certifiedNodes, ffNodes) {
+                const defaultTeamTypeProperties = app.defaultTeamType.properties
+                defaultTeamTypeProperties.features = defaultTeamTypeProperties.features || {}
+                defaultTeamTypeProperties.features.certifiedNodes = certifiedNodes
+                defaultTeamTypeProperties.features.ffNodes = ffNodes
+                app.defaultTeamType.properties = defaultTeamTypeProperties
+                await app.defaultTeamType.save()
+            }
             it('Should include certified nodes', async function () {
-                await app.settings.set('platform:certifiedNodes:npmRegistryURL', 'https://localhost')
-                await app.settings.set('platform:certifiedNodes:token', 'verySecret')
-                await app.settings.set('platform:certifiedNodes:catalogueURL', 'https://localhost/catalogue.json')
+                await app.settings.set('platform:ff-npm-registry:url', 'https://localhost:1234')
+                await app.settings.set('platform:ff-npm-registry:token', 'verySecret')
+                await app.settings.set('platform:ff-npm-registry:catalogue:certifiedNodes', 'https://localhost/cert-nodes-catalogue.json')
+                await app.settings.set('platform:ff-npm-registry:catalogue:ffNodes', 'https://localhost/ff-nodes-catalogue.json')
+
+                await setTeamFlags(true, true)
 
                 const projectName = generateProjectName()
                 const response = await app.inject({
@@ -1013,9 +1024,15 @@ describe('Project API', function () {
                 settings.should.have.property('palette')
                 settings.palette.should.have.property('npmrc')
                 settings.palette.should.have.property('catalogue')
-                settings.palette.catalogue.should.containEql('https://localhost/catalogue.json')
+                settings.palette.catalogue.should.containEql('https://localhost/cert-nodes-catalogue.json')
+                settings.palette.catalogue.should.containEql('https://localhost/ff-nodes-catalogue.json')
                 settings.palette.should.have.property('npmrc')
-                settings.palette.npmrc.should.equal('@flowfuse-certified-nodes:registry=https://localhost/\n@flowfuse-nodes:registry=https://localhost/\n//localhost:_auth="verySecret"\n')
+                settings.palette.npmrc.should.equal(`@flowfuse-certified-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="verySecret"
+
+@flowfuse-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="verySecret"
+`)
             })
         })
 
