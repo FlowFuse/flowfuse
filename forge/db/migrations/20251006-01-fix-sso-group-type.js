@@ -8,6 +8,7 @@ module.exports = {
     up: async (context, Sequelize) => {
         const dialect = context.sequelize.options.dialect
         if (dialect === 'sqlite') {
+            // For SQLITE, we need to avoid triggering cascading deletes due to the way it does column changes
             const sqlFind = "select sql from SQLITE_MASTER where name = 'Users' and type = 'table';"
             const [results] = await context.sequelize.query(sqlFind)
             if (results.length === 0) {
@@ -31,7 +32,7 @@ module.exports = {
             context.sequelize.query(sqlUpdate)
             await context.sequelize.query('pragma writable_schema=0;')
         } else {
-            // This will trigger the User delete actions on SQLITE
+            // For Postgres, we can use changeColumn directly.
             await context.changeColumn('Users', 'SSOGroups', {
                 type: DataTypes.TEXT,
                 allowNull: true
