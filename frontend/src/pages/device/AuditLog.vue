@@ -2,7 +2,7 @@
     <div class="mb-3">
         <SectionTopMenu hero="Audit Log" info="" />
     </div>
-    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="device" @load-entries="loadEntries" />
+    <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="device" :loading="loading" @load-entries="loadEntries" />
 </template>
 
 <script>
@@ -29,7 +29,8 @@ export default {
     data () {
         return {
             logEntries: [],
-            users: []
+            users: [],
+            loading: true
         }
     },
     computed: {
@@ -52,7 +53,13 @@ export default {
         },
         async loadEntries (params = new URLSearchParams(), cursor = undefined) {
             const deviceId = this.device.id
-            this.logEntries = (await DeviceApi.getDeviceAuditLog(deviceId, params, cursor, 200)).log
+            try {
+                this.logEntries = (await DeviceApi.getDeviceAuditLog(deviceId, params, cursor, 200)).log
+            } catch (error) {
+                console.error('Failed to load audit logs:', error)
+            } finally {
+                this.loading = false
+            }
         }
     }
 }
