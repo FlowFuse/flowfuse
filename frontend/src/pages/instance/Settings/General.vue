@@ -1,6 +1,6 @@
 <template>
     <FormHeading class="mb-6">Instance Details</FormHeading>
-    <div class="space-y-6">
+    <div class="space-y-6" data-el="instance-settings-general">
         <FormRow id="projectId" v-model="input.projectId" type="uneditable" inputClass="font-mono">
             Instance ID
         </FormRow>

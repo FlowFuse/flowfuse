@@ -10,6 +10,9 @@ module.exports = {
                     }
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)
+                        if (request.device.ApplicationId) {
+                            request.applicationId = app.db.models.Application.encodeHashid(request.device.ApplicationId)
+                        }
                         if (!request.teamMembership && !request.session.User.admin) {
                             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                             return // eslint-disable-line no-useless-return

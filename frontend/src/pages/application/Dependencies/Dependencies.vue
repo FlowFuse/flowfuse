@@ -1,5 +1,5 @@
 <template>
-    <div class="dependencies-wrapper">
+    <div class="dependencies-wrapper" data-el="application-dependencies">
         <SectionTopMenu hero="Dependencies" help-header="Node-RED Dependencies - Running in FlowFuse" info="Dependencies of Node-RED Instances belonging to this application.">
             <template #pictogram>
                 <img src="../../../images/pictograms/instance_red.png">
@@ -92,7 +92,7 @@ export default {
     },
     computed: {
         hasTeamPermission () {
-            return this.hasPermission('application:bom')
+            return this.hasPermission('application:bom', { application: this.application })
         },
         hasInstances () {
             return !(!this.payload || this.payload.children.length === 0)
