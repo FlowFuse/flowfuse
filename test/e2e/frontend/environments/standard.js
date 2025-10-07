@@ -2,8 +2,12 @@ const TestModelFactory = require('../../../lib/TestModelFactory')
 const StripeMock = require('../../../lib/stripeMock.js')
 
 const multipleBlueprints = require('../cypress/fixtures/blueprints/multiple-blueprints.json')
+const projectStackFactory = require('../lib/projectStackFactory.js')
+const projectTemplateFactory = require('../lib/projectTemplateFactory.js')
+const projectTypeFactory = require('../lib/projectTypeFactory.js')
 
 const FF_UTIL = require('flowforge-test-utils')
+
 const Forge = FF_UTIL.require('forge/forge.js')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
@@ -57,8 +61,6 @@ module.exports = async function (settings = {}, config = {}) {
 
     const factory = new TestModelFactory(forge)
 
-    const projectType = await factory.createProjectType({ name: 'type1' })
-
     // Create users
     // full platform & team1 admin
     const userAlice = await factory.createUser({ admin: true, username: 'alice', name: 'Alice Skywalker', email: 'alice@example.com', email_verified: true, password: 'aaPassword' })
@@ -83,15 +85,10 @@ module.exports = async function (settings = {}, config = {}) {
     // dashboard users
     const userDashboardDave = await factory.createUser({ username: 'dashboard-dave', name: 'Dashboard Dave', email: 'ddave@example.com', password: 'ddPassword', email_verified: true, password_expired: false })
 
-    // Platform Setup
-    const template = await factory.createProjectTemplate({ name: 'template1' }, userAlice)
-    const stack = await factory.createStack({ name: 'stack1', label: 'stack 1' }, projectType)
-    const stack2 = await factory.createStack({ name: 'stack2', label: 'stack 2' }, projectType)
-
-    // Unused templates and project types
-    await factory.createProjectTemplate({ name: 'template2' }, userAlice)
-    const spareProjectType = await factory.createProjectType({ name: 'type2' })
-    await factory.createStack({ name: 'stack1-for-type2', label: 'stack 1 for type2' }, spareProjectType)
+    // initialize project types, templates and stacks
+    const { type1: projectType, type2: spareProjectType } = await projectTypeFactory.init(forge)
+    const { template1: template } = await projectTemplateFactory.init(forge, userAlice)
+    const { stack1: stack, stack2 } = await projectStackFactory.init(forge)
 
     // Ensure projectTypes are allowed to be used by the default team type
     const teamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })

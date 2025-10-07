@@ -6,7 +6,7 @@
     <ff-loading v-if="loading.suspend" message="Suspending Instance..." />
     <ff-loading v-if="loading.importing" message="Importing Instance..." />
     <form v-if="!isLoading" class="space-y-6">
-        <template v-if="hasPermission('project:edit')">
+        <template v-if="hasPermission('project:edit', { application: instance.application })">
             <FormHeading>Change Instance Node-RED Version</FormHeading>
             <div ref="updateStack" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
@@ -43,7 +43,7 @@
             </div>
         </template>
 
-        <template v-if="hasPermission('project:create')">
+        <template v-if="hasPermission('project:create', { application: instance.application })">
             <FormHeading>Copy Instance</FormHeading>
 
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
@@ -67,7 +67,7 @@
             </div>
         </template>
 
-        <template v-if="hasPermission('project:edit')">
+        <template v-if="hasPermission('project:edit', { application: instance.application })">
             <FormHeading>Import Instance</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
@@ -82,7 +82,7 @@
             </div>
         </template>
 
-        <template v-if="hasPermission('project:edit')">
+        <template v-if="hasPermission('project:edit', { application: instance.application })">
             <FormHeading>Change Instance Type</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
@@ -97,7 +97,7 @@
             </div>
         </template>
 
-        <template v-if="hasPermission('project:change-status')">
+        <template v-if="hasPermission('project:change-status', { application: instance.application })">
             <FormHeading class="text-red-700">Suspend Instance</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
@@ -115,7 +115,7 @@
             </div>
         </template>
 
-        <template v-if="hasPermission('project:delete')">
+        <template v-if="hasPermission('project:delete', { application: instance.application })">
             <FormHeading class="text-red-700">Delete Instance</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
@@ -190,7 +190,7 @@ export default {
     },
     methods: {
         async checkAccess () {
-            if (!this.hasPermission('project:edit')) {
+            if (!this.hasPermission('project:edit', { application: this.instance.application })) {
                 useRouter().push({ replace: true, path: 'general' })
             }
         },

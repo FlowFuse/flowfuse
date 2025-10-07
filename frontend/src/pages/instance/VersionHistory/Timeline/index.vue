@@ -13,6 +13,7 @@
                         <timeline-event
                             :event="event"
                             :timeline="activeTimeline"
+                            :instance="instance"
                             @preview-snapshot="showViewSnapshotDialog"
                             @restore-snapshot="forceRefresh(showRollbackDialog, $event, true)"
                             @compare-snapshot="forceRefresh(showCompareSnapshotDialog, $event)"

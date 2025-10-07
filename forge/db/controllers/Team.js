@@ -66,6 +66,24 @@ module.exports = {
         return { user, team, oldRole, role }
     },
 
+    changeUserTeamPermissions: async function (app, teamHashId, userHashId, permissions) {
+        const user = await app.db.models.User.byId(userHashId)
+        const team = await app.db.models.Team.byId(teamHashId)
+        if (!user) {
+            throw new Error('User not found')
+        }
+        if (!team) {
+            throw new Error('Team not found')
+        }
+
+        const existingMembership = await user.getTeamMembership(team.id)
+        if (!existingMembership) {
+            throw new Error('User not in team')
+        }
+        existingMembership.permissions = permissions
+        await existingMembership.save()
+    },
+
     addUser: async function (app, team, user, userRole) {
         const existingMembership = await user.getTeamMembership(team.id)
         if (existingMembership !== null) {
