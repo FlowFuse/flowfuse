@@ -351,36 +351,46 @@ module.exports = async function (app) {
         }
 
         // Platform wide catalogue and npm registry
-        const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes') && !!teamType.getFeatureProperty('certifiedNodes', false)
-        if (platformNPMEnabled) {
-            const npmRegURLString = app.settings.get('platform:certifiedNodes:npmRegistryURL')
-            const token = app.settings.get('platform:certifiedNodes:token')
-            const catalogueString = app.settings.get('platform:certifiedNodes:catalogueURL')
-            if (npmRegURLString && token && catalogueString) {
-                const npmRegURL = new URL(npmRegURLString)
-                const catalogue = new URL(catalogueString)
-                if (!response.palette) {
-                    response.palette = {}
+        const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes', false) &&
+                                   !!app.config.features.enabled('ffNodes', false) &&
+                                   !!app.settings.get('platform:ff-npm-registry:token')
+        const certifiedNodesEnabledForTeam = teamType.getFeatureProperty('certifiedNodes', false)
+        const ffNodesEnabledForTeam = teamType.getFeatureProperty('ffNodes', false)
+
+        if (platformNPMEnabled && (certifiedNodesEnabledForTeam || ffNodesEnabledForTeam)) {
+            try {
+                const npmRegURL = new URL(app.settings.get('platform:ff-npm-registry:url') || 'https://registry.flowfuse.com/')
+                const token = app.settings.get('platform:ff-npm-registry:token')
+
+                const certNodesCatalogue = app.settings.get('platform:ff-npm-registry:catalogue:certifiedNodes') || 'https://ff-certified-nodes.flowfuse.cloud/catalogue.json'
+                const ffNodesCatalogue = app.settings.get('platform:ff-npm-registry:catalogue:ffNodes') || 'https://ff-certified-nodes.flowfuse.cloud/ff-catalogue.json'
+
+                // Handle FF Exclusive Nodes
+
+                if (certNodesCatalogue || ffNodesCatalogue) {
+                    // At least one is configured - so initialise the settings
+                    response.palette = response.palette || {}
+                    response.palette.catalogue = response.palette.catalogue || []
                 }
-                if (response.palette?.catalogues) {
-                    response.palette.catalogues
-                        .push(catalogue.toString())
-                } else {
-                    response.palette.catalogues = [
-                        catalogue.toString()
-                    ]
+                function updateSettingsForCatalogue (scope, catalogueString) {
+                    const catalogue = new URL(catalogueString)
+                    response.palette.catalogue.push(catalogue.toString())
+                    const npmrcEntry = `${scope}:registry=${npmRegURL.toString()}\n` +
+                          `//${npmRegURL.host}:_auth="${token}"\n`
+                    if (response.palette.npmrc) {
+                        response.palette.npmrc += '\n' + npmrcEntry
+                    } else {
+                        response.palette.npmrc = npmrcEntry
+                    }
                 }
-                if (response.palette?.npmrc) {
-                    response.palette.npmrc = `${response.palette.npmrc}\n` +
-                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
-                        `@flowfuse-nodes:registry=${npmRegURL.toString()}\n` +
-                        `//${npmRegURL.host}:_auth="${token}"\n`
-                } else {
-                    response.palette.npmrc =
-                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
-                        `@flowfuse-nodes:registry=${npmRegURL.toString()}\n` +
-                        `//${npmRegURL.host}:_auth="${token}"\n`
+                if (certifiedNodesEnabledForTeam && certNodesCatalogue) {
+                    updateSettingsForCatalogue('@flowfuse-certified-nodes', certNodesCatalogue)
                 }
+                if (ffNodesEnabledForTeam && ffNodesCatalogue) {
+                    updateSettingsForCatalogue('@flowfuse-nodes', ffNodesCatalogue)
+                }
+            } catch (err) {
+                app.log.error('Failed to configure platform npm registry for device', err)
             }
         }
 

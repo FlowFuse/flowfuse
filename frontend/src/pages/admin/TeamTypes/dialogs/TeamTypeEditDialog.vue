@@ -137,6 +137,7 @@
                     <FormRow v-model="input.properties.features.instanceResources" type="checkbox">Instance Resources</FormRow>
                     <FormRow v-model="input.properties.features.tables" type="checkbox">Tables</FormRow>
                     <FormRow v-model="input.properties.features.certifiedNodes" type="checkbox">Certified Nodes</FormRow>
+                    <FormRow v-model="input.properties.features.ffNodes" type="checkbox">FlowFuse Exclusive Nodes</FormRow>
                     <FormRow v-model="input.properties.features.generatedSnapshotDescription" type="checkbox">Generated Snapshot Descriptions</FormRow>
                     <FormRow v-model="input.properties.features.assistantInlineCompletions" type="checkbox">Assistant Inline Code Completions</FormRow>
                     <FormRow v-model="input.properties.features.rbacApplication" type="checkbox">Application-level RBAC</FormRow>
