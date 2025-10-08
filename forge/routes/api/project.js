@@ -948,7 +948,7 @@ module.exports = async function (app) {
                     updateSettingsForCatalogue('@flowfuse-nodes', ffNodesCatalogue)
                 }
             } catch (err) {
-                app.log.error('Failed to configure platform npm registry for device', err)
+                app.log.error('Failed to configure platform npm registry for project', err)
             }
         }
 
