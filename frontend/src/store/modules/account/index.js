@@ -205,6 +205,8 @@ const getters = {
 
             // Certified Nodes
             isCertifiedNodesFeatureEnabledForPlatform: !!state.features?.certifiedNodes,
+            // FlowFuse Nodes
+            isFlowFuseNodesFeatureEnabledForPlatform: !!state.features?.ffNodes,
 
             // Static Assets
             isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
