@@ -1,14 +1,17 @@
 <template>
     <div class="ff-box" :data-el="`dashboard-section-${type}`">
         <div class="ff-box-header">
-            <span v-if="$slots.icon" class="icon">
-                <slot name="icon" />
-            </span>
-            <h3 v-if="title" class="ff-box-title">
-                <span>
-                    {{ title }}
+            <div class="flex items-center gap-2">
+                <span v-if="$slots.icon" class="icon">
+                    <slot name="icon" />
                 </span>
-            </h3>
+                <h3 v-if="title" class="ff-box-title">
+                    <span>
+                        {{ title }}
+                    </span>
+                </h3>
+            </div>
+            <slot name="actions" />
         </div>
         <div class="ff-box-content flex flex-col flex-1 overflow-auto">
             <slot />
@@ -44,8 +47,8 @@ export default {
 
     .ff-box-header {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 10px;
         margin-bottom: 10px;
 
         .ff-box-title {
