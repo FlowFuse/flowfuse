@@ -98,7 +98,7 @@ describe('HA Instance API', function () {
 
         // Project has been stopped but is presented as "starting"
         TestObjects.project.state.should.equal('suspended')
-        app.db.controllers.Project.getInflightState(TestObjects.project).should.equal('starting')
+        (await app.db.controllers.Project.getInflightState(TestObjects.project)).should.equal('starting')
 
         // Wait for at least start delay as set in stub driver
         await sleep(START_DELAY + 100)
@@ -112,7 +112,7 @@ describe('HA Instance API', function () {
 
         // Project is re-running
         TestObjects.project.state.should.equal('running')
-        should(app.db.controllers.Project.getInflightState(TestObjects.project)).equal(undefined)
+        should(await app.db.controllers.Project.getInflightState(TestObjects.project)).equal(undefined)
 
         const haSetting = await TestObjects.project.getHASettings()
         haSetting.should.have.property('replicas', 2)
@@ -134,7 +134,7 @@ describe('HA Instance API', function () {
 
         // Project has been stopped but is presented as "starting"
         TestObjects.project.state.should.equal('suspended')
-        app.db.controllers.Project.getInflightState(TestObjects.project).should.equal('starting')
+        (await app.db.controllers.Project.getInflightState(TestObjects.project)).should.equal('starting')
 
         // Wait for at least start delay as set in stub driver
         await sleep(START_DELAY + 100)
@@ -148,7 +148,7 @@ describe('HA Instance API', function () {
 
         // Project is re-running
         TestObjects.project.state.should.equal('running')
-        should(app.db.controllers.Project.getInflightState(TestObjects.project)).equal(undefined)
+        should(await app.db.controllers.Project.getInflightState(TestObjects.project)).equal(undefined)
 
         const haSetting = await TestObjects.project.getHASettings()
         should.not.exist(haSetting)
@@ -169,7 +169,7 @@ describe('HA Instance API', function () {
         await TestObjects.project.reload()
 
         TestObjects.project.state.should.equal('running')
-        should(app.db.controllers.Project.getInflightState(TestObjects.project)).equal(undefined)
+        should(await app.db.controllers.Project.getInflightState(TestObjects.project)).equal(undefined)
     })
 
     describe('ha feature flag', async function () {

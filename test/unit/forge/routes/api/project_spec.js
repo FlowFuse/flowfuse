@@ -1216,7 +1216,7 @@ describe('Project API', function () {
 
                 // Project has been stopped but is presented as "starting"
                 project.state.should.equal('suspended')
-                app.db.controllers.Project.getInflightState(project).should.equal('starting')
+                (await app.db.controllers.Project.getInflightState(project)).should.equal('starting')
 
                 // Wait for at least start delay as set in stub driver
                 await sleep(START_DELAY + 100)
@@ -1230,7 +1230,7 @@ describe('Project API', function () {
 
                 // Project is re-running
                 project.state.should.equal('running')
-                should(app.db.controllers.Project.getInflightState(project)).equal(undefined)
+                should(await app.db.controllers.Project.getInflightState(project)).equal(undefined)
 
                 // Type and stack updated
                 project.ProjectType.id.should.equal(projectType.id)
@@ -1283,7 +1283,7 @@ describe('Project API', function () {
 
                 // Project has been stopped but is presented as "starting"
                 project.state.should.equal('suspended')
-                app.db.controllers.Project.getInflightState(project).should.equal('starting')
+                (await app.db.controllers.Project.getInflightState(project)).should.equal('starting')
 
                 // Wait for at least start delay as set in stub driver
                 await sleep(START_DELAY + 100)
@@ -1297,7 +1297,7 @@ describe('Project API', function () {
 
                 // Project is re-running
                 project.state.should.equal('running')
-                should(app.db.controllers.Project.getInflightState(project)).equal(undefined)
+                should(await app.db.controllers.Project.getInflightState(project)).equal(undefined)
 
                 // Stack has been updated
                 project.ProjectType.id.should.equal(projectType.id)
