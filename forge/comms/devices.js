@@ -56,7 +56,7 @@ class DeviceCommsHandler {
         this.deviceLogHeartbeats = {}
         this.deviceResourcesHeartbeats = {}
         /** @type {Object.<string, typeof CommandResponseMonitor>} */
-        this.inFlightCommands = app.caches.newCache({ prefix: 'device-inflight' })
+        this.inFlightCommands = app.caches.getCache('device-inflight')
         this.deviceLogHeartbeatInterval = -1
         this.deviceResourcesHeartbeatInterval = -1
 

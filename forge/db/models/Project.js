@@ -328,7 +328,7 @@ module.exports = {
                 async liveState ({ omitStorageFlows = false } = { }) {
                     const result = {}
 
-                    const inflightState = Controllers.Project.getInflightState(this)
+                    const inflightState = await Controllers.Project.getInflightState(this)
                     const isDeploying = Controllers.Project.isDeploying(this)
 
                     if (!omitStorageFlows) {
@@ -353,7 +353,7 @@ module.exports = {
                         result.meta = await app.containers.details(this) || { state: 'unknown' }
 
                         if (result.meta.state !== this.state) {
-                            Controllers.Project.setLatestProjectState(this.id, result.meta.state)
+                            await Controllers.Project.setLatestProjectState(this.id, result.meta.state)
                         }
 
                         if (result.meta.versions) {
@@ -713,14 +713,14 @@ module.exports = {
                     const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false)
                     const rbacEnabled = platformRbacEnabled && teamRbacEnabled
 
-                    results.forEach((project) => {
+                    for (const project of results) {
                         if (rbacEnabled && !app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid })) {
                             // This instance is not accessible to this user, do not include in states map
                             return
                         }
-                        const state = Controllers.Project.getLatestProjectState(project.id) ?? project.state
+                        const state = await Controllers.Project.getLatestProjectState(project.id) ?? project.state
                         statesMap[state] = (statesMap[state] || 0) + 1
-                    })
+                    }
 
                     return Object.entries(statesMap).map(([state, count]) => ({ state, count }))
                 },

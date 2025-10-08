@@ -1,11 +1,9 @@
 /**
  * The a pluggable object cache
- * 
  *
  * @namespace cache
  * @memberof forge
  */
-
 
 /**
  * @typedef {Object} forge.Status
