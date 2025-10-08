@@ -539,7 +539,7 @@ module.exports = {
         // Complete heavy work async
         return (async function () {
             await app.db.controllers.Project.setInflightState(targetInstance, 'importing')
-            app.db.controllers.Project.setInDeploy(targetInstance)
+            await app.db.controllers.Project.setInDeploy(targetInstance)
             try {
                 const setAsTargetForDevices = deployToDevices ?? false
                 const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, {

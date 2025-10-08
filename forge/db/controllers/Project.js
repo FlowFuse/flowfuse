@@ -8,11 +8,11 @@ const { KEY_SETTINGS } = require('../models/ProjectSettings')
  * is no need to store that in the database. But we do need to know it so the
  * information can be returned on the API.
  */
-const inflightProjectState = 'project-inflightProjectState' // {}
+const inflightProjectState = 'project-inflightProjectState'
 
-const latestProjectState = 'project-latestProjectState' // {}
+const latestProjectState = 'project-latestProjectState'
 
-const inflightDeploys = new Set()
+const inflightDeploys = 'project-inflightDeploys'
 
 module.exports = {
     /**
@@ -40,8 +40,9 @@ module.exports = {
      * @param {*} app
      * @param {*} instance
      */
-    isDeploying: function (app, instance) {
-        return inflightDeploys.has(instance.id)
+    isDeploying: async function (app, instance) {
+        const has = await app.caches.getCache(inflightDeploys).get(instance.id)
+        return has === true
     },
 
     /**
@@ -49,8 +50,8 @@ module.exports = {
      * @param {*} app
      * @param {*} instance
      */
-    setInDeploy: function (app, instance) {
-        inflightDeploys.add(instance.id)
+    setInDeploy: async function (app, instance) {
+        await app.caches.getCache(inflightDeploys).set(instance.id, true)
     },
 
     /**
@@ -59,9 +60,7 @@ module.exports = {
      * @param {*} project
      */
     clearInflightState: async function (app, project) {
-        // delete inflightProjectState[project.id]
         await app.caches.getCache(inflightProjectState).del(project.id)
-        inflightDeploys.delete(project.id)
     },
 
     /**

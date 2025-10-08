@@ -329,7 +329,7 @@ module.exports = {
                     const result = {}
 
                     const inflightState = await Controllers.Project.getInflightState(this)
-                    const isDeploying = Controllers.Project.isDeploying(this)
+                    const isDeploying = await Controllers.Project.isDeploying(this)
 
                     if (!omitStorageFlows) {
                         let storageFlow = this.StorageFlow
