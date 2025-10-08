@@ -72,8 +72,9 @@ module.exports = {
     'platform:sso:direct': false, // Direct SSO Login
 
     // FlowFuse npm registry
-    'platform:ff-npm-registry:url': null,
-    'platform:ff-npm-registry:token': null,
-    'platform:ff-npm-registry:catalogue:certifiedNodes': null,
-    'platform:ff-npm-registry:catalogue:ffNodes': null
+    'platform:ff-npm-registry:token': null
+    // The following properties can be overriden in the config yml file to point to a local registry for testing
+    // 'ff-npm-registry.url'
+    // 'ff-npm-registry.catalogue.certifiedNodes'
+    // 'ff-npm-registry.catalogue.ffNodes'
 }

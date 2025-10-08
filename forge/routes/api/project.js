@@ -918,11 +918,10 @@ module.exports = async function (app) {
         const ffNodesEnabledForTeam = teamType.getFeatureProperty('ffNodes', false)
         if (platformNPMEnabled && (certifiedNodesEnabledForTeam || ffNodesEnabledForTeam)) {
             try {
-                const npmRegURL = new URL(app.settings.get('platform:ff-npm-registry:url') || 'https://registry.flowfuse.com/')
                 const token = app.settings.get('platform:ff-npm-registry:token')
-
-                const certNodesCatalogue = app.settings.get('platform:ff-npm-registry:catalogue:certifiedNodes') || 'https://ff-certified-nodes.flowfuse.cloud/catalogue.json'
-                const ffNodesCatalogue = app.settings.get('platform:ff-npm-registry:catalogue:ffNodes') || 'https://ff-certified-nodes.flowfuse.cloud/ff-catalogue.json'
+                const npmRegURL = new URL(app.config['ff-npm-registry']?.url || 'https://registry.flowfuse.com/')
+                const certNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.certifiedNodes || 'https://ff-certified-nodes.flowfuse.cloud/catalogue.json'
+                const ffNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.ffNodes || 'https://ff-certified-nodes.flowfuse.cloud/ff-catalogue.json'
 
                 // Handle FF Exclusive Nodes
 

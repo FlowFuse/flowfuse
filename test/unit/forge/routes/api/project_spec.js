@@ -19,11 +19,8 @@ describe('Project API', function () {
     const generateProjectName = () => 'test-project' + (projectInstanceCount++)
     const TestObjects = {}
 
-    async function setupApp (license) {
-        const setupConfig = { limits: { instances: 50 }, domain: 'flowforge.dev' }
-        if (license) {
-            setupConfig.license = license
-        }
+    async function setupApp (options) {
+        const setupConfig = { limits: { instances: 50 }, domain: 'flowforge.dev', ...options }
         app = await setup(setupConfig)
 
         TestObjects.project1 = app.project
@@ -865,7 +862,17 @@ describe('Project API', function () {
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
-                await setupApp(license)
+                await setupApp({
+                    license,
+                    'ff-npm-registry': {
+                        url: 'https://localhost:1234',
+                        catalogue: {
+                            certifiedNodes: 'https://localhost/cert-nodes-catalogue.json',
+                            ffNodes: 'https://localhost/ff-nodes-catalogue.json'
+                        }
+                    }
+
+                })
             })
             after(async function () {
                 // After this set of tests, close the app and recreate (ie remove the license)
@@ -987,10 +994,7 @@ describe('Project API', function () {
                 await app.defaultTeamType.save()
             }
             it('Should include certified nodes', async function () {
-                await app.settings.set('platform:ff-npm-registry:url', 'https://localhost:1234')
                 await app.settings.set('platform:ff-npm-registry:token', 'verySecret')
-                await app.settings.set('platform:ff-npm-registry:catalogue:certifiedNodes', 'https://localhost/cert-nodes-catalogue.json')
-                await app.settings.set('platform:ff-npm-registry:catalogue:ffNodes', 'https://localhost/ff-nodes-catalogue.json')
 
                 await setTeamFlags(true, true)
 
@@ -1041,7 +1045,7 @@ describe('Project API', function () {
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
-                await setupApp(license)
+                await setupApp({ license })
                 flowBlueprint = await app.db.models.FlowTemplate.create({ name: 'Test Blueprint', description: 'This is a test blueprint\\n - with markdown\\n - formatted *description*', category: 'blueprint', active: true, flows: { flows: [{ id: '0959734f594cf1b7', type: 'tab', label: 'Example Flow', disabled: false, info: '', env: [] }, { id: '99a085239a033276', type: 'inject', z: '0959734f594cf1b7', name: '', props: [{ p: 'payload' }, { p: 'topic', vt: 'str' }], repeat: '', crontab: '', once: false, onceDelay: 0.1, topic: '', payload: '', payloadType: 'date', x: 160, y: 100, wires: [['5fbc411997c05334']] }, { id: '5fbc411997c05334', type: 'debug', z: '0959734f594cf1b7', name: 'debug 1', active: true, tosidebar: true, console: false, tostatus: false, complete: 'false', statusVal: '', statusType: 'auto', x: 410, y: 120, wires: [] }] }, modules: { '@flowforge/node-red-dashboard': '0.6.1' } })
             })
             after(async function () {

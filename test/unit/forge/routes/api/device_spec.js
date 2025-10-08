@@ -86,14 +86,12 @@ describe('Device API', async function () {
         return device
     }
 
-    async function setupApp (license) {
+    async function setupApp (options) {
         const setupConfig = {
             limits: {
                 instances: 50
-            }
-        }
-        if (license) {
-            setupConfig.license = license
+            },
+            ...options
         }
         app = await setup(setupConfig)
         AccessTokenController = app.db.controllers.AccessToken
@@ -1438,12 +1436,19 @@ describe('Device API', async function () {
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
-                await setupApp(license)
+                await setupApp({
+                    license,
+                    'ff-npm-registry': {
+                        url: 'https://localhost:1234',
+                        catalogue: {
+                            certifiedNodes: 'https://localhost/cert-nodes-catalogue.json',
+                            ffNodes: 'https://localhost/ff-nodes-catalogue.json'
+                        }
+                    }
 
-                await app.settings.set('platform:ff-npm-registry:url', 'https://localhost:1234')
+                })
+
                 await app.settings.set('platform:ff-npm-registry:token', 'verySecret')
-                await app.settings.set('platform:ff-npm-registry:catalogue:certifiedNodes', 'https://localhost/cert-nodes-catalogue.json')
-                await app.settings.set('platform:ff-npm-registry:catalogue:ffNodes', 'https://localhost/ff-nodes-catalogue.json')
             })
             after(async function () {
                 // After this set of tests, close the app and recreate (ie remove the license)
@@ -1538,7 +1543,7 @@ describe('Device API', async function () {
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
-                await setupApp(license)
+                await setupApp({ license })
             })
             after(async function () {
                 // After this set of tests, close the app and recreate (ie remove the license)
@@ -2524,7 +2529,7 @@ describe('Device API', async function () {
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
-                await setupApp(license)
+                await setupApp({ license })
             })
             after(async function () {
                 // After this set of tests, close the app and recreate (ie remove the license)
@@ -3001,7 +3006,9 @@ describe('Device API', async function () {
             // Close down the default app
             await app.close()
             // setup app with granular rbac enabled
-            await setupApp('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg')
+            await setupApp({
+                license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg'
+            })
             TestObjects.eric = await app.db.models.User.create({ username: 'eric', name: 'Eric Fett', email: 'eric@example.com', email_verified: true, password: 'eePassword' })
             await login('eric', 'eePassword')
 

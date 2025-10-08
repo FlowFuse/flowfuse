@@ -142,7 +142,7 @@
                     <FormRow v-model="input.properties.features.assistantInlineCompletions" type="checkbox">Assistant Inline Code Completions</FormRow>
                     <FormRow v-model="input.properties.features.rbacApplication" type="checkbox">Application-level RBAC</FormRow>
                     <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
-                    <!-- <span /> -->
+                    <span />
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
