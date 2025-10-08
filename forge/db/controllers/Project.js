@@ -61,6 +61,7 @@ module.exports = {
      */
     clearInflightState: async function (app, project) {
         await app.caches.getCache(inflightProjectState).del(project.id)
+        await app.caches.getCache(inflightDeploys).del(project.id)
     },
 
     /**
