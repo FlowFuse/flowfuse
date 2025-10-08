@@ -69,7 +69,7 @@ describe('Device API', async function () {
                 body: {
                     application: options.application
                 },
-                cookies: { sid: TestObjects.tokens.bob }
+                cookies: { sid: options.as }
             })
             device = response2.json()
         } else if (options.instance) {
@@ -79,7 +79,7 @@ describe('Device API', async function () {
                 body: {
                     instance: options.instance
                 },
-                cookies: { sid: TestObjects.tokens.bob }
+                cookies: { sid: options.as }
             })
             device = response2.json()
         }
@@ -2948,6 +2948,219 @@ describe('Device API', async function () {
                 app.billing = originalBilling
                 byIdStub.restore()
             }
+        })
+    })
+
+    describe('granular rbac', function () {
+        before(async function () {
+            // Close down the default app
+            await app.close()
+            // setup app with granular rbac enabled
+            await setupApp('eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg')
+            TestObjects.eric = await app.db.models.User.create({ username: 'eric', name: 'Eric Fett', email: 'eric@example.com', email_verified: true, password: 'eePassword' })
+            await login('eric', 'eePassword')
+
+            const defaultTeamTypeProperties = app.defaultTeamType.properties
+            defaultTeamTypeProperties.features = defaultTeamTypeProperties.features || {}
+            defaultTeamTypeProperties.features.applicationRBAC = true
+            app.defaultTeamType.properties = defaultTeamTypeProperties
+            await app.defaultTeamType.save()
+
+            TestObjects.ETeam = await app.db.models.Team.create({ name: 'ETeam', TeamTypeId: app.defaultTeamType.id })
+
+            await TestObjects.ETeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+            await TestObjects.ETeam.addUser(TestObjects.eric, { through: { role: Roles.Owner } })
+
+            // Team has two applications, each with an instance
+            // Eric has no access to application 2
+            TestObjects.rbacApplication1 = await app.factory.createApplication({ name: 'rbac-app-1' }, TestObjects.ETeam)
+            TestObjects.rbacApplication2 = await app.factory.createApplication({ name: 'rbac-app-2' }, TestObjects.ETeam)
+            TestObjects.rbacInstance1 = await app.factory.createInstance(
+                { name: 'rbac-instance-1' },
+                TestObjects.rbacApplication1,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            TestObjects.rbacInstance2 = await app.factory.createInstance(
+                { name: 'rbac-instance-2' },
+                TestObjects.rbacApplication2,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+
+            const ericTeamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: TestObjects.ETeam.id, UserId: TestObjects.eric.id } })
+            ericTeamMembership.permissions = {
+                applications: {
+                    [TestObjects.rbacApplication2.hashid]: Roles.None
+                }
+            }
+            await ericTeamMembership.save()
+        })
+        beforeEach(async function () {
+            // Note: this will be an api response object, not a DB model (so .id is really the hashid)
+            TestObjects.rbacDeviceUnassigned = await createDevice({ name: 'rbacDeviceUnassigned', type: '', team: TestObjects.ETeam.hashid, as: TestObjects.tokens.alice })
+            TestObjects.rbacDeviceApp1Assigned = await createDevice({ name: 'rbacDeviceApp1Assigned', application: TestObjects.rbacApplication1.hashid, type: '', team: TestObjects.ETeam.hashid, as: TestObjects.tokens.alice })
+            TestObjects.rbacDeviceApp2Assigned = await createDevice({ name: 'rbacDeviceApp2Assigned', application: TestObjects.rbacApplication2.hashid, type: '', team: TestObjects.ETeam.hashid, as: TestObjects.tokens.alice })
+            TestObjects.rbacDeviceInstance1Assigned = await createDevice({ name: 'rbacDeviceInstance1Assigned', instance: TestObjects.rbacInstance1.id, type: '', team: TestObjects.ETeam.hashid, as: TestObjects.tokens.alice })
+            TestObjects.rbacDeviceInstance2Assigned = await createDevice({ name: 'rbacDeviceInstance2Assigned', instance: TestObjects.rbacInstance2.id, type: '', team: TestObjects.ETeam.hashid, as: TestObjects.tokens.alice })
+        })
+
+        after(async function () {
+            // Once all done, create the clean app for later tests
+            await app.close()
+            await setupApp()
+        })
+
+        it('Can get unassigned device', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceUnassigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            const result = response.json()
+            result.should.have.property('id', TestObjects.rbacDeviceUnassigned.id)
+        })
+        it('Can get app assigned device if allowed by rbac', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp1Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            const result = response.json()
+            result.should.have.property('id', TestObjects.rbacDeviceApp1Assigned.id)
+        })
+        it('Can get instance assigned device if allowed by rbac', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance1Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            const result = response.json()
+            result.should.have.property('id', TestObjects.rbacDeviceInstance1Assigned.id)
+        })
+        it('Cannot get app assigned device if blocked by rbac', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Cannot get instance assigned device if blocked by rbac', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(403)
+        })
+
+        it('Can modify device that is not assigned', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceUnassigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { name: 'newName' }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Can modify device in permitted application', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp1Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { name: 'newName' }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Cannot modify app assigned device if blocked by rbac', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { name: 'newName' }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Cannot modify instance assigned device if blocked by rbac', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { name: 'newName' }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Can assign device to unrestricted application', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceUnassigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { application: TestObjects.rbacApplication1.hashid }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Cannot assign device to restricted application', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { application: TestObjects.rbacApplication2.hashid }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Cannot assign device to instance in a restricted application', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { instance: TestObjects.rbacInstance2.id }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Can delete an unassigned device', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceUnassigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Can delete device in permitted application', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp1Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Can delete device in permitted instance', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance1Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Cannot delete a device in a restricted application', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Cannot delete a device in a restricted instance', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(403)
         })
     })
 })

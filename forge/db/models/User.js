@@ -211,7 +211,7 @@ module.exports = {
                             model: M.Team,
                             attributes: ['name'],
                             through: {
-                                attributes: ['role']
+                                attributes: ['role', 'permissions']
                             }
                         }
                     })
@@ -226,7 +226,7 @@ module.exports = {
                             model: M.Team,
                             attributes: ['name'],
                             through: {
-                                attributes: ['role']
+                                attributes: ['role', 'permissions']
                             }
                         }
                     })
@@ -241,7 +241,7 @@ module.exports = {
                             model: M.Team,
                             attributes: ['name'],
                             through: {
-                                attributes: ['role']
+                                attributes: ['role', 'permissions']
                             }
                         }
                     })
@@ -253,7 +253,7 @@ module.exports = {
                             model: M.Team,
                             attributes: ['name'],
                             through: {
-                                attributes: ['role']
+                                attributes: ['role', 'permissions']
                             }
                         }
                     })
@@ -268,7 +268,7 @@ module.exports = {
                             model: M.Team,
                             attributes: ['name'],
                             through: {
-                                attributes: ['role']
+                                attributes: ['role', 'permissions']
                             }
                         }
                     })
@@ -281,7 +281,7 @@ module.exports = {
                             attributes: ['name'],
                             where: { id: teamId },
                             through: {
-                                attributes: ['role']
+                                attributes: ['role', 'permissions']
                             }
                         }
                     })
@@ -338,7 +338,7 @@ module.exports = {
                         where,
                         include: {
                             model: M.TeamMember,
-                            attributes: ['role'],
+                            attributes: ['role', 'permissions'],
                             include: {
                                 model: M.Team,
                                 attributes: ['suspended', 'TeamTypeId'],

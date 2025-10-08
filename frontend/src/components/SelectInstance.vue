@@ -22,6 +22,7 @@
 
 import ApplicationAPI from '../api/application.js'
 import TeamAPI from '../api/team.js'
+import usePermissions from '../composables/Permissions.js'
 
 import FormRow from './FormRow.vue'
 
@@ -45,6 +46,10 @@ export default {
         }
     },
     emits: ['update:modelValue'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data () {
         return {
             loading: {
@@ -88,7 +93,7 @@ export default {
         loadApplications () {
             this.loading.applications = true
             TeamAPI.getTeamApplications(this.team.id).then((data) => {
-                this.options.applications = data.applications.map(application => { return { value: application, label: application.name } })
+                this.options.applications = data.applications.filter(application => this.hasPermission('device:edit', { application })).map(application => { return { value: application, label: application.name } })
             }).catch((error) => {
                 console.error(error)
             }).finally(() => {
