@@ -125,6 +125,7 @@
             </p>
         </template>
     </TeamDeviceCreateDialog>
+    <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
 </template>
 
 <script>
@@ -140,6 +141,7 @@ import { useInstanceStates } from '../../../composables/InstanceStates.js'
 import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import ConfirmInstanceDeleteDialog from '../../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
+import DeviceCredentialsDialog from '../Devices/dialogs/DeviceCredentialsDialog.vue'
 import TeamDeviceCreateDialog from '../Devices/dialogs/TeamDeviceCreateDialog.vue'
 
 import DashboardSection from './components/DashboardSection.vue'
@@ -149,6 +151,7 @@ import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vu
 export default {
     name: 'TeamHome',
     components: {
+        DeviceCredentialsDialog,
         ConfirmInstanceDeleteDialog,
         InstanceStat,
         RecentlyModifiedInstances,
@@ -270,7 +273,7 @@ export default {
         },
         deviceCreated (device) {
             // navigate to the new Remote Instance
-            this.$router.push({ name: 'DeviceOverview', params: { id: device.id } })
+            this.$refs.deviceCredentialsDialog.show(device)
         }
     }
 }
