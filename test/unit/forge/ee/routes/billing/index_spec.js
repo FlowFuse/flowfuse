@@ -926,7 +926,7 @@ describe('Billing routes', function () {
             // Wait for the stub driver to start the project to avoid
             // an async call to the audit log completing after the test
             // has finished
-            (await app.db.controllers.Project.getInflightState(project)).should.equal('starting')
+            should(await app.db.controllers.Project.getInflightState(project)).equal('starting')
             const { START_DELAY } = FF_UTIL.require('forge/containers/stub')
             return new Promise((resolve, reject) => {
                 setTimeout(async () => {
@@ -1211,7 +1211,7 @@ describe('Billing routes', function () {
                     // Wait for the stub driver to start the project to avoid
                     // an async call to the audit log completing after the test
                     // has finished
-                    (await app.db.controllers.Project.getInflightState(createdProject)).should.equal('starting')
+                    should(await app.db.controllers.Project.getInflightState(createdProject)).equal('starting')
                     const { START_DELAY } = FF_UTIL.require('forge/containers/stub')
                     return new Promise((resolve, reject) => {
                         setTimeout(async () => {
@@ -1444,7 +1444,7 @@ describe('Billing routes', function () {
                     // Wait for the stub driver to start the project to avoid
                     // an async call to the audit log completing after the test
                     // has finished
-                    (await app.db.controllers.Project.getInflightState(createdProject)).should.equal('starting')
+                    should(await app.db.controllers.Project.getInflightState(createdProject)).equal('starting')
                     const { START_DELAY } = FF_UTIL.require('forge/containers/stub')
                     return new Promise((resolve, reject) => {
                         setTimeout(async () => {

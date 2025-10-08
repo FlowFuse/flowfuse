@@ -98,7 +98,7 @@ describe('HA Instance API', function () {
 
         // Project has been stopped but is presented as "starting"
         TestObjects.project.state.should.equal('suspended')
-        (await app.db.controllers.Project.getInflightState(TestObjects.project)).should.equal('starting')
+        should(await app.db.controllers.Project.getInflightState(TestObjects.project)).equal('starting')
 
         // Wait for at least start delay as set in stub driver
         await sleep(START_DELAY + 100)
@@ -134,7 +134,7 @@ describe('HA Instance API', function () {
 
         // Project has been stopped but is presented as "starting"
         TestObjects.project.state.should.equal('suspended')
-        (await app.db.controllers.Project.getInflightState(TestObjects.project)).should.equal('starting')
+        should(await app.db.controllers.Project.getInflightState(TestObjects.project)).equal('starting')
 
         // Wait for at least start delay as set in stub driver
         await sleep(START_DELAY + 100)

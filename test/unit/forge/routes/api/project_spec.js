@@ -1216,7 +1216,7 @@ describe('Project API', function () {
 
                 // Project has been stopped but is presented as "starting"
                 project.state.should.equal('suspended')
-                (await app.db.controllers.Project.getInflightState(project)).should.equal('starting')
+                should(await app.db.controllers.Project.getInflightState(project)).equal('starting')
 
                 // Wait for at least start delay as set in stub driver
                 await sleep(START_DELAY + 100)
@@ -1283,7 +1283,7 @@ describe('Project API', function () {
 
                 // Project has been stopped but is presented as "starting"
                 project.state.should.equal('suspended')
-                (await app.db.controllers.Project.getInflightState(project)).should.equal('starting')
+                should(await app.db.controllers.Project.getInflightState(project)).equal('starting')
 
                 // Wait for at least start delay as set in stub driver
                 await sleep(START_DELAY + 100)
