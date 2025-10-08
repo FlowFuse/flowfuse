@@ -11,6 +11,8 @@ const TestModelFactory = require('../../lib/TestModelFactory')
 
 const app = require('./environments/standard')
 
+const rbacTeamFactory = require('./lib/rbacTeamFactory.js')
+
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
 
@@ -96,7 +98,7 @@ if (fs.existsSync(configPath)) {
     defaultTeamType.properties = defaultTeamTypeProperties
     await defaultTeamType.save()
 
-    // setup team
+    // setup trial team
     const trialTeam = await factory.createTeam({ name: 'TTeam' })
     // create trial subscription for the team
     await factory.createTrialSubscription(trialTeam, 5)
@@ -156,6 +158,8 @@ if (fs.existsSync(configPath)) {
     // create a snapshot on DeviceB
     const deviceB = flowforge.applicationDevices.find((device) => device.name === 'application-device-b')
     await factory.createDeviceSnapshot({ name: 'application-device-b snapshot 1' }, deviceB, userTerry)
+
+    rbacTeamFactory(flowforge)
 
     flowforge.listen({ port: PORT }, function (err, address) {
         console.info(`EE Environment running at http://localhost:${PORT}`)

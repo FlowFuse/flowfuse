@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-project-overview space-y-4">
+    <div class="ff-project-overview space-y-4" data-el="instance-overview">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <div class="ff-instance-info">
@@ -105,10 +105,10 @@
                     </table>
                 </div>
             </div>
-            <div class="ff-instance-info">
+            <div class="ff-instance-info" data-el="recent-activity">
                 <FormHeading><TrendingUpIcon />Recent Activity</FormHeading>
-                <AuditLog :entries="auditLog" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
-                <div class="pb-4 text-center">
+                <AuditLog :entries="auditLog" :loading="loading" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
+                <div v-if="!loading" class="pb-4 text-center">
                     <router-link to="./audit-log" class="forge-button-inline">More...</router-link>
                 </div>
             </div>
@@ -154,7 +154,8 @@ export default {
     },
     data () {
         return {
-            auditLog: []
+            auditLog: [],
+            loading: true
         }
     },
     computed: {
@@ -185,9 +186,18 @@ export default {
     methods: {
         loadLogs () {
             if (this.instance && this.instance.id) {
-                this.loadItems(this.instance.id).then((data) => {
-                    this.auditLog = data.log
-                })
+                this.loading = true
+                this.loadItems(this.instance.id)
+                    .then((data) => {
+                        this.auditLog = data.log
+                    })
+                    .catch((error) => {
+                        console.error('Error loading logs:', error)
+                        this.auditLog = []
+                    })
+                    .finally(() => {
+                        this.loading = false
+                    })
             }
         },
         loadItems: async function (instanceId, cursor) {

@@ -1,7 +1,7 @@
 <template>
     <div class="action-button" data-el="action-button">
         <DropdownMenu
-            v-if="hasPermission('project:change-status')"
+            v-if="hasPermission('project:change-status', { application: instance.application })"
             buttonClass="ff-btn ff-btn--primary"
             :options="actionsDropdownOptions"
         >
@@ -72,7 +72,7 @@ export default {
                 }
             ]
 
-            if (this.hasPermission('project:delete')) {
+            if (this.hasPermission('project:delete', { application: this.instance.application })) {
                 result.push(null)
                 result.push({ name: 'Delete', class: ['text-red-700'], action: this.showConfirmDeleteDialog })
             }
