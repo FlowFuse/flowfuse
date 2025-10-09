@@ -13,7 +13,11 @@ describe('Memory Cache', function () {
 
     it('create cache', async function () {
         const cache = app.caches.getCache('cache1')
-
+        cache.should.have.property('set').which.is.a.Function()
+        cache.should.have.property('get').which.is.a.Function()
+        cache.should.have.property('del').which.is.a.Function()
+        cache.should.have.property('keys').which.is.a.Function()
+        cache.should.have.property('all').which.is.a.Function()
     })
     it('set & get strings', async function () {
         const cache = app.caches.getCache('cache1')
@@ -31,7 +35,14 @@ describe('Memory Cache', function () {
         const cache = app.caches.getCache('cache1')
         await cache.set('one', { one: 'one' })
         const one = await cache.get('one')
+        should(one).is.Object()
         one.should.deepEqual({ one: 'one' })
+    })
+    it('set & get Array', async function () {
+        const cache = app.caches.getCache('cache1')
+        await cache.set('one', ['one', 2, { three: 3 }, ['one', 2, { three: 3 }]])
+        const array = await cache.get('one')
+        should(array).containDeep(['one', 2, { three: 3 }, ['one', 2, { three: 3 }]])
     })
     it('keys', async function () {
         const cache = app.caches.getCache('cache1')
