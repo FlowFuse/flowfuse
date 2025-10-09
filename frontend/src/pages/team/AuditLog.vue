@@ -7,7 +7,7 @@
                 </template>
             </ff-page-header>
         </template>
-        <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" logType="team" @load-entries="loadEntries">
+        <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" :associations="associations" logType="team" :loading="loading" @load-entries="loadEntries">
             <template #title>
                 <SectionTopMenu hero="Audit Log" info="Recorded events that have taken place in this Team." />
             </template>
@@ -64,6 +64,7 @@ export default {
     data () {
         return {
             logEntries: [],
+            loading: true,
             associations: {}, // applications, instances, devices
             users: [],
             auditFilters: {
@@ -118,9 +119,15 @@ export default {
                 }
                 params.set('includeChildren', includeChildren)
                 params.set('scope', paramScope)
-                const auditLog = (await TeamAPI.getTeamAuditLog(teamId, params, cursor, 200))
-                this.logEntries = auditLog.log
-                this.associations = auditLog.associations
+                try {
+                    const auditLog = (await TeamAPI.getTeamAuditLog(teamId, params, cursor, 200))
+                    this.logEntries = auditLog.log
+                    this.associations = auditLog.associations
+                } catch (error) {
+                    console.error('Failed to load audit logs:', error)
+                } finally {
+                    this.loading = false
+                }
             }
         },
         triggerLoad ({ users = false, events = true } = {}) {

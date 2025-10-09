@@ -71,9 +71,10 @@ module.exports = {
     'platform:sso:google:clientId': null, // Client ID for Google SSO
     'platform:sso:direct': false, // Direct SSO Login
 
-    // Certified Nodes
-    'platform:certifiedNodes:npmRegistryURL': null, // NPM registry URL for certified nodes
-    'platform:certifiedNodes:token': null, // Token for certified nodes
-    'platform:certifiedNodes:catalogueURL': null // Catalogue URL for certified nodes
-
+    // FlowFuse npm registry
+    'platform:ff-npm-registry:token': null
+    // The following properties can be overriden in the config yml file to point to a local registry for testing
+    // 'ff-npm-registry.url'
+    // 'ff-npm-registry.catalogue.certifiedNodes'
+    // 'ff-npm-registry.catalogue.ffNodes'
 }

@@ -45,8 +45,8 @@
                             </span>
                         </button>
                     </template>
-                    <FinishSetupButton v-if="neverConnected" :device="device" />
-                    <DropdownMenu v-if="hasPermission('device:change-status') && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
+                    <FinishSetupButton v-if="hasPermission('device:create', {application: device.application}) && neverConnected" :device="device" />
+                    <DropdownMenu v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
                 </div>
             </template>
         </SectionNavigationHeader>
@@ -128,7 +128,6 @@ import deviceActionsMixin from '../../mixins/DeviceActions.js'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import { DeviceStateMutator } from '../../utils/DeviceStateMutator.js'
-import { Roles } from '../../utils/roles.js'
 import { createPollTimer } from '../../utils/timers.js'
 
 import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
@@ -192,8 +191,11 @@ export default {
     },
     computed: {
         ...mapState('account', ['teamMembership', 'team', 'features', 'settings']),
-        isMember: function () {
-            return this.teamMembership.role === Roles.Member || this.teamMembership.role === Roles.Owner
+        permissionContext () {
+            if (this.device?.ownerType === 'application' || this.device?.ownerType === 'instance') {
+                return { application: this.device.application }
+            }
+            return {}
         },
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor
@@ -208,7 +210,7 @@ export default {
             return !this.isDevModeAvailable ||
                 !this.device ||
                 !this.agentSupportsDeviceAccess ||
-                !this.isMember
+                !this.hasPermission('device:editor', this.permissionContext)
         },
         disableModeToggleReason: function () {
             if (!this.device) {
@@ -217,7 +219,7 @@ export default {
             if (!this.agentSupportsDeviceAccess) {
                 return 'Device Agent V0.8 or greater is required'
             }
-            if (!this.isMember) {
+            if (!this.hasPermission('device:editor', this.permissionContext)) {
                 return 'Only an Owner or Member can change the Device Mode'
             }
             return undefined
@@ -287,7 +289,7 @@ export default {
                 result.push({ name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled })
             }
 
-            if (this.hasPermission('device:delete')) {
+            if (this.hasPermission('device:delete', this.permissionContext)) {
                 result.push(null)
                 result.push({ name: 'Delete', class: ['text-red-700'], action: this.showConfirmDeleteDialog })
             }
@@ -301,7 +303,6 @@ export default {
     async mounted () {
         this.mounted = true
         await this.loadDevice()
-        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
     },
     unmounted () {
         this.pollTimer?.stop()
@@ -329,7 +330,19 @@ export default {
             }
         },
         loadDevice: async function () {
-            this.device = await deviceApi.getDevice(this.$route.params.id)
+            try {
+                this.device = await deviceApi.getDevice(this.$route.params.id)
+            } catch (err) {
+                if (err.status === 403) {
+                    this.pollTimer?.stop()
+                    clearTimeout(this.openTunnelTimeout)
+                    return this.$router.push({ name: 'Home' })
+                }
+            }
+            if (!this.pollTimer) {
+                this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
+            }
+
             if (this.deviceStateMutator) {
                 this.deviceStateMutator.clearState()
             }

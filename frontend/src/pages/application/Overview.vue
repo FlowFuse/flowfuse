@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div data-el="application-overview-page">
         <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Hosted instances of Node-RED, owned by this application.">
             <template #pictogram>
                 <img src="../../images/pictograms/instance_red.png">
@@ -11,10 +11,11 @@
             </template>
             <template v-if="instancesAvailable" #tools>
                 <ff-button
-                    v-if="hasPermission('project:create')"
+                    v-ff-tooltip:left="!hasPermission('project:create', { application }) && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                     data-action="create-instance"
                     :to="{ name: 'application-create-instance' }"
                     type="anchor"
+                    :disabled="!hasPermission('project:create', { application })"
                 >
                     <template #icon-left><PlusSmIcon /></template>
                     Add Instance
@@ -35,7 +36,7 @@
                 @row-selected="selectedCloudRow"
             >
                 <template
-                    v-if="hasPermission('project:change-status')"
+                    v-if="hasPermission('project:change-status', { application })"
                     #context-menu="{row}"
                 >
                     <ff-list-item
@@ -77,9 +78,10 @@
                 </template>
                 <template #actions>
                     <ff-button
-                        v-if="hasPermission('project:create')"
+                        v-ff-tooltip:bottom="!hasPermission('project:create', { application }) && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                         :to="{ name: 'application-create-instance' }"
                         type="anchor"
+                        :disabled="!hasPermission('project:create', { application })"
                     >
                         <template #icon-left><PlusSmIcon /></template>
                         Add Instance

@@ -31,6 +31,8 @@ module.exports = fp(async function (app, opts) {
             app.decorate('tables', await require('./tables').init(app))
         }
         app.config.features.register('certifiedNodes', true, true)
+        app.config.features.register('ffNodes', true, true)
+        app.config.features.register('rbacApplication', true, true)
     }
 
     // Set the Team Library Feature Flag

@@ -132,7 +132,7 @@ const getters = {
                         featureUnavailable: !features.isBlueprintsFeatureEnabledForPlatform
                     },
                     {
-                        label: 'Certified Nodes',
+                        label: 'FlowFuse Nodes',
                         to: { name: 'admin-certified-nodes' },
                         tag: 'admin-certified-nodes',
                         icon: CollectionIcon,

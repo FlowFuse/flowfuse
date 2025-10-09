@@ -28,7 +28,9 @@ import MultiStepForm from '../MultiStepForm.vue'
 import ApplicationStep from './steps/ApplicationStep.vue'
 import BlueprintStep from './steps/BlueprintStep.vue'
 import InstanceStep from './steps/InstanceStep.vue'
+import TeamStep from './steps/TeamStep.vue'
 
+const TEAM_STEP_SLUG = 'team'
 const APPLICATION_SLUG = 'application'
 const INSTANCE_SLUG = 'instance'
 const BLUEPRINT_SLUG = 'blueprint'
@@ -50,6 +52,11 @@ export default {
             required: false,
             type: String,
             default: 'Create Instance'
+        },
+        hasTeamStep: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     emits: ['form-success', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
@@ -58,6 +65,7 @@ export default {
 
         return {
             form: {
+                [TEAM_STEP_SLUG]: {},
                 [APPLICATION_SLUG]: {},
                 [INSTANCE_SLUG]: {},
                 [BLUEPRINT_SLUG]: {}
@@ -72,10 +80,19 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState('account', ['team', 'teams']),
         ...mapGetters('account', ['isFreeTeamType']),
         formSteps () {
             return [
+                {
+                    sliderTitle: 'Team',
+                    component: TeamStep,
+                    hidden: this.hasTeamStep ? this.teams.length === 1 : true,
+                    bindings: {
+                        slug: TEAM_STEP_SLUG,
+                        state: this.form[TEAM_STEP_SLUG]
+                    }
+                },
                 {
                     sliderTitle: 'Application',
                     component: ApplicationStep,
@@ -107,7 +124,7 @@ export default {
                         blueprints: this.blueprints
                     }
                 }
-            ]
+            ].filter(step => !step.hidden)
         },
         hasNoBlueprints () {
             return this.blueprints.length === 0

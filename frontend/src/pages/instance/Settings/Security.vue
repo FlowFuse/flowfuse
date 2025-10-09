@@ -185,7 +185,7 @@ export default {
     },
     methods: {
         checkAccess: async function () {
-            if (!this.hasPermission('project:edit')) {
+            if (!this.hasPermission('project:edit', { application: this.project.application })) {
                 useRouter().push({ replace: true, path: 'general' })
             }
         },
