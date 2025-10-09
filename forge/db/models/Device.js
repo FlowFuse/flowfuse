@@ -339,7 +339,6 @@ module.exports = {
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
                             { model: M.Application, attributes: ['hashid', 'id', 'name', 'links'] },
-                            { model: M.DeviceGroup, attributes: ['hashid', 'id', 'name', 'description'] },
                             {
                                 model: M.Project,
                                 attributes: ['id', 'name', 'links'],
@@ -349,7 +348,8 @@ module.exports = {
                                 }
                             },
                             { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
-                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
+                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] },
+                            { model: M.DeviceGroup }
                         ]
                     }
                     return this.findOne({
