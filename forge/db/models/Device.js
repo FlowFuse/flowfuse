@@ -339,6 +339,7 @@ module.exports = {
                                 attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
                             },
                             { model: M.Application, attributes: ['hashid', 'id', 'name', 'links'] },
+                            { model: M.DeviceGroup, attributes: ['hashid', 'id', 'name', 'description'] },
                             {
                                 model: M.Project,
                                 attributes: ['id', 'name', 'links'],
