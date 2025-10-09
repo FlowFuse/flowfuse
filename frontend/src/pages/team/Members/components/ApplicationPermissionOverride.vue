@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div v-if="featuresCheck.isRBACApplicationFeatureEnabled">
         <span v-if="alteredPermissions === 0" class="opacity-50">No Overrides</span>
         <span v-else>{{ alteredPermissions }} x {{ pluralize('Override', 1) }}</span>
     </div>
@@ -7,6 +7,7 @@
 
 <script>
 import { defineComponent } from 'vue'
+import { mapGetters } from 'vuex'
 
 import { pluralize } from '../../../../composables/String.js'
 
@@ -24,6 +25,7 @@ export default defineComponent({
     },
     setup () { return { pluralize } },
     computed: {
+        ...mapGetters('account', ['featuresCheck']),
         alteredPermissions () {
             let counter = 0
             Object.keys((this.permissions?.applications || {})).forEach(key => {
