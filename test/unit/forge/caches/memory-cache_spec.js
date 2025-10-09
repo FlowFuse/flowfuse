@@ -29,9 +29,9 @@ describe('Memory Cache', function () {
     })
     it('set & get Object', async function () {
         const cache = app.caches.getCache('cache1')
-        await cache.set('one', {one: 'one'})
+        await cache.set('one', { one: 'one' })
         const one = await cache.get('one')
-        one.should.deepEqual({one: 'one'})
+        one.should.deepEqual({ one: 'one' })
     })
     it('keys', async function () {
         const cache = app.caches.getCache('cache1')
