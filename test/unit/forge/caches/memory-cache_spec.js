@@ -78,7 +78,7 @@ describe('Memory Cache', function () {
         all = await cache.all()
         all.should.deepEqual({ one: 'one', two: 'two', four: 'four' })
     })
-    it('close caches', async function (){
+    it('close caches', async function () {
         await app.caches.closeCache()
     })
 })
