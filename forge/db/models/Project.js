@@ -716,7 +716,7 @@ module.exports = {
                     for (const project of results) {
                         if (rbacEnabled && !app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid })) {
                             // This instance is not accessible to this user, do not include in states map
-                            return
+                            continue
                         }
                         const state = await Controllers.Project.getLatestProjectState(project.id) ?? project.state
                         statesMap[state] = (statesMap[state] || 0) + 1
