@@ -61,6 +61,19 @@
                             <span v-else>None</span>
                         </template>
                     </InfoCardRow>
+                    <InfoCardRow property="Group:" v-if="device?.application && device.deviceGroup">
+                        <template #value>
+                            <ff-team-link
+                                :to="{ name: 'ApplicationDeviceGroupIndex',
+                                       params: {
+                                           deviceGroupId: device.deviceGroup.id,
+                                           applicationId: device.application.id
+                                       }}"
+                            >
+                                {{ device.deviceGroup.name }}
+                            </ff-team-link>
+                        </template>
+                    </InfoCardRow>
                     <InfoCardRow v-if="device.ownerType!=='application'" property="Instance:">
                         <template #value>
                             <router-link v-if="device?.instance" :to="{name: 'Instance', params: { id: device.instance.id }}">
