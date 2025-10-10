@@ -17,7 +17,7 @@ const CACHE_DRIVERS = {
 }
 
 module.exports = fp(async function (app, _opts) {
-    const cacheType = app.config.cache?.driver?.type || 'memory'
+    const cacheType = app.config.cache?.driver || 'memory'
     const cacheModule = CACHE_DRIVERS[cacheType]
     try {
         const driver = require(cacheModule)

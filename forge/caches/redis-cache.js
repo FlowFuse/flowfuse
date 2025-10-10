@@ -29,7 +29,12 @@ class Cache {
     }
 
     async get (key) {
-        return JSON.parse(await this.client.hGet(this.name, key))
+        const val = JSON.parse(await this.client.hGet(this.name, key))
+        if (val !== null) {
+            return val
+        } else {
+            return undefined
+        }
     }
 
     async set (key, value) {
