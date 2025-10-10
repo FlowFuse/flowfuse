@@ -69,7 +69,7 @@ describe('Platform Settings', function () {
                 where: { key: 'telemetry:enabled' }
             })
             should(origDBValue).equal(null)
-            app.settings.set('telemetry:enabled', false)
+            await app.settings.set('telemetry:enabled', false)
             const newValue = app.settings.get('telemetry:enabled')
             newValue.should.equal(false)
             newValue.should.not.equal(origValue)
