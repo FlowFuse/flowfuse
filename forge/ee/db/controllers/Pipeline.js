@@ -536,11 +536,10 @@ module.exports = {
 
         const restartTargetInstance = targetInstance?.state === 'running'
 
-        app.db.controllers.Project.setInflightState(targetInstance, 'importing')
-        app.db.controllers.Project.setInDeploy(targetInstance)
-
         // Complete heavy work async
         return (async function () {
+            await app.db.controllers.Project.setInflightState(targetInstance, 'importing')
+            await app.db.controllers.Project.setInDeploy(targetInstance)
             try {
                 const setAsTargetForDevices = deployToDevices ?? false
                 const targetSnapshot = await copySnapshot(app, sourceSnapshot, targetInstance, {
@@ -559,9 +558,9 @@ module.exports = {
                 await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance, sourceDevice) // technically this isn't a project event
                 await app.auditLog.Project.project.snapshot.imported(user.id, null, targetInstance, sourceInstance, sourceDevice, targetSnapshot)
 
-                app.db.controllers.Project.clearInflightState(targetInstance)
+                await app.db.controllers.Project.clearInflightState(targetInstance)
             } catch (err) {
-                app.db.controllers.Project.clearInflightState(targetInstance)
+                await app.db.controllers.Project.clearInflightState(targetInstance)
 
                 await app.auditLog.Project.project.imported(user.id, null, targetInstance, sourceInstance, sourceDevice) // technically this isn't a project event
                 await app.auditLog.Project.project.snapshot.imported(user.id, err, targetInstance, sourceInstance, sourceDevice, null)

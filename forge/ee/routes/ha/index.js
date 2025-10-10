@@ -83,7 +83,7 @@ module.exports = async function (app) {
             // This code is copy/paste with slight changes from projects.js
             // We also have projectActions.js that does suspend logic.
             // TODO: refactor into a Model function to suspend a project
-            app.db.controllers.Project.setInflightState(project, 'starting') // TODO: better inflight state needed
+            await app.db.controllers.Project.setInflightState(project, 'starting') // TODO: better inflight state needed
             reply.send(await project.getHASettings() || {})
 
             const targetState = project.state
@@ -99,10 +99,10 @@ module.exports = async function (app) {
             const startResult = await app.containers.start(project)
             startResult.started.then(async () => {
                 await app.auditLog.Project.project.started(user, null, project)
-                app.db.controllers.Project.clearInflightState(project)
+                await app.db.controllers.Project.clearInflightState(project)
                 return true
-            }).catch(_ => {
-                app.db.controllers.Project.clearInflightState(project)
+            }).catch(async _ => {
+                await app.db.controllers.Project.clearInflightState(project)
             })
         } else {
             // A suspended project doesn't need to do anything more
