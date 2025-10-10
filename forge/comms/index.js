@@ -40,7 +40,18 @@ module.exports = fp(async function (app, _opts) {
         // Setup the platform API for the comms component
         app.decorate('comms', {
             devices: deviceCommsHandler,
-            aclManager: ACLManager(app)
+            aclManager: ACLManager(app),
+            platform: {
+                settings: {
+                    sync: function (key) {
+                        const msg = {
+                            key,
+                            srcId: client.platformId
+                        }
+                        client.publish('ff/v1/platform/sync', JSON.stringify(msg))
+                    }
+                }
+            }
         })
 
         app.addHook('onReady', async () => {

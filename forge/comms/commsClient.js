@@ -94,6 +94,14 @@ class CommsClient extends EventEmitter {
                         }
                         this.emit('response/device', response)
                     }
+                } else if (ownerType === 'sync') {
+                    // settings updated by another instance
+                    // check if message is from this instance
+                    const payload = message.toString()
+                    const jsonPayload = JSON.parse(payload)
+                    if (jsonPayload.srcId !== this.platformId) {
+                        this.app.settings.refresh(jsonPayload.key)
+                    }
                 }
             })
             this.client.subscribe([
@@ -106,7 +114,9 @@ class CommsClient extends EventEmitter {
                 // Device logs heartbeat
                 'ff/v1/+/d/+/logs/heartbeat',
                 // Device response heartbeat
-                'ff/v1/+/d/+/resources/heartbeat'
+                'ff/v1/+/d/+/resources/heartbeat',
+                // Platform sync messages
+                'ff/v1/platform/sync'
             ])
         }
     }
