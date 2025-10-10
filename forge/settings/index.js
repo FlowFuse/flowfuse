@@ -52,13 +52,13 @@ module.exports = fp(async function (app, _opts) {
             }
         },
         refresh: async (key) => {
-            const loadedSettings = await app.db.models.PlatformSettings.findOne({
+            const newSetting = await app.db.models.PlatformSettings.findOne({
                 where: { key }
             })
 
-            loadedSettings.forEach(setting => {
-                settings[setting.key] = setting.value
-            })
+            if (newSetting) {
+                settings[key] = newSetting.value
+            }
         }
     }
 

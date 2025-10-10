@@ -22,10 +22,18 @@ describe.only('Platform Settings', function () {
     describe('update settings', function () {
         it('value should change', async function () {
              const origValue = app.settings.get('telemetry:enabled')
+             const origDBValue = await app.db.models.PlatformSettings.findOne({
+                where: { key: 'telemetry:enabled'}
+             })
+             should(origValue).be.undefined
              app.settings.set('telemetry:enabled', false)
              const newValue = app.settings.get('telemetry:enabled')
              newValue.should.equal(false)
              newValue.should.not.equal(origValue)
+             const newDBValue = await app.db.models.PlatformSettings.findOne({
+                where: { key: 'telemetry:enabled'}
+             })
+             newDBValue.value.should.equal(false)
         })
     })
 })
