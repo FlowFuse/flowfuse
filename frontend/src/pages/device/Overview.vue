@@ -61,17 +61,30 @@
                             <span v-else>None</span>
                         </template>
                     </InfoCardRow>
-                    <InfoCardRow property="Group:" v-if="device?.application && device.deviceGroup">
+                    <InfoCardRow property="Group:" v-if="device?.application">
                         <template #value>
-                            <ff-team-link
-                                :to="{ name: 'ApplicationDeviceGroupIndex',
-                                       params: {
-                                           deviceGroupId: device.deviceGroup.id,
-                                           applicationId: device.application.id
-                                       }}"
-                            >
-                                {{ device.deviceGroup.name }}
-                            </ff-team-link>
+                            <section class="flex items-center gap-3">
+                                <ff-team-link
+                                    v-if="device.deviceGroup"
+                                    :to="{ name: 'ApplicationDeviceGroupIndex',
+                                           params: {
+                                               deviceGroupId: device.deviceGroup.id,
+                                               applicationId: device.application.id
+                                           }}"
+                                >
+                                    {{ device.deviceGroup.name }}
+                                </ff-team-link>
+                                <span v-else>None</span>
+                                <ff-button
+                                    kind="tertiary"
+                                    v-if="hasPermission('application:device-group:update', {application: device.application})"
+                                    :to="{name: 'device-settings', query: { highlight: 'device-group-section' }}"
+                                >
+                                    <template #icon>
+                                        <PencilAltIcon class="ff-icon ff-icon-sm" />
+                                    </template>
+                                </ff-button>
+                            </section>
                         </template>
                     </InfoCardRow>
                     <InfoCardRow v-if="device.ownerType!=='application'" property="Instance:">
@@ -150,7 +163,7 @@
 <script>
 
 // utilities
-import { CheckCircleIcon, CogIcon, ExclamationIcon, TemplateIcon, TrendingUpIcon, WifiIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, CogIcon, ExclamationIcon, PencilAltIcon, TemplateIcon, TrendingUpIcon, WifiIcon } from '@heroicons/vue/outline'
 
 // api
 import semver from 'semver'
@@ -163,6 +176,7 @@ import InfoCard from '../../components/InfoCard.vue'
 import InfoCardRow from '../../components/InfoCardRow.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import AuditLog from '../../components/audit-log/AuditLog.vue'
+import usePermissions from '../../composables/Permissions.js'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
@@ -184,7 +198,14 @@ export default {
         DeviceModeBadge,
         DeviceLastSeenBadge,
         StatusBadge,
-        AuditLog
+        AuditLog,
+        PencilAltIcon
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return {
+            hasPermission
+        }
     },
     data () {
         return {
