@@ -19,6 +19,7 @@ import { mapGetters } from 'vuex'
 
 import teamClient from '../../../api/team.js'
 import EditApplicationPermissionsDialog from '../../../components/dialogs/EditApplicationPermissionsDialog.vue'
+import UserCell from '../../../components/tables/cells/UserCell.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import RoleRow from './components/RoleRow.vue'
@@ -50,7 +51,10 @@ export default defineComponent({
                 {
                     key: 'name',
                     label: 'User',
-                    sortable: true
+                    sortable: true,
+                    component: {
+                        is: markRaw(UserCell)
+                    }
                 },
                 {
                     key: 'role',
