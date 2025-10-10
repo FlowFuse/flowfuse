@@ -48,7 +48,9 @@
                             <ff-data-table-cell>
                                 <ff-checkbox v-model="device.selected" />
                             </ff-data-table-cell>
-                            <ff-data-table-cell>{{ device.name }}</ff-data-table-cell>
+                            <ff-data-table-cell>
+                                <router-link :to="{name: 'DeviceOverview', params: {id: device.id}}">{{ device.name }}</router-link>
+                            </ff-data-table-cell>
                             <ff-data-table-cell>{{ device.type }}</ff-data-table-cell>
                         </ff-data-table-row>
                     </template>
@@ -77,7 +79,9 @@
                             <ff-data-table-cell v-if="editMode">
                                 <ff-checkbox v-model="device.selected" class="inline" />
                             </ff-data-table-cell>
-                            <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
+                            <ff-data-table-cell class="w-1/3">
+                                <router-link :to="{name: 'DeviceOverview', params: {id: device.id}}">{{ device.name }}</router-link>
+                            </ff-data-table-cell>
                             <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
                             <ff-data-table-cell v-if="!editMode" class="w-1/3">
                                 <ActiveSnapshotCell :activeSnapshot="getDeviceActiveSnapshot(device)" :targetSnapshot="targetSnapshot" />
