@@ -6,6 +6,7 @@ let url
 let client
 
 async function initCache (options) {
+    console.log('init cache', options)
     url = options.url
     client = createClient()
     await client.connect({ url })
