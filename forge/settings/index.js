@@ -47,7 +47,7 @@ module.exports = fp(async function (app, _opts) {
             }
             settings[key] = value
             await app.db.models.PlatformSettings.upsert({ key, value })
-            if (app.comms?.platform?.setting?.sync) {
+            if (app.comms?.platform?.settings?.sync) {
                 app.comms.platform.settings.sync(key)
             }
         },
