@@ -30,7 +30,6 @@ module.exports = fp(async function (app, _opts) {
         })
     } catch (err) {
         app.log.error(`Failed to load the cache driver: ${cacheType}`)
-        console.log(`${JSON.stringify(app.config.cache, null, 2)}`)
         throw err
     }
 }, { name: 'app.caches' })
