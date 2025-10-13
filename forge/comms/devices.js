@@ -56,7 +56,7 @@ class DeviceCommsHandler {
         this.deviceLogHeartbeats = {}
         this.deviceResourcesHeartbeats = {}
         /** @type {Object.<string, typeof CommandResponseMonitor>} */
-        this.inFlightCommands = app.caches.getCache('device-inflight')
+        this.inFlightCommands = {} //app.caches.getCache('device-inflight')
         this.deviceLogHeartbeatInterval = -1
         this.deviceResourcesHeartbeatInterval = -1
 
@@ -231,11 +231,13 @@ class DeviceCommsHandler {
                 return // Not a valid device
             }
 
-            const inFlightCommand = await this.inFlightCommands.get(message.correlationData)
+            const inFlightCommand = this.inFlightCommands[message.correlationData]
+            // const inFlightCommand = await this.inFlightCommands.get(message.correlationData)
             if (inFlightCommand) {
                 // This command is known to the local instance - process it
                 inFlightCommand.resolve(message.payload)
-                await this.inFlightCommands.del(inFlightCommand.correlationData)
+                delete this.inFlightCommands[message.correlationData]
+                // await this.inFlightCommands.del(inFlightCommand.correlationData)
             }
         }
     }
@@ -328,17 +330,19 @@ class DeviceCommsHandler {
         const inFlightCommand = DeviceCommsHandler.newResponseMonitor(command, deviceId, teamId, this.client.platformId, options)
 
         const promise = new Promise((resolve, reject) => {
-            inFlightCommand.resolve = async (payload) => {
+            inFlightCommand.resolve = (payload) => {
                 inFlightCommand.resolved = true
                 clearTimeout(inFlightCommand.timer)
                 resolve(payload)
-                await this.inFlightCommands.del(inFlightCommand.correlationData)
+                delete this.inFlightCommands[inFlightCommand.correlationData]
+                // await this.inFlightCommands.del(inFlightCommand.correlationData)
             }
             inFlightCommand.reject = async (err) => {
                 inFlightCommand.rejected = true
                 clearTimeout(inFlightCommand.timer)
                 reject(err)
-                await this.inFlightCommands.del(inFlightCommand.correlationData)
+                delete this.inFlightCommands[inFlightCommand.correlationData]
+                // await this.inFlightCommands.del(inFlightCommand.correlationData)
             }
         })
 
@@ -349,7 +353,14 @@ class DeviceCommsHandler {
             inFlightCommand.reject(new Error('Command timed out'))
         }, options.timeout)
 
-        await this.inFlightCommands.set(inFlightCommand.correlationData, inFlightCommand)
+        try {
+            console.log(inFlightCommand)
+            this.inFlightCommands[inFlightCommand.correlationData] = inFlightCommand
+            // await this.inFlightCommands.set(inFlightCommand.correlationData, inFlightCommand)
+        } catch (err) {
+            console.log(err)
+            throw err
+        }
 
         // Generate suitable MQTT options
         /** @type {import('mqtt').IClientPublishOptions} */
