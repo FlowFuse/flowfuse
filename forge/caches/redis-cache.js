@@ -2,11 +2,9 @@ const { createClient } = require('@redis/client')
 
 const caches = {}
 
-let url
 let client
 
 async function initCache (options) {
-    url = options.url
     client = createClient(options)
     await client.connect()
 }
