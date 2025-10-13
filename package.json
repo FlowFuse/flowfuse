@@ -98,7 +98,7 @@
         "marked": "^15.0.7",
         "mqtt": "^5.1.1",
         "mqtt-match": "^3.0.0",
-        "nodemailer": "^6.9.3",
+        "nodemailer": "^7.0.9",
         "pg": "^8.11.3",
         "pino": "^8.15.1",
         "pino-pretty": "^10.0.0",
