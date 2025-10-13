@@ -43,7 +43,7 @@
         </EmptyState>
 
         <template v-else>
-            <div id="team-pipelines" class="space-y-6">
+            <div id="team-pipelines" class="space-y-6" data-page="team-pipelines">
                 <ff-loading v-if="loading" message="Loading Pipelines..." />
 
                 <template v-else>

@@ -254,12 +254,19 @@ module.exports = async function (app) {
         const associationsLimit = request.query.associationsLimit
         const includeApplicationSummary = !!associationsLimit || request.query.includeApplicationSummary
 
-        const applications = await app.db.models.Application.byTeam(request.params.teamId, {
+        let applications = await app.db.models.Application.byTeam(request.params.teamId, {
             includeInstances,
             includeApplicationDevices,
             associationsLimit,
             includeApplicationSummary
         })
+
+        // Apply Application level RBAC
+        if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            applications = applications.filter(application => {
+                return app.hasPermission(request.teamMembership, 'project:read', { application })
+            })
+        }
 
         reply.send({
             count: applications.length,
@@ -305,9 +312,15 @@ module.exports = async function (app) {
         const includeApplicationDevices = true
         const associationsLimit = request.query.associationsLimit
 
-        const applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices, includeInstanceStorageFlow: true, associationsLimit })
+        let applications = await app.db.models.Application.byTeam(request.params.teamId, { includeInstances, includeApplicationDevices, includeInstanceStorageFlow: true, associationsLimit })
         if (!applications) {
             return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+
+        if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            applications = applications.filter(application => {
+                return app.hasPermission(request.teamMembership, 'project:read', { application })
+            })
         }
         const applicationsWithAssociationsStatuses = await app.db.views.Application.applicationAssociationsStatusList(applications)
         reply.send({
@@ -345,15 +358,27 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const includeMeta = request.query.includeMeta
-        const limit = request.query.limit
-        const orderByMostRecentFlows = request.query.orderByMostRecentFlows
-
-        const projects = await app.db.models.Project.byTeam(request.params.teamId, {
+        const options = {
             includeSettings: true,
-            limit,
+            limit: request.query.limit,
             includeMeta,
-            orderByMostRecentFlows
-        })
+            orderByMostRecentFlows: request.query.orderByMostRecentFlows
+        }
+
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+            const excludeApplications = []
+            Object.keys(request.teamMembership.permissions.applications).forEach(appId => {
+                if (!app.hasPermission(request.teamMembership, 'project:read', { applicationId: appId })) {
+                    excludeApplications.push(app.db.models.Application.decodeHashid(appId))
+                }
+            })
+            if (excludeApplications.length) {
+                options.excludeApplications = excludeApplications
+            }
+        }
+
+        const projects = await app.db.models.Project.byTeam(request.params.teamId, options)
 
         if (projects) {
             let result = await app.db.views.Project.instancesList(projects, {
@@ -398,7 +423,19 @@ module.exports = async function (app) {
                         hasDashboardInstalled = !!settingEntry.value.palette.modules.find(module => module.name === '@flowfuse/node-red-dashboard')
                     }
 
-                    return isSettingsEntry && hasDashboardInstalled
+                    let permissionCheck = true
+                    const platformRbacEnabled = app.config.features.enabled('rbacApplication')
+                    const teamRbacEnabled = request.team.TeamType.getFeatureProperty('rbacApplication', false)
+
+                    if (platformRbacEnabled && teamRbacEnabled) {
+                        permissionCheck = app.hasPermission(
+                            request.teamMembership,
+                            'team:projects:list-dashboards',
+                            { applicationId: app.db.models.Application.encodeHashid(project.ApplicationId) }
+                        )
+                    }
+
+                    return isSettingsEntry && hasDashboardInstalled && permissionCheck
                 }).length > 0
             })
 
@@ -869,7 +906,8 @@ module.exports = async function (app) {
                 200: {
                     type: 'object',
                     properties: {
-                        role: { type: 'number' }
+                        role: { type: 'number' },
+                        permissions: { $ref: 'TeamMemberPermissions' }
                     }
                 },
                 '4xx': {
@@ -880,12 +918,14 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         if (request.teamMembership) {
             reply.send({
-                role: request.teamMembership.role
+                role: request.teamMembership.role,
+                permissions: request.teamMembership.permissions
             })
             return
         } else if (request.session.User?.admin) {
             reply.send({
-                role: Roles.Admin
+                role: Roles.Admin,
+                permissions: {}
             })
             return
         }
@@ -1071,8 +1111,8 @@ module.exports = async function (app) {
             const model = request.query.instanceType === 'hosted'
                 ? app.db.models.Project
                 : app.db.models.Device
-
-            const stateCounters = await model.countByState(request.query.state, request.team.id, request.query.applicationId) ?? []
+            const membership = request.teamMembership
+            const stateCounters = await model.countByState(request.query.state, request.team, request.query.applicationId, membership) ?? []
             const response = {}
 
             stateCounters.forEach(res => {

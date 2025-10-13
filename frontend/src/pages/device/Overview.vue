@@ -61,6 +61,19 @@
                             <span v-else>None</span>
                         </template>
                     </InfoCardRow>
+                    <InfoCardRow property="Group:" v-if="device?.application && device.deviceGroup">
+                        <template #value>
+                            <ff-team-link
+                                :to="{ name: 'ApplicationDeviceGroupIndex',
+                                       params: {
+                                           deviceGroupId: device.deviceGroup.id,
+                                           applicationId: device.application.id
+                                       }}"
+                            >
+                                {{ device.deviceGroup.name }}
+                            </ff-team-link>
+                        </template>
+                    </InfoCardRow>
                     <InfoCardRow v-if="device.ownerType!=='application'" property="Instance:">
                         <template #value>
                             <router-link v-if="device?.instance" :to="{name: 'Instance', params: { id: device.instance.id }}">
@@ -201,11 +214,11 @@ export default {
         nrLocalLoginOptionPossible: function () {
             // support for local login was added in 3.2.0
             // and is only available for application devices
-            return this.deviceOwnerType === 'application' && semver.gte(this.device.agentVersion, '3.2.0')
+            return this.deviceOwnerType === 'application' && semver.gte(this.device.agentVersion || '0.0.0', '3.2.0')
         },
         agentVersionWarning: function () {
             if (this.deviceOwnerType === 'application') {
-                if (this.device?.agentVersion && semver.gte(this.device.agentVersion, '1.15.0')) {
+                if (this.device?.agentVersion && semver.gte(this.device.agentVersion || '0.0.0', '1.15.0')) {
                     return ''
                 }
                 return 'Devices assigned to an application must be version 1.15 or greater in order to receive snapshots and updates'

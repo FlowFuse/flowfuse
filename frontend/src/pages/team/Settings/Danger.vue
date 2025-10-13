@@ -73,8 +73,6 @@ export default {
     },
     data () {
         return {
-            applicationCount: -1,
-            applicationList: {},
             teamTypes: []
         }
     },
@@ -92,9 +90,6 @@ export default {
 
         this.teamTypes = (await teamTypesPromise).types
     },
-    mounted () {
-        this.fetchData()
-    },
     methods: {
         showConfirmDeleteDialog () {
             this.$refs.confirmTeamDeleteDialog.show(this.team)
@@ -107,13 +102,6 @@ export default {
                 alerts.emit('Problem deleting team', 'warning')
                 console.warn(err)
             })
-        },
-        async fetchData () {
-            if (this.team.id) {
-                const applicationList = await teamApi.getTeamApplications(this.team.id)
-                this.applicationList = applicationList
-                this.applicationCount = applicationList.count
-            }
         },
         showConfirmSuspendDialog () {
             this.$refs.confirmTeamSuspendDialog.show(this.team)

@@ -2,12 +2,18 @@
     <main v-if="!deviceGroup?.id">
         <ff-loading message="Loading Device Group..." />
     </main>
-    <div v-else class="w-full">
+    <div v-else class="w-full" data-el="device-group-devices">
         <div class="mb-3">
             <SectionTopMenu hero="Device Group Membership" info="">
                 <template #tools>
                     <div v-if="!editMode && !hasChanges" class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
-                        <ff-button kind="primary" size="small" class="w-24 whitespace-nowrap" @click="editMode = true">Edit</ff-button>
+                        <ff-button
+                            :disabled="!hasPermission('application:device-group:update', {application})"
+                            data-action="edit-device-group"
+                            kind="primary" size="small" class="w-24 whitespace-nowrap" @click="editMode = true"
+                        >
+                            Edit
+                        </ff-button>
                     </div>
                     <div v-else class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
                         <ff-button kind="secondary" size="small" class="w-24 whitespace-nowrap" @click="cancelChanges">Cancel</ff-button>
@@ -21,7 +27,13 @@
             <div v-if="editMode" class="w-full sm:w-1/2 order-3 sm:order-1">
                 <div class="flex justify-between items-center mb-1">
                     <h3 class="text-gray-800 block text-sm font-medium mb-1 min-w-0 truncate">Available devices</h3>
-                    <ff-button size="small" class="w-28 whitespace-nowrap mb-1" :disabled="!selectedAvailableDevices.length" @click="addDevicesToGroup()">Add Devices</ff-button>
+                    <ff-button
+                        size="small" class="w-28 whitespace-nowrap mb-1"
+                        :disabled="!selectedAvailableDevices.length || !hasPermission('application:device-group:create', {application})"
+                        @click="addDevicesToGroup()"
+                    >
+                        Add Devices
+                    </ff-button>
                 </div>
                 <ff-data-table
                     :columns="tableColsRW"
@@ -36,7 +48,9 @@
                             <ff-data-table-cell>
                                 <ff-checkbox v-model="device.selected" />
                             </ff-data-table-cell>
-                            <ff-data-table-cell>{{ device.name }}</ff-data-table-cell>
+                            <ff-data-table-cell>
+                                <router-link :to="{name: 'DeviceOverview', params: {id: device.id}}">{{ device.name }}</router-link>
+                            </ff-data-table-cell>
                             <ff-data-table-cell>{{ device.type }}</ff-data-table-cell>
                         </ff-data-table-row>
                     </template>
@@ -65,7 +79,9 @@
                             <ff-data-table-cell v-if="editMode">
                                 <ff-checkbox v-model="device.selected" class="inline" />
                             </ff-data-table-cell>
-                            <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
+                            <ff-data-table-cell class="w-1/3">
+                                <router-link :to="{name: 'DeviceOverview', params: {id: device.id}}">{{ device.name }}</router-link>
+                            </ff-data-table-cell>
                             <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
                             <ff-data-table-cell v-if="!editMode" class="w-1/3">
                                 <ActiveSnapshotCell :activeSnapshot="getDeviceActiveSnapshot(device)" :targetSnapshot="targetSnapshot" />
@@ -83,6 +99,7 @@ import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
@@ -113,6 +130,10 @@ export default {
         }
     },
     emits: ['device-group-members-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data: function () {
         return {
             localMemberDevices: [],

@@ -170,7 +170,7 @@ module.exports = {
             }
         }
     },
-    finders: function (M) {
+    finders: function (M, app) {
         return {
             instance: {
                 async refreshAuthTokens ({ refreshOTC = false } = {}) {
@@ -348,7 +348,8 @@ module.exports = {
                                 }
                             },
                             { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
-                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] }
+                            { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] },
+                            { model: M.DeviceGroup }
                         ]
                     }
                     return this.findOne({
@@ -376,7 +377,14 @@ module.exports = {
                     }
                     return this.getAll({}, queryObject.where)
                 },
-                getAll: async (pagination = {}, where = {}, { includeInstanceApplication = false, includeDeviceGroup = false } = {}) => {
+                /**
+                 * includeInstanceApplication:
+                 */
+                getAll: async (pagination = {}, where = {}, {
+                    excludeApplications = null,
+                    includeInstanceApplication = false,
+                    includeDeviceGroup = false
+                } = {}) => {
                     // Pagination
                     const limit = Math.min(parseInt(pagination.limit) || 100, 100)
                     if (pagination.cursor) {
@@ -452,21 +460,51 @@ module.exports = {
                     }
 
                     // Naive filter on Devices->Application
-                    if (where.ApplicationId) {
+                    if (typeof where.ApplicationId === 'string') {
                         where.ApplicationId = M.Application.decodeHashid(where.ApplicationId)
                     }
-                    if (includeInstanceApplication || filteringOnInstanceApplication) {
+                    if (excludeApplications || includeInstanceApplication) {
                         projectInclude.include = {
                             model: M.Application,
                             attributes: ['hashid', 'id', 'name', 'links']
                         }
-
-                        // Handle Applications included via Device->Instance->Application
                         if (filteringOnInstanceApplication) {
                             projectInclude.include.where = { id: where.ApplicationId }
-                            projectInclude.include.required = true
-                            delete where.ApplicationId
+                        } else if (excludeApplications) {
+                            projectInclude.include.where = {
+                                id: {
+                                    [Op.and]: {
+                                        [Op.not]: null,
+                                        [Op.notIn]: excludeApplications
+                                    }
+                                }
+                            }
+                            // projectInclude.include.required = true
                         }
+
+                        if (includeInstanceApplication) {
+                            projectInclude.include.required = true
+                        }
+                        if (excludeApplications) {
+                            // This query will filter for devices that are either directly assigned
+                            // to the application, or assigned to an instance that is assigned to the application
+                            where[Op.or] = {
+                                [Op.and]: {
+                                    ApplicationId: { [Op.is]: null },
+                                    [Op.or]: {
+                                        ProjectId: { [Op.is]: null },
+                                        '$Project->Application.id$': { [Op.not]: null }
+                                    }
+                                },
+                                ApplicationId: {
+                                    [Op.or]: {
+                                        // [Op.not]: null,
+                                        [Op.notIn]: excludeApplications
+                                    }
+                                }
+                            }
+                        }
+                        delete where.ApplicationId
                     }
 
                     const includes = [
@@ -636,7 +674,9 @@ module.exports = {
                         })
                     }
                 },
-                countByState: async (states, teamId, applicationId) => {
+                countByState: async (states, team, applicationId, membership) => {
+                    let teamId = team.id
+
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
                         if (!teamId || teamId.length === 0) {
@@ -652,7 +692,22 @@ module.exports = {
                         }
                     }
 
-                    return this.count({
+                    const statesMap = {}
+                    const findAll = await this.findAll({
+                        include: [
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id']
+                            },
+                            {
+                                model: M.Project,
+                                attributes: ['id'],
+                                include: {
+                                    model: M.Application,
+                                    attributes: ['hashid', 'id', 'name']
+                                }
+                            }
+                        ],
                         where: {
                             ...(states.length > 0
                                 ? {
@@ -664,9 +719,24 @@ module.exports = {
                                 }
                                 : { TeamId: teamId }),
                             ...(applicationId ? { ApplicationId: applicationId } : {})
-                        },
-                        group: ['state']
+                        }
                     })
+
+                    const platformRbacEnabled = app.config.features.enabled('rbacApplication')
+                    const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false)
+                    const rbacEnabled = platformRbacEnabled && teamRbacEnabled
+                    findAll.forEach((device) => {
+                        const applicationId = device.Application?.hashid ?? device.Project?.Application?.hashid
+
+                        if (rbacEnabled && applicationId && !app.hasPermission(membership, 'device:read', { applicationId })) {
+                            // This device is not accessible to this user, do not include in states map
+                            return
+                        }
+                        const state = device.state
+                        statesMap[state] = (statesMap[state] || 0) + 1
+                    })
+
+                    return Object.entries(statesMap).map(([state, count]) => ({ state, count }))
                 },
                 byTeamForSearch: async (teamId, query) => {
                     const queryObject = {

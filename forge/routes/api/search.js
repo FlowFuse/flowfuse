@@ -54,6 +54,7 @@ module.exports = async function (app) {
                 const membership = await request.session.User.getTeamMembership(teamId)
                 // Check user has access to this team - either admin or at least Viewer role
                 if (request.session.User.admin || app.hasPermission(membership, 'team:search')) {
+                    // Get user-level permissions (default to {} for admin user)
                     let applicationSearchPromise = Promise.resolve([])
                     let instanceSearchPromise = Promise.resolve([])
                     let deviceSearchPromise = Promise.resolve([])
@@ -118,28 +119,36 @@ module.exports = async function (app) {
                     ])
                     const rr = [
                         ...(results[0].map(application => {
-                            return {
-                                object: 'application',
-                                ...app.db.views.Application.applicationSummary(application, { detailed: true })
+                            if (request.session.User.admin || app.hasPermission(membership, 'project:read', { application })) {
+                                return {
+                                    object: 'application',
+                                    ...app.db.views.Application.applicationSummary(application, { detailed: true })
+                                }
                             }
-                        })) || [],
+                            return null
+                        }) || []),
                         ...(results[1].map(instance => {
-                            return {
-                                object: 'instance',
-                                ...app.db.views.Project.projectSummary(instance)
+                            if (request.session.User.admin || app.hasPermission(membership, 'project:read', { applicationId: app.db.models.Application.encodeHashid(instance.ApplicationId) })) {
+                                return {
+                                    object: 'instance',
+                                    ...app.db.views.Project.projectSummary(instance)
+                                }
                             }
-                        })) || [],
+                            return null
+                        }) || []),
                         ...(results[2].devices?.map(device => {
-                            return {
-                                object: 'device',
-                                ...app.db.views.Device.deviceSummary(device)
+                            if (!device.ApplicationId || request.session.User.admin || app.hasPermission(membership, 'project:read', { applicationId: app.db.models.Application.encodeHashid(device.ApplicationId) })) {
+                                return {
+                                    object: 'device',
+                                    ...app.db.views.Device.deviceSummary(device)
+                                }
                             }
-                        })) || []
-                    ]
-
+                            return null
+                        }) || [])
+                    ].filter(r => !!r)
                     reply.send({
                         count: rr.length,
-                        results: rr.flat()
+                        results: rr
                     })
                     return
                 }

@@ -18,16 +18,38 @@
                 search-placeholder="Search Remote Instances"
                 :show-load-more="moreThanOnePage"
                 :check-key="row => row.id"
-                :show-row-checkboxes="true"
+                :show-row-checkboxes="hasPermission('team:device:bulk-edit', applicationContext)"
                 @rows-checked="checkedDevices = $event"
                 @load-more="loadMoreDevices"
                 @update:search="updateSearch"
                 @update:sort="updateSort"
             >
                 <template #actions>
-                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete') || hasPermission('team:device:bulk-edit')" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu>
+                    <ff-popover button-text="Filters" button-kind="secondary">
+                        <template #panel="{ close }">
+                            <section>
+                                <popover-item
+                                    title="Fleet Mode"
+                                    @click="onFilterClick('fleetMode', close)"
+                                >
+                                    <template #icon>
+                                        <ff-checkbox v-model="deviceModeFilters.fleetMode" style="top: -8px;" />
+                                    </template>
+                                </popover-item>
+                                <popover-item
+                                    title="Developer Mode"
+                                    @click="onFilterClick('developerMode', close)"
+                                >
+                                    <template #icon>
+                                        <ff-checkbox v-model="deviceModeFilters.developerMode" style="top: -8px;" />
+                                    </template>
+                                </popover-item>
+                            </section>
+                        </template>
+                    </ff-popover>
+                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete', applicationContext) || hasPermission('team:device:bulk-edit', applicationContext)" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu>
                     <ff-button
-                        v-if="displayingInstance && hasPermission('project:snapshot:create')"
+                        v-if="displayingInstance && hasPermission('project:snapshot:create', applicationContext)"
                         data-action="change-target-snapshot"
                         kind="secondary"
                         @click="showSelectTargetSnapshotDialog"
@@ -40,11 +62,11 @@
                         </span>
                     </ff-button>
                     <ff-button
-                        v-ff-tooltip:left="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                        v-ff-tooltip:left="!hasPermission('device:create', applicationContext) && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                         class="font-normal"
                         data-action="register-device"
                         kind="primary"
-                        :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create')"
+                        :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                         @click="showCreateDeviceDialog"
                     >
                         <template #icon-left>
@@ -53,10 +75,7 @@
                         Add Remote Instance
                     </ff-button>
                 </template>
-                <template
-                    v-if="hasPermission('device:edit')"
-                    #context-menu="{row}"
-                >
+                <template #context-menu="{row}">
                     <ff-list-item
                         label="Edit Details"
                         @click="deviceAction('edit', row.id)"
@@ -91,7 +110,7 @@
                         @click="deviceAction('updateCredentials', row.id)"
                     />
                     <ff-list-item
-                        v-if="hasPermission('device:delete')"
+                        v-if="hasPermission('device:delete', applicationContext)"
                         kind="danger"
                         label="Delete Device"
                         @click="deviceAction('delete', row.id)"
@@ -123,7 +142,7 @@
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create')"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
@@ -162,7 +181,7 @@
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create')"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
@@ -201,7 +220,7 @@
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
                                 class="font-normal"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create')"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
@@ -328,6 +347,7 @@ import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
 
 import DeviceLastSeenCell from '../pages/device/components/DeviceLastSeenCell.vue'
+import DeviceModeBadge from '../pages/device/components/DeviceModeBadge.vue'
 import SnapshotAssignDialog from '../pages/instance/VersionHistory/Snapshots/dialogs/SnapshotAssignDialog.vue'
 import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
 import DeviceAssignApplicationDialog from '../pages/team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
@@ -336,6 +356,9 @@ import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredent
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue'
 
 import Alerts from '../services/alerts.js'
+import FfPopover from '../ui-components/components/Popover.vue'
+import PopoverItem from '../ui-components/components/PopoverItem.vue'
+import FfCheckbox from '../ui-components/components/form/Checkbox.vue'
 
 import { debounce } from '../utils/eventHandling.js'
 import { createPollTimer } from '../utils/timers.js'
@@ -349,6 +372,9 @@ const POLL_TIME = 10000
 export default {
     name: 'DevicesBrowser',
     components: {
+        FfCheckbox,
+        PopoverItem,
+        FfPopover,
         ClockIcon,
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
@@ -404,7 +430,11 @@ export default {
             },
             /** @type { import('../utils/timers.js').PollTimer } */
             pollTimer: null,
-            deviceEditModalOpened: false
+            deviceEditModalOpened: false,
+            deviceModeFilters: {
+                fleetMode: false,
+                developerMode: false
+            }
         }
     },
     computed: {
@@ -416,6 +446,7 @@ export default {
                 { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenCell) } },
+                { label: 'Mode', key: 'mode', class: ['w-48'], sortable: true, component: { is: markRaw(DeviceModeBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge), map: { instanceId: 'id' }, extraProps: { instanceType: 'device' } } }
             ]
 
@@ -454,8 +485,9 @@ export default {
             const output = this.filteredDevices.map(device => {
                 const statusObject = this.allDeviceStatuses.get(device.id)
                 const ownerKey = this.getOwnerSortKeyForDevice(device)
-
+                const context = device.application?.id ? { applicationId: device.application?.id } : {}
                 return {
+                    hideContextMenu: !this.hasPermission('device:edit', context),
                     ...device,
                     ...statusObject,
                     ...(ownerKey ? { _ownerSortKey: ownerKey } : { _ownerSortKey: undefined })
@@ -494,8 +526,8 @@ export default {
         },
         bulkActionsDropdownOptions () {
             const actionsEnabled = this.checkedDevices?.length > 0
-            const enableDelete = actionsEnabled && this.hasPermission('team:device:bulk-delete')
-            const enableMove = actionsEnabled && this.hasPermission('team:device:bulk-edit')
+            const enableDelete = actionsEnabled && this.hasPermission('team:device:bulk-delete', this.applicationContext)
+            const enableMove = actionsEnabled && this.hasPermission('team:device:bulk-edit', this.applicationContext)
             const showRemoveFromInstance = this.displayingInstance || this.displayingTeam
             const showRemoveFromApplication = this.displayingApplication || this.displayingTeam
             const menu = []
@@ -510,6 +542,11 @@ export default {
             }
             menu.push({ name: 'Delete', class: ['!text-red-600'], action: this.showTeamBulkDeviceDeleteDialog, disabled: !enableDelete })
             return menu
+        },
+        applicationContext () {
+            return {
+                application: this.application || this.instance?.application
+            }
         }
     },
     watch: {
@@ -545,11 +582,18 @@ export default {
          *  - property: which filter row is being applied, e.g. status or lastseen
          *  - bucket: which value of this property are we filtering on from the buckets in the status bar
          */
-        applyFilter (filter) {
+        applyFilter (filter, shouldClearDeviceModeFilters = true) {
             this.filter = filter
 
             if (this.unfilteredHasMoreThanOnePage) {
                 this.doFilterServerSide()
+            }
+
+            if (shouldClearDeviceModeFilters) {
+                this.deviceModeFilters = {
+                    fleetMode: false,
+                    developerMode: false
+                }
             }
         },
 
@@ -786,6 +830,29 @@ export default {
             }
 
             return 'Unassigned'
+        },
+
+        onFilterClick (filter, closeCallback) {
+            const compare = filter === 'fleetMode' ? 'autonomous' : 'developer'
+            this.deviceModeFilters[filter] = !this.deviceModeFilters[filter]
+
+            this.applyFilter(
+                {
+                    devices: Array.from(this.devices.values())
+                        .filter((device) => !this.deviceModeFilters[filter] ? true : device.mode === compare)
+                        .map(device => device.id),
+                    property: 'mode'
+                },
+                false
+            )
+
+            // resetting filters because we can't have multiple filters applied at once
+            const filters = {
+                fleetMode: false,
+                developerMode: false
+            }
+            filters[filter] = this.deviceModeFilters[filter]
+            this.deviceModeFilters = filters
         }
     }
 }
