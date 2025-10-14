@@ -25,6 +25,12 @@ module.exports = fp(async function (app, opts) {
         // We need to decode and verify it.
         const googleOAuth2Client = new OAuth2Client(clientId)
         try {
+            const tokenInfo = await googleOAuth2Client.getTokenInfo(request.query.code)
+            if (tokenInfo.aud !== clientId) {
+                reply.code(400).send({ code: 'invalid_request', error: 'Invalid code' })
+                return
+            }
+            // Now get the user info
             googleOAuth2Client.setCredentials({ access_token: request.query.code })
             const userinfo = await googleOAuth2Client.request({
                 url: 'https://www.googleapis.com/oauth2/v3/userinfo'
