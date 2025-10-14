@@ -102,13 +102,22 @@
                         >
                             {{ device.deviceGroup.name }}
                         </router-link>
-                        <ff-button
-                            v-if="hasPermission('application:device-group:update', { application: device.application })"
-                            ref="groupAssignmentButton"
-                            kind="secondary-danger" title="Remove Device from Group" @click="onGroupUnassign"
-                        >
-                            Remove the remote instance from the group
-                        </ff-button>
+                        <div class="flex gap-2">
+                            <ff-button
+                                v-if="hasPermission('application:device-group:update', { application: device.application })"
+                                ref="groupAssignmentButton"
+                                kind="secondary-danger" title="Remove Device from Group" @click="onGroupUnassign"
+                            >
+                                Remove from the group
+                            </ff-button>
+                            <ff-button
+                                v-if="hasPermission('application:device-group:update', { application: device.application })"
+                                ref="groupAssignmentButton"
+                                kind="secondary" title="Remove Device from Group" @click="onGroupAssign"
+                            >
+                                Reassign
+                            </ff-button>
+                        </div>
                     </div>
                     <div v-else class="flex gap-5 items-center justify-between">
                         <span class="italic">None</span>
@@ -450,10 +459,23 @@ export default {
                 confirmLabel: 'Confirm',
                 cancelLabel: 'No'
             }, async () => {
-                return ApplicationApi.updateDeviceGroupMembership(
-                    this.device.application.id,
-                    selectedDeviceGroup,
-                    { add: this.device.id })
+                const promise = this.device.deviceGroup
+                    ? ApplicationApi.updateDeviceGroupMembership(
+                        this.device.application.id,
+                        this.device.deviceGroup.id,
+                        {
+                            remove: this.device.id
+                        })
+                    : new Promise(resolve => resolve())
+
+                return promise
+                    .then(() => this.$emit('device-updated'))
+                    .then(() => ApplicationApi.updateDeviceGroupMembership(
+                        this.device.application.id,
+                        selectedDeviceGroup,
+                        {
+                            add: this.device.id
+                        }))
                     .then(() => this.$emit('device-updated'))
                     .catch(e => e)
             })

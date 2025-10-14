@@ -71,10 +71,8 @@ export default {
             return ApplicationAPI.getDeviceGroups(this.device.application.id)
                 .then((groups) => {
                     this.deviceGroups = groups.groups
-                    if (this.deviceGroups?.length > 0) {
-                        this.deviceGroups.forEach((group) => {
-                            group.targetSnapshot = group.targetSnapshot || {}
-                        })
+                    if (this.device.deviceGroup) {
+                        this.selected = this.device.deviceGroup.id
                     }
                 })
                 .catch((err) => {
