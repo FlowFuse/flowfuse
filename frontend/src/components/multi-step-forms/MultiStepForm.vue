@@ -163,6 +163,7 @@ export default {
 <style scoped lang="scss">
 .ff-multi-step-form {
     position: relative;
+    max-height: 100%;
 
     .loading-overlay {
         position: absolute;
