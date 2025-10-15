@@ -1,17 +1,25 @@
 <template>
-    <section class="ff-blueprint-step text-center flex flex-col gap-4" data-step="flows">
-        <div class="header flex gap-3 items-center justify-between my-4">
-            <h2 class="border-indigo-600 border rounded-xl px-4 py-2 flex-1 bg-indigo-600 text-white">
+    <section class="ff-blueprint-step text-center flex flex-col gap-11 h-full" data-step="flows">
+        <div v-if="blueprints.length > 0" class="header flex gap-3 items-center justify-evenly pt-11">
+            <ff-button
+                :kind="selection === BLUEPRINT_SECTION_KEY ? 'primary' : 'secondary'"
+                class="w-full max-w-xl" @click.prevent="onSectionClick(BLUEPRINT_SECTION_KEY)"
+            >
                 Select a Blueprint
-            </h2>
+            </ff-button>
+
             <span>or</span>
-            <h2 class="border-indigo-600 border rounded-xl px-4 py-2 flex-1">
+
+            <ff-button
+                :kind="selection === IMPORT_SECTION_KEY ? 'primary' : 'secondary'"
+                class="w-full max-w-xl" @click.prevent="onSectionClick(IMPORT_SECTION_KEY)"
+            >
                 Import Flows
-            </h2>
+            </ff-button>
         </div>
 
         <component
-            :is="component"
+            :is="sections[selection]"
             :blueprints="blueprints" :initialState="initialState"
             @blueprint-selected="onSelectedBlueprint"
         />
@@ -23,10 +31,13 @@
 import { markRaw } from 'vue'
 
 import BlueprintsSection from './BlueprintsSection.vue'
+import ImportFlowsSection from './ImportFlowsSection.vue'
+
+const BLUEPRINT_SECTION_KEY = 'blueprint'
+const IMPORT_SECTION_KEY = 'import'
 
 export default {
     name: 'BlueprintStep',
-    components: { BlueprintsSection },
     props: {
         slug: {
             required: true,
@@ -45,11 +56,15 @@ export default {
     emits: ['step-updated'],
     setup (props) {
         const initialState = props.state
-        return { initialState }
+        return { initialState, BLUEPRINT_SECTION_KEY, IMPORT_SECTION_KEY }
     },
     data () {
         return {
-            component: markRaw(BlueprintsSection)
+            selection: this.blueprints.length > 0 ? BLUEPRINT_SECTION_KEY : IMPORT_SECTION_KEY,
+            sections: {
+                [BLUEPRINT_SECTION_KEY]: markRaw(BlueprintsSection),
+                [IMPORT_SECTION_KEY]: markRaw(ImportFlowsSection)
+            }
         }
     },
     methods: {
@@ -61,6 +76,9 @@ export default {
                     errors: null
                 }
             })
+        },
+        onSectionClick (section) {
+            this.selection = section
         }
     }
 }
