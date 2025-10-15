@@ -1,5 +1,5 @@
 <template>
-    <section class="ff-blueprint-step text-center flex flex-col gap-11 h-full" data-step="flows">
+    <section class="ff-flows-step text-center flex flex-col gap-11 h-full" data-step="flows">
         <div v-if="blueprints.length > 0" class="header flex gap-3 items-center justify-evenly pt-11">
             <ff-button
                 :kind="selection === BLUEPRINT_SECTION_KEY ? 'primary' : 'secondary'"
@@ -85,12 +85,12 @@ export default {
 </script>
 
 <style lang="scss">
-.ff-blueprint-step {
+.ff-flows-step {
+    height: 100%;
 
     .ff-blueprints {
         overflow: auto;
         min-width: 400px;
-        max-height: 75vh;
         padding-right: 15px;
 
         .ff-blueprint-tiles {
@@ -104,10 +104,20 @@ export default {
 
     .ff-blueprint-categories {
         min-width: 300px;
+        height: 100%;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
 
-        li:hover {
-            cursor: pointer;
-            color: $ff-blue-600;
+        ul {
+            flex: 1;
+            height: 100%;
+            overflow: auto;
+
+            li:hover {
+                cursor: pointer;
+                color: $ff-blue-600;
+            }
         }
     }
 }
