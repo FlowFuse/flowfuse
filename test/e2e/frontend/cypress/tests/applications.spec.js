@@ -282,7 +282,7 @@ describe('FlowFuse - Applications', () => {
 
             cy.get('[data-el="next-step"]').click()
 
-            cy.get('[data-step="blueprint"]').should('exist')
+            cy.get('[data-step="flows"]').should('exist')
 
             cy.get('[data-el="next-step"]').click()
 
