@@ -26,14 +26,14 @@ import Alerts from '../../../services/alerts.js'
 import MultiStepForm from '../MultiStepForm.vue'
 
 import ApplicationStep from './steps/ApplicationStep.vue'
-import BlueprintStep from './steps/BlueprintStep.vue'
 import InstanceStep from './steps/InstanceStep.vue'
 import TeamStep from './steps/TeamStep.vue'
+import FlowsStep from './steps/flows-step/index.vue'
 
 const TEAM_STEP_SLUG = 'team'
 const APPLICATION_SLUG = 'application'
 const INSTANCE_SLUG = 'instance'
-const BLUEPRINT_SLUG = 'blueprint'
+const FLOWS_SLUG = 'flows'
 
 export default {
     name: 'MultiStepApplicationsInstanceForm',
@@ -68,7 +68,7 @@ export default {
                 [TEAM_STEP_SLUG]: {},
                 [APPLICATION_SLUG]: {},
                 [INSTANCE_SLUG]: {},
-                [BLUEPRINT_SLUG]: {}
+                [FLOWS_SLUG]: {}
             },
             formLoading: false,
             loadingText: '',
@@ -115,12 +115,12 @@ export default {
                     }
                 },
                 {
-                    sliderTitle: 'Blueprint',
-                    component: BlueprintStep,
+                    sliderTitle: 'Flows',
+                    component: FlowsStep,
                     hidden: this.shouldHideInstanceSteps || this.hasNoBlueprints,
                     bindings: {
-                        slug: BLUEPRINT_SLUG,
-                        state: this.form[BLUEPRINT_SLUG],
+                        slug: FLOWS_SLUG,
+                        state: this.form[FLOWS_SLUG],
                         blueprints: this.blueprints
                     }
                 }
@@ -233,7 +233,7 @@ export default {
                             projectType: this.form[INSTANCE_SLUG].input.instanceType,
                             stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
                             template: this.form[INSTANCE_SLUG].input.template,
-                            flowBlueprintId: this.form[BLUEPRINT_SLUG].blueprint?.id ?? ''
+                            flowBlueprintId: this.form[FLOWS_SLUG].blueprint?.id ?? ''
                         })
                     }
                 })

@@ -1,7 +1,5 @@
 <template>
-    <section class="ff-blueprint-step text-center flex flex-col gap-4 pt-6" data-step="blueprint">
-        <h2>Select Your Blueprint</h2>
-
+    <section data-section="blueprints">
         <p>We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</p>
 
         <transition name="fade" mode="out-in">
@@ -67,34 +65,30 @@
 <script>
 import { mapState } from 'vuex'
 
-import { scrollIntoView } from '../../../../composables/Ux.js'
-import FfLoading from '../../../Loading.vue'
-import BlueprintTile from '../../../blueprints/BlueprintTile.vue'
-import AssetDetailDialog from '../../../dialogs/AssetDetailDialog.vue'
+import { scrollIntoView } from '../../../../../composables/Ux.js'
+
+import FfLoading from '../../../../Loading.vue'
+import BlueprintTile from '../../../../blueprints/BlueprintTile.vue'
+import AssetDetailDialog from '../../../../dialogs/AssetDetailDialog.vue'
 
 export default {
-    name: 'BlueprintStep',
-    components: { AssetDetailDialog, FfLoading, BlueprintTile },
+    name: 'BlueprintsSection',
+    components: {
+        FfLoading,
+        AssetDetailDialog,
+        BlueprintTile
+    },
     props: {
-        slug: {
-            required: true,
-            type: String
-        },
-        state: {
-            required: false,
-            type: Object,
-            default: () => ({})
-        },
         blueprints: {
             type: Array,
             required: true
+        },
+        initialState: {
+            type: Object,
+            required: true
         }
     },
-    emits: ['step-updated'],
-    setup (props) {
-        const initialState = props.state
-        return { initialState }
-    },
+    emits: ['blueprint-selected'],
     data () {
         return {
             selectedBlueprint: this.initialState.blueprint ?? null,
@@ -116,13 +110,7 @@ export default {
     watch: {
         selectedBlueprint: {
             handler (blueprint) {
-                this.$emit('step-updated', {
-                    [this.slug]: {
-                        blueprint,
-                        hasErrors: false,
-                        errors: null
-                    }
-                })
+                this.$emit('blueprint-selected', blueprint)
             },
             deep: true,
             immediate: true
@@ -173,30 +161,6 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.ff-blueprint-step {
+<style scoped lang="scss">
 
-    .ff-blueprints {
-        overflow: auto;
-        min-width: 400px;
-        max-height: 75vh;
-        padding-right: 15px;
-
-        .ff-blueprint-tiles {
-            .ff-blueprint-tile {
-                max-width: 280px;
-                width: 100%;
-                height: 100%;
-            }
-        }
-    }
-
-    .ff-blueprint-categories {
-        min-width: 300px;
-        li:hover {
-            cursor: pointer;
-            color: $ff-blue-600;
-        }
-    }
-}
 </style>
