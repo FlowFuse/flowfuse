@@ -120,7 +120,8 @@ export default {
                 projectType: this.form[INSTANCE_SLUG].input.instanceType,
                 stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
                 template: this.form[INSTANCE_SLUG].input.template,
-                flowBlueprintId: this.form[FLOWS_SLUG].blueprint?.id ?? ''
+                flowBlueprintId: this.form[FLOWS_SLUG].blueprint?.id ?? '',
+                flows: this.form[FLOWS_SLUG].flows ?? ''
             }
 
             return instanceApi.create(payload)

@@ -83,7 +83,7 @@ export default {
             this.$emit('step-updated', {
                 [this.slug]: {
                     blueprint: null,
-                    flows,
+                    flows: JSON.parse(flows),
                     hasErrors: false,
                     errors: null
                 }
