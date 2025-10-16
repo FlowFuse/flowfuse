@@ -1,9 +1,9 @@
 <template>
     <section class="ff-flows-step text-center flex flex-col gap-11 h-full" data-step="flows">
-        <div v-if="blueprints.length > 0" class="header flex gap-3 items-center justify-evenly pt-11">
+        <div v-if="blueprints.length > 0" class="header flex gap-3 items-center justify-evenly pt-11 max-w-6xl w-full m-auto">
             <ff-button
                 :kind="selection === BLUEPRINT_SECTION_KEY ? 'primary' : 'secondary'"
-                class="w-full max-w-xl" @click.prevent="onSectionClick(BLUEPRINT_SECTION_KEY)"
+                class="w-full max-w-md" @click.prevent="onSectionClick(BLUEPRINT_SECTION_KEY)"
             >
                 Select a Blueprint
             </ff-button>
@@ -12,7 +12,7 @@
 
             <ff-button
                 :kind="selection === IMPORT_SECTION_KEY ? 'primary' : 'secondary'"
-                class="w-full max-w-xl" @click.prevent="onSectionClick(IMPORT_SECTION_KEY)"
+                class="w-full max-w-md" @click.prevent="onSectionClick(IMPORT_SECTION_KEY)"
             >
                 Import Flows
             </ff-button>
@@ -22,6 +22,7 @@
             :is="sections[selection]"
             :blueprints="blueprints" :initialState="initialState"
             @blueprint-selected="onSelectedBlueprint"
+            @flows-updated="onFlowsUpdated"
         />
     </section>
 </template>
@@ -72,6 +73,17 @@ export default {
             this.$emit('step-updated', {
                 [this.slug]: {
                     blueprint,
+                    flows: null,
+                    hasErrors: false,
+                    errors: null
+                }
+            })
+        },
+        onFlowsUpdated (flows) {
+            this.$emit('step-updated', {
+                [this.slug]: {
+                    blueprint: null,
+                    flows,
                     hasErrors: false,
                     errors: null
                 }

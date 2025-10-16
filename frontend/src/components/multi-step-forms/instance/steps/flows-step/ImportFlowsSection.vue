@@ -77,10 +77,19 @@ export default {
         FlowViewer,
         FormRow
     },
+    emits: ['flows-updated'],
     data () {
         return {
             rawFlows: null,
             fileUpload: null
+        }
+    },
+    watch: {
+        rawFlows: {
+            immediate: true,
+            handler (flows) {
+                this.$emit('flows-updated', flows)
+            }
         }
     },
     mounted () {
