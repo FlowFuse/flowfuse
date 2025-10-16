@@ -587,6 +587,26 @@ describe('Broker Auth v2 API', async function () {
                         topic: 'ff/v1/abc/p/another-project/res-random/foo/bar'
                     })
                 })
+                describe('Team Broker Topic Update Cache', async function () {
+                    it('should not update if multiple calls to the same topic', async function () {
+                        const topic = 'update/topic/timestamp'
+                        await app.teamBroker.addUsedTopic(topic, TestObjects.ATeam.hashid)
+                        const firstTopic = await app.db.models.MQTTTopicSchema.findAll({
+                            where: {
+                                topic,
+                                TeamId: TestObjects.ATeam.id
+                            }
+                        })
+                        await app.teamBroker.addUsedTopic(topic, TestObjects.ATeam.hashid)
+                        const secondTopic = await app.db.models.MQTTTopicSchema.findAll({
+                            where: {
+                                topic,
+                                TeamId: TestObjects.ATeam.id
+                            }
+                        })
+                        secondTopic[0].updatedAt.toISOString().should.equal(firstTopic[0].updatedAt.toISOString())
+                    })
+                })
             })
         })
 
