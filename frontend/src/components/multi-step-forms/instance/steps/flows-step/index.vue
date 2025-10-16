@@ -1,6 +1,6 @@
 <template>
     <section class="ff-flows-step text-center flex flex-col gap-11 h-full" data-step="flows">
-        <div v-if="blueprints.length > 0" class="header flex gap-3 items-center justify-evenly pt-11 max-w-6xl w-full m-auto">
+        <div v-if="isSectionSelectorVisible" class="header flex gap-3 items-center justify-evenly pt-11 max-w-6xl w-full m-auto">
             <ff-button
                 :kind="selection === BLUEPRINT_SECTION_KEY ? 'primary' : 'secondary'"
                 class="w-full max-w-md" @click.prevent="onSectionClick(BLUEPRINT_SECTION_KEY)"
@@ -52,6 +52,11 @@ export default {
         blueprints: {
             type: Array,
             required: true
+        },
+        deployingBlueprint: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     emits: ['step-updated'],
@@ -66,6 +71,14 @@ export default {
                 [BLUEPRINT_SECTION_KEY]: markRaw(BlueprintsSection),
                 [IMPORT_SECTION_KEY]: markRaw(ImportFlowsSection)
             }
+        }
+    },
+    computed: {
+        isSectionSelectorVisible () {
+            if (this.deployingBlueprint) {
+                return false
+            }
+            return this.blueprints.length > 0
         }
     },
     methods: {

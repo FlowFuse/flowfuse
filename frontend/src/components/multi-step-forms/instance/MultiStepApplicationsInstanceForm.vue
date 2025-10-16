@@ -57,6 +57,11 @@ export default {
             required: false,
             type: Boolean,
             default: false
+        },
+        deployingBlueprint: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     emits: ['form-success', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
@@ -115,13 +120,14 @@ export default {
                     }
                 },
                 {
-                    sliderTitle: 'Flows',
+                    sliderTitle: this.deployingBlueprint ? 'Blueprint' : 'Flows',
                     component: FlowsStep,
                     hidden: this.shouldHideInstanceSteps || this.hasNoBlueprints,
                     bindings: {
                         slug: FLOWS_SLUG,
                         state: this.form[FLOWS_SLUG],
-                        blueprints: this.blueprints
+                        blueprints: this.blueprints,
+                        deployingBlueprint: this.deployingBlueprint
                     }
                 }
             ].filter(step => !step.hidden)
