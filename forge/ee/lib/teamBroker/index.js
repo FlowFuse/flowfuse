@@ -65,6 +65,7 @@ module.exports.init = async function (app) {
             where: {
                 BrokerCredentialsId: app.settings.get('team:broker:creds')
             },
+            attributes: ['TeamId', 'topic'],
             order: [['updatedAt', 'DESC']],
             limit: 5000
         })
