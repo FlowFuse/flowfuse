@@ -39,7 +39,7 @@
                         <p v-for="(text, $index) in dialog.textLines" :key="$index">{{ text }}</p>
                     </div>
                 </template>
-                <component :is="dialog.is.component" v-bind="dialog.is.payload" v-else-if="dialog.is" />
+                <component :is="dialog.is.component" v-bind="dialog.is.payload" v-else-if="dialog.is" v-on="dialog.is.on" />
 
                 <p v-else-if="dialog.text">{{ dialog.text }}</p>
                 <!-- eslint-disable-next-line vue/no-v-html -->
