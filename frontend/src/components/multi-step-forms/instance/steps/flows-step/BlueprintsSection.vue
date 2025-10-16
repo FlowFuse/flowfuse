@@ -166,5 +166,6 @@ export default {
     display: flex;
     flex-direction: column;
     overflow: auto;
+    flex: 1;
 }
 </style>
