@@ -47,27 +47,27 @@ module.exports = async function (app) {
                 // Restart the container
                 request.project.state = 'running'
                 await request.project.save()
-                app.db.controllers.Project.setInflightState(request.project, 'starting')
+                await app.db.controllers.Project.setInflightState(request.project, 'starting')
                 const startResult = await app.containers.start(request.project)
                 startResult.started.then(async () => {
                     await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                    app.db.controllers.Project.clearInflightState(request.project)
+                    await app.db.controllers.Project.clearInflightState(request.project)
                     return true
                 }).catch(err => {
                     app.log.info(`failed to start project ${request.project.id}`)
                     throw err
                 })
             } else {
-                app.db.controllers.Project.setInflightState(request.project, 'starting')
+                await app.db.controllers.Project.setInflightState(request.project, 'starting')
                 request.project.state = 'running'
                 await request.project.save()
                 await app.containers.startFlows(request.project)
                 await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                app.db.controllers.Project.clearInflightState(request.project)
+                await app.db.controllers.Project.clearInflightState(request.project)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
-            app.db.controllers.Project.clearInflightState(request.project)
+            await app.db.controllers.Project.clearInflightState(request.project)
 
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Project.project.started(request.session.User, resp, request.project)
@@ -104,15 +104,15 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
                 return
             }
-            app.db.controllers.Project.setInflightState(request.project, 'stopping')
+            await app.db.controllers.Project.setInflightState(request.project, 'stopping')
             request.project.state = 'stopped'
             await request.project.save()
             await app.containers.stopFlows(request.project)
             await app.auditLog.Project.project.stopped(request.session.User, null, request.project)
-            app.db.controllers.Project.clearInflightState(request.project)
+            await app.db.controllers.Project.clearInflightState(request.project)
             reply.send({ status: 'okay' })
         } catch (err) {
-            app.db.controllers.Project.clearInflightState(request.project)
+            await app.db.controllers.Project.clearInflightState(request.project)
 
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Project.project.stopped(request.session.User, resp, request.project)
@@ -149,15 +149,15 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
                 return
             }
-            app.db.controllers.Project.setInflightState(request.project, 'restarting')
+            await app.db.controllers.Project.setInflightState(request.project, 'restarting')
             request.project.state = 'running'
             await request.project.save()
             await app.containers.restartFlows(request.project)
             await app.auditLog.Project.project.restarted(request.session.User, null, request.project)
-            app.db.controllers.Project.clearInflightState(request.project)
+            await app.db.controllers.Project.clearInflightState(request.project)
             reply.send({ status: 'okay' })
         } catch (err) {
-            app.db.controllers.Project.clearInflightState(request.project)
+            await app.db.controllers.Project.clearInflightState(request.project)
 
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Project.project.restarted(request.session.User, resp, request.project)
@@ -194,13 +194,13 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'project_suspended', error: 'Project suspended' })
                 return
             }
-            app.db.controllers.Project.setInflightState(request.project, 'suspending')
+            await app.db.controllers.Project.setInflightState(request.project, 'suspending')
             await app.containers.stop(request.project)
-            app.db.controllers.Project.clearInflightState(request.project)
+            await app.db.controllers.Project.clearInflightState(request.project)
             await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
             reply.send({ status: 'okay' })
         } catch (err) {
-            app.db.controllers.Project.clearInflightState(request.project)
+            await app.db.controllers.Project.clearInflightState(request.project)
 
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Project.project.suspended(request.session.User, resp, request.project)
@@ -253,16 +253,16 @@ module.exports = async function (app) {
             if (request.project.state === 'running') {
                 restartProject = true
             }
-            app.db.controllers.Project.setInflightState(request.project, 'rollback')
+            await app.db.controllers.Project.setInflightState(request.project, 'rollback')
             await app.db.controllers.Project.importProjectSnapshot(request.project, snapshot)
-            app.db.controllers.Project.clearInflightState(request.project)
+            await app.db.controllers.Project.clearInflightState(request.project)
             await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, null, request.project, snapshot)
             if (restartProject) {
                 await app.containers.restartFlows(request.project)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
-            app.db.controllers.Project.clearInflightState(request.project)
+            await app.db.controllers.Project.clearInflightState(request.project)
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, resp, request.project)
             reply.code(500).send(resp)
@@ -296,19 +296,19 @@ module.exports = async function (app) {
         try {
             await app.auditLog.Project.project.stack.restart(request.session.User, null, request.project)
             if (request.project.state !== 'suspended') {
-                app.db.controllers.Project.setInflightState(request.project, 'suspending')
+                await app.db.controllers.Project.setInflightState(request.project, 'suspending')
                 await app.containers.stop(request.project)
-                app.db.controllers.Project.clearInflightState(request.project)
+                await app.db.controllers.Project.clearInflightState(request.project)
                 await app.auditLog.Project.project.suspended(request.session.User, null, request.project)
             }
 
             request.project.state = 'running'
             await request.project.save()
-            app.db.controllers.Project.setInflightState(request.project, 'starting')
+            await app.db.controllers.Project.setInflightState(request.project, 'starting')
             const startResult = await app.containers.start(request.project)
             startResult.started.then(async () => {
                 await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                app.db.controllers.Project.clearInflightState(request.project)
+                await app.db.controllers.Project.clearInflightState(request.project)
                 return true
             }).catch(err => {
                 app.log.info(`failed to restartStack for ${request.project.id}`)
@@ -317,7 +317,7 @@ module.exports = async function (app) {
 
             reply.send()
         } catch (err) {
-            app.db.controllers.Project.clearInflightState(request.project)
+            await app.db.controllers.Project.clearInflightState(request.project)
 
             const resp = { code: 'unexpected_error', error: err.toString() }
             await app.auditLog.Project.project.stack.restart(request.session.User, resp, request.project)

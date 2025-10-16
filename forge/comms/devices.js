@@ -235,7 +235,7 @@ class DeviceCommsHandler {
             if (inFlightCommand) {
                 // This command is known to the local instance - process it
                 inFlightCommand.resolve(message.payload)
-                delete this.inFlightCommands[response.correlationData]
+                delete this.inFlightCommands[message.correlationData]
             }
         }
     }
@@ -334,7 +334,7 @@ class DeviceCommsHandler {
                 resolve(payload)
                 delete this.inFlightCommands[inFlightCommand.correlationData]
             }
-            inFlightCommand.reject = (err) => {
+            inFlightCommand.reject = async (err) => {
                 inFlightCommand.rejected = true
                 clearTimeout(inFlightCommand.timer)
                 reject(err)
