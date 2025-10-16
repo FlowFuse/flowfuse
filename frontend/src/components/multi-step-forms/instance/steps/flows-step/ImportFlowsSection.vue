@@ -2,7 +2,7 @@
     <section data-section="import-flows" class="import-flows flex flex-col gap-5 h-full">
         <h1 class="mt-6 mb-5">Import your own custom Node-RED flows</h1>
 
-        <div class="wrapper gap-16">
+        <div class="wrapper gap-5">
             <div class="preview">
                 <h3>Preview </h3>
                 <hr class="my-3">
@@ -12,7 +12,7 @@
             <div class="add-flows flex flex-col">
                 <h3>Add flows</h3>
                 <hr class="my-3">
-                <div class="content flex flex-col gap-5">
+                <div class="content flex flex-col gap-1">
                     <ff-button kind="tertiary" class="w-full" @click="uploadFlows">
                         Upload your flows.json file
 
@@ -26,7 +26,7 @@
 
                     <FormRow
                         v-model="rawFlows"
-                        class="flex flex-col" wrapper-class="w-full flex"
+                        class="flex flex-col flex-1" wrapper-class="w-full flex flex-1"
                         container-class="w-full"
                         data-el="notification-message"
                     >
@@ -51,34 +51,31 @@
         </div>
 
         <div class="notice ff-page-banner ">
-            <div class="max-w-3xl w-full m-auto flex flex-col gap-4">
-                <div>
-                    <h3>Flow validation</h3>
-                    <p>Imported flows are not checked for validity.</p>
-                    <p>Invalid or broken nodes may prevent the instance from starting.</p>
-                    <p>
-                        Always verify the reliability of imported flows and avoid copying flows from the World Wild
-                        Web.
-                    </p>
-                </div>
+            <div class="notice-element">
+                <h3>Flow validation</h3>
+                <p>Imported flows are not checked for validity.</p>
+                <p>Invalid or broken nodes may prevent the instance from starting.</p>
+                <p>
+                    Always verify the reliability of imported flows and avoid copying flows from the World Wild
+                    Web.
+                </p>
+            </div>
 
-                <div>
-                    <h3>Third-party nodes</h3>
-                    <p>External nodes are not installed automatically but can be added once the instance is running.</p>
-                </div>
+            <div class="notice-element">
+                <h3>Third-party nodes</h3>
+                <p>External nodes are not installed automatically but can be added once the instance is running.</p>
+            </div>
+            <div class="notice-element">
+                <h3>Credentials and secrets</h3>
+                <p>These are not imported with the flows but can be reconfigured after deployment.</p>
+            </div>
 
-                <div>
-                    <h3>Credentials and secrets</h3>
-                    <p>These are not imported with the flows but can be reconfigured after deployment.</p>
-                </div>
-
-                <div>
-                    <h3>Environment variables</h3>
-                    <p>
-                        Any required variables must be manually added to your environment after the instance is set
-                        up.
-                    </p>
-                </div>
+            <div class="notice-element">
+                <h3>Environment variables</h3>
+                <p>
+                    Any required variables must be manually added to your environment after the instance is set
+                    up.
+                </p>
             </div>
         </div>
     </section>
@@ -178,6 +175,8 @@ export default {
         .preview {
             flex: 1;
             min-width: 0;
+            display: flex;
+            flex-direction: column;
 
             @media (max-width: 768px) {
                 max-width: 100%;
@@ -195,17 +194,19 @@ export default {
 
             .content {
                 overflow: auto;
+                flex: 1;
 
                 .flow-input-wrapper {
                     height: 100%;
+                    display: flex;
 
                     textarea {
                         background: none;
-                        border-color: transparent;
+                        border-color: $ff-grey-200;
                         resize: none;
-                        max-height: 600px;
-                        min-height: 300px;
+                        min-height: 200px;
                         transition: background-color ease-out .3s, border-color ease-out .3s;
+                        flex: 1;
 
                         &:hover, &:focus {
                             background: $ff-white;
@@ -239,27 +240,49 @@ export default {
                 max-width: fit-content;
                 height: auto;
                 flex: 0 0 auto;
-                //overflow: initial;
             }
         }
-
-        //@media (max-width: 768px) {
-        //    overflow: initial;
-        //}
     }
 
     .notice {
-        h3 {
-            font-weight: bold
+        display: flex;
+        gap: 15px;
+        align-items: baseline;
+        font-size: 0.8rem;
+
+        .notice-element {
+
+            h3 {
+                font-weight: bold
+            }
+
+            p {
+                font-style: italic;
+                margin-bottom: 5px;
+            }
         }
 
-        p {
-            font-style: italic;
+        @media (max-width: 768px) {
+            flex: 0 0 auto;
+            align-items: flex-start;
+            justify-content: initial;
+            padding: 10px;
+            flex-direction: column;
+            overflow: auto;
+            height: fit-content;
+            max-height: 10vh;
         }
     }
-
-    //@media (max-width: 768px) {
-    //    overflow: initial;
-    //}
+}
+</style>
+<style lang="scss">
+.import-flows {
+    & > .wrapper {
+        .preview {
+            .ff-flow-viewer {
+                flex: 1;
+            }
+        }
+    }
 }
 </style>
