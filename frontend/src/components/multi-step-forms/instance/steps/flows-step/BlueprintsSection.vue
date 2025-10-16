@@ -1,6 +1,6 @@
 <template>
     <section data-section="blueprints" class="blueprints-section">
-        <h1 class="mt-16 mb-5">We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</h1>
+        <h1 class="mt-6 mb-5">We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</h1>
 
         <transition name="fade" mode="out-in">
             <ff-loading v-if="loading" message="Loading Blueprints..." />
