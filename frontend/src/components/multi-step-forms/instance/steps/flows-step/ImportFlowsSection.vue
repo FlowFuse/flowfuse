@@ -1,18 +1,18 @@
 <template>
-    <section data-section="import-flows" class="import-flows flex flex-col gap-5 h-full overflow-auto">
+    <section data-section="import-flows" class="import-flows flex flex-col gap-5 h-full">
         <h1 class="mt-6 mb-5">Import your own custom Node-RED flows</h1>
 
-        <div class="wrapper gap-16 overflow-auto">
+        <div class="wrapper gap-16">
             <div class="preview">
                 <h3>Preview </h3>
                 <hr class="my-3">
                 <flow-viewer :flow="flows" />
             </div>
 
-            <div class="add-flows h-full overflow-auto flex flex-col flex-1">
+            <div class="add-flows flex flex-col">
                 <h3>Add flows</h3>
                 <hr class="my-3">
-                <div class="h-full overflow-auto flex flex-col gap-5">
+                <div class="content flex flex-col gap-5">
                     <ff-button kind="tertiary" class="w-full" @click="uploadFlows">
                         Upload your flows.json file
 
@@ -26,17 +26,21 @@
 
                     <FormRow
                         v-model="rawFlows"
-                        class="flex-1 flex flex-col w-full max-h-20" wrapper-class="w-full flex" container-class="w-full"
+                        class="flex flex-col" wrapper-class="w-full flex"
+                        container-class="w-full"
                         data-el="notification-message"
                     >
                         <p class="text-center">paste them in</p>
                         <template #input>
-                            <div class="flow-input-wrapper h-full w-full relative">
+                            <div class="flow-input-wrapper w-full relative">
                                 <textarea
-                                    v-model="rawFlows" class="qwe flex-1 rounded-md w-full min-h-[300px]"
+                                    v-model="rawFlows" class="rounded-md w-full"
                                     :class="{'has-content': rawFlows}"
                                 />
-                                <ff-button v-if="rawFlows" kind="secondary" class="absolute bottom-1 right-1" @click="rawFlows = null">
+                                <ff-button
+                                    v-if="rawFlows" kind="secondary" class="absolute bottom-1 right-1"
+                                    @click="rawFlows = null"
+                                >
                                     clear
                                 </ff-button>
                             </div>
@@ -52,7 +56,10 @@
                     <h3>Flow validation</h3>
                     <p>Imported flows are not checked for validity.</p>
                     <p>Invalid or broken nodes may prevent the instance from starting.</p>
-                    <p>Always verify the reliability of imported flows and avoid copying flows from the World Wild Web.</p>
+                    <p>
+                        Always verify the reliability of imported flows and avoid copying flows from the World Wild
+                        Web.
+                    </p>
                 </div>
 
                 <div>
@@ -67,7 +74,10 @@
 
                 <div>
                     <h3>Environment variables</h3>
-                    <p>Any required variables must be manually added to your environment after the instance is set up.</p>
+                    <p>
+                        Any required variables must be manually added to your environment after the instance is set
+                        up.
+                    </p>
                 </div>
             </div>
         </div>
@@ -151,41 +161,91 @@ export default {
 
 <style scoped lang="scss">
 .import-flows {
-    .wrapper {
+    overflow: auto;
+
+    & > .wrapper {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
         flex: 1;
+        overflow: auto;
+
+        @media (max-width: 768px) {
+            flex-direction: column;
+            gap: 15px;
+        }
 
         .preview {
             flex: 1;
             min-width: 0;
+
+            @media (max-width: 768px) {
+                max-width: 100%;
+                max-height: 400px;
+                order: 2;
+            }
         }
 
         .add-flows {
+            overflow: auto;
             min-width: 350px;
             max-width: 600px;
+            height: 100%;
+            flex: 1;
 
-            .flow-input-wrapper {
-                textarea {
-                    background: none;
-                    border-color: transparent;
-                    resize: none;
-                    max-height: 600px;
-                    transition: background-color ease-out .3s, border-color ease-out .3s;
+            .content {
+                overflow: auto;
 
-                    &:hover {
-                        background: $ff-white;
-                        border-color:$ff-grey-300;
-                        resize: vertical;
-                    }
+                .flow-input-wrapper {
+                    height: 100%;
 
-                    &.has-content {
-                        border-color:$ff-grey-300;
+                    textarea {
+                        background: none;
+                        border-color: transparent;
+                        resize: none;
+                        max-height: 600px;
+                        min-height: 300px;
+                        transition: background-color ease-out .3s, border-color ease-out .3s;
+
+                        &:hover, &:focus {
+                            background: $ff-white;
+                            border-color: $ff-grey-300;
+                            resize: vertical;
+                        }
+
+                        &.has-content {
+                            border-color: $ff-grey-300;
+                        }
+
+                        @media (max-width: 768px) {
+                            max-height: 100%;
+                            min-height: 100px;
+                            background: $ff-white;
+                            border-color: $ff-grey-300;
+                            resize: none;
+                        }
                     }
                 }
+
+                @media (max-width: 768px) {
+                    overflow: initial;
+                    gap: 0;
+                }
+            }
+
+            @media (max-width: 768px) {
+                width: 100%;
+                min-width: 100%;
+                max-width: fit-content;
+                height: auto;
+                flex: 0 0 auto;
+                //overflow: initial;
             }
         }
+
+        //@media (max-width: 768px) {
+        //    overflow: initial;
+        //}
     }
 
     .notice {
@@ -197,5 +257,9 @@ export default {
             font-style: italic;
         }
     }
+
+    //@media (max-width: 768px) {
+    //    overflow: initial;
+    //}
 }
 </style>
