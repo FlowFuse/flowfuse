@@ -70,7 +70,7 @@ module.exports.init = async function (app) {
             limit: 5000
         })
         for (const topic of topics) {
-            topicCache.set(`${topic.teamId}#${topic.topic}`, true)
+            topicCache.set(`${topic.TeamId}#${topic.topic}`, true)
         }
     } catch (err) {
         app.log.debug(`Error populating Team Broker Topic Cache ${err.toString()}`)
