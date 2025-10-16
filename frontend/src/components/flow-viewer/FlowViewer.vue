@@ -13,6 +13,11 @@ export default {
     props: {
         flow: { required: true, type: Object }
     },
+    watch: {
+        flow () {
+            this.$nextTick(() => this.render())
+        }
+    },
     mounted () {
         this.render()
     },
