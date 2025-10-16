@@ -344,7 +344,7 @@ describe('3rd Party Broker API', function () {
                 cookies: { sid: TestObjects.tokens.bob },
                 body: [
                     {
-                        topic: 'bar/baz/qux',
+                        topic: 'bar/baz/qux/x',
                         metadata: { description: 'a topic' }
                     }
                 ]
@@ -359,18 +359,21 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.topics.should.have.a.lengthOf(3)
+            result.topics.should.have.a.lengthOf(4)
             const topics = result.topics
             topics.sort((A, B) => A.topic.localeCompare(B.topic))
 
             topics[0].should.have.property('topic', 'bar/baz/qux')
-            topics[0].should.have.property('metadata', { description: 'a topic' })
+            topics[0].should.have.property('metadata', {})
 
-            topics[1].should.have.property('topic', 'foo/bar/baz')
-            topics[1].should.have.property('metadata', {})
+            topics[1].should.have.property('topic', 'bar/baz/qux/x')
+            topics[1].should.have.property('metadata', { description: 'a topic' })
 
-            topics[2].should.have.property('topic', 'foo/bar/baz/qux')
+            topics[2].should.have.property('topic', 'foo/bar/baz')
             topics[2].should.have.property('metadata', {})
+
+            topics[3].should.have.property('topic', 'foo/bar/baz/qux')
+            topics[3].should.have.property('metadata', {})
         })
         it('Get Topics for 3rd Pary broker as a Team Owner', async function () {
             const response = await app.inject({
@@ -380,7 +383,7 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.topics.should.have.a.lengthOf(3)
+            result.topics.should.have.a.lengthOf(4)
         })
         it('Add Metadata to a Topic', async function () {
             let response = await app.inject({
@@ -390,7 +393,7 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             let result = response.json()
-            result.topics.should.have.a.lengthOf(3)
+            result.topics.should.have.a.lengthOf(4)
             result.topics[0].should.have.property('id')
             result.topics[0].should.have.property('topic')
             const topicId = result.topics[0].id
@@ -420,7 +423,7 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             let result = response.json()
-            result.topics.should.have.a.lengthOf(3)
+            result.topics.should.have.a.lengthOf(4)
             result.topics[0].should.have.property('id')
             result.topics[0].should.have.property('topic')
             const topicId = result.topics[0].id
@@ -439,7 +442,7 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             result = response.json()
-            result.count.should.equal(2)
+            result.count.should.equal(3)
         })
 
         it('Topic Cache', async function () {
