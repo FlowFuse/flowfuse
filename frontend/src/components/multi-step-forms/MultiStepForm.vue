@@ -164,6 +164,7 @@ export default {
 .ff-multi-step-form {
     position: relative;
     max-height: 100%;
+    height: 100%;
     overflow: auto;
     display: flex;
     flex-direction: column;
