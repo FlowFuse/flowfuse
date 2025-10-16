@@ -1,12 +1,12 @@
 <template>
-    <section data-section="blueprints">
-        <p>We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</p>
+    <section data-section="blueprints" class="blueprints-section">
+        <p class="mt-2 mb-5">We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</p>
 
         <transition name="fade" mode="out-in">
             <ff-loading v-if="loading" message="Loading Blueprints..." />
-            <div v-else class="flex flex-col gap-7" data-el="blueprints-wrapper">
-                <div class="flex gap-16 text-left flex-wrap-reverse">
-                    <div class="ff-blueprints flex-1">
+            <div v-else class="flex flex-1 flex-col gap-7 overflow-auto" data-el="blueprints-wrapper">
+                <div class="flex flex-1 gap-16 text-left flex-wrap-reverse overflow-auto">
+                    <div class="ff-blueprints flex flex-col flex-1 overflow-auto h-full">
                         <ul class="flex flex-col gap-8" data-group="blueprint-groups">
                             <li
                                 v-for="(category, $categoryName) in categories"
@@ -162,5 +162,9 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
+.blueprints-section {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
 </style>
