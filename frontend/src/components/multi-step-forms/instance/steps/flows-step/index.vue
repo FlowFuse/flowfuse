@@ -93,10 +93,16 @@ export default {
             })
         },
         onFlowsUpdated (flows) {
+            try {
+                flows = JSON.parse(flows)
+            } catch (e) {
+                flows = JSON.stringify([])
+            }
+
             this.$emit('step-updated', {
                 [this.slug]: {
                     blueprint: null,
-                    flows: JSON.parse(flows),
+                    flows,
                     hasErrors: false,
                     errors: null
                 }

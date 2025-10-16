@@ -6,7 +6,7 @@
             <div class="preview">
                 <h3>Preview </h3>
                 <hr class="my-3">
-                <flow-viewer :flow="rawFlows ? JSON.parse(rawFlows) : []" />
+                <flow-viewer :flow="flows" />
             </div>
 
             <div class="add-flows h-full overflow-auto flex flex-col flex-1">
@@ -31,7 +31,15 @@
                     >
                         <p class="text-center">paste them in</p>
                         <template #input>
-                            <textarea v-model="rawFlows" class="flex-1 rounded-md w-full min-h-[300px]" />
+                            <div class="flow-input-wrapper h-full w-full relative">
+                                <textarea
+                                    v-model="rawFlows" class="qwe flex-1 rounded-md w-full min-h-[300px]"
+                                    :class="{'has-content': rawFlows}"
+                                />
+                                <ff-button v-if="rawFlows" kind="secondary" class="absolute bottom-1 right-1" @click="rawFlows = null">
+                                    clear
+                                </ff-button>
+                            </div>
                         </template>
                     </FormRow>
                 </div>
@@ -68,12 +76,14 @@
 
 <script>
 import alerts from '../../../../../services/alerts.js'
+import FfButton from '../../../../../ui-components/components/Button.vue'
 import FormRow from '../../../../FormRow.vue'
 import FlowViewer from '../../../../flow-viewer/FlowViewer.vue'
 
 export default {
     name: 'ImportFlowsSection',
     components: {
+        FfButton,
         FlowViewer,
         FormRow
     },
@@ -82,6 +92,18 @@ export default {
         return {
             rawFlows: null,
             fileUpload: null
+        }
+    },
+    computed: {
+        flows () {
+            if (!this.rawFlows) {
+                return []
+            }
+            try {
+                return JSON.parse(this.rawFlows)
+            } catch (e) {
+                return []
+            }
         }
     },
     watch: {
@@ -144,17 +166,23 @@ export default {
             min-width: 350px;
             max-width: 600px;
 
-            textarea {
-                background: none;
-                border-color: transparent;
-                resize: none;
-                max-height: 600px;
-                transition: background-color ease-out .3s, border-color ease-out .3s;
+            .flow-input-wrapper {
+                textarea {
+                    background: none;
+                    border-color: transparent;
+                    resize: none;
+                    max-height: 600px;
+                    transition: background-color ease-out .3s, border-color ease-out .3s;
 
-                &:hover {
-                    background: $ff-white;
-                    border-color:$ff-grey-300;
-                    resize: vertical;
+                    &:hover {
+                        background: $ff-white;
+                        border-color:$ff-grey-300;
+                        resize: vertical;
+                    }
+
+                    &.has-content {
+                        border-color:$ff-grey-300;
+                    }
                 }
             }
         }
