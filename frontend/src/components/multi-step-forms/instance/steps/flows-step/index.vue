@@ -1,5 +1,5 @@
 <template>
-    <section class="ff-flows-step text-center flex flex-col gap-11 h-full" data-step="flows">
+    <section class="ff-flows-step text-center flex flex-col h-full" data-step="flows">
         <div v-if="isSectionSelectorVisible" class="header flex gap-3 items-center justify-evenly pt-11 max-w-6xl w-full m-auto">
             <ff-button
                 :kind="selection === BLUEPRINT_SECTION_KEY ? 'primary' : 'secondary'"
