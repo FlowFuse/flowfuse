@@ -1,7 +1,7 @@
 <template>
     <div id="snapshot-details-drawer" data-el="snapshot-details-drawer">
         <div class="container">
-            <section v-if="hasPermission('snapshot:full', applicationContext)" class="flow-viewer">
+            <section v-if="hasPermission('snapshot:full', applicationContext)" class="flow-viewer flex flex-1 flex-col overflow-auto">
                 <div class="header flex flex-row justify-between">
                     <span class="title font-bold">Flows:</span>
                     <span
@@ -14,58 +14,60 @@
                 <flow-viewer v-if="flows.length" :flow="flows" />
             </section>
 
-            <section class="name">
-                <div class="header flex flex-row justify-between">
-                    <span class="title font-bold">Name:</span>
-                </div>
-                <p v-if="!isEditing" class="text-gray-600">
-                    {{ snapshot.name }}
-                </p>
-                <FormRow
-                    v-else
-                    v-model="input.name"
-                    data-form="snapshot-name"
-                    container-class="max-w-full"
-                    :error="errors.name"
-                />
-            </section>
+            <div class="flex-1">
+                <section class="name">
+                    <div class="header flex flex-row justify-between">
+                        <span class="title font-bold">Name:</span>
+                    </div>
+                    <p v-if="!isEditing" class="text-gray-600">
+                        {{ snapshot.name }}
+                    </p>
+                    <FormRow
+                        v-else
+                        v-model="input.name"
+                        data-form="snapshot-name"
+                        container-class="max-w-full"
+                        :error="errors.name"
+                    />
+                </section>
 
-            <section v-if="snapshot.user" class="author">
-                <div class="header flex flex-row justify-between">
-                    <span class="title font-bold">Author:</span>
-                </div>
-                <div>
-                    {{ snapshot.user.username }}
-                </div>
-            </section>
+                <section v-if="snapshot.user" class="author">
+                    <div class="header flex flex-row justify-between">
+                        <span class="title font-bold">Author:</span>
+                    </div>
+                    <div>
+                        {{ snapshot.user.username }}
+                    </div>
+                </section>
 
-            <section class="description">
-                <div class="header flex flex-row justify-between">
-                    <span class="title font-bold">Description:</span>
-                </div>
-                <p v-if="!isEditing" class="text-gray-600">
-                    {{ snapshot.description.length > 0 ? snapshot.description : 'No description provided' }}
-                </p>
-                <FormRow v-else data-form="snapshot-description" container-class="max-w-full" :error="errors.description">
-                    <template #input>
-                        <textarea
-                            v-model="input.description"
-                            rows="8"
-                            class="ff-input ff-text-input"
-                            style="height: auto"
-                        />
-                    </template>
-                </FormRow>
-            </section>
+                <section class="description">
+                    <div class="header flex flex-row justify-between">
+                        <span class="title font-bold">Description:</span>
+                    </div>
+                    <p v-if="!isEditing" class="text-gray-600">
+                        {{ snapshot.description.length > 0 ? snapshot.description : 'No description provided' }}
+                    </p>
+                    <FormRow v-else data-form="snapshot-description" container-class="max-w-full" :error="errors.description">
+                        <template #input>
+                            <textarea
+                                v-model="input.description"
+                                rows="8"
+                                class="ff-input ff-text-input"
+                                style="height: auto"
+                            />
+                        </template>
+                    </FormRow>
+                </section>
 
-            <section v-if="snapshot.createdSince" class="date-created">
-                <div class="header flex flex-row justify-between">
-                    <span class="title font-bold">Date Created:</span>
-                </div>
-                <div class="flex gap-5">
-                    <p class="text-gray-600">{{ snapshot.createdSince }}</p>
-                </div>
-            </section>
+                <section v-if="snapshot.createdSince" class="date-created">
+                    <div class="header flex flex-row justify-between">
+                        <span class="title font-bold">Date Created:</span>
+                    </div>
+                    <div class="flex gap-5">
+                        <p class="text-gray-600">{{ snapshot.createdSince }}</p>
+                    </div>
+                </section>
+            </div>
         </div>
 
         <div>
