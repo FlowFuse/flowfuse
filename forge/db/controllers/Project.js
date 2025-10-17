@@ -348,7 +348,8 @@ module.exports = {
             ha = null,
             sourceProject = null,
             sourceProjectOptions = {},
-            flowBlueprint = null
+            flowBlueprint = null,
+            flows = null
         } = {}
     ) {
         if (!user) {
@@ -373,6 +374,10 @@ module.exports = {
 
         if (sourceProject && flowBlueprint) {
             throw new ControllerError('invalid_request', 'Source Project and Flow Blueprint cannot both be used')
+        }
+
+        if (flowBlueprint && flows) {
+            throw new ControllerError('invalid_request', 'Custom flows and Flow Blueprint cannot be used at the same time')
         }
 
         if (sourceProject) {
@@ -430,6 +435,14 @@ module.exports = {
 
         if (app.license.active() && app.ha && ha) {
             await instance.updateHASettings(ha)
+        }
+
+        if (flows && Array.isArray(flows) && flows.length > 0) {
+            try {
+                await app.db.controllers.StorageFlows.updateOrCreateForProject(instance, JSON.stringify(flows))
+            } catch (e) {
+                app.logger.error('Error creating flows for project', { error: e })
+            }
         }
 
         await instance.reload({

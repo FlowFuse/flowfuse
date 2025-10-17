@@ -163,6 +163,11 @@ export default {
 <style scoped lang="scss">
 .ff-multi-step-form {
     position: relative;
+    max-height: 100%;
+    height: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
 
     .loading-overlay {
         position: absolute;
@@ -172,6 +177,14 @@ export default {
         height: 100%;
         background: rgba(255,255,255, .6);
         z-index: 100;
+    }
+
+    .content {
+        flex: 1;
+        max-height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
     }
 }
 </style>

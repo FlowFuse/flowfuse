@@ -292,6 +292,9 @@ describe('FlowFuse - Instances', () => {
 
         cy.get('[data-el="next-step"]').click()
 
+        // skips over import flows step
+        cy.get('[data-el="next-step"]').click()
+
         cy.wait('@getProjectTypes')
 
         cy.wait('@createInstance')
