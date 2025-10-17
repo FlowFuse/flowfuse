@@ -38,7 +38,7 @@
                                     :class="{'has-content': rawFlows}"
                                 />
                                 <ff-button
-                                    v-if="rawFlows" kind="secondary" class="absolute bottom-1 right-1"
+                                    v-if="rawFlows" kind="secondary" class="!absolute bottom-1 right-1"
                                     @click="rawFlows = null"
                                 >
                                     clear
