@@ -318,9 +318,11 @@ module.exports = async function (app) {
             team = teamMembership.get('Team')
         }
 
+        const transaction = await app.db.sequelize.transaction()
         try {
-            await team.checkDeviceCreateAllowed()
+            await team.checkDeviceCreateAllowed(transaction)
         } catch (err) {
+            await transaction.rollback()
             return reply
                 .code(err.statusCode || 400)
                 .send({
@@ -335,7 +337,8 @@ module.exports = async function (app) {
                 name: request.body.name,
                 type: request.body.type,
                 credentialSecret: ''
-            })
+            }, { transaction })
+            await transaction.commit()
 
             try {
                 await team.addDevice(device)
@@ -385,6 +388,7 @@ module.exports = async function (app) {
                 }
             }
         } catch (err) {
+            await transaction.rollback()
             reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
