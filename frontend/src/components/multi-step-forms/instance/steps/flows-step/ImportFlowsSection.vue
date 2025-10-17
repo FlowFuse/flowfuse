@@ -166,6 +166,7 @@ export default {
         flex-wrap: wrap;
         flex: 1;
         overflow: auto;
+        min-height: 400px;
 
         @media (max-width: 768px) {
             flex-direction: column;
