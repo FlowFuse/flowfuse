@@ -437,7 +437,7 @@ module.exports = {
             await instance.updateHASettings(ha)
         }
 
-        if (flows) {
+        if (flows && Array.isArray(flows) && flows.length > 0) {
             try {
                 await app.db.controllers.StorageFlows.updateOrCreateForProject(instance, JSON.stringify(flows))
             } catch (e) {

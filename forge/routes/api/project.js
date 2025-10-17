@@ -136,6 +136,7 @@ module.exports = async function (app) {
                     projectType: { type: 'string' },
                     stack: { type: 'string' },
                     flowBlueprintId: { type: 'string' },
+                    flows: { type: 'array' },
                     template: { type: 'string' },
                     sourceProject: {
                         type: 'object',
