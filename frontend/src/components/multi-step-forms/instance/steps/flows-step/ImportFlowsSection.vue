@@ -177,6 +177,7 @@ export default {
             min-width: 0;
             display: flex;
             flex-direction: column;
+            max-height: 100%;
 
             @media (max-width: 768px) {
                 max-width: 100%;
