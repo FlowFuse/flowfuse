@@ -38,7 +38,7 @@ const BLUEPRINT_SECTION_KEY = 'blueprint'
 const IMPORT_SECTION_KEY = 'import'
 
 export default {
-    name: 'BlueprintStep',
+    name: 'FlowsStep',
     props: {
         slug: {
             required: true,
