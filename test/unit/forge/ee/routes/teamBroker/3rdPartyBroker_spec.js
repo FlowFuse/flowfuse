@@ -344,7 +344,7 @@ describe('3rd Party Broker API', function () {
                 cookies: { sid: TestObjects.tokens.bob },
                 body: [
                     {
-                        topic: 'bar/baz/qux',
+                        topic: 'bar/baz/qux/x',
                         metadata: { description: 'a topic' }
                     }
                 ]
@@ -359,18 +359,21 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.topics.should.have.a.lengthOf(3)
+            result.topics.should.have.a.lengthOf(4)
             const topics = result.topics
             topics.sort((A, B) => A.topic.localeCompare(B.topic))
 
             topics[0].should.have.property('topic', 'bar/baz/qux')
-            topics[0].should.have.property('metadata', { description: 'a topic' })
+            topics[0].should.have.property('metadata', {})
 
-            topics[1].should.have.property('topic', 'foo/bar/baz')
-            topics[1].should.have.property('metadata', {})
+            topics[1].should.have.property('topic', 'bar/baz/qux/x')
+            topics[1].should.have.property('metadata', { description: 'a topic' })
 
-            topics[2].should.have.property('topic', 'foo/bar/baz/qux')
+            topics[2].should.have.property('topic', 'foo/bar/baz')
             topics[2].should.have.property('metadata', {})
+
+            topics[3].should.have.property('topic', 'foo/bar/baz/qux')
+            topics[3].should.have.property('metadata', {})
         })
         it('Get Topics for 3rd Pary broker as a Team Owner', async function () {
             const response = await app.inject({
@@ -380,7 +383,7 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.topics.should.have.a.lengthOf(3)
+            result.topics.should.have.a.lengthOf(4)
         })
         it('Add Metadata to a Topic', async function () {
             let response = await app.inject({
@@ -390,7 +393,7 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             let result = response.json()
-            result.topics.should.have.a.lengthOf(3)
+            result.topics.should.have.a.lengthOf(4)
             result.topics[0].should.have.property('id')
             result.topics[0].should.have.property('topic')
             const topicId = result.topics[0].id
@@ -420,7 +423,7 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             let result = response.json()
-            result.topics.should.have.a.lengthOf(3)
+            result.topics.should.have.a.lengthOf(4)
             result.topics[0].should.have.property('id')
             result.topics[0].should.have.property('topic')
             const topicId = result.topics[0].id
@@ -439,8 +442,76 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(200)
             result = response.json()
-            result.count.should.equal(2)
+            result.count.should.equal(3)
         })
+
+        it('Topic Cache', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob },
+                body: [
+                    {
+                        topic: 'bar/baz/qux',
+                        metadata: { description: 'a topic' }
+                    }
+                ]
+            })
+            response.statusCode.should.equal(201)
+
+            const responseTopics = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            const result = responseTopics.json()
+
+            const topic = await app.db.models.MQTTTopicSchema.get(app.team.hashid, brokerCredentialId, result.topics[0].id)
+            await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob },
+                body: [
+                    {
+                        topic: 'bar/baz/qux',
+                        metadata: { description: 'a topic' }
+                    }
+                ]
+            })
+
+            const topicSecond = await app.db.models.MQTTTopicSchema.get(app.team.hashid, brokerCredentialId, result.topics[0].id)
+
+            topicSecond.updatedAt.toISOString().should.equal(topic.updatedAt.toISOString())
+            const response2 = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics/${result.topics[0].id}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response2.statusCode.should.equal(201)
+
+            await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob },
+                body: [
+                    {
+                        topic: 'bar/baz/qux',
+                        metadata: { description: 'a topic' }
+                    }
+                ]
+            })
+
+            const responseTopics2 = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            const result2 = responseTopics2.json()
+
+            const topicThird = await app.db.models.MQTTTopicSchema.get(app.team.hashid, brokerCredentialId, result2.topics[0].id)
+            topicThird.updatedAt.toISOString().should.not.equal(topic.updatedAt.toISOString())
+        })
+
         describe('Team Broker', function () {
             before(async function () {
                 app.team2 = await app.factory.createTeam({ name: 'BTeam' })

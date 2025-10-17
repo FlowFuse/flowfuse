@@ -41,7 +41,7 @@ module.exports.init = async function (app) {
      */
     async function addUsedTopic (topic, team) {
         const teamId = app.db.models.Team.decodeHashid(team)
-        const cacheHit = topicCache.get(`${teamId}#${topic}`)
+        const cacheHit = topicCache.get(`${teamId[0]}#${topic}`)
         if (!cacheHit) {
             await app.db.models.MQTTTopicSchema.upsert({
                 topic,
@@ -76,7 +76,13 @@ module.exports.init = async function (app) {
         app.log.debug(`Error populating Team Broker Topic Cache ${err.toString()}`)
     }
 
+    function removeTopicFromCache (topic, team) {
+        const teamId = app.db.models.Team.decodeHashid(team)
+        topicCache.delete(`${teamId[0]}#${topic.topic}`)
+    }
+
     app.decorate('teamBroker', {
-        addUsedTopic
+        addUsedTopic,
+        removeTopicFromCache
     })
 }

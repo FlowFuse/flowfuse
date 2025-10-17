@@ -1,3 +1,5 @@
+const { LRUCache } = require('lru-cache')
+
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
@@ -545,6 +547,12 @@ module.exports = async function (app) {
         reply.send(clean)
     })
 
+    // set up topic cache
+    const topicCache = new LRUCache({
+        max: 5000,
+        ttl: 1000 * 60 * 30 // 30 min cache life
+    })
+
     /**
      * Store Topics from a 3rd Party Broker
      * @name /api/v1/teams/:teamId/brokers/:brokerId/topics
@@ -626,10 +634,14 @@ module.exports = async function (app) {
                     topicObj.metadata = topicInfo.metadata
                 }
                 try {
-                    await app.db.models.MQTTTopicSchema.upsert(topicObj, {
-                        fields: ['inferredSchema', 'metadata'],
-                        conflictFields: ['topic', 'TeamId', 'BrokerCredentialsId']
-                    })
+                    const cacheHit = topicCache.get(`${teamId}#${brokerId}#${topicInfo.topic}`)
+                    if (!cacheHit) {
+                        await app.db.models.MQTTTopicSchema.upsert(topicObj, {
+                            fields: ['inferredSchema', 'metadata'],
+                            conflictFields: ['topic', 'TeamId', 'BrokerCredentialsId']
+                        })
+                        topicCache.set(`${teamId}#${brokerId}#${topicInfo.topic}`, true)
+                    }
                 } catch (err) {
                     // reply.status(500).send({ error: 'unknown_erorr', message: err.toString() })
                     // return
@@ -727,12 +739,21 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         let brokerId = request.params.brokerId
+        let teamBroker = false
         if (brokerId === 'team-broker') {
+            teamBroker = true
             brokerId = app.settings.get('team:broker:creds')
         }
         const topic = await app.db.models.MQTTTopicSchema.get(request.params.teamId, brokerId, request.params.topicId)
         if (topic) {
             await topic.destroy()
+            if (teamBroker) {
+                app.teamBroker.removeTopicFromCache(topic, request.params.teamId)
+            } else {
+                const team = app.db.models.Team.decodeHashid(request.params.teamId)[0]
+                const broker = brokerId = app.db.models.BrokerCredentials.decodeHashid(request.params.brokerId)[0]
+                topicCache.delete(`${team}#${broker}#${topic.topic}`)
+            }
             reply.status(201).send({})
         } else {
             reply.status(404).send({ code: 'not_found', error: 'not found' })

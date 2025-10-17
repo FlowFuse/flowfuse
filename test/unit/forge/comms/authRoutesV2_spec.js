@@ -600,6 +600,11 @@ describe('Broker Auth v2 API', async function () {
                     })
                 })
                 describe('Team Broker Topic Update Cache', async function () {
+                    async function sleep (seconds) {
+                        return new Promise((resolve) => {
+                            setTimeout(resolve, (1000 * 3))
+                        })
+                    }
                     it('should not update if multiple calls to the same topic', async function () {
                         const topic = 'update/topic/timestamp'
                         await app.teamBroker.addUsedTopic(topic, TestObjects.ATeam.hashid)
@@ -617,6 +622,26 @@ describe('Broker Auth v2 API', async function () {
                             }
                         })
                         secondTopic[0].updatedAt.toISOString().should.equal(firstTopic[0].updatedAt.toISOString())
+                    })
+                    it('should delete from cache', async function () {
+                        const topic = 'update/topic/timestamp/2'
+                        await app.teamBroker.addUsedTopic(topic, TestObjects.ATeam.hashid)
+                        const firstTopic = await app.db.models.MQTTTopicSchema.findAll({
+                            where: {
+                                topic,
+                                TeamId: TestObjects.ATeam.id
+                            }
+                        })
+                        app.teamBroker.removeTopicFromCache(firstTopic[0], TestObjects.ATeam.hashid)
+                        await sleep(3)
+                        await app.teamBroker.addUsedTopic(topic, TestObjects.ATeam.hashid)
+                        const secondTopic = await app.db.models.MQTTTopicSchema.findAll({
+                            where: {
+                                topic,
+                                TeamId: TestObjects.ATeam.id
+                            }
+                        })
+                        secondTopic[0].updatedAt.toISOString().should.not.equal(firstTopic[0].updatedAt.toISOString())
                     })
                 })
             })
