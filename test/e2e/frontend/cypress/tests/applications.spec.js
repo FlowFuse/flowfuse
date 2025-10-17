@@ -124,7 +124,7 @@ describe('FlowFuse - Applications', () => {
             })
         })
 
-        it.only('handles instance creation failing gracefully', () => {
+        it('handles instance creation failing gracefully', () => {
             const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
             const IN_USE_INSTANCE_NAME = 'instance-1-9'
             const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
