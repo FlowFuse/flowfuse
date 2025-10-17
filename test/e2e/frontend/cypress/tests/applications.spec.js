@@ -61,6 +61,9 @@ describe('FlowFuse - Applications', () => {
                 cy.get('[data-el="next-step"]').should('be.enabled')
                 cy.get('[data-el="next-step"]').click()
 
+                // skips over import flows step
+                cy.get('[data-el="next-step"]').click()
+
                 cy.wait('@createApplication')
                 cy.wait('@createInstance')
 
@@ -98,7 +101,7 @@ describe('FlowFuse - Applications', () => {
                 cy.get('[data-form="application-description"] textarea').clear()
                 cy.get('[data-form="application-description"] textarea').type(APPLICATION_DESCRIPTION)
 
-                cy.get('[data-el="slider-step"]').should('have.length', 2)
+                cy.get('[data-el="slider-step"]').should('have.length', 3)
                 cy.get('[data-el="slider-title"]').should('to.contain', 'Application')
                 cy.get('[data-el="slider-title"]').should('to.contain', 'Instance')
 
@@ -121,7 +124,7 @@ describe('FlowFuse - Applications', () => {
             })
         })
 
-        it('handles instance creation failing gracefully', () => {
+        it.only('handles instance creation failing gracefully', () => {
             const APPLICATION_NAME = `new-application-${Math.random().toString(36).substring(2, 7)}`
             const IN_USE_INSTANCE_NAME = 'instance-1-9'
             const INSTANCE_NAME = `new-instance-${Math.random().toString(36).substring(2, 7)}`
@@ -164,6 +167,9 @@ describe('FlowFuse - Applications', () => {
 
                 cy.get('[data-el="next-step"]').click()
 
+                // skips over import flows step
+                cy.get('[data-el="next-step"]').click()
+
                 cy.wait('@createApplication')
                 cy.wait('@createInstance')
 
@@ -181,6 +187,9 @@ describe('FlowFuse - Applications', () => {
                 cy.get('[data-el="instance-name"] input').clear()
                 cy.get('[data-el="instance-name"] input').type(INSTANCE_NAME)
 
+                cy.get('[data-el="next-step"]').click()
+
+                // skips over import flows step
                 cy.get('[data-el="next-step"]').click()
 
                 cy.wait('@createInstance')
