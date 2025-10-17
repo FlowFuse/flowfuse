@@ -72,7 +72,6 @@ export default {
                 },
                 {
                     sliderTitle: 'Flows',
-                    hidden: this.hasNoBlueprints,
                     component: FlowsStep,
                     bindings: {
                         slug: FLOWS_SLUG,

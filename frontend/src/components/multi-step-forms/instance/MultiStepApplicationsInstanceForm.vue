@@ -120,9 +120,9 @@ export default {
                     }
                 },
                 {
-                    sliderTitle: this.deployingBlueprint ? 'Blueprint' : 'Flows',
+                    sliderTitle: this.deployingBlueprint && !this.hasNoBlueprints ? 'Blueprint' : 'Flows',
                     component: FlowsStep,
-                    hidden: this.shouldHideInstanceSteps || this.hasNoBlueprints,
+                    hidden: this.shouldHideInstanceSteps,
                     bindings: {
                         slug: FLOWS_SLUG,
                         state: this.form[FLOWS_SLUG],
