@@ -438,7 +438,11 @@ module.exports = {
         }
 
         if (flows) {
-            await app.db.controllers.StorageFlows.updateOrCreateForProject(instance, JSON.stringify(flows))
+            try {
+                await app.db.controllers.StorageFlows.updateOrCreateForProject(instance, JSON.stringify(flows))
+            } catch (e) {
+                app.logger.error('Error creating flows for project', { error: e })
+            }
         }
 
         await instance.reload({
