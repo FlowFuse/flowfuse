@@ -456,8 +456,7 @@ export default {
                         }
                     }
                 },
-                confirmLabel: 'Confirm',
-                cancelLabel: 'No'
+                confirmLabel: 'Confirm'
             }, async () => {
                 const promise = this.device.deviceGroup
                     ? ApplicationApi.updateDeviceGroupMembership(
