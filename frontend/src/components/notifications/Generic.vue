@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { defineAsyncComponent } from 'vue'
+import { defineAsyncComponent, markRaw } from 'vue'
 
 import IconDeviceSolid from '../../components/icons/DeviceSolid.js'
 import IconNodeRedSolid from '../../components/icons/NodeRedSolid.js'
@@ -64,6 +64,11 @@ export default {
                     icon: 'instance',
                     title: 'Node-RED Instance Memory Usage',
                     message: 'Memory usage of "<i>{{instance.name}}</i>" has spent more than 5 minutes at more than 75% of memory limit. This instance may benefit from being upgraded to a larger Instance type'
+                },
+                'team-trial-suspended': {
+                    icon: 'UserGroupIcon',
+                    title: 'Trial Period Ended',
+                    message: 'Your trial period for <i>{{team.name}}</i> has ended. Please upgrade to a paid plan to continue using this team.'
                 }
             }
         }
@@ -90,6 +95,9 @@ export default {
             case typeof this.notification.data?.url === 'string':
                 return { url: this.notification.data.url }
 
+            case this.notification.type === 'team-trial-suspended':
+                return { name: 'Billing', params: { team_slug: this.notification.data.team.slug } }
+
             default:
                 return null // no link
             }
@@ -112,7 +120,7 @@ export default {
             } else if (event.icon === 'device') {
                 event.iconComponent = IconDeviceSolid
             } else {
-                event.iconComponent = defineAsyncComponent(() => import('@heroicons/vue/solid').then(x => x[event.icon] || x.BellIcon))
+                event.iconComponent = markRaw(defineAsyncComponent(() => import('@heroicons/vue/solid').then(x => x[event.icon] || x.BellIcon)))
             }
 
             // Perform known substitutions
