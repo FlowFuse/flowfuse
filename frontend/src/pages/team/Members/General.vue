@@ -102,11 +102,14 @@ export default {
     },
     computed: {
         ...mapState('account', ['user', 'team']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapGetters('account', ['requiresBilling', 'featuresCheck']),
         canEditUser: function () {
             return this.hasPermission('team:user:remove') || this.hasPermission('team:user:change-role')
         },
         teamUserLimitReached () {
+            if (this.requiresBilling) {
+                return true
+            }
             let teamTypeUserLimit = getTeamProperty(this.team, 'users.limit')
             const currentUserCount = this.userCount + this.inviteCount
             if (this.team.billing?.trial && !this.team.billing?.active && getTeamProperty(this.team, 'trial.usersLimit')) {
