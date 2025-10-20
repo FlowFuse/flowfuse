@@ -469,15 +469,14 @@ export default {
                     : new Promise(resolve => resolve())
 
                 return promise
-                    .then(() => this.$emit('device-updated'))
                     .then(() => ApplicationApi.updateDeviceGroupMembership(
                         this.device.application.id,
                         selectedDeviceGroup,
                         {
                             add: this.device.id
                         }))
-                    .then(() => this.$emit('device-updated'))
                     .catch(e => e)
+                    .finally(() => this.$emit('device-updated'))
             })
         },
         highlightElements () {
