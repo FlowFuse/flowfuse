@@ -177,7 +177,6 @@ export default {
     methods: {
         updateForm (payload, stepKey) {
             this.currentStepKey = stepKey
-            console.log('zzz', payload)
             this.form = { ...this.form, ...payload }
         },
         async onSubmit () {
