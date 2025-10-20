@@ -19,7 +19,7 @@
             </template>
             <template v-if="canEditUser" #context-menu="{row}">
                 <ff-list-item
-                    v-if="hasPermission('team:user:change-role')"
+                    v-if="hasPermission('team:user:change-role') && !requiresBilling"
                     data-action="member-change-role"
                     label="Change Role" @click="changeRoleDialog(row)"
                 />
