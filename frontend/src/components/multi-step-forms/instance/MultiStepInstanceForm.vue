@@ -118,9 +118,15 @@ export default {
                 name: this.form[INSTANCE_SLUG].input.name,
                 projectType: this.form[INSTANCE_SLUG].input.instanceType,
                 stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
-                template: this.form[INSTANCE_SLUG].input.template,
-                flowBlueprintId: this.form[FLOWS_SLUG].blueprint?.id ?? '',
-                flows: this.form[FLOWS_SLUG].flows ?? ''
+                template: this.form[INSTANCE_SLUG].input.template
+            }
+
+            if (this.form[FLOWS_SLUG].blueprint?.id) {
+                payload.flowBlueprintId = this.form[FLOWS_SLUG].blueprint?.id
+            }
+
+            if (this.form[FLOWS_SLUG].flows) {
+                payload.flows = this.form[FLOWS_SLUG].flows
             }
 
             return instanceApi.create(payload)

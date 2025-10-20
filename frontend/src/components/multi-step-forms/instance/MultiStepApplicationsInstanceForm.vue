@@ -177,6 +177,7 @@ export default {
     methods: {
         updateForm (payload, stepKey) {
             this.currentStepKey = stepKey
+            console.log('zzz', payload)
             this.form = { ...this.form, ...payload }
         },
         async onSubmit () {
@@ -233,15 +234,22 @@ export default {
                 })
                 .then((application) => {
                     if (this.instanceFollowUp && !this.shouldHideInstanceSteps) {
-                        return instanceApi.create({
+                        const payload = {
                             applicationId: application.id,
                             name: this.form[INSTANCE_SLUG].input.name,
                             projectType: this.form[INSTANCE_SLUG].input.instanceType,
                             stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
-                            template: this.form[INSTANCE_SLUG].input.template,
-                            flowBlueprintId: this.form[FLOWS_SLUG].blueprint?.id ?? '',
-                            flows: this.form[FLOWS_SLUG].flows ?? ''
-                        })
+                            template: this.form[INSTANCE_SLUG].input.template
+                        }
+
+                        if (this.form[FLOWS_SLUG].blueprint?.id) {
+                            payload.flowBlueprintId = this.form[FLOWS_SLUG].blueprint?.id
+                        }
+
+                        if (this.form[FLOWS_SLUG].flows) {
+                            payload.flows = this.form[FLOWS_SLUG].flows
+                        }
+                        return instanceApi.create(payload)
                     }
                 })
                 .catch(err => {
