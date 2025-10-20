@@ -33,6 +33,7 @@ module.exports.init = function (app) {
                         await sendTrialEmail(subscription.Team, 'TrialTeamSuspended', {
                             teamSettingsURL: `${app.config.base_url}/team/${subscription.Team.slug}/billing`
                         })
+                        await sendTrialSuspendedNotification(subscription.Team, 'TrialTeamEnded')
                     }
 
                     // We have dealt with this team
@@ -110,6 +111,16 @@ module.exports.init = function (app) {
                     }
                 )
             }
+        }
+    }
+
+    async function sendTrialSuspendedNotification (team) {
+        const owners = await team.getOwners()
+        for (const user of owners) {
+            const { id, TeamTypeId, ...teamPayload } = team.toJSON()
+            app.notifications.send(user, 'team-trial-suspended', {
+                team: teamPayload
+            })
         }
     }
 

@@ -175,6 +175,18 @@ describe('Broker Auth v2 API', async function () {
                     topic: 'ff/v1/abc/d/ghi/command'
                 })
             })
+            it('allows plaform to publish to platform settings sync topic', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/platform/sync'
+                })
+            })
+            it('allows plaform to subscribe to platform settings sync topic', async function () {
+                await allowRead({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/platform/sync'
+                })
+            })
         })
 
         describe('Project', async function () {
@@ -585,6 +597,51 @@ describe('Broker Auth v2 API', async function () {
                     await allowWrite({
                         username: 'project:abc:xyz',
                         topic: 'ff/v1/abc/p/another-project/res-random/foo/bar'
+                    })
+                })
+                describe('Team Broker Topic Update Cache', async function () {
+                    async function sleep (seconds) {
+                        return new Promise((resolve) => {
+                            setTimeout(resolve, (1000 * 3))
+                        })
+                    }
+                    it('should not update if multiple calls to the same topic', async function () {
+                        const topic = 'update/topic/timestamp'
+                        await app.teamBroker.addUsedTopic(topic, TestObjects.ATeam.hashid)
+                        const firstTopic = await app.db.models.MQTTTopicSchema.findAll({
+                            where: {
+                                topic,
+                                TeamId: TestObjects.ATeam.id
+                            }
+                        })
+                        await app.teamBroker.addUsedTopic(topic, TestObjects.ATeam.hashid)
+                        const secondTopic = await app.db.models.MQTTTopicSchema.findAll({
+                            where: {
+                                topic,
+                                TeamId: TestObjects.ATeam.id
+                            }
+                        })
+                        secondTopic[0].updatedAt.toISOString().should.equal(firstTopic[0].updatedAt.toISOString())
+                    })
+                    it('should delete from cache', async function () {
+                        const topic = 'update/topic/timestamp/2'
+                        await app.teamBroker.addUsedTopic(topic, TestObjects.ATeam.hashid)
+                        const firstTopic = await app.db.models.MQTTTopicSchema.findAll({
+                            where: {
+                                topic,
+                                TeamId: TestObjects.ATeam.id
+                            }
+                        })
+                        app.teamBroker.removeTopicFromCache(firstTopic[0], TestObjects.ATeam.hashid)
+                        await sleep(3)
+                        await app.teamBroker.addUsedTopic(topic, TestObjects.ATeam.hashid)
+                        const secondTopic = await app.db.models.MQTTTopicSchema.findAll({
+                            where: {
+                                topic,
+                                TeamId: TestObjects.ATeam.id
+                            }
+                        })
+                        secondTopic[0].updatedAt.toISOString().should.not.equal(firstTopic[0].updatedAt.toISOString())
                     })
                 })
             })
