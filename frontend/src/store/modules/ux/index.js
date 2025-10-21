@@ -345,6 +345,11 @@ const getters = {
                             alert: (() => {
                                 const teamAge = new Date().getTime() - new Date(team.createdAt).getTime()
                                 const fourteenDaysInMs = 14 * 24 * 60 * 60 * 1000
+
+                                if (rootGetters['account/isTrialAccountExpired']) {
+                                    return null
+                                }
+
                                 if (team.memberCount === 1 && teamAge < fourteenDaysInMs) {
                                     return {
                                         title: 'Add a team member and start collaborating!'
