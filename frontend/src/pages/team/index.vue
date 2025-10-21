@@ -96,6 +96,7 @@ export default {
                 allowedRoutes.push('/team/' + this.team.slug + '/settings/general')
                 allowedRoutes.push('/team/' + this.team.slug + '/settings/danger')
                 allowedRoutes.push('/team/' + this.team.slug + '/settings/change-type')
+                allowedRoutes.push('/team/' + this.team.slug + '/members/general')
 
                 if (allowedRoutes.indexOf(route.path) === -1) {
                     // if we're on a path that requires billing
