@@ -242,7 +242,7 @@ export default {
         nodeRedVersionOptions () {
             return [
                 {
-                    label: 'Use Snapshot Node-RED Version',
+                    label: 'Use Next Snapshot Node-RED Version',
                     value: '<<use-snapshot-version>>'
                 },
                 {
