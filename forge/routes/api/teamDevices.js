@@ -469,7 +469,8 @@ module.exports = async function (app) {
                         minItems: 1
                     },
                     instance: { type: 'string', nullable: true },
-                    application: { type: 'string', nullable: true }
+                    application: { type: 'string', nullable: true },
+                    deviceGroup: { type: 'string', nullable: true }
                 }
             },
             response: {
@@ -499,6 +500,20 @@ module.exports = async function (app) {
                 const updatedDevices = await deviceController.moveDevices(request.body.devices, request.body.application, request.body.instance, request.session?.User, applicationRBACEnabled ? request.teamMembership : null)
                 updatedDevices.devices = updatedDevices.devices.map(d => app.db.views.Device.device(d))
                 reply.send(updatedDevices)
+            } else if (Object.prototype.hasOwnProperty.call(request.body, 'deviceGroup')) {
+                // if the device group is present but empty, we need to buld de-assign devices from their respective device group
+                // using the app.db.controllers.DeviceGroup.updateDeviceGroupMembership
+
+                // if the device group is present and not empty we need to:
+                //      1. bulk remove all devices from their existing group
+                //      2. bulk add all the devices to the new group
+                // using the app.db.controllers.DeviceGroup.updateDeviceGroupMembership
+
+                // finally we'd need to audit log our changes, succinctly
+                // using the const deviceGroupLogger = getApplicationLogger(app).application.deviceGroup
+
+                // check forge/ee/routes/applicationDeviceGroups/index.js:296 for rough outline
+                // all operations should share same transaction
             } else {
                 throw new ControllerError('invalid_input', 'No valid fields to update', 400)
             }
