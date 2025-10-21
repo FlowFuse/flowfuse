@@ -136,6 +136,7 @@ module.exports = async function (app) {
                     projectType: { type: 'string' },
                     stack: { type: 'string' },
                     flowBlueprintId: { type: 'string' },
+                    flows: { type: 'array' },
                     template: { type: 'string' },
                     sourceProject: {
                         type: 'object',
@@ -193,6 +194,10 @@ module.exports = async function (app) {
                 return
             }
         }
+        let flows
+        if (request.body.flows) {
+            flows = request.body.flows
+        }
 
         // Create the real project (performs validation)
         let project
@@ -209,7 +214,8 @@ module.exports = async function (app) {
                     ha: request.body.ha,
                     sourceProject,
                     sourceProjectOptions: request.body.sourceProject?.options,
-                    flowBlueprint
+                    flowBlueprint,
+                    flows
                 }
             )
         } catch (err) {
