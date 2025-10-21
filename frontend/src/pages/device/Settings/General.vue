@@ -430,8 +430,7 @@ export default {
                     <p>This Remote Instance will be cleared of any active pipeline snapshot.</p>
                     <p>Are you sure you want to continue?</p>
                 `,
-                confirmLabel: 'Confirm',
-                cancelLabel: 'No'
+                confirmLabel: 'Confirm'
             }, async () => ApplicationApi.updateDeviceGroupMembership(
                 this.device.application.id,
                 this.device.deviceGroup.id,
