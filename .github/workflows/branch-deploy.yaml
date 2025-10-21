@@ -48,9 +48,12 @@ env:
   AWS_EKS_DEPLOY_ROLE: 'EKSDeploymentRole'
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
   packages: write
+  checks: write
+  pull-requests: write
+  security-events: write
 
 jobs:
   # This job validates if the user, who triggered the workflow, is a member of the organization
