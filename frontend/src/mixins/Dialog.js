@@ -1,65 +1,20 @@
-import { markRaw } from 'vue'
+import { mapActions, mapState } from 'vuex'
 
 import dialog from '../services/dialog.js'
 
 export default {
-    data () {
-        return {
-            dialog: {
-                header: null,
-                text: null,
-                textLines: null,
-                html: null,
-                is: null,
-                confirmLabel: null,
-                kind: null,
-                canBeCanceled: true,
-                onConfirm: null,
-                onCancel: null,
-                boxClass: null
-            }
-        }
+    computed: {
+        ...mapState('ux/dialog', ['dialog'])
     },
     methods: {
-        clearDialog (cancelled) {
-            if (cancelled) {
-                this.dialog.onCancel?.()
-            }
-            this.dialog = {
-                header: null,
-                text: null,
-                textLines: null,
-                html: null,
-                is: null,
-                confirmLabel: null,
-                kind: null,
-                canBeCanceled: true,
-                onConfirm: null,
-                onCancel: null,
-                boxClass: null
-            }
-        },
+        ...mapActions('ux/dialog', ['clearDialog']),
+        ...mapActions('ux/dialog', {
+            handleDialog: 'showDialogHandlers'
+        }),
         showDialogHandler (msg, onConfirm, onCancel) {
-            if (typeof (msg) === 'string') {
-                this.dialog.content = msg
-            } else {
-                // msg is an object, let's break it apart
-                this.dialog.header = msg.header
-                this.dialog.text = msg.text
-                this.dialog.textLines = msg.text?.split('\n')
-                this.dialog.html = msg.html
-                this.dialog.is = msg.is ? markRaw(msg.is) : undefined
-                this.dialog.confirmLabel = msg.confirmLabel
-                this.dialog.cancelLabel = msg.cancelLabel
-                this.dialog.kind = msg.kind
-                this.dialog.disablePrimary = msg.disablePrimary
-                if (Object.prototype.hasOwnProperty.call(msg, 'canBeCanceled')) {
-                    this.dialog.canBeCanceled = msg.canBeCanceled
-                }
-                this.dialog.boxClass = msg.boxClass
-            }
-            this.dialog.onConfirm = onConfirm
-            this.dialog.onCancel = onCancel
+            return this.handleDialog({
+                payload: msg, onConfirm, onCancel
+            })
         }
     },
     mounted () {
