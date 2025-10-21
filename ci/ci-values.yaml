@@ -1,23 +1,4 @@
 forge:
-  projectProbes:
-    readinessProbe:
-      httpGet:
-        path: /
-        port: 1880
-      initialDelaySeconds: 3
-      periodSeconds: 5
-    livenessProbe:
-      httpGet:
-        path: /
-        port: 1880
-      initialDelaySeconds: 5
-      periodSeconds: 10
-    startupProbe:
-      httpGet:
-        path: /
-        port: 1880
-      initialDelaySeconds: 10
-      periodSeconds: 10
   domain: flowfuse.dev
   https: true
   localPostgresql: true
