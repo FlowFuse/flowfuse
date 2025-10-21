@@ -115,6 +115,9 @@ const getters = {
     isTrialAccount (state) {
         return !!state.team?.billing?.trial
     },
+    isTrialAccountExpired (state, getters) {
+        return getters.isTrialAccount && state.team?.billing?.trialEnded
+    },
     isAdminUser: (state) => !!state.user.admin,
     defaultUserTeam: (state, getters) => {
         const defaultTeamId = state.user.defaultTeam || getters.teams[0]?.id
