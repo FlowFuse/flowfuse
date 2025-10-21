@@ -474,7 +474,11 @@ export default {
                         {
                             add: this.device.id
                         }))
-                    .catch(e => e)
+                    .then(() => Alerts.emit('Successfully assigned device.', 'confirmation'))
+                    .catch(e => {
+                        Alerts.emit('Something went wrong.', 'error')
+                        console.error(e)
+                    })
                     .finally(() => this.$emit('device-updated'))
             })
         },
