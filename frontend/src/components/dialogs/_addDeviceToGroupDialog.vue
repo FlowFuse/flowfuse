@@ -34,6 +34,7 @@
 
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
+import { mapActions } from 'vuex'
 
 import ApplicationAPI from '../../api/application.js'
 import FfLoading from '../Loading.vue'
@@ -61,12 +62,14 @@ export default {
     watch: {
         selected () {
             this.$emit('selected', this.selected)
+            this.setDisablePrimary((this.device.deviceGroup?.id ?? null) === this.selected)
         }
     },
     mounted () {
         this.getDeviceGroups()
     },
     methods: {
+        ...mapActions('ux/dialog', ['setDisablePrimary']),
         async getDeviceGroups () {
             return ApplicationAPI.getDeviceGroups(this.device.application.id)
                 .then((groups) => {
@@ -74,6 +77,7 @@ export default {
                     if (this.device.deviceGroup) {
                         this.selected = this.device.deviceGroup.id
                     }
+                    this.setDisablePrimary((this.device.deviceGroup?.id ?? null) === this.selected)
                 })
                 .catch((err) => {
                     console.error(err)
