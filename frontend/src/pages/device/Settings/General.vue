@@ -159,7 +159,7 @@
             <FormRow containerClass="max-w-md" wrapperClass="max-w-md">
                 Node-RED Version
                 <template #description>
-                    Clear this field to use the Node-RED version specified in the Remote Instance's active snapshot. Defaults to 'latest' if the snapshot does not specify a version.
+                    Use this field to override the Node-RED version specified in the Remote Instance's active snapshot. Defaults to 'latest' if the snapshot does not specify a version.
                 </template>
                 <template #input>
                     <div class="flex flex-wrap">
@@ -301,7 +301,7 @@ export default {
         nodeRedVersionOptions () {
             return [
                 {
-                    label: 'Use Snapshot Node-RED Version',
+                    label: 'Use Next Snapshot Node-RED Version',
                     value: '<<use-snapshot-version>>'
                 },
                 {
