@@ -47,14 +47,6 @@ env:
   AWS_ECR_PUSH_ROLE: 'ECR_push_pull_images'
   AWS_EKS_DEPLOY_ROLE: 'EKSDeploymentRole'
 
-permissions:
-  contents: write
-  id-token: write
-  packages: write
-  checks: write
-  pull-requests: write
-  security-events: write
-
 jobs:
   # This job validates if the user, who triggered the workflow, is a member of the organization
   # Note: Any workflow re-runs will use the privileges of github.actor, even if the actor initiating the re-run (github.triggering_actor) has different privileges.
@@ -239,6 +231,9 @@ jobs:
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
     outputs:
       nr_custom_image_tag: ${{ steps.set_outputs.outputs.nr_image_tag }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Set variables
         run: | 
@@ -358,6 +353,9 @@ jobs:
     env:
       IMAGE_NAME: 'forge-k8s'
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -606,6 +604,9 @@ jobs:
     env:
       IMAGE_NAME: 'forge-k8s'
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Configure AWS credentials for EKS interaction
         uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
