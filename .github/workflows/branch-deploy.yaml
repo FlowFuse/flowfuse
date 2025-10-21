@@ -50,6 +50,7 @@ env:
 permissions:
   contents: read
   id-token: write
+  packages: write
 
 jobs:
   # This job validates if the user, who triggered the workflow, is a member of the organization
