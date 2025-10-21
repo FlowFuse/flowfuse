@@ -43,6 +43,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.number }}
   cancel-in-progress: false
 
+env:
+  AWS_ECR_PUSH_ROLE: 'ECR_push_pull_images'
+  AWS_EKS_DEPLOY_ROLE: 'EKSDeploymentRole'
+
 jobs:
   # This job validates if the user, who triggered the workflow, is a member of the organization
   # Note: Any workflow re-runs will use the privileges of github.actor, even if the actor initiating the re-run (github.triggering_actor) has different privileges.
@@ -240,8 +244,9 @@ jobs:
         id: aws-config
         uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_ECR_PUSH_ROLE }}
+          role-session-name: GithubActionsRoleSession
+          role-duration-seconds: 900
           aws-region: eu-west-1
           mask-aws-account-id: true
       
@@ -375,8 +380,9 @@ jobs:
         id: aws-config
         uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_ECR_PUSH_ROLE }}
+          role-session-name: GithubActionsRoleSession
+          role-duration-seconds: 900
           aws-region: eu-west-1
           mask-aws-account-id: true
         
@@ -394,11 +400,10 @@ jobs:
       - name: Configure AWS credentials for EKS interaction
         uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_EKS_DEPLOY_ROLE }}
+          role-session-name: GithubActionsRoleSessio
+          role-duration-seconds: 900
           aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
-          role-duration-seconds: 1200
 
       - name: Configure kubeconfig
         run: |
@@ -597,11 +602,10 @@ jobs:
       - name: Configure AWS credentials for EKS interaction
         uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_EKS_DEPLOY_ROLE }}
+          role-session-name: GithubActionsRoleSession
+          role-duration-seconds: 900
           aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
-          role-duration-seconds: 1200
 
       - name: Configure kubeconfig
         run: |
