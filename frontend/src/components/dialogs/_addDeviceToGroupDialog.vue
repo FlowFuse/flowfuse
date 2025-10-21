@@ -36,7 +36,7 @@
                         <ExclamationIcon class="ff-icon ff-icon-lg text-yellow-500" />
                     </div>
                     <p>
-                        This Remote Instance will be cleared of any active pipeline snapshot from the original group when reassigning to a new group.
+                        This device will be updated to deploy the selected groups active pipeline snapshot.
                     </p>
                 </div>
             </div>
