@@ -31,7 +31,7 @@
                     </ff-combobox>
                 </div>
 
-                <div v-if="device.deviceGroup" class="notice flex gap-4 items-center">
+                <div class="notice flex gap-4 items-center">
                     <div>
                         <ExclamationIcon class="ff-icon ff-icon-lg text-yellow-500" />
                     </div>
