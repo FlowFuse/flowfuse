@@ -147,9 +147,9 @@ export default {
                     if (this.devicesBelongToSameApplication) {
                         this.application = this.devices[0].application
                     } else {
-                        this.setDisablePrimary(true)
                         reject(new Error('Remote Instances do not belong to the same application'))
                     }
+                    this.setDisablePrimary(true)
                 }
 
                 resolve()
