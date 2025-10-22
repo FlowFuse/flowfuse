@@ -446,7 +446,7 @@ export default {
                 { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenCell) } },
-                { label: 'Mode', key: 'mode', class: ['w-48'], sortable: true, component: { is: markRaw(DeviceModeBadge) } },
+                { label: 'Mode', key: 'mode', class: ['w-30'], sortable: true, component: { is: markRaw(DeviceModeBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge), map: { instanceId: 'id' }, extraProps: { instanceType: 'device' } } }
             ]
 
@@ -467,6 +467,12 @@ export default {
                     { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
                 )
             }
+
+            columns.push({
+                label: 'Group',
+                key: 'deviceGroup.name',
+                sortable: !this.moreThanOnePage
+            })
 
             return columns
         },
@@ -490,7 +496,8 @@ export default {
                     hideContextMenu: !this.hasPermission('device:edit', context),
                     ...device,
                     ...statusObject,
-                    ...(ownerKey ? { _ownerSortKey: ownerKey } : { _ownerSortKey: undefined })
+                    ...(ownerKey ? { _ownerSortKey: ownerKey } : { _ownerSortKey: undefined }),
+                    deviceGroup: device.deviceGroup || { name: 'Ungrouped' }
                 }
             })
 
