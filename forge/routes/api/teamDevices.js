@@ -489,12 +489,37 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        async function unassignDevicesFromGroup (devices, transaction) {
+            // Filter out devices without deviceGroups and group them by their current device group
+            const devicesByGroup = devices.filter(device => device.DeviceGroup)
+                .reduce((acc, device) => {
+                    const groupId = device.DeviceGroup?.id || null
+                    if (!acc[groupId]) {
+                        acc[groupId] = {
+                            group: device.DeviceGroup,
+                            devices: []
+                        }
+                    }
+                    acc[groupId].devices.push(device)
+                    return acc
+                }, {})
+
+            for (const key of Object.keys(devicesByGroup)) {
+                const removeDevices = devicesByGroup[key].devices.map(d => d.id)
+                await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(devicesByGroup[key].group, {
+                    transaction,
+                    removeDevices
+                })
+            }
+        }
+
         try {
             /** @type {typeof import('../../db/controllers/Device')} */
             const deviceController = app.db.controllers.Device
             if (request.body.devices.some(d => !d.trim())) {
                 throw new ControllerError('invalid_input', 'Invalid device id', 400)
             }
+
             if (request.body.instance !== undefined || request.body.application !== undefined) {
                 const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.TeamType.getFeatureProperty('rbacApplication', false)
                 // Only pass through the teamMembership object if application RBAC is enabled
@@ -502,13 +527,31 @@ module.exports = async function (app) {
                 updatedDevices.devices = updatedDevices.devices.map(d => app.db.views.Device.device(d))
                 reply.send(updatedDevices)
             } else if (Object.prototype.hasOwnProperty.call(request.body, 'deviceGroup')) {
-                // if the device group is present but empty, we need to buld de-assign devices from their respective device group
-                // using the app.db.controllers.DeviceGroup.updateDeviceGroupMembership
+                const decodedDeviceIds = request.body.devices.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
+                const { devices } = await app.db.models.Device.getAll({}, { id: decodedDeviceIds }, {
+                    includeDeviceGroup: true
+                })
 
-                // if the device group is present and not empty we need to:
-                //      1. bulk remove all devices from their existing group
-                //      2. bulk add all the devices to the new group
-                // using the app.db.controllers.DeviceGroup.updateDeviceGroupMembership
+                if (request.body.deviceGroup === '') {
+                    // if the device group is present but empty, we need to buld de-assign devices from their respective device group
+                    const transaction = await app.db.sequelize.transaction()
+                    await unassignDevicesFromGroup(devices, transaction)
+                    await transaction.commit()
+                } else if (request.body.deviceGroup.length > 1) {
+                    const deviceGroup = await app.db.models.DeviceGroup.byId(request.body.deviceGroup)
+
+                    if (!deviceGroup) {
+                        throw new ControllerError('invalid_input', 'Invalid device group', 400)
+                    }
+
+                    const transaction = await app.db.sequelize.transaction()
+                    await unassignDevicesFromGroup(devices, transaction)
+                    await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, {
+                        transaction,
+                        addDevices: devices.map(d => d.id)
+                    })
+                    await transaction.commit()
+                }
 
                 // finally we'd need to audit log our changes, succinctly
                 // using the const deviceGroupLogger = getApplicationLogger(app).application.deviceGroup
