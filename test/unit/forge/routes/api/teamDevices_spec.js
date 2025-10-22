@@ -1112,13 +1112,24 @@ describe('Team Devices API', function () {
                 })
 
                 describe('audit logging', function () {
-                    it('Verify audit log is called with correct parameters for assignment', async function () {
+                    it('Verify audit log is called for assignment operations', async function () {
                         const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
                             devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid],
                             deviceGroup: group2.hashid
                         })
                         response.statusCode.should.equal(200)
-                        // Audit log verification would go here
+
+                        should(auditLogSpy.called).be.true()
+                    })
+
+                    it('Verify audit log is called for unassignment operations', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid],
+                            deviceGroup: ''
+                        })
+                        response.statusCode.should.equal(200)
+
+                        should(auditLogSpy.called).be.true()
                     })
                 })
 
