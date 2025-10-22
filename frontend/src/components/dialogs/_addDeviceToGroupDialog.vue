@@ -141,7 +141,14 @@ export default {
                     this.devices.forEach((device) => {
                         map[device.application?.id ?? ''] = ''
                     })
-                    this.devicesBelongToSameApplication = Object.keys(map).filter(key => key)
+                    const keys = Object.keys(map)
+
+                    if (keys.some(key => key === '')) {
+                        this.devicesBelongToSameApplication = false
+                        return reject(new Error('Some Remote Instances do not belong to an application'))
+                    }
+
+                    this.devicesBelongToSameApplication = keys.filter(key => key)
                         .length === 1
 
                     if (this.devicesBelongToSameApplication) {
