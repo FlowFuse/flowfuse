@@ -138,7 +138,7 @@ module.exports = {
         return deviceGroup
     },
 
-    updateDeviceGroupMembership: async function (app, deviceGroup, { addDevices, removeDevices, setDevices } = {}) {
+    updateDeviceGroupMembership: async function (app, deviceGroup, { addDevices, removeDevices, setDevices, transaction = null } = {}) {
         // * deviceGroup is required. The object must be a Sequelize model instance and must include the Devices
         // * addDevices, removeDevices, setDevices are optional
         // * if setDevices is provided, this will be used to set the devices assigned to the group, removing any devices that are not in the set
@@ -176,7 +176,7 @@ module.exports = {
         }
         let changeCount = 0
         // wrap the operations in a transaction to avoid inconsistent state
-        const t = await app.db.sequelize.transaction()
+        const t = transaction ?? await app.db.sequelize.transaction()
         const targetSnapshotId = deviceGroup.targetSnapshotId || undefined
         try {
             // add devices
@@ -189,12 +189,11 @@ module.exports = {
                 changeCount += actualRemoveDevices.length
                 await this.removeDevicesFromGroup(app, deviceGroup, actualRemoveDevices, targetSnapshotId, t)
             }
-
-            // commit the transaction
-            await t.commit()
         } catch (err) {
-            // Rollback transaction if any errors were encountered
-            await t.rollback()
+            if (!transaction) {
+                // Rollback transaction if any errors were encountered
+                await t.rollback()
+            }
             // if the error is a DeviceGroupMembershipValidationError, rethrow it
             if (err instanceof DeviceGroupMembershipValidationError) {
                 throw err
@@ -212,6 +211,11 @@ module.exports = {
             await deviceGroup.save()
             // finally, asynchronously inform the devices an update may be required
             this.sendUpdateCommand(app, deviceGroup, actualRemoveDevices)
+        }
+
+        if (!transaction) {
+            // commit the transaction
+            await t.commit()
         }
     },
 
