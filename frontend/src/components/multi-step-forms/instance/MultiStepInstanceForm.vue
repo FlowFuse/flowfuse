@@ -24,11 +24,11 @@ import instanceApi from '../../../api/instances.js'
 import Alerts from '../../../services/alerts.js'
 import MultiStepForm from '../MultiStepForm.vue'
 
-import BlueprintStep from './steps/BlueprintStep.vue'
 import InstanceStep from './steps/InstanceStep.vue'
+import FlowsStep from './steps/flows-step/index.vue'
 
 const INSTANCE_SLUG = 'instance'
-const BLUEPRINT_SLUG = 'blueprint'
+const FLOWS_SLUG = 'flows'
 
 export default {
     name: 'MultiStepInstanceForm',
@@ -45,7 +45,7 @@ export default {
             blueprints: [],
             form: {
                 [INSTANCE_SLUG]: { },
-                [BLUEPRINT_SLUG]: { }
+                [FLOWS_SLUG]: { }
             },
             formLoading: false,
             loadingText: '',
@@ -71,12 +71,11 @@ export default {
                     }
                 },
                 {
-                    sliderTitle: 'Blueprint',
-                    hidden: this.hasNoBlueprints,
-                    component: BlueprintStep,
+                    sliderTitle: 'Flows',
+                    component: FlowsStep,
                     bindings: {
-                        slug: BLUEPRINT_SLUG,
-                        state: this.form[BLUEPRINT_SLUG],
+                        slug: FLOWS_SLUG,
+                        state: this.form[FLOWS_SLUG],
                         blueprints: this.blueprints
                     }
                 }
@@ -119,8 +118,15 @@ export default {
                 name: this.form[INSTANCE_SLUG].input.name,
                 projectType: this.form[INSTANCE_SLUG].input.instanceType,
                 stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
-                template: this.form[INSTANCE_SLUG].input.template,
-                flowBlueprintId: this.form[BLUEPRINT_SLUG].blueprint?.id ?? ''
+                template: this.form[INSTANCE_SLUG].input.template
+            }
+
+            if (this.form[FLOWS_SLUG].blueprint?.id) {
+                payload.flowBlueprintId = this.form[FLOWS_SLUG].blueprint?.id
+            }
+
+            if (this.form[FLOWS_SLUG].flows) {
+                payload.flows = this.form[FLOWS_SLUG].flows
             }
 
             return instanceApi.create(payload)

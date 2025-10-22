@@ -1,4 +1,6 @@
-module.exports.init = function (app) {
+const { LRUCache } = require('lru-cache')
+
+module.exports.init = async function (app) {
     // enable Team Broker Feature
     if (app.config.broker?.teamBroker?.enabled) {
         app.config.features.register('teamBroker', true, true)
@@ -39,18 +41,48 @@ module.exports.init = function (app) {
      */
     async function addUsedTopic (topic, team) {
         const teamId = app.db.models.Team.decodeHashid(team)
-        await app.db.models.MQTTTopicSchema.upsert({
-            topic,
-            TeamId: teamId,
-            BrokerCredentialsId: app.settings.get('team:broker:creds') ?? null
-        }, {
-            topic,
-            TeamId: teamId,
-            BrokerCredentialsId: app.settings.get('team:broker:creds') ?? null
+        const cacheHit = topicCache.get(`${teamId[0]}#${topic}`)
+        if (!cacheHit) {
+            await app.db.models.MQTTTopicSchema.upsert({
+                topic,
+                TeamId: teamId,
+                BrokerCredentialsId: app.settings.get('team:broker:creds') ?? null
+            }, {
+                topic,
+                TeamId: teamId,
+                BrokerCredentialsId: app.settings.get('team:broker:creds') ?? null
+            })
+            topicCache.set(`${teamId}#${topic}`, true)
+        }
+    }
+
+    const topicCache = new LRUCache({
+        max: 5000,
+        ttl: 1000 * 60 * 30 // 30 min grace period
+    })
+    try {
+        const topics = await app.db.models.MQTTTopicSchema.findAll({
+            where: {
+                BrokerCredentialsId: app.settings.get('team:broker:creds')
+            },
+            attributes: ['TeamId', 'topic'],
+            order: [['updatedAt', 'DESC']],
+            limit: 5000
         })
+        for (const topic of topics) {
+            topicCache.set(`${topic.TeamId}#${topic.topic}`, true)
+        }
+    } catch (err) {
+        app.log.debug(`Error populating Team Broker Topic Cache ${err.toString()}`)
+    }
+
+    function removeTopicFromCache (topic, team) {
+        const teamId = app.db.models.Team.decodeHashid(team)
+        topicCache.delete(`${teamId[0]}#${topic.topic}`)
     }
 
     app.decorate('teamBroker', {
-        addUsedTopic
+        addUsedTopic,
+        removeTopicFromCache
     })
 }
