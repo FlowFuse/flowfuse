@@ -536,19 +536,19 @@ module.exports = async function (app) {
                 updatedDevices.devices = updatedDevices.devices.map(d => app.db.views.Device.device(d))
                 reply.send(updatedDevices)
             } else if (Object.prototype.hasOwnProperty.call(request.body, 'deviceGroup')) {
+                const infoBuilder = []
                 const decodedDeviceIds = request.body.devices.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
                 const devicesCollection = await app.db.models.Device.getAll({}, { id: decodedDeviceIds }, {
                     includeDeviceGroup: true
                 })
+                let deviceGroup
 
                 if (request.body.deviceGroup === '') {
                     // if the device group is present but empty, we need to bulk unassign devices from their respective device group
                     await unassignDevicesFromGroup(devicesCollection.devices)
-
-                    // we're not sending the updated devices back, the FE will fetch the updated list of devices separately
-                    reply.send(devicesCollection)
+                    infoBuilder.push(`Added ${decodedDeviceIds.length}`)
                 } else if (request.body.deviceGroup.length > 1) {
-                    const deviceGroup = await app.db.models.DeviceGroup.byId(request.body.deviceGroup)
+                    deviceGroup = await app.db.models.DeviceGroup.byId(request.body.deviceGroup)
 
                     if (!deviceGroup) {
                         throw new ControllerError('invalid_input', 'Invalid device group', 400)
@@ -561,15 +561,20 @@ module.exports = async function (app) {
                         addDevices: devicesCollection.devices.map(d => d.id)
                     })
 
-                    // we're not sending the updated devices back, the FE will fetch the updated list of devices separately
-                    reply.send(devicesCollection)
+                    infoBuilder.push(`Reassigned ${decodedDeviceIds.length}`)
                 }
 
-                // finally we'd need to audit log our changes, succinctly
-                // using the const deviceGroupLogger = getApplicationLogger(app).application.deviceGroup
+                const deviceGroupLogger = app.auditLog.Application.application.deviceGroup
 
-                // check forge/ee/routes/applicationDeviceGroups/index.js:296 for rough outline
-                // all operations should share same transaction
+                await deviceGroupLogger.membersChanged(request.session.User,
+                    null,
+                    deviceGroup.Application,
+                    deviceGroup,
+                    null,
+                    { info: infoBuilder.join(', ') })
+
+                // we're not sending the updated devices back, the FE will fetch the updated list of devices separately
+                reply.send(devicesCollection)
             } else {
                 throw new ControllerError('invalid_input', 'No valid fields to update', 400)
             }
