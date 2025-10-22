@@ -489,7 +489,9 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        async function unassignDevicesFromGroup (devices, transaction) {
+        async function unassignDevicesFromGroup (devices) {
+            const transaction = await app.db.sequelize.transaction()
+
             // Filter out devices without deviceGroups and group them by their current device group
             const devicesByGroup = devices.filter(device => device.DeviceGroup)
                 .reduce((acc, device) => {
@@ -504,12 +506,19 @@ module.exports = async function (app) {
                     return acc
                 }, {})
 
-            for (const key of Object.keys(devicesByGroup)) {
-                const removeDevices = devicesByGroup[key].devices.map(d => d.id)
-                await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(devicesByGroup[key].group, {
-                    transaction,
-                    removeDevices
-                })
+            try {
+                for (const key of Object.keys(devicesByGroup)) {
+                    const removeDevices = devicesByGroup[key].devices.map(d => d.id)
+                    await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(devicesByGroup[key].group, {
+                        transaction,
+                        removeDevices
+                    })
+                }
+
+                await transaction.commit()
+            } catch (e) {
+                await transaction.rollback()
+                throw e
             }
         }
 
@@ -528,15 +537,16 @@ module.exports = async function (app) {
                 reply.send(updatedDevices)
             } else if (Object.prototype.hasOwnProperty.call(request.body, 'deviceGroup')) {
                 const decodedDeviceIds = request.body.devices.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
-                const { devices } = await app.db.models.Device.getAll({}, { id: decodedDeviceIds }, {
+                const devicesCollection = await app.db.models.Device.getAll({}, { id: decodedDeviceIds }, {
                     includeDeviceGroup: true
                 })
 
                 if (request.body.deviceGroup === '') {
-                    // if the device group is present but empty, we need to buld de-assign devices from their respective device group
-                    const transaction = await app.db.sequelize.transaction()
-                    await unassignDevicesFromGroup(devices, transaction)
-                    await transaction.commit()
+                    // if the device group is present but empty, we need to bulk unassign devices from their respective device group
+                    await unassignDevicesFromGroup(devicesCollection.devices)
+
+                    // we're not sending the updated devices back, the FE will fetch the updated list of devices separately
+                    reply.send(devicesCollection)
                 } else if (request.body.deviceGroup.length > 1) {
                     const deviceGroup = await app.db.models.DeviceGroup.byId(request.body.deviceGroup)
 
@@ -544,13 +554,15 @@ module.exports = async function (app) {
                         throw new ControllerError('invalid_input', 'Invalid device group', 400)
                     }
 
-                    const transaction = await app.db.sequelize.transaction()
-                    await unassignDevicesFromGroup(devices, transaction)
+                    // we first need to bulk unassign devices from their respective device group
+                    await unassignDevicesFromGroup(devicesCollection.devices)
+
                     await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, {
-                        transaction,
-                        addDevices: devices.map(d => d.id)
+                        addDevices: devicesCollection.devices.map(d => d.id)
                     })
-                    await transaction.commit()
+
+                    // we're not sending the updated devices back, the FE will fetch the updated list of devices separately
+                    reply.send(devicesCollection)
                 }
 
                 // finally we'd need to audit log our changes, succinctly
