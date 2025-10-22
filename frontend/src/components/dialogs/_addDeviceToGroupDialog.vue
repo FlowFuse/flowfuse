@@ -6,14 +6,14 @@
             <div v-else class="flex flex-col gap-8">
                 <div class="flex flex-col gap-4">
                     <div class="title">
-                        <h3 v-if="devices && !devicesBelongToSameApplication">
+                        <h3 v-if="devices && (!devicesBelongToSameApplication || assigningInstanceOwnedDevices)">
                             Unable to assign device to group.
                         </h3>
                         <h3 v-else>Select a group from {{ application? application.name : device.application.name }}</h3>
                     </div>
 
                     <ff-combobox
-                        v-if="devicesBelongToSameApplication" v-model="selected"
+                        v-if="devicesBelongToSameApplication && !assigningInstanceOwnedDevices" v-model="selected"
                         :options="deviceGroups" label-key="name" value-key="id"
                     >
                         <template #option="{ option, selected, active }">
@@ -40,11 +40,16 @@
                     </ff-combobox>
                 </div>
 
-                <notice-banner v-if="devicesBelongToSameApplication" :text="assignmentNoticeText" />
+                <notice-banner v-if="devicesBelongToSameApplication && !assigningInstanceOwnedDevices" :text="assignmentNoticeText" />
 
                 <notice-banner
                     v-if="devices && !devicesBelongToSameApplication"
                     text="Selected Remote Instances must belong to the same application in order to assign them to a group."
+                />
+
+                <notice-banner
+                    v-if="assigningInstanceOwnedDevices"
+                    text="One or more Remote Instances are owned by a Hosted Instance and cannot be assigned to a group."
                 />
             </div>
         </transition>
@@ -86,7 +91,8 @@ export default {
             loading: true,
             deviceGroups: [],
             selected: null,
-            devicesBelongToSameApplication: true
+            devicesBelongToSameApplication: true,
+            assigningInstanceOwnedDevices: false
         }
     },
     computed: {
@@ -138,9 +144,15 @@ export default {
             return new Promise((resolve, reject) => {
                 if (this.devices.length > 0) {
                     const map = {}
-                    this.devices.forEach((device) => {
+
+                    for (const device of this.devices) {
+                        if (device.ownerType === 'instance') {
+                            this.assigningInstanceOwnedDevices = true
+                            return reject(new Error('Unable to assign hosted instance owned devices to a group'))
+                        }
+
                         map[device.application?.id ?? ''] = ''
-                    })
+                    }
                     const keys = Object.keys(map)
 
                     if (keys.some(key => key === '')) {
