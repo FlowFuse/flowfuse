@@ -356,6 +356,7 @@ import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredent
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue'
 
 import Alerts from '../services/alerts.js'
+import Dialog from '../services/dialog.js'
 import FfPopover from '../ui-components/components/Popover.vue'
 import PopoverItem from '../ui-components/components/PopoverItem.vue'
 import FfCheckbox from '../ui-components/components/form/Checkbox.vue'
@@ -366,6 +367,7 @@ import { createPollTimer } from '../utils/timers.js'
 import EmptyState from './EmptyState.vue'
 import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
+import AddDeviceToGroupDialog from './dialogs/_addDeviceToGroupDialog.vue'
 
 const POLL_TIME = 10000
 
@@ -461,18 +463,23 @@ export default {
                         is: markRaw(DeviceAssignedToLink)
                     }
                 })
+                columns.push({
+                    label: 'Group',
+                    key: 'deviceGroup.name',
+                    sortable: !this.moreThanOnePage
+                })
             } else if (this.displayingInstance) {
                 // Show snapshot info when looking at devices owned by an instance
                 columns.push(
                     { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
                 )
+            } else if (this.displayingApplication) {
+                columns.push({
+                    label: 'Group',
+                    key: 'deviceGroup.name',
+                    sortable: !this.moreThanOnePage
+                })
             }
-
-            columns.push({
-                label: 'Group',
-                key: 'deviceGroup.name',
-                sortable: !this.moreThanOnePage
-            })
 
             return columns
         },
@@ -547,6 +554,14 @@ export default {
             } else if (this.displayingTeam && (showRemoveFromInstance || showRemoveFromApplication)) {
                 menu.push({ name: 'Unassign', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
             }
+
+            if (enableMove && !this.displayingInstance) {
+                menu.push(null)
+                menu.push({ name: 'Assign to Group', action: this.showBulkGroupAssignDialog, disabled: !enableMove })
+                menu.push({ name: 'Unassign from Group', action: this.showBulkGroupUnassignDialog, disabled: !enableMove })
+            }
+
+            menu.push(null)
             menu.push({ name: 'Delete', class: ['!text-red-600'], action: this.showTeamBulkDeviceDeleteDialog, disabled: !enableDelete })
             return menu
         },
@@ -675,6 +690,50 @@ export default {
 
         showTeamBulkDeviceMoveToApplicationDialog () {
             this.$refs.deviceAssignApplicationDialog.show(this.checkedDevices)
+        },
+
+        showBulkGroupUnassignDialog () {
+            Dialog.show({
+                header: 'Remove selected Remote Instances from their respective groups?',
+                kind: 'danger',
+                html: `
+                    <p>These Remote Instances will be cleared of any active pipeline snapshot.</p>
+                    <p>Are you sure you want to continue?</p>
+                `,
+                confirmLabel: 'Confirm'
+            }, () => teamApi.bulkDeviceMove(this.team.id, this.checkedDevices.map(device => device.id), 'group', '')
+                .then(() => this.fullReloadOfData())
+                .catch(e => e)
+            )
+        },
+
+        showBulkGroupAssignDialog () {
+            let selectedDeviceGroup
+
+            Dialog.show({
+                header: 'Add devices to a group',
+                kind: 'primary',
+                is: {
+                    component: markRaw(AddDeviceToGroupDialog),
+                    payload: {
+                        devices: this.checkedDevices
+                    },
+                    on: {
+                        selected (selection) {
+                            selectedDeviceGroup = selection
+                        }
+                    }
+                },
+                confirmLabel: 'Confirm'
+            }, async () => {
+                return teamApi.bulkDeviceMove(this.team.id, this.checkedDevices.map(device => device.id), 'group', selectedDeviceGroup)
+                    .then(() => Alerts.emit('Successfully assigned devices.', 'confirmation'))
+                    .catch(e => {
+                        Alerts.emit('Something went wrong.', 'error')
+                        console.error(e)
+                    })
+                    .finally(() => this.fullReloadOfData())
+            })
         },
 
         showSelectTargetSnapshotDialog () {
