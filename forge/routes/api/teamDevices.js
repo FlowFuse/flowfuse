@@ -568,7 +568,7 @@ module.exports = async function (app) {
 
                 await deviceGroupLogger.membersChanged(request.session.User,
                     null,
-                    deviceGroup.Application,
+                    deviceGroup?.Application,
                     deviceGroup,
                     null,
                     { info: infoBuilder.join(', ') })
