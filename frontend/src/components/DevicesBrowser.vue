@@ -783,16 +783,16 @@ export default {
          */
         async moveDevicesToApplication (devices, application) {
             const deviceIds = devices.map(device => device.id)
-            const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'application', application)
-            if (data?.devices.length) {
-                Alerts.emit('Devices successfully moved.', 'confirmation')
-                data.devices.forEach(updatedDevice => {
-                    const device = this.devices.get(updatedDevice.id)
-                    // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
-                    const ensureProps = { instance: updatedDevice.instance || null, application: updatedDevice.application || null }
-                    this.updateLocalCopyOfDevice({ ...device, ...updatedDevice, ...ensureProps })
+            teamApi.bulkDeviceMove(this.team.id, deviceIds, 'application', application)
+                .then(() => Alerts.emit('Devices successfully moved.', 'confirmation'))
+                .catch((e) => {
+                    if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
+                        Alerts.emit(e.response.data.error, 'warning')
+                    } else Alerts.emit('Something went wrong.', 'warning')
+
+                    console.error(e)
                 })
-            }
+                .finally(() => this.fullReloadOfData())
         },
 
         /**
@@ -800,16 +800,16 @@ export default {
          */
         async moveDevicesToUnassigned (devices) {
             const deviceIds = devices.map(device => device.id)
-            const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'unassigned')
-            if (data?.devices.length) {
-                Alerts.emit('Devices successfully unassigned.', 'confirmation')
-                data.devices.forEach(updatedDevice => {
-                    const device = this.devices.get(updatedDevice.id)
-                    // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
-                    const ensureProps = { instance: updatedDevice.instance || null, application: updatedDevice.application || null }
-                    this.updateLocalCopyOfDevice({ ...device, ...updatedDevice, ...ensureProps })
+            teamApi.bulkDeviceMove(this.team.id, deviceIds, 'unassigned')
+                .then(() => Alerts.emit('Devices successfully unassigned.', 'confirmation'))
+                .catch((e) => {
+                    if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
+                        Alerts.emit(e.response.data.error, 'warning')
+                    } else Alerts.emit('Something went wrong.', 'warning')
+
+                    console.error(e)
                 })
-            }
+                .finally(() => this.fullReloadOfData())
         },
 
         // Device loading
