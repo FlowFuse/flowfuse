@@ -4,8 +4,6 @@ navTitle: FlowFuse Assistant
 
 # FlowFuse Assistant Plugin
 
-**Introduced in FlowFuse 2.6 on FlowFuse Cloud only. This feature is not yet available for self-hosted customers.**
-
 The FlowFuse Assistant brings the power of AI to the Node-RED editor and FlowFuse. Hosted Instances running
 within FlowFuse Cloud will include the **FlowFuse Assistant**, a plugin that helps you work faster and smarter.
 
@@ -82,6 +80,10 @@ The Assistant currently supports the following features:
 7. **CSS and HTML Generation:** In-editor CSS and HTML generation for FlowFuse Dashboard `ui-template` nodes
 
 To enable the Assistant and any new features, ensure your Instance is running the latest Stack and the Assistant is updated to the latest version.
+
+### FlowFuse Assistant for self-hosted customers
+
+If you are self-hosting FlowFuse with an Enterprise license, get in touch with [support](https://flowfuse.com/support) who'll be able to help get you setup to use FlowFuse Assistant locally.
 
 ### Flow Autocomplete
 
