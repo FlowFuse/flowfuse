@@ -489,8 +489,6 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const transaction = await app.db.sequelize.transaction()
-
         try {
             /** @type {typeof import('../../db/controllers/Device')} */
             const deviceController = app.db.controllers.Device
@@ -506,6 +504,7 @@ module.exports = async function (app) {
                 reply.send(updatedDevices)
             } else if (Object.prototype.hasOwnProperty.call(request.body, 'deviceGroup')) {
                 let deviceGroup
+                const transaction = await app.db.sequelize.transaction()
                 const infoBuilder = []
                 const decodedDeviceIds = request.body.devices.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
                 const devicesCollection = await app.db.models.Device.getAll({}, { id: decodedDeviceIds }, {
