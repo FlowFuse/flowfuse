@@ -489,38 +489,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        async function unassignDevicesFromGroup (devices) {
-            const transaction = await app.db.sequelize.transaction()
-
-            // Filter out devices without deviceGroups and group them by their current device group
-            const devicesByGroup = devices.filter(device => device.DeviceGroup)
-                .reduce((acc, device) => {
-                    const groupId = device.DeviceGroup?.id || null
-                    if (!acc[groupId]) {
-                        acc[groupId] = {
-                            group: device.DeviceGroup,
-                            devices: []
-                        }
-                    }
-                    acc[groupId].devices.push(device)
-                    return acc
-                }, {})
-
-            try {
-                for (const key of Object.keys(devicesByGroup)) {
-                    const removeDevices = devicesByGroup[key].devices.map(d => d.id)
-                    await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(devicesByGroup[key].group, {
-                        transaction,
-                        removeDevices
-                    })
-                }
-
-                await transaction.commit()
-            } catch (e) {
-                await transaction.rollback()
-                throw e
-            }
-        }
+        const transaction = await app.db.sequelize.transaction()
 
         try {
             /** @type {typeof import('../../db/controllers/Device')} */
@@ -536,16 +505,32 @@ module.exports = async function (app) {
                 updatedDevices.devices = updatedDevices.devices.map(d => app.db.views.Device.device(d))
                 reply.send(updatedDevices)
             } else if (Object.prototype.hasOwnProperty.call(request.body, 'deviceGroup')) {
+                let deviceGroup
                 const infoBuilder = []
                 const decodedDeviceIds = request.body.devices.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
                 const devicesCollection = await app.db.models.Device.getAll({}, { id: decodedDeviceIds }, {
-                    includeDeviceGroup: true
+                    includeDeviceGroup: true,
+                    includeApplication: true
                 })
-                let deviceGroup
+                const devicesByGroup = devicesCollection.devices.filter(device => device.DeviceGroup)
+                    .reduce((acc, device) => {
+                        const groupId = device.DeviceGroup?.id || null
+                        if (!acc[groupId]) {
+                            acc[groupId] = {
+                                group: device.DeviceGroup,
+                                devices: []
+                            }
+                        }
+                        acc[groupId].devices.push(device)
+                        return acc
+                    }, {})
 
                 if (request.body.deviceGroup === '') {
                     // if the device group is present but empty, we need to bulk unassign devices from their respective device group
-                    await unassignDevicesFromGroup(devicesCollection.devices)
+                    for (const key of Object.keys(devicesByGroup)) {
+                        await app.db.controllers.DeviceGroup.removeDevicesFromGroup(devicesByGroup[key].group, devicesByGroup[key].devices, null, transaction)
+                    }
+
                     infoBuilder.push(`Added ${decodedDeviceIds.length}`)
                 } else if (request.body.deviceGroup.length > 1) {
                     deviceGroup = await app.db.models.DeviceGroup.byId(request.body.deviceGroup)
@@ -555,14 +540,19 @@ module.exports = async function (app) {
                     }
 
                     // we first need to bulk unassign devices from their respective device group
-                    await unassignDevicesFromGroup(devicesCollection.devices)
+                    for (const key of Object.keys(devicesByGroup)) {
+                        await app.db.controllers.DeviceGroup.removeDevicesFromGroup(devicesByGroup[key].group, devicesByGroup[key].devices, null, transaction)
+                    }
 
                     await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, {
+                        transaction,
                         addDevices: devicesCollection.devices.map(d => d.id)
                     })
 
                     infoBuilder.push(`Reassigned ${decodedDeviceIds.length}`)
                 }
+
+                await transaction.commit()
 
                 const deviceGroupLogger = app.auditLog.Application.application.deviceGroup
 
@@ -579,6 +569,7 @@ module.exports = async function (app) {
                 throw new ControllerError('invalid_input', 'No valid fields to update', 400)
             }
         } catch (err) {
+            await transaction.rollback()
             return handleError(err, reply)
         }
     })
