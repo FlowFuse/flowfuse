@@ -8,8 +8,8 @@ const { randomInt } = require('../utils')
 
 const SCOPE_CERTIFIED = '@flowfuse-certified-nodes/' // TODO change to certified nodes scope, maybe should be configurable
 const SCOPE_NODES = '@flowfuse-nodes/'
-const PING_TIME = `${randomInt(0, 59)} ${randomInt(0, 23)} * * *`
-const CERTIFIED_NODES_ENDPOINT = 'https://ff-certified-node.flowfuse.cloud/certified-nodes' // configurable?
+const PING_TIME = `${randomInt(0, 59)} ${randomInt(0, 2)} * * *`
+const CERTIFIED_NODES_ENDPOINT = 'https://ff-certified-nodes.flowfuse.cloud/certified-nodes' // configurable?
 
 async function collect (app) {
     const payload = {
@@ -111,7 +111,7 @@ async function collect (app) {
 
 module.exports = {
     name: 'certifiedNodes',
-    startup: 15000,
+    startup: false,
     schedule: PING_TIME,
     run: async function (app) {
         return collect(app)
