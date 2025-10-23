@@ -18,10 +18,10 @@ async function collect (app) {
     }
     const snapshots = {}
     // checking certified nodes enabled and active
-    const npmRegURLString = app.settings.get('platform:certifiedNodes:npmRegistryURL')
-    const token = app.settings.get('platform:certifiedNodes:token')
-    const catalogueString = app.settings.get('platform:certifiedNodes:catalogueURL')
-    if (app.config.features.enabled('certifiedNodes') && (npmRegURLString && token && catalogueString)) {
+    const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes', false) &&
+                                   !!app.config.features.enabled('ffNodes', false) &&
+                                   !!app.settings.get('platform:ff-npm-registry:token')     
+    if (platformNPMEnabled) {
         try {
             const runningProjects = await app.db.models.Project.findAll({
                 where: {
