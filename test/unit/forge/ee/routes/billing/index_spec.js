@@ -926,12 +926,12 @@ describe('Billing routes', function () {
             // Wait for the stub driver to start the project to avoid
             // an async call to the audit log completing after the test
             // has finished
-            app.db.controllers.Project.getInflightState(project).should.equal('starting')
+            should(await app.db.controllers.Project.getInflightState(project)).equal('starting')
             const { START_DELAY } = FF_UTIL.require('forge/containers/stub')
             return new Promise((resolve, reject) => {
-                setTimeout(() => {
+                setTimeout(async () => {
                     try {
-                        should.not.exist(app.db.controllers.Project.getInflightState(project))
+                        should.not.exist(await app.db.controllers.Project.getInflightState(project))
                         resolve()
                     } catch (err) {
                         reject(err)
@@ -1211,12 +1211,12 @@ describe('Billing routes', function () {
                     // Wait for the stub driver to start the project to avoid
                     // an async call to the audit log completing after the test
                     // has finished
-                    app.db.controllers.Project.getInflightState(createdProject).should.equal('starting')
+                    should(await app.db.controllers.Project.getInflightState(createdProject)).equal('starting')
                     const { START_DELAY } = FF_UTIL.require('forge/containers/stub')
                     return new Promise((resolve, reject) => {
-                        setTimeout(() => {
+                        setTimeout(async () => {
                             try {
-                                should.not.exist(app.db.controllers.Project.getInflightState(createdProject))
+                                should.not.exist(await app.db.controllers.Project.getInflightState(createdProject))
                                 resolve()
                             } catch (err) {
                                 reject(err)
@@ -1444,12 +1444,12 @@ describe('Billing routes', function () {
                     // Wait for the stub driver to start the project to avoid
                     // an async call to the audit log completing after the test
                     // has finished
-                    app.db.controllers.Project.getInflightState(createdProject).should.equal('starting')
+                    should(await app.db.controllers.Project.getInflightState(createdProject)).equal('starting')
                     const { START_DELAY } = FF_UTIL.require('forge/containers/stub')
                     return new Promise((resolve, reject) => {
-                        setTimeout(() => {
+                        setTimeout(async () => {
                             try {
-                                should.not.exist(app.db.controllers.Project.getInflightState(createdProject))
+                                should.not.exist(await app.db.controllers.Project.getInflightState(createdProject))
                                 resolve()
                             } catch (err) {
                                 reject(err)

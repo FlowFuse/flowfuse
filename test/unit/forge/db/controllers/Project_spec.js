@@ -485,42 +485,42 @@ describe('Project controller', function () {
     })
 
     describe('latestProjectState', function () {
-        it('should return undefined when no project state exists', () => {
-            const result = app.db.controllers.Project.getLatestProjectState('non-existing')
+        it('should return undefined when no project state exists', async () => {
+            const result = await app.db.controllers.Project.getLatestProjectState('non-existing')
             should(result).be.undefined()
         })
 
-        it('should return the project state if one exists', () => {
+        it('should return the project state if one exists', async () => {
             app.db.controllers.Project.setLatestProjectState('project-id', 'status')
-            const result = app.db.controllers.Project.getLatestProjectState('project-id')
+            const result = await app.db.controllers.Project.getLatestProjectState('project-id')
             should(result).equal('status')
         })
 
-        it('should clear the project state if one exists', () => {
-            app.db.controllers.Project.setLatestProjectState('project-id', 'status')
-            const tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
+        it('should clear the project state if one exists', async () => {
+            await app.db.controllers.Project.setLatestProjectState('project-id', 'status')
+            const tempResult = await app.db.controllers.Project.getLatestProjectState('project-id')
             should(tempResult).equal('status')
 
-            const result = app.db.controllers.Project.clearLatestProjectState('project-id')
+            const result = await app.db.controllers.Project.clearLatestProjectState('project-id')
             should(result).be.undefined()
         })
 
-        it('should update non-definitive project states while removing definitive ones', () => {
+        it('should update non-definitive project states while removing definitive ones', async () => {
             app.db.controllers.Project.setLatestProjectState('project-id', 'status')
 
-            let tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
+            let tempResult = await app.db.controllers.Project.getLatestProjectState('project-id')
             should(tempResult).equal('status')
 
-            app.db.controllers.Project.updateLatestProjectState('project-id', 'running')
-            tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
+            await app.db.controllers.Project.updateLatestProjectState('project-id', 'running')
+            tempResult = await app.db.controllers.Project.getLatestProjectState('project-id')
             should(tempResult).be.undefined()
 
-            app.db.controllers.Project.updateLatestProjectState('project-id', 'status')
-            tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
+            await app.db.controllers.Project.updateLatestProjectState('project-id', 'status')
+            tempResult = await app.db.controllers.Project.getLatestProjectState('project-id')
             should(tempResult).equal('status')
 
-            app.db.controllers.Project.updateLatestProjectState('project-id', 'stopped')
-            tempResult = app.db.controllers.Project.getLatestProjectState('project-id')
+            await app.db.controllers.Project.updateLatestProjectState('project-id', 'stopped')
+            tempResult = await app.db.controllers.Project.getLatestProjectState('project-id')
             should(tempResult).equal('stopped')
         })
     })
