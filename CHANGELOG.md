@@ -1,3 +1,23 @@
+#### 2.23.0: Release
+
+ - ci: Use OIDC when authenticating to AWS in the `Create pre-staging environment` workflow (#6161)
+ - Add note on FF Assistant for self-hosted (#6166) @knolleary
+ - Shared Cache implementation (#6115) @hardillb
+ - Add 4.1.x NR versions to device Settings (#6155) @hardillb
+ - Add "next" to snapshot NR version revert (#6158) @hardillb
+ - Add device group management to Device settings and overview pages (#6129) @cstns
+ - Import flows on instance creation (#6137) @cstns
+ - Allows Teams without billing to reduce team members (#6153) @hardillb
+ - Bump vite from 6.3.6 to 6.4.1 (#6154) @app/dependabot
+ - Use latest flow renderer (#6150) @Steve-Mcl
+ - Bump actions/setup-node from 5.0.0 to 6.0.0 (#6152) @app/dependabot
+ - Fix flow viewer resizing (#6147) @cstns
+ - Add caching to MQTT Agent Topic insertion (#6144) @hardillb
+ - Add caching to TeamBroker topic logging (#6142) @hardillb
+ - Notify team owners of trial suspension via housekeeper trial task (#6136) @cstns
+ - Allow Forge instances to signal settings changes (#6128) @hardillb
+ - Improve trial no billing setup banner language (#6133) @cstns
+
 #### 2.22.1: Release
 
  - Bump aws-actions/configure-aws-credentials from 5.0.0 to 5.1.0 (#6130)
