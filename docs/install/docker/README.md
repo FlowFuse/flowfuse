@@ -93,13 +93,17 @@ For a production-ready environment, we also recommend:
 * **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
 * **TLS Certification:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#enable-https-(optional)))
 
-### Hardware requirements
+### Requirements
 
 To run the FlowFuse platform smoothly, we recommend the following minimum hardware specs:
 * CPU: 2 cores
 * Memory: 4 GB RAM
 * Storage: 20 GB disk space
 Each Node-RED instance you host will uses 0.1 CPU cores and 256 MB of memory by default. This parameters can be adjusted in admin area of FlowFuse platform. Keep this in mind when sizing your hardware, especially if plan to create multiple hosted instances.
+
+When deploying the FlowFuse platform behind a firewall or proxy, ensure that the following ports are open and forwards a traffic to the server where FlowFuse is installed:
+* Port `80` (HTTP)
+* Port `443` (HTTPS)
 
 #### AWS Elastic Container Service
 
