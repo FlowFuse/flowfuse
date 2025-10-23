@@ -576,7 +576,7 @@ module.exports = async function (app) {
 
     function handleError (err, reply) {
         let statusCode = 500
-        let code = 'unexpected_error'
+        let code = err.code || 'unexpected_error'
         let error = err.error || err.message || 'Unexpected error'
 
         if (err instanceof ControllerError) {

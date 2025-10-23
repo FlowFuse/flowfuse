@@ -729,7 +729,10 @@ export default {
                 return teamApi.bulkDeviceMove(this.team.id, this.checkedDevices.map(device => device.id), 'group', selectedDeviceGroup)
                     .then(() => Alerts.emit('Successfully assigned devices.', 'confirmation'))
                     .catch(e => {
-                        Alerts.emit('Something went wrong.', 'error')
+                        if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
+                            Alerts.emit(e.response.data.error, 'warning')
+                        } else Alerts.emit('Something went wrong.', 'warning')
+
                         console.error(e)
                     })
                     .finally(() => this.fullReloadOfData())
