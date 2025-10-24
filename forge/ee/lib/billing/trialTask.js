@@ -134,12 +134,12 @@ module.exports.init = function (app) {
                 // There is some DRY code here with projectActions.js suspend logic.
                 // TODO: consider move to controllers.Project
                 try {
-                    app.db.controllers.Project.setInflightState(project, 'suspending')
+                    await app.db.controllers.Project.setInflightState(project, 'suspending')
                     await app.containers.stop(project)
-                    app.db.controllers.Project.clearInflightState(project)
+                    await app.db.controllers.Project.clearInflightState(project)
                     await app.auditLog.Project.project.suspended(null, null, project)
                 } catch (err) {
-                    app.db.controllers.Project.clearInflightState(project)
+                    await app.db.controllers.Project.clearInflightState(project)
                     const resp = { code: 'unexpected_error', error: err.toString() }
                     await app.auditLog.Project.project.suspended(null, resp, project)
                 }

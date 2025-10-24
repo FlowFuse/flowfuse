@@ -5,6 +5,7 @@ const { ProfilingIntegration } = require('@sentry/profiling-node')
 const fastify = require('fastify')
 
 const auditLog = require('./auditLog')
+const caches = require('./caches')
 const comms = require('./comms')
 const config = require('./config') // eslint-disable-line n/no-unpublished-require
 const containers = require('./containers')
@@ -238,6 +239,8 @@ module.exports = async (options = {}) => {
             await server.register(require('@fastify/rate-limit'), server.config.rate_limits)
         }
 
+        // Setup Caches
+        await server.register(caches)
         // DB : the database connection/models/views/controllers
         await server.register(db)
         // Settings
