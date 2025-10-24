@@ -331,7 +331,7 @@ export default {
             const addedCount = devicesAdded.length
             const warning = []
             if (addedCount > 0) {
-                warning.push('1 or more devices will be added to this group. These device(s) will be updated to deploy the target group snapshot.')
+                warning.push(`1 or more devices will be added to this group. These device(s) will be updated to deploy the target group snapshot (${this.deviceGroup.targetSnapshot.id}, ${this.deviceGroup.targetSnapshot.name}).`)
                 warning.push('')
             }
             if (removedCount > 0) {
