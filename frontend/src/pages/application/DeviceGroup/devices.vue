@@ -129,7 +129,7 @@ export default {
             required: true
         }
     },
-    emits: ['device-group-members-updated'],
+    emits: ['device-group-members-updated', 'device-group-updated'],
     setup () {
         const { hasPermission } = usePermissions()
         return { hasPermission }
@@ -331,7 +331,7 @@ export default {
             const addedCount = devicesAdded.length
             const warning = []
             if (addedCount > 0) {
-                warning.push('1 or more devices will be added to this group. These device(s) will be updated to deploy the active pipeline snapshot.')
+                warning.push('1 or more devices will be added to this group. These device(s) will be updated to deploy the target group snapshot.')
                 warning.push('')
             }
             if (removedCount > 0) {
@@ -357,6 +357,28 @@ export default {
                         this.hasChanges = false
                         this.$emit('device-group-members-updated')
                         this.editMode = false
+                        if (deviceIds.length === 0) {
+                            Dialog.show({
+                                header: 'Empty Device Group',
+                                kind: 'danger',
+                                text: 'Do you want to clear the Target Snapshot for this empty Device Group?',
+                                confirmLabel: 'Clear',
+                                cancelLabel: 'No'
+                            }, async () => {
+                                try {
+                                    const response = await ApplicationApi.updateDeviceGroup(this.application.id, this.deviceGroup.id, undefined, undefined, null)
+                                    if (response.status === 200) {
+                                        this.$emit('device-group-updated')
+                                        Alerts.emit('Device Group Target Snapshot was cleared', 'confirmation')
+                                    } else {
+                                        Alerts.emit('Failed to clear the Target Snapshot', 'warning', 5000)
+                                    }
+                                } catch (error) {
+                                    const msg = error.response?.data?.error || 'Error clearing device groups Target Snapshot'
+                                    Alerts.emit(msg, 'warning', 5000)
+                                }
+                            })
+                        }
                     })
                     .catch((err) => {
                         Alerts.emit('Failed to update Device Group: ' + err.toString(), 'warning')
