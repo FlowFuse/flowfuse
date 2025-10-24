@@ -524,31 +524,37 @@ module.exports = async function (app) {
                         return acc
                     }, {})
 
-                if (request.body.deviceGroup === '') {
-                    // if the device group is present but empty, we need to bulk unassign devices from their respective device group
-                    for (const key of Object.keys(devicesByGroup)) {
-                        await app.db.controllers.DeviceGroup.removeDevicesFromGroup(devicesByGroup[key].group, devicesByGroup[key].devices, null, transaction)
+                try {
+                    if (request.body.deviceGroup === '') {
+                        // if the device group is present but empty, we need to bulk unassign devices from their respective device group
+                        for (const key of Object.keys(devicesByGroup)) {
+                            await app.db.controllers.DeviceGroup.removeDevicesFromGroup(devicesByGroup[key].group, devicesByGroup[key].devices, null, transaction)
+                        }
+
+                        infoBuilder.push(`Added ${decodedDeviceIds.length}`)
+                    } else if (request.body.deviceGroup.length > 1) {
+                        deviceGroup = await app.db.models.DeviceGroup.byId(request.body.deviceGroup)
+
+                        if (!deviceGroup) {
+                            throw new ControllerError('invalid_input', 'Invalid device group', 400)
+                        }
+
+                        // we first need to bulk unassign devices from their respective device group
+                        for (const key of Object.keys(devicesByGroup)) {
+                            await app.db.controllers.DeviceGroup.removeDevicesFromGroup(devicesByGroup[key].group, devicesByGroup[key].devices, null, transaction)
+                        }
+
+                        await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, {
+                            transaction,
+                            addDevices: devicesCollection.devices.map(d => d.id)
+                        })
+
+                        infoBuilder.push(`Reassigned ${decodedDeviceIds.length}`)
                     }
+                } catch (e) {
+                    await transaction.rollback()
 
-                    infoBuilder.push(`Added ${decodedDeviceIds.length}`)
-                } else if (request.body.deviceGroup.length > 1) {
-                    deviceGroup = await app.db.models.DeviceGroup.byId(request.body.deviceGroup)
-
-                    if (!deviceGroup) {
-                        throw new ControllerError('invalid_input', 'Invalid device group', 400)
-                    }
-
-                    // we first need to bulk unassign devices from their respective device group
-                    for (const key of Object.keys(devicesByGroup)) {
-                        await app.db.controllers.DeviceGroup.removeDevicesFromGroup(devicesByGroup[key].group, devicesByGroup[key].devices, null, transaction)
-                    }
-
-                    await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, {
-                        transaction,
-                        addDevices: devicesCollection.devices.map(d => d.id)
-                    })
-
-                    infoBuilder.push(`Reassigned ${decodedDeviceIds.length}`)
+                    throw e
                 }
 
                 await transaction.commit()
@@ -568,7 +574,6 @@ module.exports = async function (app) {
                 throw new ControllerError('invalid_input', 'No valid fields to update', 400)
             }
         } catch (err) {
-            await transaction.rollback()
             return handleError(err, reply)
         }
     })
