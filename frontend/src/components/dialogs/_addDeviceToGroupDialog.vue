@@ -105,7 +105,7 @@ export default {
         }
     },
     watch: {
-        selected () {
+        selectedDeviceGroup () {
             this.$emit('selected', this.selectedDeviceGroup)
             if (this.device) {
                 this.setDisablePrimary((this.device.deviceGroup?.id ?? null) === this.selectedDeviceGroup)
