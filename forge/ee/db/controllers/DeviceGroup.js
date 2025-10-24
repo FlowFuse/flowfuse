@@ -1,4 +1,4 @@
-const { Op, ValidationError } = require('sequelize')
+const { ValidationError } = require('sequelize')
 
 const { ControllerError } = require('../../../lib/errors')
 

@@ -13,7 +13,7 @@
                     </div>
 
                     <ff-combobox
-                        v-if="devicesBelongToSameApplication && !assigningInstanceOwnedDevices" v-model="selected"
+                        v-if="devicesBelongToSameApplication && !assigningInstanceOwnedDevices" v-model="selectedDeviceGroup"
                         :options="deviceGroups" label-key="name" value-key="id"
                     >
                         <template #option="{ option, selected, active }">
@@ -90,7 +90,7 @@ export default {
             application: null,
             loading: true,
             deviceGroups: [],
-            selected: null,
+            selectedDeviceGroup: null,
             devicesBelongToSameApplication: true,
             assigningInstanceOwnedDevices: false
         }
@@ -106,11 +106,11 @@ export default {
     },
     watch: {
         selected () {
-            this.$emit('selected', this.selected)
+            this.$emit('selected', this.selectedDeviceGroup)
             if (this.device) {
-                this.setDisablePrimary((this.device.deviceGroup?.id ?? null) === this.selected)
+                this.setDisablePrimary((this.device.deviceGroup?.id ?? null) === this.selectedDeviceGroup)
             } else if (this.devices.length > 0) {
-                this.setDisablePrimary(this.selected === null)
+                this.setDisablePrimary(this.selectedDeviceGroup === null)
             }
         }
     },
@@ -130,10 +130,10 @@ export default {
                 .then((groups) => {
                     this.deviceGroups = groups.groups
                     if (this.device?.deviceGroup) {
-                        this.selected = this.device.deviceGroup.id
+                        this.selectedDeviceGroup = this.device.deviceGroup.id
                     }
                     if (this.device) {
-                        this.setDisablePrimary((this.device?.deviceGroup?.id ?? null) === this.selected)
+                        this.setDisablePrimary((this.device?.deviceGroup?.id ?? null) === this.selectedDeviceGroup)
                     }
                 })
                 .catch((err) => {
