@@ -2,6 +2,9 @@ forge:
   domain: flowfuse.dev
   https: true
   localPostgresql: true
+  projectIngressAnnotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/private-key-size: 2048
   broker:
     enabled: true
     teamBroker:
