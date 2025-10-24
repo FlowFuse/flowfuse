@@ -53,7 +53,7 @@
         "install-stack": "node scripts/install-stack.js --"
     },
     "dependencies": {
-        "@aws-sdk/client-ses": "^3.352.0",
+        "@aws-sdk/client-sesv2": "^3.916.0",
         "@aws-sdk/credential-provider-node": "^3.352.0",
         "@fastify/cookie": "^9.1.0",
         "@fastify/csrf-protection": "^6.3.0",
@@ -99,7 +99,7 @@
         "marked": "^15.0.7",
         "mqtt": "^5.1.1",
         "mqtt-match": "^3.0.0",
-        "nodemailer": "^6.9.3",
+        "nodemailer": "^7.0.9",
         "pg": "^8.11.3",
         "pino": "^8.15.1",
         "pino-pretty": "^10.0.0",
