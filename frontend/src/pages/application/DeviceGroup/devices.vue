@@ -331,8 +331,12 @@ export default {
             const addedCount = devicesAdded.length
             const warning = []
             if (addedCount > 0) {
-                warning.push(`1 or more devices will be added to this group. These device(s) will be updated to deploy the target group snapshot (${this.deviceGroup.targetSnapshot.id}, ${this.deviceGroup.targetSnapshot.name}).`)
-                warning.push('')
+                warning.push(`1 or more devices will be added to this group.`)
+                if (this.deviceGroup.targetSnapshot) {
+                    warning.push(`These device(s) will be updated to deploy the target group snapshot (${this.deviceGroup.targetSnapshot.id}, ${this.deviceGroup.targetSnapshot.name})`)
+                } else {
+                    warning.push('')
+                }
             }
             if (removedCount > 0) {
                 warning.push('1 or more devices will be removed from this group. These device(s) will be cleared of any active pipeline snapshot.')
@@ -357,7 +361,7 @@ export default {
                         this.hasChanges = false
                         this.$emit('device-group-members-updated')
                         this.editMode = false
-                        if (deviceIds.length === 0) {
+                        if (deviceIds.length === 0 && this.deviceGroup.targetSnapshot) {
                             Dialog.show({
                                 header: 'Empty Device Group',
                                 kind: 'danger',
