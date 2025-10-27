@@ -39,7 +39,13 @@
                     </div>
                     <div class="flex item">
                         <dt>Password:</dt>
-                        <dd>{{ database.credentials.password }}</dd>
+                        <dd>
+                            <password-field
+                                :password="database.credentials.password"
+                                :editable="false"
+                                can-be-copied can-be-revealed
+                            />
+                        </dd>
                     </div>
                 </dl>
             </div>
@@ -54,9 +60,11 @@ import { DatabaseIcon, LockClosedIcon } from '@heroicons/vue/outline'
 import { defineComponent } from 'vue'
 import { mapGetters, mapState } from 'vuex'
 
+import PasswordField from '../../../../../ui-components/components/PasswordField.vue'
+
 export default defineComponent({
     name: 'TableCredentials',
-    components: { DatabaseIcon, LockClosedIcon },
+    components: { PasswordField, DatabaseIcon, LockClosedIcon },
     computed: {
         ...mapState('product/tables', ['databases']),
         ...mapGetters('product/tables', ['database'])
