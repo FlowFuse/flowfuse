@@ -1,3 +1,9 @@
+#### 2.23.1: Release
+
+ - Hide plain view tables credential password (#6178) @cstns
+ - Upgrade to nodemailer 7.0.x (#6177) @hardillb
+ - docs: Add docker self-hosted network requirements (#6168) @ppawlowski
+
 #### 2.23.0: Release
 
  - ci: Use OIDC when authenticating to AWS in the `Create pre-staging environment` workflow (#6161)
