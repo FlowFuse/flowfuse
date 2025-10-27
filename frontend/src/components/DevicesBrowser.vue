@@ -463,17 +463,19 @@ export default {
                         is: markRaw(DeviceAssignedToLink)
                     }
                 })
-                columns.push({
-                    label: 'Group',
-                    key: 'deviceGroup.name',
-                    sortable: !this.moreThanOnePage
-                })
+                if (this.featuresCheck.isDeviceGroupsFeatureEnabled) {
+                    columns.push({
+                        label: 'Group',
+                        key: 'deviceGroup.name',
+                        sortable: !this.moreThanOnePage
+                    })
+                }
             } else if (this.displayingInstance) {
                 // Show snapshot info when looking at devices owned by an instance
                 columns.push(
                     { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
                 )
-            } else if (this.displayingApplication) {
+            } else if (this.displayingApplication && this.featuresCheck.isDeviceGroupsFeatureEnabled) {
                 columns.push({
                     label: 'Group',
                     key: 'deviceGroup.name',
