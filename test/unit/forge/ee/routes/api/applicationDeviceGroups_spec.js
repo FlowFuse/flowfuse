@@ -1157,13 +1157,13 @@ describe('Application Device Groups API', function () {
                 checkDeviceUpdateCall(calls, d2)
                 checkDeviceUpdateCall(calls, d3)
             })
-            it('All Devices removed get an update request and clears DeviceGroup.targetSnapshotId', async function () {
+            it('All Devices removed get an update request and retains DeviceGroup.targetSnapshotId', async function () {
                 // Premise:
                 // Create 2 devices in a group, add group to a pipeline and deploy a snapshot
                 //   (direct db ops: set the targetSnapshotId on the group and the targetSnapshotId on the device group pipeline stage)
                 // Test the API by removing both devices leaving the group empty
                 // Check the 2 devices involved get an update request
-                // Check the DeviceGroup `targetSnapshotId` is cleared (this is cleared because the group is empty)
+                // Check the DeviceGroup `targetSnapshotId` is retained even though the group is empty)
                 const sid = await login('bob', 'bbPassword')
                 const application = TestObjects.application // BTeam application
                 const instance = TestObjects.instance
@@ -1217,9 +1217,9 @@ describe('Application Device Groups API', function () {
                 checkDeviceUpdateCall(calls, d1)
                 checkDeviceUpdateCall(calls, d2)
 
-                // check the DeviceGroup `targetSnapshotId` is cleared
+                // check the DeviceGroup `targetSnapshotId` is not cleared
                 const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroupOne.hashid)
-                updatedDeviceGroup.should.have.property('targetSnapshotId', null)
+                updatedDeviceGroup.should.have.property('targetSnapshotId', snapshot.id)
             })
         })
         describe('Changing a device owner removes the device from the group', function () {

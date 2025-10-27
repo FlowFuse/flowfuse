@@ -223,13 +223,6 @@ module.exports = {
      */
     finalizeDeviceGroupMembership: async function (app, deviceGroup, changeCount, actualRemoveDevices) {
         if (changeCount > 0) {
-            // clean up where necessary
-            // check to see if the group is now empty
-            const remainingDevices = await deviceGroup.deviceCount()
-            if (remainingDevices === 0) {
-                deviceGroup.targetSnapshotId = null
-            }
-            await deviceGroup.save()
             // finally, asynchronously inform the devices an update may be required
             this.sendUpdateCommand(app, deviceGroup, actualRemoveDevices)
         }
