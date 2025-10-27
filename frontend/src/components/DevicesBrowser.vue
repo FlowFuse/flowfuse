@@ -555,7 +555,7 @@ export default {
                 menu.push({ name: 'Unassign', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
             }
 
-            if (enableMove && !this.displayingInstance) {
+            if (enableMove && !this.displayingInstance && this.featuresCheck.isDeviceGroupsFeatureEnabled) {
                 menu.push(null)
                 menu.push({ name: 'Assign to Group', action: this.showBulkGroupAssignDialog, disabled: !enableMove })
                 menu.push({ name: 'Unassign from Group', action: this.showBulkGroupUnassignDialog, disabled: !enableMove })
