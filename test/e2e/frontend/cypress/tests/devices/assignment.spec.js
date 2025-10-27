@@ -69,7 +69,7 @@ describe('FlowFuse - Team - Devices - Create', () => {
             // check the table (last row) has the device name (2nd td)
             cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-child(2)').contains(deviceName)
             // 2nd last column is the application name - should be unassigned
-            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-last-child(3)').contains('Unassigned')
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-last-child(2)').contains('Unassigned')
         })
     })
 
@@ -116,7 +116,7 @@ describe('FlowFuse - Team - Devices - Create', () => {
             // check the table (last row) has the device name (2nd td)
             cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-child(2)').contains(deviceName)
             // 2nd last column is the application name
-            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-last-child(3)').contains('application-2')
+            cy.get('[data-el="devices-browser"] tbody tr:last-child td:nth-last-child(2)').contains('application-2')
         })
     })
 })
