@@ -71,16 +71,11 @@ module.exports = fp(async function (app, _opts) {
                 EMAIL_ENABLED = true
                 callback && callback(null, EMAIL_ENABLED)
             } else if (app.config.email.ses) {
-                const aws = require('@aws-sdk/client-ses')
-                const { defaultProvider } = require('@aws-sdk/credential-provider-node')
+                const { SESv2Client, SendEmailCommand } = require('@aws-sdk/client-sesv2')
 
                 const sesConfig = app.config.email.ses
 
-                const ses = new aws.SES({
-                    apiVersion: '2010-12-01',
-                    region: sesConfig.region,
-                    defaultProvider
-                })
+                const sesClient = new SESv2Client({ region: sesConfig.region })
 
                 if (sesConfig.sourceArn) {
                     mailDefaults.ses = {
@@ -90,7 +85,7 @@ module.exports = fp(async function (app, _opts) {
                 }
 
                 mailTransport = nodemailer.createTransport({
-                    SES: { ses, aws }
+                    SES: { sesClient, SendEmailCommand }
                 }, mailDefaults)
 
                 exportableSettings = {

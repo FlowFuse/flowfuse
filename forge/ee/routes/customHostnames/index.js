@@ -77,7 +77,7 @@ module.exports = async function (app) {
         if (request.body.hostname) {
             try {
                 await request.project.setCustomHostname(request.body.hostname)
-                app.db.controllers.Project.setInflightState(request.project, 'starting')
+                await app.db.controllers.Project.setInflightState(request.project, 'starting')
                 restartInstance(request.project, request.session.User)
                 reply.send(await request.project.getCustomHostname() || {})
             } catch (err) {
@@ -92,7 +92,7 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
         await request.project.clearCustomHostname()
-        app.db.controllers.Project.setInflightState(request.project, 'starting')
+        await app.db.controllers.Project.setInflightState(request.project, 'starting')
         await restartInstance(request.project, request.session.User)
         reply.status(204).send({})
     })
@@ -108,7 +108,7 @@ module.exports = async function (app) {
             const startResult = await app.containers.start(project)
             startResult.started.then(async () => {
                 await app.auditLog.Project.project.started(user, null, project)
-                app.db.controllers.Project.clearInflightState(project)
+                await app.db.controllers.Project.clearInflightState(project)
                 return true
             }).catch(err => {
                 app.log.info(`Failed to restart project ${project.id}`)

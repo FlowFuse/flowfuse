@@ -73,14 +73,64 @@
             </ul>
         </template>
         <template v-else-if="hasApplication">
-            <div>
-                <label class="font-medium mr-2">Application:</label>
-                <router-link :to="{name: 'ApplicationDevices', params: {team_slug: team.slug, id: device.application.id}}" class="ff-link">{{ device.application.name }}</router-link>
-            </div>
-            <h3>Features:</h3>
-            <ul class="list-disc ml-6 space-y-2 max-w-xl">
-                <li><label class="font-medium mr-2">Editing Remotely:</label>You can read our documentation <a class="ff-link" href="https://flowfuse.com/docs/device-agent/deploy/#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-application">here</a> on how to remotely edit the flows on your Device. Make sure you create a Snapshot of your changes when in Developer Mode if you wish to keep them, any changes made inside "Developer Mode" will be undone when leaving "Developer Mode".</li>
-            </ul>
+            <section data-el="application-section" class="flex flex-col gap-4">
+                <div>
+                    <label class="font-medium mr-2">Application:</label>
+                    <router-link :to="{name: 'ApplicationDevices', params: {team_slug: team.slug, id: device.application.id}}" class="ff-link">{{ device.application.name }}</router-link>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <h3>Features:</h3>
+                    <ul class="list-disc ml-6 space-y-2 max-w-xl">
+                        <li><label class="font-medium mr-2">Editing Remotely:</label>You can read our documentation <a class="ff-link" href="https://flowfuse.com/docs/device-agent/deploy/#editing-the-node-red-flows-on-a-device-that-is-assigned-to-an-application">here</a> on how to remotely edit the flows on your Device. Make sure you create a Snapshot of your changes when in Developer Mode if you wish to keep them, any changes made inside "Developer Mode" will be undone when leaving "Developer Mode".</li>
+                    </ul>
+                </div>
+            </section>
+            <section
+                v-if="hasPermission('application:device-group:read', { application: device.application })"
+                ref="device-group-section"
+            >
+                <div class="max-w-2xl">
+                    <label class="font-medium mr-2">Group:</label>
+                    <div v-if="device.deviceGroup" class="flex gap-5 items-center justify-between">
+                        <router-link
+                            :to="{ name: 'ApplicationDeviceGroupIndex',
+                                   params: {
+                                       deviceGroupId: device.deviceGroup.id,
+                                       applicationId: device.application.id,
+                                       team_slug: team.slug
+                                   }}" class="ff-link"
+                        >
+                            {{ device.deviceGroup.name }}
+                        </router-link>
+                        <div class="flex gap-2">
+                            <ff-button
+                                v-if="hasPermission('application:device-group:update', { application: device.application })"
+                                ref="groupAssignmentButton"
+                                kind="secondary-danger" title="Remove Device from Group" @click="onGroupUnassign"
+                            >
+                                Remove from the group
+                            </ff-button>
+                            <ff-button
+                                v-if="hasPermission('application:device-group:update', { application: device.application })"
+                                ref="groupAssignmentButton"
+                                kind="secondary" title="Remove Device from Group" @click="onGroupAssign"
+                            >
+                                Reassign
+                            </ff-button>
+                        </div>
+                    </div>
+                    <div v-else class="flex gap-5 items-center justify-between">
+                        <span class="italic">None</span>
+                        <ff-button
+                            v-if="hasPermission('application:device-group:update', { application: device.application })"
+                            ref="groupAssignmentButton"
+                            kind="secondary" title="Add Device to a Group" @click="onGroupAssign"
+                        >
+                            Add the remote instance to a group
+                        </ff-button>
+                    </div>
+                </div>
+            </section>
         </template>
         <template v-else-if="hasInstance">
             <div>
@@ -109,7 +159,7 @@
             <FormRow containerClass="max-w-md" wrapperClass="max-w-md">
                 Node-RED Version
                 <template #description>
-                    Clear this field to use the Node-RED version specified in the Remote Instance's active snapshot. Defaults to 'latest' if the snapshot does not specify a version.
+                    Use this field to override the Node-RED version specified in the Remote Instance's active snapshot. Defaults to 'latest' if the snapshot does not specify a version.
                 </template>
                 <template #input>
                     <div class="flex flex-wrap">
@@ -137,12 +187,17 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import { mapState } from 'vuex'
+
+import ApplicationApi from '../../../api/application.js'
 
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import AddDeviceToGroupDialog from '../../../components/dialogs/_addDeviceToGroupDialog.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import { scrollToAndJiggleHighlight } from '../../../composables/Ux.js'
 
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
@@ -153,6 +208,10 @@ export default {
     name: 'DeviceSettings',
     props: ['device'],
     emits: ['device-updated', 'assign-device'],
+    components: {
+        FormRow,
+        FormHeading
+    },
     data () {
         return {
             editing: {
@@ -193,7 +252,9 @@ export default {
                 '4.0.5',
                 '4.0.6',
                 '4.0.7',
-                '4.0.8'
+                '4.0.8',
+                '4.0.9',
+                '4.1.0'
 
             ]
         }
@@ -242,7 +303,7 @@ export default {
         nodeRedVersionOptions () {
             return [
                 {
-                    label: 'Use Snapshot Node-RED Version',
+                    label: 'Use Next Snapshot Node-RED Version',
                     value: '<<use-snapshot-version>>'
                 },
                 {
@@ -276,6 +337,7 @@ export default {
     },
     mounted () {
         this.fetchData()
+        this.highlightElements()
     },
     methods: {
         closeChangeNrDialog () {
@@ -361,11 +423,84 @@ export default {
 
             this.input.nodeRedVersion = nodeRedVersion
             this.original.nodeRedVersion = nodeRedVersion
+        },
+        onGroupUnassign () {
+            Dialog.show({
+                header: `Remove ${this.device.name} from ${this.device.deviceGroup.name}?`,
+                kind: 'danger',
+                html: `
+                    <p>This Remote Instance will be cleared of any active pipeline snapshot.</p>
+                    <p>Are you sure you want to continue?</p>
+                `,
+                confirmLabel: 'Confirm'
+            }, async () => ApplicationApi.updateDeviceGroupMembership(
+                this.device.application.id,
+                this.device.deviceGroup.id,
+                { remove: this.device.id })
+                .then(() => this.$emit('device-updated'))
+                .catch(e => e)
+            )
+        },
+        onGroupAssign () {
+            let selectedDeviceGroup
+            Dialog.show({
+                header: `Add ${this.device.name} to a group`,
+                kind: 'primary',
+                is: {
+                    component: markRaw(AddDeviceToGroupDialog),
+                    payload: {
+                        device: this.device
+                    },
+                    on: {
+                        selected (selection) {
+                            selectedDeviceGroup = selection
+                        }
+                    }
+                },
+                confirmLabel: 'Confirm'
+            }, async () => {
+                const promise = this.device.deviceGroup
+                    ? ApplicationApi.updateDeviceGroupMembership(
+                        this.device.application.id,
+                        this.device.deviceGroup.id,
+                        {
+                            remove: this.device.id
+                        })
+                    : new Promise(resolve => resolve())
+
+                return promise
+                    .then(() => ApplicationApi.updateDeviceGroupMembership(
+                        this.device.application.id,
+                        selectedDeviceGroup,
+                        {
+                            add: this.device.id
+                        }))
+                    .then(() => Alerts.emit('Successfully assigned device.', 'confirmation'))
+                    .catch(e => {
+                        Alerts.emit('Something went wrong.', 'error')
+                        console.error(e)
+                    })
+                    .finally(() => this.$emit('device-updated'))
+            })
+        },
+        highlightElements () {
+            if (
+                this.$route.query.highlight &&
+                Object.keys(this.$refs).includes(this.$route.query.highlight) &&
+                this.$route.query.highlight === 'device-group-section'
+            ) {
+                scrollToAndJiggleHighlight(
+                    this.$refs['device-group-section'],
+                    this.$refs.groupAssignmentButton.$el,
+                    { count: 2 },
+                    {
+                        inline: 'nearest',
+                        block: 'nearest'
+                    }
+                )
+            }
+            this.$router.replace({ query: null })
         }
-    },
-    components: {
-        FormRow,
-        FormHeading
     }
 }
 </script>

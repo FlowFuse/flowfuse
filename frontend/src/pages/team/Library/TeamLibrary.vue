@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-team-library">
+    <div class="ff-team-library overflow-auto flex flex-col">
         <SectionTopMenu hero="Team Library" info="Centralized management of common Javascript functions and Node-RED flows for your team." />
         <div v-if="isSharedLibraryFeatureEnabled" class="breadcrumbs-wrapper">
             <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">

@@ -6,6 +6,7 @@
                  :class="computedClass"
                  :to="(!to || disabled) ? '' : to"
                  :aria-disabled="htmlDisabled"
+                 :title="title ?? null"
                  :disabled="htmlDisabled"
     >
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
@@ -25,6 +26,7 @@
             :type="type"
             :class="computedClass"
             :disabled="htmlDisabled"
+            :title="title ?? null"
             @mouseup="go"
     >
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
@@ -82,6 +84,10 @@ export default {
         emitInsteadOfNavigate: {
             default: false,
             type: Boolean
+        },
+        title: {
+            default: null,
+            type: String
         }
     },
     emits: ['click'],

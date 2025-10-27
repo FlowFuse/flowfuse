@@ -27,7 +27,7 @@ describe('FlowFuse platform invitees', () => {
         })
 
         cy.get('[data-el="notifications-drawer"]').should('be.visible')
-        cy.get('[data-el="invitation-message"]').eq(0).click()
+        cy.get('[data-el="invitation-message"]:first .body').click()
 
         // user should see a message
 
