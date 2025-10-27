@@ -201,6 +201,27 @@ module.exports = {
             // otherwise, throw a friendly error message along with the original error
             throw new Error(`Failed to update device group membership: ${err.message}`)
         }
+
+        if (!transaction) {
+            // commit the transaction
+            await t.commit()
+
+            // If the transaction is initialized internally, we can finalize deviceGroupMembership.
+            //   Otherwise, it should be finalized externally, after the transaction is resolved.
+            await this.finalizeDeviceGroupMembership(app, deviceGroup, changeCount, actualRemoveDevices)
+        }
+
+        return { changeCount, actualRemoveDevices }
+    },
+
+    /**
+     * Finalizes device group membership changes by cleaning up empty groups and notifying devices
+     * @param {*} app The application object
+     * @param {*} deviceGroup The device group
+     * @param {number} changeCount Number of membership changes made
+     * @param {number[]} actualRemoveDevices List of device IDs that were removed
+     */
+    finalizeDeviceGroupMembership: async function (app, deviceGroup, changeCount, actualRemoveDevices) {
         if (changeCount > 0) {
             // clean up where necessary
             // check to see if the group is now empty
@@ -211,11 +232,6 @@ module.exports = {
             await deviceGroup.save()
             // finally, asynchronously inform the devices an update may be required
             this.sendUpdateCommand(app, deviceGroup, actualRemoveDevices)
-        }
-
-        if (!transaction) {
-            // commit the transaction
-            await t.commit()
         }
     },
 

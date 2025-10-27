@@ -504,6 +504,8 @@ module.exports = async function (app) {
                 reply.send(updatedDevices)
             } else if (Object.prototype.hasOwnProperty.call(request.body, 'deviceGroup')) {
                 let deviceGroup
+                let changeCount
+                let actualRemoveDevices
                 const transaction = await app.db.sequelize.transaction()
                 const infoBuilder = []
                 const decodedDeviceIds = request.body.devices.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
@@ -539,15 +541,19 @@ module.exports = async function (app) {
                             throw new ControllerError('invalid_input', 'Invalid device group', 400)
                         }
 
-                        // we first need to bulk unassign devices from their respective device group
+                        // we first need to bulk unassign devices from their respective device group except the device group we're assigning to
                         for (const key of Object.keys(devicesByGroup)) {
-                            await app.db.controllers.DeviceGroup.removeDevicesFromGroup(devicesByGroup[key].group, devicesByGroup[key].devices, null, transaction)
+                            if (deviceGroup.id !== devicesByGroup[key].group.id) {
+                                await app.db.controllers.DeviceGroup.removeDevicesFromGroup(devicesByGroup[key].group, devicesByGroup[key].devices, null, transaction)
+                            }
                         }
 
-                        await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, {
+                        const result = await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, {
                             transaction,
-                            addDevices: devicesCollection.devices.map(d => d.id)
+                            addDevices: devicesCollection.devices
                         })
+                        changeCount = result.changeCount
+                        actualRemoveDevices = result.actualRemoveDevices
 
                         infoBuilder.push(`Reassigned ${decodedDeviceIds.length}`)
                     }
@@ -558,6 +564,10 @@ module.exports = async function (app) {
                 }
 
                 await transaction.commit()
+
+                if (deviceGroup && changeCount !== undefined) {
+                    await app.db.controllers.DeviceGroup.finalizeDeviceGroupMembership(app, deviceGroup, changeCount, actualRemoveDevices)
+                }
 
                 const deviceGroupLogger = app.auditLog.Application.application.deviceGroup
 
