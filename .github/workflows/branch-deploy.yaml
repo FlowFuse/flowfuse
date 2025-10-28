@@ -88,7 +88,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.driver_k8s_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: driver-k8s
       publish_package: true
@@ -105,7 +105,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_project_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: nr-project-nodes
       publish_package: true
@@ -122,7 +122,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_file_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: nr-file-nodes
       publish_package: true
@@ -139,7 +139,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_assistant_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: nr-assistant
       publish_package: true
@@ -156,7 +156,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_tables_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: nr-tables-nodes
       publish_package: true
@@ -178,7 +178,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       (always() && inputs.nr_launcher_branch != 'main') || needs.publish_nr_project_nodes.result == 'success' || needs.publish_nr_file_nodes.result == 'success' || needs.publish_nr_assistant.result == 'success' || needs.publish_nr_tables_nodes.result == 'success'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: flowfuse-nr-launcher
       publish_package: true
@@ -202,7 +202,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       (always() && needs.publish_nr_launcher.result == 'success')
-    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.42.0
+    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.43.0
     with:
       image_name: 'node-red'
       dockerfile_path: Dockerfile
@@ -329,7 +329,7 @@ jobs:
           DOCKER_BUILD_SUMMARY: false
       
       - name: Upload artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: k8s-forge
           path: /tmp/k8s-forge.tar
@@ -366,7 +366,7 @@ jobs:
           echo "timestamp=$(date +%s)" >> $GITHUB_ENV
 
       - name: Download artifact
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: k8s-forge
           path: /tmp
