@@ -346,6 +346,7 @@ import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAs
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
 
+import DeviceCreatedAtCell from '../pages/device/DeviceCreatedAtCell.vue'
 import DeviceLastSeenCell from '../pages/device/components/DeviceLastSeenCell.vue'
 import DeviceModeBadge from '../pages/device/components/DeviceModeBadge.vue'
 import SnapshotAssignDialog from '../pages/instance/VersionHistory/Snapshots/dialogs/SnapshotAssignDialog.vue'
@@ -447,6 +448,7 @@ export default {
             const columns = [
                 { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
+                { label: 'Created', key: 'createdAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceCreatedAtCell) } },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenCell) } },
                 { label: 'Mode', key: 'mode', class: ['w-30'], sortable: true, component: { is: markRaw(DeviceModeBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge), map: { instanceId: 'id' }, extraProps: { instanceType: 'device' } } }
