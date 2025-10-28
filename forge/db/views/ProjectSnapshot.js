@@ -9,7 +9,8 @@ module.exports = {
             properties: {
                 id: { type: 'string' },
                 name: { type: 'string' },
-                description: { type: 'string' }
+                description: { type: 'string' },
+                createdAt: { type: 'string' }
             }
         })
         app.addSchema({
@@ -85,7 +86,8 @@ module.exports = {
             const filtered = {
                 id: result.hashid,
                 name: result.name,
-                description: result.description || ''
+                description: result.description || '',
+                createdAt: result.createdAt || null
             }
             return filtered
         } else {

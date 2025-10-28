@@ -142,7 +142,7 @@ module.exports = {
                                 {
                                     model: M.ProjectSnapshot,
                                     as: 'targetSnapshot',
-                                    attributes: ['hashid', 'id', 'name']
+                                    attributes: ['hashid', 'id', 'name', 'createdAt']
                                 },
                                 ...(includeApplication
                                     ? [{
