@@ -65,22 +65,6 @@ async function collect (app) {
                 }, 1000)
             })
 
-            // // uses getRuntimeSettings to include template merge
-            // for (const project of runningProjects) {
-            //     const settings = await app.db.controllers.Project.getRuntimeSettings(project)
-            //     if (settings?.palette?.modules) {
-            //         for (const mod of Object.keys(settings.palette.modules)) {
-            //             if (mod.startsWith(SCOPE_CERTIFIED) || mod.startsWith(SCOPE_NODES)) {
-            //                 if (payload.certifiedNodes[mod]) {
-            //                     payload.certifiedNodes[mod]++
-            //                 } else {
-            //                     payload.certifiedNodes[mod] = 1
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
-
             const now = Date.now()
             const runningDevices = await app.db.models.Device.findAll({
                 where: {
@@ -137,37 +121,6 @@ async function collect (app) {
             // wait for everything to finish
             await Promise.all([instancePromise, devicePromise])
 
-            // for (const dev of runningDevices) {
-            //     const activeSnapshot = dev.activeSnapshotId
-            //     if (activeSnapshot !== undefined) {
-            //         if (snapshots[activeSnapshot]) {
-            //             const cache = snapshots[activeSnapshot]
-            //             for (const mod of cache) {
-            //                 if (payload.certifiedNodes[mod]) {
-            //                     payload.certifiedNodes[mod]++
-            //                 } else {
-            //                     payload.certifiedNodes[mod] = 1
-            //                 }
-            //             }
-            //         } else {
-            //             const snapshot = await app.db.models.ProjectSnapshot.byId(activeSnapshot)
-            //             if (snapshot?.settings?.modules) {
-            //                 const cache = []
-            //                 for (const mod of Object.keys(snapshot.settings.modules)) {
-            //                     if (mod.startsWith(SCOPE_CERTIFIED) || mod.startsWith(SCOPE_NODES)) {
-            //                         cache.push(mod)
-            //                         if (payload.certifiedNodes[mod]) {
-            //                             payload.certifiedNodes[mod]++
-            //                         } else {
-            //                             payload.certifiedNodes[mod] = 1
-            //                         }
-            //                     }
-            //                 }
-            //                 snapshots[activeSnapshot] = cache
-            //             }
-            //         }
-            //     }
-            // }
         } catch (err) {
             app.log.error(`Failed to gather Certified Nodes usage ${err}`)
         }
