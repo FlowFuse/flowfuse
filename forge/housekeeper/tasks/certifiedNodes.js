@@ -117,10 +117,8 @@ async function collect (app) {
                     }
                 }, 1000)
             })
-
             // wait for everything to finish
             await Promise.all([instancePromise, devicePromise])
-
         } catch (err) {
             app.log.error(`Failed to gather Certified Nodes usage ${err}`)
         }
