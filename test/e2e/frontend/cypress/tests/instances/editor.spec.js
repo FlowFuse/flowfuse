@@ -36,7 +36,7 @@ describe('FlowFuse - Instance editor', () => {
             .should('exist')
     })
 
-    it.only('Alters the open-editor button and opens the immersive editor when the launcher supports it', () => {
+    it('Alters the open-editor button and opens the immersive editor when the launcher supports it', () => {
         cy.intercept(
             'GET',
             '/api/*/projects/*',
