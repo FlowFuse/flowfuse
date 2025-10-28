@@ -478,6 +478,8 @@ const bulkDeviceMove = async (teamId, devices, moveTo, id = undefined) => {
     } else if (moveTo === 'unassigned') {
         data.instance = null
         data.application = null
+    } else if (moveTo === 'group') {
+        data.deviceGroup = id
     } else {
         throw new Error('Invalid destination')
     }

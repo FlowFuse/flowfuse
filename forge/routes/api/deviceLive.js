@@ -365,11 +365,10 @@ module.exports = async function (app) {
                 const ffNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.ffNodes || 'https://ff-certified-nodes.flowfuse.cloud/ff-catalogue.json'
 
                 // Handle FF Exclusive Nodes
-
                 if (certNodesCatalogue || ffNodesCatalogue) {
                     // At least one is configured - so initialise the settings
                     response.palette = response.palette || {}
-                    response.palette.catalogues = response.palette.catalogues || []
+                    response.palette.catalogues = response.palette.catalogues || ['https://catalogue.nodered.org/catalogue.json']
                 }
                 function updateSettingsForCatalogue (scope, catalogueString) {
                     const catalogue = new URL(catalogueString)
@@ -389,7 +388,7 @@ module.exports = async function (app) {
                     updateSettingsForCatalogue('@flowfuse-nodes', ffNodesCatalogue)
                 }
             } catch (err) {
-                app.log.error('Failed to configure platform npm registry for device', err)
+                app.log.error(`Failed to configure platform npm registry for device ${err.toString()}`)
             }
         }
 

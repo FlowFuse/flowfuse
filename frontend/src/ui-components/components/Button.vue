@@ -27,7 +27,8 @@
             :class="computedClass"
             :disabled="htmlDisabled"
             :title="title ?? null"
-            @mouseup="go"
+            @click="go"
+            @click.middle="go"
     >
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>

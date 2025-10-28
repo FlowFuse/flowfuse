@@ -8,11 +8,11 @@ const { KEY_SETTINGS } = require('../models/ProjectSettings')
  * is no need to store that in the database. But we do need to know it so the
  * information can be returned on the API.
  */
-const inflightProjectState = { }
+const inflightProjectState = 'project-inflightProjectState'
 
-const latestProjectState = { }
+const latestProjectState = 'project-latestProjectState'
 
-const inflightDeploys = new Set()
+const inflightDeploys = 'project-inflightDeploys'
 
 module.exports = {
     /**
@@ -21,8 +21,8 @@ module.exports = {
      * @param {*} project
      * @returns the in-flight state
      */
-    getInflightState: function (app, project) {
-        return inflightProjectState[project.id]
+    getInflightState: async function (app, project) {
+        return await app.caches.getCache(inflightProjectState).get(project.id)
     },
 
     /**
@@ -31,8 +31,8 @@ module.exports = {
      * @param {*} project
      * @param {*} state
      */
-    setInflightState: function (app, project, state) {
-        inflightProjectState[project.id] = state
+    setInflightState: async function (app, project, state) {
+        await app.caches.getCache(inflightProjectState).set(project.id, state)
     },
 
     /**
@@ -40,8 +40,9 @@ module.exports = {
      * @param {*} app
      * @param {*} instance
      */
-    isDeploying: function (app, instance) {
-        return inflightDeploys.has(instance.id)
+    isDeploying: async function (app, instance) {
+        const has = await app.caches.getCache(inflightDeploys).get(instance.id)
+        return has === true
     },
 
     /**
@@ -49,8 +50,8 @@ module.exports = {
      * @param {*} app
      * @param {*} instance
      */
-    setInDeploy: function (app, instance) {
-        inflightDeploys.add(instance.id)
+    setInDeploy: async function (app, instance) {
+        await app.caches.getCache(inflightDeploys).set(instance.id, true)
     },
 
     /**
@@ -58,9 +59,9 @@ module.exports = {
      * @param {*} app
      * @param {*} project
      */
-    clearInflightState: function (app, project) {
-        delete inflightProjectState[project.id]
-        inflightDeploys.delete(project.id)
+    clearInflightState: async function (app, project) {
+        await app.caches.getCache(inflightProjectState).del(project.id)
+        await app.caches.getCache(inflightDeploys).del(project.id)
     },
 
     /**
@@ -583,7 +584,7 @@ module.exports = {
             throw error
         }
         if (project.state === 'running') {
-            app.db.controllers.Project.setInflightState(project, 'restarting')
+            await app.db.controllers.Project.setInflightState(project, 'restarting')
             project.state = 'running'
             await project.save()
             const result = await app.containers.restartFlows(project)
@@ -712,8 +713,9 @@ module.exports = {
      * @param {string|Number} projectId - The unique identifier of the project whose latest state is to be retrieved.
      * @returns {string} The latest state of the specified project.
      */
-    getLatestProjectState: function (app, projectId) {
-        return latestProjectState[projectId]
+    getLatestProjectState: async function (app, projectId) {
+        return await app.caches.getCache(latestProjectState).get(projectId)
+        // return latestProjectState[projectId]
     },
 
     /**
@@ -723,8 +725,8 @@ module.exports = {
      * @param {string|number} projectId - The unique identifier of the project whose state is being updated.
      * @param {any} state - The new state to be assigned to the project.
      */
-    setLatestProjectState: function (app, projectId, state) {
-        latestProjectState[projectId] = state
+    setLatestProjectState: async function (app, projectId, state) {
+        app.caches.getCache(latestProjectState).set(projectId, state)
     },
 
     /**
@@ -736,8 +738,8 @@ module.exports = {
      *
      * @param {String|Number} projectId - The project id whose latest state should be cleared.
      */
-    clearLatestProjectState: function (app, projectId) {
-        delete latestProjectState[projectId]
+    clearLatestProjectState: async function (app, projectId) {
+        return await app.caches.getCache(latestProjectState).del(projectId)
     },
 
     /**
@@ -746,11 +748,11 @@ module.exports = {
      * @param {String|Number} projectId - The project id related to the driver state update.
      * @param {string} state - The new state to update, can be 'running', 'stopped', or other valid states.
      */
-    updateLatestProjectState: function (app, projectId, state) {
+    updateLatestProjectState: async function (app, projectId, state) {
         if (['running'].includes(state)) {
-            this.clearLatestProjectState(app, projectId)
+            await this.clearLatestProjectState(app, projectId)
         } else {
-            this.setLatestProjectState(app, projectId, state)
+            await this.setLatestProjectState(app, projectId, state)
         }
     }
 }

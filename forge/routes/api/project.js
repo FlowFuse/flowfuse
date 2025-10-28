@@ -363,8 +363,8 @@ module.exports = async function (app) {
                 reply.code(403).send('Source Project and Target not in same team')
             }
 
-            app.db.controllers.Project.setInflightState(request.project, 'importing')
-            app.db.controllers.Project.setInDeploy(request.project)
+            await app.db.controllers.Project.setInflightState(request.project, 'importing')
+            await app.db.controllers.Project.setInDeploy(request.project)
 
             await app.auditLog.Project.project.copied(request.session.User.id, null, sourceProject, request.project)
             await app.auditLog.Project.project.imported(request.session.User.id, null, request.project, sourceProject)
@@ -518,7 +518,7 @@ module.exports = async function (app) {
             let resumeProject, targetState
             if (changesToProjectDefinition) {
                 // Early return and complete the rest async
-                app.db.controllers.Project.setInflightState(request.project, 'starting') // TODO: better inflight state needed
+                await app.db.controllers.Project.setInflightState(request.project, 'starting') // TODO: better inflight state needed
                 reply.code(200).send({})
                 repliedEarly = true
 
@@ -657,14 +657,14 @@ module.exports = async function (app) {
                 const startResult = await app.containers.start(request.project)
                 startResult.started.then(async () => {
                     await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                    app.db.controllers.Project.clearInflightState(request.project)
+                    await app.db.controllers.Project.clearInflightState(request.project)
                     return true
                 }).catch(err => {
                     app.log.info(`Failed to restart project ${request.project.id}`)
                     throw err
                 })
             } else {
-                app.db.controllers.Project.clearInflightState(request.project)
+                await app.db.controllers.Project.clearInflightState(request.project)
             }
         }
 
@@ -1432,7 +1432,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        app.db.controllers.Project.updateLatestProjectState(request.params.instanceId, request.body.state)
+        await app.db.controllers.Project.updateLatestProjectState(request.params.instanceId, request.body.state)
 
         reply.code(202).send()
     })

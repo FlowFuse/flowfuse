@@ -1,6 +1,6 @@
 <template>
     <section data-section="import-flows" class="import-flows flex flex-col gap-5 h-full">
-        <h1 class="mt-6 mb-5">Import your own custom Node-RED flows</h1>
+        <h2 class="mt-6 mb-5">Import your own custom Node-RED flows</h2>
 
         <div class="wrapper gap-5">
             <div class="preview">

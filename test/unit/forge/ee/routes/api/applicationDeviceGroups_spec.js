@@ -1030,13 +1030,19 @@ describe('Application Device Groups API', function () {
             updatedDeviceGroup.should.have.property('Devices').and.have.length(0)
         })
 
-        it('Can not add a device to a group if already in a group', async function () {
+        it('Can add a device to a group if already in a group', async function () {
             const sid = await login('bob', 'bbPassword')
             const application = TestObjects.application // BTeam application
             const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
             const deviceGroup2 = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
             const device = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
             await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, { addDevices: [device] })
+
+            const existingDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const existingDeviceGroup2 = await app.db.models.DeviceGroup.byId(deviceGroup2.hashid)
+
+            existingDeviceGroup.should.have.property('Devices').and.have.length(1)
+            existingDeviceGroup2.should.have.property('Devices').and.have.length(0)
 
             const response = await app.inject({
                 method: 'PATCH',
@@ -1047,11 +1053,13 @@ describe('Application Device Groups API', function () {
                 }
             })
 
-            response.statusCode.should.equal(400)
-            response.json().should.have.property('code', 'invalid_input')
-            // double check the device did not get added to the group
-            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup2.hashid)
+            response.statusCode.should.equal(200)
+
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const updatedDeviceGroup2 = await app.db.models.DeviceGroup.byId(deviceGroup2.hashid)
+
             updatedDeviceGroup.should.have.property('Devices').and.have.length(0)
+            updatedDeviceGroup2.should.have.property('Devices').and.have.length(1)
         })
 
         it('Non Owner can not update a device group membership', async function () {
@@ -1149,13 +1157,13 @@ describe('Application Device Groups API', function () {
                 checkDeviceUpdateCall(calls, d2)
                 checkDeviceUpdateCall(calls, d3)
             })
-            it('All Devices removed get an update request and clears DeviceGroup.targetSnapshotId', async function () {
+            it('All Devices removed get an update request and retains DeviceGroup.targetSnapshotId', async function () {
                 // Premise:
                 // Create 2 devices in a group, add group to a pipeline and deploy a snapshot
                 //   (direct db ops: set the targetSnapshotId on the group and the targetSnapshotId on the device group pipeline stage)
                 // Test the API by removing both devices leaving the group empty
                 // Check the 2 devices involved get an update request
-                // Check the DeviceGroup `targetSnapshotId` is cleared (this is cleared because the group is empty)
+                // Check the DeviceGroup `targetSnapshotId` is retained even though the group is empty)
                 const sid = await login('bob', 'bbPassword')
                 const application = TestObjects.application // BTeam application
                 const instance = TestObjects.instance
@@ -1209,9 +1217,9 @@ describe('Application Device Groups API', function () {
                 checkDeviceUpdateCall(calls, d1)
                 checkDeviceUpdateCall(calls, d2)
 
-                // check the DeviceGroup `targetSnapshotId` is cleared
+                // check the DeviceGroup `targetSnapshotId` is not cleared
                 const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroupOne.hashid)
-                updatedDeviceGroup.should.have.property('targetSnapshotId', null)
+                updatedDeviceGroup.should.have.property('targetSnapshotId', snapshot.id)
             })
         })
         describe('Changing a device owner removes the device from the group', function () {
