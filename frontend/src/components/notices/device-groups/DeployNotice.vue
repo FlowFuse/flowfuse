@@ -1,7 +1,7 @@
 <template>
     <notice-banner>
         <div v-if="targetSnapshot" class="deploy-notice">
-            <h6 class="mb-2">The following snapshot will be deployed:</h6>
+            <h6 class="mb-2">The below snapshot will be deployed to the selected device(s):</h6>
 
             <p class="clipped-overflow cursor-default mb-1" :title="targetSnapshot.name">{{ targetSnapshot.name }}</p>
 
