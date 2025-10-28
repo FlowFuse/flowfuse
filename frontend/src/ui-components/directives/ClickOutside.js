@@ -29,13 +29,13 @@ const directive = {
                 return null
             }
         }
-        document.addEventListener('mousedown', handler, true)
+        document.addEventListener('pointerdown', handler, true)
         instances.set(element, handler)
     },
     unmounted (element) {
         const handler = instances.get(element)
         if (handler) {
-            document.removeEventListener('mousedown', handler, true)
+            document.removeEventListener('pointerdown', handler, true)
         }
         instances.delete(element)
     }
