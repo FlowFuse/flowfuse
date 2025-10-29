@@ -1030,13 +1030,19 @@ describe('Application Device Groups API', function () {
             updatedDeviceGroup.should.have.property('Devices').and.have.length(0)
         })
 
-        it('Can not add a device to a group if already in a group', async function () {
+        it('Can add a device to a group if already in a group', async function () {
             const sid = await login('bob', 'bbPassword')
             const application = TestObjects.application // BTeam application
             const deviceGroup = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
             const deviceGroup2 = await factory.createApplicationDeviceGroup({ name: generateName('device-group') }, application)
             const device = await factory.createDevice({ name: generateName('device') }, TestObjects.BTeam, null, application)
             await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, { addDevices: [device] })
+
+            const existingDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const existingDeviceGroup2 = await app.db.models.DeviceGroup.byId(deviceGroup2.hashid)
+
+            existingDeviceGroup.should.have.property('Devices').and.have.length(1)
+            existingDeviceGroup2.should.have.property('Devices').and.have.length(0)
 
             const response = await app.inject({
                 method: 'PATCH',
@@ -1047,11 +1053,13 @@ describe('Application Device Groups API', function () {
                 }
             })
 
-            response.statusCode.should.equal(400)
-            response.json().should.have.property('code', 'invalid_input')
-            // double check the device did not get added to the group
-            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup2.hashid)
+            response.statusCode.should.equal(200)
+
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const updatedDeviceGroup2 = await app.db.models.DeviceGroup.byId(deviceGroup2.hashid)
+
             updatedDeviceGroup.should.have.property('Devices').and.have.length(0)
+            updatedDeviceGroup2.should.have.property('Devices').and.have.length(1)
         })
 
         it('Non Owner can not update a device group membership', async function () {

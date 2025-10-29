@@ -78,7 +78,8 @@ module.exports = async function (app) {
             TeamId: request.team.id
         }
         const options = {
-            includeInstanceApplication: true
+            includeInstanceApplication: true,
+            includeDeviceGroup: true
         }
         const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
         if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
@@ -469,7 +470,8 @@ module.exports = async function (app) {
                         minItems: 1
                     },
                     instance: { type: 'string', nullable: true },
-                    application: { type: 'string', nullable: true }
+                    application: { type: 'string', nullable: true },
+                    deviceGroup: { type: 'string', nullable: true }
                 }
             },
             response: {
@@ -493,12 +495,91 @@ module.exports = async function (app) {
             if (request.body.devices.some(d => !d.trim())) {
                 throw new ControllerError('invalid_input', 'Invalid device id', 400)
             }
+
             if (request.body.instance !== undefined || request.body.application !== undefined) {
                 const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.TeamType.getFeatureProperty('rbacApplication', false)
                 // Only pass through the teamMembership object if application RBAC is enabled
                 const updatedDevices = await deviceController.moveDevices(request.body.devices, request.body.application, request.body.instance, request.session?.User, applicationRBACEnabled ? request.teamMembership : null)
                 updatedDevices.devices = updatedDevices.devices.map(d => app.db.views.Device.device(d))
                 reply.send(updatedDevices)
+            } else if (Object.prototype.hasOwnProperty.call(request.body, 'deviceGroup')) {
+                let deviceGroup
+                let changeCount
+                let actualRemoveDevices
+                const transaction = await app.db.sequelize.transaction()
+                const infoBuilder = []
+                const decodedDeviceIds = request.body.devices.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
+                const devicesCollection = await app.db.models.Device.getAll({}, { id: decodedDeviceIds }, {
+                    includeDeviceGroup: true,
+                    includeApplication: true
+                })
+                const devicesByGroup = devicesCollection.devices.filter(device => device.DeviceGroup)
+                    .reduce((acc, device) => {
+                        const groupId = device.DeviceGroup?.id || null
+                        if (!acc[groupId]) {
+                            acc[groupId] = {
+                                group: device.DeviceGroup,
+                                devices: []
+                            }
+                        }
+                        acc[groupId].devices.push(device)
+                        return acc
+                    }, {})
+
+                try {
+                    if (request.body.deviceGroup === '') {
+                        // if the device group is present but empty, we need to bulk unassign devices from their respective device group
+                        for (const key of Object.keys(devicesByGroup)) {
+                            await app.db.controllers.DeviceGroup.removeDevicesFromGroup(devicesByGroup[key].group, devicesByGroup[key].devices, null, transaction)
+                        }
+
+                        infoBuilder.push(`Added ${decodedDeviceIds.length}`)
+                    } else if (request.body.deviceGroup.length > 1) {
+                        deviceGroup = await app.db.models.DeviceGroup.byId(request.body.deviceGroup)
+
+                        if (!deviceGroup) {
+                            throw new ControllerError('invalid_input', 'Invalid device group', 400)
+                        }
+
+                        // we first need to bulk unassign devices from their respective device group except the device group we're assigning to
+                        for (const key of Object.keys(devicesByGroup)) {
+                            if (deviceGroup.id !== devicesByGroup[key].group.id) {
+                                await app.db.controllers.DeviceGroup.removeDevicesFromGroup(devicesByGroup[key].group, devicesByGroup[key].devices, null, transaction)
+                            }
+                        }
+
+                        const result = await app.db.controllers.DeviceGroup.updateDeviceGroupMembership(deviceGroup, {
+                            transaction,
+                            addDevices: devicesCollection.devices
+                        })
+                        changeCount = result.changeCount
+                        actualRemoveDevices = result.actualRemoveDevices
+
+                        infoBuilder.push(`Reassigned ${decodedDeviceIds.length}`)
+                    }
+                } catch (e) {
+                    await transaction.rollback()
+
+                    throw e
+                }
+
+                await transaction.commit()
+
+                if (deviceGroup && changeCount !== undefined) {
+                    await app.db.controllers.DeviceGroup.finalizeDeviceGroupMembership(app, deviceGroup, changeCount, actualRemoveDevices)
+                }
+
+                const deviceGroupLogger = app.auditLog.Application.application.deviceGroup
+
+                await deviceGroupLogger.membersChanged(request.session.User,
+                    null,
+                    deviceGroup?.Application,
+                    deviceGroup,
+                    null,
+                    { info: infoBuilder.join(', ') })
+
+                // we're not sending the updated devices back, the FE will fetch the updated list of devices separately
+                reply.send(devicesCollection)
             } else {
                 throw new ControllerError('invalid_input', 'No valid fields to update', 400)
             }
@@ -509,7 +590,7 @@ module.exports = async function (app) {
 
     function handleError (err, reply) {
         let statusCode = 500
-        let code = 'unexpected_error'
+        let code = err.code || 'unexpected_error'
         let error = err.error || err.message || 'Unexpected error'
 
         if (err instanceof ControllerError) {

@@ -196,6 +196,9 @@ class DeviceTunnelManager {
                     reply.send()
                     this.app.log.warn(`Device ${device.hashid} tunnel error: unexpected response: ${msg.toString()}`)
                 } else {
+                    if (response.headers && response.headers['transfer-encoding'] === 'chunked') {
+                        delete response.headers['transfer-encoding']
+                    }
                     reply.headers(response.headers ? response.headers : {})
                     reply.code(response.status)
                     if (response.body) {

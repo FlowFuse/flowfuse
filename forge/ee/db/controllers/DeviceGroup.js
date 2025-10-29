@@ -1,4 +1,4 @@
-const { Op, ValidationError } = require('sequelize')
+const { ValidationError } = require('sequelize')
 
 const { ControllerError } = require('../../../lib/errors')
 
@@ -138,7 +138,7 @@ module.exports = {
         return deviceGroup
     },
 
-    updateDeviceGroupMembership: async function (app, deviceGroup, { addDevices, removeDevices, setDevices } = {}) {
+    updateDeviceGroupMembership: async function (app, deviceGroup, { addDevices, removeDevices, setDevices, transaction = null } = {}) {
         // * deviceGroup is required. The object must be a Sequelize model instance and must include the Devices
         // * addDevices, removeDevices, setDevices are optional
         // * if setDevices is provided, this will be used to set the devices assigned to the group, removing any devices that are not in the set
@@ -176,7 +176,7 @@ module.exports = {
         }
         let changeCount = 0
         // wrap the operations in a transaction to avoid inconsistent state
-        const t = await app.db.sequelize.transaction()
+        const t = transaction ?? await app.db.sequelize.transaction()
         const targetSnapshotId = deviceGroup.targetSnapshotId || undefined
         try {
             // add devices
@@ -189,12 +189,11 @@ module.exports = {
                 changeCount += actualRemoveDevices.length
                 await this.removeDevicesFromGroup(app, deviceGroup, actualRemoveDevices, targetSnapshotId, t)
             }
-
-            // commit the transaction
-            await t.commit()
         } catch (err) {
-            // Rollback transaction if any errors were encountered
-            await t.rollback()
+            if (!transaction) {
+                // Rollback transaction if any errors were encountered
+                await t.rollback()
+            }
             // if the error is a DeviceGroupMembershipValidationError, rethrow it
             if (err instanceof DeviceGroupMembershipValidationError) {
                 throw err
@@ -202,6 +201,27 @@ module.exports = {
             // otherwise, throw a friendly error message along with the original error
             throw new Error(`Failed to update device group membership: ${err.message}`)
         }
+
+        if (!transaction) {
+            // commit the transaction
+            await t.commit()
+
+            // If the transaction is initialized internally, we can finalize deviceGroupMembership.
+            //   Otherwise, it should be finalized externally, after the transaction is resolved.
+            await this.finalizeDeviceGroupMembership(app, deviceGroup, changeCount, actualRemoveDevices)
+        }
+
+        return { changeCount, actualRemoveDevices }
+    },
+
+    /**
+     * Finalizes device group membership changes by cleaning up empty groups and notifying devices
+     * @param {*} app The application object
+     * @param {*} deviceGroup The device group
+     * @param {number} changeCount Number of membership changes made
+     * @param {number[]} actualRemoveDevices List of device IDs that were removed
+     */
+    finalizeDeviceGroupMembership: async function (app, deviceGroup, changeCount, actualRemoveDevices) {
         if (changeCount > 0) {
             // finally, asynchronously inform the devices an update may be required
             this.sendUpdateCommand(app, deviceGroup, actualRemoveDevices)
@@ -209,7 +229,7 @@ module.exports = {
     },
 
     assignDevicesToGroup: async function (app, deviceGroup, deviceList, applyTargetSnapshot, transaction = null) {
-        const deviceIds = await validateDeviceList(app, deviceGroup, deviceList, null)
+        const deviceIds = await validateDeviceList(app, deviceGroup, deviceList, null, transaction)
         const updates = { DeviceGroupId: deviceGroup.id }
         if (typeof applyTargetSnapshot !== 'undefined') {
             updates.targetSnapshotId = applyTargetSnapshot
@@ -222,9 +242,10 @@ module.exports = {
      * Specifying `activeDeviceGroupTargetSnapshotId` will null the `targetSnapshotId` of each device in `deviceList` where it matches
      * This is used to remove the project from a device when being removed from a group where the active snapshot is the one applied by the DeviceGroup
      * @param {*} app The application object
-     * @param {number} deviceGroupId The device group id
-     * @param {number[]} deviceList A list of devices to remove from the group
+     * @param {DeviceGroup} deviceGroup The device group id
+     * @param {number[]|Device[]} deviceList A list of devices to remove from the group
      * @param {number} activeDeviceGroupTargetSnapshotId If specified, null devices `targetSnapshotId` where it matches
+     * @param {import('sequelize').Transaction} transaction A list of devices to verify
      */
     removeDevicesFromGroup: async function (app, deviceGroup, deviceList, activeDeviceGroupTargetSnapshotId, transaction = null) {
         const deviceIds = await validateDeviceList(app, deviceGroup, null, deviceList)
@@ -340,10 +361,12 @@ function deviceListToIds (deviceList, decoderFn) {
  * * All devices in the list must belong to the same Application as the DeviceGroup
  * * All devices in the list must belong to the same Team as the DeviceGroup
  * @param {*} app The application object
- * @param {*} deviceGroupId The device group id
- * @param {*} deviceList A list of devices to verify
+ * @param {*} deviceGroup The device group
+ * @param {*} addList A list of devices to verify
+ * @param {*} removeList A list of devices to verify
+ * @param {import('sequelize').Transaction} transaction A list of devices to verify
  */
-async function validateDeviceList (app, deviceGroup, addList, removeList) {
+async function validateDeviceList (app, deviceGroup, addList, removeList, transaction = null) {
     // check to ensure all devices in deviceList are not assigned to any group before commencing
     // Assign 1 or more devices to a DeviceGroup
     if (!deviceGroup || typeof deviceGroup !== 'object') {
@@ -369,14 +392,10 @@ async function validateDeviceList (app, deviceGroup, addList, removeList) {
         const okCount = await app.db.models.Device.count({
             where: {
                 id: deviceIds.addList,
-                [Op.or]: [
-                    { DeviceGroupId: null },
-                    { DeviceGroupId: deviceGroupId }
-                ],
                 ApplicationId: deviceGroup.ApplicationId,
                 TeamId: teamId
             }
-        })
+        }, { transaction })
         if (okCount !== deviceIds.addList.length) {
             throw new DeviceGroupMembershipValidationError('invalid_input', 'One or more devices cannot be added to the group', 400)
         }
@@ -389,7 +408,7 @@ async function validateDeviceList (app, deviceGroup, addList, removeList) {
                 ApplicationId: deviceGroup.ApplicationId,
                 TeamId: teamId
             }
-        })
+        }, { transaction })
         if (okCount !== deviceIds.removeList.length) {
             throw new DeviceGroupMembershipValidationError('invalid_input', 'One or more devices cannot be removed from the group', 400)
         }

@@ -66,6 +66,10 @@ export default {
         canBeCanceled: {
             type: Boolean,
             default: true
+        },
+        notices: {
+            type: Array,
+            default: () => []
         }
     },
     emits: ['cancel', 'confirm'],
