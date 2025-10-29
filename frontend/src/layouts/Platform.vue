@@ -46,7 +46,7 @@
                 <!-- eslint-disable-next-line vue/no-v-html -->
                 <div v-else class="space-y-2" v-html="dialog.html" />
 
-                <div v-if="dialog.notices.length" class="notices flex flex-col gap-3 mt-5">
+                <div v-if="dialog.notices?.length" class="notices flex flex-col gap-3 mt-5">
                     <hr class="mb-5">
                     <template v-for="notice in dialog.notices" :key="notice">
                         <component :is="notice" v-if="typeof notice === 'object'" />
