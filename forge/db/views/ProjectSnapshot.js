@@ -9,7 +9,8 @@ module.exports = {
             properties: {
                 id: { type: 'string' },
                 name: { type: 'string' },
-                description: { type: 'string' }
+                description: { type: 'string' },
+                createdAt: { type: 'string' }
             }
         })
         app.addSchema({
@@ -87,6 +88,11 @@ module.exports = {
                 name: result.name,
                 description: result.description || ''
             }
+
+            if (result.createdAt) {
+                filtered.createdAt = result.createdAt
+            }
+
             return filtered
         } else {
             return null

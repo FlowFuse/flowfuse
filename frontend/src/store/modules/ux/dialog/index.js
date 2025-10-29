@@ -16,7 +16,8 @@ const initialState = () => ({
         onConfirm: null,
         subHeader: null,
         text: null,
-        textLines: null
+        textLines: null,
+        notices: []
     }
 })
 
@@ -51,6 +52,7 @@ const mutations = {
             state.dialog.cancelLabel = payload.cancelLabel
             state.dialog.kind = payload.kind
             state.dialog.disablePrimary = payload.disablePrimary
+            state.dialog.notices = payload.notices
             if (Object.prototype.hasOwnProperty.call(payload, 'canBeCanceled')) {
                 state.dialog.canBeCanceled = payload.canBeCanceled
             }

@@ -26,7 +26,7 @@
         <div class="flex flex-col sm:flex-row">
             <div v-if="editMode" class="w-full sm:w-1/2 order-3 sm:order-1">
                 <div class="flex justify-between items-center mb-1">
-                    <h3 class="text-gray-800 block text-sm font-medium mb-1 min-w-0 truncate">Available devices</h3>
+                    <h3 class="text-gray-800 block text-sm font-medium mb-1 min-w-0 truncate">Available remote instances</h3>
                     <ff-button
                         size="small" class="w-28 whitespace-nowrap mb-1"
                         :disabled="!selectedAvailableDevices.length || !hasPermission('application:device-group:create', {application})"
@@ -95,12 +95,15 @@
 </template>
 
 <script>
+import { h } from 'vue'
 import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import DeployNotice from '../../../components/notices/device-groups/DeployNotice.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
+import { pluralize } from '../../../composables/String.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -323,37 +326,53 @@ export default {
             this.updateMemberDevicesList()
             this.editMode = false
         },
-        saveChanges () {
+        async saveChanges () {
             const deviceIds = this.localMemberDevices.map((device) => device.id)
             const devicesRemoved = this.deviceGroup.devices.filter((device) => this.localAvailableDevices.map((d) => d.id).includes(device.id))
             const devicesAdded = this.localMemberDevices.filter((device) => !this.deviceGroup.devices.map((d) => d.id).includes(device.id))
             const removedCount = devicesRemoved.length
             const addedCount = devicesAdded.length
-            const warning = []
+            const text = []
+            const notices = []
+            if (addedCount > 0 && removedCount > 0) {
+                // single title when both adding and removing devices from the group
+                text.push('<h3>Remote Instances will be added and removed from this group.</h3>')
+            }
+
             if (addedCount > 0) {
-                warning.push('1 or more devices will be added to this group.')
+                if (removedCount === 0) {
+                    text.push(`<h3>${addedCount === 1 ? 'One' : 'Multiple'} Remote ${pluralize('Instance', addedCount)} will be added to this group.</h3>`)
+                }
                 if (this.deviceGroup.targetSnapshot?.id) {
-                    warning.push(`These device(s) will be updated to deploy the target group snapshot (${this.deviceGroup.targetSnapshot.id}, ${this.deviceGroup.targetSnapshot.name})`)
-                } else {
-                    warning.push('')
+                    const component = h(DeployNotice, {
+                        targetSnapshot: this.deviceGroup.targetSnapshot,
+                        title: `The below snapshot will be deployed to the Remote ${pluralize('Instance', addedCount)} being added to this group:`
+                    })
+                    notices.push(component)
                 }
             }
+
             if (removedCount > 0) {
-                warning.push('1 or more devices will be removed from this group. These device(s) will be cleared of any active pipeline snapshot.')
-                warning.push('')
+                if (addedCount === 0) {
+                    text.push(`<h3>${removedCount === 1 ? 'One Remote Instance' : removedCount + ' Remote Instances'} will be removed from this group.</h3>`)
+                }
+                notices.push(`${removedCount > 1 ? 'The Remote Instances that are' : 'The Remote Instance that is'} being removed will be cleared of any active pipeline snapshot.`)
             }
+
             if (addedCount <= 0 && removedCount <= 0) {
                 return // nothing to do, shouldn't be able to get here as the save button should be disabled. but just in case...
             }
-            warning.push('Do you want to continue?')
 
-            const warningMessage = warning.join('\n')
+            text.push('<p class="!mt-5">Do you want to continue?</p>')
+
+            const html = text.join('\n')
+
             Dialog.show({
                 header: 'Update device group members',
                 kind: 'danger',
-                text: warningMessage,
-                confirmLabel: 'Confirm',
-                cancelLabel: 'No'
+                html,
+                notices,
+                confirmLabel: 'Confirm'
             }, async () => {
                 ApplicationApi.updateDeviceGroupMembership(this.application.id, this.deviceGroup.id, { set: deviceIds })
                     .then(() => {

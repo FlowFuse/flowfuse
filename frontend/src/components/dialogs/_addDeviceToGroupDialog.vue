@@ -9,11 +9,16 @@
                         <h3 v-if="devices && (!devicesBelongToSameApplication || assigningInstanceOwnedDevices)">
                             Unable to assign device to group.
                         </h3>
-                        <h3 v-else>Select a group from {{ application? application.name : device.application.name }}</h3>
+                        <h3 v-else>
+                            Select a group from {{
+                                application ? application.name : device.application.name
+                            }}
+                        </h3>
                     </div>
 
                     <ff-combobox
-                        v-if="devicesBelongToSameApplication && !assigningInstanceOwnedDevices" v-model="selectedDeviceGroup"
+                        v-if="devicesBelongToSameApplication && !assigningInstanceOwnedDevices"
+                        v-model="selectedDeviceGroup"
                         :options="deviceGroups" label-key="name" value-key="id"
                     >
                         <template #option="{ option, selected, active }">
@@ -34,13 +39,25 @@
                                             {{ option.description }}
                                         </p>
                                     </div>
+                                    <div
+                                        v-if="option.targetSnapshot"
+                                        class="snapshot text-gray-600 clipped-overflow text-right w-full text-sm"
+                                    >
+                                        <p :title="option.targetSnapshot.name">
+                                            {{ option.targetSnapshot.name }}
+                                        </p>
+                                    </div>
                                 </div>
                             </li>
                         </template>
                     </ff-combobox>
                 </div>
 
-                <notice-banner v-if="devicesBelongToSameApplication && !assigningInstanceOwnedDevices" :text="assignmentNoticeText" />
+                <deploy-notice
+                    v-if="devicesBelongToSameApplication && !assigningInstanceOwnedDevices"
+                    :target-snapshot="selectedDeviceGroupTargetSnapshot"
+                    :default-text="assignmentNoticeText"
+                />
 
                 <notice-banner
                     v-if="devices && !devicesBelongToSameApplication"
@@ -63,11 +80,13 @@ import { mapActions } from 'vuex'
 import ApplicationAPI from '../../api/application.js'
 import { pluralize } from '../../composables/String.js'
 import FfLoading from '../Loading.vue'
-import NoticeBanner from '../banners/NoticeBanner.vue'
+import NoticeBanner from '../notices/NoticeBanner.vue'
+import DeployNotice from '../notices/device-groups/DeployNotice.vue'
 
 export default {
     name: 'AddDeviceToGroupDialog',
     components: {
+        DeployNotice,
         NoticeBanner,
         FfLoading,
         ChipIcon
@@ -101,7 +120,18 @@ export default {
                 return 'These Remote Instances will be updated to deploy the selected groups active pipeline snapshot.'
             }
 
-            return 'This Remote Instance will be updated to deploy the selected groups active pipeline snapshot.'
+            return 'This Remote Instance will be updated to deploy the selected groups active pipeline snapshot'
+        },
+        selectedDeviceGroupTargetSnapshot () {
+            if (!this.selectedDeviceGroup) return null
+
+            const result = this.deviceGroups.find(group => group.id === this.selectedDeviceGroup)
+
+            if (result) {
+                return result.targetSnapshot ?? null
+            }
+
+            return null
         }
     },
     watch: {
@@ -148,6 +178,7 @@ export default {
                     for (const device of this.devices) {
                         if (device.ownerType === 'instance') {
                             this.assigningInstanceOwnedDevices = true
+                            this.setDisablePrimary(true)
                             return reject(new Error('Unable to assign hosted instance owned devices to a group'))
                         }
 
@@ -157,6 +188,7 @@ export default {
 
                     if (keys.some(key => key === '')) {
                         this.devicesBelongToSameApplication = false
+                        this.setDisablePrimary(true)
                         return reject(new Error('Some Remote Instances do not belong to an application'))
                     }
 
@@ -166,11 +198,12 @@ export default {
                     if (this.devicesBelongToSameApplication) {
                         this.application = this.devices[0].application
                     } else {
+                        this.setDisablePrimary(true)
                         reject(new Error('Remote Instances do not belong to the same application'))
                     }
-                    this.setDisablePrimary(true)
                 }
 
+                this.setDisablePrimary(true)
                 resolve()
             })
         }

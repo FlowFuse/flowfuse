@@ -1,5 +1,9 @@
 <template>
-    <div :data-type="`${isImmersiveEditor ? 'immersive' : 'standard'}-editor`" @mouseup.stop.prevent="openEditor">
+    <div
+        :data-type="`${isImmersiveEditor ? 'immersive' : 'standard'}-editor`"
+        @click.stop.prevent="openEditor"
+        @click.middle.stop.prevent="openEditor"
+    >
         <slot name="default">
             <ff-button
                 v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
@@ -103,7 +107,12 @@ export default {
             if (!this.isImmersiveEditor) {
                 return this.openInANewTab(this.editorURL, target)
             } else {
-                return this.openInANewTab(this.url, target)
+                if (evt.button === 1) {
+                    // open in a new tab when using the middle mouse button
+                    return this.openInANewTab(this.url, target)
+                } else {
+                    return this.$router.push({ name: 'instance-editor', params: { id: this.instance.id } })
+                }
             }
         }
     }
