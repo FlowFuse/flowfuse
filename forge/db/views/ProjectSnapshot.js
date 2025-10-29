@@ -86,9 +86,13 @@ module.exports = {
             const filtered = {
                 id: result.hashid,
                 name: result.name,
-                description: result.description || '',
-                createdAt: result.createdAt || null
+                description: result.description || ''
             }
+
+            if (result.createdAt) {
+                filtered.createdAt = result.createdAt
+            }
+
             return filtered
         } else {
             return null
