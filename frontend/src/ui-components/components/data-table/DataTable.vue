@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-data-table">
+    <div class="ff-data-table overflow-auto flex flex-col">
         <div v-if="showOptions" class="ff-data-table--options">
             <ff-text-input
                 v-if="showSearch" v-model="filterTerm" class="ff-data-table--search"
@@ -16,103 +16,105 @@
             </div>
         </div>
 
-        <table class="ff-data-table--data" :class="tableClass ?? ''">
-            <slot name="table">
-                <thead>
-                    <!-- HEADERS -->
-                    <slot v-if="showHeader" name="header">
-                        <ff-data-table-row>
-                            <ff-data-table-cell v-if="collapsibleRow" class="w-5" />
-                            <ff-data-table-cell v-if="showRowCheckboxes" class="w-5">
-                                <ff-checkbox v-model="allChecked" data-action="check-all" @click="toggleAllChecks" />
-                            </ff-data-table-cell>
-                            <ff-data-table-cell
-                                v-for="(col, $index) in columns" :key="$index"
-                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : '', col.headerClass ?? ''].concat(col.class)"
-                                :style="col.headerStyle ?? col.style"
-                                @click="sortBy(col, $index)"
-                            >
-                                <!-- Internal div required to have flex w/sorting icons -->
-                                <div :class="col.tableCellClass ?? ''">
-                                    <span v-if="col.html" :class="col.tableLabelClass ?? ''" v-html="col.html"> </span>
-                                    <span v-else :class="col.tableLabelClass ?? ''">{{ col.label }}</span>
-                                    <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key"
-                                                        class="ff-icon ff-icon-sm"
-                                    />
-                                    <SortAscendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'"
-                                                       class="ff-icon ff-icon-sm icon-sorted"
-                                    />
-                                    <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'"
-                                                        class="ff-icon ff-icon-sm icon-sorted"
-                                    />
-                                </div>
-                            </ff-data-table-cell>
-
-                            <ff-data-table-cell v-if="hasRowActions" />
-                            <ff-data-table-cell v-if="hasContextMenu" />
-                        </ff-data-table-row>
-                    </slot>
-                </thead>
-
-                <tbody>
-                    <!-- ROWS -->
-                    <slot name="rows">
-                        <ff-data-table-row v-if="loading">
-                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">
-                                {{ loadingMessage }}
-                            </ff-data-table-cell>
-                        </ff-data-table-row>
-
-                        <template v-if="!loading">
-                            <template v-for="(r, $index) in filteredRows" :key="$index">
-                                <ff-data-table-row
-                                    :data="r" :columns="columns"
-                                    :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn"
-                                    :data-el="slugify('row-' + (r.name || r.id || r.label || 'na'))"
-                                    @selected="rowClick(r, $event)"
+        <div class="flex-1 overflow-auto">
+            <table class="ff-data-table--data" :class="tableClass ?? ''">
+                <slot name="table">
+                    <thead>
+                        <!-- HEADERS -->
+                        <slot v-if="showHeader" name="header">
+                            <ff-data-table-row>
+                                <ff-data-table-cell v-if="collapsibleRow" class="w-5" />
+                                <ff-data-table-cell v-if="showRowCheckboxes" class="w-5">
+                                    <ff-checkbox v-model="allChecked" data-action="check-all" @click="toggleAllChecks" />
+                                </ff-data-table-cell>
+                                <ff-data-table-cell
+                                    v-for="(col, $index) in columns" :key="$index"
+                                    :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : '', col.headerClass ?? ''].concat(col.class)"
+                                    :style="col.headerStyle ?? col.style"
+                                    @click="sortBy(col, $index)"
                                 >
-                                    <template v-if="collapsibleRow" #row-prepend>
-                                        <span data-el="collapsible-row-toggle">
-                                            <ChevronRightIcon
-                                                class="ff-icon ff-icon-sm cursor-pointer hover:text-indigo-500 transition-transform"
-                                                :class="{'rotate-90': visibleCollapsibleRows.includes($index)}"
-                                                @click="toggleCollapsibleRowVisibility($index)"
-                                            />
-                                        </span>
-                                    </template>
-                                    <template v-else-if="showRowCheckboxes" #row-prepend="{row}">
-                                        <ff-checkbox v-model="checks[row[checkKeyProp]]" />
-                                    </template>
-                                    <template v-if="hasRowActions" #row-actions="{row}">
-                                        <slot name="row-actions" :row="row" />
-                                    </template>
-                                    <template v-if="hasContextMenu" #context-menu="{row}">
-                                        <slot name="context-menu" :row="row" />
-                                    </template>
-                                </ff-data-table-row>
-                                <ff-data-table-row v-if="collapsibleRow" class="collapsible">
-                                    <template #default>
-                                        <component :is="collapsibleRow.is"
-                                                   class="collapsible"
-                                                   :data="r"
-                                                   :collapsed="!visibleCollapsibleRows.includes($index)"
-                                                   v-bind="collapsibleRow.props"
-                                                   v-on="collapsibleRow.on"
+                                    <!-- Internal div required to have flex w/sorting icons -->
+                                    <div :class="col.tableCellClass ?? ''">
+                                        <span v-if="col.html" :class="col.tableLabelClass ?? ''" v-html="col.html"> </span>
+                                        <span v-else :class="col.tableLabelClass ?? ''">{{ col.label }}</span>
+                                        <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key"
+                                                            class="ff-icon ff-icon-sm"
                                         />
-                                    </template>
-                                </ff-data-table-row>
-                            </template>
-                        </template>
+                                        <SortAscendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'"
+                                                           class="ff-icon ff-icon-sm icon-sorted"
+                                        />
+                                        <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'"
+                                                            class="ff-icon ff-icon-sm icon-sorted"
+                                        />
+                                    </div>
+                                </ff-data-table-cell>
 
-                        <ff-data-table-row v-if="noDataToDisplay">
-                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">
-                                {{ emptyStateMessage }}
-                            </ff-data-table-cell>
-                        </ff-data-table-row>
-                    </slot>
-                </tbody>
-            </slot>
-        </table>
+                                <ff-data-table-cell v-if="hasRowActions" />
+                                <ff-data-table-cell v-if="hasContextMenu" />
+                            </ff-data-table-row>
+                        </slot>
+                    </thead>
+
+                    <tbody>
+                        <!-- ROWS -->
+                        <slot name="rows">
+                            <ff-data-table-row v-if="loading">
+                                <ff-data-table-cell class="status-message" :colspan="messageColSpan">
+                                    {{ loadingMessage }}
+                                </ff-data-table-cell>
+                            </ff-data-table-row>
+
+                            <template v-if="!loading">
+                                <template v-for="(r, $index) in filteredRows" :key="$index">
+                                    <ff-data-table-row
+                                        :data="r" :columns="columns"
+                                        :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn"
+                                        :data-el="slugify('row-' + (r.name || r.id || r.label || 'na'))"
+                                        @selected="rowClick(r, $event)"
+                                    >
+                                        <template v-if="collapsibleRow" #row-prepend>
+                                            <span data-el="collapsible-row-toggle">
+                                                <ChevronRightIcon
+                                                    class="ff-icon ff-icon-sm cursor-pointer hover:text-indigo-500 transition-transform"
+                                                    :class="{'rotate-90': visibleCollapsibleRows.includes($index)}"
+                                                    @click="toggleCollapsibleRowVisibility($index)"
+                                                />
+                                            </span>
+                                        </template>
+                                        <template v-else-if="showRowCheckboxes" #row-prepend="{row}">
+                                            <ff-checkbox v-model="checks[row[checkKeyProp]]" />
+                                        </template>
+                                        <template v-if="hasRowActions" #row-actions="{row}">
+                                            <slot name="row-actions" :row="row" />
+                                        </template>
+                                        <template v-if="hasContextMenu" #context-menu="{row}">
+                                            <slot name="context-menu" :row="row" />
+                                        </template>
+                                    </ff-data-table-row>
+                                    <ff-data-table-row v-if="collapsibleRow" class="collapsible">
+                                        <template #default>
+                                            <component :is="collapsibleRow.is"
+                                                       class="collapsible"
+                                                       :data="r"
+                                                       :collapsed="!visibleCollapsibleRows.includes($index)"
+                                                       v-bind="collapsibleRow.props"
+                                                       v-on="collapsibleRow.on"
+                                            />
+                                        </template>
+                                    </ff-data-table-row>
+                                </template>
+                            </template>
+
+                            <ff-data-table-row v-if="noDataToDisplay">
+                                <ff-data-table-cell class="status-message" :colspan="messageColSpan">
+                                    {{ emptyStateMessage }}
+                                </ff-data-table-cell>
+                            </ff-data-table-row>
+                        </slot>
+                    </tbody>
+                </slot>
+            </table>
+        </div>
 
         <div v-if="showLoadMore" class="ff-loadmore">
             <span data-action="load-more" @click="$emit('load-more')">Load More...</span>
