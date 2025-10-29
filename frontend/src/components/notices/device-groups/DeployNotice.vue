@@ -1,7 +1,7 @@
 <template>
     <notice-banner>
         <div v-if="targetSnapshot" class="deploy-notice">
-            <h6 class="mb-2">The below snapshot will be deployed to the selected device(s):</h6>
+            <h5 class="mb-2">{{ title }}</h5>
 
             <p class="clipped-overflow cursor-default mb-1" :title="targetSnapshot.name">{{ targetSnapshot.name }}</p>
 
@@ -24,15 +24,20 @@ export default {
     name: 'DeployNotice',
     components: { NoticeBanner },
     props: {
+        defaultText: {
+            required: false,
+            default: 'This Remote Instance will be updated to deploy the selected groups active pipeline snapshot',
+            type: String
+        },
         targetSnapshot: {
             required: false,
             default: null,
             type: Object
         },
-        defaultText: {
+        title: {
+            type: String,
             required: false,
-            default: 'This Remote Instance will be updated to deploy the selected groups active pipeline snapshot',
-            type: String
+            default: 'The below snapshot will be deployed to the selected device(s):'
         }
     },
     setup () {
