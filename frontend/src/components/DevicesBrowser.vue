@@ -714,7 +714,7 @@ export default {
 
             Dialog.show({
                 header: 'Add devices to a group',
-                kind: 'primary',
+                kind: 'danger',
                 is: {
                     component: markRaw(AddDeviceToGroupDialog),
                     payload: {

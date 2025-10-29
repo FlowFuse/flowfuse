@@ -359,8 +359,7 @@ export default {
                 kind: 'danger',
                 html,
                 notices,
-                confirmLabel: 'Confirm',
-                cancelLabel: 'No'
+                confirmLabel: 'Confirm'
             }, async () => {
                 ApplicationApi.updateDeviceGroupMembership(this.application.id, this.deviceGroup.id, { set: deviceIds })
                     .then(() => {
