@@ -369,10 +369,6 @@ module.exports = {
             throw new ControllerError('invalid_project_type', 'Invalid project type')
         }
 
-        // This will perform all checks needed to ensure this instance type can be created for this team.
-        // Throws an exception if not allowed
-        await team.checkInstanceTypeCreateAllowed(type)
-
         if (sourceProject && flowBlueprint) {
             throw new ControllerError('invalid_request', 'Source Project and Flow Blueprint cannot both be used')
         }
@@ -417,6 +413,16 @@ module.exports = {
             }
         }
 
+        const transaction = await app.db.sequelize.transaction()
+        // This will perform all checks needed to ensure this instance type can be created for this team.
+        // Throws an exception if not allowed
+        try {
+            await team.checkInstanceTypeCreateAllowed(type, transaction)
+        } catch (err) {
+            await transaction.rollback()
+            throw err
+        }
+
         let instance
         try {
             instance = await app.db.models.Project.create({
@@ -424,8 +430,10 @@ module.exports = {
                 ApplicationId: application.id,
                 type: '',
                 url: ''
-            })
+            }, { transaction })
+            await transaction.commit()
         } catch (err) {
+            await transaction.rollback()
             throw new ControllerError('unexpected_error', err.message, null, { cause: err })
         }
 
