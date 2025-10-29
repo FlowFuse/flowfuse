@@ -178,6 +178,7 @@ export default {
                     for (const device of this.devices) {
                         if (device.ownerType === 'instance') {
                             this.assigningInstanceOwnedDevices = true
+                            this.setDisablePrimary(true)
                             return reject(new Error('Unable to assign hosted instance owned devices to a group'))
                         }
 
@@ -187,6 +188,7 @@ export default {
 
                     if (keys.some(key => key === '')) {
                         this.devicesBelongToSameApplication = false
+                        this.setDisablePrimary(true)
                         return reject(new Error('Some Remote Instances do not belong to an application'))
                     }
 
@@ -196,11 +198,12 @@ export default {
                     if (this.devicesBelongToSameApplication) {
                         this.application = this.devices[0].application
                     } else {
+                        this.setDisablePrimary(true)
                         reject(new Error('Remote Instances do not belong to the same application'))
                     }
-                    this.setDisablePrimary(true)
                 }
 
+                this.setDisablePrimary(true)
                 resolve()
             })
         }
