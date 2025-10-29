@@ -95,10 +95,12 @@
 </template>
 
 <script>
+import { h } from 'vue'
 import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import DeployNotice from '../../../components/notices/device-groups/DeployNotice.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
@@ -323,35 +325,40 @@ export default {
             this.updateMemberDevicesList()
             this.editMode = false
         },
-        saveChanges () {
+        async saveChanges () {
             const deviceIds = this.localMemberDevices.map((device) => device.id)
             const devicesRemoved = this.deviceGroup.devices.filter((device) => this.localAvailableDevices.map((d) => d.id).includes(device.id))
             const devicesAdded = this.localMemberDevices.filter((device) => !this.deviceGroup.devices.map((d) => d.id).includes(device.id))
             const removedCount = devicesRemoved.length
             const addedCount = devicesAdded.length
-            const warning = []
+            const text = []
+            const notices = []
             if (addedCount > 0) {
-                warning.push('1 or more devices will be added to this group.')
+                text.push('<h2>One or more devices will be added to this group.</h2>')
                 if (this.deviceGroup.targetSnapshot?.id) {
-                    warning.push(`These device(s) will be updated to deploy the target group snapshot (${this.deviceGroup.targetSnapshot.id}, ${this.deviceGroup.targetSnapshot.name})`)
-                } else {
-                    warning.push('')
+                    const component = h(DeployNotice, {
+                        targetSnapshot: this.deviceGroup.targetSnapshot
+                    })
+                    notices.push(component)
                 }
             }
             if (removedCount > 0) {
-                warning.push('1 or more devices will be removed from this group. These device(s) will be cleared of any active pipeline snapshot.')
-                warning.push('')
+                text.push('<h2>1 or more devices will be removed from this group.</h2>')
+                notices.push(`${removedCount > 1 ? 'These devices' : 'This device'} will be cleared of any active pipeline snapshot.`)
             }
             if (addedCount <= 0 && removedCount <= 0) {
                 return // nothing to do, shouldn't be able to get here as the save button should be disabled. but just in case...
             }
-            warning.push('Do you want to continue?')
 
-            const warningMessage = warning.join('\n')
+            text.push('<p class="!mt-5">Do you want to continue?</p>')
+
+            const html = text.join('\n')
+
             Dialog.show({
                 header: 'Update device group members',
                 kind: 'danger',
-                text: warningMessage,
+                html,
+                notices,
                 confirmLabel: 'Confirm',
                 cancelLabel: 'No'
             }, async () => {
