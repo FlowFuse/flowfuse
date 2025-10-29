@@ -336,7 +336,7 @@ export default {
             const notices = []
             if (addedCount > 0 && removedCount > 0) {
                 // single title when both adding and removing devices from the group
-                text.push('<h2>Remote Instances will be added and removed from this group.</h2>')
+                text.push('<h3>Remote Instances will be added and removed from this group.</h3>')
             }
 
             if (addedCount > 0) {
