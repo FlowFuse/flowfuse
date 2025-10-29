@@ -3,9 +3,11 @@
         <div>
             <ExclamationIcon class="ff-icon ff-icon-lg text-yellow-500" />
         </div>
-        <p>
-            {{ text }}
-        </p>
+        <slot>
+            <p>
+                {{ text }}
+            </p>
+        </slot>
     </div>
 </template>
 
@@ -18,12 +20,18 @@ export default {
     props: {
         text: {
             type: String,
-            required: true
+            required: false,
+            default: ''
         }
     }
 }
 </script>
 
 <style scoped lang="scss">
-
+.notice {
+    border: 1px solid $ff-yellow-100;
+    background-color: $ff-yellow-10;
+    border-radius: $ff-unit-sm;
+    padding: $ff-unit-md;
+}
 </style>
