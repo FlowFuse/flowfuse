@@ -19,17 +19,6 @@
                         <p v-if="selectedApplication.description" data-el="application-description">
                             {{ selectedApplication.description }}
                         </p>
-                        <notice-banner v-if="differentApplicationSelected" class="mt-5 mb-2">
-                            <h3 class="mb-3">Changing the application of this duplicated instance may cause side effects!</h3>
-                            <ul class="list-disc list-outside pl-7 ml-0 text-sm">
-                                <li>
-                                    <p>Environment variables from the original application will no longer apply</p>
-                                </li>
-                                <li>
-                                    <p>This instance will lose the ability to be assigned to pipelines in the original application</p>
-                                </li>
-                            </ul>
-                        </notice-banner>
                     </div>
 
                     <div class="form-group">
@@ -127,7 +116,6 @@ import FfButton from '../../../../ui-components/components/Button.vue'
 import NameGenerator from '../../../../utils/name-generator/index.js'
 
 import FfLoading from '../../../Loading.vue'
-import NoticeBanner from '../../../notices/NoticeBanner.vue'
 
 export default {
     name: 'DuplicationStep',
@@ -137,8 +125,7 @@ export default {
         ExportInstanceComponents,
         FfLoading,
         PencilIcon,
-        RefreshIcon,
-        NoticeBanner
+        RefreshIcon
     },
     props: {
         applications: {
@@ -225,9 +212,6 @@ export default {
                 return this.applications.find(app => app.id === this.applicationSelection.selection.id)
             }
             return null
-        },
-        differentApplicationSelected () {
-            return this.instance.application.id !== this.applicationSelection.selection.id
         }
     },
     watch: {
