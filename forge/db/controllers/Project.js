@@ -384,8 +384,6 @@ module.exports = {
         if (sourceProject) {
             if (sourceProject.Team.id !== team.id) {
                 throw new ControllerError('invalid_source_project', 'Source Project Not in Same Team', 403)
-            } else if (sourceProject && sourceProject.Application.id !== application.id) {
-                throw new ControllerError('invalid_source_project', 'Source Project Not in Same Application', 403)
             }
         }
 
