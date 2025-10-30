@@ -35,7 +35,7 @@
         "test:unit:forge": "mocha 'test/unit/forge/**/*_spec.js' --timeout 10000 --node-option=unhandled-rejections=strict --parallel",
         "test:unit:frontend": "vitest run --config ./config/vitest.config.ts",
         "test:docs": "node test/e2e/docs/valid-links.js ./docs",
-        "test:system": "mocha 'test/system/**/*_spec.js' --timeout 10000 --node-option=unhandled-rejections=strict",
+        "test:system": "mocha 'test/system/**/*_spec.js' --timeout 10000 --node-option=unhandled-rejections=strict --parallel",
         "cy:web-server": "npm-run-all --parallel cy:web-server:os cy:web-server:ee",
         "cy:web-server:os": "node ./test/e2e/frontend/test_environment_os",
         "cy:web-server:ee": "node ./test/e2e/frontend/test_environment_ee",
