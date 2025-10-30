@@ -111,7 +111,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team']),
+        ...mapGetters('account', ['featuresCheck', 'team', 'pendingTeamChange']),
         ...mapGetters('product', ['hasFfUnsClients', 'hasBrokers']),
         ...mapState('product', {
             brokers: state => state.UNS.brokers
@@ -272,13 +272,18 @@ export default {
             immediate: true
         }
     },
-    mounted () {
+    created () {
+        const pendingTeamChange = !!this.pendingTeamChange
+
         // redirect if no minimum role
         if (!this.hasAMinimumTeamRoleOf(Roles.Member)) {
             return this.$router.push({ name: 'Home' })
         }
+
         this.fetchData()
-            .then(() => this.redirectIfNeeded())
+            .then(() => {
+                this.redirectIfNeeded(pendingTeamChange)
+            })
             .finally(() => {
                 this.loading = false
             })
@@ -312,7 +317,9 @@ export default {
 
             return Promise.resolve()
         },
-        redirectIfNeeded () {
+        redirectIfNeeded (pendingTeamChange = false) {
+            if (this.pendingTeamChange || pendingTeamChange) return
+
             const brokerId = this.$route.params.brokerId
             switch (true) {
             case this.hasFfUnsClients && !this.isCreationPage && !this.hasBrokers:
