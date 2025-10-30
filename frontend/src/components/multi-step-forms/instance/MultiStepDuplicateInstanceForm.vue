@@ -179,8 +179,6 @@ export default {
                         }
                     }
                 })
-                // filter out applications that don't own to the origin instance, @see #5785
-                .filter(app => app.id === this.instance.application.id)
         },
         prefillForm () {
             const input = {
