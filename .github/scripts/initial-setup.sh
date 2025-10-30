@@ -138,7 +138,7 @@ kubectl run flowfuse-setup-0 \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
-  --image bitnami/postgresql:14.10.0-debian-11-r3 \
+  --image bitnamilegacy/postgresql:14.10.0-debian-11-r3 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"Users\" (username,name,email,email_verified,sso_enabled,mfa_enabled,\"password\",password_expired,\"admin\",avatar,tcs_accepted,suspended,\"createdAt\",\"updatedAt\",\"defaultTeamId\") \
     VALUES ('flowfusedeveloper','flowfusedeveloper','noreply@flowfuse.dev',true,false,false,'$INIT_CONFIG_PASSWORD_HASH',false,true,'/avatar/Zmxvd2Z1c2VkZXZlbG9wZXI',NULL,false,'2024-03-15 19:51:49.449+01','2024-03-15 19:51:49.449+01',NULL);"
@@ -149,7 +149,7 @@ kubectl run flowfuse-setup-1 \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
-  --image bitnami/postgresql:14.10.0-debian-11-r3 \
+  --image bitnamilegacy/postgresql:14.10.0-debian-11-r3 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"PlatformSettings\" (\"key\",value,\"valueType\",\"createdAt\",\"updatedAt\")\
     VALUES ('setup:initialised','true',1,'2024-03-15 19:51:52.287','2024-03-15 19:51:52.287'),
@@ -161,7 +161,7 @@ kubectl run flowfuse-setup-2 \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
-  --image bitnami/postgresql:14.10.0-debian-11-r3 \
+  --image bitnamilegacy/postgresql:14.10.0-debian-11-r3 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"AccessTokens\" (token,\"expiresAt\",scope,\"ownerId\",\"ownerType\",\"refreshToken\",name,\"createdAt\",\"updatedAt\") \
     VALUES ('$INIT_CONFIG_ACCESS_TOKEN_HASH',NULL,'','1','user',NULL,'setup','2024-03-18 10:46:54.055+01','2024-03-18 10:46:54.055+01');"
@@ -413,7 +413,7 @@ kubectl run flowfuse-setup-4 \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
-  --image bitnami/postgresql:14.10.0-debian-11-r3 \
+  --image bitnamilegacy/postgresql:14.10.0-debian-11-r3 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
   "INSERT INTO public.\"TeamMembers\" (\"role\",\"UserId\",\"TeamId\")\
     VALUES
