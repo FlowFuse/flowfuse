@@ -133,6 +133,8 @@
                         <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow>
                     </div>
                     <FormRow v-model="input.options.provisionNewUsers" type="checkbox">Allow Provisioning of New Users on first login</FormRow>
+                    <FormRow v-model="input.options.sessionExpiry" :error="sessionExpiryError" type="number">Customer Session Expiry (hours)</FormRow>
+                    <FormRow v-model="input.options.sessionIdle" type="number">Customer Session Idle Time (hours)</FormRow>
                     <ff-button :disabled="!formValid" @click="updateProvider()">
                         Update configuration
                     </ff-button>
@@ -226,6 +228,16 @@ export default {
         isGroupAdminNameValid () {
             return !this.input.options.groupAdmin || (this.input.options.groupAdminName && this.input.options.groupAdminName.length > 0)
         },
+        // isSessionExpiryValid () {
+        //     if (this.input.options.sessionExpiry === undefined) {
+        //         return true
+        //     } else {
+        //         return this.input.options.sessionExpiry > 1
+        //     }
+        // },
+        // sessionExpiryError () {
+        //     return !this.isSessionExpiryValid ? 'Value Must be greater than 1hr' :''
+        // },
         groupAdminNameError () {
             return !this.isGroupAdminNameValid ? 'Admin Group name is required' : ''
         },

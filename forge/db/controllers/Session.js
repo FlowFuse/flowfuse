@@ -13,13 +13,15 @@ module.exports = {
     /**
      * Create a new session for the given username
      */
-    createUserSession: async function (app, username) {
+    createUserSession: async function (app, username, expiry, idle) {
         const user = await app.db.models.User.byUsernameOrEmail(username)
         if (user && !user.suspended) {
+            const expirySeconds = expiry ? (expiry * 60 * 60) : undefined
+            const idleSeconds = idle ? (idle * 60 * 60) : undefined
             const session = await app.db.models.Session.create({
                 sid: generateToken(32, 'ffu'),
-                expiresAt: Date.now() + (app.config.sessions?.maxDuration || DEFAULT_WEB_SESSION_EXPIRY),
-                idleAt: Date.now() + (app.config.sessions?.maxIdleDuration ? app.config.sessions?.maxIdleDuration * 0.9 : DEFAULT_WEB_SESSION_IDLE_TIMEOUT),
+                expiresAt: Date.now() + (expirySeconds || app.config.sessions?.maxDuration || DEFAULT_WEB_SESSION_EXPIRY),
+                idleAt: Date.now() + (idleSeconds || (app.config.sessions?.maxIdleDuration ? app.config.sessions?.maxIdleDuration * 0.9 : DEFAULT_WEB_SESSION_IDLE_TIMEOUT)),
                 UserId: user.id,
                 mfa_verified: false
             })
