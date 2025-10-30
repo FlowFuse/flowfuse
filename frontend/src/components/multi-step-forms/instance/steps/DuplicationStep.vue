@@ -16,14 +16,30 @@
                             </div>
                         </div>
                         <p data-el="application-name">{{ selectedApplication.label }}</p>
-                        <p v-if="selectedApplication.description" data-el="application-description">{{ selectedApplication.description }}</p>
+                        <p v-if="selectedApplication.description" data-el="application-description">
+                            {{ selectedApplication.description }}
+                        </p>
+                        <notice-banner v-if="differentApplicationSelected" class="mt-5 mb-2">
+                            <h3 class="mb-3">Changing the application of this duplicated instance may cause side effects!</h3>
+                            <ul class="list-disc list-outside pl-7 ml-0 text-sm">
+                                <li>
+                                    <p>Environment variables from the original application will no longer apply</p>
+                                </li>
+                                <li>
+                                    <p>This instance will lose the ability to be assigned to pipelines in the original application</p>
+                                </li>
+                            </ul>
+                        </notice-banner>
                     </div>
 
                     <div class="form-group">
                         <div class="title">
                             <label>Instance Name</label>
                             <div class="actions">
-                                <ff-button v-ff-tooltip="'Generate a new name'" size="small" kind="tertiary" @click="generateName">
+                                <ff-button
+                                    v-ff-tooltip="'Generate a new name'" size="small" kind="tertiary"
+                                    @click="generateName"
+                                >
                                     <RefreshIcon class="ff-icon ff-icon-sm" />
                                 </ff-button>
                                 <ff-button v-ff-tooltip="'Edit'" size="small" kind="tertiary" @click="goToStep(1)">
@@ -111,10 +127,19 @@ import FfButton from '../../../../ui-components/components/Button.vue'
 import NameGenerator from '../../../../utils/name-generator/index.js'
 
 import FfLoading from '../../../Loading.vue'
+import NoticeBanner from '../../../notices/NoticeBanner.vue'
 
 export default {
     name: 'DuplicationStep',
-    components: { FfButton, InstanceChargesTable, ExportInstanceComponents, FfLoading, PencilIcon, RefreshIcon },
+    components: {
+        FfButton,
+        InstanceChargesTable,
+        ExportInstanceComponents,
+        FfLoading,
+        PencilIcon,
+        RefreshIcon,
+        NoticeBanner
+    },
     props: {
         applications: {
             required: true,
@@ -200,6 +225,9 @@ export default {
                 return this.applications.find(app => app.id === this.applicationSelection.selection.id)
             }
             return null
+        },
+        differentApplicationSelected () {
+            return this.instance.application.id !== this.applicationSelection.selection.id
         }
     },
     watch: {
@@ -250,7 +278,13 @@ export default {
 
             this.nodeRedVersions = versions.stacks
                 .filter(version => version.active)
-                .map(version => { return { ...version, value: version.id, label: version.label || version.name } })
+                .map(version => {
+                    return {
+                        ...version,
+                        value: version.id,
+                        label: version.label || version.name
+                    }
+                })
 
             if (!this.nodeRedVersions.find(v => v.id === this.instanceSelection.nodeREDVersion)) {
                 // intended prop mutation to allow the node RED version to default to the selected instance type nodeRED version
@@ -297,6 +331,7 @@ export default {
                 gap: 5px;
             }
         }
+
         p {
             margin-top: 5px;
 
