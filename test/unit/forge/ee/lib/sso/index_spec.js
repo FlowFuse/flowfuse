@@ -200,7 +200,7 @@ d
         it('Use default Session expiry', async function () {
             const nowExpire = new Date()
             const nowIdle = new Date()
-            //round to closest minute
+            // round to closest minute
             nowExpire.setSeconds(0)
             nowExpire.setMilliseconds(0)
             nowIdle.setSeconds(0)
@@ -212,19 +212,19 @@ d
             const expires = session.expiresAt
             expires.setSeconds(0)
             expires.setMilliseconds(0)
-            nowExpire.setTime(nowExpire.getTime() + (7 * 24 *  60 * 60 * 1000))
+            nowExpire.setTime(nowExpire.getTime() + (7 * 24 * 60 * 60 * 1000))
             nowExpire.toISOString().should.equal(expires.toISOString())
 
-            const idle =session.idleAt
+            const idle = session.idleAt
             idle.setSeconds(0)
             idle.setMilliseconds(0)
-            nowIdle.setTime(nowIdle.getTime() + (32 *  60 * 60 * 1000))
+            nowIdle.setTime(nowIdle.getTime() + (32 * 60 * 60 * 1000))
             nowIdle.toISOString().should.equal(idle.toISOString())
         })
         it('Use custom Session expiry', async function () {
             const nowExpire = new Date()
             const nowIdle = new Date()
-            //round to closest minute
+            // round to closest minute
             nowExpire.setSeconds(0)
             nowExpire.setMilliseconds(0)
             nowIdle.setSeconds(0)
@@ -236,13 +236,13 @@ d
             const expires = session.expiresAt
             expires.setSeconds(0)
             expires.setMilliseconds(0)
-            nowExpire.setTime(nowExpire.getTime() + (6 *  60 * 60 * 1000))
+            nowExpire.setTime(nowExpire.getTime() + (6 * 60 * 60 * 1000))
             nowExpire.toISOString().should.equal(expires.toISOString())
 
-            const idle =session.idleAt
+            const idle = session.idleAt
             idle.setSeconds(0)
             idle.setMilliseconds(0)
-            nowIdle.setTime(nowIdle.getTime() + (3 *  60 * 60 * 1000))
+            nowIdle.setTime(nowIdle.getTime() + (3 * 60 * 60 * 1000))
             nowIdle.toISOString().should.equal(idle.toISOString())
         })
     })
