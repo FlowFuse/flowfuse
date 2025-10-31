@@ -28,7 +28,8 @@ describe('FlowFuse - Team Devices', () => {
             cy.get('.ff-dialog-box').should('be.visible')
             cy.get('.ff-dialog-header').contains('Add Remote Instance')
             // disabled primary button by default
-            cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').contains('Add').should('be.disabled')
+            cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').contains('Add')
+            cy.get('.ff-dialog-box button.ff-btn.ff-btn--primary').should('be.disabled')
 
             cy.get('[data-form="device-name"] input[type="text"]').type('device1')
             // inserting device name is enough to enable button
@@ -54,13 +55,16 @@ describe('FlowFuse - Team Devices', () => {
             // click kebab menu in row 1
             cy.get('[data-el="devices-browser"] tbody').find('.ff-kebab-menu').eq(0).click()
             // click the 4th option (Delete Device)
-            cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item').contains('Delete Device').click()
+            cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item')
+                .contains('Delete Device')
+                .parent()
+                .click()
 
             cy.get('.ff-dialog-box').should('be.visible')
             cy.get('.ff-dialog-header').contains('Delete Device')
 
             // Click "Delete"
-            cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').contains('Delete').click()
+            cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').contains('Delete').parent().click()
 
             cy.wait('@deleteDevice')
 
