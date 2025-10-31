@@ -155,7 +155,6 @@ const getTeamInstances = async (teamId) => {
 const getTeamDashboards = async (teamId) => {
     const res = await client.get(`/api/v1/teams/${teamId}/dashboard-instances`)
     res.data.projects = res.data.projects.map(r => {
-        r.createdSince = daysSince(r.createdAt)
         r.updatedSince = daysSince(r.updatedAt)
         r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
 
@@ -179,7 +178,6 @@ const getTeamInstancesList = async (teamId) => {
     const list = res.data.projects.map(r => {
         return {
             id: r.id,
-            name: r.name,
             application: {
                 id: r.application.id,
                 name: r.application.name
@@ -214,7 +212,6 @@ const getTeamMembers = (teamId) => {
 const getTeamInvitations = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/invitations`).then(res => {
         res.data.invitations = res.data.invitations.map(r => {
-            r.roleName = RoleNames[r.role || Roles.Member]
             r.createdSince = daysSince(r.createdAt)
             r.expires = elapsedTime(r.expiresAt, Date.now())
             return r
@@ -248,7 +245,7 @@ const removeTeamInvitation = (teamId, inviteId) => {
 }
 const resendTeamInvitation = (teamId, inviteId) => {
     return client.post(`/api/v1/teams/${teamId}/invitations/${inviteId}`)
-        .then((response) => response.data)
+        .then((response) => response)
         .then((invitation) => {
             product.capture('$ff-invite-resent', {
                 'invite-id': inviteId

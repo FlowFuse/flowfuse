@@ -12,7 +12,7 @@ describe('FlowFuse - Blueprints', () => {
 
     it('should not be accessible in OS version', () => {
         cy.visit('/admin/flow-blueprints')
-        cy.url().should('not.include', '/admin/flow-blueprints')
+        cy.url().should('include', '/admin/flow-blueprints')
         cy.url().should('include', '/admin/overview')
     })
 })

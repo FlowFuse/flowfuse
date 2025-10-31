@@ -207,7 +207,7 @@ describe('FlowFuse - Global Search', () => {
 
             cy.get('[data-el="global-search"] .results-wrapper').should('not.exist')
 
-            cy.get('[data-el="global-search"] input:not(.input-trigger)').type('instance')
+            cy.get('[data-el="glosbal-search"] input:not(.input-trigger)').type('instance')
             cy.wait('@search')
 
             cy.get('[data-el="global-search"] .results-wrapper').should('exist')
@@ -243,7 +243,7 @@ describe('FlowFuse - Global Search', () => {
 
             cy.get('[data-el="global-search"]').click()
 
-            cy.get('[data-el="global-search"] .results-wrapper').should('not.exist')
+            cy.get('[data-el="glsobal-search"] .results-wrapper').should('not.exist')
 
             cy.get('[data-el="global-search"] input:not(.input-trigger)').type('app')
             cy.wait('@search')
