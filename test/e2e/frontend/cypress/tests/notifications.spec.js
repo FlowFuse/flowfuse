@@ -56,7 +56,7 @@ describe('FlowFuse - Notifications', () => {
                     cy.get('[data-el="notifications-drawer"]')
 
                     cy.get('[data-el="invitation-message"]').should('have.length', 2)
-                    cy.get('[data-el="invitastion-message"]').contains('Team Invitation')
+                    cy.get('[data-el="invitation-message"]').contains('Team Invitation')
                     cy.get('[data-el="invitation-message"]').contains('You have been invited by "alice" to join "ATeam".')
                     cy.get('[data-el="invitation-message"]').contains('You have been invited by "bob" to join "BTeam".')
 
@@ -281,7 +281,7 @@ describe('FlowFuse - Notifications', () => {
             cy.wait('@getTeams')
             cy.wait('@getNotifications')
 
-            cy.get('[data-el="deskstop-nav-right"]').within(() => {
+            cy.get('[data-el="desktop-nav-right"]').within(() => {
                 cy.get('[data-el="notifications-button"]')
                     .should('exist')
                     .contains(1)

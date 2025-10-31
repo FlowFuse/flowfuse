@@ -61,6 +61,6 @@ describe('FlowFuse - Templates', () => {
         cy.get('.ff-dialog-box').should('be.visible')
 
         // check that the "Delete" button is disabled
-        cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').contains('Delete').parent().should('be.disabled')
+        cy.get('.ff-dialog-box button.ff-btn.ff-btn--danger').contains('Delete').should('be.disabled')
     })
 })

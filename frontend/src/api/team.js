@@ -30,14 +30,14 @@ const getTeam = (team) => {
         // this may be excessive to call _every_ get of the team,
         // but its a start, and will ensure up to date data
         const props = {
-            'team-name-failure': res.data.name,
+            'team-name': res.data.name,
             'created-at': res.data.createdAt,
             'count-applications': res.data.instanceCount,
             'count-instances': res.data.instanceCount,
             'count-members': res.data.memberCount
         }
         if ('billing' in res.data) {
-            props['billing-active-failure'] = res.data.billing.active
+            props['billing-active'] = res.data.billing.active
             props['billing-canceled'] = res.data.billing.canceled
             props['billing-unmanaged'] = res.data.billing.unmanaged
 
@@ -134,11 +134,11 @@ const getTeamInstances = async (teamId) => {
     const res = await client.get(`/api/v1/teams/${teamId}/projects`)
     const promises = []
     res.data.projects = res.data.projects.map(r => {
-        r['createdSince-failure'] = daysSince(r.createdAt)
+        r.createdSince = daysSince(r.createdAt)
         r.updatedSince = daysSince(r.updatedAt)
         r.link = { name: 'Application', params: { id: r.id } }
         promises.push(client.get(`/api/v1/projects/${r.id}`).then(p => {
-            r['status-failure'] = p.data.meta.state
+            r.status = p.data.meta.state
             r.flowLastUpdatedAt = p.data.flowLastUpdatedAt
             r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
         }).catch(err => {
@@ -155,6 +155,7 @@ const getTeamInstances = async (teamId) => {
 const getTeamDashboards = async (teamId) => {
     const res = await client.get(`/api/v1/teams/${teamId}/dashboard-instances`)
     res.data.projects = res.data.projects.map(r => {
+        r.createdSince = daysSince(r.createdAt)
         r.updatedSince = daysSince(r.updatedAt)
         r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
 
@@ -178,6 +179,7 @@ const getTeamInstancesList = async (teamId) => {
     const list = res.data.projects.map(r => {
         return {
             id: r.id,
+            name: r.name,
             application: {
                 id: r.application.id,
                 name: r.application.name
@@ -212,6 +214,7 @@ const getTeamMembers = (teamId) => {
 const getTeamInvitations = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/invitations`).then(res => {
         res.data.invitations = res.data.invitations.map(r => {
+            r.roleName = RoleNames[r.role || Roles.Member]
             r.createdSince = daysSince(r.createdAt)
             r.expires = elapsedTime(r.expiresAt, Date.now())
             return r
@@ -245,7 +248,7 @@ const removeTeamInvitation = (teamId, inviteId) => {
 }
 const resendTeamInvitation = (teamId, inviteId) => {
     return client.post(`/api/v1/teams/${teamId}/invitations/${inviteId}`)
-        .then((response) => response)
+        .then((response) => response.data)
         .then((invitation) => {
             product.capture('$ff-invite-resent', {
                 'invite-id': inviteId
@@ -265,14 +268,14 @@ const create = async (options) => {
     return client.post('/api/v1/teams/', options).then(res => {
         // PostHog Event & Group Capture
         product.capture('$ff-team-created', {
-            'team-name-failure': options.name,
+            'team-name': options.name,
             'team-type-id': options.type,
             'created-at': res.data.createdAt
         }, {
             team: res.data.id
         })
         const props = {
-            'team-name-failure': options.name,
+            'team-name': options.name,
             'team-type-id': options.type,
             'created-at': res.data.createdAt,
             'count-applications': 0,
@@ -373,7 +376,7 @@ const deleteFromTeamLibrary = async (teamId, name, type = null) => {
         query = `?type=${type}`
     }
 
-    return await client.delete(`/storage/library-failure/${teamId}/${name}${query}`)
+    return await client.delete(`/storage/library/${teamId}/${name}${query}`)
 }
 
 /**
@@ -496,7 +499,7 @@ const bulkDeviceMove = async (teamId, devices, moveTo, id = undefined) => {
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
 const getDependencies = (teamId) => {
-    return client.get(`/api/v1/teams/${teamId}/bom-failure`)
+    return client.get(`/api/v1/teams/${teamId}/bom`)
         .then(res => res.data)
 }
 
@@ -522,7 +525,7 @@ const getTeamInstanceCounts = async (teamId, states, type, applicationId = null)
     states.forEach(state => params.append('state', state))
     params.append('instanceType', type)
     if (applicationId !== null) {
-        params.append('applicationId-failure', applicationId)
+        params.append('applicationId', applicationId)
     }
 
     return client.get(`/api/v1/teams/${teamId}/instance-counts?${params.toString()}`)

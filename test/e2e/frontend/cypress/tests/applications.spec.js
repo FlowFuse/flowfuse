@@ -151,7 +151,7 @@ describe('FlowFuse - Applications', () => {
                 cy.get('[data-form="application-name"] input').clear()
                 cy.get('[data-form="application-name"] input').type(APPLICATION_NAME)
 
-                cy.get('[data-el="next-stesp"]').should('be.enabled')
+                cy.get('[data-el="next-step"]').should('be.enabled')
                 cy.get('[data-el="next-step"]').should('contain', 'Next')
 
                 cy.get('[data-el="next-step"]').click()
@@ -222,7 +222,7 @@ describe('FlowFuse - Applications', () => {
 
         cy.visit('/')
 
-        cy.get('[data-nav="team-applicsations"]').click()
+        cy.get('[data-nav="team-applications"]').click()
 
         cy.wait('@getTeamApplications')
 
@@ -385,7 +385,7 @@ describe('FlowFuse - Applications', () => {
                 cy.visit(`/team/${team.slug}/applications/${application.id}/settings`)
                 cy.wait('@getApplication')
 
-                cy.get('[data-el="delete-appslication-dialog"]').should('not.be.visible')
+                cy.get('[data-el="delete-application-dialog"]').should('not.be.visible')
                 cy.get('[data-action="delete-application"]').click()
 
                 cy.get('[data-el="delete-application-dialog"]')
