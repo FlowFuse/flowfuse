@@ -154,7 +154,7 @@ jobs:
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: failure()
         with:
-          name: os-cypress-output
+          name: os-cypress-output-${{ github.run_id }}-${{ github.run_number }}
           path: |
             test/e2e/frontend/cypress/screenshots
             test/e2e/frontend/cypress/videos
@@ -194,7 +194,7 @@ jobs:
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: failure()
         with:
-          name: ee-cypress-output
+          name: ee-cypress-output-${{ github.run_id }}-${{ github.run_number }}
           path: |
             test/e2e/frontend/cypress/screenshots
             test/e2e/frontend/cypress/videos
