@@ -63,7 +63,7 @@ module.exports.init = async function (app) {
                     const userInfo = app.auditLog.formatters.userObject(request.body)
                     const ldapVerified = await verifyLDAPUser(providerConfig, user, request.body.password)
                     if (ldapVerified) {
-                        const sessionInfo = await app.createSessionCookie(request.body.username)
+                        const sessionInfo = await app.createSessionCookie(request.body.username, providerConfig.options.sessionExpiry, providerConfig.options.sessionIdle)
                         if (sessionInfo) {
                             userInfo.id = sessionInfo.session.UserId
                             user.sso_enabled = true
@@ -123,7 +123,7 @@ module.exports.init = async function (app) {
                         const newUserProperties = await lookupLDAPUser(providerConfig, request.body.username)
                         if (newUserProperties) {
                             const newUser = await app.db.models.User.create(newUserProperties)
-                            const sessionInfo = await app.createSessionCookie(newUser.username)
+                            const sessionInfo = await app.createSessionCookie(newUser.username, providerConfig.options.sessionExpiry, providerConfig.options.sessionIdle)
                             if (sessionInfo) {
                                 userInfo.id = sessionInfo.session.UserId
                                 newUser.sso_enabled = true

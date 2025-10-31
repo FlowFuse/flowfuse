@@ -116,11 +116,11 @@ async function completeUserSignup (app, user) {
  * @param {*} user The email address of the user to complete SSO sign-in for.
  * @returns {Promise<void>}
  */
-async function completeSSOSignIn (app, user) {
+async function completeSSOSignIn (app, user, expiry, idle) {
     // We know who this is
     const userInfo = app.auditLog.formatters.userObject(user)
     // They have completed authentication and we know who they are.
-    const sessionInfo = await app.createSessionCookie(user.email)
+    const sessionInfo = await app.createSessionCookie(user.email, expiry, idle)
     const result = { cookie: null }
     if (sessionInfo) {
         user.sso_enabled = true

@@ -4,6 +4,7 @@ const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
 const { Roles } = FF_UTIL.require('forge/lib/roles')
+const { completeSSOSignIn } = FF_UTIL.require('forge/lib/userTeam')
 
 describe('SSO Providers', function () {
     let app
@@ -18,7 +19,9 @@ describe('SSO Providers', function () {
             active: true,
             options: {
                 cert: '-----BEGIN CERTIFICATE-----abcde-----END CERTIFICATE-----',
-                entryPoint: 'https://sso.example.com/entry'
+                entryPoint: 'https://sso.example.com/entry',
+                sessionExpiry: 12,
+                sessionIdle: 3
             }
         })
         app.samlProviders.provider2 = await app.db.models.SAMLProvider.create({
@@ -97,7 +100,7 @@ d
     describe('getProviderOptions', async function () {
         it('gets provider options for known provider', async function () {
             const result = await app.sso.getProviderOptions(app.samlProviders.provider1.hashid)
-            result.should.have.only.keys('issuer', 'callbackUrl', 'idpCert', 'entryPoint')
+            result.should.have.only.keys('issuer', 'callbackUrl', 'idpCert', 'entryPoint', 'sessionExpiry', 'sessionIdle')
             result.issuer.should.equal(`http://localhost:3000/ee/sso/entity/${app.samlProviders.provider1.hashid}`)
             result.callbackUrl.should.equal('http://localhost:3000/ee/sso/login/callback')
             result.idpCert.should.equal('abcde')
@@ -190,6 +193,57 @@ d
                 }
             })
             response.statusCode.should.equal(200)
+        })
+    })
+
+    describe('completeSSOSignIn', async function () {
+        it('Use default Session expiry', async function () {
+            const nowExpire = new Date()
+            const nowIdle = new Date()
+            // round to closest minute
+            nowExpire.setSeconds(0)
+            nowExpire.setMilliseconds(0)
+            nowIdle.setSeconds(0)
+            nowIdle.setMilliseconds(0)
+            const result = await completeSSOSignIn(app, app.user)
+            const session = await app.db.models.Session.findOne({
+                where: { sid: result.cookie.value }
+            })
+            const expires = session.expiresAt
+            expires.setSeconds(0)
+            expires.setMilliseconds(0)
+            nowExpire.setTime(nowExpire.getTime() + (7 * 24 * 60 * 60 * 1000))
+            nowExpire.toISOString().should.equal(expires.toISOString())
+
+            const idle = session.idleAt
+            idle.setSeconds(0)
+            idle.setMilliseconds(0)
+            nowIdle.setTime(nowIdle.getTime() + (32 * 60 * 60 * 1000))
+            nowIdle.toISOString().should.equal(idle.toISOString())
+        })
+        it('Use custom Session expiry', async function () {
+            const nowExpire = new Date()
+            const nowIdle = new Date()
+            // round to closest minute
+            nowExpire.setSeconds(0)
+            nowExpire.setMilliseconds(0)
+            nowIdle.setSeconds(0)
+            nowIdle.setMilliseconds(0)
+            const result = await completeSSOSignIn(app, app.user, 6, 3)
+            const session = await app.db.models.Session.findOne({
+                where: { sid: result.cookie.value }
+            })
+            const expires = session.expiresAt
+            expires.setSeconds(0)
+            expires.setMilliseconds(0)
+            nowExpire.setTime(nowExpire.getTime() + (6 * 60 * 60 * 1000))
+            nowExpire.toISOString().should.equal(expires.toISOString())
+
+            const idle = session.idleAt
+            idle.setSeconds(0)
+            idle.setMilliseconds(0)
+            nowIdle.setTime(nowIdle.getTime() + (3 * 60 * 60 * 1000))
+            nowIdle.toISOString().should.equal(idle.toISOString())
         })
     })
 

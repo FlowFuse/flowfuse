@@ -1,25 +1,24 @@
+const {
+    DEFAULT_WEB_SESSION_EXPIRY,
+    DEFAULT_WEB_SESSION_IDLE_GRACE,
+    DEFAULT_WEB_SESSION_IDLE_TIMEOUT,
+    HOUR
+} = require('../../lib/auth')
 const { generateToken } = require('../utils')
-
-const HOUR = 1000 * 60 * 60
-// This is the maximum time a user can be logged in for before being asked to reauth
-const DEFAULT_WEB_SESSION_EXPIRY = HOUR * 24 * 7 // One week expiry
-// If a session is inactive for this time, it will be expired
-const DEFAULT_WEB_SESSION_IDLE_TIMEOUT = HOUR * 32 // 32 hours
-// We only update the idle time if there is activity within this period prior
-// to idle timeout. That avoids the need to update idle timeout on every single request
-const DEFAULT_WEB_SESSION_IDLE_GRACE = HOUR * 31 // 31 hours
 
 module.exports = {
     /**
      * Create a new session for the given username
      */
-    createUserSession: async function (app, username) {
+    createUserSession: async function (app, username, expiry, idle) {
         const user = await app.db.models.User.byUsernameOrEmail(username)
         if (user && !user.suspended) {
+            const expirySeconds = expiry ? (expiry * HOUR) : undefined
+            const idleSeconds = idle ? (idle * HOUR) : undefined
             const session = await app.db.models.Session.create({
                 sid: generateToken(32, 'ffu'),
-                expiresAt: Date.now() + (app.config.sessions?.maxDuration || DEFAULT_WEB_SESSION_EXPIRY),
-                idleAt: Date.now() + (app.config.sessions?.maxIdleDuration ? app.config.sessions?.maxIdleDuration * 0.9 : DEFAULT_WEB_SESSION_IDLE_TIMEOUT),
+                expiresAt: Date.now() + (expirySeconds || app.config.sessions?.maxDuration || DEFAULT_WEB_SESSION_EXPIRY),
+                idleAt: Date.now() + (idleSeconds || (app.config.sessions?.maxIdleDuration ? app.config.sessions?.maxIdleDuration * 0.9 : DEFAULT_WEB_SESSION_IDLE_TIMEOUT)),
                 UserId: user.id,
                 mfa_verified: false
             })

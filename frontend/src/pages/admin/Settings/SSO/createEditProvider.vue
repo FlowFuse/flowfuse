@@ -133,6 +133,14 @@
                         <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow>
                     </div>
                     <FormRow v-model="input.options.provisionNewUsers" type="checkbox">Allow Provisioning of New Users on first login</FormRow>
+                    <FormRow v-model="input.options.sessionExpiry" :error="sessionExpiryError" type="number">
+                        Custom Session Expiry (hours)
+                        <template #description>How long should a user be logged in for, leave blank for the default ({{ defaultExpiryHours }})</template>
+                    </FormRow>
+                    <FormRow v-model="input.options.sessionIdle" type="number">
+                        Custom Session Idle Time (hours)
+                        <template #description>How long should a user can be idle before being logged out, leave blank for the default ({{ defaultIdleHours }})</template>
+                    </FormRow>
                     <ff-button :disabled="!formValid" @click="updateProvider()">
                         Update configuration
                     </ff-button>
@@ -189,7 +197,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'settings']),
         isCreate () {
             return this.$route.params.id === 'create'
         },
@@ -241,6 +249,12 @@ export default {
         },
         allowTest () {
             return this.input.options.server && this.input.options.username && this.input.options.password
+        },
+        defaultExpiryHours () {
+            return this.settings['platform:session:expiry'] / (60 * 60 * 1000)
+        },
+        defaultIdleHours () {
+            return this.settings['platform:session:idle'] / (60 * 60 * 1000)
         }
     },
     async beforeMount () {
@@ -306,6 +320,13 @@ export default {
                     // if (opts.options.provisionNewUsers) {
                     //     delete opts.options.provisionNewUsers
                     // }
+                }
+                if (opts.sessionExpiry && opts.sessionIdle) {
+                    if (opts.sessionIdle > opts.sessionExpiry) {
+                        opts.sessionIdle = opts.sessionExpiry
+                    }
+                } else if (opts.sessionExpiry && opts.sessionIdle === undefined) {
+                    opts.sessionIdle = opts.sessionExpiry
                 }
                 delete opts.type
                 delete opts.id
