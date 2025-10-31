@@ -16,8 +16,8 @@ module.exports = {
     createUserSession: async function (app, username, expiry, idle) {
         const user = await app.db.models.User.byUsernameOrEmail(username)
         if (user && !user.suspended) {
-            const expirySeconds = expiry ? (expiry * 60 * 60) : undefined
-            const idleSeconds = idle ? (idle * 60 * 60) : undefined
+            const expirySeconds = expiry ? (expiry * 60 * 60 * 1000) : undefined
+            const idleSeconds = idle ? (idle * 60 * 60 * 1000) : undefined
             const session = await app.db.models.Session.create({
                 sid: generateToken(32, 'ffu'),
                 expiresAt: Date.now() + (expirySeconds || app.config.sessions?.maxDuration || DEFAULT_WEB_SESSION_EXPIRY),
