@@ -17,11 +17,16 @@ describe('FlowFuse - Personal Access Tokens', () => {
         cy.get('[data-form="expiry-toggle"] input').should('not.be.checked')
         cy.get('[data-form="token-expiry"] input').should('be.disabled')
 
-        // check primary is disabled by default
-        cy.get('[data-action="dialog-confirm"]').contains('Create').should('be.disabled')
+        cy.get('[data-el="add-token-dialog"]').within(() => {
+            // check primary is disabled by default
+            cy.get('[data-action="dialog-confirm"]').contains('Create')
+            cy.get('[data-action="dialog-confirm"]').should('be.disabled')
 
-        // close the dialog
-        cy.get('[data-action="dialog-cancel"]').contains('Cancel').click()
+            // close the dialog
+            cy.get('[data-action="dialog-cancel"]').contains('Cancel')
+            cy.get('[data-action="dialog-cancel"]').click()
+        })
+
         cy.get('[data-el="add-token-dialog"]').should('not.be.visible')
     })
 
@@ -37,9 +42,12 @@ describe('FlowFuse - Personal Access Tokens', () => {
         // expiry disabled by default
         cy.get('[data-form="token-name"] input').type(TOKEN_NAME)
 
-        // check primary is no longer disabled
-        cy.get('[data-action="dialog-confirm"]').contains('Create').should('not.be.disabled')
-        cy.get('[data-action="dialog-confirm"]').contains('Create').click()
+        cy.get('[data-el="add-token-dialog"]').within(() => {
+            // check primary is no longer disabled
+            cy.get('[data-action="dialog-confirm"]').contains('Create')
+            cy.get('[data-action="dialog-confirm"]').should('not.be.disabled')
+            cy.get('[data-action="dialog-confirm"]').click()
+        })
 
         cy.wait('@addPersonalAccessToken')
 

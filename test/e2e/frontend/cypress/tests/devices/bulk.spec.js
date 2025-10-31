@@ -155,9 +155,9 @@ describe('FlowFuse - Devices', () => {
                     })
 
                     // check the table columns for the moved devices
-                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName1).parent().parent().find('td').eq(6).contains(options.moveTo)
-                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName2).parent().parent().find('td').eq(6).contains(options.moveTo)
-                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName3).parent().parent().find('td').eq(6).contains(options.moveTo)
+                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName1).parent().parent().find('td').eq(7).contains(options.moveTo)
+                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName2).parent().parent().find('td').eq(7).contains(options.moveTo)
+                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName3).parent().parent().find('td').eq(7).contains(options.moveTo)
                 })
             }
         })
