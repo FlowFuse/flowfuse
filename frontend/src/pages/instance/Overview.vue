@@ -108,8 +108,8 @@
             <div class="ff-instance-info" data-el="recent-activity">
                 <FormHeading><TrendingUpIcon />Recent Activity</FormHeading>
                 <AuditLog :entries="auditLog" :loading="loading" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
-                <div v-if="!loading" class="pb-4 text-center">
-                    <router-link to="./audit-log" class="forge-button-inline">More...</router-link>
+                <div v-if="!loading" class="pt-4 pb-4 text-center">
+                    <router-link to="./audit-log" class="forge-button-secondary">More...</router-link>
                 </div>
             </div>
         </div>
