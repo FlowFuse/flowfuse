@@ -1,5 +1,6 @@
 import brokerApi from '../../../api/broker.js'
 
+import assistant from './assistant/index.js'
 import tables from './tables/index.js'
 
 // initial state
@@ -211,7 +212,7 @@ const actions = {
 
 export default {
     namespaced: true,
-    modules: { tables },
+    modules: { tables, assistant },
     state,
     initialState: initialState(),
     getters,
