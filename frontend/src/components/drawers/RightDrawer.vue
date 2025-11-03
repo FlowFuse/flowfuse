@@ -64,7 +64,6 @@ export default {
     methods: {
         ...mapActions('ux/drawers', ['closeRightDrawer']),
         closeDrawer () {
-            console.log(this.rightDrawer.closeOnClickOutside)
             if (this.rightDrawer.state && this.rightDrawer.closeOnClickOutside) {
                 this.closeRightDrawer()
             }
