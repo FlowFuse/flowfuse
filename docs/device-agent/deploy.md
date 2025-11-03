@@ -10,7 +10,7 @@ meta:
     - device management
 ---
 
-# Deploying Flows to the Device Agent - Team and Enterprise tier only
+# Deploying Flows to the Device Agent
 
 Before you're able to deploy your flows to your Remote Instance,
 you will have needed to have completed these steps:
@@ -19,7 +19,7 @@ you will have needed to have completed these steps:
 2. [Register the Remote Instance with FlowFuse](./register.md) - this step will have provided you with a `device.yml` file to move to your Remote Instance.
 3. [Run the Device Agent](./running.md) - starts the Device Agent on the Remote Instance.
 
-## Deploying a Node-RED Snapshot to the Remote Instance
+## Deploying a Node-RED Snapshot to the Remote Instance From a Hosted Instance
 
 To deploy a Node-RED Snapshot to the Remote Instance:
 
