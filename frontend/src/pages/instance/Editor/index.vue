@@ -33,7 +33,6 @@
                     <a :href="instance.url">
                         <ExternalLinkIcon class="ff-btn--icon" />
                     </a>
-                    <ChevronDownIcon class="ff-btn--icon close-drawer" @click="toggleDrawer" />
                 </div>
             </div>
 
@@ -58,7 +57,7 @@
 </template>
 
 <script>
-import { ArrowLeftIcon, ChevronDownIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
@@ -83,7 +82,6 @@ export default {
         InstanceStatusPolling,
         ExternalLinkIcon,
         FfPage,
-        ChevronDownIcon,
         ArrowLeftIcon,
         ResizeBar
     },
