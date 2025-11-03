@@ -1,35 +1,28 @@
 <template>
     <div class="ff-editor-wrapper" :class="{resizing: drawer.resizing}">
+        <!-- Drawer toggle button positioned over the Node-RED header -->
+        <button
+            class="drawer-toggle-button"
+            :class="{'drawer-open': drawer.open}"
+            @click="toggleDrawer"
+            title="Toggle drawer"
+        >
+            <img src="../../../images/icons/ff-minimal-grey.svg" alt="FlowFuse logo" class="ff-logo-icon">
+        </button>
+
         <EditorWrapper :instance="instance" :disable-events="drawer.resizing" />
 
         <section
             class="tabs-wrapper drawer"
             :class="{'open': drawer.open, resizing: drawer.resizing}"
-            :style="{ height: drawer.height + 'px' }"
+            :style="{ width: drawer.width + 'px' }"
             data-el="tabs-drawer"
         >
             <resize-bar
-                :is-handle-visible="drawer.open"
-                :is-handle-shadowed="!drawer.isHoveringOverResize"
-                @mouseover="onResizeBarMouseHover"
-                @mouseout="onResizeBarMouseHover"
                 @mousedown="startResize"
             />
 
-            <drawer-trigger @click="toggleDrawer" />
-
-            <middle-close-button
-                :is-visible="drawer.open"
-                @click="toggleDrawer"
-            />
-
             <div class="header">
-                <div class="logo">
-                    <router-link :to="{ name: 'instance-overview', params: {id: instance.id} }">
-                        <ArrowLeftIcon class="ff-btn--icon" />
-                        <img src="../../../images/icons/ff-minimal-grey.svg" alt="logo">
-                    </router-link>
-                </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
                 <div class="side-actions">
                     <DashboardLink
@@ -78,8 +71,6 @@ import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDele
 import DashboardLink from '../components/DashboardLink.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
-import DrawerTrigger from './components/drawer/DrawerTrigger.vue'
-import MiddleCloseButton from './components/drawer/MiddleCloseButton.vue'
 import ResizeBar from './components/drawer/ResizeBar.vue'
 
 export default {
@@ -88,8 +79,6 @@ export default {
         ConfirmInstanceDeleteDialog,
         InstanceActionsButton,
         DashboardLink,
-        MiddleCloseButton,
-        DrawerTrigger,
         EditorWrapper,
         InstanceStatusPolling,
         ExternalLinkIcon,
@@ -108,13 +97,11 @@ export default {
         return {
             drawer: {
                 open: false,
-                isHoveringOverResize: false,
-                isHoveringOverResizeThrottled: false,
                 resizing: false,
-                startY: 0,
-                startHeight: 0,
-                height: 0,
-                defaultHeight: 320
+                startX: 0,
+                startWidth: 0,
+                width: 0,
+                defaultWidth: 400
             }
         }
     },
@@ -177,51 +164,30 @@ export default {
         }
     },
     mounted () {
-        setTimeout(() => {
-            this.toggleDrawer()
-            this.drawer.height = this.drawer.defaultHeight
-        }, 1200)
+        // Drawer starts closed - user clicks logo to open
     },
     methods: {
         toggleDrawer () {
             if (this.drawer.open) {
                 this.drawer.open = false
-                this.drawer.height = 0
+                this.drawer.width = 0
             } else {
                 this.drawer.open = true
-                this.drawer.height = this.drawer.defaultHeight
+                this.drawer.width = this.drawer.defaultWidth
             }
-            this.drawer.isHoveringOverResize = false
-        },
-        onResizeBarMouseHover () {
-            if (!this.throttled) {
-                this.throttled = true
-                this.toggleIsHoveringOverResizeBar()
-                setTimeout(() => {
-                    this.throttled = false
-                    this.toggleIsHoveringOverResizeBar()
-                }, 2000)
-            }
-        },
-        toggleIsHoveringOverResizeBar () {
-            if (!this.drawer.open) {
-                this.drawer.isHoveringOverResize = false
-                return
-            }
-            this.drawer.isHoveringOverResize = !this.drawer.isHoveringOverResize
         },
         startResize (e) {
             this.drawer.resizing = true
-            this.drawer.startY = e.clientY
-            this.drawer.startHeight = this.drawer.height
+            this.drawer.startX = e.clientX
+            this.drawer.startWidth = this.drawer.width
             document.addEventListener('mousemove', this.resize)
             document.addEventListener('mouseup', this.stopResize)
         },
         resize (e) {
             if (this.drawer.resizing) {
-                const heightChange = this.drawer.startY - e.clientY
-                const newHeight = this.drawer.startHeight + heightChange
-                this.drawer.height = Math.min(Math.max(100, newHeight), window.screen.height - 200)
+                const widthChange = e.clientX - this.drawer.startX
+                const newWidth = this.drawer.startWidth + widthChange
+                this.drawer.width = Math.min(Math.max(300, newWidth), window.screen.width - 200)
             }
         },
         stopResize () {
@@ -240,39 +206,73 @@ export default {
   display: flex;
   flex: 1;
 
+  .drawer-toggle-button {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    border: none;
+    border-right: 1px solid $ff-grey-300;
+    border-bottom: 1px solid $ff-grey-300;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: left 0.3s ease-in-out;
+
+    &:hover {
+      background: $ff-grey-100;
+    }
+
+    .ff-logo-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    &.drawer-open {
+      left: 400px;
+    }
+  }
+
   .tabs-wrapper {
     position: fixed;
     left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 0;
+    top: 60px;
+    width: 0;
+    height: calc(100% - 60px);
     background: white;
-    box-shadow: 4px -4px 8px rgba(0, 0, 0, 0.10);
     transition: ease-in-out 0.3s;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+
+    &.open {
+      box-shadow: 5px 0px 8px rgba(0, 0, 0, 0.10);
+    }
+
+    .header, main {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    &.open {
+      .header, main {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
 
     .header {
-      padding: 0 15px;
+      padding: 0 15px 0 0;
       display: flex;
       line-height: 1.5;
       border-bottom: 1px solid $ff-grey-200;
       background: white;
       z-index: 10;
-
-      .logo {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-
-        a {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          color: $ff-grey-500;
-          gap: 10px;
-        }
-      }
 
       .tabs {
         flex: 1;
@@ -296,7 +296,7 @@ export default {
   }
 
   &.resizing {
-    cursor: ns-resize;
+    cursor: ew-resize;
     user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;

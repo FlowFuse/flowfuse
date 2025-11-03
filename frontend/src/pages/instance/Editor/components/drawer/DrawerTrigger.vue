@@ -1,38 +1,40 @@
 <template>
     <div class="drawer-trigger" @click="toggleDrawer">
         <img src="../../../../../images/icons/ff-logo--wordmark--grey.svg" alt="logo">
-        <ChevronUpIcon class="ff-btn--icon close-drawer" />
+        <ChevronRightIcon class="ff-btn--icon close-drawer" />
     </div>
 </template>
 
 <script>
-import { ChevronUpIcon } from '@heroicons/vue/solid'
+import { ChevronRightIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'DrawerTrigger',
-    components: { ChevronUpIcon }
+    components: { ChevronRightIcon }
 }
 </script>
 
 <style scoped lang="scss">
 .drawer-trigger {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 10px;
   position: absolute;
-  top: -40px;
-  left: 50%;
-  margin-left: -84px;
-  padding: 10px 16px 8px;
+  top: 50%;
+  right: -40px;
+  margin-top: -42px;
+  padding: 16px 8px 10px;
   color: $ff-grey-400;
   background: white;
   border: 1px solid $ff-grey-400;
-  box-shadow: 4px -4px 8px rgba(0, 0, 0, 0.10);
-  border-radius: 10px 10px 0 0;
+  box-shadow: -4px 4px 8px rgba(0, 0, 0, 0.10);
+  border-radius: 0 10px 10px 0;
   transition: ease-out .7s;
 
   img {
     height: 20px;
+    transform: rotate(90deg);
   }
 
   .ff-btn--icon {
@@ -45,10 +47,10 @@ export default {
 }
 
 .open {
-  height: 320px;
+  width: 400px;
 
   .drawer-trigger {
-    top: 150vh;
+    right: 150vw;
     transition: ease-in .1s;
   }
 }
