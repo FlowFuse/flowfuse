@@ -248,6 +248,8 @@ export default {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    container-type: inline-size;
+    container-name: drawer;
 
     &.open {
       box-shadow: 5px 0px 8px rgba(0, 0, 0, 0.10);

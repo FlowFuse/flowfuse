@@ -209,4 +209,18 @@ export default {
 
 <style lang="scss">
 @import "../../stylesheets/pages/project.scss";
+
+// Container query for drawer context
+@container drawer (min-width: 640px) {
+  .ff-project-overview .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// Ensure single column layout when container is smaller
+@container drawer (max-width: 639px) {
+  .ff-project-overview .grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
 </style>
