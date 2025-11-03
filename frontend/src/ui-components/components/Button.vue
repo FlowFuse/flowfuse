@@ -36,7 +36,7 @@
         <span v-if="isIconOnly" class="ff-btn--icon">
             <slot name="icon"></slot>
         </span>
-        <span class="clipped-overflow">
+        <span class="clipped-overflow flex align-center justify-center gap-4">
             <slot></slot>
         </span>
         <span v-if="hasIconRight" class="ff-btn--icon ff-btn--icon-right">
