@@ -52,7 +52,9 @@ jobs:
             const jobsToCheck = [
               'Backend tests',
               'Postgres tests',
-              'UI tests'
+              'UI unit tests',
+              'UI EE tests',
+              'UI OS tests'
             ];
 
             const relevantJobs = data.jobs.filter(job => jobsToCheck.includes(job.name));
