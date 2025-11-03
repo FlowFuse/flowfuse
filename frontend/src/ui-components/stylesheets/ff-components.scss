@@ -1095,6 +1095,10 @@ $countdown_size: 20px;
   color: $ff-grey-800;
   .ff-tab-option {
     padding: $ff-unit-md;
+    min-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     &:hover {
       color: $ff-blue-700;
       cursor: pointer;

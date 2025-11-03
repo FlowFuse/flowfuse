@@ -298,6 +298,7 @@ export default {
       .tabs {
         flex: 1;
         padding: 0 15px;
+        min-width: 0;
       }
 
       .side-actions {
@@ -306,6 +307,7 @@ export default {
         gap: 10px;
         align-items: center;
         color: $ff-grey-500;
+        flex-shrink: 0;
 
         .close-drawer {
           &:hover {
@@ -338,6 +340,17 @@ export default {
     main {
       overflow-y: auto;
       overflow-x: hidden;
+    }
+
+    .header {
+      .tabs {
+        .ff-tab-option {
+          min-width: 80px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
     }
   }
 }
