@@ -17,6 +17,8 @@ const initialState = () => ({
         component: null,
         header: null,
         wider: false,
+        fixed: false,
+        closeOnClickOutside: true,
         props: {},
         on: {},
         bind: {}
@@ -37,9 +39,11 @@ const getters = {
 }
 
 const mutations = {
-    openRightDrawer (state, { component, header, wider, props, on, bind }) {
+    openRightDrawer (state, { component, header, wider, fixed, closeOnClickOutside, props, on, bind }) {
         state.rightDrawer.state = true
         state.rightDrawer.wider = wider
+        state.rightDrawer.fixed = fixed
+        state.rightDrawer.closeOnClickOutside = closeOnClickOutside
         state.rightDrawer.component = component
         state.rightDrawer.header = header
         state.rightDrawer.props = props
@@ -92,6 +96,8 @@ const actions = {
         component,
         header = null,
         wider = false,
+        fixed = false,
+        closeOnClickOutside = true,
         props = {},
         on = {},
         bind = {},
@@ -104,6 +110,8 @@ const actions = {
                 component,
                 header,
                 wider,
+                fixed,
+                closeOnClickOutside,
                 props,
                 on,
                 bind
