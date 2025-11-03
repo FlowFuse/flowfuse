@@ -5,7 +5,7 @@
         <section
             class="tabs-wrapper drawer"
             :class="{'open': drawer.open, resizing: drawer.resizing}"
-            :style="{ width: drawer.width + 'px' }"
+            :style="{ width: drawerWidth + 'px' }"
             data-el="tabs-drawer"
         >
             <resize-bar
@@ -90,7 +90,8 @@ export default {
                 startWidth: 0,
                 width: 400,
                 defaultWidth: 400
-            }
+            },
+            viewportWidth: window.innerWidth
         }
     },
     computed: {
@@ -149,10 +150,22 @@ export default {
         },
         editorAvailable () {
             return !this.isHA && this.instanceRunning
+        },
+        drawerWidth () {
+            if (this.viewportWidth < 640) {
+                // Mobile: drawer takes up full viewport
+                return Math.min(this.drawer.width, this.viewportWidth)
+            }
+            // Desktop: drawer can't exceed 90% of viewport
+            return Math.min(this.drawer.width, this.viewportWidth * 0.9)
         }
     },
     mounted () {
-        // Drawer starts closed - user clicks logo to open
+        // Listen for viewport resize to update drawer width in real-time
+        window.addEventListener('resize', this.handleResize)
+    },
+    unmounted () {
+        window.removeEventListener('resize', this.handleResize)
     },
     methods: {
         toggleDrawer () {
@@ -196,6 +209,9 @@ export default {
             this.drawer.resizing = false
             document.removeEventListener('mousemove', this.resize)
             document.removeEventListener('mouseup', this.stopResize)
+        },
+        handleResize () {
+            this.viewportWidth = window.innerWidth
         }
     }
 }
