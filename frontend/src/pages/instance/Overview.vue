@@ -223,4 +223,24 @@ export default {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
 }
+
+// Editor URL overflow - truncate with ellipsis
+.ff-instance-info a.ff-link.flex {
+  min-width: 0;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Type field - ellipse from LEFT to show stack name
+.ff-instance-info table tr td.flex .flex-grow {
+  direction: rtl;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>
