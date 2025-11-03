@@ -2,7 +2,7 @@
     <section
         id="right-drawer"
         v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}"
-        :class="{open: rightDrawer.state, wider: rightDrawer.wider}"
+        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed}"
         data-el="right-drawer"
     >
         <div v-if="rightDrawer?.header" class="header flex items-center justify-between p-4 border-b gap-2">
@@ -64,7 +64,8 @@ export default {
     methods: {
         ...mapActions('ux/drawers', ['closeRightDrawer']),
         closeDrawer () {
-            if (this.rightDrawer.state) {
+            console.log(this.rightDrawer.closeOnClickOutside)
+            if (this.rightDrawer.state && this.rightDrawer.closeOnClickOutside) {
                 this.closeRightDrawer()
             }
         }
@@ -107,6 +108,11 @@ export default {
         &.wider {
             max-width: 45vw;
         }
+    }
+
+    &.fixed {
+        position: initial;
+        height: 100%;
     }
 }
 </style>
