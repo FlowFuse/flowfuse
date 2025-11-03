@@ -1,16 +1,6 @@
 <template>
     <div class="ff-editor-wrapper" :class="{resizing: drawer.resizing}">
-        <!-- Drawer toggle button positioned over the Node-RED header -->
-        <button
-            class="drawer-toggle-button"
-            :class="{'drawer-open': drawer.open}"
-            @click="toggleDrawer"
-            title="Toggle drawer"
-        >
-            <img src="../../../images/icons/ff-minimal-grey.svg" alt="FlowFuse logo" class="ff-logo-icon">
-        </button>
-
-        <EditorWrapper :instance="instance" :disable-events="drawer.resizing" />
+        <EditorWrapper :instance="instance" :disable-events="drawer.resizing" @toggle-drawer="toggleDrawer" @iframe-loaded="notifyDrawerState" @request-drawer-state="notifyDrawerState" />
 
         <section
             class="tabs-wrapper drawer"
@@ -94,11 +84,11 @@ export default {
     data () {
         return {
             drawer: {
-                open: false,
+                open: true,
                 resizing: false,
                 startX: 0,
                 startWidth: 0,
-                width: 0,
+                width: 400,
                 defaultWidth: 400
             }
         }
@@ -172,6 +162,20 @@ export default {
             } else {
                 this.drawer.open = true
                 this.drawer.width = this.drawer.defaultWidth
+            }
+            // Notify iframe of drawer state change
+            this.$nextTick(() => {
+                this.notifyDrawerState()
+            })
+        },
+        notifyDrawerState () {
+            // Send drawer state to iframe
+            const iframe = this.$el.querySelector('iframe')
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'drawer-state',
+                    payload: { open: this.drawer.open }
+                }, '*')
             }
         },
         startResize (e) {
@@ -248,6 +252,7 @@ export default {
     overflow: hidden;
     container-type: inline-size;
     container-name: drawer;
+    z-index: 1;
 
     &.open {
       box-shadow: 5px 0px 8px rgba(0, 0, 0, 0.10);
