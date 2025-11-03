@@ -57,7 +57,9 @@ jobs:
               'UI OS tests'
             ];
 
-            const relevantJobs = data.jobs.filter(job => jobsToCheck.includes(job.name));
+            const relevantJobs = data.jobs.filter(job => 
+              jobsToCheck.some(jobName => job.name.startsWith(jobName))
+            );
             const failedJobs = relevantJobs.filter(job => job.conclusion === 'failure');
             const allSkippedJobs = relevantJobs.every(job => job.conclusion === 'skipped');
             console.log('Relevant jobs found:', JSON.stringify(relevantJobs, null, 2));
