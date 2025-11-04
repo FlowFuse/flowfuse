@@ -67,9 +67,9 @@ import { Roles } from '../../../utils/roles.js'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../components/DashboardLink.vue'
 
+import DrawerTrigger from './components/DrawerTrigger.vue'
 import EditorWrapper from './components/EditorWrapper.vue'
 import ResizeBar from './components/drawer/ResizeBar.vue'
-import DrawerTrigger from './components/DrawerTrigger.vue'
 
 // Drawer size constraints
 const DRAWER_MIN_WIDTH = 300 // Minimum drawer width in pixels

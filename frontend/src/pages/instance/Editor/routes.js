@@ -1,10 +1,10 @@
+import InstanceExpert from '../Expert.vue'
 import InstanceSettings from '../Settings/index.vue'
 import InstanceSettingsRoutes from '../Settings/routes.js'
 import VersionHistory from '../VersionHistory/index.vue'
 import VersionHistoryRoutes from '../VersionHistory/routes.js'
 import { children } from '../routes.js'
 
-import InstanceExpert from '../Expert.vue'
 import InstanceEditor from './index.vue'
 
 export default [

@@ -49,7 +49,7 @@
         <!-- Left dropdown -->
         <div v-if="showLeftDropdown" v-click-outside="closeLeftDropdown" class="ff-tabs__dropdown ff-tabs__dropdown--left">
             <router-link
-                v-for="(tab, $index) in hiddenLeftTabs"
+                v-for="tab in hiddenLeftTabs"
                 :key="'left-' + tab.label"
                 class="ff-tabs__dropdown-item"
                 :to="tab.to"
@@ -63,7 +63,7 @@
         <!-- Right dropdown -->
         <div v-if="showRightDropdown" v-click-outside="closeRightDropdown" class="ff-tabs__dropdown ff-tabs__dropdown--right">
             <router-link
-                v-for="(tab, $index) in hiddenRightTabs"
+                v-for="tab in hiddenRightTabs"
                 :key="'right-' + tab.label"
                 class="ff-tabs__dropdown-item"
                 :to="tab.to"
@@ -246,7 +246,6 @@ export default {
                     this.visibleTabs.push(index)
                 }
             })
-
         },
         handleScroll () {
             if (this.enableOverflow) {
