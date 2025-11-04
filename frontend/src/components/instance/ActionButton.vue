@@ -5,7 +5,8 @@
             buttonClass="ff-btn ff-btn--primary"
             :options="actionsDropdownOptions"
         >
-            Actions
+            <CogIcon class="ff-btn--icon" />
+            <span class="actions-text">Actions</span>
         </DropdownMenu>
         <ConfirmInstanceDeleteDialog
             ref="confirmInstanceDeleteDialog"
@@ -17,6 +18,8 @@
 </template>
 
 <script>
+import { CogIcon } from '@heroicons/vue/solid'
+
 import InstanceApi from '../../api/instances.js'
 import usePermissions from '../../composables/Permissions.js'
 import ConfirmInstanceDeleteDialog from '../../pages/instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
@@ -27,7 +30,7 @@ import DropdownMenu from '../DropdownMenu.vue'
 
 export default {
     name: 'InstanceActionsButton',
-    components: { ConfirmInstanceDeleteDialog, DropdownMenu },
+    components: { CogIcon, ConfirmInstanceDeleteDialog, DropdownMenu },
     props: {
         instance: {
             type: Object,
@@ -148,5 +151,12 @@ export default {
 <style scoped lang="scss">
 .action-button {
   cursor: default;
+
+  /* Hide text on mobile (<640px), show icon only */
+  @media (max-width: 639px) {
+    .actions-text {
+      display: none;
+    }
+  }
 }
 </style>

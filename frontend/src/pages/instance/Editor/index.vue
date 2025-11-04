@@ -22,9 +22,6 @@
                         :disabled="!editorAvailable"
                     />
                     <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
-                    <a :href="instance.url">
-                        <ExternalLinkIcon class="ff-btn--icon" />
-                    </a>
                     <ChevronLeftIcon class="ff-btn--icon close-drawer" @click="toggleDrawer" />
                 </div>
             </div>
@@ -50,7 +47,7 @@
 </template>
 
 <script>
-import { ArrowLeftIcon, ChevronLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon, ChevronLeftIcon } from '@heroicons/vue/solid'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
@@ -75,7 +72,6 @@ export default {
         EditorWrapper,
         EditorToggle,
         InstanceStatusPolling,
-        ExternalLinkIcon,
         ChevronLeftIcon,
         FfPage,
         ArrowLeftIcon,
