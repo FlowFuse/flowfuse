@@ -201,11 +201,26 @@ jobs:
 
   notify-slack:
     name: Notify on failure
-    needs: [backend-tests, postgres-tests, ui-os-tests, ui-ee-tests]
+    needs: [backend-tests, postgres-tests, ui-os-tests, ui-ee-tests, ui-unit-tests]
     if: failure()
     runs-on: ubuntu-latest
 
     steps:
+    - name: Find user by email
+      id: email
+      uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+      with:
+        method: users.lookupByEmail
+        token: ${{ secrets.SLACK_GHBOT_TOKEN }}
+        payload: |
+          email: ${{ github.event.pusher.email || github.event.pull_request.user.email }}
+
+    - name: Set Slack User ID
+      if: ${{ steps.email.outputs.ok }}
+      run: |
+        SLACK_USER_ID=$(echo '${{ steps.email.outputs.response }}' | jq -r '.user.id')
+        echo "SLACK_USER_ID=$SLACK_USER_ID" >> $GITHUB_ENV
+
     - name: Map users  
       id: map-actor-to-slack
       uses: icalia-actions/map-github-actor@e568d1dd6023e406a1db36db4e1e0b92d9dd7824 # v0.0.2
@@ -230,7 +245,7 @@ jobs:
         fi
 
     - name: Send notification
-      uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
+      uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_GHBOT_TOKEN }}
@@ -278,7 +293,7 @@ jobs:
                 "fields": [
                   {
                     "type": "mrkdwn",
-                    "text": "*Author:* <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
+                    "text": "*Author:* <@${{ env.SLACK_USER_ID }}>"
                   },
                   {
                     "type": "mrkdwn",
