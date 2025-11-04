@@ -6,7 +6,7 @@
             :options="actionsDropdownOptions"
         >
             <CogIcon class="ff-btn--icon" />
-            <span class="actions-text">Actions</span>
+            <span class="hidden sm:inline actions-text-container">Actions</span>
         </DropdownMenu>
         <ConfirmInstanceDeleteDialog
             ref="confirmInstanceDeleteDialog"
@@ -151,12 +151,19 @@ export default {
 <style scoped lang="scss">
 .action-button {
   cursor: default;
+}
 
-  /* Hide text on mobile (<640px), show icon only */
-  @media (max-width: 639px) {
-    .actions-text {
-      display: none;
-    }
+// Container query for drawer context - hide text when drawer is narrow
+@container drawer (max-width: 639px) {
+  .action-button .actions-text-container {
+    display: none !important;
+  }
+}
+
+// Ensure text shows when drawer is wide enough
+@container drawer (min-width: 640px) {
+  .action-button .actions-text-container {
+    display: inline !important;
   }
 }
 </style>
