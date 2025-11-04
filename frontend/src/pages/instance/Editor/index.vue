@@ -15,6 +15,12 @@
             />
 
             <div class="header">
+                <div class="logo">
+                    <router-link :to="{ name: 'instance-overview', params: {id: instance.id} }">
+                        <ArrowLeftIcon class="ff-btn--icon" />
+                        <img src="../../../images/icons/ff-minimal-grey.svg" alt="logo">
+                    </router-link>
+                </div>
                 <ff-tabs :tabs="navigation" :enable-overflow="true" class="tabs" />
                 <div class="side-actions">
                     <DashboardLink
@@ -55,7 +61,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon, ChevronLeftIcon } from '@heroicons/vue/solid'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
@@ -81,6 +87,7 @@ const DRAWER_MOBILE_BREAKPOINT = 640 // Viewport width below which mobile layout
 export default {
     name: 'InstanceEditor',
     components: {
+        ArrowLeftIcon,
         ConfirmInstanceDeleteDialog,
         InstanceActionsButton,
         DashboardLink,
@@ -294,6 +301,34 @@ export default {
       border-bottom: 1px solid $ff-grey-200;
       background: white;
       z-index: 10;
+
+      .logo {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-left: 15px;
+
+        a {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: $ff-grey-500;
+          gap: 4px;
+
+          .ff-btn--icon {
+            width: 16px;
+            height: 16px;
+          }
+
+          img {
+            height: 20px;
+          }
+
+          &:hover {
+            opacity: 0.8;
+          }
+        }
+      }
 
       .tabs {
         flex: 1;
