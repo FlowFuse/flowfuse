@@ -211,6 +211,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+    - name: Get commit author email
+      id: get-email
+      run: |
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          # For pull requests, get the email from the latest commit
+          AUTHOR_EMAIL=$(git log -1 --pretty=format:'%ae' ${{ github.event.pull_request.head.sha }})
+        else
+          # For push events, use the head commit author email
+          AUTHOR_EMAIL="${{ github.event.head_commit.author.email }}"
+        fi
+        echo "email=$AUTHOR_EMAIL" >> $GITHUB_OUTPUT
+
     - name: Find user by email
       id: email
       uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
@@ -218,7 +233,7 @@ jobs:
         method: users.lookupByEmail
         token: ${{ secrets.SLACK_GHBOT_TOKEN }}
         payload: |
-          email: ${{ github.event.head_commit.author.email }}
+          email: ${{ steps.get-email.outputs.email }}
 
     - name: Set Slack User ID
       if: ${{ steps.email.outputs.ok }}
