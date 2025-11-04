@@ -16,7 +16,7 @@
 
             <div class="header">
                 <div class="logo">
-                    <router-link :to="{ name: 'instance-overview', params: {id: instance.id} }">
+                    <router-link v-ff-tooltip:right="'Back to instance overview'" :to="{ name: 'instance-overview', params: {id: instance.id} }">
                         <ArrowLeftIcon class="ff-btn--icon" />
                         <img src="../../../images/icons/ff-minimal-grey.svg" alt="logo">
                     </router-link>
