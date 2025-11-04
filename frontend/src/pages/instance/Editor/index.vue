@@ -388,7 +388,6 @@ export default {
     .header {
       .tabs {
         .ff-tab-option {
-          min-width: 80px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
