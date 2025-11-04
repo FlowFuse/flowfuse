@@ -916,7 +916,8 @@ export default {
                     devices: Array.from(this.devices.values())
                         .filter((device) => !this.deviceModeFilters[filter] ? true : device.mode === compare)
                         .map(device => device.id),
-                    property: 'mode'
+                    property: 'mode',
+                    bucket: compare
                 },
                 false
             )
