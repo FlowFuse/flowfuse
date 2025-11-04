@@ -5,20 +5,19 @@
                 <ChevronLeftIcon class="ff-icon" />
                 <ChevronLeftIcon class="ff-icon ff-icon-second" />
             </MenuButton>
-            <MenuItems class="ff-tabs__dropdown ff-tabs__dropdown--left">
+            <MenuItems class="z-50 absolute left-0 top-full origin-top-left w-56 mt-1 bg-white divide-y divide-gray-100 rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none">
                 <MenuItem
                     v-for="tab in hiddenLeftTabs"
                     :key="'left-' + tab.label"
                     v-slot="{ active }"
                 >
-                    <router-link
-                        :class="['ff-tabs__dropdown-item', { 'ff-tabs__dropdown-item--active': active }]"
-                        :to="tab.to"
+                    <button
+                        :class="[active ? 'bg-gray-200' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
                         @click="onDropdownItemClick(tab)"
                     >
-                        <img v-if="tab.icon" :src="tab.icon" class="ff-tab-icon" alt="">
-                        <span class="ff-tab-label">{{ tab.label }}</span>
-                    </router-link>
+                        <img v-if="tab.icon" :src="tab.icon" class="h-4 v-4 inline rounded mr-1" alt="">
+                        {{ tab.label }}
+                    </button>
                 </MenuItem>
             </MenuItems>
         </HeadlessMenu>
@@ -54,20 +53,19 @@
                 <ChevronRightIcon class="ff-icon" />
                 <ChevronRightIcon class="ff-icon ff-icon-second" />
             </MenuButton>
-            <MenuItems class="ff-tabs__dropdown ff-tabs__dropdown--right">
+            <MenuItems class="z-50 absolute right-0 top-full origin-top-right w-56 mt-1 bg-white divide-y divide-gray-100 rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none">
                 <MenuItem
                     v-for="tab in hiddenRightTabs"
                     :key="'right-' + tab.label"
                     v-slot="{ active }"
                 >
-                    <router-link
-                        :class="['ff-tabs__dropdown-item', { 'ff-tabs__dropdown-item--active': active }]"
-                        :to="tab.to"
+                    <button
+                        :class="[active ? 'bg-gray-200' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
                         @click="onDropdownItemClick(tab)"
                     >
-                        <img v-if="tab.icon" :src="tab.icon" class="ff-tab-icon" alt="">
-                        <span class="ff-tab-label">{{ tab.label }}</span>
-                    </router-link>
+                        <img v-if="tab.icon" :src="tab.icon" class="h-4 v-4 inline rounded mr-1" alt="">
+                        {{ tab.label }}
+                    </button>
                 </MenuItem>
             </MenuItems>
         </HeadlessMenu>
@@ -255,24 +253,35 @@ export default {
             // HeadlessUI Menu will auto-close the dropdown
             // Find the tab index in scopedTabs
             const tabIndex = this.scopedTabs.findIndex(t => t.label === tab.label)
-            if (tabIndex === -1) return
+            console.log('onDropdownItemClick called', { tab: tab.label, tabIndex })
+            if (tabIndex === -1) {
+                console.log('Tab index not found!')
+                return
+            }
 
-            // Scroll the tab into view
-            this.$nextTick(() => {
-                const container = this.$refs.scrollContainer
-                if (!container) return
-
+            // Scroll the tab into view immediately (synchronously)
+            const container = this.$refs.scrollContainer
+            console.log('Container ref:', container)
+            if (container) {
                 const tabElements = container.querySelectorAll('.ff-tab-option')
                 const tabElement = tabElements[tabIndex]
+                console.log('Tab element:', tabElement, 'scrollLeft before:', container.scrollLeft)
 
                 if (tabElement) {
                     tabElement.scrollIntoView({
-                        behavior: 'smooth',
+                        behavior: 'auto',
                         block: 'nearest',
                         inline: 'center'
                     })
+                    console.log('scrollIntoView called, scrollLeft after:', container.scrollLeft)
                 }
-            })
+            }
+
+            // Navigate after scroll
+            if (tab.to) {
+                console.log('Navigating to:', tab.to)
+                this.$router.push(tab.to)
+            }
         },
         cleanupObservers () {
             if (this.intersectionObserver) {
