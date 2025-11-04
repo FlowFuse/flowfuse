@@ -27,7 +27,8 @@
                     :data-nav="tab.tag"
                     @click="selectTab($index)"
                 >
-                    {{ tab.label }}
+                    <img v-if="tab.icon" :src="tab.icon" class="ff-tab-icon" alt="">
+                    <span class="ff-tab-label">{{ tab.label }}</span>
                     <span v-if="tab.featureUnavailable" v-ff-tooltip="'Not available in this Team Tier'" data-el="premium-feature">
                         <SparklesIcon class="ff-icon transition-fade--color hollow" style="stroke-width: 1;" />
                     </span>
@@ -54,7 +55,8 @@
                 :to="tab.to"
                 @click="onDropdownItemClick(tab)"
             >
-                {{ tab.label }}
+                <img v-if="tab.icon" :src="tab.icon" class="ff-tab-icon" alt="">
+                <span class="ff-tab-label">{{ tab.label }}</span>
             </router-link>
         </div>
 
@@ -67,7 +69,8 @@
                 :to="tab.to"
                 @click="onDropdownItemClick(tab)"
             >
-                {{ tab.label }}
+                <img v-if="tab.icon" :src="tab.icon" class="ff-tab-icon" alt="">
+                <span class="ff-tab-label">{{ tab.label }}</span>
             </router-link>
         </div>
     </div>

@@ -111,6 +111,12 @@ export default {
             }
             return [
                 {
+                    label: 'Expert',
+                    to: { name: 'instance-editor-expert', params: { id: this.instance.id } },
+                    tag: 'instance-expert',
+                    icon: require('../../../images/icons/ff-minimal-grey.svg')
+                },
+                {
                     label: 'Overview',
                     to: { name: 'instance-editor-overview', params: { id: this.instance.id } },
                     tag: 'instance-overview'

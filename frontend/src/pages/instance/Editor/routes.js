@@ -4,6 +4,7 @@ import VersionHistory from '../VersionHistory/index.vue'
 import VersionHistoryRoutes from '../VersionHistory/routes.js'
 import { children } from '../routes.js'
 
+import InstanceExpert from '../Expert.vue'
 import InstanceEditor from './index.vue'
 
 export default [
@@ -62,6 +63,14 @@ export default [
                         }
                     })
                 ]
+            },
+            {
+                path: 'expert',
+                name: 'instance-editor-expert',
+                component: InstanceExpert,
+                meta: {
+                    title: 'Instance - Expert'
+                }
             }
         ]
     }

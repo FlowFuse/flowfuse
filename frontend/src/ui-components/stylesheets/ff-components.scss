@@ -1094,14 +1094,23 @@ $countdown_size: 20px;
   display: flex;
   color: $ff-grey-800;
   .ff-tab-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: $ff-unit-md;
     min-width: 80px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     &:hover {
       color: $ff-blue-700;
       cursor: pointer;
+    }
+    .ff-tab-icon {
+      height: 14px;
+      width: 14px;
+      flex-shrink: 0;
+      display: block;
+    }
+    .ff-tab-label {
+      white-space: nowrap;
     }
   }
   &.ff-tabs--horizontal {
@@ -1140,7 +1149,20 @@ $countdown_size: 20px;
   display: flex;
   align-items: center;
 
+  // When overflow is NOT enabled, apply ellipsis to tab labels
+  &:not(.ff-tabs-wrapper--overflow-enabled) {
+    .ff-tab-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+  }
+
   &.ff-tabs-wrapper--overflow-enabled {
+    .ff-tab-option {
+      flex-shrink: 0; // Prevent tabs from shrinking, allow them to take full width
+    }
+
     .ff-tabs__scroll-container {
       overflow-x: auto;
       overflow-y: hidden;
@@ -1229,13 +1251,26 @@ $countdown_size: 20px;
   }
 
   .ff-tabs__dropdown-item {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: $ff-unit-sm $ff-unit-md;
     color: $ff-grey-800;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     transition: background-color 0.2s ease;
+
+    .ff-tab-icon {
+      height: 14px;
+      width: 14px;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .ff-tab-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
 
     &:hover {
       background: $ff-grey-100;
