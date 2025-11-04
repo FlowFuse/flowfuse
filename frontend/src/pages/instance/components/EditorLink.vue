@@ -10,17 +10,14 @@
                 :kind="minimalView ? 'tertiary' : 'secondary'"
                 data-action="open-editor"
                 :disabled="buttonDisabled"
-                class="whitespace-nowrap"
+                class="whitespace-nowrap ff-btn-icon"
                 :emit-instead-of-navigate="true"
             >
-                <template v-if="showText" #icon-left>
+                <template #icon-left>
                     <ProjectIcon />
                 </template>
-                <template v-else #icon>
-                    <ProjectIcon />
-                </template>
-                <template v-if="showText && !minimalView">
-                    {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
+                <template v-if="!minimalView">
+                    <span class="hidden sm:inline">{{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}</span>
                 </template>
             </ff-button>
         </slot>
