@@ -16,8 +16,8 @@ import TeamLink from './components/router-links/TeamLink.vue'
 import PageLayout from './layouts/Page.vue'
 import router from './routes.js'
 import Alerts from './services/alerts.js'
-import BootstrapService from './services/bootstrap.service.js'
 import { setupSentry } from './services/error-tracking.js'
+import { getServiceFactory } from './services/service.factory.js'
 import store from './store/index.js'
 
 import './index.css'
@@ -32,7 +32,7 @@ const app = createApp(App)
     .use(router)
     .use(VueShepherdPlugin)
 
-const bootstrapService = BootstrapService(app, store, router)
+const serviceFactory = getServiceFactory()
 
 // Error tracking
 setupSentry(app, router)
@@ -66,7 +66,9 @@ app.config.globalProperties.$filters = {
 
 app.mount('#app')
 
-// Initialize bootstrap service after mounting
-bootstrapService.bootstrap(app, store, router).catch((error) => {
-    console.error('Bootstrap initialization failed:', error)
-})
+// Boot all services after mounting
+serviceFactory.bootAllServices(app, store, router)
+    .then((services) => services.bootstrap.init())
+    .catch((error) => {
+        console.error('Bootstrap initialization failed:', error)
+    })

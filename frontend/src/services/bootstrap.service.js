@@ -19,18 +19,28 @@ class BootstrapService {
     $router
 
     /**
-     * @param {import('vue').App} app - Vue app instance
-     * @param {import('vuex').Store} store - Vuex store instance
-     * @param {import('vue-router').Router} router - Vue router instance
+     * @type {Object} - Map of all services for dependency injection
      */
-    constructor (app, store, router) {
+    $services
+
+    /**
+     * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
+     */
+    constructor ({
+        app,
+        store,
+        router,
+        services = {}
+    }) {
         this.$app = app
         this.$store = store
         this.$router = router
+        this.$services = services
 
         this.isReady = false
         this.readyPromise = null
         this.readyResolve = null
+
         this.setupReadyPromise()
     }
 
@@ -43,43 +53,36 @@ class BootstrapService {
     /**
      * Initialize the bootstrap service and wait for app readiness
      */
-    async bootstrap () {
-        return this.waitForAppMount(this.$app)
-            .then(() => this.waitForStoreHydration(this.$store))
-            .then(() => this.waitForRouterReady(this.$router))
-            .then(() => {
-                this.markAsReady()
-                this.setupMessageHandlers()
-                this.sendReadyMessage()
-            })
+    async init () {
+        return this.waitForAppMount()
+            .then(() => this.waitForStoreHydration())
+            .then(() => this.waitForRouterReady())
+            .then(async () => this.markAsReady())
     }
 
-    async waitForAppMount (app) {
-        // Check if the app is already mounted
-        if (app._instance?.isMounted) {
+    async waitForAppMount () {
+        if (this.$app._instance?.isMounted) {
             return Promise.resolve()
         }
 
-        // Wait for mounted hook
         return new Promise((resolve) => {
-            app.config.globalProperties.$nextTick(() => {
+            this.$app.config.globalProperties.$nextTick(() => {
                 resolve()
             })
         })
     }
 
-    async waitForStoreHydration (store) {
-        // Check if the store has been initialized
-        if (store.state.initialized || store.state._hydrated) {
+    async waitForStoreHydration () {
+        if (this.$store.state.initialized || this.$store.state._hydrated) {
             return Promise.resolve()
         }
 
         // Wait for store hydration
         return new Promise((resolve) => {
-            const unsubscribe = store.subscribe((mutation) => {
+            const unsubscribe = this.$store.subscribe((mutation) => {
                 if (mutation.type === 'initializeStore' ||
                     mutation.type === 'HYDRATE_COMPLETE' ||
-                    store.state._hydrated) {
+                    this.$store.state._hydrated) {
                     unsubscribe()
                     resolve()
                 }
@@ -87,9 +90,8 @@ class BootstrapService {
         })
     }
 
-    async waitForRouterReady (router) {
-        // Wait for router to be ready
-        await router.isReady()
+    async waitForRouterReady () {
+        await this.$router.isReady()
     }
 
     markAsReady () {
@@ -99,84 +101,15 @@ class BootstrapService {
         }
     }
 
-    setupMessageHandlers () {
-        window.addEventListener('message', (event) => {
-            if (event.data.type === 'flowfuse-expert') {
-                this.handleFlowFuseExpertMessage(event)
-            }
-        })
-    }
-
-    handleFlowFuseExpertMessage (event) {
-        console.log('Received flowfuse-expert message:', event.data)
-
-        // Handle different expert message types
-        switch (event.data.action) {
-        case 'ping':
-            this.sendPongMessage(event.origin)
-            break
-        case 'getStatus':
-            this.sendStatusMessage(event.origin)
-            break
-        default:
-            console.log('Unknown flowfuse-expert action:', event.data.action)
-        }
-    }
-
-    sendReadyMessage () {
-        const message = {
-            type: 'onLoad',
-            status: 'ready',
-            timestamp: Date.now()
-        }
-
-        // Send to parent window if in iframe
-        if (window.parent !== window) {
-            window.parent.postMessage(message, '*')
-        }
-
-        // Send to opener if opened in popup
-        if (window.opener) {
-            window.opener.postMessage(message, '*')
-        }
-
-        console.log('App ready message sent:', message)
-    }
-
-    sendPongMessage (origin) {
-        const message = {
-            type: 'flowfuse-expert-response',
-            action: 'pong',
-            timestamp: Date.now()
-        }
-
-        window.parent.postMessage(message, origin)
-    }
-
-    sendStatusMessage (origin) {
-        const message = {
-            type: 'flowfuse-expert-response',
-            action: 'status',
-            data: {
-                ready: this.isReady,
-                timestamp: Date.now()
-            }
-        }
-
-        window.parent.postMessage(message, origin)
-    }
-
     /**
      * Wait for the application to be ready
      * @returns {Promise} Promise that resolves when app is ready
      */
     whenReady () {
-        console.log('a')
         if (this.isReady) {
-            console.log('b')
             return Promise.resolve()
         }
-        console.log('c', this.readyPromise)
+
         return this.readyPromise
     }
 }
@@ -184,14 +117,23 @@ class BootstrapService {
 let BootstrapServiceInstance = null
 
 /**
- * @param {import('vue').App} app - Vue app instance
- * @param {import('vuex').Store} store - Vuex store instance
- * @param {import('vue-router').Router} router - Vue router instance
+ * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
  */
-export function createBootstrapService (app, store, router) {
+export function createBootstrapService ({
+    app,
+    store,
+    router,
+    services = {}
+}) {
     if (!BootstrapServiceInstance) {
-        BootstrapServiceInstance = new BootstrapService(app, store, router)
+        BootstrapServiceInstance = new BootstrapService({
+            app,
+            store,
+            router,
+            services
+        })
     }
+
     return BootstrapServiceInstance
 }
 

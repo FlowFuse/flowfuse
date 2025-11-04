@@ -1,4 +1,6 @@
-const initialState = () => ({})
+const initialState = () => ({
+    context: null
+})
 
 const meta = {
     persistence: {}
@@ -8,9 +10,17 @@ const state = initialState
 
 const getters = {}
 
-const mutation = {}
+const mutation = {
+    setContext (state, context) {
+        state.context = context
+    }
+}
 
-const actions = {}
+const actions = {
+    setContext ({ commit }, context) {
+        commit('setContext', context)
+    }
+}
 
 export default {
     namespaced: true,
