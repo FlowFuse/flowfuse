@@ -1,5 +1,6 @@
 const initialState = () => ({
-    context: null
+    context: null,
+    sessionId: null
 })
 
 const meta = {
@@ -13,12 +14,16 @@ const getters = {}
 const mutation = {
     setContext (state, context) {
         state.context = context
+    },
+    setSessionId (state, sessionId) {
+        state.sessionId = sessionId
     }
 }
 
 const actions = {
-    setContext ({ commit }, context) {
-        commit('setContext', context)
+    setContext ({ commit }, payload) {
+        commit('setContext', payload.data)
+        commit('setSessionId', payload.sessionId)
     }
 }
 
