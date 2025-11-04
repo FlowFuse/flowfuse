@@ -27,7 +27,7 @@ class CommsClient extends EventEmitter {
                 reconnectPeriod: 5000,
                 will: {
                     topic: 'ff/v1/platform/leader',
-                    payload: JSON.stringify({ id : this.platformId, vote: -1 })
+                    payload: JSON.stringify({ id: this.platformId, vote: -1 })
                 }
             }
             this.client = mqtt.connect(this.app.config.broker.url, brokerConfig)

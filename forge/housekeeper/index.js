@@ -25,7 +25,7 @@ module.exports = fp(async function (app, _opts) {
     // vote every 15 seconds
     const voteInterval = setInterval(() => {
         app.comms.platform.housekeeper.vote(localLeaderVote)
-    },15000)
+    }, 15000)
 
     // Ensure we stop any scheduled tasks when the app is shutting down
     app.addHook('onClose', async () => {
