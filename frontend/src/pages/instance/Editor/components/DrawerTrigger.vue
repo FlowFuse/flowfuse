@@ -63,6 +63,7 @@ export default {
     }
 
     &.hidden {
+        // Move completely off-screen: own width (100%) + extra margin (20px)
         transform: translateX(calc(-100% - 20px));
     }
 

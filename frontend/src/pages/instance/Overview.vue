@@ -211,6 +211,7 @@ export default {
 @import "../../stylesheets/pages/project.scss";
 
 // Container query for drawer context
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
 @container drawer (min-width: 640px) {
   .ff-project-overview .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

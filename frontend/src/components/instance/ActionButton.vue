@@ -154,6 +154,7 @@ export default {
 }
 
 // Container query for drawer context - hide text when drawer is narrow
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
 @container drawer (max-width: 639px) {
   .action-button .actions-text-container {
     display: none !important;

@@ -63,6 +63,13 @@ import EditorWrapper from './components/EditorWrapper.vue'
 import ResizeBar from './components/drawer/ResizeBar.vue'
 import DrawerTrigger from './components/DrawerTrigger.vue'
 
+// Drawer size constraints
+const DRAWER_MIN_WIDTH = 300 // Minimum drawer width in pixels
+const DRAWER_DEFAULT_WIDTH = 400 // Default drawer width in pixels
+const DRAWER_MAX_VIEWPORT_MARGIN = 200 // Space to preserve when drawer is at max width
+const DRAWER_MAX_WIDTH_RATIO = 0.9 // Maximum drawer width as percentage of viewport (desktop)
+const DRAWER_MOBILE_BREAKPOINT = 640 // Viewport width below which mobile layout applies
+
 export default {
     name: 'InstanceEditor',
     components: {
@@ -89,8 +96,8 @@ export default {
                 resizing: false,
                 startX: 0,
                 startWidth: 0,
-                width: 400,
-                defaultWidth: 400
+                width: DRAWER_DEFAULT_WIDTH,
+                defaultWidth: DRAWER_DEFAULT_WIDTH
             },
             viewportWidth: window.innerWidth
         }
@@ -159,12 +166,12 @@ export default {
             return !this.isHA && this.instanceRunning
         },
         drawerWidth () {
-            if (this.viewportWidth < 640) {
+            if (this.viewportWidth < DRAWER_MOBILE_BREAKPOINT) {
                 // Mobile: drawer takes up full viewport
                 return Math.min(this.drawer.width, this.viewportWidth)
             }
-            // Desktop: drawer can't exceed 90% of viewport
-            return Math.min(this.drawer.width, this.viewportWidth * 0.9)
+            // Desktop: drawer can't exceed specified percentage of viewport
+            return Math.min(this.drawer.width, this.viewportWidth * DRAWER_MAX_WIDTH_RATIO)
         }
     },
     mounted () {
@@ -209,7 +216,10 @@ export default {
             if (this.drawer.resizing) {
                 const widthChange = e.clientX - this.drawer.startX
                 const newWidth = this.drawer.startWidth + widthChange
-                this.drawer.width = Math.min(Math.max(300, newWidth), this.viewportWidth - 200)
+                this.drawer.width = Math.min(
+                    Math.max(DRAWER_MIN_WIDTH, newWidth),
+                    this.viewportWidth - DRAWER_MAX_VIEWPORT_MARGIN
+                )
             }
         },
         stopResize () {
