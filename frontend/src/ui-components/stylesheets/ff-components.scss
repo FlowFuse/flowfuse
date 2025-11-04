@@ -202,6 +202,23 @@
 }
 
 /*
+  Drawer responsive context
+  Remove icon margins when buttons are in icon-only mode within narrow drawer
+*/
+@container drawer (max-width: 639px) {
+  .ff-btn-icon {
+    .ff-btn--icon-left {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .ff-btn--icon-right {
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+}
+
+/*
   FF Kebab Menu
 */
 

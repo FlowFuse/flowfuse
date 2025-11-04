@@ -59,7 +59,7 @@
                         <template #icon-left>
                             <ClockIcon />
                         </template>
-                        <span class="font-normal">
+                        <span class="target-snapshot-text font-normal">
                             Target Snapshot: <b>{{ instance.targetSnapshot?.name || 'none' }}</b>
                         </span>
                     </ff-button>
@@ -74,7 +74,7 @@
                         <template #icon-left>
                             <PlusSmIcon />
                         </template>
-                        Add Remote Instance
+                        <span class="add-remote-instance-text">Add Remote Instance</span>
                     </ff-button>
                 </template>
                 <template #context-menu="{row}">
@@ -151,7 +151,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Remote Instance
+                                <span class="add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -190,7 +190,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Remote Instance
+                                <span class="add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -229,7 +229,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Remote Instance
+                                <span class="add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -934,7 +934,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped lang="scss">
 .ff-dialog-content .ff-devices-ul {
     list-style-type: disc;
     list-style-position: inside;
@@ -944,5 +944,27 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+// Container query for drawer context - responsive button behavior
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
+.target-snapshot-text,
+.add-remote-instance-text {
+  display: inline; // Default: show text
+}
+
+@container drawer (max-width: 639px) {
+  // Hide text when drawer is narrow - icon-only mode
+  .target-snapshot-text,
+  .add-remote-instance-text {
+    display: none;
+  }
+
+  // Adjust button padding for icon-only mode to prevent excessive spacing
+  .ff-btn[data-action="change-target-snapshot"],
+  .ff-btn[data-action="register-device"] {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
 }
 </style>
