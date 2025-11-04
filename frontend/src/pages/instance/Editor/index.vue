@@ -100,11 +100,11 @@ export default {
     data () {
         return {
             drawer: {
-                open: true,
+                open: false,
                 resizing: false,
                 startX: 0,
                 startWidth: 0,
-                width: DRAWER_DEFAULT_WIDTH,
+                width: 0,
                 defaultWidth: DRAWER_DEFAULT_WIDTH
             },
             viewportWidth: window.innerWidth
@@ -126,12 +126,13 @@ export default {
                 }
             }
             return [
-                {
-                    label: 'Expert',
-                    to: { name: 'instance-editor-expert', params: { id: this.instance.id } },
-                    tag: 'instance-expert',
-                    icon: require('../../../images/icons/ff-minimal-grey.svg')
-                },
+                // TODO: Uncomment when Expert feature is ready
+                // {
+                //     label: 'Expert',
+                //     to: { name: 'instance-editor-expert', params: { id: this.instance.id } },
+                //     tag: 'instance-expert',
+                //     icon: require('../../../images/icons/ff-minimal-grey.svg')
+                // },
                 {
                     label: 'Overview',
                     to: { name: 'instance-editor-overview', params: { id: this.instance.id } },
@@ -183,6 +184,11 @@ export default {
         }
     },
     mounted () {
+        // Auto-open drawer after initial load
+        setTimeout(() => {
+            this.toggleDrawer()
+        }, 1200)
+
         // Listen for viewport resize to update drawer width in real-time
         window.addEventListener('resize', this.handleResize)
     },
