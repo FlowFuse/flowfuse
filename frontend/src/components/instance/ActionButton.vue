@@ -5,7 +5,7 @@
             buttonClass="ff-btn ff-btn--primary ff-btn-icon"
             :options="actionsDropdownOptions"
         >
-            <CogIcon class="ff-btn--icon" />
+            <CogIcon class="ff-btn--icon ff-btn--icon-left" />
             <span class="hidden sm:inline actions-text-container">Actions</span>
         </DropdownMenu>
         <ConfirmInstanceDeleteDialog
