@@ -49,7 +49,10 @@
                             </section>
                         </template>
                     </ff-popover>
-                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete', applicationContext) || hasPermission('team:device:bulk-edit', applicationContext)" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu>
+                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete', applicationContext) || hasPermission('team:device:bulk-edit', applicationContext)" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary ff-btn-icon" :options="bulkActionsDropdownOptions">
+                        <CogIcon class="ff-btn--icon ff-btn--icon-left" />
+                        <span class="bulk-actions-text">Actions</span>
+                    </DropdownMenu>
                     <ff-button
                         v-if="displayingInstance && hasPermission('project:snapshot:create', applicationContext)"
                         data-action="change-target-snapshot"
@@ -332,7 +335,7 @@
 
 <script>
 import { ClockIcon } from '@heroicons/vue/outline'
-import { PlusSmIcon } from '@heroicons/vue/solid'
+import { CogIcon, PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 import { mapGetters, mapState } from 'vuex'
@@ -381,6 +384,7 @@ export default {
         PopoverItem,
         FfPopover,
         ClockIcon,
+        CogIcon,
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
@@ -949,14 +953,16 @@ export default {
 // Container query for drawer context - responsive button behavior
 // Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
 .target-snapshot-text,
-.add-remote-instance-text {
+.add-remote-instance-text,
+.bulk-actions-text {
   display: inline; // Default: show text
 }
 
 @container drawer (max-width: 639px) {
   // Hide text when drawer is narrow - icon-only mode
   .target-snapshot-text,
-  .add-remote-instance-text {
+  .add-remote-instance-text,
+  .bulk-actions-text {
     display: none;
   }
 
