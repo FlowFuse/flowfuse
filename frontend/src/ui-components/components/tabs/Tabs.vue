@@ -230,17 +230,12 @@ export default {
             const containerRect = container.getBoundingClientRect()
             const tabElements = container.querySelectorAll('.ff-tab-option')
 
-            // Account for button overlay width (approximately 40px each side)
-            const buttonWidth = 40
-            const effectiveLeft = containerRect.left + (this.hasHiddenLeft ? buttonWidth : 0)
-            const effectiveRight = containerRect.right - (this.hasHiddenRight ? buttonWidth : 0)
-
             this.visibleTabs = []
             tabElements.forEach((tabElement, index) => {
                 const tabRect = tabElement.getBoundingClientRect()
-                // Check if tab is mostly visible within container (accounting for buttons)
-                const isVisible = tabRect.left >= effectiveLeft - 10 &&
-                                  tabRect.right <= effectiveRight + 10
+                // Check if tab is mostly visible within container
+                const isVisible = tabRect.left >= containerRect.left - 5 &&
+                                  tabRect.right <= containerRect.right + 5
                 if (isVisible) {
                     this.visibleTabs.push(index)
                 }
@@ -254,8 +249,16 @@ export default {
         },
         isTabOnLeft (tabIndex) {
             // Determine if a tab is on the left side (before first visible tab)
-            if (this.visibleTabs.length === 0) return tabIndex < this.scopedTabs.length / 2
-            return tabIndex < Math.min(...this.visibleTabs)
+            if (this.visibleTabs.length === 0) {
+                // If no tabs are visible, check scroll position
+                const container = this.$refs.scrollContainer
+                if (!container) return false
+                return tabIndex < this.scopedTabs.length / 2
+            }
+
+            const firstVisibleIndex = Math.min(...this.visibleTabs)
+            // Tab is on the left if its index is before the first visible tab
+            return tabIndex < firstVisibleIndex
         },
         toggleLeftDropdown () {
             this.showLeftDropdown = !this.showLeftDropdown
