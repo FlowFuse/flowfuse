@@ -399,6 +399,12 @@ module.exports = {
                         where.state = pagination.filters.state === 'unknown' ? '' : pagination.filters.state
                     }
 
+                    // Filtering
+                    if (pagination.filters?.mode) {
+                        // Unknown is the blank state
+                        where.mode = pagination.filters.mode === 'unknown' ? '' : pagination.filters.mode
+                    }
+
                     if (pagination.filters?.lastseen) {
                         // Must be mapped to lastSeenAt filter
                         const lastseen = pagination.filters.lastseen
