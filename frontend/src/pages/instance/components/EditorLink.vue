@@ -17,7 +17,7 @@
                     <ProjectIcon />
                 </template>
                 <template v-if="!minimalView">
-                    <span class="editor-link-text">{{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}</span>
+                    <span class="hidden sm:inline editor-link-text">{{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}</span>
                 </template>
             </ff-button>
         </slot>
@@ -119,12 +119,14 @@ export default {
 <style scoped lang="scss">
 // Container query for drawer context - responsive button behavior
 // Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
-.editor-link-text {
-  display: inline; // Default: show text
+// When inside drawer, respond to drawer width instead of viewport
+@container drawer (min-width: 640px) {
+  .editor-link-text {
+    display: inline;
+  }
 }
 
 @container drawer (max-width: 639px) {
-  // Hide text when drawer is narrow - icon-only mode
   .editor-link-text {
     display: none;
   }

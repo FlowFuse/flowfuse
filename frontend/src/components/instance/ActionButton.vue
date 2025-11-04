@@ -6,7 +6,7 @@
             :options="actionsDropdownOptions"
         >
             <CogIcon class="ff-btn--icon ff-btn--icon-left" />
-            <span class="actions-text-container">Actions</span>
+            <span class="hidden sm:inline actions-text-container">Actions</span>
         </DropdownMenu>
         <ConfirmInstanceDeleteDialog
             ref="confirmInstanceDeleteDialog"
@@ -155,12 +155,14 @@ export default {
 
 // Container query for drawer context - responsive button behavior
 // Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
-.actions-text-container {
-  display: inline; // Default: show text
+// When inside drawer, respond to drawer width instead of viewport
+@container drawer (min-width: 640px) {
+  .actions-text-container {
+    display: inline;
+  }
 }
 
 @container drawer (max-width: 639px) {
-  // Hide text when drawer is narrow - icon-only mode
   .actions-text-container {
     display: none;
   }

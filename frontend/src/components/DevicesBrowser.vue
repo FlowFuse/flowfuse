@@ -51,10 +51,11 @@
                     </ff-popover>
                     <DropdownMenu v-if="hasPermission('team:device:bulk-delete', applicationContext) || hasPermission('team:device:bulk-edit', applicationContext)" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary ff-btn-icon" :options="bulkActionsDropdownOptions">
                         <CogIcon class="ff-btn--icon ff-btn--icon-left" />
-                        <span class="bulk-actions-text">Actions</span>
+                        <span class="hidden sm:inline bulk-actions-text">Actions</span>
                     </DropdownMenu>
                     <ff-button
                         v-if="displayingInstance && hasPermission('project:snapshot:create', applicationContext)"
+                        class="ff-btn-icon"
                         data-action="change-target-snapshot"
                         kind="secondary"
                         @click="showSelectTargetSnapshotDialog"
@@ -62,13 +63,13 @@
                         <template #icon-left>
                             <ClockIcon />
                         </template>
-                        <span class="target-snapshot-text font-normal">
+                        <span class="hidden sm:inline target-snapshot-text font-normal">
                             Target Snapshot: <b>{{ instance.targetSnapshot?.name || 'none' }}</b>
                         </span>
                     </ff-button>
                     <ff-button
                         v-ff-tooltip:left="!hasPermission('device:create', applicationContext) && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
-                        class="font-normal"
+                        class="font-normal ff-btn-icon"
                         data-action="register-device"
                         kind="primary"
                         :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
@@ -77,7 +78,7 @@
                         <template #icon-left>
                             <PlusSmIcon />
                         </template>
-                        <span class="add-remote-instance-text">Add Remote Instance</span>
+                        <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                     </ff-button>
                 </template>
                 <template #context-menu="{row}">
@@ -145,7 +146,7 @@
                         <template #actions>
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
-                                class="font-normal"
+                                class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
@@ -154,7 +155,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                <span class="add-remote-instance-text">Add Remote Instance</span>
+                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -184,7 +185,7 @@
                         <template #actions>
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
-                                class="font-normal"
+                                class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
@@ -193,7 +194,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                <span class="add-remote-instance-text">Add Remote Instance</span>
+                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -223,7 +224,7 @@
                         <template #actions>
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
-                                class="font-normal"
+                                class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
@@ -232,7 +233,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                <span class="add-remote-instance-text">Add Remote Instance</span>
+                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>

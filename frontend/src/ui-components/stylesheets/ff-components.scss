@@ -219,6 +219,24 @@
 }
 
 /*
+  Viewport responsive context (for pages outside drawer, e.g., instance overview)
+  Remove icon margins when viewport is narrow and buttons are in icon-only mode
+  Breakpoint matches Tailwind's sm breakpoint (640px)
+*/
+@media (max-width: 639px) {
+  .ff-btn-icon {
+    .ff-btn--icon-left {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .ff-btn--icon-right {
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+}
+
+/*
   FF Kebab Menu
 */
 
