@@ -218,7 +218,7 @@ jobs:
         method: users.lookupByEmail
         token: ${{ secrets.SLACK_GHBOT_TOKEN }}
         payload: |
-          email: ${{ github.event.pusher.email || github.event.pull_request.user.email }}
+          email: ${{ github.event.head_commit.author.email }}
 
     - name: Set Slack User ID
       if: ${{ steps.email.outputs.ok }}
