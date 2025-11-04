@@ -60,5 +60,4 @@ app.config.errorHandler = function (err, vm, info) {
 app.config.globalProperties.$filters = {
     pluralize (amount, singular, plural = `${singular}s`) { return amount === 1 ? singular : plural }
 }
-
 app.mount('#app')
