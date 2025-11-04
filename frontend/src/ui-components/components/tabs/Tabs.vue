@@ -124,7 +124,8 @@ export default {
             showLeftDropdown: false,
             showRightDropdown: false,
             resizeObserver: null,
-            intersectionObserver: null
+            intersectionObserver: null,
+            wheelScrollHandler: null
         }
     },
     computed: {
@@ -161,11 +162,13 @@ export default {
         if (this.enableOverflow && this.orientation === 'horizontal') {
             this.$nextTick(() => {
                 this.initOverflowDetection()
+                this.initWheelScroll()
             })
         }
     },
     beforeUnmount () {
         this.cleanupObservers()
+        this.cleanupWheelScroll()
     },
     methods: {
         selectTab (i) {
@@ -309,6 +312,31 @@ export default {
             }
             if (this.resizeObserver) {
                 this.resizeObserver.disconnect()
+            }
+        },
+        initWheelScroll () {
+            const container = this.$refs.scrollContainer
+            if (!container) return
+
+            // Handle mouse wheel scrolling to scroll horizontally
+            this.wheelScrollHandler = (e) => {
+                // Only convert vertical scroll to horizontal if there's no horizontal scroll already
+                // This allows trackpad users to scroll horizontally naturally
+                // while mouse wheel users get horizontal scrolling from vertical wheel
+                if (e.deltaY !== 0 && e.deltaX === 0) {
+                    // Only mouse wheel vertical scrolling - convert to horizontal
+                    e.preventDefault()
+                    container.scrollLeft += e.deltaY
+                }
+                // If deltaX is present, let the browser handle it naturally (trackpad horizontal scroll)
+            }
+
+            container.addEventListener('wheel', this.wheelScrollHandler, { passive: false })
+        },
+        cleanupWheelScroll () {
+            const container = this.$refs.scrollContainer
+            if (container && this.wheelScrollHandler) {
+                container.removeEventListener('wheel', this.wheelScrollHandler)
             }
         }
     }
