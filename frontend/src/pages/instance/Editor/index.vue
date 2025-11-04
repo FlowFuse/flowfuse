@@ -2,6 +2,8 @@
     <div class="ff-editor-wrapper" :class="{resizing: drawer.resizing}">
         <EditorWrapper :instance="instance" :disable-events="drawer.resizing" @toggle-drawer="toggleDrawer" @iframe-loaded="notifyDrawerState" @request-drawer-state="notifyDrawerState" />
 
+        <EditorToggle :is-hidden="drawer.open" @toggle="toggleDrawer" />
+
         <section
             class="tabs-wrapper drawer"
             :class="{'open': drawer.open, resizing: drawer.resizing}"
@@ -23,6 +25,7 @@
                     <a :href="instance.url">
                         <ExternalLinkIcon class="ff-btn--icon" />
                     </a>
+                    <ChevronLeftIcon class="ff-btn--icon close-drawer" @click="toggleDrawer" />
                 </div>
             </div>
 
@@ -47,7 +50,7 @@
 </template>
 
 <script>
-import { ArrowLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon, ChevronLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
@@ -61,6 +64,7 @@ import DashboardLink from '../components/DashboardLink.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
 import ResizeBar from './components/drawer/ResizeBar.vue'
+import EditorToggle from './components/EditorToggle.vue'
 
 export default {
     name: 'InstanceEditor',
@@ -69,8 +73,10 @@ export default {
         InstanceActionsButton,
         DashboardLink,
         EditorWrapper,
+        EditorToggle,
         InstanceStatusPolling,
         ExternalLinkIcon,
+        ChevronLeftIcon,
         FfPage,
         ArrowLeftIcon,
         ResizeBar
