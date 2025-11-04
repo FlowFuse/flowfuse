@@ -1169,7 +1169,8 @@ $countdown_size: 20px;
     justify-content: center;
     padding: $ff-unit-sm;
     background: white;
-    border: 1px solid $ff-grey-300;
+    border: none;
+    border-right: 1px solid $ff-grey-300;
     color: $ff-grey-500;
     cursor: pointer;
     z-index: 10;
@@ -1196,13 +1197,13 @@ $countdown_size: 20px;
 
     &--left {
       left: 0;
-      border-radius: 0 4px 4px 0;
+      border-right: 1px solid $ff-grey-300;
       border-left: none;
     }
 
     &--right {
       right: 0;
-      border-radius: 4px 0 0 4px;
+      border-left: 1px solid $ff-grey-300;
       border-right: none;
     }
   }
