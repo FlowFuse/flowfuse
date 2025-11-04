@@ -25,7 +25,7 @@
                 <slot name="tools" />
             </div>
         </div>
-        <ff-tabs v-if="tabs" :tabs="tabs" />
+        <ff-tabs v-if="tabs" :tabs="tabs" :enable-overflow="true" />
     </div>
     <ff-dialog v-if="hasInfoDialog" ref="help-dialog" class="ff-dialog-box--info" :header="title || 'FlowFuse Info'">
         <template #default>
