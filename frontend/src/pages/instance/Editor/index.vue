@@ -22,7 +22,15 @@
                         :disabled="!editorAvailable"
                     />
                     <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
-                    <ChevronLeftIcon class="ff-btn--icon close-drawer" @click="toggleDrawer" />
+                    <button
+                        v-ff-tooltip:right="'Close drawer'"
+                        type="button"
+                        class="close-drawer-button"
+                        aria-label="Close drawer"
+                        @click="toggleDrawer"
+                    >
+                        <ChevronLeftIcon class="ff-btn--icon" />
+                    </button>
                 </div>
             </div>
 
@@ -295,7 +303,15 @@ export default {
         color: $ff-grey-500;
         flex-shrink: 0;
 
-        .close-drawer {
+        .close-drawer-button {
+          background: none;
+          border: none;
+          padding: 0;
+          color: inherit;
+          font: inherit;
+          display: flex;
+          align-items: center;
+
           &:hover {
             cursor: pointer;
           }

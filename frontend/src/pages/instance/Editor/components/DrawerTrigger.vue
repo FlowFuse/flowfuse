@@ -1,12 +1,16 @@
 <template>
-    <div
+    <button
+        v-ff-tooltip:right="'Toggle drawer'"
         class="drawer-trigger"
         :class="{ 'hidden': isHidden }"
+        :aria-label="isHidden ? 'Open drawer' : 'Close drawer'"
+        :aria-expanded="!isHidden"
+        type="button"
         @click="$emit('toggle')"
     >
         <img src="../../../../images/icons/ff-minimal-grey.svg" alt="FlowFuse logo">
         <ChevronRightIcon class="ff-btn--icon" />
-    </div>
+    </button>
 </template>
 
 <script>
@@ -43,6 +47,9 @@ export default {
     background: $ff-white;
     border: 1px solid $ff-grey-400;
     border-left: none;
+
+    /* Reset button styles */
+    font: inherit;
 
     /* Visual effects */
     box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.10);
