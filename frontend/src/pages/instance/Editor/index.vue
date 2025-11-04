@@ -2,7 +2,7 @@
     <div class="ff-editor-wrapper" :class="{resizing: drawer.resizing}">
         <EditorWrapper :instance="instance" :disable-events="drawer.resizing" @toggle-drawer="toggleDrawer" @iframe-loaded="notifyDrawerState" @request-drawer-state="notifyDrawerState" />
 
-        <EditorToggle :is-hidden="drawer.open" @toggle="toggleDrawer" />
+        <DrawerTrigger :is-hidden="drawer.open" @toggle="toggleDrawer" />
 
         <section
             class="tabs-wrapper drawer"
@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { ArrowLeftIcon, ChevronLeftIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
@@ -61,7 +61,7 @@ import DashboardLink from '../components/DashboardLink.vue'
 
 import EditorWrapper from './components/EditorWrapper.vue'
 import ResizeBar from './components/drawer/ResizeBar.vue'
-import EditorToggle from './components/EditorToggle.vue'
+import DrawerTrigger from './components/DrawerTrigger.vue'
 
 export default {
     name: 'InstanceEditor',
@@ -70,11 +70,10 @@ export default {
         InstanceActionsButton,
         DashboardLink,
         EditorWrapper,
-        EditorToggle,
+        DrawerTrigger,
         InstanceStatusPolling,
         ChevronLeftIcon,
         FfPage,
-        ArrowLeftIcon,
         ResizeBar
     },
     mixins: [instanceMixin],
@@ -210,7 +209,7 @@ export default {
             if (this.drawer.resizing) {
                 const widthChange = e.clientX - this.drawer.startX
                 const newWidth = this.drawer.startWidth + widthChange
-                this.drawer.width = Math.min(Math.max(300, newWidth), window.screen.width - 200)
+                this.drawer.width = Math.min(Math.max(300, newWidth), this.viewportWidth - 200)
             }
         },
         stopResize () {
@@ -231,37 +230,6 @@ export default {
   height: 100%;
   display: flex;
   flex: 1;
-
-  .drawer-toggle-button {
-    position: fixed;
-    top: 60px;
-    left: 0;
-    width: 40px;
-    height: 40px;
-    background: #fff;
-    border: none;
-    border-right: 1px solid $ff-grey-300;
-    border-bottom: 1px solid $ff-grey-300;
-    cursor: pointer;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: left 0.3s ease-in-out;
-
-    &:hover {
-      background: $ff-grey-100;
-    }
-
-    .ff-logo-icon {
-      width: 20px;
-      height: 20px;
-    }
-
-    &.drawer-open {
-      left: 400px;
-    }
-  }
 
   .tabs-wrapper {
     position: fixed;

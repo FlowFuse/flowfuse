@@ -1,6 +1,6 @@
 <template>
     <div
-        class="editor-toggle"
+        class="drawer-trigger"
         :class="{ 'hidden': isHidden }"
         @click="$emit('toggle')"
     >
@@ -13,7 +13,7 @@
 import { ChevronRightIcon } from '@heroicons/vue/outline'
 
 export default {
-    name: 'EditorToggle',
+    name: 'DrawerTrigger',
     components: {
         ChevronRightIcon
     },
@@ -28,7 +28,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.editor-toggle {
+.drawer-trigger {
     display: flex;
     align-items: center;
     gap: 1px;
