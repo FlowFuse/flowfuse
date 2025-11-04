@@ -196,7 +196,8 @@ module.exports = {
 
         return {
             ...(filters.status ? { state: filters.status } : null),
-            ...(filters.lastseen ? { lastseen: filters.lastseen } : null)
+            ...(filters.lastseen ? { lastseen: filters.lastseen } : null),
+            ...(filters.mode ? { mode: filters.mode } : null)
         }
     },
 
