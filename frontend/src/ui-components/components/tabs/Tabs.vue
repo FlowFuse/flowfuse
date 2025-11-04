@@ -1,30 +1,103 @@
 <template>
-    <div>
-        <ul class="ff-tabs" :class="'ff-tabs--' + orientation">
+    <div class="ff-tabs-wrapper" :class="{ 'ff-tabs-wrapper--overflow-enabled': enableOverflow }">
+        <button
+            v-if="enableOverflow && hasHiddenLeft"
+            class="ff-tabs__overflow-button ff-tabs__overflow-button--left"
+            @click.stop="toggleLeftDropdown"
+            aria-label="Show hidden tabs on the left"
+        >
+            <ChevronLeftIcon class="ff-icon" />
+            <ChevronLeftIcon class="ff-icon ff-icon-second" />
+        </button>
+
+        <div
+            ref="scrollContainer"
+            class="ff-tabs__scroll-container"
+            :class="{ 'ff-tabs__scroll-container--overflow': enableOverflow }"
+            @scroll="handleScroll"
+        >
+            <ul class="ff-tabs" :class="'ff-tabs--' + orientation">
+                <router-link
+                    v-for="(tab, $index) in scopedTabs"
+                    :key="tab.label"
+                    :ref="'tab-' + $index"
+                    data-el="ff-tab"
+                    class="ff-tab-option transition-fade--color"
+                    :to="tab.to"
+                    :data-nav="tab.tag"
+                    @click="selectTab($index)"
+                >
+                    {{ tab.label }}
+                    <span v-if="tab.featureUnavailable" v-ff-tooltip="'Not available in this Team Tier'" data-el="premium-feature">
+                        <SparklesIcon class="ff-icon transition-fade--color hollow" style="stroke-width: 1;" />
+                    </span>
+                </router-link>
+            </ul>
+        </div>
+
+        <button
+            v-if="enableOverflow && hasHiddenRight"
+            class="ff-tabs__overflow-button ff-tabs__overflow-button--right"
+            @click.stop="toggleRightDropdown"
+            aria-label="Show hidden tabs on the right"
+        >
+            <ChevronRightIcon class="ff-icon" />
+            <ChevronRightIcon class="ff-icon ff-icon-second" />
+        </button>
+
+        <!-- Left dropdown -->
+        <div v-if="showLeftDropdown" v-click-outside="closeLeftDropdown" class="ff-tabs__dropdown ff-tabs__dropdown--left">
             <router-link
-                v-for="(tab, $index) in scopedTabs"
-                :key="tab.label"
-                data-el="ff-tab"
-                class="ff-tab-option transition-fade--color"
+                v-for="(tab, $index) in hiddenLeftTabs"
+                :key="'left-' + tab.label"
+                class="ff-tabs__dropdown-item"
                 :to="tab.to"
-                :data-nav="tab.tag"
-                @click="selectTab($index)"
+                @click="onDropdownItemClick(tab)"
             >
                 {{ tab.label }}
-                <span v-if="tab.featureUnavailable" v-ff-tooltip="'Not available in this Team Tier'" data-el="premium-feature">
-                    <SparklesIcon class="ff-icon transition-fade--color hollow" style="stroke-width: 1;" />
-                </span>
             </router-link>
-        </ul>
+        </div>
+
+        <!-- Right dropdown -->
+        <div v-if="showRightDropdown" v-click-outside="closeRightDropdown" class="ff-tabs__dropdown ff-tabs__dropdown--right">
+            <router-link
+                v-for="(tab, $index) in hiddenRightTabs"
+                :key="'right-' + tab.label"
+                class="ff-tabs__dropdown-item"
+                :to="tab.to"
+                @click="onDropdownItemClick(tab)"
+            >
+                {{ tab.label }}
+            </router-link>
+        </div>
     </div>
 </template>
 
 <script>
 import { SparklesIcon } from '@heroicons/vue/outline'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
+
 export default {
     name: 'ff-tabs',
     components: {
-        SparklesIcon
+        SparklesIcon,
+        ChevronLeftIcon,
+        ChevronRightIcon
+    },
+    directives: {
+        clickOutside: {
+            mounted (el, binding) {
+                el.clickOutsideEvent = function (event) {
+                    if (!(el === event.target || el.contains(event.target))) {
+                        binding.value(event)
+                    }
+                }
+                document.addEventListener('click', el.clickOutsideEvent)
+            },
+            unmounted (el) {
+                document.removeEventListener('click', el.clickOutsideEvent)
+            }
+        }
     },
     props: {
         orientation: {
@@ -34,12 +107,21 @@ export default {
         tabs: {
             default: () => [],
             type: Array
+        },
+        enableOverflow: {
+            default: false,
+            type: Boolean
         }
     },
     emits: ['tab-selected'],
     data () {
         return {
-            selectedIndex: -1
+            selectedIndex: -1,
+            visibleTabs: [],
+            showLeftDropdown: false,
+            showRightDropdown: false,
+            resizeObserver: null,
+            intersectionObserver: null
         }
     },
     computed: {
@@ -50,7 +132,37 @@ export default {
                 }
                 return true
             })
+        },
+        hasHiddenLeft () {
+            if (!this.enableOverflow || this.orientation !== 'horizontal') return false
+            return this.hiddenLeftTabs.length > 0
+        },
+        hasHiddenRight () {
+            if (!this.enableOverflow || this.orientation !== 'horizontal') return false
+            return this.hiddenRightTabs.length > 0
+        },
+        hiddenLeftTabs () {
+            if (!this.enableOverflow) return []
+            return this.scopedTabs.filter((tab, index) => {
+                return !this.visibleTabs.includes(index) && this.isTabOnLeft(index)
+            })
+        },
+        hiddenRightTabs () {
+            if (!this.enableOverflow) return []
+            return this.scopedTabs.filter((tab, index) => {
+                return !this.visibleTabs.includes(index) && !this.isTabOnLeft(index)
+            })
         }
+    },
+    mounted () {
+        if (this.enableOverflow && this.orientation === 'horizontal') {
+            this.$nextTick(() => {
+                this.initOverflowDetection()
+            })
+        }
+    },
+    beforeUnmount () {
+        this.cleanupObservers()
     },
     methods: {
         selectTab (i) {
@@ -66,6 +178,132 @@ export default {
                     }
                 }
             })
+        },
+        initOverflowDetection () {
+            const container = this.$refs.scrollContainer
+            if (!container) return
+
+            // Use IntersectionObserver to detect which tabs are visible
+            const options = {
+                root: container,
+                threshold: 0.95 // Tab must be 95% visible
+            }
+
+            this.intersectionObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const tabElement = entry.target
+                    const tabIndex = parseInt(tabElement.getAttribute('data-tab-index'))
+
+                    if (entry.isIntersecting) {
+                        if (!this.visibleTabs.includes(tabIndex)) {
+                            this.visibleTabs.push(tabIndex)
+                        }
+                    } else {
+                        const index = this.visibleTabs.indexOf(tabIndex)
+                        if (index > -1) {
+                            this.visibleTabs.splice(index, 1)
+                        }
+                    }
+                })
+            }, options)
+
+            // Observe all tab elements
+            const tabElements = container.querySelectorAll('.ff-tab-option')
+            tabElements.forEach((tabElement, index) => {
+                tabElement.setAttribute('data-tab-index', index)
+                this.intersectionObserver.observe(tabElement)
+            })
+
+            // Also use ResizeObserver to re-check on container resize
+            this.resizeObserver = new ResizeObserver(() => {
+                this.updateVisibleTabs()
+            })
+            this.resizeObserver.observe(container)
+
+            // Initial check
+            this.updateVisibleTabs()
+        },
+        updateVisibleTabs () {
+            const container = this.$refs.scrollContainer
+            if (!container) return
+
+            const containerRect = container.getBoundingClientRect()
+            const tabElements = container.querySelectorAll('.ff-tab-option')
+
+            // Account for button overlay width (approximately 40px each side)
+            const buttonWidth = 40
+            const effectiveLeft = containerRect.left + (this.hasHiddenLeft ? buttonWidth : 0)
+            const effectiveRight = containerRect.right - (this.hasHiddenRight ? buttonWidth : 0)
+
+            this.visibleTabs = []
+            tabElements.forEach((tabElement, index) => {
+                const tabRect = tabElement.getBoundingClientRect()
+                // Check if tab is mostly visible within container (accounting for buttons)
+                const isVisible = tabRect.left >= effectiveLeft - 10 &&
+                                  tabRect.right <= effectiveRight + 10
+                if (isVisible) {
+                    this.visibleTabs.push(index)
+                }
+            })
+
+        },
+        handleScroll () {
+            if (this.enableOverflow) {
+                this.updateVisibleTabs()
+            }
+        },
+        isTabOnLeft (tabIndex) {
+            // Determine if a tab is on the left side (before first visible tab)
+            if (this.visibleTabs.length === 0) return tabIndex < this.scopedTabs.length / 2
+            return tabIndex < Math.min(...this.visibleTabs)
+        },
+        toggleLeftDropdown () {
+            this.showLeftDropdown = !this.showLeftDropdown
+            this.showRightDropdown = false
+        },
+        toggleRightDropdown () {
+            this.showRightDropdown = !this.showRightDropdown
+            this.showLeftDropdown = false
+        },
+        closeLeftDropdown () {
+            this.showLeftDropdown = false
+        },
+        closeRightDropdown () {
+            this.showRightDropdown = false
+        },
+        onDropdownItemClick (tab) {
+            // Close dropdowns
+            this.closeLeftDropdown()
+            this.closeRightDropdown()
+
+            // Find the tab index in scopedTabs
+            const tabIndex = this.scopedTabs.findIndex(t => t.label === tab.label)
+            if (tabIndex === -1) return
+
+            // Scroll the tab into view
+            this.$nextTick(() => {
+                const container = this.$refs.scrollContainer
+                if (!container) return
+
+                const tabElements = container.querySelectorAll('.ff-tab-option')
+                const tabElement = tabElements[tabIndex]
+
+                if (tabElement) {
+                    tabElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest',
+                        inline: 'center'
+                    })
+                }
+            })
+        },
+        cleanupObservers () {
+            if (this.intersectionObserver) {
+                this.intersectionObserver.disconnect()
+            }
+            if (this.resizeObserver) {
+                this.resizeObserver.disconnect()
+            }
         }
     }
 }

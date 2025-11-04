@@ -13,7 +13,7 @@
             />
 
             <div class="header">
-                <ff-tabs :tabs="navigation" class="tabs" />
+                <ff-tabs :tabs="navigation" :enable-overflow="true" class="tabs" />
                 <div class="side-actions">
                     <DashboardLink
                         v-if="instance.settings?.dashboard2UI" :instance="instance"
