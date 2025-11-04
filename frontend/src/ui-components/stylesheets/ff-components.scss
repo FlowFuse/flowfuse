@@ -1230,6 +1230,25 @@ $countdown_size: 20px;
     }
   }
 
+  .ff-tabs__menu-wrapper {
+    position: relative;
+    display: inline-block;
+
+    &--left {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+    }
+
+    &--right {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+    }
+  }
+
   .ff-tabs__dropdown {
     position: absolute;
     top: calc(100% + 4px);
@@ -1273,6 +1292,12 @@ $countdown_size: 20px;
     }
 
     &:hover {
+      background: $ff-grey-100;
+      color: $ff-blue-700;
+      cursor: pointer;
+    }
+
+    &--active {
       background: $ff-grey-100;
       color: $ff-blue-700;
       cursor: pointer;

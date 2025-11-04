@@ -1,14 +1,27 @@
 <template>
     <div class="ff-tabs-wrapper" :class="{ 'ff-tabs-wrapper--overflow-enabled': enableOverflow }">
-        <button
-            v-if="enableOverflow && hasHiddenLeft"
-            class="ff-tabs__overflow-button ff-tabs__overflow-button--left"
-            @click.stop="toggleLeftDropdown"
-            aria-label="Show hidden tabs on the left"
-        >
-            <ChevronLeftIcon class="ff-icon" />
-            <ChevronLeftIcon class="ff-icon ff-icon-second" />
-        </button>
+        <HeadlessMenu v-if="enableOverflow && hasHiddenLeft" as="div" class="ff-tabs__menu-wrapper ff-tabs__menu-wrapper--left">
+            <MenuButton class="ff-tabs__overflow-button ff-tabs__overflow-button--left" aria-label="Show hidden tabs on the left">
+                <ChevronLeftIcon class="ff-icon" />
+                <ChevronLeftIcon class="ff-icon ff-icon-second" />
+            </MenuButton>
+            <MenuItems class="ff-tabs__dropdown ff-tabs__dropdown--left">
+                <MenuItem
+                    v-for="tab in hiddenLeftTabs"
+                    :key="'left-' + tab.label"
+                    v-slot="{ active }"
+                >
+                    <router-link
+                        :class="['ff-tabs__dropdown-item', { 'ff-tabs__dropdown-item--active': active }]"
+                        :to="tab.to"
+                        @click="onDropdownItemClick(tab)"
+                    >
+                        <img v-if="tab.icon" :src="tab.icon" class="ff-tab-icon" alt="">
+                        <span class="ff-tab-label">{{ tab.label }}</span>
+                    </router-link>
+                </MenuItem>
+            </MenuItems>
+        </HeadlessMenu>
 
         <div
             ref="scrollContainer"
@@ -36,47 +49,33 @@
             </ul>
         </div>
 
-        <button
-            v-if="enableOverflow && hasHiddenRight"
-            class="ff-tabs__overflow-button ff-tabs__overflow-button--right"
-            @click.stop="toggleRightDropdown"
-            aria-label="Show hidden tabs on the right"
-        >
-            <ChevronRightIcon class="ff-icon" />
-            <ChevronRightIcon class="ff-icon ff-icon-second" />
-        </button>
-
-        <!-- Left dropdown -->
-        <div v-if="showLeftDropdown" v-click-outside="closeLeftDropdown" class="ff-tabs__dropdown ff-tabs__dropdown--left">
-            <router-link
-                v-for="tab in hiddenLeftTabs"
-                :key="'left-' + tab.label"
-                class="ff-tabs__dropdown-item"
-                :to="tab.to"
-                @click="onDropdownItemClick(tab)"
-            >
-                <img v-if="tab.icon" :src="tab.icon" class="ff-tab-icon" alt="">
-                <span class="ff-tab-label">{{ tab.label }}</span>
-            </router-link>
-        </div>
-
-        <!-- Right dropdown -->
-        <div v-if="showRightDropdown" v-click-outside="closeRightDropdown" class="ff-tabs__dropdown ff-tabs__dropdown--right">
-            <router-link
-                v-for="tab in hiddenRightTabs"
-                :key="'right-' + tab.label"
-                class="ff-tabs__dropdown-item"
-                :to="tab.to"
-                @click="onDropdownItemClick(tab)"
-            >
-                <img v-if="tab.icon" :src="tab.icon" class="ff-tab-icon" alt="">
-                <span class="ff-tab-label">{{ tab.label }}</span>
-            </router-link>
-        </div>
+        <HeadlessMenu v-if="enableOverflow && hasHiddenRight" as="div" class="ff-tabs__menu-wrapper ff-tabs__menu-wrapper--right">
+            <MenuButton class="ff-tabs__overflow-button ff-tabs__overflow-button--right" aria-label="Show hidden tabs on the right">
+                <ChevronRightIcon class="ff-icon" />
+                <ChevronRightIcon class="ff-icon ff-icon-second" />
+            </MenuButton>
+            <MenuItems class="ff-tabs__dropdown ff-tabs__dropdown--right">
+                <MenuItem
+                    v-for="tab in hiddenRightTabs"
+                    :key="'right-' + tab.label"
+                    v-slot="{ active }"
+                >
+                    <router-link
+                        :class="['ff-tabs__dropdown-item', { 'ff-tabs__dropdown-item--active': active }]"
+                        :to="tab.to"
+                        @click="onDropdownItemClick(tab)"
+                    >
+                        <img v-if="tab.icon" :src="tab.icon" class="ff-tab-icon" alt="">
+                        <span class="ff-tab-label">{{ tab.label }}</span>
+                    </router-link>
+                </MenuItem>
+            </MenuItems>
+        </HeadlessMenu>
     </div>
 </template>
 
 <script>
+import { Menu as HeadlessMenu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { SparklesIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
 
@@ -85,22 +84,11 @@ export default {
     components: {
         SparklesIcon,
         ChevronLeftIcon,
-        ChevronRightIcon
-    },
-    directives: {
-        clickOutside: {
-            mounted (el, binding) {
-                el.clickOutsideEvent = function (event) {
-                    if (!(el === event.target || el.contains(event.target))) {
-                        binding.value(event)
-                    }
-                }
-                document.addEventListener('click', el.clickOutsideEvent)
-            },
-            unmounted (el) {
-                document.removeEventListener('click', el.clickOutsideEvent)
-            }
-        }
+        ChevronRightIcon,
+        HeadlessMenu,
+        MenuButton,
+        MenuItem,
+        MenuItems
     },
     props: {
         orientation: {
@@ -121,8 +109,6 @@ export default {
         return {
             selectedIndex: -1,
             visibleTabs: [],
-            showLeftDropdown: false,
-            showRightDropdown: false,
             resizeObserver: null,
             intersectionObserver: null,
             wheelScrollHandler: null
@@ -265,25 +251,8 @@ export default {
             // Tab is on the left if its index is before the first visible tab
             return tabIndex < firstVisibleIndex
         },
-        toggleLeftDropdown () {
-            this.showLeftDropdown = !this.showLeftDropdown
-            this.showRightDropdown = false
-        },
-        toggleRightDropdown () {
-            this.showRightDropdown = !this.showRightDropdown
-            this.showLeftDropdown = false
-        },
-        closeLeftDropdown () {
-            this.showLeftDropdown = false
-        },
-        closeRightDropdown () {
-            this.showRightDropdown = false
-        },
         onDropdownItemClick (tab) {
-            // Close dropdowns
-            this.closeLeftDropdown()
-            this.closeRightDropdown()
-
+            // HeadlessUI Menu will auto-close the dropdown
             // Find the tab index in scopedTabs
             const tabIndex = this.scopedTabs.findIndex(t => t.label === tab.label)
             if (tabIndex === -1) return
