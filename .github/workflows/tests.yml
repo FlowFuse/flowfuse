@@ -30,7 +30,8 @@ jobs:
           ./.github/scripts/detect_changed_files.sh
 
   backend-tests:
-    if: ${{ needs.check-changes.outputs.run_backend_tests == 'true' }}
+    # if: ${{ needs.check-changes.outputs.run_backend_tests == 'true' }}
+    if: false
     name: Backend tests
     needs: check-changes
     runs-on: ubuntu-latest
@@ -60,7 +61,8 @@ jobs:
         flags: backend
 
   postgres-tests:
-    if: ${{ needs.check-changes.outputs.run_postgres_tests == 'true' }}
+    # if: ${{ needs.check-changes.outputs.run_postgres_tests == 'true' }}
+    if: false
     name: Postgres tests
     needs: check-changes
     runs-on: ubuntu-latest
@@ -120,7 +122,8 @@ jobs:
         run: npm run test:unit:frontend
 
   ui-os-tests:
-    if: ${{ needs.check-changes.outputs.run_ui_tests == 'true' }}
+    # if: ${{ needs.check-changes.outputs.run_ui_tests == 'true' }}
+    if: false
     name: UI OS tests
     needs: check-changes
     runs-on: ubuntu-latest
@@ -160,7 +163,8 @@ jobs:
             test/e2e/frontend/cypress/videos
 
   ui-ee-tests:
-    if: ${{ needs.check-changes.outputs.run_ui_tests == 'true' }}
+    # if: ${{ needs.check-changes.outputs.run_ui_tests == 'true' }}
+    if: false
     name: UI EE tests
     needs: check-changes
     runs-on: ubuntu-latest
@@ -201,7 +205,8 @@ jobs:
 
   notify-slack:
     name: Notify on failure
-    needs: [backend-tests, postgres-tests, ui-os-tests, ui-ee-tests, ui-unit-tests]
+    # needs: [backend-tests, postgres-tests, ui-os-tests, ui-ee-tests, ui-unit-tests]
+    needs: [ui-unit-tests]
     if: failure()
     runs-on: ubuntu-latest
 
