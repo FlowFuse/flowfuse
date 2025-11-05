@@ -12,7 +12,7 @@ Node-RED offers an intuitive, low-code environment ideal for connecting hardware
 
 ## Key Features
 
-* AI-assisted collaborative development - Multiple developers can work together on a single Node-RED instance. Our AI Copilot accelerates building data logic, generating code from natural language, and automating data flows securely.
+* AI-assisted collaborative development - Multiple developers can work together on a single Node-RED instance. Our FlowFuse Assistant accelerates building data logic, generating code from natural language, and automating data flows securely.
 * Scalable, remote deployment - Automate deployment of standardized Node-RED snapshots across edge devices and multiple remote locations with centralized control.
 * AI-powered data transformation - Transform raw data into structured, unified models using AI-assisted low-code tools that generate SQL, JavaScript, and custom logic from simple descriptions.
 * Flexible hosting - FlowFuse is available from [FlowFuse Cloud](https://app.flowfuse.com/account/create), a managed cloud service, or a self-hosted solution. 
