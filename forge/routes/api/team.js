@@ -88,6 +88,16 @@ module.exports = async function (app) {
         }
     }
 
+    async function updateTeamFeatures (result, team) {
+        const properties = team.properties
+        if (properties.features) {
+            const featureKeys = Object.keys(properties?.features)
+            for (const k of featureKeys) {
+                result.type.properties.features[k] = properties.features[k]
+            }
+        }
+    }
+
     async function getTeamDetails (request, reply, team) {
         if (!request.session.User?.admin && request.teamMembership.role < Roles.Viewer) {
             // Return summary details for any role less than Viewer (eg dashboard)
@@ -98,6 +108,7 @@ module.exports = async function (app) {
         result.instanceCountByType = await team.instanceCountByType()
 
         await appendBillingDetails(result, team, request)
+        await updateTeamFeatures(result, team)
 
         reply.send(result)
     }

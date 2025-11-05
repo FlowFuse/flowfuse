@@ -149,6 +149,54 @@
                         </div>
                     </td>
                 </tr>
+                <tr>
+                    <th>Features</th>
+                </tr>
+                <tr>
+                    <th>Tables:</th>
+                    <td v-if="!editingLimits"><div>{{ getTeamProperty('features_tables') }}</div></td>
+                    <td v-else>
+                        <div class="grid grid-cols-2 gap-2 my-2">
+                            <FormRow v-model="editableLimits.features.tables" type="checkbox" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Instance Resources:</th>
+                    <td v-if="!editingLimits"><div>{{ getTeamProperty('features_instanceResources') }}</div></td>
+                    <td v-else>
+                        <div class="grid grid-cols-2 gap-2 my-2">
+                            <FormRow v-model="editableLimits.features.instanceResources" type="checkbox" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Bill of Materials:</th>
+                    <td v-if="!editingLimits"><div>{{ getTeamProperty('features_bom') }}</div></td>
+                    <td v-else>
+                        <div class="grid grid-cols-2 gap-2 my-2">
+                            <FormRow v-model="editableLimits.features.bom" type="checkbox" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>NPM Packages:</th>
+                    <td v-if="!editingLimits"><div>{{ getTeamProperty('features_npm') }}</div></td>
+                    <td v-else>
+                        <div class="grid grid-cols-2 gap-2 my-2">
+                            <FormRow v-model="editableLimits.features.npm" type="checkbox" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Git Integration:</th>
+                    <td v-if="!editingLimits"><div>{{ getTeamProperty('features_gitIntegration') }}</div></td>
+                    <td v-else>
+                        <div class="grid grid-cols-2 gap-2 my-2">
+                            <FormRow v-model="editableLimits.features.gitIntegration" type="checkbox" />
+                        </div>
+                    </td>
+                </tr>
             </table>
         </div>
     </div>
@@ -195,7 +243,8 @@ export default {
             deviceFreeOptions: [],
             editingLimits: false,
             editableLimits: {
-                users: {}
+                users: {},
+                features: {}
             }
         }
     },
@@ -325,6 +374,12 @@ export default {
             this.editableLimits.teamBroker = {
                 clients: { limit: this.getTeamProperty('teamBroker_clients_limit') ?? '' }
             }
+            this.editableLimits.features.tables = this.getTeamProperty('features_tables')
+            this.editableLimits.features.instanceResources = this.getTeamProperty('features_instanceResources')
+            this.editableLimits.features.bom = this.getTeamProperty('features_bom')
+            this.editableLimits.features.npm = this.getTeamProperty('features_npm')
+            this.editableLimits.features.gitIntegration = this.getTeamProperty('features_gitIntegration')
+
             this.editingLimits = true
         },
         async saveOverrides () {
@@ -346,7 +401,8 @@ export default {
                 users: { ...this.editableLimits.users },
                 instances: {},
                 devices: { ...this.editableLimits.devices },
-                teamBroker: { clients: { ...this.editableLimits.teamBroker.clients } }
+                teamBroker: { clients: { ...this.editableLimits.teamBroker.clients } },
+                features: {}
             }
             Object.keys(this.editableLimits.instances).forEach(instanceTypeId => {
                 properties.instances[instanceTypeId] = { ...this.editableLimits.instances[instanceTypeId] }
@@ -380,6 +436,10 @@ export default {
                 // Have selected own limit, or same as the team type - delete the override
                 delete properties.devices.combinedFreeType
             }
+
+            Object.keys(this.editableLimits.features).forEach(feature => {
+                properties.features[feature] = this.editableLimits.features[feature]
+            })
 
             await teamApi.updateTeam(this.team.id, { properties })
             await this.$store.dispatch('account/refreshTeam')
