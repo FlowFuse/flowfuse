@@ -105,6 +105,7 @@ export default {
     padding: 1rem; // p-4
     border-top: 1px solid #E5E7EB; // border-gray-200
     background: white;
+    flex-shrink: 0; // Prevent input area from shrinking
 }
 
 .action-buttons {

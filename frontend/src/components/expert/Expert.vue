@@ -354,6 +354,7 @@ export default {
     flex-direction: column;
     height: 100%;
     background: white;
+    overflow: hidden; // Prevent this container from scrolling
 }
 
 .messages-container {
@@ -361,6 +362,7 @@ export default {
     overflow-y: auto;
     padding: 1rem; // p-4
     scroll-behavior: smooth;
+    min-height: 0; // Important for flex child overflow
 
     // Custom scrollbar styling
     &::-webkit-scrollbar {

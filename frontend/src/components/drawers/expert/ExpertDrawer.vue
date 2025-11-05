@@ -48,11 +48,13 @@ export default {
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow: hidden; // Prevent drawer from scrolling
 
     .header {
         padding: 1rem 1.5rem;
         border-bottom: 1px solid $ff-grey-200;
         background: white;
+        flex-shrink: 0; // Prevent header from shrinking
 
         .flex {
             display: flex;
@@ -85,6 +87,14 @@ export default {
             color: #374151; // text-gray-700
             margin: 0;
             line-height: 1.5rem; // Match logo height for proper alignment
+        }
+    }
+
+    // Ensure ExpertPanel fills remaining space
+    > * {
+        &:not(.header) {
+            flex: 1;
+            min-height: 0; // Important for flex child overflow
         }
     }
 }
