@@ -226,7 +226,7 @@ export default {
             if (!container) return
 
             const containerRect = container.getBoundingClientRect()
-            const tabElements = container.querySelectorAll('.ff-tab-option')
+            const tabElements = this.getTabElements()
 
             this.visibleTabs = []
             tabElements.forEach((tabElement, index) => {
@@ -268,7 +268,7 @@ export default {
             // Scroll the tab into view immediately (synchronously)
             const container = this.$refs.scrollContainer
             if (container) {
-                const tabElements = container.querySelectorAll('.ff-tab-option')
+                const tabElements = this.getTabElements()
                 const tabElement = tabElements[tabIndex]
 
                 if (tabElement) {
