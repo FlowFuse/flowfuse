@@ -77,7 +77,22 @@ module.exports = async function (app) {
         }
     },
     async (request, reply) => {
-        reply.send('hello light!')
+        const query = 'I\'ve just switched context from the FlowFuse Website to the Application'
+
+        const response = await axios.post(expertUrl, {
+            query,
+            history: request.body.history,
+            context: request.body.context
+        }, {
+            headers: {
+                Origin: 'https://flowfuse.com',
+                'X-Chat-Session-ID': request.body.sessionId,
+                'X-Chat-Transaction-ID': 'transactionId' // todo sort this out
+            },
+            requestTimeout
+        })
+
+        reply.send(response.data)
     })
 
     app.post('/fim/message', {
@@ -107,6 +122,18 @@ module.exports = async function (app) {
         }
     },
     async (request, reply) => {
-        reply.send('hello light!')
+        const response = await axios.post(expertUrl, {
+            query: request.body.message,
+            context: request.body.context
+        }, {
+            headers: {
+                Origin: 'https://flowfuse.com',
+                'X-Chat-Session-ID': request.body.sessionId,
+                'X-Chat-Transaction-ID': 'transactionId' // todo sort this out
+            },
+            requestTimeout
+        })
+
+        reply.send(response.data)
     })
 }
