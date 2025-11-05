@@ -1,6 +1,6 @@
 <template>
     <div class="ff-toggle-group" data-nav="ff-toggle">
-        <div v-if="title" class="title">
+        <div v-if="title" class="title" :class="{ 'sr-only': visuallyHideTitle }">
             <span>{{ title }}:</span>
         </div>
         <div class="toggle">
@@ -25,6 +25,11 @@ export default {
             type: String,
             required: false,
             default: null
+        },
+        visuallyHideTitle: {
+            type: Boolean,
+            required: false,
+            default: false
         },
         buttons: {
             type: Array, // [ { title: 'button title, to: {route..} } ]

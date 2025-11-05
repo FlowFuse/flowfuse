@@ -88,14 +88,11 @@ export default {
     box-shadow: -5px 0px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
-    overflow: auto;
-
-    & > * {
-        padding: 1rem;
-    }
+    overflow: hidden; // Changed from auto to hidden - let child components handle their own scrolling
 
     .header {
         background: white;
+        flex-shrink: 0;
     }
 
     &.open {
