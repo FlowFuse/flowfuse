@@ -174,7 +174,9 @@ export default {
             return this.scopedTabs.map((_, index) => {
                 const ref = this.$refs['tab-' + index]
                 // Refs can be arrays when v-for is used, so handle both cases
-                return Array.isArray(ref) ? ref[0] : ref
+                const componentOrEl = Array.isArray(ref) ? ref[0] : ref
+                // router-link refs are component instances, need to get the actual DOM element
+                return componentOrEl?.$el || componentOrEl
             }).filter(Boolean) // Remove any undefined refs
         },
         initOverflowDetection () {
