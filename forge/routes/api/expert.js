@@ -109,7 +109,7 @@ module.exports = async function (app) {
                     },
                     sessionId: { type: 'string' }
                 },
-                required: ['history', 'context']
+                required: ['message', 'context']
             },
             response: {
                 200: {
