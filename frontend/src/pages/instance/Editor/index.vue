@@ -220,10 +220,12 @@ export default {
             // Send drawer state to iframe
             const iframe = this.$el.querySelector('iframe')
             if (iframe && iframe.contentWindow) {
+                // Use instance URL origin for security instead of wildcard
+                const targetOrigin = this.instance.url || window.location.origin
                 iframe.contentWindow.postMessage({
                     type: 'drawer-state',
                     payload: { open: this.drawer.open }
-                }, '*')
+                }, targetOrigin)
             }
         },
         startResize (e) {
