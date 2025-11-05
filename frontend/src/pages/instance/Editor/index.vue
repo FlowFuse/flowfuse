@@ -39,7 +39,7 @@
                 </div>
             </div>
 
-            <ff-page>
+            <ff-page :no-padding="isExpertRoute">
                 <router-view
                     :instance="instance"
                     :is-visiting-admin="isVisitingAdmin"
@@ -68,6 +68,7 @@ import usePermissions from '../../../composables/Permissions.js'
 
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
+import featuresMixin from '../../../mixins/Features.js'
 import { Roles } from '../../../utils/roles.js'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../components/DashboardLink.vue'
@@ -97,7 +98,7 @@ export default {
         FfPage,
         ResizeBar
     },
-    mixins: [instanceMixin],
+    mixins: [instanceMixin, featuresMixin],
     setup () {
         const { hasAMinimumTeamRoleOf, isVisitingAdmin } = usePermissions()
 
@@ -186,6 +187,9 @@ export default {
             }
             // Desktop: drawer can't exceed specified percentage of viewport
             return Math.min(this.drawer.width, this.viewportWidth * DRAWER_MAX_WIDTH_RATIO)
+        },
+        isExpertRoute () {
+            return this.$route.name === 'instance-editor-expert'
         }
     },
     mounted () {

@@ -58,8 +58,6 @@
 import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
-import ExpertAPI from '../../api/expert.js'
-
 import ExpertChatInput from './ExpertChatInput.vue'
 import ExpertChatMessage from './ExpertChatMessage.vue'
 import ExpertLoadingDots from './ExpertLoadingDots.vue'
@@ -111,11 +109,7 @@ export default {
         }
     },
     mounted () {
-        // Initialize session if not already set
-        if (!this.sessionId) {
-            const newSessionId = ExpertAPI.initSession()
-            this.setContext({ sessionId: newSessionId })
-        }
+        // Session ID is now auto-initialized in Vuex store when first message is sent
     },
     beforeUnmount () {
         // Clean up timers
@@ -128,115 +122,62 @@ export default {
     },
     methods: {
         ...mapActions('product/expert', [
+            'sendMessage',
             'addMessage',
             'updateLastMessage',
             'clearConversation',
-            'setGenerating',
-            'setAutoScroll',
-            'setAbortController',
-            'setContext',
-            'sendMessage'
+            'startOver',
+            'setAutoScroll'
         ]),
 
         async handleSendMessage (query) {
             if (!query.trim()) return
 
-            // Add human message
-            this.addMessage({
-                type: 'human',
-                content: query,
-                timestamp: Date.now()
-            })
-
-            // Add loading indicator
-            this.addMessage({
-                type: 'loading',
-                timestamp: Date.now()
-            })
-
-            this.setGenerating(true)
-
             // Create abort controller for this request
             const controller = new AbortController()
-            this.setAbortController(markRaw(controller))
 
-            try {
-                // // Call the API
-                // const response = await ExpertAPI.sendQuery(
-                //     query,
-                //     this.sessionId,
-                //     null, // instanceId - handled elsewhere per user's note
-                //     controller.signal
-                // )
-                const response = await this.sendMessage({ message: query, context: {} })
+            // Call Vuex action to handle API logic
+            const result = await this.sendMessage({
+                query,
+                instanceId: null,
+                abortController: markRaw(controller)
+            })
 
-                // Remove loading indicator
-                const loadingIndex = this.messages.findIndex(m => m.type === 'loading')
-                if (loadingIndex !== -1) {
-                    this.messages.splice(loadingIndex, 1)
-                }
-
-                // Process the answer
-                if (response.answer && Array.isArray(response.answer)) {
-                    for (const item of response.answer) {
-                        if (item.kind === 'guide') {
-                            // Add rich guide message
-                            this.addMessage({
-                                type: 'ai',
-                                kind: 'guide',
-                                guide: item,
-                                content: item.title || 'Setup Guide',
-                                timestamp: Date.now()
-                            })
-                        } else if (item.kind === 'resources') {
-                            // Add rich resources message
-                            this.addMessage({
-                                type: 'ai',
-                                kind: 'resources',
-                                resources: item,
-                                content: item.title || 'Resources',
-                                timestamp: Date.now()
-                            })
-                        } else if (item.kind === 'chat') {
-                            // Add chat message with streaming effect
-                            await this.streamMessage(item.content)
-                        }
+            // Handle UI-specific processing if successful
+            if (result.success && result.answer && Array.isArray(result.answer)) {
+                for (const item of result.answer) {
+                    if (item.kind === 'guide') {
+                        // Add rich guide message
+                        this.addMessage({
+                            type: 'ai',
+                            kind: 'guide',
+                            guide: item,
+                            content: item.title || 'Setup Guide',
+                            timestamp: Date.now()
+                        })
+                    } else if (item.kind === 'resources') {
+                        // Add rich resources message
+                        this.addMessage({
+                            type: 'ai',
+                            kind: 'resources',
+                            resources: item,
+                            content: item.title || 'Resources',
+                            timestamp: Date.now()
+                        })
+                    } else if (item.kind === 'chat') {
+                        // Add chat message with streaming effect
+                        await this.streamMessage(item.content)
                     }
-                } else {
-                    // Fallback for unexpected response format
-                    this.addMessage({
-                        type: 'ai',
-                        content: 'Sorry, I received an unexpected response format.',
-                        timestamp: Date.now()
-                    })
                 }
-            } catch (error) {
-                // Remove loading indicator
-                const loadingIndex = this.messages.findIndex(m => m.type === 'loading')
-                if (loadingIndex !== -1) {
-                    this.messages.splice(loadingIndex, 1)
-                }
-
-                if (error.name === 'AbortError' || error.name === 'CanceledError') {
-                    // Request was cancelled by user
-                    this.addMessage({
-                        type: 'ai',
-                        content: 'Generation stopped.',
-                        timestamp: Date.now()
-                    })
-                } else {
-                    // API error
-                    console.error('Expert API error:', error)
-                    this.addMessage({
-                        type: 'ai',
-                        content: 'Sorry, I encountered an error. Please try again.',
-                        timestamp: Date.now()
-                    })
-                }
-            } finally {
-                this.setGenerating(false)
-                this.setAbortController(null)
+            } else if (result.success && (!result.answer || !Array.isArray(result.answer))) {
+                // Fallback for unexpected response format
+                this.addMessage({
+                    type: 'ai',
+                    content: 'Sorry, I received an unexpected response format.',
+                    timestamp: Date.now()
+                })
             }
+            // Errors are already handled in the Vuex action
         },
 
         async streamMessage (content) {
@@ -307,7 +248,7 @@ export default {
             // Confirm before clearing
             if (this.hasMessages) {
                 if (confirm('Are you sure you want to start over? This will clear the conversation.')) {
-                    this.clearConversation()
+                    this.startOver()
                 }
             }
         },

@@ -98,11 +98,19 @@ export default {
     &.open {
         right: 0;
         width: 100%;
-        max-width: 30vw;
-        min-width: 400px;
 
-        &.wider {
-            max-width: 45vw;
+        // On small viewports: use 100% width (no minimum)
+        max-width: 100vw;
+        min-width: 0;
+
+        // On viewports >= 400px: use 30vw with 400px minimum
+        @media (min-width: 400px) {
+            max-width: 30vw;
+            min-width: 400px;
+
+            &.wider {
+                max-width: 45vw;
+            }
         }
     }
 
