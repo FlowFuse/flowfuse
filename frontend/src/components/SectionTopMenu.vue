@@ -104,7 +104,14 @@ export default {
     }
 }
 
-// Hide info icon when drawer is narrow (below 640px)
+// Hide info icon on small viewports (below 640px)
+@media (max-width: 639px) {
+    .ff-info-icon {
+        display: none;
+    }
+}
+
+// Also hide info icon when drawer is narrow (below 640px)
 @container drawer (max-width: 639px) {
     .ff-info-icon {
         display: none;
