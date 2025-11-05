@@ -47,7 +47,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'settings']),
         providerColumns () {
             return [
                 { label: 'Active', key: 'active', class: ['w-16'] },
