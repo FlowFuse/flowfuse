@@ -159,10 +159,6 @@ export default {
     display: flex;
     align-items: center;
 
-    &.create-new {
-        background-color: $ff-grey-200;
-    }
-
     .ff-option-content {
         padding: 12px 12px 12px 18px;
         display: flex;
@@ -178,10 +174,6 @@ export default {
             width: 1.25rem;
             height: 1.25rem;
         }
-    }
-
-    &:hover {
-        background-color: $ff-grey-100;
     }
 }
 

@@ -8,16 +8,20 @@
             </transition>
         </i>
         <!-- FlowFuse Logo -->
-        <router-link :to="homeLink" class="min-w-min" style="width: 250px;">
-            <img class="ff-logo" src="/ff-logo--wordmark--light.svg">
+        <router-link :to="homeLink" class="ff-logo-wrapper">
+            <!-- Mobile: Icon-only logo -->
+            <img class="ff-logo lg:hidden" src="/ff-minimal-red.svg" alt="FlowFuse">
+            <!-- Desktop: Full wordmark logo -->
+            <img class="ff-logo hidden lg:block" src="/ff-logo--wordmark--light.svg" alt="FlowFuse">
         </router-link>
         <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
-            <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
-            <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
+            <ExpertButton class="ff-header--mobile-experttoggle" />
+            <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle ff-header--mobile-teamtoggle" :class="{'active': mobileTeamSelectionOpen}">
                 <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="toggleMobileTeamSelectionMenu">
             </i>
+            <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
                 <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen">
             </i>
