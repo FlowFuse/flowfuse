@@ -374,11 +374,9 @@ export default {
             this.editableLimits.teamBroker = {
                 clients: { limit: this.getTeamProperty('teamBroker_clients_limit') ?? '' }
             }
-            this.editableLimits.features.tables = this.getTeamProperty('features_tables')
-            this.editableLimits.features.instanceResources = this.getTeamProperty('features_instanceResources')
-            this.editableLimits.features.bom = this.getTeamProperty('features_bom')
-            this.editableLimits.features.npm = this.getTeamProperty('features_npm')
-            this.editableLimits.features.gitIntegration = this.getTeamProperty('features_gitIntegration')
+            Object.keys(this.team.type.properties.features).forEach(feature => {
+                this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`)
+            })
 
             this.editingLimits = true
         },
@@ -438,7 +436,12 @@ export default {
             }
 
             Object.keys(this.editableLimits.features).forEach(feature => {
-                properties.features[feature] = this.editableLimits.features[feature]
+                // only store the delta from the TeamType
+                if (this.team.type.properties.features[feature] !== this.editableLimits.features[feature]) {
+                    properties.features[feature] = this.editableLimits.features[feature]
+                } else {
+                    delete properties.features[feature]
+                }
             })
 
             await teamApi.updateTeam(this.team.id, { properties })

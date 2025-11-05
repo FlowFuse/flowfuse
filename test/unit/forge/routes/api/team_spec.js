@@ -42,20 +42,6 @@ describe('Team API', function () {
         })
         TestObjects.DTeam = await app.db.models.Team.create({ name: 'DTeAbCam', TeamTypeId: TestObjects.secondTeamType.id, suspended: true })
 
-        TestObjects.thirdTeamType = await app.db.models.TeamType.create({
-            name: 'third team type',
-            active: true,
-            order: 3,
-            description: '',
-            properties: {
-                features: {
-                    tables: false,
-                    npm: false
-                }
-            }
-        })
-        TestObjects.ETeam = await app.db.models.Team.create({ name: 'ETeAbCam', TeamTypeId: TestObjects.thirdTeamType.id, suspended: true })
-
         await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Member } })
         await TestObjects.BTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
 
@@ -1794,7 +1780,24 @@ describe('Team API', function () {
             stub.restore()
         })
     })
+
     describe('Team Type Overrides', async function () {
+        beforeEach(async () => {
+            TestObjects.thirdTeamType = await app.db.models.TeamType.create({
+                name: 'third team type',
+                active: true,
+                order: 3,
+                description: '',
+                properties: {
+                    features: {
+                        tables: false,
+                        npm: false
+                    }
+                }
+            })
+            TestObjects.ETeam = await app.db.models.Team.create({ name: 'ETeam', TeamTypeId: TestObjects.thirdTeamType.id, suspended: true })
+        })
+
         it('Team should have features from TeamType', async () => {
             const response = await app.inject({
                 method: 'GET',
