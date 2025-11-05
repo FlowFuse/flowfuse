@@ -16,9 +16,7 @@ const hydrate = async ({
         message,
         context,
         sessionId
-    }).then(res => {
-        return res.data
-    })
+    }).then(res => res.data)
 }
 
 /**
@@ -35,9 +33,7 @@ const sendMessage = async ({
         message,
         context,
         sessionId
-    }).then(res => {
-        return res.data
-    })
+    }).then(res => res.data)
 }
 
 export default {
