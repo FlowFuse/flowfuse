@@ -71,6 +71,86 @@ const actions = {
         }
     },
 
+    // Main message sending action
+    async sendMessage ({ commit, state }, { query, instanceId = null, abortController }) {
+        // Auto-initialize session ID if not set
+        if (!state.sessionId) {
+            const { default: ExpertAPI } = await import('../../../../api/expert.js')
+            const newSessionId = ExpertAPI.initSession()
+            commit('SET_SESSION_ID', newSessionId)
+        }
+
+        // Add user message
+        commit('ADD_MESSAGE', {
+            type: 'human',
+            content: query,
+            timestamp: Date.now()
+        })
+
+        // Add loading indicator
+        commit('ADD_MESSAGE', {
+            type: 'loading',
+            timestamp: Date.now()
+        })
+
+        commit('SET_GENERATING', true)
+        commit('SET_ABORT_CONTROLLER', abortController)
+
+        try {
+            // Call the API
+            const { default: ExpertAPI } = await import('../../../../api/expert.js')
+            const response = await ExpertAPI.sendQuery(
+                query,
+                state.sessionId,
+                instanceId,
+                abortController?.signal
+            )
+
+            // Remove loading indicator
+            const loadingIndex = state.messages.findIndex(m => m.type === 'loading')
+            if (loadingIndex !== -1) {
+                state.messages.splice(loadingIndex, 1)
+            }
+
+            // Process and return the response for UI handling
+            return {
+                success: true,
+                answer: response.answer || []
+            }
+        } catch (error) {
+            // Remove loading indicator
+            const loadingIndex = state.messages.findIndex(m => m.type === 'loading')
+            if (loadingIndex !== -1) {
+                state.messages.splice(loadingIndex, 1)
+            }
+
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was cancelled by user
+                commit('ADD_MESSAGE', {
+                    type: 'ai',
+                    content: 'Generation stopped.',
+                    timestamp: Date.now()
+                })
+            } else {
+                // API error
+                console.error('Expert API error:', error)
+                commit('ADD_MESSAGE', {
+                    type: 'ai',
+                    content: 'Sorry, I encountered an error. Please try again.',
+                    timestamp: Date.now()
+                })
+            }
+
+            return {
+                success: false,
+                error
+            }
+        } finally {
+            commit('SET_GENERATING', false)
+            commit('SET_ABORT_CONTROLLER', null)
+        }
+    },
+
     // Conversation actions
     addMessage ({ commit }, message) {
         commit('ADD_MESSAGE', message)
@@ -81,6 +161,14 @@ const actions = {
     },
 
     clearConversation ({ commit }) {
+        commit('CLEAR_MESSAGES')
+    },
+
+    async startOver ({ commit }) {
+        // Generate new session ID for fresh conversation
+        const { default: ExpertAPI } = await import('../../../../api/expert.js')
+        const newSessionId = ExpertAPI.initSession()
+        commit('SET_SESSION_ID', newSessionId)
         commit('CLEAR_MESSAGES')
     },
 
