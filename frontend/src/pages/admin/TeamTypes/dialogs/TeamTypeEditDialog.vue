@@ -118,7 +118,7 @@
                 <div class="grid gap-3 grid-cols-2">
                     <FormRow v-for="(feature, index) in featureList" :key="index" v-model="input.properties.features[feature]" type="checkbox">{{ featureNames[feature] }}</FormRow>
                     <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
-                    <span v-if="featureList.length % 2 === 1"/>
+                    <span v-if="featureList.length % 2 === 1" />
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
@@ -141,13 +141,12 @@
 <script>
 import { mapState } from 'vuex'
 
+import { featureList, featureNames } from '../../../../../../forge/lib/features.js'
 import instanceTypesApi from '../../../../api/instanceTypes.js'
 import teamTypesApi from '../../../../api/teamTypes.js'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
-
-import { list as featureList, names as featureNames } from '../../../../../../forge/lib/features.js'
 
 export default {
     name: 'TeamTypeCreateDialog',

@@ -1,4 +1,4 @@
-const list = [
+const featureList = [
     'shared-library',
     'projectComms',
     'ha',
@@ -25,7 +25,7 @@ const list = [
     'ffNodes',
     'rbacApplication'
 ]
-const names = {
+const featureNames = {
     'shared-library': 'Team Library',
     projectComms: 'Project Nodes',
     ha: 'High Availability',
@@ -53,6 +53,6 @@ const names = {
     rbacApplication: 'Application-level RBAC'
 }
 module.exports = {
-    list,
-    names
+    featureList,
+    featureNames
 }

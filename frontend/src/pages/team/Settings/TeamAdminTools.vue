@@ -189,6 +189,7 @@
 <script>
 import { mapState } from 'vuex'
 
+import { featureList, featureNames } from '../../../../../forge/lib/features.js'
 import billingApi from '../../../api/billing.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import teamApi from '../../../api/team.js'
@@ -203,8 +204,6 @@ import { getObjectValue } from '../../admin/Template/utils.js'
 
 import ConfirmTeamManualBillingDialog from '../dialogs/ConfirmTeamManualBillingDialog.vue'
 import ExtendTeamTrialDialog from '../dialogs/ExtendTeamTrialDialog.vue'
-
-import { list as featureList, names as featureNames } from '../../../../../forge/lib/features.js'
 
 export default {
     name: 'TeamAdminTools',
@@ -361,7 +360,6 @@ export default {
                 clients: { limit: this.getTeamProperty('teamBroker_clients_limit') ?? '' }
             }
             this.featureList.forEach(feature => {
-                console.log(feature, this.getTeamProperty(`features_${feature}`))
                 this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
             })
 
