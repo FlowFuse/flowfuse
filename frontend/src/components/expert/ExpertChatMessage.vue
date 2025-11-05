@@ -99,17 +99,12 @@ export default {
 }
 
 .message-bubble {
-    max-width: 24rem; // max-w-xs
+    max-width: 90%; // Always leave a gap on the side
     padding: 0.5rem 1rem; // py-2 px-4
     word-wrap: break-word;
     overflow-wrap: break-word;
 
-    @media (min-width: 1024px) {
-        max-width: 28rem; // lg:max-w-md
-    }
-
     &.rich-guide-bubble {
-        max-width: 90%; // max-w-[90%]
         padding: 1rem; // py-4 px-4
     }
 }
