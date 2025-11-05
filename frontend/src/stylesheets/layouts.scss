@@ -465,6 +465,16 @@ $nav_height: 60px;
             align-items: center;
             .ff-avatar {
                 border: 2px solid #1f2937;
+                transition: ease-in-out .1s;
+            }
+            &:hover {
+                .ff-avatar {
+                    will-change: transform;
+                    transform: scale(1.25) translateZ(0);
+                    backface-visibility: hidden;
+                    perspective: 1000px;
+                    border-color: $ff-indigo-600;
+                }
             }
         }
     }
