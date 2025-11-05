@@ -17,14 +17,14 @@
         <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
+            <ExpertButton class="ff-header--mobile-experttoggle" />
+            <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle ff-header--mobile-teamtoggle" :class="{'active': mobileTeamSelectionOpen}">
+                <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="toggleMobileTeamSelectionMenu">
+            </i>
+            <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
                 <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen">
             </i>
-            <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
-            <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
-                <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="toggleMobileTeamSelectionMenu">
-            </i>
-            <ExpertButton class="ff-header--mobile-experttoggle" />
         </div>
         <!-- Mobile: User Options -->
         <div
