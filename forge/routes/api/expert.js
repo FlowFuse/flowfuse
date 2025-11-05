@@ -11,7 +11,7 @@ module.exports = async function (app) {
     // Get the assistant service configuration
     const expertUrl = app.config.expert?.service?.url
     const serviceEnabled = app.config.expert?.enabled !== false && expertUrl
-    // const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
+    const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
 
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, reply) => {
@@ -57,7 +57,10 @@ module.exports = async function (app) {
                             additionalProperties: true
                         }
                     },
-                    context: { type: 'object', additionalProperties: true },
+                    context: {
+                        type: 'object',
+                        additionalProperties: true
+                    },
                     sessionId: { type: 'string' }
                 },
                 required: ['history', 'context', 'sessionId']
@@ -84,7 +87,10 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     message: { type: 'string' },
-                    context: { type: 'object', additionalProperties: true },
+                    context: {
+                        type: 'object',
+                        additionalProperties: true
+                    },
                     sessionId: { type: 'string' }
                 },
                 required: ['history', 'context']
