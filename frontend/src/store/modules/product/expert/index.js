@@ -1,4 +1,7 @@
+import { markRaw } from 'vue'
+
 import expertApi from '../../../../api/expert.js'
+import ExpertDrawer from '../../../../components/drawers/expert/ExpertDrawer.vue'
 
 const initialState = () => ({
     // Context from PR #6231 postMessage integration
@@ -64,16 +67,40 @@ const mutations = {
     },
     UPDATE_CONTEXT (state, message) {
         state.context.push(message)
+    },
+    HYDRATE_MESSAGES (state, messages) {
+        messages.forEach(message => {
+            if (Object.prototype.hasOwnProperty.call(message, 'query')) {
+                message.content = message.query
+                message.type = 'human'
+                message.timestamp = Date.now()
+                delete message.query
+            }
+            state.messages.push(message)
+        })
     }
 }
 
 const actions = {
     // Context actions (for PR #6231 integration)
-    setContext ({ commit }, { data, sessionId }) {
+    setContext ({
+        commit,
+        dispatch,
+        state
+    }, {
+        data,
+        sessionId
+    }) {
+        console.log('setting context', data, sessionId)
         commit('SET_CONTEXT', data)
+
         if (sessionId) {
             commit('SET_SESSION_ID', sessionId)
         }
+
+        commit('HYDRATE_MESSAGES', data)
+        dispatch('hydrateClient')
+        dispatch('ux/drawers/openRightDrawer', { component: markRaw(ExpertDrawer) }, { root: true })
     },
 
     // Main message sending action
@@ -190,8 +217,15 @@ const actions = {
         commit('RESET')
     },
 
-    hydrateClient ({ commit }, { message, history, context, sessionId }) {
-        return expertApi.hydrate({ message, history, context, sessionId })
+    hydrateClient ({
+        commit,
+        state
+    }) {
+        return expertApi.hydrate({
+            history: state.context,
+            context: {},
+            sessionId: state.sessionId
+        })
             .then(response => {
                 commit('ADD_MESSAGE', response)
             })
