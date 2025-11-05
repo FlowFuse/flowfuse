@@ -35,7 +35,10 @@
                                     @click="onFilterClick('fleetMode', close)"
                                 >
                                     <template #icon>
-                                        <ff-checkbox v-model="deviceModeFilters.fleetMode" style="top: -8px;" />
+                                        <ff-checkbox
+                                            v-model="deviceModeFilters.fleetMode" style="top: -8px;"
+                                            @click.stop.prevent="onFilterClick('fleetMode', close)"
+                                        />
                                     </template>
                                 </popover-item>
                                 <popover-item
@@ -43,7 +46,10 @@
                                     @click="onFilterClick('developerMode', close)"
                                 >
                                     <template #icon>
-                                        <ff-checkbox v-model="deviceModeFilters.developerMode" style="top: -8px;" />
+                                        <ff-checkbox
+                                            v-model="deviceModeFilters.developerMode" style="top: -8px;"
+                                            @click.stop.prevent="onFilterClick('developerMode', close)"
+                                        />
                                     </template>
                                 </popover-item>
                             </section>
