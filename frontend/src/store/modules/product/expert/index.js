@@ -7,6 +7,7 @@ const initialState = () => ({
     // Context from PR #6231 postMessage integration
     context: null,
     sessionId: null,
+    shouldPromptAssistant: false,
 
     // Conversation state
     messages: [],
@@ -62,6 +63,9 @@ const mutations = {
     SET_ABORT_CONTROLLER (state, controller) {
         state.abortController = controller
     },
+    SET_SHOULD_PROMPT_ASSISTANT (state, shouldPromptAssistant) {
+
+    },
     RESET (state) {
         Object.assign(state, initialState())
     },
@@ -86,12 +90,12 @@ const actions = {
     setContext ({
         commit,
         dispatch,
-        state
+        state,
+        rootState
     }, {
         data,
         sessionId
     }) {
-        console.log('setting context', data, sessionId)
         commit('SET_CONTEXT', data)
 
         if (sessionId) {
@@ -99,8 +103,13 @@ const actions = {
         }
 
         commit('HYDRATE_MESSAGES', data)
-        dispatch('hydrateClient')
-        dispatch('ux/drawers/openRightDrawer', { component: markRaw(ExpertDrawer) }, { root: true })
+
+        if (rootState.account?.user) {
+            dispatch('hydrateClient')
+            dispatch('ux/drawers/openRightDrawer', { component: markRaw(ExpertDrawer) }, { root: true })
+        } else {
+            dispatch('SET_SHOULD_PROMPT_ASSISTANT', true)
+        }
     },
 
     // Main message sending action
