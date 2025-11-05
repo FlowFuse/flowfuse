@@ -5,18 +5,18 @@
                 <h2 class="title flex-grow">FlowFuse Expert</h2>
             </div>
         </div>
-        <div class="ff-expert">
-            <div class="ff-expert__placeholder">
-                <!-- Expert AI assistant content will go here -->
-                <p>FlowFuse Expert Assistant</p>
-            </div>
-        </div>
+        <ExpertPanel />
     </div>
 </template>
 
 <script>
+import ExpertPanel from '../../expert/Expert.vue'
+
 export default {
     name: 'ExpertDrawer',
+    components: {
+        ExpertPanel
+    },
     data () {
         return {
             // Future: Add expert state here
@@ -60,25 +60,6 @@ export default {
                 font-weight: 600;
                 color: $ff-grey-800;
                 margin: 0;
-            }
-        }
-    }
-
-    .ff-expert {
-        flex: 1;
-        padding: 1rem;
-        overflow-y: auto;
-
-        &__placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: $ff-grey-500;
-            text-align: center;
-
-            p {
-                font-size: 1rem;
             }
         }
     }

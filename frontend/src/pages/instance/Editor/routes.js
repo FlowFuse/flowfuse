@@ -1,4 +1,4 @@
-import InstanceExpert from '../Expert.vue'
+import ExpertPanel from '../../../components/expert/Expert.vue'
 import InstanceSettings from '../Settings/index.vue'
 import InstanceSettingsRoutes from '../Settings/routes.js'
 import VersionHistory from '../VersionHistory/index.vue'
@@ -17,7 +17,7 @@ export default [
             layout: 'plain'
         },
         redirect: to => {
-            return { name: 'instance-editor-expert', params: { id: to.params.id } }
+            return { name: 'instance-editor-overview', params: { id: to.params.id } }
         },
         children: [
             ...children.filter(child => !['settings', 'version-history'].includes(child.path)).map(child => {
@@ -67,7 +67,7 @@ export default [
             {
                 path: 'expert',
                 name: 'instance-editor-expert',
-                component: InstanceExpert,
+                component: ExpertPanel,
                 meta: {
                     title: 'Instance - Expert'
                 }

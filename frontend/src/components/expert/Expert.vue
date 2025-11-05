@@ -8,7 +8,7 @@
 
 <script>
 export default {
-    name: 'InstanceExpert',
+    name: 'ExpertPanel',
     data () {
         return {
         }
