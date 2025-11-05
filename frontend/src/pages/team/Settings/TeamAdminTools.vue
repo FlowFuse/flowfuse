@@ -152,51 +152,33 @@
                 <tr>
                     <th>Features</th>
                 </tr>
-                <tr>
-                    <th>Tables:</th>
-                    <td v-if="!editingLimits"><div>{{ getTeamProperty('features_tables') }}</div></td>
+                <tr v-for="(feature, index) in featureList" :key="index">
+                    <th>{{ featureNames[feature] }}:</th>
+                    <td v-if="!editingLimits"><div>{{ getTeamProperty(`features_${feature}`) || false }}</div></td>
                     <td v-else>
                         <div class="grid grid-cols-2 gap-2 my-2">
-                            <FormRow v-model="editableLimits.features.tables" type="checkbox" />
+                            <FormRow v-model="editableLimits.features[feature]" type="checkbox" />
+                        </div>
+                    </td>
+                </tr>
+                <!-- <tr>
+                    <th>Persistent File storage limit (mb):</th>
+                    <td v-if="!editingLimits"><div>{{ getTeamProperty(`features_fileStorageLimit`) }}</div></td>
+                    <td v-else>
+                        <div class="grid grid-cols-2 gap-2 my-2">
+                            <FormRow v-model="editableLimits.features['fileStorageLimit']" type="number" />
                         </div>
                     </td>
                 </tr>
                 <tr>
-                    <th>Instance Resources:</th>
-                    <td v-if="!editingLimits"><div>{{ getTeamProperty('features_instanceResources') }}</div></td>
+                    <th>Persistent Context storage limit (mb):</th>
+                    <td v-if="!editingLimits"><div>{{ getTeamProperty(`features_contextLimit`) }}</div></td>
                     <td v-else>
                         <div class="grid grid-cols-2 gap-2 my-2">
-                            <FormRow v-model="editableLimits.features.instanceResources" type="checkbox" />
+                            <FormRow v-model="editableLimits.features['contextLimit']" type="number" />
                         </div>
                     </td>
-                </tr>
-                <tr>
-                    <th>Bill of Materials:</th>
-                    <td v-if="!editingLimits"><div>{{ getTeamProperty('features_bom') }}</div></td>
-                    <td v-else>
-                        <div class="grid grid-cols-2 gap-2 my-2">
-                            <FormRow v-model="editableLimits.features.bom" type="checkbox" />
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <th>NPM Packages:</th>
-                    <td v-if="!editingLimits"><div>{{ getTeamProperty('features_npm') }}</div></td>
-                    <td v-else>
-                        <div class="grid grid-cols-2 gap-2 my-2">
-                            <FormRow v-model="editableLimits.features.npm" type="checkbox" />
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <th>Git Integration:</th>
-                    <td v-if="!editingLimits"><div>{{ getTeamProperty('features_gitIntegration') }}</div></td>
-                    <td v-else>
-                        <div class="grid grid-cols-2 gap-2 my-2">
-                            <FormRow v-model="editableLimits.features.gitIntegration" type="checkbox" />
-                        </div>
-                    </td>
-                </tr>
+                </tr> -->
             </table>
         </div>
     </div>
@@ -222,6 +204,8 @@ import { getObjectValue } from '../../admin/Template/utils.js'
 import ConfirmTeamManualBillingDialog from '../dialogs/ConfirmTeamManualBillingDialog.vue'
 import ExtendTeamTrialDialog from '../dialogs/ExtendTeamTrialDialog.vue'
 
+import { list as featureList, names as featureNames } from '../../../../../forge/lib/features.js'
+
 export default {
     name: 'TeamAdminTools',
     components: {
@@ -239,6 +223,8 @@ export default {
     },
     data () {
         return {
+            featureList,
+            featureNames,
             instanceTypes: [],
             deviceFreeOptions: [],
             editingLimits: false,
@@ -374,8 +360,9 @@ export default {
             this.editableLimits.teamBroker = {
                 clients: { limit: this.getTeamProperty('teamBroker_clients_limit') ?? '' }
             }
-            Object.keys(this.team.type.properties.features).forEach(feature => {
-                this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`)
+            this.featureList.forEach(feature => {
+                console.log(feature, this.getTeamProperty(`features_${feature}`))
+                this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
             })
 
             this.editingLimits = true
