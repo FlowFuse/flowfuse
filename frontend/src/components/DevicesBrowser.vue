@@ -951,14 +951,28 @@ export default {
     white-space: nowrap;
 }
 
-// Container query for drawer context - responsive button behavior
-// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
-.target-snapshot-text,
-.add-remote-instance-text,
-.bulk-actions-text {
-  display: inline; // Default: show text
+// Viewport-based responsive behavior (matches Tailwind sm: breakpoint)
+// Hide button text on narrow viewports (< 640px)
+@media (max-width: 639px) {
+  .target-snapshot-text,
+  .add-remote-instance-text,
+  .bulk-actions-text {
+    display: none;
+  }
 }
 
+// Show button text on wider viewports (>= 640px)
+@media (min-width: 640px) {
+  .target-snapshot-text,
+  .add-remote-instance-text,
+  .bulk-actions-text {
+    display: inline;
+  }
+}
+
+// Container query for drawer context - responsive button behavior
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
+// These override viewport-based rules when inside the drawer
 @container drawer (max-width: 639px) {
   // Hide text when drawer is narrow - icon-only mode
   .target-snapshot-text,
@@ -972,6 +986,15 @@ export default {
   .ff-btn[data-action="register-device"] {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
+  }
+}
+
+@container drawer (min-width: 640px) {
+  // Show text when drawer is wide enough
+  .target-snapshot-text,
+  .add-remote-instance-text,
+  .bulk-actions-text {
+    display: inline;
   }
 }
 </style>
