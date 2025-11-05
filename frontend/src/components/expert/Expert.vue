@@ -31,6 +31,11 @@
                     <template v-if="message.kind === 'guide'" #rich-content>
                         <expert-rich-guide :guide="message.guide" />
                     </template>
+
+                    <!-- Rich resources content slot -->
+                    <template v-if="message.kind === 'resources'" #rich-content>
+                        <expert-rich-resources :resources="message.resources" />
+                    </template>
                 </expert-chat-message>
             </div>
 
@@ -59,6 +64,7 @@ import ExpertChatInput from './ExpertChatInput.vue'
 import ExpertChatMessage from './ExpertChatMessage.vue'
 import ExpertLoadingDots from './ExpertLoadingDots.vue'
 import ExpertRichGuide from './ExpertRichGuide.vue'
+import ExpertRichResources from './ExpertRichResources.vue'
 
 export default {
     name: 'ExpertPanel',
@@ -66,7 +72,8 @@ export default {
         ExpertChatInput,
         ExpertChatMessage,
         ExpertLoadingDots,
-        ExpertRichGuide
+        ExpertRichGuide,
+        ExpertRichResources
     },
     data () {
         return {
@@ -177,6 +184,15 @@ export default {
                                 kind: 'guide',
                                 guide: item,
                                 content: item.title || 'Setup Guide',
+                                timestamp: Date.now()
+                            })
+                        } else if (item.kind === 'resources') {
+                            // Add rich resources message
+                            this.addMessage({
+                                type: 'ai',
+                                kind: 'resources',
+                                resources: item,
+                                content: item.title || 'Resources',
                                 timestamp: Date.now()
                             })
                         } else if (item.kind === 'chat') {

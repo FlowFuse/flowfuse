@@ -1,4 +1,4 @@
-import ExpertDrawer from '../../../components/drawers/expert/ExpertDrawer.vue'
+import ExpertDrawer from '@/components/drawers/expert/ExpertDrawer.vue'
 import InstanceSettings from '../Settings/index.vue'
 import InstanceSettingsRoutes from '../Settings/routes.js'
 import VersionHistory from '../VersionHistory/index.vue'
