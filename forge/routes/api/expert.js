@@ -78,7 +78,7 @@ module.exports = async function (app) {
         }
     },
     async (request, reply) => {
-        const query = 'I\'ve just switched context from the FlowFuse Website to the Application'
+        const query = ''
 
         const response = await axios.post(expertUrl, {
             query,
