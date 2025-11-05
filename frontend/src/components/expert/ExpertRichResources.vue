@@ -17,24 +17,15 @@
                     rel="noopener noreferrer"
                     class="resource-card"
                 >
-                    <div class="resource-icon-placeholder">
-                        <svg v-if="resource.type === 'docs'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <svg v-else-if="resource.type === 'blog'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                        </svg>
-                        <svg v-else-if="resource.type === 'video'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                        </svg>
-                    </div>
+                    <img
+                        :src="getFaviconUrl(resource.url)"
+                        :alt="resource.type"
+                        class="resource-icon"
+                        @error="handleImageError"
+                    >
                     <div class="resource-info">
-                        <div class="resource-type">{{ formatResourceType(resource.type) }}</div>
                         <div class="resource-title">{{ resource.title }}</div>
+                        <div class="resource-url">{{ resource.url }}</div>
                     </div>
                 </a>
             </div>
@@ -55,6 +46,15 @@ export default {
         }
     },
     methods: {
+        getFaviconUrl (url) {
+            try {
+                const urlObj = new URL(url)
+                return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`
+            } catch (e) {
+                // If URL parsing fails, return empty string to trigger error handler
+                return ''
+            }
+        },
         addUTMTracking (url) {
             try {
                 const urlObj = new URL(url)
@@ -67,10 +67,9 @@ export default {
                 return url
             }
         },
-        formatResourceType (type) {
-            // Capitalize first letter and handle special cases
-            if (!type) return 'Resource'
-            return type.charAt(0).toUpperCase() + type.slice(1)
+        handleImageError (event) {
+            // Hide broken image icon
+            event.target.style.display = 'none'
         }
     }
 }
@@ -111,8 +110,8 @@ export default {
 
     .resource-card {
         display: flex;
-        align-items: center;
-        gap: 0.75rem;
+        align-items: flex-start;
+        gap: 0.5rem;
         padding: 0.75rem;
         background-color: white;
         border: 1px solid $ff-grey-200;
@@ -123,45 +122,39 @@ export default {
 
         &:hover {
             border-color: $ff-indigo-300;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: $ff-grey-50;
         }
     }
 
-    .resource-icon-placeholder {
+    .resource-icon {
         flex-shrink: 0;
-        width: 1.5rem;
-        height: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: $ff-indigo-600;
-
-        svg {
-            width: 1.25rem;
-            height: 1.25rem;
-        }
+        width: 1rem;
+        height: 1rem;
+        margin-top: 0.125rem;
+        object-fit: contain;
     }
 
     .resource-info {
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 0.125rem;
+        gap: 0.25rem;
         min-width: 0;
-    }
-
-    .resource-type {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: $ff-indigo-600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
     }
 
     .resource-title {
         font-size: 0.875rem;
         font-weight: 500;
         color: $ff-grey-900;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .resource-url {
+        font-size: 0.75rem;
+        color: $ff-grey-500;
+        margin: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
