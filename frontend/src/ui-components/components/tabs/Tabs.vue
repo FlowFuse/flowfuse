@@ -169,6 +169,14 @@ export default {
                 }
             })
         },
+        getTabElements () {
+            // Get tab elements from Vue refs instead of DOM queries
+            return this.scopedTabs.map((_, index) => {
+                const ref = this.$refs['tab-' + index]
+                // Refs can be arrays when v-for is used, so handle both cases
+                return Array.isArray(ref) ? ref[0] : ref
+            }).filter(Boolean) // Remove any undefined refs
+        },
         initOverflowDetection () {
             const container = this.$refs.scrollContainer
             if (!container) return
@@ -198,7 +206,7 @@ export default {
             }, options)
 
             // Observe all tab elements
-            const tabElements = container.querySelectorAll('.ff-tab-option')
+            const tabElements = this.getTabElements()
             tabElements.forEach((tabElement, index) => {
                 tabElement.setAttribute('data-tab-index', index)
                 this.intersectionObserver.observe(tabElement)
