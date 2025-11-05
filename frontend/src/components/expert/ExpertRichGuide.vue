@@ -17,7 +17,10 @@
             <ol class="steps-list">
                 <li v-for="(step, index) in guide.steps" :key="index" class="step-item">
                     <div class="step-number">{{ index + 1 }}</div>
-                    <div class="step-content" v-html="step" />
+                    <div class="step-content">
+                        <h5 class="step-title">{{ step.title }}</h5>
+                        <p class="step-detail">{{ step.detail }}</p>
+                    </div>
                 </li>
             </ol>
         </div>
@@ -29,17 +32,21 @@
                 <a
                     v-for="(pkg, index) in guide.nodePackages"
                     :key="index"
-                    :href="getPackageUrl(pkg)"
+                    :href="addUTMTracking(getPackageUrl(pkg))"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="package-card"
                 >
-                    <div class="package-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
+                    <img
+                        :src="'https://www.google.com/s2/favicons?domain=flows.nodered.org'"
+                        alt="Node-RED"
+                        class="package-favicon"
+                        @error="handleImageError"
+                    >
+                    <div class="package-info">
+                        <div class="package-name">{{ getPackageName(pkg) }}</div>
+                        <div class="package-url">{{ getPackageUrl(pkg) }}</div>
                     </div>
-                    <div class="package-name">{{ pkg }}</div>
                 </a>
             </div>
         </div>
@@ -57,20 +64,14 @@
                     class="resource-card"
                 >
                     <img
-                        v-if="resource.favicon"
-                        :src="resource.favicon"
+                        :src="getFaviconUrl(resource.url)"
                         :alt="resource.type"
                         class="resource-icon"
                         @error="handleImageError"
                     >
-                    <div v-else class="resource-icon-placeholder">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
                     <div class="resource-info">
-                        <div class="resource-type">{{ resource.type }}</div>
                         <div class="resource-title">{{ resource.title }}</div>
+                        <div class="resource-url">{{ resource.url }}</div>
                     </div>
                 </a>
             </div>
@@ -91,8 +92,22 @@ export default {
         }
     },
     methods: {
-        getPackageUrl (packageName) {
+        getPackageName (pkg) {
+            // Handle both object format {name: "..."} and string format
+            return typeof pkg === 'object' ? pkg.name : pkg
+        },
+        getPackageUrl (pkg) {
+            const packageName = this.getPackageName(pkg)
             return `https://flows.nodered.org/node/${packageName}`
+        },
+        getFaviconUrl (url) {
+            try {
+                const urlObj = new URL(url)
+                return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`
+            } catch (e) {
+                // If URL parsing fails, return empty string to trigger error handler
+                return ''
+            }
         },
         addUTMTracking (url) {
             try {
@@ -193,30 +208,20 @@ export default {
 
     .step-content {
         flex: 1;
-        font-size: 0.9375rem;
-        line-height: 1.6;
-        color: $ff-grey-800;
-        padding-top: 0.375rem;
 
-        :deep(strong) {
-            font-weight: 600;
+        .step-title {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: $ff-grey-900;
+            margin: 0 0 0.25rem 0;
+            line-height: 1.4;
         }
 
-        :deep(code) {
-            background-color: rgba(0, 0, 0, 0.05);
-            padding: 0.125rem 0.375rem;
-            border-radius: 0.25rem;
-            font-family: monospace;
-            font-size: 0.875em;
-        }
-
-        :deep(a) {
-            color: $ff-indigo-600;
-            text-decoration: underline;
-
-            &:hover {
-                color: $ff-indigo-700;
-            }
+        .step-detail {
+            font-size: 0.875rem;
+            color: $ff-grey-600;
+            margin: 0;
+            line-height: 1.5;
         }
     }
 }
@@ -231,43 +236,53 @@ export default {
     .package-card {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.5rem;
         padding: 0.75rem;
-        background-color: $ff-grey-50;
+        background-color: white;
         border: 1px solid $ff-grey-200;
         border-radius: 0.5rem;
         text-decoration: none;
         color: $ff-grey-900;
         transition: all 0.2s ease;
+        height: 4rem;
 
         &:hover {
-            background-color: white;
             border-color: $ff-indigo-300;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: $ff-grey-50;
         }
     }
 
-    .package-icon {
+    .package-favicon {
         flex-shrink: 0;
-        width: 2rem;
-        height: 2rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: $ff-indigo-600;
+        width: 1rem;
+        height: 1rem;
+    }
 
-        svg {
-            width: 1.5rem;
-            height: 1.5rem;
-        }
+    .package-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
     }
 
     .package-name {
         font-size: 0.875rem;
         font-weight: 500;
+        font-family: monospace;
+        color: $ff-grey-900;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    .package-url {
+        font-size: 0.75rem;
+        color: $ff-grey-500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin: 0;
     }
 }
 
@@ -280,8 +295,8 @@ export default {
 
     .resource-card {
         display: flex;
-        align-items: center;
-        gap: 0.75rem;
+        align-items: flex-start;
+        gap: 0.5rem;
         padding: 0.75rem;
         background-color: white;
         border: 1px solid $ff-grey-200;
@@ -292,53 +307,39 @@ export default {
 
         &:hover {
             border-color: $ff-indigo-300;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: $ff-grey-50;
         }
-    }
-
-    .resource-icon,
-    .resource-icon-placeholder {
-        flex-shrink: 0;
-        width: 1.5rem;
-        height: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
 
     .resource-icon {
+        flex-shrink: 0;
+        width: 1rem;
+        height: 1rem;
+        margin-top: 0.125rem;
         object-fit: contain;
-    }
-
-    .resource-icon-placeholder {
-        color: $ff-grey-400;
-
-        svg {
-            width: 1.25rem;
-            height: 1.25rem;
-        }
     }
 
     .resource-info {
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 0.125rem;
+        gap: 0.25rem;
         min-width: 0;
-    }
-
-    .resource-type {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: $ff-indigo-600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
     }
 
     .resource-title {
         font-size: 0.875rem;
         font-weight: 500;
         color: $ff-grey-900;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .resource-url {
+        font-size: 0.75rem;
+        color: $ff-grey-500;
+        margin: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
