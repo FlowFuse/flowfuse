@@ -1,6 +1,6 @@
 <template>
     <button
-        v-ff-tooltip:right="'Toggle drawer'"
+        title="Toggle drawer"
         class="drawer-trigger"
         :class="{ 'hidden': isHidden }"
         :aria-label="isHidden ? 'Open drawer' : 'Close drawer'"

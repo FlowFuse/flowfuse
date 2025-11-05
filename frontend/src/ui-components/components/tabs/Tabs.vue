@@ -253,19 +253,15 @@ export default {
             // HeadlessUI Menu will auto-close the dropdown
             // Find the tab index in scopedTabs
             const tabIndex = this.scopedTabs.findIndex(t => t.label === tab.label)
-            console.log('onDropdownItemClick called', { tab: tab.label, tabIndex })
             if (tabIndex === -1) {
-                console.log('Tab index not found!')
                 return
             }
 
             // Scroll the tab into view immediately (synchronously)
             const container = this.$refs.scrollContainer
-            console.log('Container ref:', container)
             if (container) {
                 const tabElements = container.querySelectorAll('.ff-tab-option')
                 const tabElement = tabElements[tabIndex]
-                console.log('Tab element:', tabElement, 'scrollLeft before:', container.scrollLeft)
 
                 if (tabElement) {
                     tabElement.scrollIntoView({
@@ -273,13 +269,11 @@ export default {
                         block: 'nearest',
                         inline: 'center'
                     })
-                    console.log('scrollIntoView called, scrollLeft after:', container.scrollLeft)
                 }
             }
 
             // Navigate after scroll
             if (tab.to) {
-                console.log('Navigating to:', tab.to)
                 this.$router.push(tab.to)
             }
         },

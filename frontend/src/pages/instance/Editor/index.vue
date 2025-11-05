@@ -16,7 +16,7 @@
 
             <div class="header">
                 <div class="logo">
-                    <router-link v-ff-tooltip:right="'Back to instance overview'" :to="{ name: 'instance-overview', params: {id: instance.id} }">
+                    <router-link title="Back to instance overview" :to="{ name: 'instance-overview', params: {id: instance.id} }">
                         <ArrowLeftIcon class="ff-btn--icon" />
                         <img src="../../../images/icons/ff-minimal-grey.svg" alt="logo">
                     </router-link>
@@ -29,13 +29,13 @@
                     />
                     <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
                     <button
-                        v-ff-tooltip:right="'Close drawer'"
+                        title="Close drawer"
                         type="button"
                         class="close-drawer-button"
                         aria-label="Close drawer"
                         @click="toggleDrawer"
                     >
-                        <ChevronLeftIcon class="ff-btn--icon" />
+                        <XIcon class="ff-btn--icon" />
                     </button>
                 </div>
             </div>
@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import { ArrowLeftIcon, ChevronLeftIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon, XIcon } from '@heroicons/vue/solid'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
@@ -94,7 +94,7 @@ export default {
         EditorWrapper,
         DrawerTrigger,
         InstanceStatusPolling,
-        ChevronLeftIcon,
+        XIcon,
         FfPage,
         ResizeBar
     },
