@@ -373,6 +373,8 @@ $nav_height: 60px;
     }
     .ff-header--mobile-usertoggle {
         padding: 16px;
+        display: flex;
+        align-items: center;
         img {
             padding: 0;
             min-width: 24px;
