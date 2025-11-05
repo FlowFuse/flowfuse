@@ -15,7 +15,7 @@ module.exports = async function (app) {
                 }
 
                 const teamType = await request.team.getTeamType()
-                if (!teamType.getFeatureProperty('npm', false)) {
+                if (!teamType.getFeatureProperty('npm', false) && !request.team.properties?.features?.npm) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                     return // eslint-disable-line no-useless-return
                 }

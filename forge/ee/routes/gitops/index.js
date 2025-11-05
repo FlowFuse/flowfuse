@@ -11,7 +11,7 @@ module.exports = async function (app) {
                 return
             }
             const teamType = await request.team.getTeamType()
-            if (!teamType.getFeatureProperty('gitIntegration', false)) {
+            if (!teamType.getFeatureProperty('gitIntegration', false) && !request.team.properties?.features?.gitIntegration) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 return // eslint-disable-line no-useless-return
             }
