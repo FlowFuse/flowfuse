@@ -1,64 +1,42 @@
 <template>
-    <div class="resize-bar">
-        <transition name="fade">
-            <div v-if="isHandleVisible" class="resize-handle" :class="{shadowed: isHandleShadowed}">
-                <span>...</span>
-            </div>
-        </transition>
-    </div>
+    <div class="resize-bar" />
 </template>
 
 <script>
 export default {
-    name: 'ResizeBar',
-    props: {
-        isHandleVisible: {
-            type: Boolean,
-            default: true
-        },
-        isHandleShadowed: {
-            type: Boolean,
-            default: true
-        }
-    }
+    name: 'ResizeBar'
 }
 </script>
 
 <style scoped lang="scss">
 .resize-bar {
-  position: relative;
-  height: 6px;
-  border-top: 1px solid $ff-grey-400;
-  background: white;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  border-right: 1px solid $ff-grey-400;
+  background: transparent;
   display: flex;
+  align-items: center;
   justify-content: center;
   z-index: 15;
 
-  .resize-handle {
-    display: flex;
-    justify-content: right;
-    align-self: self-end;
-    align-items: end;
-    letter-spacing: 10px;
-    width: 50px;
-    height: 10px;
-    background: $ff-grey-100;
-    border: 1px solid $ff-grey-300;
-    border-radius: 5px;
-    color: $ff-grey-300;
-    transition: ease-in-out 0.3s;
-
-    &.shadowed {
-      box-shadow: 0px -4px 10px rgba(0, 0, 0, 0.10);
-    }
+  &::before {
+    content: '...';
+    position: relative;
+    left: 3px;
+    writing-mode: vertical-rl;
+    line-height: 0.5;
+    letter-spacing: 4px;
+    color: $ff-grey-500;
   }
 
   &:hover {
-    cursor: ns-resize;
+    cursor: ew-resize;
 
-    .resize-handle {
-      background: $ff-grey-200;
-      color: $ff-grey-400;
+    &::before {
+      color: $ff-grey-700;
     }
   }
 }

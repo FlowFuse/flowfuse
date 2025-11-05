@@ -55,9 +55,13 @@
                             </section>
                         </template>
                     </ff-popover>
-                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete', applicationContext) || hasPermission('team:device:bulk-edit', applicationContext)" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu>
+                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete', applicationContext) || hasPermission('team:device:bulk-edit', applicationContext)" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary ff-btn-icon" :options="bulkActionsDropdownOptions">
+                        <CogIcon class="ff-btn--icon ff-btn--icon-left" />
+                        <span class="hidden sm:inline bulk-actions-text">Actions</span>
+                    </DropdownMenu>
                     <ff-button
                         v-if="displayingInstance && hasPermission('project:snapshot:create', applicationContext)"
+                        class="ff-btn-icon"
                         data-action="change-target-snapshot"
                         kind="secondary"
                         @click="showSelectTargetSnapshotDialog"
@@ -65,13 +69,13 @@
                         <template #icon-left>
                             <ClockIcon />
                         </template>
-                        <span class="font-normal">
+                        <span class="hidden sm:inline target-snapshot-text font-normal">
                             Target Snapshot: <b>{{ instance.targetSnapshot?.name || 'none' }}</b>
                         </span>
                     </ff-button>
                     <ff-button
                         v-ff-tooltip:left="!hasPermission('device:create', applicationContext) && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
-                        class="font-normal"
+                        class="font-normal ff-btn-icon"
                         data-action="register-device"
                         kind="primary"
                         :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
@@ -80,7 +84,7 @@
                         <template #icon-left>
                             <PlusSmIcon />
                         </template>
-                        Add Remote Instance
+                        <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                     </ff-button>
                 </template>
                 <template #context-menu="{row}">
@@ -148,7 +152,7 @@
                         <template #actions>
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
-                                class="font-normal"
+                                class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
@@ -157,7 +161,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Remote Instance
+                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -187,7 +191,7 @@
                         <template #actions>
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
-                                class="font-normal"
+                                class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
@@ -196,7 +200,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Remote Instance
+                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -226,7 +230,7 @@
                         <template #actions>
                             <ff-button
                                 v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
-                                class="font-normal"
+                                class="font-normal ff-btn-icon"
                                 kind="primary"
                                 :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
@@ -235,7 +239,7 @@
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Remote Instance
+                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -338,7 +342,7 @@
 
 <script>
 import { ClockIcon } from '@heroicons/vue/outline'
-import { PlusSmIcon } from '@heroicons/vue/solid'
+import { CogIcon, PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 import { mapGetters, mapState } from 'vuex'
@@ -387,6 +391,7 @@ export default {
         PopoverItem,
         FfPopover,
         ClockIcon,
+        CogIcon,
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
@@ -940,7 +945,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped lang="scss">
 .ff-dialog-content .ff-devices-ul {
     list-style-type: disc;
     list-style-position: inside;
@@ -950,5 +955,52 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+// Viewport-based responsive behavior (matches Tailwind sm: breakpoint)
+// Hide button text on narrow viewports (< 640px)
+@media (max-width: 639px) {
+  .target-snapshot-text,
+  .add-remote-instance-text,
+  .bulk-actions-text {
+    display: none;
+  }
+}
+
+// Show button text on wider viewports (>= 640px)
+@media (min-width: 640px) {
+  .target-snapshot-text,
+  .add-remote-instance-text,
+  .bulk-actions-text {
+    display: inline;
+  }
+}
+
+// Container query for drawer context - responsive button behavior
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
+// These override viewport-based rules when inside the drawer
+@container drawer (max-width: 639px) {
+  // Hide text when drawer is narrow - icon-only mode
+  .target-snapshot-text,
+  .add-remote-instance-text,
+  .bulk-actions-text {
+    display: none;
+  }
+
+  // Adjust button padding for icon-only mode to prevent excessive spacing
+  .ff-btn[data-action="change-target-snapshot"],
+  .ff-btn[data-action="register-device"] {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+@container drawer (min-width: 640px) {
+  // Show text when drawer is wide enough
+  .target-snapshot-text,
+  .add-remote-instance-text,
+  .bulk-actions-text {
+    display: inline;
+  }
 }
 </style>

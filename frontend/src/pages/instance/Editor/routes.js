@@ -1,3 +1,4 @@
+import ExpertPanel from '../../../components/expert/Expert.vue'
 import InstanceSettings from '../Settings/index.vue'
 import InstanceSettingsRoutes from '../Settings/routes.js'
 import VersionHistory from '../VersionHistory/index.vue'
@@ -62,6 +63,14 @@ export default [
                         }
                     })
                 ]
+            },
+            {
+                path: 'expert',
+                name: 'instance-editor-expert',
+                component: ExpertPanel,
+                meta: {
+                    title: 'Instance - Expert'
+                }
             }
         ]
     }
