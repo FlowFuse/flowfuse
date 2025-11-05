@@ -1,8 +1,11 @@
 <template>
     <div class="ff-expert-drawer" data-el="expert-drawer">
         <div class="header">
-            <div class="flex content">
-                <h2 class="title flex-grow">FlowFuse Expert</h2>
+            <div class="flex items-center gap-1">
+                <div class="logo-container">
+                    <img src="/ff-logo--wordmark--light.svg" alt="FlowFuse" class="logo" />
+                </div>
+                <h2 class="title">Expert Assistant</h2>
             </div>
         </div>
         <ExpertPanel />
@@ -47,19 +50,41 @@ export default {
     height: 100%;
 
     .header {
+        padding: 1rem 1.5rem;
         border-bottom: 1px solid $ff-grey-200;
         background: white;
 
-        .content {
+        .flex {
+            display: flex;
+
+            &.items-center {
+                align-items: center;
+            }
+
+            &.gap-1 {
+                gap: 0.25rem; // gap-1
+            }
+        }
+
+        .logo-container {
+            width: 6rem; // w-24
+            height: 1.5rem; // h-6
             display: flex;
             align-items: center;
 
-            .title {
-                font-size: 1.25rem;
-                font-weight: 600;
-                color: $ff-grey-800;
-                margin: 0;
+            .logo {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
             }
+        }
+
+        .title {
+            font-size: 1rem; // text-base
+            font-weight: 600; // font-semibold
+            color: #374151; // text-gray-700
+            margin: 0;
+            margin-bottom: -0.25rem; // -mb-1 for alignment with logo
         }
     }
 }
