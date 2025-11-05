@@ -6,6 +6,7 @@
  * @namespace expert
  * @memberof forge.routes.api
  */
+const { default: axios } = require('axios')
 module.exports = async function (app) {
     // Get the assistant service configuration
     const expertUrl = app.config.expert?.service?.url
@@ -41,8 +42,6 @@ module.exports = async function (app) {
                 })
             }
         }
-
-        request.team = await app.db.models.Team.byId(request.owner.Team.id)
     })
 
     app.post('/fim/hydrate', {
@@ -51,11 +50,17 @@ module.exports = async function (app) {
             body: {
                 type: 'object',
                 properties: {
-                    history: { type: 'object', additionalProperties: true },
+                    history: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            additionalProperties: true
+                        }
+                    },
                     context: { type: 'object', additionalProperties: true },
-                    sessionID: { type: 'string' }
+                    sessionId: { type: 'string' }
                 },
-                required: ['history', 'context', 'sessionID']
+                required: ['history', 'context', 'sessionId']
             },
             response: {
                 200: {
@@ -80,7 +85,7 @@ module.exports = async function (app) {
                 properties: {
                     message: { type: 'string' },
                     context: { type: 'object', additionalProperties: true },
-                    sessionID: { type: 'string' }
+                    sessionId: { type: 'string' }
                 },
                 required: ['history', 'context']
             },
