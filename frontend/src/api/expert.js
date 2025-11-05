@@ -2,6 +2,9 @@ import { v4 as uuidv4 } from 'uuid'
 
 import client from './client.js'
 
+// Direct API URL for testing
+const EXPERT_API_URL = 'https://flowfuse-expert-api.flowfuse.dev/v3/expert'
+
 /**
  * Send a query to the FlowFuse Expert assistant
  * @param {string} query - The user's question or prompt
@@ -14,22 +17,17 @@ const sendQuery = async (query, sessionId = null, instanceId = null, signal = nu
     // Generate transaction ID for race condition prevention
     const transactionId = uuidv4()
 
-    const config = {
-        headers: {}
+    const headers = {
+        'Content-Type': 'application/json'
     }
 
     // Add session tracking headers
     if (sessionId) {
-        config.headers['X-Chat-Session-ID'] = sessionId
+        headers['X-Chat-Session-ID'] = sessionId
     }
 
     // Add transaction ID for response validation
-    config.headers['X-Chat-Transaction-ID'] = transactionId
-
-    // Add abort signal if provided
-    if (signal) {
-        config.signal = signal
-    }
+    headers['X-Chat-Transaction-ID'] = transactionId
 
     const payload = {
         query
@@ -40,21 +38,36 @@ const sendQuery = async (query, sessionId = null, instanceId = null, signal = nu
         payload.instanceId = instanceId
     }
 
-    // Call the backend endpoint
-    // Note: Endpoint will be determined by backend implementation
-    // Could be /api/v1/expert or /api/v1/assistant/expert
-    return client.post('/api/v1/expert/query', payload, config).then(res => {
-        // Validate transaction ID to prevent race conditions
-        if (res.data.transactionId && res.data.transactionId !== transactionId) {
-            throw new Error('Transaction ID mismatch - response may be from a different request')
-        }
+    const requestOptions = {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+    }
 
-        return {
-            answer: res.data.answer || [],
-            transactionId: res.data.transactionId || transactionId,
-            isMultiMessage: Array.isArray(res.data.answer) && res.data.answer.length > 1
-        }
-    })
+    // Add abort signal if provided
+    if (signal) {
+        requestOptions.signal = signal
+    }
+
+    // Call the external API directly
+    const response = await fetch(EXPERT_API_URL, requestOptions)
+
+    if (!response.ok) {
+        throw new Error(`Expert API error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    // Validate transaction ID to prevent race conditions
+    if (data.transactionId && data.transactionId !== transactionId) {
+        throw new Error('Transaction ID mismatch - response may be from a different request')
+    }
+
+    return {
+        answer: data.answer || [],
+        transactionId: data.transactionId || transactionId,
+        isMultiMessage: Array.isArray(data.answer) && data.answer.length > 1
+    }
 }
 
 /**
