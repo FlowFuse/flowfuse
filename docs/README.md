@@ -234,14 +234,14 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
       <label>FlowFuse MCP Nodes</label>
       <p>Connect your flows with AI Agents using our MCP Server nodes.</p>
       <ul>
-         <li><a href="/node-red/flowfuse/mcp/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="https://flowfuse.com/node-red/flowfuse/mcp/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
       </ul>
    </div>
    <div class="ff-tile ff-offering-tile">
       <label>FlowFuse AI Nodes</label>
       <p>Make use of <a href="https://onnx.ai/">ONNX AI models</a> within your flows to bring machine learning and AI to your fingertips.</p>
       <ul>
-         <li><a href="/node-red/flowfuse/ai/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="https://flowfuse.com/node-red/flowfuse/ai/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
       </ul>
    </div>
 </div>
