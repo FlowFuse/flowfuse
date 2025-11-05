@@ -1,6 +1,6 @@
 <template>
     <div class="ff-expert-message" :class="messageClass">
-        <div class="message-bubble">
+        <div class="message-bubble" :class="{ 'rich-guide-bubble': hasRichContent }">
             <!-- Rich guide content (for AI responses with kind="guide") -->
             <slot name="rich-content" />
 
@@ -65,9 +65,10 @@ export default {
         justify-content: flex-end;
 
         .message-bubble {
-            background-color: $ff-indigo-100;
-            color: $ff-indigo-900;
-            border-radius: 1rem 1rem 0 1rem;
+            background-color: $ff-indigo-600;
+            color: white;
+            border-radius: 0.5rem;
+            border-bottom-right-radius: 0.125rem;
         }
     }
 
@@ -76,8 +77,9 @@ export default {
 
         .message-bubble {
             background-color: $ff-grey-100;
-            color: $ff-grey-900;
-            border-radius: 1rem 1rem 1rem 0;
+            color: #1F2937; // gray-800
+            border-radius: 0.5rem;
+            border-bottom-left-radius: 0.125rem;
         }
     }
 
@@ -97,11 +99,19 @@ export default {
 }
 
 .message-bubble {
-    max-width: 85%;
-    padding: 0.75rem 1rem;
+    max-width: 24rem; // max-w-xs
+    padding: 0.5rem 1rem; // py-2 px-4
     word-wrap: break-word;
     overflow-wrap: break-word;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+    @media (min-width: 1024px) {
+        max-width: 28rem; // lg:max-w-md
+    }
+
+    &.rich-guide-bubble {
+        max-width: 90%; // max-w-[90%]
+        padding: 1rem; // py-4 px-4
+    }
 }
 
 .message-text {

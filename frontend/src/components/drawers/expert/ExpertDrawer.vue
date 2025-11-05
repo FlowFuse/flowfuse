@@ -47,7 +47,6 @@ export default {
     height: 100%;
 
     .header {
-        padding: 1rem 1.5rem;
         border-bottom: 1px solid $ff-grey-200;
         background: white;
 

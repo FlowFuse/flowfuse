@@ -31,18 +31,16 @@
             </div>
         </div>
 
-        <!-- Textarea with gradient border wrapper -->
-        <div class="textarea-wrapper" :class="{ 'has-gradient': showGradient }">
-            <textarea
-                ref="textarea"
-                v-model="inputText"
-                class="chat-input"
-                placeholder="Ask me anything about FlowFuse..."
-                :disabled="isGenerating"
-                @keydown="handleKeydown"
-                @input="autoResize"
-            />
-        </div>
+        <!-- Textarea -->
+        <textarea
+            ref="textarea"
+            v-model="inputText"
+            class="chat-input"
+            placeholder="Give more details in regards to your intended workflow to tailor it to your use case"
+            :disabled="isGenerating"
+            @keydown="handleKeydown"
+            @input="autoResize"
+        />
     </div>
 </template>
 
@@ -57,10 +55,6 @@ export default {
         hasMessages: {
             type: Boolean,
             default: false
-        },
-        showGradient: {
-            type: Boolean,
-            default: true
         }
     },
     emits: ['send', 'stop', 'start-over'],
@@ -125,9 +119,9 @@ export default {
 .ff-expert-input {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem 1.5rem;
-    border-top: 1px solid $ff-grey-200;
+    gap: 0;
+    padding: 1rem; // p-4
+    border-top: 1px solid #E5E7EB; // border-gray-200
     background: white;
 }
 
@@ -135,6 +129,7 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 1rem; // pb-4
 }
 
 .right-buttons {
@@ -143,12 +138,11 @@ export default {
 }
 
 button {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
+    padding: 0.5rem 0.75rem; // py-2 px-3
+    border-radius: 9999px; // rounded-full
+    font-size: 0.875rem; // text-sm
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: colors 0.2s ease;
     border: 1px solid transparent;
 
     &:disabled {
@@ -159,95 +153,72 @@ button {
 
 .btn-start-over {
     background-color: white;
-    color: $ff-grey-700;
-    border-color: $ff-grey-300;
+    color: inherit;
+    border-color: #C7D2FE; // indigo-300
 
     &:hover:not(:disabled) {
-        background-color: $ff-grey-50;
-        border-color: $ff-grey-400;
-    }
-
-    &:active:not(:disabled) {
-        background-color: $ff-grey-100;
+        background-color: #F9FAFB; // gray-50
     }
 }
 
 .btn-send {
     background-color: $ff-indigo-600;
     color: white;
+    border-color: $ff-indigo-600;
 
     &:hover:not(:disabled) {
         background-color: $ff-indigo-700;
     }
-
-    &:active:not(:disabled) {
-        background-color: $ff-indigo-800;
-    }
 }
 
 .btn-stop {
-    background-color: $ff-red-600;
-    color: white;
+    background-color: white;
+    color: inherit;
+    border-color: #C7D2FE; // indigo-300
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &::before {
+        content: '';
+        width: 0.75rem; // w-3
+        height: 0.75rem; // h-3
+        background-color: #1F2937; // gray-800
+        border-radius: 0.125rem; // rounded-sm
+    }
 
     &:hover {
-        background-color: $ff-red-700;
-    }
-
-    &:active {
-        background-color: $ff-red-800;
-    }
-}
-
-.textarea-wrapper {
-    position: relative;
-    border-radius: 0.5rem;
-    border: 1px solid $ff-grey-300;
-    background: white;
-
-    &.has-gradient {
-        background: linear-gradient(white, white) padding-box,
-                    linear-gradient(90deg, #ef4444, #6366f1, #ef4444) border-box;
-        border: 2px solid transparent;
-        animation: gradient-flow-lr 4s linear infinite;
-        background-size: 200% 100%;
-    }
-
-    &:focus-within {
-        border-color: $ff-indigo-500;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        background-color: #F9FAFB; // gray-50
     }
 }
 
 .chat-input {
     width: 100%;
-    min-height: 60px;
-    max-height: 200px;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 0.9375rem;
+    height: 6rem; // h-24
+    padding: 1rem; // p-4
+    border: 2px solid #D1D5DB; // border-2 border-gray-300
+    border-radius: 0.5rem; // rounded-lg
+    font-size: 0.875rem; // text-sm
     line-height: 1.5;
+    color: #111827; // text-gray-900
     resize: none;
     outline: none;
     font-family: inherit;
-    background: transparent;
+    background: white;
+
+    &:focus {
+        border-color: $ff-indigo-500; // focus:border-indigo-500
+        outline: none;
+    }
 
     &:disabled {
-        opacity: 0.6;
         cursor: not-allowed;
+        background-color: #F9FAFB; // bg-gray-50
+        color: #6B7280; // text-gray-500
     }
 
     &::placeholder {
-        color: $ff-grey-400;
-    }
-}
-
-@keyframes gradient-flow-lr {
-    0% {
-        background-position: 0% 50%;
-    }
-    100% {
-        background-position: 200% 50%;
+        color: #9CA3AF; // placeholder gray
     }
 }
 </style>

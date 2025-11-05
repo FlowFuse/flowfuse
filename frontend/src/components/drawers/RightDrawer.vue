@@ -90,10 +90,6 @@ export default {
     flex-direction: column;
     overflow: auto;
 
-    & > * {
-        padding: 1rem;
-    }
-
     .header {
         background: white;
     }
