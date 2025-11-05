@@ -346,10 +346,16 @@ $nav_height: 60px;
     justify-content: space-between;
     position: fixed;
     width: 100%;
+    .ff-logo-wrapper {
+        display: flex;
+        align-items: center;
+        min-width: min-content;
+    }
     img.ff-logo {
         padding-top: 18px;
         padding-bottom: 18px;
         height: $nav_height;
+        width: auto;
         &:hover {
             cursor: pointer;
         }
@@ -708,8 +714,12 @@ $nav_height: 60px;
             display: none;
         }
         .ff-header--mobile-usertoggle,
-        .ff-header--mobile-notificationstoggle {
+        .ff-header--mobile-notificationstoggle,
+        .ff-header--mobile-experttoggle {
             display: none;
+        }
+        .ff-logo-wrapper {
+            width: 250px;
         }
         img.ff-logo {
             padding: 18px;
