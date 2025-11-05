@@ -39,7 +39,6 @@
             placeholder="Give more details in regards to your intended workflow to tailor it to your use case"
             :disabled="isGenerating"
             @keydown="handleKeydown"
-            @input="autoResize"
         />
     </div>
 </template>
@@ -68,9 +67,6 @@ export default {
             return this.inputText.trim().length > 0 && !this.isGenerating
         }
     },
-    mounted () {
-        this.autoResize()
-    },
     methods: {
         handleSend () {
             if (!this.canSend) return
@@ -79,7 +75,6 @@ export default {
             this.$emit('send', message)
             this.inputText = ''
             this.$nextTick(() => {
-                this.autoResize()
                 this.$refs.textarea.focus()
             })
         },
@@ -89,9 +84,6 @@ export default {
         handleStartOver () {
             this.$emit('start-over')
             this.inputText = ''
-            this.$nextTick(() => {
-                this.autoResize()
-            })
         },
         handleKeydown (event) {
             // Enter without Shift = send message
@@ -100,16 +92,6 @@ export default {
                 this.handleSend()
             }
             // Shift+Enter = new line (default behavior)
-        },
-        autoResize () {
-            const textarea = this.$refs.textarea
-            if (!textarea) return
-
-            // Reset height to auto to get the correct scrollHeight
-            textarea.style.height = 'auto'
-            // Set height to scrollHeight (content height)
-            const newHeight = Math.min(textarea.scrollHeight, 200) // Max height 200px
-            textarea.style.height = newHeight + 'px'
         }
     }
 }
