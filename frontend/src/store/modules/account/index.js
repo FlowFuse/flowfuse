@@ -252,7 +252,10 @@ const getters = {
 
             // Applications Role Based Access Control
             isApplicationsRBACFeatureEnabledForPlatform: !!state.features.rbacApplication,
-            isApplicationsRBACFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.rbacApplication
+            isApplicationsRBACFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.rbacApplication,
+
+            // Expert Assistant
+            isExpertAssistantFeatureEnabledForPlatform: !!state.features.expertAssistant
         }
         return {
             ...preCheck,
@@ -272,7 +275,8 @@ const getters = {
             isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
             isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam,
             isGeneratedSnapshotDescriptionEnabled: preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForPlatform && preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForTeam,
-            isRBACApplicationFeatureEnabled: preCheck.isApplicationsRBACFeatureEnabledForPlatform && preCheck.isApplicationsRBACFeatureEnabledForTeam
+            isRBACApplicationFeatureEnabled: preCheck.isApplicationsRBACFeatureEnabledForPlatform && preCheck.isApplicationsRBACFeatureEnabledForTeam,
+            isExpertAssistantFeatureEnabled: preCheck.isExpertAssistantFeatureEnabledForPlatform
         }
     }
 }
