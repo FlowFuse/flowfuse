@@ -1,4 +1,7 @@
+import { markRaw } from 'vue'
+
 import expertApi from '../../../../api/expert.js'
+import ExpertDrawer from '../../../../components/drawers/expert/ExpertDrawer.vue'
 
 const initialState = () => ({
     // Context from PR #6231 postMessage integration
@@ -64,20 +67,113 @@ const mutations = {
     },
     UPDATE_CONTEXT (state, message) {
         state.context.push(message)
+    },
+    HYDRATE_MESSAGES (state, messages) {
+        messages.forEach(message => {
+            if (Object.prototype.hasOwnProperty.call(message, 'query')) {
+                message.content = message.query
+                message.type = 'human'
+                message.timestamp = Date.now()
+                delete message.query
+            }
+            state.messages.push(message)
+        })
     }
 }
 
 const actions = {
     // Context actions (for PR #6231 integration)
-    setContext ({ commit }, { data, sessionId }) {
+    setContext ({
+        commit,
+        dispatch,
+        state
+    }, {
+        data,
+        sessionId
+    }) {
+        console.log('setting context', data, sessionId)
         commit('SET_CONTEXT', data)
+
         if (sessionId) {
             commit('SET_SESSION_ID', sessionId)
         }
+
+        commit('HYDRATE_MESSAGES', data)
+        dispatch('hydrateClient')
+        dispatch('ux/drawers/openRightDrawer', { component: markRaw(ExpertDrawer) }, { root: true })
     },
 
-    updateContext ({ commit }, message) {
-        commit('UPDATE_CONTEXT', message)
+    // Main message sending action
+    async handleMessage ({ commit, state, dispatch }, { query, instanceId = null, abortController }) {
+        // Auto-initialize session ID if not set
+        if (!state.sessionId) {
+            const { default: ExpertAPI } = await import('../../../../api/expert.js')
+            const newSessionId = ExpertAPI.initSession()
+            commit('SET_SESSION_ID', newSessionId)
+        }
+
+        // Add user message
+        commit('ADD_MESSAGE', {
+            type: 'human',
+            content: query,
+            timestamp: Date.now()
+        })
+
+        // Add loading indicator
+        commit('ADD_MESSAGE', {
+            type: 'loading',
+            timestamp: Date.now()
+        })
+
+        commit('SET_GENERATING', true)
+        commit('SET_ABORT_CONTROLLER', abortController)
+
+        try {
+            const response = await dispatch('sendMessage', { message: query })
+
+            // Remove loading indicator
+            const loadingIndex = state.messages.findIndex(m => m.type === 'loading')
+            if (loadingIndex !== -1) {
+                state.messages.splice(loadingIndex, 1)
+            }
+
+            // Process and return the response for UI handling
+            return {
+                success: true,
+                answer: response.answer || []
+            }
+        } catch (error) {
+            // Remove loading indicator
+            const loadingIndex = state.messages.findIndex(m => m.type === 'loading')
+            if (loadingIndex !== -1) {
+                state.messages.splice(loadingIndex, 1)
+            }
+
+            if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                // Request was cancelled by user
+                commit('ADD_MESSAGE', {
+                    type: 'ai',
+                    content: 'Generation stopped.',
+                    timestamp: Date.now()
+                })
+            } else {
+                // API error
+                console.error('Expert API error:', error)
+                commit('ADD_MESSAGE', {
+                    type: 'ai',
+                    content: 'Sorry, I encountered an error. Please try again.',
+                    timestamp: Date.now()
+                })
+            }
+
+            return {
+                success: false,
+                error
+            }
+        } finally {
+            commit('SET_GENERATING', false)
+            commit('SET_ABORT_CONTROLLER', null)
+        }
     },
 
     // Conversation actions
@@ -90,6 +186,14 @@ const actions = {
     },
 
     clearConversation ({ commit }) {
+        commit('CLEAR_MESSAGES')
+    },
+
+    async startOver ({ commit }) {
+        // Generate new session ID for fresh conversation
+        const { default: ExpertAPI } = await import('../../../../api/expert.js')
+        const newSessionId = ExpertAPI.initSession()
+        commit('SET_SESSION_ID', newSessionId)
         commit('CLEAR_MESSAGES')
     },
 
@@ -113,11 +217,22 @@ const actions = {
         commit('RESET')
     },
 
-    hydrateClient ({ commit }, { message, history, context, sessionId }) {
-        return expertApi.hydrate({ message, history, context, sessionId })
+    hydrateClient ({
+        commit,
+        state
+    }) {
+        return expertApi.hydrate({
+            history: state.context,
+            context: {},
+            sessionId: state.sessionId
+        })
             .then(response => {
                 commit('ADD_MESSAGE', response)
             })
+    },
+
+    sendMessage ({ commit, state }, { message, context = {} }) {
+        return expertApi.sendMessage({ message, context, state: state.sessionId })
     }
 }
 

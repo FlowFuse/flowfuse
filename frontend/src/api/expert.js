@@ -83,7 +83,6 @@ const initSession = () => {
  */
 const hydrate = async ({
     history,
-    message,
     context = {},
     sessionId = null
 } = {}) => {
@@ -91,7 +90,6 @@ const hydrate = async ({
 
     return client.post(url, {
         history,
-        message,
         context,
         sessionId
     }).then(res => res.data)
