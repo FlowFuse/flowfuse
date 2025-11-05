@@ -60,9 +60,9 @@
             </ul>
         </div>
         <div class="hidden lg:flex items-stretch ff-desktop-navigation-right" data-el="desktop-nav-right">
-            <ff-team-selection data-action="team-selection" />
             <!-- Desktop: User Options -->
             <ExpertButton />
+            <ff-team-selection data-action="team-selection" />
             <NotificationsButton />
             <ff-dropdown
                 v-if="user"
