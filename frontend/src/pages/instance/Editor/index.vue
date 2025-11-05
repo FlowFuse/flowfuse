@@ -21,7 +21,7 @@
                         <img src="../../../images/icons/ff-minimal-grey.svg" alt="logo">
                     </router-link>
                 </div>
-                <ff-tabs :tabs="navigation" :enable-overflow="true" class="tabs" />
+                <ff-tabs :tabs="navigation" class="tabs" />
                 <div class="side-actions">
                     <DashboardLink
                         v-if="instance.settings?.dashboard2UI" :instance="instance"

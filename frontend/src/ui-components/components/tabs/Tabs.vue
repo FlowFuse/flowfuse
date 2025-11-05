@@ -98,7 +98,7 @@ export default {
             type: Array
         },
         enableOverflow: {
-            default: false,
+            default: true,
             type: Boolean
         }
     },
