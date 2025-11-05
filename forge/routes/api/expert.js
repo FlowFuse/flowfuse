@@ -7,6 +7,7 @@
  * @memberof forge.routes.api
  */
 const { default: axios } = require('axios')
+const { v4: uuidv4 } = require('uuid')
 module.exports = async function (app) {
     // Get the assistant service configuration
     const expertUrl = app.config.expert?.service?.url
@@ -87,7 +88,7 @@ module.exports = async function (app) {
             headers: {
                 Origin: 'https://flowfuse.com',
                 'X-Chat-Session-ID': request.body.sessionId,
-                'X-Chat-Transaction-ID': 'transactionId' // todo sort this out
+                'X-Chat-Transaction-ID': uuidv4()
             },
             requestTimeout
         })
@@ -128,8 +129,8 @@ module.exports = async function (app) {
         }, {
             headers: {
                 Origin: 'https://flowfuse.com',
-                'X-Chat-Session-ID': request.body.sessionId,
-                'X-Chat-Transaction-ID': 'transactionId' // todo sort this out
+                'X-Chat-Session-ID': request.body.sessionId || uuidv4(),
+                'X-Chat-Transaction-ID': uuidv4()
             },
             requestTimeout
         })
