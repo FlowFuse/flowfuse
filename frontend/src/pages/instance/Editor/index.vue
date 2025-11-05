@@ -68,6 +68,7 @@ import usePermissions from '../../../composables/Permissions.js'
 
 import FfPage from '../../../layouts/Page.vue'
 import instanceMixin from '../../../mixins/Instance.js'
+import featuresMixin from '../../../mixins/Features.js'
 import { Roles } from '../../../utils/roles.js'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../components/DashboardLink.vue'
@@ -97,7 +98,7 @@ export default {
         FfPage,
         ResizeBar
     },
-    mixins: [instanceMixin],
+    mixins: [instanceMixin, featuresMixin],
     setup () {
         const { hasAMinimumTeamRoleOf, isVisitingAdmin } = usePermissions()
 
