@@ -17,7 +17,7 @@ export default [
             layout: 'plain'
         },
         redirect: to => {
-            return { name: 'instance-editor-overview', params: { id: to.params.id } }
+            return { name: 'instance-editor-expert', params: { id: to.params.id } }
         },
         children: [
             ...children.filter(child => !['settings', 'version-history'].includes(child.path)).map(child => {
