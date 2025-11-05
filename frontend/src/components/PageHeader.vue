@@ -73,6 +73,7 @@
                 </ff-button>
             </div>
             <!-- Desktop: User Options -->
+            <ExpertButton />
             <NotificationsButton />
             <ff-dropdown
                 v-if="user"
@@ -117,6 +118,7 @@ import navigationMixin from '../mixins/Navigation.js'
 import product from '../services/product.js'
 import { Roles } from '../utils/roles.js'
 
+import ExpertButton from './ExpertButton.vue'
 import NavItem from './NavItem.vue'
 import NotificationsButton from './NotificationsButton.vue'
 
@@ -199,7 +201,8 @@ export default {
         MenuIcon,
         XIcon,
         UserAddIcon,
-        NotificationsButton
+        NotificationsButton,
+        ExpertButton
     },
     data () {
         return {
