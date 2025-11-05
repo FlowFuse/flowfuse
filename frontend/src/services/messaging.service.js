@@ -142,4 +142,7 @@ export function createMessagingService ({
     return MessagingServiceInstance
 }
 
+/**
+ * @returns {MessagingService}
+ */
 export default createMessagingService

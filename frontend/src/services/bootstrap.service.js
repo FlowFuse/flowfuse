@@ -120,6 +120,7 @@ let BootstrapServiceInstance = null
 
 /**
  * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
+ * @returns {BootstrapService}
  */
 export function createBootstrapService ({
     app,
@@ -139,4 +140,7 @@ export function createBootstrapService ({
     return BootstrapServiceInstance
 }
 
+/**
+ * @returns {BootstrapService}
+ */
 export default createBootstrapService
