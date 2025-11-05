@@ -1,3 +1,5 @@
+import { nextTick } from 'vue'
+
 /**
  * Bootstrap Service - Handles application lifecycle and readiness detection
  * @class
@@ -61,12 +63,12 @@ class BootstrapService {
     }
 
     async waitForAppMount () {
-        if (this.$app._instance?.isMounted) {
+        if (this.$app._container.children.length > 0) {
             return Promise.resolve()
         }
 
         return new Promise((resolve) => {
-            this.$app.config.globalProperties.$nextTick(() => {
+            nextTick(() => {
                 resolve()
             })
         })
