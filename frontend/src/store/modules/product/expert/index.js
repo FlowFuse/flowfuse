@@ -77,7 +77,7 @@ const actions = {
     },
 
     // Main message sending action
-    async sendMessage ({ commit, state }, { query, instanceId = null, abortController }) {
+    async handleMessage ({ commit, state, dispatch }, { query, instanceId = null, abortController }) {
         // Auto-initialize session ID if not set
         if (!state.sessionId) {
             const { default: ExpertAPI } = await import('../../../../api/expert.js')
@@ -102,14 +102,7 @@ const actions = {
         commit('SET_ABORT_CONTROLLER', abortController)
 
         try {
-            // Call the API
-            const { default: ExpertAPI } = await import('../../../../api/expert.js')
-            const response = await ExpertAPI.sendQuery(
-                query,
-                state.sessionId,
-                instanceId,
-                abortController?.signal
-            )
+            const response = await dispatch('sendMessage', { message: query })
 
             // Remove loading indicator
             const loadingIndex = state.messages.findIndex(m => m.type === 'loading')
@@ -204,7 +197,7 @@ const actions = {
             })
     },
 
-    sendMessage ({ commit, state }, { message, context }) {
+    sendMessage ({ commit, state }, { message, context = {} }) {
         return expertApi.sendMessage({ message, context, state: state.sessionId })
     }
 }

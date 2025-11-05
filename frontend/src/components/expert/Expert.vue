@@ -122,7 +122,7 @@ export default {
     },
     methods: {
         ...mapActions('product/expert', [
-            'sendMessage',
+            'handleMessage',
             'addMessage',
             'updateLastMessage',
             'clearConversation',
@@ -137,7 +137,7 @@ export default {
             const controller = new AbortController()
 
             // Call Vuex action to handle API logic
-            const result = await this.sendMessage({
+            const result = await this.handleMessage({
                 query,
                 instanceId: null,
                 abortController: markRaw(controller)
