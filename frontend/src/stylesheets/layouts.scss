@@ -460,6 +460,13 @@ $nav_height: 60px;
         button {
             cursor: pointer;
         }
+        .ff-header--mobile-teamtoggle {
+            display: flex;
+            align-items: center;
+            .ff-avatar {
+                border: 2px solid #1f2937;
+            }
+        }
     }
     .ff-dropdown {
         color: white;
@@ -714,6 +721,7 @@ $nav_height: 60px;
             display: none;
         }
         .ff-header--mobile-usertoggle,
+        .ff-header--mobile-teamtoggle,
         .ff-header--mobile-notificationstoggle,
         .ff-header--mobile-experttoggle {
             display: none;
