@@ -102,7 +102,7 @@ describe('FlowFuse - Instance editor', () => {
             .should('exist')
 
         cy.get('[data-el="tabs-drawer"]').as('tabs-wrapper').should('exist')
-        cy.get('@tabs-wrapper').contains('Info')
+        cy.get('@tabs-wrapper').contains('Overview')
         cy.get('@tabs-wrapper').contains('Recent Activity')
         cy.get('@tabs-wrapper').contains('Specs')
 
@@ -137,7 +137,7 @@ describe('FlowFuse - Instance editor', () => {
         cy.get('@tabs-wrapper').contains('Palette')
 
         cy.get('[data-nav="instance-overview"]').click()
-        cy.get('@tabs-wrapper').contains('Info')
+        cy.get('@tabs-wrapper').contains('Overview')
         cy.get('@tabs-wrapper').contains('Recent Activity')
         cy.get('@tabs-wrapper').contains('Specs')
 
