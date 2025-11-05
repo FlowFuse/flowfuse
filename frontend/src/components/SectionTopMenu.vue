@@ -8,7 +8,7 @@
                             <div class="text-gray-800 text-xl font-medium whitespace-nowrap">{{ hero }}</div>
                         </div>
                     </slot>
-                    <InformationCircleIcon v-if="hasInfoDialog" class="min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700" @click="openInfoDialog()" />
+                    <InformationCircleIcon v-if="hasInfoDialog" class="min-w-[20px] ff-icon text-gray-800 cursor-pointer hover:text-blue-700 ff-info-icon" @click="openInfoDialog()" />
                 </div>
                 <div v-if="info" class="hidden sm:block text-gray-400 info truncate text-sm">{{ info }}</div>
             </div>
@@ -101,6 +101,13 @@ export default {
     .actions {
         display: flex;
         justify-content: flex-end;
+    }
+}
+
+// Hide info icon when drawer is narrow (below 640px)
+@container drawer (max-width: 639px) {
+    .ff-info-icon {
+        display: none;
     }
 }
 </style>
