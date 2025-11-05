@@ -134,7 +134,8 @@ export default {
             'setGenerating',
             'setAutoScroll',
             'setAbortController',
-            'setContext'
+            'setContext',
+            'sendMessage'
         ]),
 
         async handleSendMessage (query) {
@@ -160,13 +161,14 @@ export default {
             this.setAbortController(markRaw(controller))
 
             try {
-                // Call the API
-                const response = await ExpertAPI.sendQuery(
-                    query,
-                    this.sessionId,
-                    null, // instanceId - handled elsewhere per user's note
-                    controller.signal
-                )
+                // // Call the API
+                // const response = await ExpertAPI.sendQuery(
+                //     query,
+                //     this.sessionId,
+                //     null, // instanceId - handled elsewhere per user's note
+                //     controller.signal
+                // )
+                const response = await this.sendMessage({ message: query, context: {} })
 
                 // Remove loading indicator
                 const loadingIndex = this.messages.findIndex(m => m.type === 'loading')

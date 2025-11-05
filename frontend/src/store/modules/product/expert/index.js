@@ -118,6 +118,10 @@ const actions = {
             .then(response => {
                 commit('ADD_MESSAGE', response)
             })
+    },
+
+    sendMessage ({ commit, state }, { message, context }) {
+        return expertApi.sendMessage({ message, context, state: state.sessionId })
     }
 }
 
