@@ -30,6 +30,7 @@ export default {
 #global-search {
     .input-trigger {
         display: block;
+        height: 34px;
     }
     .icon-trigger {
         display: none;

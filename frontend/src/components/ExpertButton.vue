@@ -1,13 +1,18 @@
 <template>
-    <div class="expert-button-wrapper">
-        <button class="expert-button" data-el="expert-button" data-click-exclude="right-drawer" @click="onClick">
-            <SparklesIcon />
+    <div class="expert-button-wrapper flex items-center justify-center h-full px-3" style="height: 60px;">
+        <button
+            class="expert-button flex items-center gap-1.5 justify-center rounded-md px-[9px] py-[6px] font-bold text-[0.85rem] leading-[20px] text-gray-800 whitespace-nowrap transition-colors"
+            data-el="expert-button"
+            data-click-exclude="right-drawer"
+            @click="onClick"
+        >
+            <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 -ml-1 mr-0.5 flex-shrink-0" />
+            <span>Expert</span>
         </button>
     </div>
 </template>
 
 <script>
-import { SparklesIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapActions, mapState } from 'vuex'
 
@@ -15,7 +20,7 @@ import ExpertDrawer from './drawers/expert/ExpertDrawer.vue'
 
 export default {
     name: 'ExpertButton',
-    components: { SparklesIcon },
+    components: {},
     computed: {
         ...mapState('ux/drawers', ['rightDrawer'])
     },
@@ -29,43 +34,68 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.expert-button-wrapper {
+/* Hide the ::after divider that the header navigation adds to all children */
+.expert-button-wrapper::after {
+    display: none !important;
+}
 
-  .expert-button {
-    color: $ff-grey-800;
-    display: flex;
-    align-items: center;
-    flex: 1;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    padding: 18px;
-    position: relative;
-
-    > * {
-      pointer-events: none;
-    }
-
-    svg {
-      flex: 1;
-      width: 24px;
-      height: 24px;
-      transition: ease-in-out .1s;
-      object-fit: contain;
-    }
+/* Dual-background gradient border technique from flowfuse.com */
+.expert-button {
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    border: 1px solid transparent;
+    animation: gradient-border-rotate 4s linear infinite;
 
     &:hover {
-      svg {
-        will-change: transform;
-        color: $ff-indigo-600;
-        transform: scale(1.25) translateZ(0);
-        backface-visibility: hidden;
-        perspective: 1000px;
-        stroke-width: 1.5px;
-        shape-rendering: geometricPrecision;
-        text-rendering: geometricPrecision;
-      }
+        background: linear-gradient(#f9fafb, #f9fafb) padding-box,
+                    linear-gradient(135deg, $ff-red-700, #4038d5, $ff-red-700) border-box;
     }
-  }
+}
+
+@keyframes gradient-border-rotate {
+    0% {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(0deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    }
+    10% {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(36deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    }
+    20% {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(72deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    }
+    30% {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(108deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    }
+    40% {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(144deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    }
+    50% {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(180deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    }
+    60% {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(216deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    }
+    70% {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(252deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    }
+    80% {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(288deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    }
+    90% {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(324deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    }
+    100% {
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(360deg, $ff-red-600, #5048e5, $ff-red-600) border-box;
+    }
 }
 </style>
