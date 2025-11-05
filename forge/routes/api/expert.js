@@ -52,9 +52,10 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     history: { type: 'object', additionalProperties: true },
-                    context: { type: 'object', additionalProperties: true }
+                    context: { type: 'object', additionalProperties: true },
+                    sessionID: { type: 'string' }
                 },
-                required: ['history', 'context']
+                required: ['history', 'context', 'sessionID']
             },
             response: {
                 200: {
@@ -78,7 +79,8 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     message: { type: 'string' },
-                    context: { type: 'object', additionalProperties: true }
+                    context: { type: 'object', additionalProperties: true },
+                    sessionID: { type: 'string' }
                 },
                 required: ['history', 'context']
             },

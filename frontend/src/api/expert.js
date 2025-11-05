@@ -6,14 +6,16 @@ import client from './client.js'
 const hydrate = async ({
     history,
     message,
-    context = {}
+    context = {},
+    sessionId = null
 } = {}) => {
     const url = '/api/v1/expert/fim/hydrate'
 
     return client.post(url, {
         history,
         message,
-        context
+        context,
+        sessionId
     }).then(res => {
         return res.data
     })
@@ -24,13 +26,15 @@ const hydrate = async ({
  */
 const sendMessage = async ({
     message,
-    context = {}
+    context = {},
+    sessionId = null
 } = {}) => {
     const url = '/api/v1/expert/fim/message'
 
     return client.post(url, {
         message,
-        context
+        context,
+        sessionId
     }).then(res => {
         return res.data
     })
