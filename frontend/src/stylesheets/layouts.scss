@@ -462,6 +462,10 @@ $nav_height: 60px;
         button {
             cursor: pointer;
         }
+    }
+
+@media screen and (max-width: 1023px) {
+    .ff-mobile-navigation-right {
         .ff-header--mobile-teamtoggle {
             display: flex;
             align-items: center;
@@ -480,6 +484,7 @@ $nav_height: 60px;
             }
         }
     }
+}
     .ff-dropdown {
         color: white;
         min-width: $sidenav_width;
