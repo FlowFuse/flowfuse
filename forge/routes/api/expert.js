@@ -10,7 +10,7 @@ const { default: axios } = require('axios')
 module.exports = async function (app) {
     // Get the assistant service configuration
     const expertUrl = app.config.expert?.service?.url
-    const serviceEnabled = app.config.expert?.enabled !== false && expertUrl
+    const serviceEnabled = app.config.expert?.enabled === 'true'
     const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
 
     app.addHook('preHandler', app.verifySession)
