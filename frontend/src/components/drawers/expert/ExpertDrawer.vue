@@ -84,7 +84,7 @@ export default {
             font-weight: 600; // font-semibold
             color: #374151; // text-gray-700
             margin: 0;
-            margin-bottom: -0.25rem; // -mb-1 for alignment with logo
+            line-height: 1.5rem; // Match logo height for proper alignment
         }
     }
 }
