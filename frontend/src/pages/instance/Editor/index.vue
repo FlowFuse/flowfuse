@@ -39,7 +39,7 @@
                 </div>
             </div>
 
-            <ff-page>
+            <ff-page :no-padding="isExpertRoute">
                 <router-view
                     :instance="instance"
                     :is-visiting-admin="isVisitingAdmin"
@@ -187,6 +187,9 @@ export default {
             }
             // Desktop: drawer can't exceed specified percentage of viewport
             return Math.min(this.drawer.width, this.viewportWidth * DRAWER_MAX_WIDTH_RATIO)
+        },
+        isExpertRoute () {
+            return this.$route.name === 'instance-editor-expert'
         }
     },
     mounted () {
