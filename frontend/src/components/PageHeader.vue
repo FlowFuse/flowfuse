@@ -61,17 +61,6 @@
         </div>
         <div class="hidden lg:flex items-stretch ff-desktop-navigation-right" data-el="desktop-nav-right">
             <ff-team-selection data-action="team-selection" />
-            <div class="pl-2 pr-4 flex flex-col justify-center" v-if="showInviteButton">
-                <ff-button
-                    kind="secondary"
-                    type="anchor"
-                    class="ml-5"
-                    :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }"
-                >
-                    <template #icon-left><UserAddIcon /></template>
-                    Invite Members
-                </ff-button>
-            </div>
             <!-- Desktop: User Options -->
             <ExpertButton />
             <NotificationsButton />
@@ -108,7 +97,7 @@
     </div>
 </template>
 <script>
-import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon, XIcon } from '@heroicons/vue/solid'
+import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, XIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
@@ -181,9 +170,6 @@ export default {
                     class: 'danger'
                 }
             ].filter(option => !option.hidden)
-        },
-        showInviteButton () {
-            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
         }
     },
     watch: {
@@ -200,7 +186,6 @@ export default {
         'ff-team-selection': TeamSelection,
         MenuIcon,
         XIcon,
-        UserAddIcon,
         NotificationsButton,
         ExpertButton
     },
