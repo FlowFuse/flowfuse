@@ -18,7 +18,6 @@
                 <div class="logo">
                     <router-link title="Back to instance overview" :to="{ name: 'instance-overview', params: {id: instance.id} }">
                         <ArrowLeftIcon class="ff-btn--icon" />
-                        <img src="../../../images/icons/ff-minimal-grey.svg" alt="logo">
                     </router-link>
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
