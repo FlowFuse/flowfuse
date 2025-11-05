@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
@@ -46,6 +46,7 @@ export default {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
         ...mapGetters('account', ['requiresBilling', 'isAdminUser']),
         ...mapState('ux/tours', ['shouldPresentTour']),
+        ...mapState('product/expert', ['shouldPromptAssistant']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -82,11 +83,18 @@ export default {
             // given we've loaded resources, check for tour status
             this.dispatchTour()
         }
+
+        if (this.shouldPromptAssistant) {
+            this.openAssistantDrawer()
+                .then(() => this.disableAssistantPrompt())
+                .catch(e => e)
+        }
     },
     async beforeMount () {
         this.checkRoute(this.$route)
     },
     methods: {
+        ...mapActions('product/expert', ['openAssistantDrawer', 'disableAssistantPrompt']),
         checkRoute: async function (route) {
             const allowedRoutes = []
 

@@ -64,7 +64,7 @@ const mutations = {
         state.abortController = controller
     },
     SET_SHOULD_PROMPT_ASSISTANT (state, shouldPromptAssistant) {
-
+        state.shouldPromptAssistant = shouldPromptAssistant
     },
     RESET (state) {
         Object.assign(state, initialState())
@@ -102,13 +102,19 @@ const actions = {
             commit('SET_SESSION_ID', sessionId)
         }
 
+        commit('SET_SHOULD_PROMPT_ASSISTANT', true)
         commit('HYDRATE_MESSAGES', data)
+        // todo we need a new loading state to let the user know what 're doing, syncing with the new app context
+        commit('ADD_MESSAGE', {
+            type: 'loading',
+            timestamp: Date.now()
+        })
 
         if (rootState.account?.user) {
-            dispatch('hydrateClient')
-            dispatch('ux/drawers/openRightDrawer', { component: markRaw(ExpertDrawer) }, { root: true })
-        } else {
-            dispatch('SET_SHOULD_PROMPT_ASSISTANT', true)
+            dispatch('openAssistantDrawer')
+                .then(() => dispatch('hydrateClient'))
+                .then(() => commit('SET_SHOULD_PROMPT_ASSISTANT', false))
+                .catch(error => error)
         }
     },
 
@@ -242,6 +248,14 @@ const actions = {
 
     sendMessage ({ commit, state }, { message, context = {} }) {
         return expertApi.sendMessage({ message, context, state: state.sessionId })
+    },
+
+    openAssistantDrawer ({ dispatch }) {
+        return dispatch('ux/drawers/openRightDrawer', { component: markRaw(ExpertDrawer) }, { root: true })
+    },
+
+    disableAssistantPrompt ({ commit }) {
+        commit('SET_SHOULD_PROMPT_ASSISTANT', false)
     }
 }
 

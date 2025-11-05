@@ -570,6 +570,12 @@ const actions = {
     },
     async clearOtherStores (state) {
         await state.dispatch('product/tables/clearState', null, { root: true })
+    },
+    async checkIfAuthenticated ({ commit }) {
+        return userApi.getUser()
+            .then(user => {
+                commit('login', user)
+            })
     }
 }
 
