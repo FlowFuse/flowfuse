@@ -75,9 +75,6 @@ export default {
     },
     data () {
         return {
-            streamingWordIndex: -1,
-            streamingWords: [],
-            streamingTimer: null,
             scrollCheckDebounce: null
         }
     },
@@ -88,7 +85,9 @@ export default {
             'autoScrollEnabled',
             'sessionId',
             'context',
-            'abortController'
+            'abortController',
+            'streamingTimer',
+            'streamingWordIndex'
         ]),
         ...mapGetters('product/expert', [
             'hasMessages',
@@ -114,7 +113,7 @@ export default {
     beforeUnmount () {
         // Clean up timers
         if (this.streamingTimer) {
-            clearTimeout(this.streamingTimer)
+            this.clearStreamingTimer()
         }
         if (this.scrollCheckDebounce) {
             clearTimeout(this.scrollCheckDebounce)
@@ -127,7 +126,11 @@ export default {
             'updateLastMessage',
             'clearConversation',
             'startOver',
-            'setAutoScroll'
+            'setAutoScroll',
+            'clearStreamingTimer',
+            'streamMessage',
+            'setStreamingWordIndex',
+            'setStreamingWords'
         ]),
 
         async handleSendMessage (query) {
@@ -180,51 +183,6 @@ export default {
             // Errors are already handled in the Vuex action
         },
 
-        async streamMessage (content) {
-            // Split content into words for streaming effect
-            const words = content.split(' ')
-            this.streamingWords = words
-            this.streamingWordIndex = 0
-
-            // Add empty AI message
-            this.addMessage({
-                type: 'ai',
-                content: '',
-                isStreaming: true,
-                timestamp: Date.now()
-            })
-
-            // Stream words one by one
-            return new Promise((resolve) => {
-                const streamNextWord = () => {
-                    if (this.streamingWordIndex >= this.streamingWords.length) {
-                        // Streaming complete
-                        const lastMsg = this.lastMessage
-                        if (lastMsg) {
-                            lastMsg.isStreaming = false
-                        }
-                        this.streamingWordIndex = -1
-                        this.streamingWords = []
-                        resolve()
-                        return
-                    }
-
-                    // Append next word
-                    const word = this.streamingWords[this.streamingWordIndex]
-                    const currentContent = this.lastMessage?.content || ''
-                    const newContent = currentContent + (currentContent ? ' ' : '') + word
-
-                    this.updateLastMessage(newContent)
-                    this.streamingWordIndex++
-
-                    // Schedule next word
-                    this.streamingTimer = setTimeout(streamNextWord, 30)
-                }
-
-                streamNextWord()
-            })
-        },
-
         handleStopGeneration () {
             if (this.abortController) {
                 this.abortController.abort()
@@ -232,15 +190,14 @@ export default {
 
             // Stop streaming effect
             if (this.streamingTimer) {
-                clearTimeout(this.streamingTimer)
-                this.streamingTimer = null
+                this.clearStreamingTimer()
             }
 
             // Complete the streaming message
             if (this.streamingWordIndex >= 0 && this.lastMessage?.isStreaming) {
                 this.lastMessage.isStreaming = false
-                this.streamingWordIndex = -1
-                this.streamingWords = []
+                this.setStreamingWordIndex(-1)
+                this.setStreamingWords([])
             }
         },
 

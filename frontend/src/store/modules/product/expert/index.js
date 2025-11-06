@@ -14,7 +14,12 @@ const initialState = () => ({
     isGenerating: false,
     autoScrollEnabled: true,
     currentTransactionId: null,
-    abortController: null
+    abortController: null,
+
+    // streaming words
+    streamingWordIndex: -1,
+    streamingWords: [],
+    streamingTimer: null
 })
 
 const meta = {
@@ -65,6 +70,15 @@ const mutations = {
     },
     SET_SHOULD_PROMPT_ASSISTANT (state, shouldPromptAssistant) {
         state.shouldPromptAssistant = shouldPromptAssistant
+    },
+    SET_STREAMING_WORDS (state, words) {
+        state.streamingWords = words
+    },
+    SET_STREAMING_WORDS_INDEX (state, index) {
+        state.streamingWordIndex = index
+    },
+    SET_STREAMING_TIMER (state, timer) {
+        state.streamingTimer = timer
     },
     RESET (state) {
         Object.assign(state, initialState())
@@ -234,6 +248,7 @@ const actions = {
 
     hydrateClient ({
         commit,
+        dispatch,
         state
     }) {
         return expertApi.chat({
@@ -242,7 +257,12 @@ const actions = {
             sessionId: state.sessionId
         })
             .then(response => {
-                commit('ADD_MESSAGE', response)
+                // if (response.kind === 'chat') {
+                //     response.answer.forEach(item => {
+                //         dispatch('streamMessage', item.content)
+                //     })
+                // }
+                // commit('ADD_MESSAGE', response)
             })
     },
 
@@ -256,6 +276,66 @@ const actions = {
 
     disableAssistantPrompt ({ commit }) {
         commit('SET_SHOULD_PROMPT_ASSISTANT', false)
+    },
+
+    async streamMessage ({ commit, state, getters }, content) {
+        // Split content into words for streaming effect
+        const words = content.split(' ')
+
+        commit('SET_STREAMING_WORDS', words)
+        commit('SET_STREAMING_WORDS_INDEX', 0)
+
+        // Add empty AI message
+        commit('ADD_MESSAGE', {
+            type: 'ai',
+            content: '',
+            isStreaming: true,
+            timestamp: Date.now()
+        })
+
+        // Stream words one by one
+        return new Promise((resolve) => {
+            const streamNextWord = () => {
+                if (state.streamingWordIndex >= state.streamingWords.length) {
+                    // Streaming complete
+                    const lastMsg = getters.lastMessage
+                    if (lastMsg) {
+                        lastMsg.isStreaming = false
+                    }
+                    commit('SET_STREAMING_WORDS_INDEX', -1)
+                    commit('SET_STREAMING_WORDS', [])
+                    resolve()
+                    return
+                }
+
+                // Append next word
+                const word = state.streamingWords[state.streamingWordIndex]
+                const currentContent = getters.lastMessage?.content || ''
+                const newContent = currentContent + (currentContent ? ' ' : '') + word
+
+                commit('UPDATE_LAST_MESSAGE', newContent)
+
+                commit('SET_STREAMING_WORDS_INDEX', state.streamingWordIndex + 1)
+
+                // Schedule next word
+                commit('SET_STREAMING_TIMER', setTimeout(streamNextWord, 30))
+            }
+
+            streamNextWord()
+        })
+    },
+
+    clearStreamingTimer ({ commit, state }) {
+        clearTimeout(state.streamingTimer)
+        commit('SET_STREAMING_TIMER', null)
+    },
+
+    setStreamingWordIndex ({ commit }, index) {
+        commit('SET_STREAMING_WORDS_INDEX', index)
+    },
+
+    setStreamingWords ({ commit }, words) {
+        commit('SET_STREAMING_WORDS', words)
     }
 }
 
