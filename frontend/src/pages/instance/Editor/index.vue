@@ -212,7 +212,7 @@ export default {
         toggleDrawer () {
             if (this.drawer.open) {
                 this.drawer.open = false
-                this.drawer.width = 0
+                // Keep width at current value - drawer will slide off-screen via transform
             } else {
                 this.drawer.open = true
                 this.drawer.width = this.drawer.defaultWidth
@@ -277,7 +277,8 @@ export default {
     width: 0;
     height: calc(100% - 60px);
     background: white;
-    transition: ease-in-out 0.3s;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -286,6 +287,7 @@ export default {
     z-index: 1;
 
     &.open {
+      transform: translateX(0);
       box-shadow: 5px 0px 8px rgba(0, 0, 0, 0.10);
     }
 
