@@ -15,7 +15,7 @@
                         :class="[active ? 'bg-gray-200' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
                         @click="onDropdownItemClick(tab)"
                     >
-                        <img v-if="tab.icon" :src="tab.icon" class="h-4 v-4 inline rounded mr-1" alt="">
+                        <component :is="tab.icon" v-if="tab.icon" class="h-4 w-4 inline rounded mr-1" />
                         {{ tab.label }}
                     </button>
                 </MenuItem>
@@ -64,7 +64,7 @@
                             :class="[active ? 'bg-gray-200' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
                             @click="onDropdownItemClick(tab)"
                         >
-                            <img v-if="tab.icon" :src="tab.icon" class="h-4 v-4 inline rounded mr-1" alt="">
+                            <component :is="tab.icon" v-if="tab.icon" class="h-4 w-4 inline rounded mr-1" />
                             {{ tab.label }}
                         </button>
                     </MenuItem>
