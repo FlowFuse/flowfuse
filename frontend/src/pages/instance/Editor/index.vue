@@ -76,6 +76,7 @@ import DashboardLink from '../components/DashboardLink.vue'
 import DrawerTrigger from './components/DrawerTrigger.vue'
 import EditorWrapper from './components/EditorWrapper.vue'
 import ResizeBar from './components/drawer/ResizeBar.vue'
+import ExpertTabIcon from '../../../images/icons/ff-minimal-grey.svg'
 
 // Drawer size constraints
 const DRAWER_MIN_WIDTH = 310 // Minimum drawer width in pixels
@@ -137,7 +138,7 @@ export default {
                     label: 'Expert',
                     to: { name: 'instance-editor-expert', params: { id: this.instance.id } },
                     tag: 'instance-expert',
-                    icon: require('../../../images/icons/ff-minimal-grey.svg')
+                    icon: ExpertTabIcon
                 },
                 {
                     label: 'Overview',
