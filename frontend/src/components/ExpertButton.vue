@@ -6,17 +6,14 @@
             data-click-exclude="right-drawer"
             @click="onClick"
         >
-            <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 -ml-1 mr-0.5 flex-shrink-0" />
+            <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 -ml-1 mr-0.5 flex-shrink-0">
             <span>Expert</span>
         </button>
     </div>
 </template>
 
 <script>
-import { markRaw } from 'vue'
 import { mapActions, mapState } from 'vuex'
-
-import ExpertDrawer from './drawers/expert/ExpertDrawer.vue'
 
 export default {
     name: 'ExpertButton',
@@ -25,9 +22,10 @@ export default {
         ...mapState('ux/drawers', ['rightDrawer'])
     },
     methods: {
-        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
+        ...mapActions('ux/drawers', ['closeRightDrawer']),
+        ...mapActions('product/expert', ['openAssistantDrawer']),
         onClick () {
-            this.openRightDrawer({ component: markRaw(ExpertDrawer) })
+            this.openAssistantDrawer()
         }
     }
 }

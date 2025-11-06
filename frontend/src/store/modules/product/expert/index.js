@@ -171,11 +171,16 @@ const actions = {
         commit,
         dispatch,
         state,
-        rootState
+        rootState,
+        rootGetters
     }, {
         data,
         sessionId
     }) {
+        if (rootGetters['account/featuresCheck'].isExpertAssistantFeatureEnabled === false) {
+            return
+        }
+
         commit('SET_CONTEXT', data)
 
         if (sessionId) {
@@ -375,7 +380,7 @@ const actions = {
 
     openAssistantDrawer ({ dispatch, rootGetters }) {
         if (rootGetters['account/featuresCheck'].isExpertAssistantFeatureEnabled === false) {
-            return Promise.resolve()
+            return
         }
 
         return dispatch('ux/drawers/openRightDrawer', { component: markRaw(ExpertDrawer) }, { root: true })

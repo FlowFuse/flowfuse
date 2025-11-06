@@ -60,5 +60,5 @@ module.exports = fp(async function (app, opts) {
     app.config.features.register('assistantInlineCompletions', true, true)
 
     // Set the expert assistant Feature Flag
-    app.config.features.register('expertAssistant', true, true)
+    app.config.features.register('expertAssistant', app.config?.expert?.enabled ?? false, true)
 }, { name: 'app.ee.lib' })

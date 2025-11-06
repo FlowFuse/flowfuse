@@ -61,14 +61,16 @@
 
 <script>
 import { ArrowLeftIcon, XIcon } from '@heroicons/vue/solid'
+import { mapGetters } from 'vuex'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
+import ExpertTabIcon from '../../../images/icons/ff-minimal-grey.svg'
 import FfPage from '../../../layouts/Page.vue'
-import instanceMixin from '../../../mixins/Instance.js'
 import featuresMixin from '../../../mixins/Features.js'
+import instanceMixin from '../../../mixins/Instance.js'
 import { Roles } from '../../../utils/roles.js'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../components/DashboardLink.vue'
@@ -76,7 +78,6 @@ import DashboardLink from '../components/DashboardLink.vue'
 import DrawerTrigger from './components/DrawerTrigger.vue'
 import EditorWrapper from './components/EditorWrapper.vue'
 import ResizeBar from './components/drawer/ResizeBar.vue'
-import ExpertTabIcon from '../../../images/icons/ff-minimal-grey.svg'
 
 // Drawer size constraints
 const DRAWER_MIN_WIDTH = 310 // Minimum drawer width in pixels
@@ -119,6 +120,7 @@ export default {
         }
     },
     computed: {
+        ...mapGetters('account', ['featuresCheck']),
         navigation () {
             if (!this.instance.id) return []
             let versionHistoryRoute
@@ -138,7 +140,8 @@ export default {
                     label: 'Expert',
                     to: { name: 'instance-editor-expert', params: { id: this.instance.id } },
                     tag: 'instance-expert',
-                    icon: ExpertTabIcon
+                    icon: ExpertTabIcon,
+                    hidden: !this.featuresCheck.isExpertAssistantFeatureEnabled
                 },
                 {
                     label: 'Overview',

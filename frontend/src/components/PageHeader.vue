@@ -65,7 +65,7 @@
         </div>
         <div class="hidden lg:flex items-stretch ff-desktop-navigation-right" data-el="desktop-nav-right">
             <!-- Desktop: User Options -->
-            <ExpertButton />
+            <ExpertButton v-if="featuresCheck.isExpertAssistantFeatureEnabled" />
             <ff-team-selection data-action="team-selection" />
             <NotificationsButton />
             <ff-dropdown
