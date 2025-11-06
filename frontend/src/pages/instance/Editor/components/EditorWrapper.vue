@@ -46,6 +46,7 @@ export default {
             default: false
         }
     },
+    emits: ['iframe-loaded', 'toggle-drawer', 'request-drawer-state'],
     computed: {
         isInstanceTransitioningStates () {
             const pendingState = (Object.hasOwnProperty.call(this.instance, 'pendingStateChange') && this.instance.pendingStateChange)

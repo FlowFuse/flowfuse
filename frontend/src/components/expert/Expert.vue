@@ -31,13 +31,9 @@
                     :is-streaming="isStreaming(index)"
                 >
                     <!-- Rich guide content slot -->
-                    <template v-if="message.kind === 'guide'" #rich-content>
-                        <expert-rich-guide :guide="message.guide" />
-                    </template>
-
-                    <!-- Rich resources content slot -->
-                    <template v-if="message.kind === 'resources'" #rich-content>
-                        <expert-rich-resources :resources="message.resources" />
+                    <template #rich-content>
+                        <expert-rich-guide v-if="message.kind === 'guide'" :guide="message.guide" />
+                        <expert-rich-resources v-else-if="message.kind === 'resources'" :resources="message.resources" />
                     </template>
                 </expert-chat-message>
             </div>
@@ -58,7 +54,6 @@
 </template>
 
 <script>
-import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
 import ExpertChatInput from './ExpertChatInput.vue'

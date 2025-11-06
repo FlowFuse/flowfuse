@@ -35,6 +35,7 @@
                                 >
                                     <!-- Internal div required to have flex w/sorting icons -->
                                     <div :class="col.tableCellClass ?? ''">
+                                        <!-- eslint-disable-next-line vue/no-v-html -->
                                         <span v-if="col.html" :class="col.tableLabelClass ?? ''" v-html="col.html"> </span>
                                         <span v-else :class="col.tableLabelClass ?? ''">{{ col.label }}</span>
                                         <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key"

@@ -70,7 +70,7 @@ export default [
             {
                 path: 'expert',
                 name: 'instance-editor-expert',
-                component: () => import('@/components/expert/Expert.vue'),
+                component: () => import('../../../components/expert/Expert.vue'),
                 meta: {
                     title: 'Instance - Expert'
                 }

@@ -3,7 +3,7 @@
         <div class="header">
             <div class="flex items-center gap-1">
                 <div class="logo-container">
-                    <img src="/ff-logo--wordmark--light.svg" alt="FlowFuse" class="logo" />
+                    <img src="/ff-logo--wordmark--light.svg" alt="FlowFuse" class="logo">
                 </div>
                 <h2 class="title">Expert Assistant</h2>
             </div>

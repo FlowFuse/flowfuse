@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'

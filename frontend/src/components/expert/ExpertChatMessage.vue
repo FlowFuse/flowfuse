@@ -5,6 +5,7 @@
             <slot name="rich-content" />
 
             <!-- Regular text content (for chat messages) -->
+            <!-- eslint-disable-next-line vue/no-v-html -->
             <div v-if="!hasRichContent" class="message-text" v-html="formattedContent" />
         </div>
     </div>

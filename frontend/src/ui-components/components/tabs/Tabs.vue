@@ -149,6 +149,15 @@ export default {
             return this.rightMenuPosition
         }
     },
+    watch: {
+        hasHiddenRight (newVal) {
+            if (newVal) {
+                this.$nextTick(() => {
+                    this.updateRightMenuPosition()
+                })
+            }
+        }
+    },
     mounted () {
         if (this.enableOverflow && this.orientation === 'horizontal') {
             this.$nextTick(() => {
@@ -160,15 +169,6 @@ export default {
     beforeUnmount () {
         this.cleanupObservers()
         this.cleanupWheelScroll()
-    },
-    watch: {
-        hasHiddenRight (newVal) {
-            if (newVal) {
-                this.$nextTick(() => {
-                    this.updateRightMenuPosition()
-                })
-            }
-        }
     },
     methods: {
         updateRightMenuPosition () {
