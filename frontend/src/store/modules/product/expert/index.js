@@ -19,7 +19,10 @@ const initialState = () => ({
     // streaming words
     streamingWordIndex: -1,
     streamingWords: [],
-    streamingTimer: null
+    streamingTimer: null,
+
+    // todo this should be moved into a dedicated context store
+    route: null
 })
 
 const meta = {
@@ -30,7 +33,31 @@ const state = initialState
 
 const getters = {
     hasMessages: (state) => state.messages.length > 0,
-    lastMessage: (state) => state.messages.length > 0 ? state.messages[state.messages.length - 1] : null
+    lastMessage: (state) => state.messages.length > 0 ? state.messages[state.messages.length - 1] : null,
+    context: (state, getters, rootState, rootGetters) => {
+        // todo this should be moved into a dedicated context store
+        const instanceId = state.route.fullPath.includes('/instance/') ? state.route.params?.id : null
+        const applicationId = state.route.fullPath.includes('/applications/') ? state.route.params?.id : null
+        const deviceId = state.route.fullPath.includes('/device/') ? state.route.params?.id : null
+        const scope = state.route.fullPath.includes('/instance/') && state.route.fullPath.includes('editor')
+            ? 'immersive'
+            : 'ff-app'
+
+        const { matched, ...rawRoute } = state.route ?? {}
+
+        return {
+            userId: rootState.account?.user?.id || null,
+            teamId: rootState.account?.team?.id || null,
+            teamSlug: rootState.account?.team?.slug || null,
+            instanceId: instanceId ?? null,
+            deviceId: deviceId ?? null,
+            applicationId: applicationId ?? null,
+            isTrialAccount: rootGetters['account/isTrialAccount'] || false,
+            pageName: state.route.name,
+            rawRoute,
+            scope
+        }
+    }
 }
 
 const mutations = {
@@ -99,6 +126,10 @@ const mutations = {
     },
     REMOVE_MESSAGE_BY_INDEX (state, index) {
         state.messages.splice(index, 1)
+    },
+    // todo this should be moved into a dedicated context store
+    UPDATE_ROUTE (state, route) {
+        state.route = route
     }
 }
 
@@ -301,8 +332,8 @@ const actions = {
             })
     },
 
-    sendQuery ({ commit, state }, { query, context = {} }) {
-        return expertApi.chat({ query, context, state: state.sessionId })
+    sendQuery ({ commit, state, getters }, { query }) {
+        return expertApi.chat({ query, context: getters.context, state: state.sessionId })
     },
 
     openAssistantDrawer ({ dispatch }) {
@@ -379,6 +410,11 @@ const actions = {
         if (loadingIndex !== -1) {
             commit('REMOVE_MESSAGE_BY_INDEX', loadingIndex)
         }
+    },
+
+    // todo this should be moved into a dedicated context store
+    updateRoute ({ commit }, route) {
+        commit('UPDATE_ROUTE', route)
     }
 }
 
