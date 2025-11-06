@@ -109,6 +109,7 @@ export default {
         return {
             selectedIndex: -1,
             visibleTabs: [],
+            hasOverflow: false,
             resizeObserver: null,
             intersectionObserver: null,
             wheelScrollHandler: null,
@@ -126,11 +127,11 @@ export default {
         },
         hasHiddenLeft () {
             if (!this.enableOverflow || this.orientation !== 'horizontal') return false
-            return this.hiddenLeftTabs.length > 0
+            return this.hasOverflow && this.hiddenLeftTabs.length > 0
         },
         hasHiddenRight () {
             if (!this.enableOverflow || this.orientation !== 'horizontal') return false
-            return this.hiddenRightTabs.length > 0
+            return this.hasOverflow && this.hiddenRightTabs.length > 0
         },
         hiddenLeftTabs () {
             if (!this.enableOverflow) return []
@@ -250,6 +251,9 @@ export default {
         updateVisibleTabs () {
             const container = this.$refs.scrollContainer
             if (!container) return
+
+            // Check if tabs actually overflow the container
+            this.hasOverflow = container.scrollWidth > container.offsetWidth
 
             const containerRect = container.getBoundingClientRect()
             const tabElements = this.getTabElements()
