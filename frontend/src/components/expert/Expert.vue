@@ -19,7 +19,10 @@
             <!-- Messages -->
             <div v-for="(message, index) in messages" :key="index" class="message-wrapper">
                 <!-- Loading indicator for AI -->
-                <expert-loading-dots v-if="message.type === 'loading'" />
+                <expert-loading-dots
+                    v-if="message.type === 'loading'"
+                    :variant="message.variant || 'default'"
+                />
 
                 <!-- Regular message -->
                 <expert-chat-message

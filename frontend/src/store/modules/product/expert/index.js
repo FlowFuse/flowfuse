@@ -184,9 +184,10 @@ const actions = {
 
         commit('SET_SHOULD_PROMPT_ASSISTANT', true)
         commit('HYDRATE_MESSAGES', data)
-        // todo we need a new loading state to let the user know what 're doing, syncing with the new app context
+        // Add loading message with transfer variant to indicate syncing from website
         commit('ADD_MESSAGE', {
             type: 'loading',
+            variant: 'transfer',
             timestamp: Date.now()
         })
 

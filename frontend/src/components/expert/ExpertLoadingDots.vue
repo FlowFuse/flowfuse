@@ -14,22 +14,41 @@
 <script>
 export default {
     name: 'ExpertLoadingDots',
+    props: {
+        variant: {
+            type: String,
+            default: 'default',
+            validator: (value) => ['default', 'transfer'].includes(value)
+        }
+    },
     data () {
         return {
             showMessage: false,
             currentMessageIndex: 0,
-            messages: [
-                'Reading the docs...',
-                'Searching videos...',
-                'Asking the community...',
-                'Analyzing your question...',
-                'Finding the best answer...'
-            ],
+            messageVariants: {
+                default: [
+                    'Ingesting the docs...',
+                    'Reading the blog...',
+                    'Searching videos...',
+                    'Browsing the community...',
+                    'Analyzing your question...',
+                    'Finding the best answer...'
+                ],
+                transfer: [
+                    'Catching up with new context...',
+                    'Syncing your conversation...',
+                    'Loading existing history...',
+                    'Preparing your chat...'
+                ]
+            },
             messageTimer: null,
             rotationTimer: null
         }
     },
     computed: {
+        messages () {
+            return this.messageVariants[this.variant]
+        },
         currentMessage () {
             return this.messages[this.currentMessageIndex]
         }
