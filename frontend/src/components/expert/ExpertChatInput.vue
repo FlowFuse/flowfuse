@@ -36,7 +36,7 @@
             ref="textarea"
             v-model="inputText"
             class="chat-input"
-            placeholder="Give more details in regards to your intended workflow to tailor it to your use case"
+            placeholder="Tell us what you need help with"
             :disabled="isGenerating"
             @keydown="handleKeydown"
         />
