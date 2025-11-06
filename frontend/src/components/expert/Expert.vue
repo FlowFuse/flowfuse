@@ -31,9 +31,14 @@
                     :is-streaming="isStreaming(index)"
                 >
                     <!-- Rich guide content slot -->
-                    <template #rich-content>
-                        <expert-rich-guide v-if="message.kind === 'guide'" :guide="message.guide" />
-                        <expert-rich-resources v-else-if="message.kind === 'resources'" :resources="message.resources" />
+                    <template v-if="message.kind === 'guide'" #rich-content>
+                        <expert-rich-guide :guide="message.guide" />
+                    </template>
+
+                    <!-- Rich resources content slot -->
+                    <!-- eslint-disable vue/valid-v-slot-->
+                    <template v-if="message.kind === 'resources'" #rich-content>
+                        <expert-rich-resources :resources="message.resources" />
                     </template>
                 </expert-chat-message>
             </div>
