@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { markRaw } from 'vue'
 
 import expertApi from '../../../../api/expert.js'
@@ -324,10 +325,7 @@ const actions = {
     },
 
     async startOver ({ commit }) {
-        // Generate new session ID for fresh conversation
-        const { default: ExpertAPI } = await import('../../../../api/expert.js')
-        const newSessionId = ExpertAPI.initSession()
-        commit('SET_SESSION_ID', newSessionId)
+        commit('SET_SESSION_ID', uuidv4())
         commit('CLEAR_MESSAGES')
     },
 
