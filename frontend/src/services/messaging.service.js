@@ -112,6 +112,14 @@ class MessagingService {
                     timestamp: Date.now()
                 }
 
+                if (window.parent !== window) {
+                    window.parent.postMessage(message, '*')
+                }
+
+                if (window.opener) {
+                    window.opener.postMessage(message, '*')
+                }
+
                 window.parent.postMessage(message, origin)
             })
     }
