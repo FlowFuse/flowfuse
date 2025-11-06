@@ -29,8 +29,7 @@ export default {
                 default: [
                     'Ingesting the docs...',
                     'Reading the blog...',
-                    'Searching videos...',
-                    'Browsing the community...',
+                    'Searching through FlowFuse knowledge base',
                     'Analyzing your question...',
                     'Finding the best answer...'
                 ],

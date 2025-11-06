@@ -5,14 +5,14 @@
             <button
                 type="button"
                 class="btn-start-over"
-                :disabled="!hasMessages || isGenerating"
+                :disabled="!hasMessages || (isGenerating && !isSessionExpired)"
                 @click="handleStartOver"
             >
                 Start over
             </button>
             <div class="right-buttons">
                 <button
-                    v-if="isGenerating"
+                    v-if="isGenerating && !isSessionExpired"
                     type="button"
                     class="btn-stop"
                     @click="handleStop"
@@ -20,7 +20,7 @@
                     Stop
                 </button>
                 <button
-                    v-else
+                    v-else-if="!isSessionExpired"
                     type="button"
                     class="btn-send"
                     :disabled="!canSend"
@@ -52,6 +52,10 @@ export default {
             default: false
         },
         hasMessages: {
+            type: Boolean,
+            default: false
+        },
+        isSessionExpired: {
             type: Boolean,
             default: false
         }
