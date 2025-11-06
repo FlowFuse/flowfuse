@@ -49,25 +49,27 @@
         </div>
 
         <HeadlessMenu v-if="enableOverflow && hasHiddenRight" as="div" class="ff-tabs__menu-wrapper ff-tabs__menu-wrapper--right">
-            <MenuButton class="ff-tabs__overflow-button ff-tabs__overflow-button--right" aria-label="Show hidden tabs on the right">
+            <MenuButton ref="rightMenuButton" class="ff-tabs__overflow-button ff-tabs__overflow-button--right" aria-label="Show hidden tabs on the right" @click="updateRightMenuPosition">
                 <ChevronRightIcon class="ff-icon" />
                 <ChevronRightIcon class="ff-icon ff-icon-second" />
             </MenuButton>
-            <MenuItems class="z-50 absolute right-0 top-full origin-top-right w-56 mt-1 bg-white divide-y divide-gray-100 rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none">
-                <MenuItem
-                    v-for="tab in hiddenRightTabs"
-                    :key="'right-' + tab.label"
-                    v-slot="{ active }"
-                >
-                    <button
-                        :class="[active ? 'bg-gray-200' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
-                        @click="onDropdownItemClick(tab)"
+            <Teleport to="body">
+                <MenuItems class="z-50 fixed origin-top-left w-56 bg-white divide-y divide-gray-100 rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none" :style="rightMenuStyle">
+                    <MenuItem
+                        v-for="tab in hiddenRightTabs"
+                        :key="'right-' + tab.label"
+                        v-slot="{ active }"
                     >
-                        <img v-if="tab.icon" :src="tab.icon" class="h-4 v-4 inline rounded mr-1" alt="">
-                        {{ tab.label }}
-                    </button>
-                </MenuItem>
-            </MenuItems>
+                        <button
+                            :class="[active ? 'bg-gray-200' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
+                            @click="onDropdownItemClick(tab)"
+                        >
+                            <img v-if="tab.icon" :src="tab.icon" class="h-4 v-4 inline rounded mr-1" alt="">
+                            {{ tab.label }}
+                        </button>
+                    </MenuItem>
+                </MenuItems>
+            </Teleport>
         </HeadlessMenu>
     </div>
 </template>
@@ -109,7 +111,8 @@ export default {
             visibleTabs: [],
             resizeObserver: null,
             intersectionObserver: null,
-            wheelScrollHandler: null
+            wheelScrollHandler: null,
+            rightMenuPosition: { top: '0px', left: '0px' }
         }
     },
     computed: {
@@ -140,6 +143,9 @@ export default {
             return this.scopedTabs.filter((tab, index) => {
                 return !this.visibleTabs.includes(index) && !this.isTabOnLeft(index)
             })
+        },
+        rightMenuStyle () {
+            return this.rightMenuPosition
         }
     },
     mounted () {
@@ -154,7 +160,25 @@ export default {
         this.cleanupObservers()
         this.cleanupWheelScroll()
     },
+    watch: {
+        hasHiddenRight (newVal) {
+            if (newVal) {
+                this.$nextTick(() => {
+                    this.updateRightMenuPosition()
+                })
+            }
+        }
+    },
     methods: {
+        updateRightMenuPosition () {
+            if (!this.$refs.rightMenuButton) return
+            const button = this.$refs.rightMenuButton.$el || this.$refs.rightMenuButton
+            const rect = button.getBoundingClientRect()
+            this.rightMenuPosition = {
+                top: `${rect.bottom + 4}px`,
+                left: `${rect.left}px`
+            }
+        },
         selectTab (i) {
             this.selectedIndex = i
 
