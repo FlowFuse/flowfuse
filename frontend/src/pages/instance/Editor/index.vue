@@ -64,10 +64,10 @@ import { ArrowLeftIcon, XIcon } from '@heroicons/vue/solid'
 import { mapGetters } from 'vuex'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
+import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
-import ExpertTabIcon from '../../../images/icons/ff-minimal-grey.svg'
 import FfPage from '../../../layouts/Page.vue'
 import featuresMixin from '../../../mixins/Features.js'
 import instanceMixin from '../../../mixins/Instance.js'
