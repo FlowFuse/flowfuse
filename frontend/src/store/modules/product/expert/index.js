@@ -44,7 +44,7 @@ const getters = {
             ? 'immersive'
             : 'ff-app'
 
-        const { matched, ...rawRoute } = state.route ?? {}
+        const { matched, redirectedFrom, ...rawRoute } = state.route ?? {}
 
         return {
             userId: rootState.account?.user?.id || null,
