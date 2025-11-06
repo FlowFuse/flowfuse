@@ -197,9 +197,13 @@ export default {
         }
     },
     mounted () {
-        // Auto-open drawer after initial load
+        // Auto-open drawer after initial load, then close it to tease availability
         setTimeout(() => {
             this.toggleDrawer()
+            // Close drawer after a brief moment to tease it
+            setTimeout(() => {
+                this.toggleDrawer()
+            }, 2000)
         }, 1200)
 
         // Listen for viewport resize to update drawer width in real-time
