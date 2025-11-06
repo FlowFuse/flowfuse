@@ -195,7 +195,7 @@ module.exports = fp(async function (app, opts) {
         preValidation: fastifyPassport.authenticate('saml', { session: false })
     }, async (request, reply, err, user, info, status) => {
         if (request.user) {
-            const { options } = await app.db.models.SAMLProvider.forEmail(request.user)
+            const { options } = await app.db.models.SAMLProvider.forEmail(request.user.email)
             const result = await completeSSOSignIn(app, request.user, options.sessionExpiry, options.sessionIdle)
             if (result.cookie) {
                 // Valid session
