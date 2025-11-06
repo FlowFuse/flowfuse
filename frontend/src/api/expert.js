@@ -81,40 +81,32 @@ const initSession = () => {
 /**
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-const hydrate = async ({
+const chat = async ({
     history,
+    query,
     context = {},
     sessionId = null
 } = {}) => {
-    const url = '/api/v1/expert/hydrate'
+    const transactionId = uuidv4()
+    const url = '/api/v1/expert/chat'
 
-    return client.post(url, {
-        history,
-        context,
-        sessionId
-    }).then(res => res.data)
-}
+    return client.post(url, { history, query, context }, {
+        headers: {
+            'X-Chat-Session-ID': sessionId,
+            'X-Chat-Transaction-ID': transactionId
+        }
+    }).then(res => {
+        // Validate transaction ID to prevent race conditions
+        if (res.data.transactionId !== transactionId) {
+            throw new Error('Transaction ID mismatch - response may be from a different request')
+        }
 
-/**
- * @returns {Promise<axios.AxiosResponse<any>>}
- */
-const sendMessage = async ({
-    message,
-    context = {},
-    sessionId = null
-} = {}) => {
-    const url = '/api/v1/expert/message'
-
-    return client.post(url, {
-        message,
-        context,
-        sessionId
-    }).then(res => res.data)
+        return res.data
+    })
 }
 
 export default {
     sendQuery,
     initSession,
-    hydrate,
-    sendMessage
+    chat
 }

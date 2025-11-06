@@ -144,7 +144,7 @@ const actions = {
         commit('SET_ABORT_CONTROLLER', abortController)
 
         try {
-            const response = await dispatch('sendMessage', { message: query })
+            const response = await dispatch('sendQuery', { query })
 
             // Remove loading indicator
             const loadingIndex = state.messages.findIndex(m => m.type === 'loading')
@@ -236,7 +236,7 @@ const actions = {
         commit,
         state
     }) {
-        return expertApi.hydrate({
+        return expertApi.chat({
             history: state.context,
             context: {},
             sessionId: state.sessionId
@@ -246,8 +246,8 @@ const actions = {
             })
     },
 
-    sendMessage ({ commit, state }, { message, context = {} }) {
-        return expertApi.sendMessage({ message, context, state: state.sessionId })
+    sendQuery ({ commit, state }, { query, context = {} }) {
+        return expertApi.chat({ query, context, state: state.sessionId })
     },
 
     openAssistantDrawer ({ dispatch }) {

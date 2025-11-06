@@ -45,7 +45,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/hydrate', {
+    app.post('/chat', {
         schema: {
             hide: true, // dont show in swagger
             body: {
@@ -62,9 +62,9 @@ module.exports = async function (app) {
                         type: 'object',
                         additionalProperties: true
                     },
-                    sessionId: { type: 'string' }
+                    query: { type: 'string' }
                 },
-                required: ['history', 'context', 'sessionId']
+                required: ['context']
             },
             response: {
                 200: {
@@ -78,63 +78,33 @@ module.exports = async function (app) {
         }
     },
     async (request, reply) => {
-        const query = ''
-
-        const response = await axios.post(expertUrl, {
-            query,
-            history: request.body.history,
-            context: request.body.context
-        }, {
-            headers: {
-                Origin: 'https://flowfuse.com',
-                'X-Chat-Session-ID': request.body.sessionId,
-                'X-Chat-Transaction-ID': uuidv4()
-            },
-            requestTimeout
-        })
-
-        reply.send(response.data)
-    })
-
-    app.post('/message', {
-        schema: {
-            hide: true, // dont show in swagger
-            body: {
-                type: 'object',
-                properties: {
-                    message: { type: 'string' },
-                    context: {
-                        type: 'object',
-                        additionalProperties: true
-                    },
-                    sessionId: { type: 'string' }
-                },
-                required: ['message', 'context']
-            },
-            response: {
-                200: {
-                    type: 'object',
-                    additionalProperties: true
-                },
-                '4xx': {
-                    $ref: 'APIError'
-                }
-            }
+        const sessionId = request.headers['x-chat-session-id'] ?? uuidv4()
+        const transactionId = request.headers['x-chat-transaction-id']
+        let query = request.body.query
+        if (request.body.history) {
+            query = ''
         }
-    },
-    async (request, reply) => {
-        const response = await axios.post(expertUrl, {
-            query: request.body.message,
-            context: request.body.context
-        }, {
-            headers: {
-                Origin: 'https://flowfuse.com',
-                'X-Chat-Session-ID': request.body.sessionId || uuidv4(),
-                'X-Chat-Transaction-ID': uuidv4()
-            },
-            requestTimeout
-        })
+        try {
+            const response = await axios.post(expertUrl, {
+                query,
+                history: request.body.history,
+                context: request.body.context
+            }, {
+                headers: {
+                    Origin: 'https://flowfuse.com',
+                    'X-Chat-Session-ID': sessionId,
+                    'X-Chat-Transaction-ID': transactionId
+                },
+                requestTimeout
+            })
 
-        reply.send(response.data)
+            if (response.data.transactionId !== transactionId) {
+                throw new Error('Transaction ID mismatch')
+            }
+
+            reply.send(response.data)
+        } catch (error) {
+            reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
+        }
     })
 }
