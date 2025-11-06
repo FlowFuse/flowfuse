@@ -17,7 +17,7 @@
         <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
-            <ExpertButton class="ff-header--mobile-experttoggle" />
+            <ExpertButton class="ff-header--mobile-experttoggle" v-if="featuresCheck.isExpertAssistantFeatureEnabled" />
             <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle ff-header--mobile-teamtoggle" :class="{'active': mobileTeamSelectionOpen}">
                 <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="toggleMobileTeamSelectionMenu">
             </i>

@@ -347,10 +347,14 @@ const actions = {
     },
 
     hydrateClient ({
-        commit,
         dispatch,
-        state
+        state,
+        rootGetters
     }) {
+        if (rootGetters['account/featuresCheck'].isExpertAssistantFeatureEnabled === false) {
+            return Promise.resolve()
+        }
+
         return expertApi.chat({
             history: state.context,
             context: {},
@@ -369,7 +373,11 @@ const actions = {
         return expertApi.chat({ query, context: getters.context, state: state.sessionId })
     },
 
-    openAssistantDrawer ({ dispatch }) {
+    openAssistantDrawer ({ dispatch, rootGetters }) {
+        if (rootGetters['account/featuresCheck'].isExpertAssistantFeatureEnabled === false) {
+            return Promise.resolve()
+        }
+
         return dispatch('ux/drawers/openRightDrawer', { component: markRaw(ExpertDrawer) }, { root: true })
     },
 
