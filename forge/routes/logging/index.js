@@ -153,7 +153,7 @@ module.exports = async function (app) {
             }
 
             const teamType = await request.project.Team.getTeamType()
-            const instanceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('instanceAutoSnapshot', false)
+            const instanceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('instanceAutoSnapshot', false) || request.project.team.getFeatureOverride('instanceAutoSnapshot')
             if (!instanceAutoSnapshotEnabledForTeam) {
                 return // not enabled for team
             }
@@ -252,7 +252,7 @@ module.exports = async function (app) {
                 }
 
                 const teamType = await request.device.Team.getTeamType()
-                const deviceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('deviceAutoSnapshot', false)
+                const deviceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('deviceAutoSnapshot', false) || request.device.Team.getFeatureOverride('deviceAutoSnapshot')
                 if (!deviceAutoSnapshotEnabledForTeam) {
                     return // not enabled for team
                 }

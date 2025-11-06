@@ -429,6 +429,13 @@ module.exports = {
                     }
                     return teamValue
                 },
+                getFeatureOverride: function (key) {
+                    if (this.properties && this.properties.features) {
+                        if (this.properties.features[key]) {
+                            return key
+                        }
+                    }
+                },
                 getInstanceTypeProperty: function (instanceType, property, defaultValue) {
                     // instanceType can be:
                     // - number (raw id)

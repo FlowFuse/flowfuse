@@ -376,7 +376,7 @@ module.exports = async function (app) {
             orderByMostRecentFlows: request.query.orderByMostRecentFlows
         }
 
-        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && (request.team?.TeamType.getFeatureProperty('rbacApplication', false) || request.team?.getFeatureOverride('rbacApplication'))
         if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
             const excludeApplications = []
             Object.keys(request.teamMembership.permissions.applications).forEach(appId => {
@@ -436,7 +436,7 @@ module.exports = async function (app) {
 
                     let permissionCheck = true
                     const platformRbacEnabled = app.config.features.enabled('rbacApplication')
-                    const teamRbacEnabled = request.team.TeamType.getFeatureProperty('rbacApplication', false)
+                    const teamRbacEnabled = request.team.TeamType.getFeatureProperty('rbacApplication', false) || request.team.getFeatureOverride('rbacApplication')
 
                     if (platformRbacEnabled && teamRbacEnabled) {
                         permissionCheck = app.hasPermission(

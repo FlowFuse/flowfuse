@@ -7,7 +7,7 @@ module.exports = async function (app) {
         if (team) {
             request.team = team
             // Check this feature is enabled for this team type.
-            if (team.TeamType.getFeatureProperty('projectHistory', true)) {
+            if (team.TeamType.getFeatureProperty('projectHistory', true) || team.getFeatureOverride('projectHistory')) {
                 return
             }
         }

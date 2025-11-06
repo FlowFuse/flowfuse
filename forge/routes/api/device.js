@@ -1179,7 +1179,7 @@ module.exports = async function (app) {
                 const teamType = await request.device.Team.getTeamType()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
-                const hasFeature = teamType.getFeatureProperty('generatedSnapshotDescription', false)
+                const hasFeature = teamType.getFeatureProperty('generatedSnapshotDescription', false) || request.device.Team.getFeatureOverride('generatedSnapshotDescription')
 
                 if (!isEnterprise || !hasFeature) {
                     return reply.code(404).send({ code: 'not_found' })

@@ -17,7 +17,7 @@ module.exports.init = function (app) {
             // 1 replica is equivalent to no HA
             // In the future this will need to take into account the team type
             const teamType = await team.getTeamType()
-            if (!teamType.getFeatureProperty('ha', true)) {
+            if (!teamType.getFeatureProperty('ha', true) || team.getFeatureOverride('ha')) {
                 return false
             }
             return (haConfig.replicas > 0 && haConfig.replicas < 3)

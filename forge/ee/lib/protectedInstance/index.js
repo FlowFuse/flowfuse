@@ -9,7 +9,7 @@ module.exports.init = function (app) {
      */
     async function isProtectedInstanceAllowed (team, projectType) {
         const teamType = await team.getTeamType()
-        if (teamType.getFeatureProperty('protectedInstance', false)) {
+        if (teamType.getFeatureProperty('protectedInstance', false) || team.getFeatureOverride('protectedInstance')) {
             return true
         }
         return false

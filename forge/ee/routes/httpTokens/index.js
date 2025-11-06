@@ -12,7 +12,7 @@ module.exports = async function (app) {
                         return
                     }
                     const teamType = await request.project.Team.getTeamType()
-                    if (!teamType.getFeatureProperty('teamHttpSecurity', false)) {
+                    if (!teamType.getFeatureProperty('teamHttpSecurity', false) || !request.project.Team.getFeatureOverride('teamHttpSecurity')) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return // eslint-disable-line no-useless-return
                     }

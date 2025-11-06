@@ -710,7 +710,7 @@ module.exports = {
                     })
 
                     const platformRbacEnabled = app.config.features.enabled('rbacApplication')
-                    const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false)
+                    const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false) || team.getFeatureOverride('rbacApplication')
                     const rbacEnabled = platformRbacEnabled && teamRbacEnabled
 
                     for (const project of results) {

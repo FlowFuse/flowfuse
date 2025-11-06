@@ -26,7 +26,7 @@ module.exports = async function (app) {
                 }
 
                 const teamType = await request.team.getTeamType()
-                if (!teamType.getFeatureProperty('teamBroker', false)) {
+                if (!teamType.getFeatureProperty('teamBroker', false) || !request.team.getFeatureOverride('teamBroker')) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                     return // eslint-disable-line no-useless-return
                 }
@@ -89,7 +89,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
         const clients = await app.db.models.TeamBrokerClient.byTeam(request.team.hashid, paginationOptions)
-        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && (request.team?.TeamType.getFeatureProperty('rbacApplication', false) || request.team?.getFeatureOverride('rbacApplication'))
         if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
             // Ideally, we'd do this on the query side so that `limits` can be properly honoured. Currently, we don't use the limits
             // query param with this endpoint, so making do with post-query filtering.
@@ -224,7 +224,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         let client = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid, true, true)
-        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && (request.team?.TeamType.getFeatureProperty('rbacApplication', false) || request.team?.getFeatureOverride('rbacApplication'))
         if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
             const applicationId = client?.Device?.Project?.ApplicationId || client?.Device?.ApplicationId || client?.Project?.ApplicationId
             if (applicationId) {
@@ -302,7 +302,7 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             let client = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid, true, true)
-            const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+            const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && (request.team?.TeamType.getFeatureProperty('rbacApplication', false) || request.team?.getFeatureOverride('rbacApplication'))
             if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
                 const applicationId = client?.Device?.Project?.ApplicationId || client?.Device?.ApplicationId || client?.Project?.ApplicationId
                 if (applicationId) {
@@ -365,7 +365,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         let client = await app.db.models.TeamBrokerClient.byUsername(request.params.username, request.team.hashid)
-        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && (request.team?.TeamType.getFeatureProperty('rbacApplication', false) || request.team?.getFeatureOverride('rbacApplication'))
         if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
             const applicationId = client?.Device?.Project?.ApplicationId || client?.Device?.ApplicationId || client?.Project?.ApplicationId
             if (applicationId) {

@@ -24,7 +24,7 @@ module.exports = async function (app) {
                 }
 
                 const teamType = await request.team.getTeamType()
-                if (!teamType.getFeatureProperty('teamBroker', false)) {
+                if (!teamType.getFeatureProperty('teamBroker', false) || !request.team.getFeatureOverride('teamBroker')) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                     return // eslint-disable-line no-useless-return
                 }
