@@ -431,8 +431,8 @@ module.exports = {
                 },
                 getFeatureOverride: function (key) {
                     if (this.properties && this.properties.features) {
-                        if (this.properties.features[key]) {
-                            return key
+                        if (Object.hasOwn(this.properties.features, key)) {
+                            return this.properties.features[key]
                         }
                     }
                 },

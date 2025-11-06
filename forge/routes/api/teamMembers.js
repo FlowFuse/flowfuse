@@ -122,7 +122,7 @@ module.exports = async function (app) {
     /**
      * Change member role
      *  - only admins or owner should be able to do this
-     * POST [/api/v1/teams/:teamId/members]/:userId
+     * PUT [/api/v1/teams/:teamId/members/:userId]
      */
     app.put('/:userId', {
         preHandler: app.needsPermission('team:user:change-role'),
