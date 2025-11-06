@@ -22,14 +22,12 @@ const chat = async ({
     const transactionId = uuidv4()
     const url = '/api/v1/expert/chat'
 
-    console.log('above the client post', { history, query, context, sessionId, transactionId, url })
     return client.post(url, { history, query, context }, {
         headers: {
             'X-Chat-Session-ID': sessionId,
             'X-Chat-Transaction-ID': transactionId
         }
     }).then(res => {
-        console.log('client response', res)
         // Validate transaction ID to prevent race conditions
         if (res.data.transactionId !== transactionId) {
             throw new Error('Transaction ID mismatch - response may be from a different request')
