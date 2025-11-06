@@ -231,6 +231,7 @@ const actions = {
         commit('SET_ABORT_CONTROLLER', new AbortController())
 
         try {
+            console.log('before dispatching sendQuery', query)
             const response = await dispatch('sendQuery', { query })
 
             dispatch('removeLoadingIndicator')
