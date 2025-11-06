@@ -93,10 +93,14 @@ export default {
             background-color: #FEF3C7; // amber-100
             color: #92400E; // amber-900
             border-radius: 0.5rem;
-            font-size: 0.875rem;
             text-align: left;
             max-width: 100%;
             width: 100%;
+        }
+
+        .message-text {
+            font-size: 0.875rem;
+            line-height: 1.5;
         }
 
         &.system-expired .message-bubble {
