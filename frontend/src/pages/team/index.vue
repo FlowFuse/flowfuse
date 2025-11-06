@@ -1,7 +1,10 @@
 <template>
     <template v-if="canAccessTeam && team">
         <Teleport v-if="mounted" to="#platform-banner">
-            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
+            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">
+                You are viewing this team as an
+                Administrator
+            </div>
             <TeamSuspendedBanner v-if="team.suspended" :team="team" />
             <SubscriptionExpiredBanner v-else :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
@@ -85,16 +88,17 @@ export default {
         }
 
         if (this.shouldPromptAssistant) {
-            this.openAssistantDrawer()
+            this.$nextTick(() => this.openAssistantDrawer()
                 .then(() => this.disableAssistantPrompt())
-                .catch(e => e)
+                .then(() => this.hydrateClient())
+                .catch(e => e))
         }
     },
     async beforeMount () {
         this.checkRoute(this.$route)
     },
     methods: {
-        ...mapActions('product/expert', ['openAssistantDrawer', 'disableAssistantPrompt']),
+        ...mapActions('product/expert', ['openAssistantDrawer', 'disableAssistantPrompt', 'hydrateClient']),
         checkRoute: async function (route) {
             const allowedRoutes = []
 
