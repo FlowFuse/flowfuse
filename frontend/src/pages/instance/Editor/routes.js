@@ -1,3 +1,4 @@
+import store from '../../../store/index.js'
 import InstanceSettings from '../Settings/index.vue'
 import InstanceSettingsRoutes from '../Settings/routes.js'
 import VersionHistory from '../VersionHistory/index.vue'
@@ -16,7 +17,10 @@ export default [
             layout: 'plain'
         },
         redirect: to => {
-            return { name: 'instance-editor-expert', params: { id: to.params.id } }
+            const name = store.getters['account/featuresCheck'].isExpertAssistantFeatureEnabled
+                ? 'instance-editor-expert'
+                : 'instance-editor-overview'
+            return { name, params: { id: to.params.id } }
         },
         children: [
             ...children.filter(child => !['settings', 'version-history'].includes(child.path)).map(child => {
