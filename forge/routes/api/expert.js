@@ -11,7 +11,9 @@ const { v4: uuidv4 } = require('uuid')
 module.exports = async function (app) {
     // Get the assistant service configuration
     const expertUrl = app.config.expert?.service?.url
-    const serviceEnabled = app.config.expert?.enabled === true
+    // todo revert this
+    // const serviceEnabled = app.config.expert?.enabled === true
+    const serviceEnabled = true
     const serviceToken = app.config.expert?.service?.token
     const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
 
