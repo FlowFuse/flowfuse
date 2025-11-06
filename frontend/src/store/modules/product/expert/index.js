@@ -88,13 +88,45 @@ const mutations = {
     },
     HYDRATE_MESSAGES (state, messages) {
         messages.forEach(message => {
-            if (Object.prototype.hasOwnProperty.call(message, 'query')) {
-                message.content = message.query
-                message.type = 'human'
-                message.timestamp = Date.now()
-                delete message.query
+            if (message.answer && Array.isArray(message.answer)) {
+                // AI response with answer array - process each item
+                message.answer.forEach(item => {
+                    if (item.kind === 'guide') {
+                        // Transform guide response
+                        state.messages.push({
+                            type: 'ai',
+                            kind: 'guide',
+                            guide: item,
+                            content: item.title || 'Setup Guide',
+                            timestamp: Date.now()
+                        })
+                    } else if (item.kind === 'resources') {
+                        // Transform resources response
+                        state.messages.push({
+                            type: 'ai',
+                            kind: 'resources',
+                            resources: item,
+                            content: item.title || 'Resources',
+                            timestamp: Date.now()
+                        })
+                    } else if (item.kind === 'chat') {
+                        // Transform chat response
+                        state.messages.push({
+                            type: 'ai',
+                            content: item.content,
+                            timestamp: Date.now()
+                        })
+                    }
+                })
+            } else if (message.query) {
+                // Transform user message
+                state.messages.push({
+                    type: 'human',
+                    content: message.query,
+                    timestamp: Date.now()
+                })
             }
-            state.messages.push(message)
+            // Else: ignore messages that don't match either format
         })
     },
     REMOVE_MESSAGE_BY_INDEX (state, index) {
