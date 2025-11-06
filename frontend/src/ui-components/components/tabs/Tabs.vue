@@ -5,7 +5,7 @@
                 <ChevronLeftIcon class="ff-icon" />
                 <ChevronLeftIcon class="ff-icon ff-icon-second" />
             </MenuButton>
-            <MenuItems class="z-50 absolute left-0 top-full origin-top-left w-56 mt-1 bg-white divide-y divide-gray-100 rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none">
+            <MenuItems class="z-50 absolute left-0 top-full origin-top-left mt-1 max-h-96 overflow-y-auto bg-white divide-y divide-gray-100 rounded shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none" style="max-width: min(14rem, calc(100vw - 1rem)); width: 14rem;">
                 <MenuItem
                     v-for="tab in hiddenLeftTabs"
                     :key="'left-' + tab.label"
@@ -54,7 +54,7 @@
                 <ChevronRightIcon class="ff-icon ff-icon-second" />
             </MenuButton>
             <Teleport to="body">
-                <MenuItems class="z-50 fixed origin-top-left w-56 bg-white divide-y divide-gray-100 rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none" :style="rightMenuStyle">
+                <MenuItems class="z-50 fixed origin-top-left max-h-96 overflow-y-auto bg-white divide-y divide-gray-100 rounded shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none" :style="rightMenuStyle">
                     <MenuItem
                         v-for="tab in hiddenRightTabs"
                         :key="'right-' + tab.label"
@@ -175,9 +175,16 @@ export default {
             if (!this.$refs.rightMenuButton) return
             const button = this.$refs.rightMenuButton.$el || this.$refs.rightMenuButton
             const rect = button.getBoundingClientRect()
+
+            const menuWidth = 224 // 14rem = 224px
+            const padding = 8
+            const maxLeft = window.innerWidth - menuWidth - padding
+            const left = Math.max(padding, Math.min(rect.left, maxLeft))
+
             this.rightMenuPosition = {
                 top: `${rect.bottom + 4}px`,
-                left: `${rect.left}px`
+                left: `${left}px`,
+                width: `min(14rem, calc(100vw - ${padding * 2}px))`
             }
         },
         selectTab (i) {
