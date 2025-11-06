@@ -94,7 +94,7 @@ export default {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background-color: $ff-indigo-600;
+    background-color: $ff-indigo-500;
     animation: bounce-dot 1.4s infinite ease-in-out both;
 
     &:nth-child(1) {

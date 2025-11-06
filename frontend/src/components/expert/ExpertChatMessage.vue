@@ -110,7 +110,7 @@ export default {
 }
 
 .message-text {
-    font-size: 0.9375rem;
+    font-size: 1rem;
     line-height: 1.5;
 
     :deep(p) {

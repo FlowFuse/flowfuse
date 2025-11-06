@@ -97,7 +97,7 @@ export default {
         color: #374151; // text-gray-700
         margin: 0;
         line-height: 1.5;
-        font-size: 0.9375rem;
+        font-size: 1rem;
     }
 }
 

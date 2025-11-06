@@ -157,13 +157,12 @@ export default {
         font-weight: 600; // font-semibold
         color: #111827; // text-gray-900
         margin: 0 0 0.5rem 0; // mb-2
-        line-height: 1.3;
     }
 
     .guide-summary {
         color: #374151; // text-gray-700
         margin: 0 0 1rem 0; // mb-4
-        line-height: 1.5;
+        line-height: 1.625;
     }
 }
 
@@ -210,17 +209,16 @@ export default {
         flex: 1;
 
         .step-title {
-            font-size: 0.9375rem;
+            font-size: 1rem;
             font-weight: 500;
             color: $ff-grey-900;
             margin: 0 0 0.25rem 0;
-            line-height: 1.4;
         }
 
         .step-detail {
             font-size: 0.875rem;
             color: $ff-grey-600;
-            margin: 0;
+            margin: 0.25rem 0 0 0;
             line-height: 1.5;
         }
     }
@@ -230,7 +228,7 @@ export default {
     .packages-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 0.75rem;
+        gap: 0.5rem;
     }
 
     .package-card {
