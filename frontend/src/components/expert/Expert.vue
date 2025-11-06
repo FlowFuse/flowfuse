@@ -131,20 +131,17 @@ export default {
             'clearStreamingTimer',
             'streamMessage',
             'setStreamingWordIndex',
-            'setStreamingWords'
+            'setStreamingWords',
+            'setAbortController'
         ]),
 
         async handleSendMessage (query) {
             if (!query.trim()) return
 
-            // Create abort controller for this request
-            const controller = new AbortController()
-
             // Call Vuex action to handle API logic
             const result = await this.handleMessage({
                 query,
-                instanceId: null,
-                abortController: markRaw(controller)
+                instanceId: null
             })
 
             // Handle UI-specific processing if successful
@@ -156,6 +153,7 @@ export default {
         handleStopGeneration () {
             if (this.abortController) {
                 this.abortController.abort()
+                this.setAbortController(null)
             }
 
             // Stop streaming effect

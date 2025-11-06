@@ -136,7 +136,7 @@ const actions = {
     },
 
     // Main message sending action
-    async handleMessage ({ commit, state, dispatch }, { query, instanceId = null, abortController }) {
+    async handleMessage ({ commit, state, dispatch }, { query }) {
         // Auto-initialize session ID if not set
         if (!state.sessionId) {
             const { default: ExpertAPI } = await import('../../../../api/expert.js')
@@ -158,7 +158,7 @@ const actions = {
         })
 
         commit('SET_GENERATING', true)
-        commit('SET_ABORT_CONTROLLER', abortController)
+        commit('SET_ABORT_CONTROLLER', new AbortController())
 
         try {
             const response = await dispatch('sendQuery', { query })
