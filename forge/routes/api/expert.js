@@ -45,7 +45,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/fim/hydrate', {
+    app.post('/hydrate', {
         schema: {
             hide: true, // dont show in swagger
             body: {
@@ -96,7 +96,7 @@ module.exports = async function (app) {
         reply.send(response.data)
     })
 
-    app.post('/fim/message', {
+    app.post('/message', {
         schema: {
             hide: true, // dont show in swagger
             body: {

@@ -86,7 +86,7 @@ const hydrate = async ({
     context = {},
     sessionId = null
 } = {}) => {
-    const url = '/api/v1/expert/fim/hydrate'
+    const url = '/api/v1/expert/hydrate'
 
     return client.post(url, {
         history,
@@ -103,7 +103,7 @@ const sendMessage = async ({
     context = {},
     sessionId = null
 } = {}) => {
-    const url = '/api/v1/expert/fim/message'
+    const url = '/api/v1/expert/message'
 
     return client.post(url, {
         message,
