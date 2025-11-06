@@ -189,7 +189,7 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'invalid_team_role', error: 'invalid role' })
             }
         } else if (hasPermissions) {
-            if (!app.config.features.enabled('rbacApplication') || request.team.TeamType.getFeatureProperty('rbacApplication', false) || request.team.getFeatureOverride('rbacApplication') !== true) {
+            if (!app.config.features.enabled('rbacApplication') || (request.team.TeamType.getFeatureProperty('rbacApplication', false) || request.team.getFeatureOverride('rbacApplication')) !== true) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid request - Application RBAC not enabled for team' })
                 return
             }

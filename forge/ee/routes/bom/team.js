@@ -28,7 +28,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const teamType = await request.team.getTeamType()
-        if (!teamType.getFeatureProperty('bom', false) || !request.team.getFeatureOverride('bom')) {
+        if (!teamType.getFeatureProperty('bom', false) && !request.team.getFeatureOverride('bom')) {
             return reply.code(404).send({ code: 'unexpected_error', error: 'Feature not enabled.' })
         }
         const applications = await app.db.models.Application.byTeam(request.params.teamId)
