@@ -27,7 +27,14 @@ const initialState = () => ({
 })
 
 const meta = {
-    persistence: {}
+    persistence: {
+        context: {
+            storage: 'localStorage'
+        },
+        shouldPromptAssistant: {
+            storage: 'localStorage'
+        }
+    }
 }
 
 const state = initialState
@@ -464,6 +471,16 @@ const actions = {
 
     handleLogin ({ dispatch, state }) {
         if (state.shouldPromptAssistant) {
+            return dispatch('openAssistantDrawer')
+                .then(() => dispatch('disableAssistantPrompt'))
+                .then(() => dispatch('hydrateClient'))
+        }
+    },
+
+    handleSignUp ({ dispatch, commit, state }) {
+        if (state.shouldPromptAssistant) {
+            commit('HYDRATE_MESSAGES', state.context)
+
             return dispatch('openAssistantDrawer')
                 .then(() => dispatch('disableAssistantPrompt'))
                 .then(() => dispatch('hydrateClient'))
