@@ -11,7 +11,7 @@ module.exports = async function (app) {
             return
         }
         const teamType = await request.project.Team.getTeamType()
-        if (!teamType.getFeatureProperty('instanceResources', false) || !request.project.Team.getFeatureOverride('instanceResources')) {
+        if (!teamType.getFeatureProperty('instanceResources', false) && !request.project.Team.getFeatureOverride('instanceResources')) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             return // eslint-disable-line no-useless-return
         }

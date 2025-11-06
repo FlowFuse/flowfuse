@@ -16,7 +16,7 @@ module.exports = async function (app) {
                     }
                     request.applicationId = request.project.Application?.hashid
                     const teamType = await request.project.Team.getTeamType()
-                    if (!teamType.getFeatureProperty('ha', true) || !request.project.Team.getFeatureOverride('ha')) {
+                    if (!teamType.getFeatureProperty('ha', true) && !request.project.Team.getFeatureOverride('ha')) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return // eslint-disable-line no-useless-return
                     }
