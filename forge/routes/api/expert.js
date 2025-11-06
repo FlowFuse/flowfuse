@@ -10,8 +10,8 @@ const { default: axios } = require('axios')
 const { v4: uuidv4 } = require('uuid')
 module.exports = async function (app) {
     // Get the assistant service configuration
-    const expertUrl = app.config.expert?.service?.url
     // todo revert this
+    const expertUrl = 'https://flowfuse-expert-api.flowfuse.dev/v3/expert'
     // const serviceEnabled = app.config.expert?.enabled === true
     const serviceEnabled = true
     const serviceToken = app.config.expert?.service?.token
