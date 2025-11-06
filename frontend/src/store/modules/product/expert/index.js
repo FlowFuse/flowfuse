@@ -271,6 +271,7 @@ const actions = {
         } finally {
             commit('SET_GENERATING', false)
             commit('SET_ABORT_CONTROLLER', null)
+            dispatch('removeLoadingIndicator')
         }
     },
 
