@@ -9,10 +9,10 @@
             <!-- Info Banner -->
             <div class="info-banner">
                 <p class="info-text">
-                    Uses OpenAI GPT-4.1 Mini with access to all FlowFuse
-                    <a href="/docs" class="info-link">documentation</a>
-                    and our Get Started
-                    <a href="https://www.youtube.com/watch?v=K4xw09DbSdI&list=PLpcyqc7kNgp1dCDliNM4WOPf6d42Qmjvf" target="_blank" rel="noopener noreferrer" class="info-link">YouTube playlist</a>
+                    AI agent has access to all FlowFuse
+                    <a href="/docs" class="info-link">documentation</a>,
+                    <a href="/blog" class="info-link">blogposts</a>, and our Get Started
+                    <a href="https://www.youtube.com/watch?v=K4xw09DbSdI&list=PLpcyqc7kNgp1dCDliNM4WOPf6d42Qmjvf" target="_blank" rel="noopener noreferrer" class="info-link">YouTube playlist</a>.
                 </p>
             </div>
 
