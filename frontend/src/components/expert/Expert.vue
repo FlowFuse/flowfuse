@@ -175,9 +175,7 @@ export default {
         handleStartOver () {
             // Confirm before clearing
             if (this.hasMessages) {
-                if (confirm('Are you sure you want to start over? This will clear the conversation.')) {
-                    this.startOver()
-                }
+                this.startOver()
             }
         },
 
