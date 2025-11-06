@@ -9,10 +9,9 @@
             <!-- Info Banner -->
             <div class="info-banner">
                 <p class="info-text">
-                    AI agent has access to all FlowFuse
-                    <a href="/docs" class="info-link">documentation</a>,
-                    <a href="/blog" class="info-link">blogposts</a>, and our Get Started
-                    <a href="https://www.youtube.com/watch?v=K4xw09DbSdI&list=PLpcyqc7kNgp1dCDliNM4WOPf6d42Qmjvf" target="_blank" rel="noopener noreferrer" class="info-link">YouTube playlist</a>.
+                    AI agent has access to all of FlowFuse's
+                    <a href="https://flowfuse.com/docs" target="_blank" rel="noopener noreferrer" class="info-link">documentation and knowledge</a>,
+                    <a href="https://flowfuse.com/blog" target="_blank" rel="noopener noreferrer" class="info-link">blogposts</a>, and more.
                 </p>
             </div>
 
@@ -51,6 +50,7 @@
         <expert-chat-input
             :is-generating="isGenerating"
             :has-messages="hasMessages"
+            :is-session-expired="isSessionExpired"
             @send="handleSendMessage"
             @stop="handleStopGeneration"
             @start-over="handleStartOver"
@@ -94,7 +94,8 @@ export default {
         ]),
         ...mapGetters('product/expert', [
             'hasMessages',
-            'lastMessage'
+            'lastMessage',
+            'isSessionExpired'
         ])
     },
     watch: {
@@ -121,6 +122,8 @@ export default {
         if (this.scrollCheckDebounce) {
             clearTimeout(this.scrollCheckDebounce)
         }
+        // Clean up session timer
+        this.resetSessionTimer()
     },
     methods: {
         ...mapActions('product/expert', [
@@ -135,7 +138,8 @@ export default {
             'streamMessage',
             'setStreamingWordIndex',
             'setStreamingWords',
-            'setAbortController'
+            'setAbortController',
+            'resetSessionTimer'
         ]),
 
         async handleSendMessage (query) {

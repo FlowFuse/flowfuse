@@ -34,7 +34,9 @@ export default {
             return {
                 'message-human': this.message.type === 'human',
                 'message-ai': this.message.type === 'ai',
-                'is-streaming': this.isStreaming
+                'message-system': this.message.type === 'system',
+                'is-streaming': this.isStreaming,
+                [`system-${this.message.variant}`]: this.message.type === 'system' && this.message.variant
             }
         },
         hasRichContent () {
@@ -81,6 +83,25 @@ export default {
             color: #1F2937; // gray-800
             border-radius: 0.5rem;
             border-bottom-left-radius: 0.125rem;
+        }
+    }
+
+    &.message-system {
+        justify-content: center;
+
+        .message-bubble {
+            background-color: #FEF3C7; // amber-100
+            color: #92400E; // amber-900
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            text-align: left;
+            max-width: 100%;
+            width: 100%;
+        }
+
+        &.system-expired .message-bubble {
+            background-color: #FEE2E2; // red-100
+            color: #991B1B; // red-900
         }
     }
 

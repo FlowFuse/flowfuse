@@ -9,6 +9,8 @@
             :class="{'open': drawer.open, resizing: drawer.resizing}"
             :style="{ width: drawerWidth + 'px' }"
             data-el="tabs-drawer"
+            @mouseenter="handleDrawerMouseEnter"
+            @mouseleave="handleDrawerMouseLeave"
         >
             <resize-bar
                 @mousedown="startResize"
@@ -116,7 +118,10 @@ export default {
                 width: 0,
                 defaultWidth: DRAWER_DEFAULT_WIDTH
             },
-            viewportWidth: window.innerWidth
+            viewportWidth: window.innerWidth,
+            isMouseInDrawer: false,
+            teaseCloseTimeout: null,
+            isInitialTease: false
         }
     },
     computed: {
@@ -199,10 +204,15 @@ export default {
     mounted () {
         // Auto-open drawer after initial load, then close it to tease availability
         setTimeout(() => {
+            this.isInitialTease = true
             this.toggleDrawer()
-            // Close drawer after a brief moment to tease it
-            setTimeout(() => {
-                this.toggleDrawer()
+            // Close drawer after a brief moment to tease it, but only if mouse is not in drawer
+            this.teaseCloseTimeout = setTimeout(() => {
+                if (!this.isMouseInDrawer) {
+                    this.toggleDrawer()
+                }
+                this.isInitialTease = false
+                this.teaseCloseTimeout = null
             }, 2000)
         }, 1200)
 
@@ -211,6 +221,9 @@ export default {
     },
     unmounted () {
         window.removeEventListener('resize', this.handleResize)
+        if (this.teaseCloseTimeout) {
+            clearTimeout(this.teaseCloseTimeout)
+        }
     },
     methods: {
         toggleDrawer () {
@@ -262,6 +275,29 @@ export default {
         },
         handleResize () {
             this.viewportWidth = window.innerWidth
+        },
+        handleDrawerMouseEnter () {
+            // Only track mouse during initial tease
+            if (this.isInitialTease) {
+                this.isMouseInDrawer = true
+            }
+        },
+        handleDrawerMouseLeave () {
+            // Only track mouse during initial tease
+            if (this.isInitialTease) {
+                this.isMouseInDrawer = false
+                // If we're within the 3-second tease window and mouse leaves, start a new 3s timer
+                if (this.teaseCloseTimeout) {
+                    clearTimeout(this.teaseCloseTimeout)
+                    this.teaseCloseTimeout = setTimeout(() => {
+                        if (!this.isMouseInDrawer && this.drawer.open) {
+                            this.toggleDrawer()
+                        }
+                        this.isInitialTease = false
+                        this.teaseCloseTimeout = null
+                    }, 2000)
+                }
+            }
         }
     }
 }
