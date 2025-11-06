@@ -478,19 +478,20 @@ const actions = {
         const teams = await teamApi.getTeams()
         state.commit('setTeams', teams.teams)
     },
-    async login (state, credentials) {
+    async login ({ state, dispatch, commit }, credentials) {
         try {
-            state.commit('setLoginInflight')
+            commit('setLoginInflight')
             if (credentials.username) {
                 await userApi.login(credentials.username, credentials.password)
             } else if (credentials.token) {
                 await userApi.verifyMFAToken(credentials.token)
             }
-            state.commit('setPending', true)
-            state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
+            commit('setPending', true)
+            dispatch('checkState', getters.redirectUrlAfterLogin)
+            dispatch('product/expert/handleLogin', null, { root: true })
         } catch (err) {
             if (err.response?.status >= 401) {
-                state.commit('loginFailed', err.response.data)
+                commit('loginFailed', err.response.data)
             } else {
                 console.error(err)
             }

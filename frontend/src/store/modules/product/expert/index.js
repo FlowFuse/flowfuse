@@ -447,6 +447,14 @@ const actions = {
     // todo this should be moved into a dedicated context store
     updateRoute ({ commit }, route) {
         commit('UPDATE_ROUTE', route)
+    },
+
+    handleLogin ({ dispatch, state }) {
+        if (state.shouldPromptAssistant) {
+            return dispatch('openAssistantDrawer')
+                .then(() => dispatch('disableAssistantPrompt'))
+                .then(() => dispatch('hydrateClient'))
+        }
     }
 }
 
