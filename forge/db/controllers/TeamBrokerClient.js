@@ -14,7 +14,8 @@ module.exports = {
                 return false
             }
 
-            if (!user.Team.TeamType.getFeatureProperty('teamBroker')) {
+            const properties = user.Team.TeamType.properties
+            if (!properties?.features?.teamBroker) {
                 return false
             }
 
@@ -78,7 +79,8 @@ module.exports = {
         if (teamBrokerClient.Team.suspended) {
             return false
         }
-        if (!teamBrokerClient.Team.TeamType.getFeatureProperty('teamBroker')) {
+        const properties = teamBrokerClient.Team.TeamType.properties
+        if (!properties?.features?.teamBroker) {
             return false
         }
         if (!compareHash(password, teamBrokerClient.password)) {
