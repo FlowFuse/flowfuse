@@ -122,6 +122,7 @@ export default {
     methods: {
         ...mapActions('product/expert', [
             'handleMessage',
+            'handleMessageResponse',
             'addMessage',
             'updateLastMessage',
             'clearConversation',
@@ -147,39 +148,8 @@ export default {
             })
 
             // Handle UI-specific processing if successful
-            if (result.success && result.answer && Array.isArray(result.answer)) {
-                for (const item of result.answer) {
-                    if (item.kind === 'guide') {
-                        // Add rich guide message
-                        this.addMessage({
-                            type: 'ai',
-                            kind: 'guide',
-                            guide: item,
-                            content: item.title || 'Setup Guide',
-                            timestamp: Date.now()
-                        })
-                    } else if (item.kind === 'resources') {
-                        // Add rich resources message
-                        this.addMessage({
-                            type: 'ai',
-                            kind: 'resources',
-                            resources: item,
-                            content: item.title || 'Resources',
-                            timestamp: Date.now()
-                        })
-                    } else if (item.kind === 'chat') {
-                        // Add chat message with streaming effect
-                        await this.streamMessage(item.content)
-                    }
-                }
-            } else if (result.success && (!result.answer || !Array.isArray(result.answer))) {
-                // Fallback for unexpected response format
-                this.addMessage({
-                    type: 'ai',
-                    content: 'Sorry, I received an unexpected response format.',
-                    timestamp: Date.now()
-                })
-            }
+            await this.handleMessageResponse(result)
+
             // Errors are already handled in the Vuex action
         },
 

@@ -96,6 +96,9 @@ const mutations = {
             }
             state.messages.push(message)
         })
+    },
+    REMOVE_MESSAGE_BY_INDEX (state, index) {
+        state.messages.splice(index, 1)
     }
 }
 
@@ -160,11 +163,7 @@ const actions = {
         try {
             const response = await dispatch('sendQuery', { query })
 
-            // Remove loading indicator
-            const loadingIndex = state.messages.findIndex(m => m.type === 'loading')
-            if (loadingIndex !== -1) {
-                state.messages.splice(loadingIndex, 1)
-            }
+            dispatch('removeLoadingIndicator')
 
             // Process and return the response for UI handling
             return {
@@ -202,6 +201,43 @@ const actions = {
         } finally {
             commit('SET_GENERATING', false)
             commit('SET_ABORT_CONTROLLER', null)
+        }
+    },
+
+    async handleMessageResponse ({ commit, dispatch }, response) {
+        // Handle UI-specific processing if successful
+        if (response.success && response.answer && Array.isArray(response.answer)) {
+            for (const item of response.answer) {
+                if (item.kind === 'guide') {
+                    // Add rich guide message
+                    commit('ADD_MESSAGE', {
+                        type: 'ai',
+                        kind: 'guide',
+                        guide: item,
+                        content: item.title || 'Setup Guide',
+                        timestamp: Date.now()
+                    })
+                } else if (item.kind === 'resources') {
+                    // Add rich resources message
+                    commit('ADD_MESSAGE', {
+                        type: 'ai',
+                        kind: 'resources',
+                        resources: item,
+                        content: item.title || 'Resources',
+                        timestamp: Date.now()
+                    })
+                } else if (item.kind === 'chat') {
+                    // Add chat message with streaming effect
+                    await dispatch('streamMessage', item.content)
+                }
+            }
+        } else if (response.success && (!response.answer || !Array.isArray(response.answer))) {
+            // Fallback for unexpected response format
+            commit('ADD_MESSAGE', {
+                type: 'ai',
+                content: 'Sorry, I received an unexpected response format.',
+                timestamp: Date.now()
+            })
         }
     },
 
@@ -257,12 +293,11 @@ const actions = {
             sessionId: state.sessionId
         })
             .then(response => {
-                // if (response.kind === 'chat') {
-                //     response.answer.forEach(item => {
-                //         dispatch('streamMessage', item.content)
-                //     })
-                // }
-                // commit('ADD_MESSAGE', response)
+                return dispatch('removeLoadingIndicator')
+                    .then(() => dispatch('handleMessageResponse', {
+                        success: true,
+                        answer: response.answer || []
+                    }))
             })
     },
 
@@ -336,6 +371,14 @@ const actions = {
 
     setStreamingWords ({ commit }, words) {
         commit('SET_STREAMING_WORDS', words)
+    },
+
+    removeLoadingIndicator ({ commit, state }) {
+        const loadingIndex = state.messages.findIndex(m => m.type === 'loading')
+
+        if (loadingIndex !== -1) {
+            commit('REMOVE_MESSAGE_BY_INDEX', loadingIndex)
+        }
     }
 }
 
