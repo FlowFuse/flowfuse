@@ -12,6 +12,7 @@
 </template>
 
 <script>
+import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 
 export default {
@@ -45,14 +46,14 @@ export default {
         formattedContent () {
             if (this.message.isHTML) {
                 // Content is already HTML (from rich guide or pre-formatted)
-                return this.message.content
+                return DOMPurify.sanitize(this.message.content)
             }
             // Convert markdown to HTML
             const html = marked(this.message.content || '', {
                 breaks: true,
                 gfm: true
             })
-            return html
+            return DOMPurify.sanitize(html)
         }
     }
 }
