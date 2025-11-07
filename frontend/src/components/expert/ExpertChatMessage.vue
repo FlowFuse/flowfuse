@@ -12,8 +12,9 @@
 </template>
 
 <script>
-import DOMPurify from 'dompurify'
 import { marked } from 'marked'
+
+import { sanitize } from '../../composables/String.js'
 
 export default {
     name: 'ExpertChatMessage',
@@ -29,6 +30,9 @@ export default {
             type: Boolean,
             default: false
         }
+    },
+    setup () {
+        return { sanitize }
     },
     computed: {
         messageClass () {
@@ -46,14 +50,14 @@ export default {
         formattedContent () {
             if (this.message.isHTML) {
                 // Content is already HTML (from rich guide or pre-formatted)
-                return DOMPurify.sanitize(this.message.content)
+                return this.sanitize(this.message.content)
             }
             // Convert markdown to HTML
             const html = marked(this.message.content || '', {
                 breaks: true,
                 gfm: true
             })
-            return DOMPurify.sanitize(html)
+            return this.sanitize(html)
         }
     }
 }
