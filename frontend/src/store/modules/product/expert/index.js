@@ -433,7 +433,7 @@ const actions = {
         return expertApi.chat({
             query,
             context: getters.context,
-            state: state.sessionId
+            sessionId: state.sessionId
         })
     },
 
