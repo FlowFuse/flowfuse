@@ -38,4 +38,7 @@
     .ff-accordion--content {
         background-color: white;
     }
+    &:last-child {
+        margin-bottom: 0;
+    }
 }
