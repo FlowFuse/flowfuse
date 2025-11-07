@@ -9,8 +9,8 @@ module.exports = async function (app) {
                     return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
                 }
             }
-            const teamType = await request.team.getTeamType()
-            if (!teamType.getFeatureProperty('tables', false) && !request.team.getFeatureOverride('tables')) {
+            await request.team.ensureTeamTypeExists()
+            if (!request.team.getFeatureProperty('tables', false)) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found - not available on team' })
                 return // eslint-disable-line no-useless-return
             }

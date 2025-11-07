@@ -152,8 +152,8 @@ module.exports = async function (app) {
                 return // device auto snapshot feature is not available
             }
 
-            const teamType = await request.project.Team.getTeamType()
-            const instanceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('instanceAutoSnapshot', false) || request.project.team.getFeatureOverride('instanceAutoSnapshot')
+            await request.project.Team.ensureTeamTypeExists()
+            const instanceAutoSnapshotEnabledForTeam = request.project.Team.getFeatureProperty('instanceAutoSnapshot', false)
             if (!instanceAutoSnapshotEnabledForTeam) {
                 return // not enabled for team
             }
@@ -251,8 +251,8 @@ module.exports = async function (app) {
                     return // device auto snapshot feature is not available
                 }
 
-                const teamType = await request.device.Team.getTeamType()
-                const deviceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('deviceAutoSnapshot', false) || request.device.Team.getFeatureOverride('deviceAutoSnapshot')
+                request.device.Team.ensureTeamTypeExists()
+                const deviceAutoSnapshotEnabledForTeam = request.device.Team.getFeatureProperty('deviceAutoSnapshot', false)
                 if (!deviceAutoSnapshotEnabledForTeam) {
                     return // not enabled for team
                 }

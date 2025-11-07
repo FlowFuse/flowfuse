@@ -142,8 +142,8 @@ const deviceAutoSnapshotUtils = {
             if (!(await device.getSetting('autoSnapshot'))) {
                 throw new Error('Device auto snapshot is not enabled')
             }
-            const teamType = await device.Team.getTeamType()
-            const deviceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('deviceAutoSnapshot', false) || device.Team.getFeatureOverride('deviceAutoSnapshot')
+            await device.Team.ensureTeamTypeExists()
+            const deviceAutoSnapshotEnabledForTeam = device.Team.getFeatureProperty('deviceAutoSnapshot', false)
             if (!deviceAutoSnapshotEnabledForTeam) {
                 throw new Error('Device auto snapshot is not enabled for the team')
             }
@@ -309,8 +309,9 @@ const instanceAutoSnapshotUtils = {
                 throw new Error('Instance auto snapshot feature is not available')
             }
 
-            const teamType = await project.Team.getTeamType()
-            const deviceAutoSnapshotEnabledForTeam = teamType.getFeatureProperty('instanceAutoSnapshot', false) || project.Team.getFeatureOverride('instanceAutoSnapshot')
+            // const teamType = await project.Team.getTeamType()
+            await project.Team.ensureTeamTypeExists()
+            const deviceAutoSnapshotEnabledForTeam = project.Team.getFeatureProperty('instanceAutoSnapshot', false)
             if (!deviceAutoSnapshotEnabledForTeam) {
                 throw new Error('Instance auto snapshot is not enabled for the team')
             }

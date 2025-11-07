@@ -1176,10 +1176,10 @@ module.exports = async function (app) {
                     return reply.code(404).send({ code: 'not_found' })
                 }
 
-                const teamType = await request.device.Team.getTeamType()
+                await request.device.Team.ensureTeamTypeExists()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
-                const hasFeature = teamType.getFeatureProperty('generatedSnapshotDescription', false) || request.device.Team.getFeatureOverride('generatedSnapshotDescription')
+                const hasFeature = request.device.Team.getFeatureProperty('generatedSnapshotDescription', false)
 
                 if (!isEnterprise || !hasFeature) {
                     return reply.code(404).send({ code: 'not_found' })

@@ -19,8 +19,7 @@ module.exports.init = async function (app) {
             throw err
         }
         await this.ensureTeamTypeExists()
-        const teamType = await this.getTeamType()
-        if (teamType.getFeatureProperty('teamBroker', false) || this.getFeatureOverride('teamBroker')) {
+        if (this.getFeatureProperty('teamBroker', false)) {
             const clientCount = await app.db.models.TeamBrokerClient.countTeam(this.hashid)
             const max = this.getProperty('teamBroker.clients.limit', -1)
             if (max > -1) {

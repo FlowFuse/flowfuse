@@ -18,8 +18,8 @@ module.exports = async function (app) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return
                     }
-                    const teamType = await request.project.Team.getTeamType()
-                    if (!teamType.getFeatureProperty('customHostnames', true) || !request.project.Team.getFeatureOverride('customHostnames')) {
+                    await request.project.Team.ensureTeamTypeExists()
+                    if (!request.project.Team.getFeatureProperty('customHostnames', true)) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                         return // eslint-disable-line no-useless-return
                     }

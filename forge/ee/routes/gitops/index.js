@@ -10,8 +10,8 @@ module.exports = async function (app) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 return
             }
-            const teamType = await request.team.getTeamType()
-            if (!teamType.getFeatureProperty('gitIntegration', false) && !request.team.getFeatureOverride('gitIntegration')) {
+            await request.team.ensureTeamTypeExists()
+            if (!request.team.getFeatureProperty('gitIntegration', false)) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                 return // eslint-disable-line no-useless-return
             }

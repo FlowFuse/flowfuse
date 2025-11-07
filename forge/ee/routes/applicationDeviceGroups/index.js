@@ -44,8 +44,8 @@ module.exports = async function (app) {
                 }
             }
 
-            const teamType = await request.application.Team.getTeamType()
-            if (!teamType.getFeatureProperty('deviceGroups', false) && !request.application.Team.getFeatureOverride('deviceGroups')) {
+            await request.application.Team.ensureTeamTypeExists()
+            if (!request.application.Team.getFeatureProperty('deviceGroups', false)) {
                 return reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
         } catch (err) {

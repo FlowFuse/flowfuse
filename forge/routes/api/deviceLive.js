@@ -286,16 +286,15 @@ module.exports = async function (app) {
             }
         })
         const team = request.device.Team
-        const teamType = await request.device.Team.getTeamType()
+        await team.ensureTeamTypeExists()
         response.features = {
-            'shared-library': !!(app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true)),
-            projectComms: !!(app.config.features.enabled('projectComms') && (teamType.getFeatureProperty('projectComms', true) || team.getFeatureOverride('projectComms'))),
-            teamBroker: !!(app.config.features.enabled('teamBroker') && (teamType.getFeatureProperty('teamBroker', true) || team.getFeatureOverride('teamBroker'))),
-            tables: !!(app.config.features.enabled('tables') && (teamType.getFeatureProperty('tables', true) || team.getFeatureOverride('tables')))
+            'shared-library': !!(app.config.features.enabled('shared-library') && team.getFeatureProperty('shared-library', true)),
+            projectComms: !!(app.config.features.enabled('projectComms') && team.getFeatureProperty('projectComms', true)),
+            teamBroker: !!(app.config.features.enabled('teamBroker') && team.getFeatureProperty('teamBroker', true)),
+            tables: !!(app.config.features.enabled('tables') && team.getFeatureProperty('tables', true))
         }
 
-        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') &&
-            (teamType.getFeatureProperty('assistantInlineCompletions', false) || team.getFeatureOverride('assistantInlineCompletions')))
+        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         response.assistant = {
             enabled: app.config.assistant?.enabled || false,
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
@@ -321,7 +320,7 @@ module.exports = async function (app) {
             linked
         }
 
-        const teamNPMEnabled = app.config.features.enabled('npm') && (teamType.getFeatureProperty('npm', false) || team.getFeatureOverride('npm'))
+        const teamNPMEnabled = app.config.features.enabled('npm') && team.getFeatureProperty('npm', false)
         if (teamNPMEnabled) {
             const npmRegURL = new URL(app.config.npmRegistry.url)
             const teamId = request.device.Team.hashid
@@ -356,8 +355,8 @@ module.exports = async function (app) {
         const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes', false) &&
                                    !!app.config.features.enabled('ffNodes', false) &&
                                    !!app.settings.get('platform:ff-npm-registry:token')
-        const certifiedNodesEnabledForTeam = teamType.getFeatureProperty('certifiedNodes', false) || team.getFeatureOverride('certifiedNodes')
-        const ffNodesEnabledForTeam = teamType.getFeatureProperty('ffNodes', false) || team.getFeatureOverride('ffNodes')
+        const certifiedNodesEnabledForTeam = team.getFeatureProperty('certifiedNodes', false)
+        const ffNodesEnabledForTeam = team.getFeatureProperty('ffNodes', false)
 
         if (platformNPMEnabled && (certifiedNodesEnabledForTeam || ffNodesEnabledForTeam)) {
             try {

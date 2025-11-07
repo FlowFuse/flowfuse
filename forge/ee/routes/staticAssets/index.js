@@ -16,8 +16,8 @@ module.exports = async function (app) {
                         return
                     }
                     request.applicationId = request.project.Application?.hashid
-                    const teamType = await request.project.Team.getTeamType()
-                    if (!teamType.getFeatureProperty('staticAssets', false) && !request.project.Team.getFeatureOverride('staticAssets')) {
+                    await request.project.Team.ensureTeamTypeExists()
+                    if (!request.project.Team.getFeatureProperty('staticAssets', false)) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found - not available on team' })
                         return // eslint-disable-line no-useless-return
                     }

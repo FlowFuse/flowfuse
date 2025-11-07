@@ -429,11 +429,11 @@ module.exports = {
                     }
                     return teamValue
                 },
-                getFeatureOverride: function (key) {
-                    if (this.properties && this.properties.features) {
-                        if (Object.hasOwn(this.properties.features, key)) {
-                            return this.properties.features[key]
-                        }
+                getFeatureProperty: function (key, defaultValue) {
+                    if (this.properties && this.properties.features && Object.hasOwn(this.properties.features, key)) {
+                        return this.properties.features[key]
+                    } else {
+                        return this.TeamType.getFeatureProperty(key, defaultValue)
                     }
                 },
                 getInstanceTypeProperty: function (instanceType, property, defaultValue) {

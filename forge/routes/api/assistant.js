@@ -177,7 +177,7 @@ module.exports = async function (app) {
     async (request, reply) => {
         const inlineDisabled = app.config.assistant?.completions?.inlineEnabled === false
         const featureEnabled = app.config.features.enabled('assistantInlineCompletions')
-        const featureEnabledForTeam = request.team.TeamType.getFeatureProperty('assistantInlineCompletions', false) || request.team.getFeatureOverride('assistantInlineCompletions')
+        const featureEnabledForTeam = request.team.getFeatureProperty('assistantInlineCompletions', false)
         if (inlineDisabled || !featureEnabled || !featureEnabledForTeam) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found - feature not enabled for team' })
             return
@@ -198,7 +198,7 @@ module.exports = async function (app) {
         // if this is a `flowfuse-tables-query` lets see if tables are enabled and try to get the schema hints
         let tablesCacheKey = null
         if (nodeModule === '@flowfuse/nr-tables-nodes' && nodeType === 'tables-query') {
-            const tablesFeatureEnabled = app.config.features.enabled('tables') && (request.team.TeamType.getFeatureProperty('tables', false) || request.team.getFeatureOverride('tables'))
+            const tablesFeatureEnabled = app.config.features.enabled('tables') && request.team.getFeatureProperty('tables', false)
             tablesCacheKey = tablesFeatureEnabled && request.team.hashid + '/tables/schema'
             if (tablesCacheKey) {
                 if (!tablesSchemaCache.has(tablesCacheKey)) {
@@ -296,7 +296,7 @@ module.exports = async function (app) {
         }
 
         // if this is a `flowfuse-tables-query` lets see if tables are enabled and try to get the schema hints
-        const tablesFeatureEnabled = app.config.features.enabled('tables') && (request.team.TeamType.getFeatureProperty('tables', false) || request.team.getFeatureOverride('tables'))
+        const tablesFeatureEnabled = app.config.features.enabled('tables') && request.team.getFeatureProperty('tables', false)
         const isTablesQuery = tablesFeatureEnabled && method === 'flowfuse-tables-query'
         const tablesCacheKey = request.team.hashid + '/tables/schema'
         if (isTablesQuery) {

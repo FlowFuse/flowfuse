@@ -499,9 +499,9 @@ module.exports = async function (app) {
             let response
             if (request.headers['ff-quota']) {
                 const project = await app.db.models.Project.byId(request.session.ownerId)
-                const teamType = await project.Team.getTeamType()
-                const fileStorageLimit = project.Team.getFeatureOverride('fileStorageLimit') || teamType.getFeatureProperty('fileStorageLimit', 100)
-                const contextLimit = project.Team.getFeatureOverride('contextLimit') || teamType.getFeatureProperty('contextLimit', 1)
+                await project.Team.ensureTeamTypeExists()
+                const fileStorageLimit = project.Team.getFeatureProperty('fileStorageLimit', 100)
+                const contextLimit = project.Team.getFeatureProperty('contextLimit', 1)
                 response = {
                     quota: {
                         file: fileStorageLimit * 1024 * 1024,

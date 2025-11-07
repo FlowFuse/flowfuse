@@ -68,8 +68,8 @@ module.exports = async function (app) {
         const project = await projectPromise
         const projectState = await projectStatePromise
 
-        const teamType = await request.project.Team.getTeamType()
-        const customCatalogsEnabledForTeam = app.config.features.enabled('customCatalogs') && (teamType.getFeatureProperty('customCatalogs', false) || request.project.Team.getFeatureOverride('customCatalogs'))
+        await request.project.Team.ensureTeamTypeExists()
+        const customCatalogsEnabledForTeam = app.config.features.enabled('customCatalogs') && request.project.Team.getFeatureProperty('customCatalogs', false)
         if (!customCatalogsEnabledForTeam) {
             delete project.settings?.palette?.npmrc
             delete project.settings?.palette?.catalogue
@@ -838,9 +838,9 @@ module.exports = async function (app) {
         settings.forgeURL = app.config.base_url
         settings.fileStore = app.config.fileStore ? { ...app.config.fileStore } : null
 
-        const teamType = await request.project.Team.getTeamType()
-
-        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && (teamType.getFeatureProperty('assistantInlineCompletions', false) || request.project.Team.getFeatureOverride('assistantInlineCompletions')))
+        await request.project.Team.ensureTeamTypeExists()
+        const team = await request.project.Team
+        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         settings.assistant = {
             enabled: app.config.assistant?.enabled || false,
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
@@ -879,19 +879,19 @@ module.exports = async function (app) {
             settings.env = exportEnvVarObject(settings.env)
         }
 
-        if (app.config.features.enabled('ha') && (teamType.getFeatureProperty('ha', true) || request.project.Team.getFeatureOverride('ha'))) {
+        if (app.config.features.enabled('ha') && team.getFeatureProperty('ha', true)) {
             const ha = await request.project.getHASettings()
             if (ha && ha.replicas > 1) {
                 settings.settings.ha = ha
             }
         }
-        const customCatalogsEnabledForTeam = app.config.features.enabled('customCatalogs') && (teamType.getFeatureProperty('customCatalogs', false) || request.project.Team.getFeatureOverride('customCatalogs'))
+        const customCatalogsEnabledForTeam = app.config.features.enabled('customCatalogs') && team.getFeatureProperty('customCatalogs', false)
         if (!customCatalogsEnabledForTeam) {
             delete settings.settings?.palette?.npmrc
             delete settings.settings?.palette?.catalogue
         }
 
-        const teamNPMEnabled = app.config.features.enabled('npm') && (teamType.getFeatureProperty('npm', false) || request.project.Team.getFeatureOverride('npm'))
+        const teamNPMEnabled = app.config.features.enabled('npm') && team.getFeatureProperty('npm', false)
         if (teamNPMEnabled) {
             const npmRegURL = new URL(app.config.npmRegistry.url)
             const deviceNPMPassword = await app.db.controllers.AccessToken.createTokenForNPM(request.project, request.project.Team)
@@ -920,8 +920,8 @@ module.exports = async function (app) {
                                    !!app.config.features.enabled('ffNodes', false) &&
                                    !!app.settings.get('platform:ff-npm-registry:token')
 
-        const certifiedNodesEnabledForTeam = teamType.getFeatureProperty('certifiedNodes', false) || request.project.Team.getFeatureOverride('certifiedNodes')
-        const ffNodesEnabledForTeam = teamType.getFeatureProperty('ffNodes', false) || request.project.Team.getFeatureOverride('ffNodes')
+        const certifiedNodesEnabledForTeam = team.getFeatureProperty('certifiedNodes', false)
+        const ffNodesEnabledForTeam = team.getFeatureProperty('ffNodes', false)
         if (platformNPMEnabled && (certifiedNodesEnabledForTeam || ffNodesEnabledForTeam)) {
             try {
                 const token = app.settings.get('platform:ff-npm-registry:token')
@@ -958,7 +958,7 @@ module.exports = async function (app) {
             }
         }
 
-        if (app.config.features.enabled('staticAssets') && (teamType.getFeatureProperty('staticAssets', false) || request.project.Team.getFeatureOverride('staticAssets'))) {
+        if (app.config.features.enabled('staticAssets') && team.getFeatureProperty('staticAssets', false)) {
             const sharingConfig = await request.project.getSetting(KEY_SHARED_ASSETS) || {}
             // Stored as object with path->config. Need to transform to an array of settings
             const sharingPaths = Object.keys(sharingConfig)
@@ -975,10 +975,10 @@ module.exports = async function (app) {
         }
 
         settings.features = {
-            'shared-library': app.config.features.enabled('shared-library') && (teamType.getFeatureProperty('shared-library', true) || request.project.Team.getFeatureOverride('shared-library')),
-            projectComms: app.config.features.enabled('projectComms') && (teamType.getFeatureProperty('projectComms', true) || request.project.Team.getFeatureOverride('projectComms')),
-            teamBroker: app.config.features.enabled('teamBroker') && (teamType.getFeatureProperty('teamBroker', true) || request.project.Team.getFeatureOverride('teamBroker')),
-            tables: app.config.features.enabled('tables') && (teamType.getFeatureProperty('tables', false) || request.project.getFeatureOverride('tables')),
+            'shared-library': app.config.features.enabled('shared-library') && team.getFeatureProperty('shared-library', true),
+            projectComms: app.config.features.enabled('projectComms') && team.getFeatureProperty('projectComms', true),
+            teamBroker: app.config.features.enabled('teamBroker') && team.getFeatureProperty('teamBroker', true),
+            tables: app.config.features.enabled('tables') && team.getFeatureProperty('tables', false),
             teamNPM: teamNPMEnabled
         }
         reply.send(settings)
@@ -1445,10 +1445,10 @@ module.exports = async function (app) {
                     return reply.code(404).send({ code: 'not_found' })
                 }
 
-                const teamType = await request.project.Team.getTeamType()
+                await request.project.Team.ensureTeamTypeExists()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
-                const hasFeature = teamType.getFeatureProperty('generatedSnapshotDescription', false) || request.project.Team.getFeatureOverride('generatedSnapshotDescription')
+                const hasFeature = request.project.Team.getFeatureProperty('generatedSnapshotDescription', false)
 
                 if (!isEnterprise || !hasFeature) {
                     return reply.code(404).send({ code: 'not_found' })
