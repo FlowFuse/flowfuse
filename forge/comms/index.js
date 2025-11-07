@@ -73,7 +73,12 @@ module.exports = fp(async function (app, _opts) {
         app.addHook('onClose', async (_) => {
             app.log.info('Comms shutdown')
             await deviceCommsHandler.stopLogWatcher()
-            client.publish('ff/v1/platform/leader', JSON.stringify({ id: client.platformId, vote: -1 }))
+            const promise = new Promise((resolve, reject) => {
+                client.publish('ff/v1/platform/leader', JSON.stringify({ id: client.platformId, vote: -1 }), function () {
+                    resolve()
+                })
+            })
+            await promise
             await client.disconnect()
         })
     } else {
