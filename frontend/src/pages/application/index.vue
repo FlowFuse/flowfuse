@@ -64,41 +64,66 @@ export default {
         ...mapState('account', ['features', 'team']),
         navigation () {
             const routes = [
-                { label: 'Hosted Instances', to: { name: 'ApplicationInstances' }, tag: 'application-overview', icon: ProjectsIcon },
-                { label: 'Remote Instances', to: { name: 'ApplicationDevices' }, tag: 'application-devices-overview', icon: ChipIcon },
+                {
+                    label: 'Hosted Instances',
+                    to: { name: 'ApplicationInstances' },
+                    tag: 'application-overview'
+                    // icon: ProjectsIcon
+                },
+                {
+                    label: 'Remote Instances',
+                    to: { name: 'ApplicationDevices' },
+                    tag: 'application-devices-overview'
+                    // icon: ChipIcon
+                },
                 {
                     label: 'Device Groups',
                     to: { name: 'ApplicationDeviceGroups' },
                     tag: 'application-devices-groups-overview',
-                    icon: ChipIcon,
+                    // icon: ChipIcon,
                     hidden: !this.hasPermission('application:device-group:list', { application: this.application }),
                     featureUnavailable: !this.features?.deviceGroups
                 },
-                { label: 'Snapshots', to: { name: 'ApplicationSnapshots' }, tag: 'application-snapshots', icon: ClockIcon },
+                {
+                    label: 'Snapshots',
+                    to: { name: 'ApplicationSnapshots' },
+                    tag: 'application-snapshots'
+                    // icon: ClockIcon
+                },
                 {
                     label: 'Pipelines',
                     to: { name: 'ApplicationPipelines' },
                     tag: 'application-pipelines',
-                    icon: PipelinesIcon,
+                    // icon: PipelinesIcon,
                     hidden: !this.hasPermission('application:pipeline:list', { application: this.application }),
                     featureUnavailable: !this.features?.['devops-pipelines']
                 },
-                { label: 'Logs', to: { name: 'application-logs' }, tag: 'application-logs', icon: TerminalIcon },
+                {
+                    label: 'Logs',
+                    to: { name: 'application-logs' },
+                    tag: 'application-logs'
+                    // icon: TerminalIcon
+                },
                 {
                     label: 'Audit Log',
                     to: { name: 'application-activity' },
                     tag: 'application-activity',
-                    icon: ViewListIcon,
+                    // icon: ViewListIcon,
                     hidden: !this.hasPermission('application:audit-log', { application: this.application })
                 },
                 {
                     label: 'Dependencies',
                     to: { name: 'application-dependencies' },
                     tag: 'application-dependencies',
-                    icon: CogIcon,
+                    // icon: CogIcon,
                     hidden: !this.hasPermission('application:bom', { application: this.application })
                 },
-                { label: 'Settings', to: { name: 'application-settings' }, tag: 'application-settings', icon: CogIcon }
+                {
+                    label: 'Settings',
+                    to: { name: 'application-settings' },
+                    tag: 'application-settings'
+                    // icon: CogIcon
+                }
             ]
 
             return routes
