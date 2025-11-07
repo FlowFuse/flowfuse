@@ -111,7 +111,7 @@
 <script>
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
-import { TerminalIcon } from '@heroicons/vue/solid'
+// import { TerminalIcon } from '@heroicons/vue/solid'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
