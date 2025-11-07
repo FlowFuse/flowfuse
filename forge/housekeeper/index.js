@@ -20,7 +20,7 @@ const fp = require('fastify-plugin')
 module.exports = fp(async function (app, _opts) {
     const tasks = {}
     const delayedStartupTasks = []
-    const localLeaderVote = (Math.random() * 100)
+    const localLeaderVote = Math.round(Math.random() * 100000)
     const leaderVotes = {}
     // vote every 15 seconds
     const voteInterval = setInterval(() => {
