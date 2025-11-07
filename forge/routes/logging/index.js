@@ -251,7 +251,7 @@ module.exports = async function (app) {
                     return // device auto snapshot feature is not available
                 }
 
-                request.device.Team.ensureTeamTypeExists()
+                await request.device.Team.ensureTeamTypeExists()
                 const deviceAutoSnapshotEnabledForTeam = request.device.Team.getFeatureProperty('deviceAutoSnapshot', false)
                 if (!deviceAutoSnapshotEnabledForTeam) {
                     return // not enabled for team

@@ -14,8 +14,10 @@ module.exports = {
                 return false
             }
 
-            const properties = user.Team.TeamType.properties
-            if (!properties?.features?.teamBroker) {
+            // const properties = user.Team.TeamType.properties
+            await user.Team.ensureTeamTypeExists()
+            if (!user.Team.getFeatureProperty('teamBroker'))
+            // if (!properties?.features?.teamBroker) {
                 return false
             }
 
@@ -79,8 +81,10 @@ module.exports = {
         if (teamBrokerClient.Team.suspended) {
             return false
         }
-        const properties = teamBrokerClient.Team.TeamType.properties
-        if (!properties?.features?.teamBroker) {
+        // const properties = teamBrokerClient.Team.TeamType.properties
+        await teamBrokerClient.Team.ensureTeamTypeExists()
+        if (!teamBrokerClient.Team.getFeatureProperty('teamBroker')) {
+        // if (!properties?.features?.teamBroker) {
             return false
         }
         if (!compareHash(password, teamBrokerClient.password)) {
