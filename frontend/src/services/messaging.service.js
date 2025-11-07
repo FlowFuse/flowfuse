@@ -120,7 +120,7 @@ class MessagingService {
                     window.opener.postMessage(message, '*')
                 }
 
-                window.parent.postMessage(message, origin)
+                window.parent.postMessage(message, window.origin)
             })
     }
 }
