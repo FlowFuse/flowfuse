@@ -73,6 +73,24 @@ class MessagingService {
 
     setupMessageHandlers () {
         window.addEventListener('message', async (event) => {
+            // Security: Validate origin first
+            if (!allowedOrigins.includes(event.origin)) {
+                console.warn('Rejected message from unauthorized origin:', event.origin)
+                return
+            }
+
+            // Security: Validate message structure
+            if (!event.data || typeof event.data !== 'object') {
+                console.warn('Rejected malformed message: invalid data')
+                return
+            }
+
+            if (!event.data.source || !event.data.scope || !event.data.action) {
+                console.warn('Rejected malformed message: missing required fields')
+                return
+            }
+
+            // Handle valid FlowFuse Expert messages
             if (event.data.source === DATA_SOURCE_FLOWFUSE_WEBSITE && event.data.scope === dataSourceScopes[DATA_SOURCE_FLOWFUSE_WEBSITE].FLOWFUSE_EXPERT) {
                 await this.handleFlowFuseExpertMessage(event)
             }

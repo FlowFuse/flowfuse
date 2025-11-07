@@ -74,6 +74,17 @@ module.exports = {
                 async unsuspended (actionedBy, error, team) {
                     await log('platform.team.unsuspended', actionedBy, generateBody({ error, team }))
                 }
+            },
+            expert: {
+                /**
+                 * Log prompt injection attempt detected in Expert assistant
+                 * @param {number|object} actionedBy A user object or a user id
+                 * @param {*} error An error to log (pass null if no error)
+                 * @param {Object} details Details about the injection attempt
+                 */
+                async promptInjectionAttempt (actionedBy, error, details) {
+                    await log('platform.expert.prompt-injection-attempt', actionedBy, generateBody({ error, info: details }))
+                }
             }
         }
 

@@ -8,6 +8,9 @@
  */
 const { default: axios } = require('axios')
 const { v4: uuidv4 } = require('uuid')
+
+const { sanitizeExpertInput } = require('../../lib/inputSanitizer')
+
 module.exports = async function (app) {
     // Get the assistant service configuration
     const serviceEnabled = app.config.expert?.enabled === true
@@ -47,6 +50,12 @@ module.exports = async function (app) {
     })
 
     app.post('/chat', {
+        config: {
+            rateLimit: {
+                max: 20, // 20 requests
+                timeWindow: '10 minutes' // per 10 minutes
+            }
+        },
         schema: {
             hide: true, // dont show in swagger
             body: {
@@ -54,16 +63,51 @@ module.exports = async function (app) {
                 properties: {
                     history: {
                         type: 'array',
+                        maxItems: 50,
                         items: {
                             type: 'object',
-                            additionalProperties: true
+                            properties: {
+                                query: {
+                                    type: 'string',
+                                    maxLength: 10000
+                                },
+                                answer: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'object',
+                                        properties: {
+                                            kind: { type: 'string' },
+                                            content: { type: 'string' },
+                                            title: { type: 'string' }
+                                        },
+                                        required: ['kind']
+                                    }
+                                }
+                            },
+                            required: ['query'],
+                            additionalProperties: false
                         }
                     },
                     context: {
                         type: 'object',
-                        additionalProperties: true
+                        properties: {
+                            userId: { type: ['string', 'null'] },
+                            teamId: { type: ['string', 'null'] },
+                            teamSlug: { type: ['string', 'null'] },
+                            instanceId: { type: ['string', 'null'] },
+                            deviceId: { type: ['string', 'null'] },
+                            applicationId: { type: ['string', 'null'] },
+                            isTrialAccount: { type: 'boolean' },
+                            pageName: { type: 'string' },
+                            scope: { type: 'string' },
+                            rawRoute: { type: 'object' }
+                        },
+                        additionalProperties: false
                     },
-                    query: { type: 'string' }
+                    query: {
+                        type: 'string',
+                        maxLength: 5000
+                    }
                 },
                 required: ['context']
             },
@@ -81,15 +125,46 @@ module.exports = async function (app) {
     async (request, reply) => {
         const sessionId = request.headers['x-chat-session-id'] ?? uuidv4()
         const transactionId = request.headers['x-chat-transaction-id']
-        let query = request.body.query
-        if (request.body.history) {
+
+        // Sanitize input to prevent prompt injection
+        const sanitizationResult = sanitizeExpertInput({
+            query: request.body.query,
+            history: request.body.history,
+            context: request.body.context
+        })
+
+        const { sanitized, suspicious } = sanitizationResult
+
+        // Log suspicious activity for security monitoring
+        if (suspicious.hasSuspiciousContent) {
+            app.log.warn({
+                msg: 'Suspicious prompt injection attempt detected',
+                userId: request.user.id,
+                username: request.user.username,
+                sessionId,
+                suspiciousPatterns: {
+                    inQuery: suspicious.foundInQuery.length,
+                    inHistory: suspicious.foundInHistory.length
+                }
+            })
+
+            // Audit log the event
+            await app.auditLog.Platform.expert.promptInjectionAttempt(request.user, null, {
+                patterns: suspicious,
+                sessionId
+            })
+        }
+
+        let query = sanitized.query
+        if (sanitized.history && sanitized.history.length > 0) {
             query = ''
         }
+
         try {
             const response = await axios.post(expertUrl, {
                 query,
-                history: request.body.history,
-                context: request.body.context
+                history: sanitized.history,
+                context: sanitized.context
             }, {
                 headers: {
                     Origin: request.headers.origin,

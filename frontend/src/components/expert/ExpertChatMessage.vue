@@ -12,6 +12,7 @@
 </template>
 
 <script>
+import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 
 export default {
@@ -45,14 +46,35 @@ export default {
         formattedContent () {
             if (this.message.isHTML) {
                 // Content is already HTML (from rich guide or pre-formatted)
-                return this.message.content
+                // Still sanitize it for security
+                return DOMPurify.sanitize(this.message.content, this.sanitizeConfig)
             }
-            // Convert markdown to HTML
+            // Convert markdown to HTML and sanitize
             const html = marked(this.message.content || '', {
                 breaks: true,
                 gfm: true
             })
-            return html
+            return DOMPurify.sanitize(html, this.sanitizeConfig)
+        },
+        sanitizeConfig () {
+            return {
+                ALLOWED_TAGS: [
+                    'p', 'br', 'span', 'div',
+                    'b', 'i', 'em', 'strong', 'u', 's', 'mark',
+                    'a', 'code', 'pre',
+                    'ul', 'ol', 'li',
+                    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                    'blockquote', 'hr',
+                    'table', 'thead', 'tbody', 'tr', 'th', 'td'
+                ],
+                ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+                ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
+                ADD_ATTR: ['target'],
+                FORCE_BODY: true,
+                RETURN_DOM_FRAGMENT: false,
+                RETURN_DOM: false,
+                SAFE_FOR_TEMPLATES: true
+            }
         }
     }
 }
