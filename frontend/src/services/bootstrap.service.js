@@ -59,6 +59,7 @@ class BootstrapService {
         return this.waitForAppMount()
             .then(() => this.waitForStoreHydration())
             .then(() => this.waitForRouterReady())
+            .then(() => this.checkUser())
             .then(async () => this.markAsReady())
     }
 
@@ -94,6 +95,14 @@ class BootstrapService {
 
     async waitForRouterReady () {
         await this.$router.isReady()
+    }
+
+    async checkUser () {
+        if (window.opener) {
+            return this.$store.dispatch('account/checkIfAuthenticated').catch(e => e)
+        }
+
+        return Promise.resolve()
     }
 
     markAsReady () {

@@ -1,3 +1,5 @@
+import DOMPurify from 'dompurify'
+
 export const isValidURL = (string) => {
     // eslint-disable-next-line
     return /^(?:\w+:)?\/\/([^\s\.]+\.\S{2}|localhost[\:?\d]*)\S*$/.test(string)
@@ -80,4 +82,8 @@ export const slugify = (str) => {
         .replace(/[^\w\s-]/g, '')
         .replace(/[\s_-]+/g, '-')
         .replace(/^-+|-+$/g, '')
+}
+
+export const sanitize = (str) => {
+    return DOMPurify.sanitize(str)
 }

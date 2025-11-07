@@ -1204,6 +1204,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-action="add-stage"]').should('not.exist')
 
         // application logs
+        cy.get('[data-nav="application-logs"]').scrollIntoView()
         cy.get('[data-nav="application-logs"]').click()
         cy.get('[data-hero="Node-RED Logs"]').should('exist')
 
@@ -1218,6 +1219,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-el="application-dependencies"]').should('not.exist')
 
         // application settings
+        cy.get('[data-nav="application-settings"]').scrollIntoView()
         cy.get('[data-nav="application-settings"]').should('exist')
         cy.visit(`/team/${team.slug}/applications/${application.id}/settings`)
         cy.get('[data-el="application-settings"]').should('exist')
@@ -1321,6 +1323,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         cy.get('[data-action="add-stage"]').should('exist')
 
         // application logs
+        cy.get('[data-nav="application-logs"]').scrollIntoView()
         cy.get('[data-nav="application-logs"]').click()
         cy.get('[data-hero="Node-RED Logs"]').should('exist')
 

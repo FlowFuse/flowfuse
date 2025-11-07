@@ -108,8 +108,8 @@
             <div class="ff-instance-info" data-el="recent-activity">
                 <FormHeading><TrendingUpIcon />Recent Activity</FormHeading>
                 <AuditLog :entries="auditLog" :loading="loading" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
-                <div v-if="!loading" class="pb-4 text-center">
-                    <router-link to="./audit-log" class="forge-button-inline">More...</router-link>
+                <div v-if="!loading" class="pt-4 pb-4 text-center">
+                    <router-link to="./audit-log" class="forge-button-secondary">More...</router-link>
                 </div>
             </div>
         </div>
@@ -209,4 +209,39 @@ export default {
 
 <style lang="scss">
 @import "../../stylesheets/pages/project.scss";
+
+// Container query for drawer context
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
+@container drawer (min-width: 640px) {
+  .ff-project-overview .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// Ensure single column layout when container is smaller
+@container drawer (max-width: 639px) {
+  .ff-project-overview .grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+
+// Editor URL overflow - truncate with ellipsis
+.ff-instance-info a.ff-link.flex {
+  min-width: 0;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Type field - ellipse from LEFT to show stack name
+.ff-instance-info table tr td.flex .flex-grow {
+  direction: rtl;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>

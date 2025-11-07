@@ -46,6 +46,7 @@ export default {
             default: false
         }
     },
+    emits: ['iframe-loaded', 'toggle-drawer', 'request-drawer-state'],
     computed: {
         isInstanceTransitioningStates () {
             const pendingState = (Object.hasOwnProperty.call(this.instance, 'pendingStateChange') && this.instance.pendingStateChange)
@@ -75,12 +76,19 @@ export default {
                 switch (event.data.type) {
                 case 'load':
                     this.emitMessage('prevent-redirect', true)
+                    this.$emit('iframe-loaded')
                     break
                 case 'navigate':
                     window.location.href = event.data.payload
                     break
                 case 'logout':
                     this.$router.push({ name: 'instance-overview', params: { id: this.instance.id } })
+                    break
+                case 'toggle-drawer':
+                    this.$emit('toggle-drawer')
+                    break
+                case 'request-drawer-state':
+                    this.$emit('request-drawer-state')
                     break
                 default:
                 }

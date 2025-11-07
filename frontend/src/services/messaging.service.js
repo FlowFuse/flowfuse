@@ -14,6 +14,8 @@ const sourceActions = {
     [DATA_SOURCE_FLOWFUSE_WEBSITE]: ACTIONS_FLOWFUSE_EXPERT
 }
 
+const allowedOrigins = ['https://flowfuse.com', 'https://app.flowfuse.com', 'https://forge.flowfuse.dev']
+
 /**
  * Messaging Service - Handles postMessage communication
  * @class
@@ -94,13 +96,7 @@ class MessagingService {
             timestamp: Date.now()
         }
 
-        if (window.parent !== window) {
-            window.parent.postMessage(message, '*')
-        }
-
-        if (window.opener) {
-            window.opener.postMessage(message, '*')
-        }
+        this.sendMessage({ message })
     }
 
     setExpertContext (payload) {
@@ -112,8 +108,82 @@ class MessagingService {
                     timestamp: Date.now()
                 }
 
-                window.parent.postMessage(message, origin)
+                this.sendMessage({ message })
             })
+    }
+
+    sendMessage ({
+        message,
+        targetOrigin
+    }) {
+        if (targetOrigin && !allowedOrigins.includes(targetOrigin)) {
+            console.warn('Invalid target origin:', targetOrigin)
+            return
+        }
+
+        // Check parent window
+        if (window.parent !== window) {
+            const parentOrigin = this.getWindowOrigin(window.parent)
+
+            if (parentOrigin && this.isWindowOriginAllowed(parentOrigin)) {
+                window.parent.postMessage(message, parentOrigin)
+            } else if (parentOrigin) {
+                console.warn(`Parent window origin not whitelisted: ${parentOrigin}`)
+            } else {
+                console.warn('Cannot determine parent window origin - message not sent')
+            }
+        }
+
+        // Check opener window
+        if (window.opener) {
+            const openerOrigin = this.getWindowOrigin(window.opener)
+
+            if (openerOrigin && this.isWindowOriginAllowed(openerOrigin)) {
+                window.opener.postMessage(message, openerOrigin)
+            } else if (openerOrigin) {
+                console.warn(`Opener window origin not whitelisted: ${openerOrigin}`)
+            } else {
+                console.warn('Cannot determine opener window origin - message not sent')
+            }
+        }
+    }
+
+    /**
+     * Get the origin of a window
+     * @param {Window} targetWindow - The window to get origin from
+     * @returns {string|null} - The origin or null if inaccessible
+     */
+    getWindowOrigin (targetWindow) {
+        try {
+            return targetWindow.location.origin
+        } catch (error) {
+            // Cross-origin - try to get from document.referrer or other sources
+            if (targetWindow === window.parent && document.referrer) {
+                try {
+                    return new URL(document.referrer).origin
+                } catch (e) {
+                    return null
+                }
+            }
+            // For opener windows, document.referrer might also contain the opener's URL
+            if (targetWindow === window.opener && document.referrer) {
+                try {
+                    return new URL(document.referrer).origin
+                } catch (e) {
+                    return null
+                }
+            }
+            return null
+        }
+    }
+
+    /**
+     * Check if an origin is whitelisted
+     * @param {string} origin - The origin to check
+     * @returns {boolean} - True if the origin is allowed
+     */
+    isWindowOriginAllowed (origin) {
+        return allowedOrigins.includes(origin)
     }
 }
 
