@@ -478,7 +478,7 @@ const actions = {
         const teams = await teamApi.getTeams()
         state.commit('setTeams', teams.teams)
     },
-    async login ({ state, dispatch, commit }, credentials) {
+    async login ({ state, dispatch, commit, getters }, credentials) {
         try {
             commit('setLoginInflight')
             if (credentials.username) {
