@@ -14,8 +14,6 @@ module.exports = {
                 return false
             }
 
-            // const properties = user.Team.TeamType.properties
-            // if (!properties?.features?.teamBroker) {
             await user.Team.ensureTeamTypeExists()
             if (!user.Team.getFeatureProperty('teamBroker')) {
                 return false
@@ -81,8 +79,7 @@ module.exports = {
         if (teamBrokerClient.Team.suspended) {
             return false
         }
-        // const properties = teamBrokerClient.Team.TeamType.properties
-        // if (!properties?.features?.teamBroker) {
+
         await teamBrokerClient.Team.ensureTeamTypeExists()
         if (!teamBrokerClient.Team.getFeatureProperty('teamBroker')) {
             return false
