@@ -266,8 +266,8 @@ export default {
                 {
                     label: 'Node-RED Logs',
                     to: { name: 'device-logs' },
-                    tag: 'device-logs',
-                    icon: TerminalIcon
+                    tag: 'device-logs'
+                    // icon: TerminalIcon
                 },
                 {
                     label: 'Performance',
