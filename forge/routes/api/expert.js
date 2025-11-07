@@ -12,7 +12,7 @@ module.exports = async function (app) {
     // Get the assistant service configuration
     const serviceEnabled = app.config.expert?.enabled === true
     const expertUrl = app.config.expert?.service?.url
-    const serviceToken = '1234' // app.config.expert?.service?.token
+    const serviceToken = app.config.expert?.service?.token
     const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
 
     app.addHook('preHandler', app.verifySession)
