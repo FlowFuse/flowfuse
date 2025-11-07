@@ -73,9 +73,8 @@ module.exports = fp(async function (app, _opts) {
         app.addHook('onClose', async (_) => {
             app.log.info('Comms shutdown')
             await deviceCommsHandler.stopLogWatcher()
-            client.publish('ff/v1/platform/leader', JSON.stringify({ id: client.platformId, vote: -1 }), async function () {
-                await client.disconnect()
-            })
+            client.publish('ff/v1/platform/leader', JSON.stringify({ id: client.platformId, vote: -1 }))
+            await client.disconnect()
         })
     } else {
         app.log.warn('[comms] Broker not configured - comms unavailable')
