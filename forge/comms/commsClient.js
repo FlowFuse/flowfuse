@@ -106,7 +106,7 @@ class CommsClient extends EventEmitter {
                     if (jsonPayload.srcId !== this.platformId) {
                         this.app.settings.refresh(jsonPayload.key)
                     }
-                } else if (ownerType === ' leader') {
+                } else if (ownerType === 'leader') {
                     const payload = message.toString()
                     const jsonPayload = JSON.parse(payload)
                     this.app.housekeeper.updateLeader(jsonPayload)
