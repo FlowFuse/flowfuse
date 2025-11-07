@@ -33,9 +33,12 @@
         }
     }
     .ff-accordion {
-        margin-bottom: 0;
+        margin-bottom: -1px;
     }
     .ff-accordion--content {
         background-color: white;
+    }
+    &:last-child {
+        margin-bottom: 0;
     }
 }

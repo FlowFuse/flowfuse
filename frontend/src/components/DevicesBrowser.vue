@@ -7,7 +7,7 @@
         <template v-else-if="team">
             <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the limit for Remote Instances in this team." :class="{'mt-0': displayingTeam }" />
             <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the limit for Instances in this team." :class="{'mt-0': displayingTeam }" />
-            <div>
+            <div class="devices-status-bars-container">
                 <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
                 <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(allDeviceStatuses.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
             </div>
@@ -1001,6 +1001,46 @@ export default {
   .add-remote-instance-text,
   .bulk-actions-text {
     display: inline;
+  }
+}
+
+// Status bars layout - responsive to both viewport and container
+.devices-status-bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+// On wider viewports (>= 640px), show side-by-side
+@media (min-width: 640px) {
+  .devices-status-bars-container {
+    flex-direction: row;
+
+    > * {
+      flex: 1;
+    }
+  }
+}
+
+// Container query for drawer context
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
+@container drawer (max-width: 639px) {
+  .devices-status-bars-container {
+    flex-direction: column;
+
+    > * {
+      flex: none;
+    }
+  }
+}
+
+@container drawer (min-width: 640px) {
+  .devices-status-bars-container {
+    flex-direction: row;
+
+    > * {
+      flex: 1;
+    }
   }
 }
 </style>

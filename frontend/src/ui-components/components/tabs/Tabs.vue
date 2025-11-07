@@ -309,10 +309,30 @@ export default {
                 const tabElement = tabElements[tabIndex]
 
                 if (tabElement) {
+                    // Find all scrollable ancestors and store their scroll positions
+                    const scrollableAncestors = []
+                    let parent = container.parentElement
+                    while (parent) {
+                        if (parent.scrollLeft !== undefined) {
+                            scrollableAncestors.push({
+                                element: parent,
+                                scrollLeft: parent.scrollLeft
+                            })
+                        }
+                        parent = parent.parentElement
+                    }
+
                     tabElement.scrollIntoView({
                         behavior: 'auto',
                         block: 'nearest',
-                        inline: 'center'
+                        inline: 'nearest'
+                    })
+
+                    // Restore scroll positions of ancestors (but not the immediate container)
+                    scrollableAncestors.forEach(({ element, scrollLeft }) => {
+                        if (element !== container) {
+                            element.scrollLeft = scrollLeft
+                        }
                     })
                 }
             }
