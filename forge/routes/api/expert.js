@@ -97,7 +97,7 @@ module.exports = async function (app) {
                     'X-Chat-Transaction-ID': transactionId,
                     ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
                 },
-                requestTimeout
+                timeout: requestTimeout
             })
 
             if (response.data.transactionId !== transactionId) {
