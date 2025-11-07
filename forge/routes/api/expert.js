@@ -12,7 +12,7 @@ module.exports = async function (app) {
     // Get the assistant service configuration
     const serviceEnabled = app.config.expert?.enabled === true
     const expertUrl = app.config.expert?.service?.url
-    const serviceToken = app.config.expert?.service?.token
+    const serviceToken = '1234' // app.config.expert?.service?.token
     const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
 
     app.addHook('preHandler', app.verifySession)
@@ -92,7 +92,7 @@ module.exports = async function (app) {
                 context: request.body.context
             }, {
                 headers: {
-                    Origin: 'https://flowfuse.com',
+                    Origin: request.headers.origin,
                     'X-Chat-Session-ID': sessionId,
                     'X-Chat-Transaction-ID': transactionId,
                     ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
