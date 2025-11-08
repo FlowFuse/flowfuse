@@ -1,17 +1,17 @@
 <template>
     <transition name="slideIn">
         <div v-if="isVisible" class="drawer-close">
-            <ChevronDownIcon class="ff-btn--icon" />
+            <ChevronLeftIcon class="ff-btn--icon" />
         </div>
     </transition>
 </template>
 
 <script>
-import { ChevronDownIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon } from '@heroicons/vue/solid'
 
 export default {
     name: 'MiddleCloseButton',
-    components: { ChevronDownIcon },
+    components: { ChevronLeftIcon },
     props: {
         isVisible: {
             type: Boolean,
@@ -29,15 +29,15 @@ export default {
   justify-content: center;
   align-items: center;
   background: white;
-  border-radius: 5px 5px 0 0;
-  width: 100px;
-  height: 30px;
-  top: -30px;
-  left: 50%;
-  margin-left: -50px;
-  box-shadow: 4px -4px 8px rgba(0, 0, 0, 0.10);
+  border-radius: 0 5px 5px 0;
+  width: 30px;
+  height: 100px;
+  top: 50%;
+  right: -30px;
+  margin-top: -50px;
+  box-shadow: -4px 4px 8px rgba(0, 0, 0, 0.10);
   border: 1px solid $ff-grey-300;
-  border-bottom: none;
+  border-left: none;
   color: $ff-grey-400;
 
   &:hover {
@@ -51,7 +51,7 @@ export default {
 }
 .slideIn-enter-from {
   opacity: 0;
-  transform: translateY(100%);
+  transform: translateX(100%);
 }
 .slideIn-enter-to {
   opacity: 1;
@@ -61,6 +61,6 @@ export default {
 }
 .slideIn-leave-to {
   opacity: 0;
-  transform: translateY(100%);
+  transform: translateX(100%);
 }
 </style>
