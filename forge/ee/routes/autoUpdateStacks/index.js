@@ -4,6 +4,32 @@ module.exports = async function (app) {
     app.config.features.register('autoStackUpdate', true, true)
 
     app.addHook('preHandler', app.verifySession)
+    app.addHook('preHandler', async (request, reply) => {
+        if (request.params.projectId) {
+            try {
+                request.project = await app.db.models.Project.byId(request.params.projectId)
+                if (!request.project) {
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    return
+                }
+                if (request.session.User) {
+                    request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id)
+                    if (!request.teamMembership && !request.session.User.admin) {
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                        return // eslint-disable-line no-useless-return
+                    }
+                } else if (request.session.ownerId !== request.params.projectId) {
+                    // AccessToken being used - but not owned by this project
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    return // eslint-disable-line no-useless-return
+                }
+            } catch (err) {
+
+            }
+        } else {
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
 
     /**
      * Get Instance Restart Time
@@ -18,7 +44,7 @@ module.exports = async function (app) {
             params: {
                 type: 'object',
                 properties: {
-                    instanceId: { type: 'string' }
+                    projectId: { type: 'string' }
                 }
             },
             response: {
@@ -35,7 +61,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const schedule = await request.project.getSettings(KEY_STACK_UPGRADE_HOUR)
+        const schedule = await request.project.getSetting(KEY_STACK_UPGRADE_HOUR)
         if (schedule) {
             reply.send(schedule)
             return
@@ -56,7 +82,7 @@ module.exports = async function (app) {
             params: {
                 type: 'object',
                 properties: {
-                    instanceId: { type: 'string' }
+                    projectId: { type: 'string' }
                 }
             },
             body: {
@@ -113,7 +139,7 @@ module.exports = async function (app) {
             params: {
                 type: 'object',
                 properties: {
-                    instanceId: { type: 'string' }
+                    projectId: { type: 'string' }
                 }
             },
             response: {

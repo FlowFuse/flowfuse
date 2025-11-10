@@ -28,6 +28,7 @@ module.exports = {
     KEY_CUSTOM_HOSTNAME,
     KEY_SHARED_ASSETS,
     KEY_DISABLE_AUTO_SAFE_MODE,
+    KEY_STACK_UPGRADE_HOUR,
     name: 'ProjectSettings',
     schema: {
         ProjectId: { type: DataTypes.UUID, unique: 'pk_settings' },
