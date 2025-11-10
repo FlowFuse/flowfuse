@@ -87,7 +87,6 @@ import usePermissions from '../../composables/Permissions.js'
 
 import featuresMixin from '../../mixins/Features.js'
 import instanceMixin from '../../mixins/Instance.js'
-import { Roles } from '../../utils/roles.js'
 
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from './components/DashboardLink.vue'
@@ -110,11 +109,10 @@ export default {
     },
     mixins: [instanceMixin, featuresMixin],
     setup () {
-        const { hasPermission, hasAMinimumTeamRoleOf, isVisitingAdmin } = usePermissions()
+        const { hasPermission, isVisitingAdmin } = usePermissions()
 
         return {
             hasPermission,
-            hasAMinimumTeamRoleOf,
             isVisitingAdmin
         }
     },
@@ -146,7 +144,7 @@ export default {
                 { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
                 { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
                 { label: 'Version History', to: versionHistoryRoute, tag: 'instance-version-history' },
-                { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasAMinimumTeamRoleOf(Roles.Member) },
+                { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasPermission('project:files:list', { application: this.instance.application }) },
                 { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
                 { label: 'Node-RED Logs', to: { name: 'instance-logs', params: { id: this.instance.id } }, tag: 'instance-logs' },
                 { label: 'Performance', to: { name: 'instance-performance', params: { id: this.instance.id } }, tag: 'instance-performance' },

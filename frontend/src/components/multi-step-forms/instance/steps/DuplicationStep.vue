@@ -16,14 +16,19 @@
                             </div>
                         </div>
                         <p data-el="application-name">{{ selectedApplication.label }}</p>
-                        <p v-if="selectedApplication.description" data-el="application-description">{{ selectedApplication.description }}</p>
+                        <p v-if="selectedApplication.description" data-el="application-description">
+                            {{ selectedApplication.description }}
+                        </p>
                     </div>
 
                     <div class="form-group">
                         <div class="title">
                             <label>Instance Name</label>
                             <div class="actions">
-                                <ff-button v-ff-tooltip="'Generate a new name'" size="small" kind="tertiary" @click="generateName">
+                                <ff-button
+                                    v-ff-tooltip="'Generate a new name'" size="small" kind="tertiary"
+                                    @click="generateName"
+                                >
                                     <RefreshIcon class="ff-icon ff-icon-sm" />
                                 </ff-button>
                                 <ff-button v-ff-tooltip="'Edit'" size="small" kind="tertiary" @click="goToStep(1)">
@@ -114,7 +119,14 @@ import FfLoading from '../../../Loading.vue'
 
 export default {
     name: 'DuplicationStep',
-    components: { FfButton, InstanceChargesTable, ExportInstanceComponents, FfLoading, PencilIcon, RefreshIcon },
+    components: {
+        FfButton,
+        InstanceChargesTable,
+        ExportInstanceComponents,
+        FfLoading,
+        PencilIcon,
+        RefreshIcon
+    },
     props: {
         applications: {
             required: true,
@@ -250,7 +262,13 @@ export default {
 
             this.nodeRedVersions = versions.stacks
                 .filter(version => version.active)
-                .map(version => { return { ...version, value: version.id, label: version.label || version.name } })
+                .map(version => {
+                    return {
+                        ...version,
+                        value: version.id,
+                        label: version.label || version.name
+                    }
+                })
 
             if (!this.nodeRedVersions.find(v => v.id === this.instanceSelection.nodeREDVersion)) {
                 // intended prop mutation to allow the node RED version to default to the selected instance type nodeRED version
@@ -297,6 +315,7 @@ export default {
                 gap: 5px;
             }
         }
+
         p {
             margin-top: 5px;
 

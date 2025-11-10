@@ -1,5 +1,5 @@
 <template>
-    <div class="instance-tile">
+    <div class="instance-tile" data-el="instance-tile">
         <div class="status">
             <InstanceStatusBadge
                 v-if="!minimalView"

@@ -13,7 +13,7 @@ module.exports = fp(async function (app, opts) {
         require('./protectedInstance').init(app)
         require('./customHostnames').init(app)
         app.decorate('sso', await require('./sso').init(app))
-        require('./teamBroker').init(app)
+        await require('./teamBroker').init(app)
         app.decorate('gitops', await require('./gitops').init(app))
         // Set the MFA Feature Flag
         app.config.features.register('mfa', true, true)
@@ -31,6 +31,8 @@ module.exports = fp(async function (app, opts) {
             app.decorate('tables', await require('./tables').init(app))
         }
         app.config.features.register('certifiedNodes', true, true)
+        app.config.features.register('ffNodes', true, true)
+        app.config.features.register('rbacApplication', true, true)
     }
 
     // Set the Team Library Feature Flag
@@ -56,4 +58,7 @@ module.exports = fp(async function (app, opts) {
 
     // Set the assistant inline completions Feature Flag
     app.config.features.register('assistantInlineCompletions', true, true)
+
+    // Set the expert assistant Feature Flag
+    app.config.features.register('expertAssistant', app.config?.expert?.enabled ?? false, true)
 }, { name: 'app.ee.lib' })

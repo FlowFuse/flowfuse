@@ -60,9 +60,16 @@ describe('FlowFuse - Instance editor', () => {
             cy.stub(win, 'open').as('windowOpen')
         })
 
-        cy.get('[data-action="open-editor"]').click()
+        // check that it opens the immersive editor in a new tab when using middle mouse click
+        cy.get('[data-action="open-editor"]').trigger('click', { button: 1 })
 
         cy.get('@windowOpen').should('be.calledWithMatch', /\/instance\/.*\/editor/)
+
+        cy.get('[data-action="open-editor"]').click()
+
+        cy.url().then((url) => {
+            cy.url().should('match', /\/instance\/.*\/editor/)
+        })
     })
 
     it('has working drawer navigation tabs', () => {
@@ -134,7 +141,7 @@ describe('FlowFuse - Instance editor', () => {
         cy.get('@tabs-wrapper').contains('Recent Activity')
         cy.get('@tabs-wrapper').contains('Specs')
 
-        cy.get('@tabs-wrapper').get('.logo').click()
+        cy.get('@tabs-wrapper').get('.logo a').click()
         cy.get('[data-el="page-name"]').contains('instance-1-1')
     })
 

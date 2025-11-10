@@ -16,24 +16,30 @@ describe('Team Devices API', function () {
     let AccessTokenController
     const TestObjects = {}
 
-    const queryDevices = async (url, expectedStatusCode = 200) => {
+    const queryDevices = async (url, expectedStatusCode = 200, token, returnFullObject = false) => {
         // Match device on name
         const response = await app.inject({
             method: 'GET',
             url,
-            cookies: { sid: TestObjects.tokens.alice }
+            cookies: { sid: token || TestObjects.tokens.alice }
         })
 
         const result = response.json()
         result.should.have.property('devices').and.be.an.Array()
 
         response.statusCode.should.equal(expectedStatusCode)
-
+        if (returnFullObject) {
+            return result
+        }
         return result.devices
     }
 
     before(async function () {
-        const opts = { limits: { instances: 50 } }
+        const opts = {
+            // Enable dev license for granular rbac tests
+            license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg',
+            limits: { instances: 50 }
+        }
         app = await setup(opts)
         factory = app.factory
         AccessTokenController = app.db.controllers.AccessToken
@@ -44,6 +50,8 @@ describe('Team Devices API', function () {
         TestObjects.chris = await app.db.models.User.create({ username: 'chris', name: 'Chris Kenobi', email: 'chris@example.com', email_verified: true, password: 'ccPassword' })
         // non admin, not in any team
         TestObjects.dave = await app.db.models.User.create({ username: 'dave', name: 'Dave Vader', email: 'dave@example.com', password: 'ddPassword', email_verified: true, password_expired: false })
+        // Owner of Team B, but rbac denies access to application-3
+        TestObjects.eric = await app.db.models.User.create({ username: 'eric', name: 'Eric Fett', email: 'eric@example.com', email_verified: true, password: 'eePassword' })
 
         TestObjects.ATeam = app.team
         TestObjects.application = app.application
@@ -65,6 +73,12 @@ describe('Team Devices API', function () {
         // create 1 device for ATeam
         TestObjects.Device1 = await app.factory.createDevice({ name: 'device 1', type: 'test device' }, TestObjects.ATeam, TestObjects.Project1)
 
+        const defaultTeamTypeProperties = app.defaultTeamType.properties
+        defaultTeamTypeProperties.features = defaultTeamTypeProperties.features || {}
+        defaultTeamTypeProperties.features.rbacApplication = true
+        app.defaultTeamType.properties = defaultTeamTypeProperties
+        await app.defaultTeamType.save()
+
         TestObjects.BTeam = await app.factory.createTeam({ name: 'BTeam' })
         await TestObjects.BTeam.addUser(TestObjects.alice, { through: { role: app.factory.Roles.Roles.Owner } })
         TestObjects.BTeamApplication = await app.factory.createApplication({ name: 'application-2' }, TestObjects.BTeam)
@@ -83,6 +97,7 @@ describe('Team Devices API', function () {
         await login('bob', 'bbPassword')
         await login('chris', 'ccPassword')
         await login('dave', 'ddPassword')
+        await login('eric', 'eePassword')
     })
 
     async function login (username, password) {
@@ -357,6 +372,7 @@ describe('Team Devices API', function () {
                 runningUnseenDevices.should.have.length(0)
             })
         })
+
         describe('Supports bulk operations', function () {
             describe('delete', function () {
                 const aTeamDevices = {
@@ -473,6 +489,7 @@ describe('Team Devices API', function () {
                     devices.filter((device) => device.name === 'goat device 1').should.have.length(1) // still there
                 })
             })
+
             describe('update', function () {
                 const aTeamDevices = {
                     device1: null,
@@ -914,6 +931,422 @@ describe('Team Devices API', function () {
                             payload.should.have.property('snapshot', null)
                         }
                     })
+                })
+            })
+
+            describe('reassign to device groups', function () {
+                const aTeamDevices = {
+                    device1: null,
+                    device2: null,
+                    device3: null,
+                    device4: null
+                }
+                let group1
+                let group2
+                let auditLogSpy
+
+                beforeEach(async function () {
+                    // Create device groups
+                    group1 = await factory.createApplicationDeviceGroup({ name: 'group 1' }, TestObjects.application)
+                    group2 = await factory.createApplicationDeviceGroup({ name: 'group 2' }, TestObjects.application)
+
+                    // Create test devices with various group assignments
+                    aTeamDevices.device1 = await factory.createDevice({ name: 'group-test-device-1' }, TestObjects.ATeam, null, TestObjects.application)
+                    aTeamDevices.device2 = await factory.createDevice({ name: 'group-test-device-2' }, TestObjects.ATeam, null, TestObjects.application)
+                    aTeamDevices.device3 = await factory.createDevice({ name: 'group-test-device-3' }, TestObjects.ATeam, null, TestObjects.application)
+                    aTeamDevices.device4 = await factory.createDevice({ name: 'group-test-device-4' }, TestObjects.ATeam, null, TestObjects.application)
+
+                    // Assign some devices to groups
+                    await aTeamDevices.device1.update({ DeviceGroupId: group1.id })
+                    await aTeamDevices.device2.update({ DeviceGroupId: group1.id })
+                    await aTeamDevices.device3.update({ DeviceGroupId: group2.id })
+                    // device4 remains unassigned
+
+                    // Spy on audit log
+                    auditLogSpy = sinon.spy(app.auditLog.Application.application.deviceGroup, 'membersChanged')
+                })
+
+                afterEach(async function () {
+                    await app.db.models.Device.destroy({
+                        where: {
+                            name: ['group-test-device-1', 'group-test-device-2', 'group-test-device-3', 'group-test-device-4']
+                        }
+                    })
+                    await app.db.models.DeviceGroup.destroy({ where: { id: [group1.id, group2.id] } })
+                    auditLogSpy.restore()
+                })
+
+                async function bulkUpdateDeviceGroup (teamId, userToken, data) {
+                    const payload = {}
+                    const hasProperty = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop)
+                    if (hasProperty(data, 'devices')) { payload.devices = data.devices }
+                    if (hasProperty(data, 'deviceGroup')) { payload.deviceGroup = data.deviceGroup }
+                    return await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/teams/${teamId}/devices/bulk`,
+                        cookies: { sid: userToken },
+                        payload
+                    })
+                }
+
+                describe('assign devices to group', function () {
+                    it('Assign multiple unassigned devices to a device group', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device4.hashid],
+                            deviceGroup: group1.hashid
+                        })
+                        response.statusCode.should.equal(200)
+                        const result = response.json()
+                        result.should.have.property('devices').and.be.an.Array()
+
+                        // Verify device is assigned to group
+                        const updatedDevice = await app.db.models.Device.findByPk(aTeamDevices.device4.id)
+                        updatedDevice.should.have.property('DeviceGroupId', group1.id)
+
+                        // Verify audit log was called
+                        should(auditLogSpy.calledOnce).be.true()
+                        const auditCall = auditLogSpy.getCall(0)
+                        auditCall.args[5].should.have.property('info', 'Reassigned 1')
+                    })
+
+                    it('Assign devices from different groups to a new group', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid, aTeamDevices.device3.hashid],
+                            deviceGroup: group2.hashid
+                        })
+                        response.statusCode.should.equal(200)
+
+                        // Verify all devices are now in group2
+                        const devices = await app.db.models.Device.findAll({
+                            where: { id: [aTeamDevices.device1.id, aTeamDevices.device2.id, aTeamDevices.device3.id] }
+                        })
+                        devices.forEach(device => {
+                            device.should.have.property('DeviceGroupId', group2.id)
+                        })
+
+                        // Verify audit log was called
+                        should(auditLogSpy.calledOnce).be.true()
+                        const auditCall = auditLogSpy.getCall(0)
+                        auditCall.args[5].should.have.property('info', 'Reassigned 3')
+                    })
+
+                    it('Handle mixed devices (some in groups, some unassigned)', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device4.hashid],
+                            deviceGroup: group2.hashid
+                        })
+                        response.statusCode.should.equal(200)
+
+                        // Verify both devices are now in group2
+                        const devices = await app.db.models.Device.findAll({
+                            where: { id: [aTeamDevices.device1.id, aTeamDevices.device4.id] }
+                        })
+                        devices.forEach(device => {
+                            device.should.have.property('DeviceGroupId', group2.id)
+                        })
+
+                        // Verify audit log was called
+                        should(auditLogSpy.calledOnce).be.true()
+                        const auditCall = auditLogSpy.getCall(0)
+                        auditCall.args[5].should.have.property('info', 'Reassigned 2')
+                    })
+                })
+
+                describe('unassign devices from groups', function () {
+                    it('Unassign devices from their respective groups', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid, aTeamDevices.device3.hashid],
+                            deviceGroup: ''
+                        })
+                        response.statusCode.should.equal(200)
+
+                        // Verify all devices are unassigned
+                        const devices = await app.db.models.Device.findAll({
+                            where: { id: [aTeamDevices.device1.id, aTeamDevices.device2.id, aTeamDevices.device3.id] }
+                        })
+                        devices.forEach(device => {
+                            device.should.have.property('DeviceGroupId', null)
+                        })
+
+                        should(auditLogSpy.called).be.true()
+                    })
+
+                    it('Handle unassigning devices from different groups', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device3.hashid],
+                            deviceGroup: ''
+                        })
+                        response.statusCode.should.equal(200)
+
+                        // Verify devices are unassigned
+                        const devices = await app.db.models.Device.findAll({
+                            where: { id: [aTeamDevices.device1.id, aTeamDevices.device3.id] }
+                        })
+                        devices.forEach(device => {
+                            device.should.have.property('DeviceGroupId', null)
+                        })
+
+                        should(auditLogSpy.called).be.true()
+                    })
+                })
+
+                describe('validation', function () {
+                    it('Reject invalid device group ID', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid],
+                            deviceGroup: 'invalid-group-id'
+                        })
+                        response.statusCode.should.equal(400)
+                        const result = response.json()
+                        result.should.have.property('code', 'invalid_input')
+                        result.should.have.property('error', 'Invalid device group')
+                    })
+
+                    it('Reject empty devices array', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [],
+                            deviceGroup: group1.hashid
+                        })
+                        response.statusCode.should.equal(400)
+                    })
+                })
+
+                describe('audit logging', function () {
+                    it('Verify audit log is called for assignment operations', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid],
+                            deviceGroup: group2.hashid
+                        })
+                        response.statusCode.should.equal(200)
+
+                        should(auditLogSpy.called).be.true()
+                    })
+
+                    it('Verify audit log is called for unassignment operations', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid, aTeamDevices.device2.hashid],
+                            deviceGroup: ''
+                        })
+                        response.statusCode.should.equal(200)
+
+                        should(auditLogSpy.called).be.true()
+                    })
+                })
+
+                describe('transaction handling', function () {
+                    it('Verify transaction rollback on failure', async function () {
+                        // Mock the DeviceGroup.updateDeviceGroupMembership to throw an error
+                        const originalMethod = app.db.controllers.DeviceGroup.updateDeviceGroupMembership
+                        app.db.controllers.DeviceGroup.updateDeviceGroupMembership = sinon.stub().throws(new Error('Simulated error'))
+
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.alice, {
+                            devices: [aTeamDevices.device1.hashid],
+                            deviceGroup: group2.hashid
+                        })
+                        response.statusCode.should.equal(500)
+
+                        // Verify device was not updated (transaction rolled back)
+                        const device = await app.db.models.Device.findByPk(aTeamDevices.device1.id)
+                        device.should.have.property('DeviceGroupId', group1.id) // Should still be in original group
+
+                        // Restore original method
+                        app.db.controllers.DeviceGroup.updateDeviceGroupMembership = originalMethod
+                    })
+                })
+            })
+        })
+        describe('Supports granular RBAC', function () {
+            async function setupDevices () {
+                await app.db.models.Device.destroy({
+                    where: {
+                        name: { [Op.like]: 'device rbac %' }
+                    }
+                })
+                TestObjects.rbacDevice1 = await app.factory.createDevice({ name: 'device rbac 1', type: 'Application Assigned (blocked)' }, TestObjects.BTeam, null, TestObjects.BTeamApplication3)
+                TestObjects.rbacDevice2 = await app.factory.createDevice({ name: 'device rbac 2', type: 'Instance Assigned (blocked)' }, TestObjects.BTeam, TestObjects.BTeamInstance3)
+                TestObjects.rbacDevice3 = await app.factory.createDevice({ name: 'device rbac 3', type: 'Unassigned (allowed)' }, TestObjects.BTeam)
+                TestObjects.rbacDevice4 = await app.factory.createDevice({ name: 'device rbac 4', type: 'Application Assigned (allowed)' }, TestObjects.BTeam, null, TestObjects.BTeamApplication4)
+            }
+            before(async function () {
+                // Enable platform RBAC
+                app.config.features.register('rbacApplication', true, false)
+                TestObjects.BTeamApplication3 = await app.factory.createApplication({ name: 'application-3' }, TestObjects.BTeam)
+                TestObjects.BTeamApplication4 = await app.factory.createApplication({ name: 'application-4' }, TestObjects.BTeam)
+
+                TestObjects.BTeamInstance3 = await app.factory.createInstance(
+                    { name: 'instance-3' },
+                    TestObjects.BTeamApplication3,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: false }
+                )
+                TestObjects.BTeamInstance4 = await app.factory.createInstance(
+                    { name: 'instance-4' },
+                    TestObjects.BTeamApplication4,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: false }
+                )
+                // Add more devices
+                await TestObjects.BTeam.addUser(TestObjects.eric, { through: { role: Roles.Owner } })
+
+                const ericTeamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: TestObjects.BTeam.id, UserId: TestObjects.eric.id } })
+                ericTeamMembership.permissions = {
+                    applications: {
+                        [TestObjects.BTeamApplication3.hashid]: Roles.None
+                    }
+                }
+                await ericTeamMembership.save()
+                await setupDevices()
+            })
+
+            after(async function () {
+                await app.db.models.Device.destroy({
+                    where: {
+                        name: { [Op.like]: 'device rbac %' }
+                    }
+                })
+            })
+
+            it('applies granular rbac when listing team devices', async function () {
+                const devices = await queryDevices(`/api/v1/teams/${TestObjects.BTeam.hashid}/devices`, 200, TestObjects.tokens.eric)
+                // Only 'device rbac 3/4' is accessible to Eric
+                devices.should.length(2)
+                devices[0].should.have.property('name', 'device rbac 3')
+                devices[1].should.have.property('name', 'device rbac 4')
+            })
+            it('applies granular rbac when listing team devices - with limit', async function () {
+                // Get the full api response (3rd true arg to queryDevices)
+                const devices = await queryDevices(`/api/v1/teams/${TestObjects.BTeam.hashid}/devices?limit=1`, 200, TestObjects.tokens.eric, true)
+                // Only 'device rbac 3/4' is accessible to Eric, verify limit returns device 3
+                devices.devices.should.length(1)
+                devices.meta.should.have.property('next_cursor')
+                devices.devices[0].should.have.property('name', 'device rbac 3')
+                const devices2 = await queryDevices(`/api/v1/teams/${TestObjects.BTeam.hashid}/devices?limit=1&cursor=${devices.meta.next_cursor}`, 200, TestObjects.tokens.eric, true)
+                // Only 'device rbac 3/4' is accessible to Eric, verify second page returns device 4
+                devices2.devices.should.length(1)
+                devices2.meta.should.have.property('next_cursor')
+                devices2.devices[0].should.have.property('name', 'device rbac 4')
+            })
+            describe('bulk delete', function () {
+                it('allowed devices', async function () {
+                    const response = await app.inject({
+                        method: 'DELETE',
+                        url: `/api/v1/teams/${TestObjects.BTeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.eric },
+                        payload: {
+                            devices: [TestObjects.rbacDevice3.hashid, TestObjects.rbacDevice4.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(200)
+                })
+                it('reject devices', async function () {
+                    const response = await app.inject({
+                        method: 'DELETE',
+                        url: `/api/v1/teams/${TestObjects.BTeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.eric },
+                        payload: {
+                            devices: [TestObjects.rbacDevice1.hashid, TestObjects.rbacDevice2.hashid, TestObjects.rbacDevice3.hashid, TestObjects.rbacDevice4.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(400)
+                    const result = response.json()
+                    result.should.have.property('code', 'invalid_input')
+                    result.should.have.property('error')
+                })
+            })
+            describe('bulk update', function () {
+                it('assign allowed devices to allowed application', async function () {
+                    await setupDevices()
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/teams/${TestObjects.BTeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.eric },
+                        payload: {
+                            application: TestObjects.BTeamApplication4.hashid,
+                            devices: [TestObjects.rbacDevice3.hashid, TestObjects.rbacDevice4.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(200)
+                })
+                it('assign allowed devices to allowed instance', async function () {
+                    await setupDevices()
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/teams/${TestObjects.BTeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.eric },
+                        payload: {
+                            instance: TestObjects.BTeamInstance4.id,
+                            devices: [TestObjects.rbacDevice3.hashid, TestObjects.rbacDevice4.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(200)
+                })
+                it('block assigning allowed devices to blocked application', async function () {
+                    await setupDevices()
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/teams/${TestObjects.BTeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.eric },
+                        payload: {
+                            application: TestObjects.BTeamApplication3.hashid,
+                            devices: [TestObjects.rbacDevice3.hashid, TestObjects.rbacDevice4.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(400)
+                })
+                it('block assigning allowed devices to blocked instance', async function () {
+                    await setupDevices()
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/teams/${TestObjects.BTeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.eric },
+                        payload: {
+                            instance: TestObjects.BTeamInstance3.id,
+                            devices: [TestObjects.rbacDevice3.hashid, TestObjects.rbacDevice4.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(400)
+                })
+                it('block assigning blocked devices to application', async function () {
+                    await setupDevices()
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/teams/${TestObjects.BTeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.eric },
+                        payload: {
+                            application: TestObjects.BTeamApplication4.hashid,
+                            devices: [TestObjects.rbacDevice1.hashid, TestObjects.rbacDevice4.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(400)
+                })
+                it('block assigning blocked devices to instance', async function () {
+                    await setupDevices()
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/teams/${TestObjects.BTeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.eric },
+                        payload: {
+                            instance: TestObjects.BTeamInstance4.id,
+                            devices: [TestObjects.rbacDevice1.hashid, TestObjects.rbacDevice4.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(400)
+                })
+                it('block unassigned blocked devices', async function () {
+                    await setupDevices()
+                    const response = await app.inject({
+                        method: 'PUT',
+                        url: `/api/v1/teams/${TestObjects.BTeam.hashid}/devices/bulk`,
+                        cookies: { sid: TestObjects.tokens.eric },
+                        payload: {
+                            devices: [TestObjects.rbacDevice1.hashid, TestObjects.rbacDevice2.hashid]
+                        }
+                    })
+                    response.statusCode.should.equal(400)
                 })
             })
         })

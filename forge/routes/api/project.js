@@ -136,6 +136,7 @@ module.exports = async function (app) {
                     projectType: { type: 'string' },
                     stack: { type: 'string' },
                     flowBlueprintId: { type: 'string' },
+                    flows: { type: 'array' },
                     template: { type: 'string' },
                     sourceProject: {
                         type: 'object',
@@ -193,6 +194,10 @@ module.exports = async function (app) {
                 return
             }
         }
+        let flows
+        if (request.body.flows) {
+            flows = request.body.flows
+        }
 
         // Create the real project (performs validation)
         let project
@@ -209,7 +214,8 @@ module.exports = async function (app) {
                     ha: request.body.ha,
                     sourceProject,
                     sourceProjectOptions: request.body.sourceProject?.options,
-                    flowBlueprint
+                    flowBlueprint,
+                    flows
                 }
             )
         } catch (err) {
@@ -357,8 +363,8 @@ module.exports = async function (app) {
                 reply.code(403).send('Source Project and Target not in same team')
             }
 
-            app.db.controllers.Project.setInflightState(request.project, 'importing')
-            app.db.controllers.Project.setInDeploy(request.project)
+            await app.db.controllers.Project.setInflightState(request.project, 'importing')
+            await app.db.controllers.Project.setInDeploy(request.project)
 
             await app.auditLog.Project.project.copied(request.session.User.id, null, sourceProject, request.project)
             await app.auditLog.Project.project.imported(request.session.User.id, null, request.project, sourceProject)
@@ -512,7 +518,7 @@ module.exports = async function (app) {
             let resumeProject, targetState
             if (changesToProjectDefinition) {
                 // Early return and complete the rest async
-                app.db.controllers.Project.setInflightState(request.project, 'starting') // TODO: better inflight state needed
+                await app.db.controllers.Project.setInflightState(request.project, 'starting') // TODO: better inflight state needed
                 reply.code(200).send({})
                 repliedEarly = true
 
@@ -651,14 +657,14 @@ module.exports = async function (app) {
                 const startResult = await app.containers.start(request.project)
                 startResult.started.then(async () => {
                     await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                    app.db.controllers.Project.clearInflightState(request.project)
+                    await app.db.controllers.Project.clearInflightState(request.project)
                     return true
                 }).catch(err => {
                     app.log.info(`Failed to restart project ${request.project.id}`)
                     throw err
                 })
             } else {
-                app.db.controllers.Project.clearInflightState(request.project)
+                await app.db.controllers.Project.clearInflightState(request.project)
             }
         }
 
@@ -910,36 +916,45 @@ module.exports = async function (app) {
         }
 
         // Platform wide catalogue and npm registry
-        const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes') && !!teamType.getFeatureProperty('certifiedNodes', false)
-        if (platformNPMEnabled) {
-            const npmRegURLString = app.settings.get('platform:certifiedNodes:npmRegistryURL')
-            const token = app.settings.get('platform:certifiedNodes:token')
-            const catalogueString = app.settings.get('platform:certifiedNodes:catalogueURL')
-            if (npmRegURLString && token && catalogueString) {
-                const npmRegURL = new URL(npmRegURLString)
-                const catalogue = new URL(catalogueString)
-                if (!settings.settings?.palette) {
-                    settings.settings.palette = {}
+        const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes', false) &&
+                                   !!app.config.features.enabled('ffNodes', false) &&
+                                   !!app.settings.get('platform:ff-npm-registry:token')
+
+        const certifiedNodesEnabledForTeam = teamType.getFeatureProperty('certifiedNodes', false)
+        const ffNodesEnabledForTeam = teamType.getFeatureProperty('ffNodes', false)
+        if (platformNPMEnabled && (certifiedNodesEnabledForTeam || ffNodesEnabledForTeam)) {
+            try {
+                const token = app.settings.get('platform:ff-npm-registry:token')
+                const npmRegURL = new URL(app.config['ff-npm-registry']?.url || 'https://registry.flowfuse.com/')
+                const certNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.certifiedNodes || 'https://ff-certified-nodes.flowfuse.cloud/catalogue.json'
+                const ffNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.ffNodes || 'https://ff-certified-nodes.flowfuse.cloud/ff-catalogue.json'
+
+                // Handle FF Exclusive Nodes
+
+                if (certNodesCatalogue || ffNodesCatalogue) {
+                    // At least one is configured - so initialise the settings
+                    settings.settings.palette = settings.settings.palette || {}
+                    settings.settings.palette.catalogue = settings.settings.palette.catalogue || []
                 }
-                if (settings.settings?.palette?.catalogue) {
-                    settings.settings.palette.catalogue
-                        .push(catalogue.toString())
-                } else {
-                    settings.settings.palette.catalogue = [
-                        catalogue.toString()
-                    ]
+                function updateSettingsForCatalogue (scope, catalogueString) {
+                    const catalogue = new URL(catalogueString)
+                    settings.settings.palette.catalogue.push(catalogue.toString())
+                    const npmrcEntry = `${scope}:registry=${npmRegURL.toString()}\n` +
+                          `//${npmRegURL.host}:_auth="${token}"\n`
+                    if (settings.settings.palette.npmrc) {
+                        settings.settings.palette.npmrc += '\n' + npmrcEntry
+                    } else {
+                        settings.settings.palette.npmrc = npmrcEntry
+                    }
                 }
-                if (settings.settings?.palette?.npmrc) {
-                    settings.settings.palette.npmrc = `${settings.settings.palette.npmrc}\n` +
-                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
-                        `@flowfuse-nodes:registry=${npmRegURL.toString()}\n` +
-                        `//${npmRegURL.host}:_auth="${token}"\n`
-                } else {
-                    settings.settings.palette.npmrc =
-                        `@flowfuse-certified-nodes:registry=${npmRegURL.toString()}\n` +
-                        `@flowfuse-nodes:registry=${npmRegURL.toString()}\n` +
-                        `//${npmRegURL.host}:_auth="${token}"\n`
+                if (certifiedNodesEnabledForTeam && certNodesCatalogue) {
+                    updateSettingsForCatalogue('@flowfuse-certified-nodes', certNodesCatalogue)
                 }
+                if (ffNodesEnabledForTeam && ffNodesCatalogue) {
+                    updateSettingsForCatalogue('@flowfuse-nodes', ffNodesCatalogue)
+                }
+            } catch (err) {
+                app.log.error('Failed to configure platform npm registry for project', err)
             }
         }
 
@@ -1417,7 +1432,7 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        app.db.controllers.Project.updateLatestProjectState(request.params.instanceId, request.body.state)
+        await app.db.controllers.Project.updateLatestProjectState(request.params.instanceId, request.body.state)
 
         reply.code(202).send()
     })

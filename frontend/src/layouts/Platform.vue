@@ -30,6 +30,7 @@
                 :confirm-label="dialog.confirmLabel"
                 :cancel-label="dialog.cancelLabel"
                 :canBeCanceled="dialog.canBeCanceled"
+                :notices="dialog.notices"
                 :box-class="dialog.boxClass"
                 @cancel="clearDialog(true)"
                 @confirm="dialog.onConfirm"
@@ -39,11 +40,19 @@
                         <p v-for="(text, $index) in dialog.textLines" :key="$index">{{ text }}</p>
                     </div>
                 </template>
-                <component :is="dialog.is.component" v-bind="dialog.is.payload" v-else-if="dialog.is" />
+                <component :is="dialog.is.component" v-bind="dialog.is.payload" v-else-if="dialog.is" v-on="dialog.is.on" />
 
                 <p v-else-if="dialog.text">{{ dialog.text }}</p>
                 <!-- eslint-disable-next-line vue/no-v-html -->
                 <div v-else class="space-y-2" v-html="dialog.html" />
+
+                <div v-if="dialog.notices?.length" class="notices flex flex-col gap-3 mt-5">
+                    <hr class="mb-5">
+                    <template v-for="notice in dialog.notices" :key="notice">
+                        <component :is="notice" v-if="typeof notice === 'object'" />
+                        <notice-banner v-else :text="notice" />
+                    </template>
+                </div>
             </ff-dialog>
             <transition name="page-fade">
                 <div v-if="overlay" class="ff-dialog-container !z-[100]" />
@@ -59,12 +68,14 @@ import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
 import LeftDrawer from '../components/drawers/LeftDrawer.vue'
 import RightDrawer from '../components/drawers/RightDrawer.vue'
+import NoticeBanner from '../components/notices/NoticeBanner.vue'
 import AlertsMixin from '../mixins/Alerts.js'
 import DialogMixin from '../mixins/Dialog.js'
 
 export default {
     name: 'ff-layout-platform',
     components: {
+        NoticeBanner,
         LeftDrawer,
         RightDrawer,
         PageHeader,

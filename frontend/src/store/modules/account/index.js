@@ -115,6 +115,9 @@ const getters = {
     isTrialAccount (state) {
         return !!state.team?.billing?.trial
     },
+    isTrialAccountExpired (state, getters) {
+        return getters.isTrialAccount && state.team?.billing?.trialEnded
+    },
     isAdminUser: (state) => !!state.user.admin,
     defaultUserTeam: (state, getters) => {
         const defaultTeamId = state.user.defaultTeam || getters.teams[0]?.id
@@ -205,6 +208,8 @@ const getters = {
 
             // Certified Nodes
             isCertifiedNodesFeatureEnabledForPlatform: !!state.features?.certifiedNodes,
+            // FlowFuse Nodes
+            isFlowFuseNodesFeatureEnabledForPlatform: !!state.features?.ffNodes,
 
             // Static Assets
             isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
@@ -243,7 +248,14 @@ const getters = {
 
             // Generate Snapshot Descriptions with AI
             isGeneratedSnapshotDescriptionFeatureEnabledForPlatform: !!state.features.generatedSnapshotDescription,
-            isGeneratedSnapshotDescriptionFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.generatedSnapshotDescription
+            isGeneratedSnapshotDescriptionFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.generatedSnapshotDescription,
+
+            // Applications Role Based Access Control
+            isApplicationsRBACFeatureEnabledForPlatform: !!state.features.rbacApplication,
+            isApplicationsRBACFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.rbacApplication,
+
+            // Expert Assistant
+            isExpertAssistantFeatureEnabledForPlatform: !!state.features.expertAssistant
         }
         return {
             ...preCheck,
@@ -262,7 +274,9 @@ const getters = {
             isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration,
             isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
             isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam,
-            isGeneratedSnapshotDescriptionEnabled: preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForPlatform && preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForTeam
+            isGeneratedSnapshotDescriptionEnabled: preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForPlatform && preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForTeam,
+            isRBACApplicationFeatureEnabled: preCheck.isApplicationsRBACFeatureEnabledForPlatform && preCheck.isApplicationsRBACFeatureEnabledForTeam,
+            isExpertAssistantFeatureEnabled: preCheck.isExpertAssistantFeatureEnabledForPlatform
         }
     }
 }
@@ -464,19 +478,20 @@ const actions = {
         const teams = await teamApi.getTeams()
         state.commit('setTeams', teams.teams)
     },
-    async login (state, credentials) {
+    async login ({ state, dispatch, commit, getters }, credentials) {
         try {
-            state.commit('setLoginInflight')
+            commit('setLoginInflight')
             if (credentials.username) {
                 await userApi.login(credentials.username, credentials.password)
             } else if (credentials.token) {
                 await userApi.verifyMFAToken(credentials.token)
             }
-            state.commit('setPending', true)
-            state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
+            commit('setPending', true)
+            dispatch('checkState', getters.redirectUrlAfterLogin)
+            dispatch('product/expert/handleLogin', null, { root: true })
         } catch (err) {
             if (err.response?.status >= 401) {
-                state.commit('loginFailed', err.response.data)
+                commit('loginFailed', err.response.data)
             } else {
                 console.error(err)
             }
@@ -556,6 +571,12 @@ const actions = {
     },
     async clearOtherStores (state) {
         await state.dispatch('product/tables/clearState', null, { root: true })
+    },
+    async checkIfAuthenticated ({ commit }) {
+        return userApi.getUser()
+            .then(user => {
+                commit('login', user)
+            })
     }
 }
 

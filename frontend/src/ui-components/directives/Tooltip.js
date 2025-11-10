@@ -63,7 +63,7 @@ function renderTooltip (el, binding) {
                     tooltip?.remove()
                     tooltip = null
                     isTooltipVisible = false
-                }, 500)
+                }, 200)
             })
         }
     }

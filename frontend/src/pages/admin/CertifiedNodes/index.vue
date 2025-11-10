@@ -1,26 +1,15 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header title="Certified Nodes" :tabs="sideNavigation" />
+            <ff-page-header title="FlowFuse Nodes" :tabs="sideNavigation" />
         </template>
         <div class="flex-grow">
             <ff-loading v-if="loading" message="Saving Settings..." />
-            <FormRow v-model="input['platform:certifiedNodes:npmRegistryURL']" :label="'NPM Registry URL'" :error="errors['platform:certifiedNodes:npmRegistryURL']">
-                NPM Registry URL for Certified Nodes
+            <FormRow v-model="input.registryToken" type="password" :label="'FlowFuse Registry Token'">
+                Access token for the FlowFuse NPM registry
                 <template #description>
-                    The URL of the NPM registry to use for certified nodes.
-                </template>
-            </FormRow>
-            <FormRow v-model="input['platform:certifiedNodes:token']" :label="'NPM Registry Token'" :error="errors['platform:certifiedNodes:token']">
-                NPM Registry Authentication Token
-                <template #description>
-                    The authentication token for the NPM registry to use for certified nodes.
-                </template>
-            </FormRow>
-            <FormRow v-model="input['platform:certifiedNodes:catalogueURL']" :label="'Node-RED Catalogue URL'" :error="errors['platform:certifiedNodes:catalogueURL']">
-                Node-RED Catalogue URL
-                <template #description>
-                    The URL of the Node-RED catalogue to use for certified nodes.
+                    Access to Certified Nodes, or FlowFuse Exclusive nodes requires an access token for the FlowFuse NPM registry.
+                    To obtain an access token, please contact <a target="_blank" class="underline" href="https://flowfuse.com/support">FlowFuse Support</a>.
                 </template>
             </FormRow>
             <div class="pt-8">
@@ -37,12 +26,6 @@ import settingsApi from '../../../api/settings.js'
 import FormRow from '../../../components/FormRow.vue'
 import Alerts from '../../../services/alerts.js'
 
-const validSettings = [
-    'platform:certifiedNodes:npmRegistryURL',
-    'platform:certifiedNodes:token',
-    'platform:certifiedNodes:catalogueURL'
-]
-
 export default {
     name: 'AdminCertifiedNodes',
     components: {
@@ -50,12 +33,13 @@ export default {
     },
     data () {
         return {
+            placeholderToken: '********',
             loading: false,
-            input: {},
+            input: {
+                registryToken: ''
+            },
             errors: {
-                'platform:certifiedNodes:npmRegistryURL': '',
-                'platform:certifiedNodes:token': '',
-                'platform:certifiedNodes:catalogueURL': ''
+                'platform:ff-npm-registry:token': ''
             }
         }
     },
@@ -64,86 +48,33 @@ export default {
         sideNavigation () {
             return []
         },
-        isLicensed () {
-            return !!this.settings['platform:licensed']
-        },
         saveEnabled () {
-            let result = false
-            if (this.validate()) {
-                validSettings.forEach((s) => {
-                    result = result || (this.input[s] !== this.settings[s])
-                })
+            if (this.settings['platform:ff-npm-registry:enabled']) {
+                return this.input.registryToken !== this.placeholderToken
             }
-            return result
+            return this.input.registryToken !== ''
         }
     },
     created () {
-        validSettings.forEach(s => {
-            this.input[s] = this.settings[s]
-        })
+        if (this.settings['platform:ff-npm-registry:enabled']) {
+            this.input.registryToken = this.placeholderToken
+        }
     },
     methods: {
         ...mapActions('account', ['refreshSettings']),
-        validate () {
-            if (this.input['platform:certifiedNodes:npmRegistryURL']) {
-                try {
-                    const url = new URL(this.input['platform:certifiedNodes:npmRegistryURL'])
-                    // const url = URL.parse(this.input['platform:certifiedNodes:npmRegistryURL'])
-                    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-                        this.errors['platform:certifiedNodes:npmRegistryURL'] = 'Invalid URL'
-                        return false
-                    } else {
-                        this.errors['platform:certifiedNodes:npmRegistryURL'] = ''
-                    }
-                } catch (e) {
-                    this.errors['platform:certifiedNodes:npmRegistryURL'] = 'Invalid URL'
-                    return false
-                }
-            } else {
-                this.errors['platform:certifiedNodes:npmRegistryURL'] = ''
-            }
-
-            if (this.input['platform:certifiedNodes:catalogueURL']) {
-                try {
-                    const url = new URL(this.input['platform:certifiedNodes:catalogueURL'])
-                    // const url = URL.parse(this.input['platform:certifiedNodes:catalogueURL'])
-                    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-                        this.errors['platform:certifiedNodes:catalogueURL'] = 'Invalid URL'
-                        return false
-                    } else {
-                        this.errors['platform:certifiedNodes:catalogueURL'] = ''
-                    }
-                } catch (e) {
-                    this.errors['platform:certifiedNodes:catalogueURL'] = 'Invalid URL'
-                    return false
-                }
-            } else {
-                this.errors['platform:certifiedNodes:catalogueURL'] = ''
-            }
-
-            if (this.input['platform:certifiedNodes:npmRegistryURL'] &&
-                this.input['platform:certifiedNodes:catalogueURL'] &&
-                !this.input['platform:certifiedNodes:token']) {
-                this.errors['platform:certifiedNodes:token'] = 'Token is required when NPM Registry URL is set'
-                return false
-            } else {
-                this.errors['platform:certifiedNodes:token'] = ''
-            }
-
-            return true
-        },
         async saveChanges () {
             this.loading = true
-            const options = {}
-            validSettings.forEach((s) => {
-                if (this.input[s] !== this.settings[s]) {
-                    options[s] = this.input[s]
-                }
-            })
-
+            const options = {
+                'platform:ff-npm-registry:token': this.input.registryToken
+            }
             settingsApi.updateSettings(options)
                 .then(async () => {
                     await this.refreshSettings()
+                    if (this.settings['platform:ff-npm-registry:enabled']) {
+                        // Set the placeholder to the same length as the just-saved token, so
+                        // it doesn't change
+                        this.placeholderToken = this.input.registryToken
+                    }
                     Alerts.emit('Settings changed successfully.', 'confirmation')
                 })
                 .catch(async (err) => {

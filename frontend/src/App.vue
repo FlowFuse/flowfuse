@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -129,9 +129,21 @@ export default {
             return ['platform', 'modal', 'plain', 'docs'].includes(layout) ? layout : 'platform'
         }
     },
+    watch: {
+        $route: {
+            immediate: true,
+            handler (to) {
+                this.updateRoute(to)
+            }
+        }
+    },
     mounted () {
         this.$store.dispatch('account/checkState')
         this.$store.dispatch('product/checkFlags')
+    },
+    methods: {
+        // todo this should be switched to a dedicated context store
+        ...mapActions('product/expert', ['updateRoute'])
     }
 }
 </script>

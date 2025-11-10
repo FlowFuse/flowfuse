@@ -307,7 +307,7 @@ describe('FlowFuse - Instance Snapshots', () => {
 
         // ensure the validation message appears when all components are excluded & the download button is disabled
         cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"] [data-el="form-row-error"]').contains('At least one component must be selected')
-        cy.get('[data-el="dialog-export-snapshot"] button').contains('Download').should('be.disabled')
+        cy.get('[data-el="dialog-export-snapshot"] button').contains('Download').parent().should('be.disabled')
 
         // re-check the flows (the validation should clear), then uncheck credentials
         cy.get('[data-el="dialog-export-snapshot"] [data-form="export-snapshot-components"]').within(() => {
@@ -543,7 +543,7 @@ describe('FlowFuse - Instance Snapshots', () => {
             cy.get('[data-form="component-environment-variables-options"] .ff-radio-btn').eq(1).should('have.attr', 'disabled')
             cy.get('[data-el="form-row-error"]').contains('At least one component must be selected')
         })
-        cy.get('[data-el="dialog-import-snapshot"] button').contains('Upload').should('be.disabled')
+        cy.get('[data-el="dialog-import-snapshot"] button').contains('Upload').parent().should('be.disabled')
 
         // re-check the flows (the validation should clear), then disable credentials, the secret field should not be shown
         cy.get('[data-el="dialog-import-snapshot"] [data-form="import-snapshot-components"]').within(() => {

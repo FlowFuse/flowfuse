@@ -43,6 +43,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.number }}
   cancel-in-progress: false
 
+env:
+  AWS_ECR_PUSH_ROLE: 'ECR_push_pull_images'
+  AWS_EKS_DEPLOY_ROLE: 'EKSDeploymentRole'
+
 jobs:
   # This job validates if the user, who triggered the workflow, is a member of the organization
   # Note: Any workflow re-runs will use the privileges of github.actor, even if the actor initiating the re-run (github.triggering_actor) has different privileges.
@@ -84,7 +88,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.driver_k8s_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: driver-k8s
       publish_package: true
@@ -101,7 +105,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_project_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: nr-project-nodes
       publish_package: true
@@ -118,7 +122,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_file_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: nr-file-nodes
       publish_package: true
@@ -135,7 +139,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_assistant_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: nr-assistant
       publish_package: true
@@ -152,7 +156,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_tables_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: nr-tables-nodes
       publish_package: true
@@ -174,7 +178,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       (always() && inputs.nr_launcher_branch != 'main') || needs.publish_nr_project_nodes.result == 'success' || needs.publish_nr_file_nodes.result == 'success' || needs.publish_nr_assistant.result == 'success' || needs.publish_nr_tables_nodes.result == 'success'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.42.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.43.0'
     with:
       package_name: flowfuse-nr-launcher
       publish_package: true
@@ -198,7 +202,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       (always() && needs.publish_nr_launcher.result == 'success')
-    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.42.0
+    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.43.0
     with:
       image_name: 'node-red'
       dockerfile_path: Dockerfile
@@ -227,6 +231,9 @@ jobs:
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
     outputs:
       nr_custom_image_tag: ${{ steps.set_outputs.outputs.nr_image_tag }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Set variables
         run: | 
@@ -238,10 +245,11 @@ jobs:
   
       - name: Configure AWS credentials for ECR interaction
         id: aws-config
-        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_ECR_PUSH_ROLE }}
+          role-session-name: GithubActionsRoleSession
+          role-duration-seconds: 900
           aws-region: eu-west-1
           mask-aws-account-id: true
       
@@ -252,7 +260,7 @@ jobs:
           mask-password: true
 
       - name: Login to GHCR
-        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -321,7 +329,7 @@ jobs:
           DOCKER_BUILD_SUMMARY: false
       
       - name: Upload artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: k8s-forge
           path: /tmp/k8s-forge.tar
@@ -345,6 +353,9 @@ jobs:
     env:
       IMAGE_NAME: 'forge-k8s'
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -355,7 +366,7 @@ jobs:
           echo "timestamp=$(date +%s)" >> $GITHUB_ENV
 
       - name: Download artifact
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: k8s-forge
           path: /tmp
@@ -373,10 +384,11 @@ jobs:
 
       - name: Configure AWS credentials for ECR interaction
         id: aws-config
-        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_ECR_PUSH_ROLE }}
+          role-session-name: GithubActionsRoleSession
+          role-duration-seconds: 900
           aws-region: eu-west-1
           mask-aws-account-id: true
         
@@ -392,13 +404,12 @@ jobs:
           docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
 
       - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_EKS_DEPLOY_ROLE }}
+          role-session-name: GithubActionsRoleSessio
+          role-duration-seconds: 900
           aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
-          role-duration-seconds: 1200
 
       - name: Configure kubeconfig
         run: |
@@ -447,6 +458,8 @@ jobs:
             --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
             --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
             --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
+            --set forge.expert.service.url=$(op read op://ci/staging_flowfuse/expert_url) \
+            --set forge.expert.service.token=$(op read op://ci/staging_flowfuse/expert_token) \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowfuse
 
       - name: Initial setup
@@ -593,15 +606,17 @@ jobs:
     env:
       IMAGE_NAME: 'forge-k8s'
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8 # v5.1.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_EKS_DEPLOY_ROLE }}
+          role-session-name: GithubActionsRoleSession
+          role-duration-seconds: 900
           aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/K8sAdmin
-          role-duration-seconds: 1200
 
       - name: Configure kubeconfig
         run: |

@@ -61,6 +61,32 @@
                             <span v-else>None</span>
                         </template>
                     </InfoCardRow>
+                    <InfoCardRow property="Group:" v-if="device?.application">
+                        <template #value>
+                            <section class="flex items-center gap-3">
+                                <ff-team-link
+                                    v-if="device.deviceGroup"
+                                    :to="{ name: 'ApplicationDeviceGroupIndex',
+                                           params: {
+                                               deviceGroupId: device.deviceGroup.id,
+                                               applicationId: device.application.id
+                                           }}"
+                                >
+                                    {{ device.deviceGroup.name }}
+                                </ff-team-link>
+                                <span v-else>None</span>
+                                <ff-button
+                                    kind="tertiary"
+                                    v-if="hasPermission('application:device-group:update', {application: device.application})"
+                                    :to="{name: 'device-settings', query: { highlight: 'device-group-section' }}"
+                                >
+                                    <template #icon>
+                                        <PencilAltIcon class="ff-icon ff-icon-sm" />
+                                    </template>
+                                </ff-button>
+                            </section>
+                        </template>
+                    </InfoCardRow>
                     <InfoCardRow v-if="device.ownerType!=='application'" property="Instance:">
                         <template #value>
                             <router-link v-if="device?.instance" :to="{name: 'Instance', params: { id: device.instance.id }}">
@@ -137,7 +163,7 @@
 <script>
 
 // utilities
-import { CheckCircleIcon, CogIcon, ExclamationIcon, TemplateIcon, TrendingUpIcon, WifiIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, CogIcon, ExclamationIcon, PencilAltIcon, TemplateIcon, TrendingUpIcon, WifiIcon } from '@heroicons/vue/outline'
 
 // api
 import semver from 'semver'
@@ -150,6 +176,7 @@ import InfoCard from '../../components/InfoCard.vue'
 import InfoCardRow from '../../components/InfoCardRow.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import AuditLog from '../../components/audit-log/AuditLog.vue'
+import usePermissions from '../../composables/Permissions.js'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
@@ -171,7 +198,14 @@ export default {
         DeviceModeBadge,
         DeviceLastSeenBadge,
         StatusBadge,
-        AuditLog
+        AuditLog,
+        PencilAltIcon
+    },
+    setup () {
+        const { hasPermission } = usePermissions()
+        return {
+            hasPermission
+        }
     },
     data () {
         return {
@@ -201,11 +235,11 @@ export default {
         nrLocalLoginOptionPossible: function () {
             // support for local login was added in 3.2.0
             // and is only available for application devices
-            return this.deviceOwnerType === 'application' && semver.gte(this.device.agentVersion, '3.2.0')
+            return this.deviceOwnerType === 'application' && semver.gte(this.device.agentVersion || '0.0.0', '3.2.0')
         },
         agentVersionWarning: function () {
             if (this.deviceOwnerType === 'application') {
-                if (this.device?.agentVersion && semver.gte(this.device.agentVersion, '1.15.0')) {
+                if (this.device?.agentVersion && semver.gte(this.device.agentVersion || '0.0.0', '1.15.0')) {
                     return ''
                 }
                 return 'Devices assigned to an application must be version 1.15 or greater in order to receive snapshots and updates'

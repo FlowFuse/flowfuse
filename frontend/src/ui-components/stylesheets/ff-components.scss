@@ -44,6 +44,7 @@
     font-weight: bold;
     font-size: 1.25rem;
     line-height: 1.75rem;
+    white-space: nowrap;
     &:hover {
       text-decoration: underline;
     }
@@ -55,6 +56,7 @@
   font-weight: bold;
   font-size: 1.25rem;
   line-height: 1.75rem;
+  white-space: nowrap;
 }
 
 /*
@@ -198,6 +200,41 @@
     border-color: $ff-grey-200;
     color: $ff-grey-400;
     background-color: $ff-grey-200;
+  }
+}
+
+/*
+  Drawer responsive context
+  Remove icon margins when buttons are in icon-only mode within narrow drawer
+*/
+@container drawer (max-width: 639px) {
+  .ff-btn-icon {
+    .ff-btn--icon-left {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .ff-btn--icon-right {
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+}
+
+/*
+  Viewport responsive context (for pages outside drawer, e.g., instance overview)
+  Remove icon margins when viewport is narrow and buttons are in icon-only mode
+  Breakpoint matches Tailwind's sm breakpoint (640px)
+*/
+@media (max-width: 639px) {
+  .ff-btn-icon {
+    .ff-btn--icon-left {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .ff-btn--icon-right {
+      margin-left: 0;
+      margin-right: 0;
+    }
   }
 }
 
@@ -768,15 +805,31 @@ li.ff-list-item {
       }
     }
     tbody {
-      .ff-data-table--row:last-child {
-        .ff-data-table--cell {
-          border-bottom-width: 1px;
-          border-top-color: $ff-grey-200;
-          &:first-child {
-            border-bottom-left-radius: 6px;
+      .ff-data-table--row {
+        &.collapsible {
+          td {
+            border-top: none;
+            border-bottom: none;
+            padding: 0;
           }
-          &:last-child {
-            border-bottom-right-radius: 6px;
+        }
+
+        &:last-of-type {
+          td {
+            border-bottom: 1px solid $ff-grey-300;
+          }
+        }
+
+        &:last-child {
+          .ff-data-table--cell {
+            border-bottom-width: 1px;
+            border-top-color: $ff-grey-200;
+            &:first-child {
+              border-bottom-left-radius: 6px;
+            }
+            &:last-child {
+              border-bottom-right-radius: 6px;
+            }
           }
         }
       }
@@ -1078,10 +1131,22 @@ $countdown_size: 20px;
   display: flex;
   color: $ff-grey-800;
   .ff-tab-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: $ff-unit-md;
     &:hover {
       color: $ff-blue-700;
       cursor: pointer;
+    }
+    .ff-tab-icon {
+      height: 14px;
+      width: 14px;
+      flex-shrink: 0;
+      display: block;
+    }
+    .ff-tab-label {
+      white-space: nowrap;
     }
   }
   &.ff-tabs--horizontal {
@@ -1109,6 +1174,187 @@ $countdown_size: 20px;
   .router-link-active,
   .ff-tab-option--active {
     color: $ff-blue-600;
+  }
+}
+
+/*
+  FF Tabs - Overflow Handling
+*/
+.ff-tabs-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  // When overflow is NOT enabled, apply ellipsis to tab labels
+  &:not(.ff-tabs-wrapper--overflow-enabled) {
+    .ff-tab-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+  }
+
+  &.ff-tabs-wrapper--overflow-enabled {
+    .ff-tab-option {
+      flex-shrink: 0; // Prevent tabs from shrinking, allow them to take full width
+    }
+
+    .ff-tabs__scroll-container {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-behavior: smooth;
+      scrollbar-width: none; // Hide scrollbar for Firefox
+      -ms-overflow-style: none; // Hide scrollbar for IE/Edge
+
+      // Hide scrollbar for Chrome, Safari, and Opera
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+  }
+
+  .ff-tabs__scroll-container {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ff-tabs__overflow-button {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: $ff-unit-sm;
+    background: white;
+    border: none;
+    border-right: 1px solid $ff-grey-300;
+    color: $ff-grey-500;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+
+    .ff-icon {
+      width: 16px;
+      height: 16px;
+
+      &.ff-icon-second {
+        margin-left: -10px;
+      }
+    }
+
+    &:hover {
+      background: $ff-grey-100;
+      color: $ff-grey-700;
+      border-color: $ff-grey-400;
+    }
+
+    &:active {
+      background: $ff-grey-200;
+    }
+
+    &--left {
+      left: 0;
+      border-right: 1px solid $ff-grey-300;
+      border-left: none;
+    }
+
+    &--right {
+      right: 0;
+      border-left: 1px solid $ff-grey-300;
+      border-right: none;
+    }
+  }
+
+  .ff-tabs__menu-wrapper {
+    position: relative;
+    display: inline-block;
+
+    &--left {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+    }
+
+    &--right {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+    }
+  }
+
+  .ff-tabs__dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    background: white;
+    border: 1px solid $ff-grey-300;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    min-width: 150px;
+    max-width: 250px;
+
+    &--left {
+      left: 0;
+    }
+
+    &--right {
+      right: 0;
+    }
+  }
+
+  .ff-tabs__dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: $ff-unit-sm $ff-unit-md;
+    color: $ff-grey-800;
+    transition: background-color 0.2s ease;
+
+    .ff-tab-icon {
+      height: 14px;
+      width: 14px;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .ff-tab-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    &:hover {
+      background: $ff-grey-100;
+      color: $ff-blue-700;
+      cursor: pointer;
+    }
+
+    &--active {
+      background: $ff-grey-100;
+      color: $ff-blue-700;
+      cursor: pointer;
+    }
+
+    &.router-link-active {
+      color: $ff-blue-600;
+      background: $ff-blue-50;
+    }
+
+    &:first-child {
+      border-radius: 4px 4px 0 0;
+    }
+
+    &:last-child {
+      border-radius: 0 0 4px 4px;
+    }
+
+    &:only-child {
+      border-radius: 4px;
+    }
   }
 }
 

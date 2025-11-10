@@ -69,7 +69,7 @@ describe('Device API', async function () {
                 body: {
                     application: options.application
                 },
-                cookies: { sid: TestObjects.tokens.bob }
+                cookies: { sid: options.as }
             })
             device = response2.json()
         } else if (options.instance) {
@@ -79,21 +79,19 @@ describe('Device API', async function () {
                 body: {
                     instance: options.instance
                 },
-                cookies: { sid: TestObjects.tokens.bob }
+                cookies: { sid: options.as }
             })
             device = response2.json()
         }
         return device
     }
 
-    async function setupApp (license) {
+    async function setupApp (options) {
         const setupConfig = {
             limits: {
                 instances: 50
-            }
-        }
-        if (license) {
-            setupConfig.license = license
+            },
+            ...options
         }
         app = await setup(setupConfig)
         AccessTokenController = app.db.controllers.AccessToken
@@ -1427,28 +1425,80 @@ describe('Device API', async function () {
             })
         })
         describe('device certified nodes', function () {
+            async function setTeamFlags (certifiedNodes, ffNodes) {
+                const defaultTeamTypeProperties = app.defaultTeamType.properties
+                defaultTeamTypeProperties.features = defaultTeamTypeProperties.features || {}
+                defaultTeamTypeProperties.features.certifiedNodes = certifiedNodes
+                defaultTeamTypeProperties.features.ffNodes = ffNodes
+                app.defaultTeamType.properties = defaultTeamTypeProperties
+                await app.defaultTeamType.save()
+            }
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
-                await setupApp(license)
+                await setupApp({
+                    license,
+                    'ff-npm-registry': {
+                        url: 'https://localhost:1234',
+                        catalogue: {
+                            certifiedNodes: 'https://localhost/cert-nodes-catalogue.json',
+                            ffNodes: 'https://localhost/ff-nodes-catalogue.json'
+                        }
+                    }
+
+                })
+
+                await app.settings.set('platform:ff-npm-registry:token', 'verySecret')
             })
             after(async function () {
                 // After this set of tests, close the app and recreate (ie remove the license)
                 await app.close()
                 await setupApp()
             })
-            it('can handle Certified Nodes', async function () {
-                await app.settings.set('platform:certifiedNodes:npmRegistryURL', 'https://localhost')
-                await app.settings.set('platform:certifiedNodes:token', 'verySecret')
-                await app.settings.set('platform:certifiedNodes:catalogueURL', 'https://localhost/catalogue.json')
+            it('does not include any npm registry if no feature flags set', async function () {
                 const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
-
                 const liveSettings = await getLiveSettings(device)
-                liveSettings.should.have.property('palette')
+                liveSettings.should.not.have.property('palette')
+            })
+
+            it('includes cert nodes settings if feature flag is set', async function () {
+                await setTeamFlags(true, false)
+                const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const liveSettings = await getLiveSettings(device)
                 liveSettings.palette.should.have.property('catalogues')
-                liveSettings.palette.catalogues.should.containEql('https://localhost/catalogue.json')
+                liveSettings.palette.catalogues.should.containEql('https://localhost/cert-nodes-catalogue.json')
+                liveSettings.palette.catalogues.should.not.containEql('https://localhost/ff-nodes-catalogue.json')
                 liveSettings.palette.should.have.property('npmrc')
-                liveSettings.palette.npmrc.should.equal('@flowfuse-certified-nodes:registry=https://localhost/\n@flowfuse-nodes:registry=https://localhost/\n//localhost:_auth="verySecret"\n')
+                liveSettings.palette.npmrc.should.equal(`@flowfuse-certified-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="verySecret"
+`)
+            })
+            it('includes ff-nodes if feature flag is set', async function () {
+                await setTeamFlags(false, true)
+                const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const liveSettings = await getLiveSettings(device)
+                liveSettings.palette.should.have.property('catalogues')
+                liveSettings.palette.catalogues.should.not.containEql('https://localhost/cert-nodes-catalogue.json')
+                liveSettings.palette.catalogues.should.containEql('https://localhost/ff-nodes-catalogue.json')
+                liveSettings.palette.should.have.property('npmrc')
+                liveSettings.palette.npmrc.should.equal(`@flowfuse-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="verySecret"
+`)
+            })
+            it('includes both cert nodes and ff-nodes if feature flag is set', async function () {
+                await setTeamFlags(true, true)
+                const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const liveSettings = await getLiveSettings(device)
+                liveSettings.palette.should.have.property('catalogues')
+                liveSettings.palette.catalogues.should.containEql('https://localhost/cert-nodes-catalogue.json')
+                liveSettings.palette.catalogues.should.containEql('https://localhost/ff-nodes-catalogue.json')
+                liveSettings.palette.should.have.property('npmrc')
+                liveSettings.palette.npmrc.should.equal(`@flowfuse-certified-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="verySecret"
+
+@flowfuse-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="verySecret"
+`)
             })
         })
 
@@ -1493,7 +1543,7 @@ describe('Device API', async function () {
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
-                await setupApp(license)
+                await setupApp({ license })
             })
             after(async function () {
                 // After this set of tests, close the app and recreate (ie remove the license)
@@ -2479,7 +2529,7 @@ describe('Device API', async function () {
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
-                await setupApp(license)
+                await setupApp({ license })
             })
             after(async function () {
                 // After this set of tests, close the app and recreate (ie remove the license)
@@ -2948,6 +2998,221 @@ describe('Device API', async function () {
                 app.billing = originalBilling
                 byIdStub.restore()
             }
+        })
+    })
+
+    describe('granular rbac', function () {
+        before(async function () {
+            // Close down the default app
+            await app.close()
+            // setup app with granular rbac enabled
+            await setupApp({
+                license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg'
+            })
+            TestObjects.eric = await app.db.models.User.create({ username: 'eric', name: 'Eric Fett', email: 'eric@example.com', email_verified: true, password: 'eePassword' })
+            await login('eric', 'eePassword')
+
+            const defaultTeamTypeProperties = app.defaultTeamType.properties
+            defaultTeamTypeProperties.features = defaultTeamTypeProperties.features || {}
+            defaultTeamTypeProperties.features.applicationRBAC = true
+            app.defaultTeamType.properties = defaultTeamTypeProperties
+            await app.defaultTeamType.save()
+
+            TestObjects.ETeam = await app.db.models.Team.create({ name: 'ETeam', TeamTypeId: app.defaultTeamType.id })
+
+            await TestObjects.ETeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
+            await TestObjects.ETeam.addUser(TestObjects.eric, { through: { role: Roles.Owner } })
+
+            // Team has two applications, each with an instance
+            // Eric has no access to application 2
+            TestObjects.rbacApplication1 = await app.factory.createApplication({ name: 'rbac-app-1' }, TestObjects.ETeam)
+            TestObjects.rbacApplication2 = await app.factory.createApplication({ name: 'rbac-app-2' }, TestObjects.ETeam)
+            TestObjects.rbacInstance1 = await app.factory.createInstance(
+                { name: 'rbac-instance-1' },
+                TestObjects.rbacApplication1,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            TestObjects.rbacInstance2 = await app.factory.createInstance(
+                { name: 'rbac-instance-2' },
+                TestObjects.rbacApplication2,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+
+            const ericTeamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: TestObjects.ETeam.id, UserId: TestObjects.eric.id } })
+            ericTeamMembership.permissions = {
+                applications: {
+                    [TestObjects.rbacApplication2.hashid]: Roles.None
+                }
+            }
+            await ericTeamMembership.save()
+        })
+        beforeEach(async function () {
+            // Note: this will be an api response object, not a DB model (so .id is really the hashid)
+            TestObjects.rbacDeviceUnassigned = await createDevice({ name: 'rbacDeviceUnassigned', type: '', team: TestObjects.ETeam.hashid, as: TestObjects.tokens.alice })
+            TestObjects.rbacDeviceApp1Assigned = await createDevice({ name: 'rbacDeviceApp1Assigned', application: TestObjects.rbacApplication1.hashid, type: '', team: TestObjects.ETeam.hashid, as: TestObjects.tokens.alice })
+            TestObjects.rbacDeviceApp2Assigned = await createDevice({ name: 'rbacDeviceApp2Assigned', application: TestObjects.rbacApplication2.hashid, type: '', team: TestObjects.ETeam.hashid, as: TestObjects.tokens.alice })
+            TestObjects.rbacDeviceInstance1Assigned = await createDevice({ name: 'rbacDeviceInstance1Assigned', instance: TestObjects.rbacInstance1.id, type: '', team: TestObjects.ETeam.hashid, as: TestObjects.tokens.alice })
+            TestObjects.rbacDeviceInstance2Assigned = await createDevice({ name: 'rbacDeviceInstance2Assigned', instance: TestObjects.rbacInstance2.id, type: '', team: TestObjects.ETeam.hashid, as: TestObjects.tokens.alice })
+        })
+
+        after(async function () {
+            // Once all done, create the clean app for later tests
+            await app.close()
+            await setupApp()
+        })
+
+        it('Can get unassigned device', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceUnassigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            const result = response.json()
+            result.should.have.property('id', TestObjects.rbacDeviceUnassigned.id)
+        })
+        it('Can get app assigned device if allowed by rbac', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp1Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            const result = response.json()
+            result.should.have.property('id', TestObjects.rbacDeviceApp1Assigned.id)
+        })
+        it('Can get instance assigned device if allowed by rbac', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance1Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            const result = response.json()
+            result.should.have.property('id', TestObjects.rbacDeviceInstance1Assigned.id)
+        })
+        it('Cannot get app assigned device if blocked by rbac', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Cannot get instance assigned device if blocked by rbac', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(403)
+        })
+
+        it('Can modify device that is not assigned', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceUnassigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { name: 'newName' }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Can modify device in permitted application', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp1Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { name: 'newName' }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Cannot modify app assigned device if blocked by rbac', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { name: 'newName' }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Cannot modify instance assigned device if blocked by rbac', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { name: 'newName' }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Can assign device to unrestricted application', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceUnassigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { application: TestObjects.rbacApplication1.hashid }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Cannot assign device to restricted application', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { application: TestObjects.rbacApplication2.hashid }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Cannot assign device to instance in a restricted application', async function () {
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric },
+                payload: { instance: TestObjects.rbacInstance2.id }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Can delete an unassigned device', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceUnassigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Can delete device in permitted application', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp1Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Can delete device in permitted instance', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance1Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(200)
+        })
+        it('Cannot delete a device in a restricted application', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceApp2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(403)
+        })
+        it('Cannot delete a device in a restricted instance', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/devices/${TestObjects.rbacDeviceInstance2Assigned.id}`,
+                cookies: { sid: TestObjects.tokens.eric }
+            })
+            response.statusCode.should.equal(403)
         })
     })
 })

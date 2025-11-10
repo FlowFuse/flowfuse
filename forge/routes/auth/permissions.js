@@ -26,12 +26,21 @@ const IMPLICIT_TOKEN_SCOPES = {
 }
 
 module.exports = fp(async function (app, opts) {
-    function hasPermission (teamMembership, scope) {
+    function hasPermission (teamMembership, scope, context) {
         if (!teamMembership) {
             return false
         }
+        let userRole = teamMembership.role
+        // Granular RBAC; if the request provides an application context for the request, check against
+        // the teamMembership.permissions object
+        if (app.config.features.enabled('rbacApplication')) {
+            const application = context?.application?.hashid || context?.applicationId
+            if (application && teamMembership.permissions?.applications?.[application] !== undefined) {
+                userRole = teamMembership.permissions.applications[application]
+            }
+        }
         const permission = Permissions[scope]
-        return teamMembership.role >= permission.role
+        return userRole >= permission.role
     }
     function needsPermission (scope) {
         if (!Permissions[scope]) {
@@ -69,7 +78,17 @@ module.exports = fp(async function (app, opts) {
                     // This permission is permitted if the user is operating on themselves
                     return
                 }
-                if (request.teamMembership.role < permission.role) {
+                let userRole = request.teamMembership.role
+                if (app.config.features.enabled('rbacApplication')) {
+                    // Granular RBAC; if the request provides an application context for the request, check against
+                    // the teamMembership.permissions object
+                    const application = request.application?.hashid || request.applicationId
+                    if (application && request.teamMembership.permissions?.applications?.[application] !== undefined) {
+                        userRole = request.teamMembership.permissions.applications[application]
+                    }
+                }
+                // console.log(request.url, scope, request.teamMembership.role, userRole)
+                if (userRole < permission.role) {
                     reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                     throw new Error()
                 }

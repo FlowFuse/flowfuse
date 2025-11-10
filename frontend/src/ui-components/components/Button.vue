@@ -4,8 +4,9 @@
                  class="ff-btn transition-fade--color"
                  :target="target"
                  :class="computedClass"
-                 :to="to ?? '#'"
+                 :to="(!to || disabled) ? '' : to"
                  :aria-disabled="htmlDisabled"
+                 :title="title ?? null"
                  :disabled="htmlDisabled"
     >
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
@@ -25,7 +26,9 @@
             :type="type"
             :class="computedClass"
             :disabled="htmlDisabled"
-            @mouseup="go"
+            :title="title ?? null"
+            @click="go"
+            @click.middle="go"
     >
         <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
             <slot name="icon-left"></slot>
@@ -33,7 +36,9 @@
         <span v-if="isIconOnly" class="ff-btn--icon">
             <slot name="icon"></slot>
         </span>
-        <slot></slot>
+        <span class="clipped-overflow flex align-center justify-center gap-4">
+            <slot></slot>
+        </span>
         <span v-if="hasIconRight" class="ff-btn--icon ff-btn--icon-right">
             <slot name="icon-right"></slot>
         </span>
@@ -82,6 +87,10 @@ export default {
         emitInsteadOfNavigate: {
             default: false,
             type: Boolean
+        },
+        title: {
+            default: null,
+            type: String
         }
     },
     emits: ['click'],

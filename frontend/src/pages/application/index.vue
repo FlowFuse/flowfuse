@@ -4,7 +4,7 @@
     <main v-else-if="!application?.id">
         <ff-loading message="Loading Application..." />
     </main>
-    <main v-else class="ff-with-status-header flex flex-col h-full w-full overflow-auto">
+    <main v-else class="ff-with-status-header flex flex-col h-full w-full overflow-auto" data-el="application-page">
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
         <ff-page-header :title="application.name" :tabs="navigation">
@@ -31,13 +31,13 @@
 </template>
 
 <script>
-import { ChipIcon, ClockIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
+// import { ChipIcon, ClockIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 import { mapState } from 'vuex'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
-import PipelinesIcon from '../../components/icons/Pipelines.js'
-import ProjectsIcon from '../../components/icons/Projects.js'
+// import PipelinesIcon from '../../components/icons/Pipelines.js'
+// import ProjectsIcon from '../../components/icons/Projects.js'
 import usePermissions from '../../composables/Permissions.js'
 
 import applicationMixin from '../../mixins/Application.js'
@@ -64,41 +64,66 @@ export default {
         ...mapState('account', ['features', 'team']),
         navigation () {
             const routes = [
-                { label: 'Hosted Instances', to: { name: 'ApplicationInstances' }, tag: 'application-overview', icon: ProjectsIcon },
-                { label: 'Remote Instances', to: { name: 'ApplicationDevices' }, tag: 'application-devices-overview', icon: ChipIcon },
+                {
+                    label: 'Hosted Instances',
+                    to: { name: 'ApplicationInstances' },
+                    tag: 'application-overview'
+                    // icon: ProjectsIcon
+                },
+                {
+                    label: 'Remote Instances',
+                    to: { name: 'ApplicationDevices' },
+                    tag: 'application-devices-overview'
+                    // icon: ChipIcon
+                },
                 {
                     label: 'Device Groups',
                     to: { name: 'ApplicationDeviceGroups' },
                     tag: 'application-devices-groups-overview',
-                    icon: ChipIcon,
-                    hidden: !this.hasPermission('application:device-group:list'),
+                    // icon: ChipIcon,
+                    hidden: !this.hasPermission('application:device-group:list', { application: this.application }),
                     featureUnavailable: !this.features?.deviceGroups
                 },
-                { label: 'Snapshots', to: { name: 'ApplicationSnapshots' }, tag: 'application-snapshots', icon: ClockIcon },
+                {
+                    label: 'Snapshots',
+                    to: { name: 'ApplicationSnapshots' },
+                    tag: 'application-snapshots'
+                    // icon: ClockIcon
+                },
                 {
                     label: 'Pipelines',
                     to: { name: 'ApplicationPipelines' },
                     tag: 'application-pipelines',
-                    icon: PipelinesIcon,
-                    hidden: !this.hasPermission('application:pipeline:list'),
+                    // icon: PipelinesIcon,
+                    hidden: !this.hasPermission('application:pipeline:list', { application: this.application }),
                     featureUnavailable: !this.features?.['devops-pipelines']
                 },
-                { label: 'Logs', to: { name: 'application-logs' }, tag: 'application-logs', icon: TerminalIcon },
+                {
+                    label: 'Logs',
+                    to: { name: 'application-logs' },
+                    tag: 'application-logs'
+                    // icon: TerminalIcon
+                },
                 {
                     label: 'Audit Log',
                     to: { name: 'application-activity' },
                     tag: 'application-activity',
-                    icon: ViewListIcon,
-                    hidden: !this.hasPermission('application:audit-log')
+                    // icon: ViewListIcon,
+                    hidden: !this.hasPermission('application:audit-log', { application: this.application })
                 },
                 {
                     label: 'Dependencies',
                     to: { name: 'application-dependencies' },
                     tag: 'application-dependencies',
-                    icon: CogIcon,
-                    hidden: !this.hasPermission('application:bom')
+                    // icon: CogIcon,
+                    hidden: !this.hasPermission('application:bom', { application: this.application })
                 },
-                { label: 'Settings', to: { name: 'application-settings' }, tag: 'application-settings', icon: CogIcon }
+                {
+                    label: 'Settings',
+                    to: { name: 'application-settings' },
+                    tag: 'application-settings'
+                    // icon: CogIcon
+                }
             ]
 
             return routes

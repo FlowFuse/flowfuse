@@ -7,7 +7,7 @@
                 </template>
             </ff-page-header>
         </template>
-        <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="platform" @load-entries="loadEntries" />
+        <AuditLogBrowser ref="AuditLog" :users="users" :logEntries="logEntries" logType="platform" :loading="loading" @load-entries="loadEntries" />
     </ff-page>
 </template>
 
@@ -26,7 +26,8 @@ export default {
     data () {
         return {
             logEntries: [],
-            users: []
+            users: [],
+            loading: true
         }
     },
     computed: {
@@ -46,6 +47,8 @@ export default {
                 if (err.response?.status === 403) {
                     this.$router.push('/')
                 }
+            } finally {
+                this.loading = false
             }
         }
     }

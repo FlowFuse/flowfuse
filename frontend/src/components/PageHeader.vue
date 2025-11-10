@@ -8,16 +8,20 @@
             </transition>
         </i>
         <!-- FlowFuse Logo -->
-        <router-link :to="homeLink" class="min-w-min" style="width: 250px;">
-            <img class="ff-logo" src="/ff-logo--wordmark--light.svg">
+        <router-link :to="homeLink" class="ff-logo-wrapper">
+            <!-- Mobile: Icon-only logo -->
+            <img class="ff-logo lg:hidden" src="/ff-minimal-red.svg" alt="FlowFuse">
+            <!-- Desktop: Full wordmark logo -->
+            <img class="ff-logo hidden lg:block" src="/ff-logo--wordmark--light.svg" alt="FlowFuse">
         </router-link>
         <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
-            <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
-            <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle" :class="{'active': mobileTeamSelectionOpen}">
+            <ExpertButton class="ff-header--mobile-experttoggle" v-if="featuresCheck.isExpertAssistantFeatureEnabled" />
+            <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle ff-header--mobile-teamtoggle" :class="{'active': mobileTeamSelectionOpen}">
                 <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="toggleMobileTeamSelectionMenu">
             </i>
+            <NotificationsButton class="ff-header--mobile-notificationstoggle" :class="{'active': mobileTeamSelectionOpen}" />
             <i class="ff-header--mobile-usertoggle" :class="{'active': mobileUserOptionsOpen}">
                 <img :src="user.avatar" class="ff-avatar" @click="mobileUserOptionsOpen = !mobileUserOptionsOpen">
             </i>
@@ -60,19 +64,9 @@
             </ul>
         </div>
         <div class="hidden lg:flex items-stretch ff-desktop-navigation-right" data-el="desktop-nav-right">
-            <ff-team-selection data-action="team-selection" />
-            <div class="pl-2 pr-4 flex flex-col justify-center" v-if="showInviteButton">
-                <ff-button
-                    kind="secondary"
-                    type="anchor"
-                    class="ml-5"
-                    :to="{ name: 'team-members', params: { team_slug: team.slug }, query: { action: 'invite' } }"
-                >
-                    <template #icon-left><UserAddIcon /></template>
-                    Invite Members
-                </ff-button>
-            </div>
             <!-- Desktop: User Options -->
+            <ExpertButton v-if="featuresCheck.isExpertAssistantFeatureEnabled" />
+            <ff-team-selection data-action="team-selection" />
             <NotificationsButton />
             <ff-dropdown
                 v-if="user"
@@ -107,7 +101,7 @@
     </div>
 </template>
 <script>
-import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, UserAddIcon, XIcon } from '@heroicons/vue/solid'
+import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, XIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
@@ -117,6 +111,7 @@ import navigationMixin from '../mixins/Navigation.js'
 import product from '../services/product.js'
 import { Roles } from '../utils/roles.js'
 
+import ExpertButton from './ExpertButton.vue'
 import NavItem from './NavItem.vue'
 import NotificationsButton from './NotificationsButton.vue'
 
@@ -179,9 +174,6 @@ export default {
                     class: 'danger'
                 }
             ].filter(option => !option.hidden)
-        },
-        showInviteButton () {
-            return this.team && this.hasPermission('team:user:invite') && this.$route.name !== 'team-members-members'
         }
     },
     watch: {
@@ -198,8 +190,8 @@ export default {
         'ff-team-selection': TeamSelection,
         MenuIcon,
         XIcon,
-        UserAddIcon,
-        NotificationsButton
+        NotificationsButton,
+        ExpertButton
     },
     data () {
         return {

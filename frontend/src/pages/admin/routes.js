@@ -219,7 +219,7 @@ export default [
                 path: 'certified-nodes',
                 component: AdminCertifiedNodes,
                 meta: {
-                    title: 'Admin - Certified Nodes'
+                    title: 'Admin - FlowFuse Nodes'
                 }
             }
         ]

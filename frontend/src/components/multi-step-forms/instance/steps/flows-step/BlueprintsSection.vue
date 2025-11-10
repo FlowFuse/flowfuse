@@ -1,14 +1,12 @@
 <template>
-    <section class="ff-blueprint-step text-center flex flex-col gap-4 pt-6" data-step="blueprint">
-        <h2>Select Your Blueprint</h2>
-
-        <p>We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</p>
+    <section data-section="blueprints" class="blueprints-section">
+        <h2 class="mt-6 mb-5">We have a collection of pre-built flows that you can use as a starting point for your Node-RED Instance.</h2>
 
         <transition name="fade" mode="out-in">
             <ff-loading v-if="loading" message="Loading Blueprints..." />
-            <div v-else class="flex flex-col gap-7" data-el="blueprints-wrapper">
-                <div class="flex gap-16 text-left flex-wrap-reverse">
-                    <div class="ff-blueprints flex-1">
+            <div v-else class="flex flex-1 flex-col gap-7 overflow-auto" data-el="blueprints-wrapper">
+                <div class="flex flex-1 gap-16 text-left flex-wrap-reverse overflow-auto">
+                    <div class="ff-blueprints flex flex-col flex-1 overflow-auto h-full">
                         <ul class="flex flex-col gap-8" data-group="blueprint-groups">
                             <li
                                 v-for="(category, $categoryName) in categories"
@@ -67,34 +65,30 @@
 <script>
 import { mapState } from 'vuex'
 
-import { scrollIntoView } from '../../../../composables/Ux.js'
-import FfLoading from '../../../Loading.vue'
-import BlueprintTile from '../../../blueprints/BlueprintTile.vue'
-import AssetDetailDialog from '../../../dialogs/AssetDetailDialog.vue'
+import { scrollIntoView } from '../../../../../composables/Ux.js'
+
+import FfLoading from '../../../../Loading.vue'
+import BlueprintTile from '../../../../blueprints/BlueprintTile.vue'
+import AssetDetailDialog from '../../../../dialogs/AssetDetailDialog.vue'
 
 export default {
-    name: 'BlueprintStep',
-    components: { AssetDetailDialog, FfLoading, BlueprintTile },
+    name: 'BlueprintsSection',
+    components: {
+        FfLoading,
+        AssetDetailDialog,
+        BlueprintTile
+    },
     props: {
-        slug: {
-            required: true,
-            type: String
-        },
-        state: {
-            required: false,
-            type: Object,
-            default: () => ({})
-        },
         blueprints: {
             type: Array,
             required: true
+        },
+        initialState: {
+            type: Object,
+            required: true
         }
     },
-    emits: ['step-updated'],
-    setup (props) {
-        const initialState = props.state
-        return { initialState }
-    },
+    emits: ['blueprint-selected'],
     data () {
         return {
             selectedBlueprint: this.initialState.blueprint ?? null,
@@ -116,13 +110,7 @@ export default {
     watch: {
         selectedBlueprint: {
             handler (blueprint) {
-                this.$emit('step-updated', {
-                    [this.slug]: {
-                        blueprint,
-                        hasErrors: false,
-                        errors: null
-                    }
-                })
+                this.$emit('blueprint-selected', blueprint)
             },
             deep: true,
             immediate: true
@@ -173,30 +161,11 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.ff-blueprint-step {
-
-    .ff-blueprints {
-        overflow: auto;
-        min-width: 400px;
-        max-height: 75vh;
-        padding-right: 15px;
-
-        .ff-blueprint-tiles {
-            .ff-blueprint-tile {
-                max-width: 280px;
-                width: 100%;
-                height: 100%;
-            }
-        }
-    }
-
-    .ff-blueprint-categories {
-        min-width: 300px;
-        li:hover {
-            cursor: pointer;
-            color: $ff-blue-600;
-        }
-    }
+<style scoped lang="scss">
+.blueprints-section {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    flex: 1;
 }
 </style>

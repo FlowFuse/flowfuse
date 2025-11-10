@@ -1,3 +1,5 @@
+import DOMPurify from 'dompurify'
+
 export const isValidURL = (string) => {
     // eslint-disable-next-line
     return /^(?:\w+:)?\/\/([^\s\.]+\.\S{2}|localhost[\:?\d]*)\S*$/.test(string)
@@ -66,4 +68,22 @@ export const hashString = (str) => {
         h = Math.imul(h, 16777619)
     }
     return (h >>> 0).toString(16).padStart(8, '0')
+}
+
+/**
+ * Convert a string to slug format
+ * @param {String} str - The string to convert to slug format
+ * @returns {String} - slug
+ */
+export const slugify = (str) => {
+    return str
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+}
+
+export const sanitize = (str) => {
+    return DOMPurify.sanitize(str)
 }

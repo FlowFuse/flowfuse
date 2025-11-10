@@ -1,6 +1,6 @@
 <template>
-    <div class="ff-page-header border-b  text-gray-500 justify-between px-7 pt-7 gap-y-4 items-center" data-sentry-unmask>
-        <div class="flex flex-wrap justify-between pb-4 gap-y-2">
+    <div class="ff-page-header border-b  text-gray-500 justify-between px-7 pt-3 gap-y-4 items-center" data-sentry-unmask>
+        <div class="flex flex-wrap justify-between pb-3 gap-y-2">
             <div class="flex-1 flex items-center md:w-auto mr-8 gap-x-2">
                 <slot name="hero">
                     <div class="flex-grow items-center grid gap-1">

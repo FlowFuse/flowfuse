@@ -12,6 +12,7 @@ import QueueIcon from '../../../components/icons/Queue.js'
 import { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
+import dialog from './dialog/index.js'
 import drawers from './drawers/index.js'
 import tours from './tours/index.js'
 
@@ -132,7 +133,7 @@ const getters = {
                         featureUnavailable: !features.isBlueprintsFeatureEnabledForPlatform
                     },
                     {
-                        label: 'Certified Nodes',
+                        label: 'FlowFuse Nodes',
                         to: { name: 'admin-certified-nodes' },
                         tag: 'admin-certified-nodes',
                         icon: CollectionIcon,
@@ -342,10 +343,14 @@ const getters = {
                             },
                             tag: 'team-members',
                             icon: UsersIcon,
-                            disabled: requiresBilling,
                             alert: (() => {
                                 const teamAge = new Date().getTime() - new Date(team.createdAt).getTime()
                                 const fourteenDaysInMs = 14 * 24 * 60 * 60 * 1000
+
+                                if (rootGetters['account/isTrialAccountExpired']) {
+                                    return null
+                                }
+
                                 if (team.memberCount === 1 && teamAge < fourteenDaysInMs) {
                                     return {
                                         title: 'Add a team member and start collaborating!'
@@ -509,7 +514,7 @@ const actions = {
 
 export default {
     namespaced: true,
-    modules: { tours, drawers },
+    modules: { dialog, drawers, tours },
     state,
     initialState: initialState(),
     getters,

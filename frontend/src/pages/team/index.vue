@@ -1,7 +1,10 @@
 <template>
     <template v-if="canAccessTeam && team">
         <Teleport v-if="mounted" to="#platform-banner">
-            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">You are viewing this team as an Administrator</div>
+            <div v-if="isVisitingAdmin" class="ff-banner" data-el="banner-team-as-admin">
+                You are viewing this team as an
+                Administrator
+            </div>
             <TeamSuspendedBanner v-if="team.suspended" :team="team" />
             <SubscriptionExpiredBanner v-else :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
@@ -14,7 +17,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
@@ -46,6 +49,7 @@ export default {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
         ...mapGetters('account', ['requiresBilling', 'isAdminUser']),
         ...mapState('ux/tours', ['shouldPresentTour']),
+        ...mapState('product/expert', ['shouldPromptAssistant']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -87,6 +91,7 @@ export default {
         this.checkRoute(this.$route)
     },
     methods: {
+        ...mapActions('product/expert', ['handleSignUp']),
         checkRoute: async function (route) {
             const allowedRoutes = []
 
@@ -96,6 +101,7 @@ export default {
                 allowedRoutes.push('/team/' + this.team.slug + '/settings/general')
                 allowedRoutes.push('/team/' + this.team.slug + '/settings/danger')
                 allowedRoutes.push('/team/' + this.team.slug + '/settings/change-type')
+                allowedRoutes.push('/team/' + this.team.slug + '/members/general')
 
                 if (allowedRoutes.indexOf(route.path) === -1) {
                     // if we're on a path that requires billing
@@ -114,7 +120,13 @@ export default {
         dispatchTour () {
             return this.$store.dispatch(
                 'ux/tours/setWelcomeTour',
-                () => this.$store.dispatch('ux/tours/openModal', 'education')
+                () => {
+                    if (this.shouldPromptAssistant) {
+                        this.handleSignUp()
+                    } else {
+                        this.$store.dispatch('ux/tours/openModal', 'education')
+                    }
+                }
             )
                 .catch(e => e)
         }

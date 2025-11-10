@@ -2,7 +2,7 @@
     <section
         id="right-drawer"
         v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}"
-        :class="{open: rightDrawer.state, wider: rightDrawer.wider}"
+        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed}"
         data-el="right-drawer"
     >
         <div v-if="rightDrawer?.header" class="header flex items-center justify-between p-4 border-b gap-2">
@@ -64,7 +64,7 @@ export default {
     methods: {
         ...mapActions('ux/drawers', ['closeRightDrawer']),
         closeDrawer () {
-            if (this.rightDrawer.state) {
+            if (this.rightDrawer.state && this.rightDrawer.closeOnClickOutside) {
                 this.closeRightDrawer()
             }
         }
@@ -88,25 +88,35 @@ export default {
     box-shadow: -5px 0px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
-    overflow: auto;
-
-    & > * {
-        padding: 1rem;
-    }
+    overflow: hidden; // Changed from auto to hidden - let child components handle their own scrolling
 
     .header {
         background: white;
+        flex-shrink: 0;
     }
 
     &.open {
         right: 0;
         width: 100%;
-        max-width: 30vw;
-        min-width: 400px;
 
-        &.wider {
-            max-width: 45vw;
+        // On small viewports: use 100% width (no minimum)
+        max-width: 100vw;
+        min-width: 0;
+
+        // On viewports >= 400px: use 30vw with 400px minimum
+        @media (min-width: 400px) {
+            max-width: 30vw;
+            min-width: 400px;
+
+            &.wider {
+                max-width: 45vw;
+            }
         }
+    }
+
+    &.fixed {
+        position: initial;
+        height: 100%;
     }
 }
 </style>

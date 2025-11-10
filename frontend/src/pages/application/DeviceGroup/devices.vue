@@ -2,12 +2,18 @@
     <main v-if="!deviceGroup?.id">
         <ff-loading message="Loading Device Group..." />
     </main>
-    <div v-else class="w-full">
+    <div v-else class="w-full" data-el="device-group-devices">
         <div class="mb-3">
             <SectionTopMenu hero="Device Group Membership" info="">
                 <template #tools>
                     <div v-if="!editMode && !hasChanges" class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
-                        <ff-button kind="primary" size="small" class="w-24 whitespace-nowrap" @click="editMode = true">Edit</ff-button>
+                        <ff-button
+                            :disabled="!hasPermission('application:device-group:update', {application})"
+                            data-action="edit-device-group"
+                            kind="primary" size="small" class="w-24 whitespace-nowrap" @click="editMode = true"
+                        >
+                            Edit
+                        </ff-button>
                     </div>
                     <div v-else class="flex flex-wrap justify-end items-end gap-x-2 gap-y-2 mt-0 mb-1">
                         <ff-button kind="secondary" size="small" class="w-24 whitespace-nowrap" @click="cancelChanges">Cancel</ff-button>
@@ -20,8 +26,14 @@
         <div class="flex flex-col sm:flex-row">
             <div v-if="editMode" class="w-full sm:w-1/2 order-3 sm:order-1">
                 <div class="flex justify-between items-center mb-1">
-                    <h3 class="text-gray-800 block text-sm font-medium mb-1 min-w-0 truncate">Available devices</h3>
-                    <ff-button size="small" class="w-28 whitespace-nowrap mb-1" :disabled="!selectedAvailableDevices.length" @click="addDevicesToGroup()">Add Devices</ff-button>
+                    <h3 class="text-gray-800 block text-sm font-medium mb-1 min-w-0 truncate">Available remote instances</h3>
+                    <ff-button
+                        size="small" class="w-28 whitespace-nowrap mb-1"
+                        :disabled="!selectedAvailableDevices.length || !hasPermission('application:device-group:create', {application})"
+                        @click="addDevicesToGroup()"
+                    >
+                        Add Devices
+                    </ff-button>
                 </div>
                 <ff-data-table
                     :columns="tableColsRW"
@@ -36,7 +48,9 @@
                             <ff-data-table-cell>
                                 <ff-checkbox v-model="device.selected" />
                             </ff-data-table-cell>
-                            <ff-data-table-cell>{{ device.name }}</ff-data-table-cell>
+                            <ff-data-table-cell>
+                                <router-link :to="{name: 'DeviceOverview', params: {id: device.id}}">{{ device.name }}</router-link>
+                            </ff-data-table-cell>
                             <ff-data-table-cell>{{ device.type }}</ff-data-table-cell>
                         </ff-data-table-row>
                     </template>
@@ -65,7 +79,9 @@
                             <ff-data-table-cell v-if="editMode">
                                 <ff-checkbox v-model="device.selected" class="inline" />
                             </ff-data-table-cell>
-                            <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
+                            <ff-data-table-cell class="w-1/3">
+                                <router-link :to="{name: 'DeviceOverview', params: {id: device.id}}">{{ device.name }}</router-link>
+                            </ff-data-table-cell>
                             <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
                             <ff-data-table-cell v-if="!editMode" class="w-1/3">
                                 <ActiveSnapshotCell :activeSnapshot="getDeviceActiveSnapshot(device)" :targetSnapshot="targetSnapshot" />
@@ -79,11 +95,15 @@
 </template>
 
 <script>
+import { h } from 'vue'
 import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
+import DeployNotice from '../../../components/notices/device-groups/DeployNotice.vue'
+import usePermissions from '../../../composables/Permissions.js'
 
+import { pluralize } from '../../../composables/String.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -112,7 +132,11 @@ export default {
             required: true
         }
     },
-    emits: ['device-group-members-updated'],
+    emits: ['device-group-members-updated', 'device-group-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+        return { hasPermission }
+    },
     data: function () {
         return {
             localMemberDevices: [],
@@ -302,33 +326,53 @@ export default {
             this.updateMemberDevicesList()
             this.editMode = false
         },
-        saveChanges () {
+        async saveChanges () {
             const deviceIds = this.localMemberDevices.map((device) => device.id)
             const devicesRemoved = this.deviceGroup.devices.filter((device) => this.localAvailableDevices.map((d) => d.id).includes(device.id))
             const devicesAdded = this.localMemberDevices.filter((device) => !this.deviceGroup.devices.map((d) => d.id).includes(device.id))
             const removedCount = devicesRemoved.length
             const addedCount = devicesAdded.length
-            const warning = []
+            const text = []
+            const notices = []
+            if (addedCount > 0 && removedCount > 0) {
+                // single title when both adding and removing devices from the group
+                text.push('<h3>Remote Instances will be added and removed from this group.</h3>')
+            }
+
             if (addedCount > 0) {
-                warning.push('1 or more devices will be added to this group. These device(s) will be updated to deploy the active pipeline snapshot.')
-                warning.push('')
+                if (removedCount === 0) {
+                    text.push(`<h3>${addedCount === 1 ? 'One' : 'Multiple'} Remote ${pluralize('Instance', addedCount)} will be added to this group.</h3>`)
+                }
+                if (this.deviceGroup.targetSnapshot?.id) {
+                    const component = h(DeployNotice, {
+                        targetSnapshot: this.deviceGroup.targetSnapshot,
+                        title: `The below snapshot will be deployed to the Remote ${pluralize('Instance', addedCount)} being added to this group:`
+                    })
+                    notices.push(component)
+                }
             }
+
             if (removedCount > 0) {
-                warning.push('1 or more devices will be removed from this group. These device(s) will be cleared of any active pipeline snapshot.')
-                warning.push('')
+                if (addedCount === 0) {
+                    text.push(`<h3>${removedCount === 1 ? 'One Remote Instance' : removedCount + ' Remote Instances'} will be removed from this group.</h3>`)
+                }
+                notices.push(`${removedCount > 1 ? 'The Remote Instances that are' : 'The Remote Instance that is'} being removed will be cleared of any active pipeline snapshot.`)
             }
+
             if (addedCount <= 0 && removedCount <= 0) {
                 return // nothing to do, shouldn't be able to get here as the save button should be disabled. but just in case...
             }
-            warning.push('Do you want to continue?')
 
-            const warningMessage = warning.join('\n')
+            text.push('<p class="!mt-5">Do you want to continue?</p>')
+
+            const html = text.join('\n')
+
             Dialog.show({
                 header: 'Update device group members',
                 kind: 'danger',
-                text: warningMessage,
-                confirmLabel: 'Confirm',
-                cancelLabel: 'No'
+                html,
+                notices,
+                confirmLabel: 'Confirm'
             }, async () => {
                 ApplicationApi.updateDeviceGroupMembership(this.application.id, this.deviceGroup.id, { set: deviceIds })
                     .then(() => {
@@ -336,6 +380,28 @@ export default {
                         this.hasChanges = false
                         this.$emit('device-group-members-updated')
                         this.editMode = false
+                        if (deviceIds.length === 0 && this.deviceGroup.targetSnapshot) {
+                            Dialog.show({
+                                header: 'Empty Device Group',
+                                kind: 'danger',
+                                text: 'Do you want to clear the Target Snapshot for this empty Device Group?',
+                                confirmLabel: 'Clear',
+                                cancelLabel: 'No'
+                            }, async () => {
+                                try {
+                                    const response = await ApplicationApi.updateDeviceGroup(this.application.id, this.deviceGroup.id, undefined, undefined, null)
+                                    if (response.status === 200) {
+                                        this.$emit('device-group-updated')
+                                        Alerts.emit('Device Group Target Snapshot was cleared', 'confirmation')
+                                    } else {
+                                        Alerts.emit('Failed to clear the Target Snapshot', 'warning', 5000)
+                                    }
+                                } catch (error) {
+                                    const msg = error.response?.data?.error || 'Error clearing device groups Target Snapshot'
+                                    Alerts.emit(msg, 'warning', 5000)
+                                }
+                            })
+                        }
                     })
                     .catch((err) => {
                         Alerts.emit('Failed to update Device Group: ' + err.toString(), 'warning')

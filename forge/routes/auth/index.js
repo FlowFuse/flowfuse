@@ -185,8 +185,8 @@ async function init (app, opts) {
         }
     })
 
-    app.decorate('createSessionCookie', async function (username) {
-        const session = await app.db.controllers.Session.createUserSession(username)
+    app.decorate('createSessionCookie', async function (username, expiry, idle) {
+        const session = await app.db.controllers.Session.createUserSession(username, expiry, idle)
         if (session) {
             const cookieOptions = { ...SESSION_COOKIE_OPTIONS }
             cookieOptions.maxAge = app.config.sessions?.maxDuration || SESSION_MAX_AGE

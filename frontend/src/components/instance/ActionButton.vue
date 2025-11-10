@@ -1,11 +1,12 @@
 <template>
     <div class="action-button" data-el="action-button">
         <DropdownMenu
-            v-if="hasPermission('project:change-status')"
-            buttonClass="ff-btn ff-btn--primary"
+            v-if="hasPermission('project:change-status', { application: instance.application })"
+            buttonClass="ff-btn ff-btn--primary ff-btn-icon"
             :options="actionsDropdownOptions"
         >
-            Actions
+            <CogIcon class="ff-btn--icon ff-btn--icon-left" />
+            <span class="hidden sm:inline actions-text-container">Actions</span>
         </DropdownMenu>
         <ConfirmInstanceDeleteDialog
             ref="confirmInstanceDeleteDialog"
@@ -17,6 +18,8 @@
 </template>
 
 <script>
+import { CogIcon } from '@heroicons/vue/solid'
+
 import InstanceApi from '../../api/instances.js'
 import usePermissions from '../../composables/Permissions.js'
 import ConfirmInstanceDeleteDialog from '../../pages/instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
@@ -27,7 +30,7 @@ import DropdownMenu from '../DropdownMenu.vue'
 
 export default {
     name: 'InstanceActionsButton',
-    components: { ConfirmInstanceDeleteDialog, DropdownMenu },
+    components: { CogIcon, ConfirmInstanceDeleteDialog, DropdownMenu },
     props: {
         instance: {
             type: Object,
@@ -72,7 +75,7 @@ export default {
                 }
             ]
 
-            if (this.hasPermission('project:delete')) {
+            if (this.hasPermission('project:delete', { application: this.instance.application })) {
                 result.push(null)
                 result.push({ name: 'Delete', class: ['text-red-700'], action: this.showConfirmDeleteDialog })
             }
@@ -148,5 +151,20 @@ export default {
 <style scoped lang="scss">
 .action-button {
   cursor: default;
+}
+
+// Container query for drawer context - responsive button behavior
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
+// When inside drawer, respond to drawer width instead of viewport
+@container drawer (min-width: 640px) {
+  .actions-text-container {
+    display: inline;
+  }
+}
+
+@container drawer (max-width: 639px) {
+  .actions-text-container {
+    display: none;
+  }
 }
 </style>

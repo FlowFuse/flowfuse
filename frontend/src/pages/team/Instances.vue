@@ -44,10 +44,11 @@
                 >
                     <template #actions>
                         <ff-button
-                            v-if="hasPermission('project:create')"
+                            v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             data-action="create-project"
                             kind="primary"
                             :to="{name: 'CreateInstance'}"
+                            :disabled="!hasPermission('project:create')"
                         >
                             <template #icon-left>
                                 <PlusSmIcon />
@@ -65,22 +66,24 @@
                         />
                     </template>
                     <template
-                        v-if="hasPermission('project:change-status')"
                         #context-menu="{row}"
                     >
                         <ff-list-item
+                            v-if="row.canChangeStatus"
                             :disabled="row.pendingStateChange || row.running || row.optimisticStateChange"
                             label="Start"
                             @click.stop="instanceStart(row)"
                         />
 
                         <ff-list-item
+                            v-if="row.canChangeStatus"
                             :disabled="!row.notSuspended"
                             label="Restart"
                             @click.stop="instanceRestart(row)"
                         />
 
                         <ff-list-item
+                            v-if="row.canChangeStatus"
                             :disabled="!row.notSuspended"
                             kind="danger"
                             label="Suspend"
@@ -88,7 +91,7 @@
                         />
 
                         <ff-list-item
-                            v-if="hasPermission('project:delete')"
+                            v-if="row.canDelete"
                             kind="danger"
                             label="Delete"
                             @click.stop="instanceShowConfirmDelete(row)"
@@ -115,9 +118,10 @@
                     </template>
                     <template #actions>
                         <ff-button
-                            v-if="hasPermission('project:create')"
+                            v-ff-tooltip:bottom="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             kind="primary"
                             :to="{name: 'CreateInstance'}"
+                            :disabled="!hasPermission('project:create')"
                         >
                             <template #icon-left>
                                 <PlusSmIcon />
@@ -270,6 +274,9 @@ export default {
                             instance.notSuspended = instance.status !== 'suspended'
                             instance.pendingStateChange = false
                             instance.optimisticStateChange = false
+                            instance.canDelete = this.hasPermission('project:delete', { application: instance.application })
+                            instance.canChangeStatus = this.hasPermission('project:change-status', { application: instance.application })
+                            instance.hideContextMenu = !(instance.canDelete || instance.canChangeStatus)
                             this.instancesMap.set(instance.id, instance)
                         })
                     })

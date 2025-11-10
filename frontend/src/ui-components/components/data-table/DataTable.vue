@@ -1,79 +1,122 @@
 <template>
-    <div class="ff-data-table">
-        <div v-if="showOptions" class="ff-data-table--options">
+    <div class="ff-data-table overflow-auto flex flex-col">
+        <div v-if="showOptions" class="ff-data-table--options flex flex-wrap">
             <ff-text-input
                 v-if="showSearch" v-model="filterTerm" class="ff-data-table--search"
                 :disabled="disabled"
                 data-form="search" :placeholder="searchPlaceholder"
             >
-                <template #icon><SearchIcon /></template>
+                <template #icon>
+                    <SearchIcon />
+                </template>
             </ff-text-input>
+
             <div v-if="$slots.actions" class="ff-data-table--actions">
                 <slot name="actions" />
             </div>
         </div>
-        <table class="ff-data-table--data" :class="tableClass ?? ''">
-            <slot name="table">
-                <thead>
-                    <!-- HEADERS -->
-                    <slot name="header">
-                        <ff-data-table-row>
-                            <ff-data-table-cell v-if="showRowCheckboxes" class="w-5">
-                                <ff-checkbox v-model="allChecked" data-action="check-all" @click="toggleAllChecks" />
-                            </ff-data-table-cell>
-                            <ff-data-table-cell
-                                v-for="(col, $index) in columns" :key="$index"
-                                :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : '', col.headerClass ?? ''].concat(col.class)"
-                                :style="col.headerStyle ?? col.style"
-                                @click="sortBy(col, $index)"
-                            >
-                                <!-- Internal div required to have flex w/sorting icons -->
-                                <div :class="col.tableCellClass ?? ''">
-                                    <span v-if="col.html" :class="col.tableLabelClass ?? ''" v-html="col.html"> </span>
-                                    <span v-else :class="col.tableLabelClass ?? ''">{{ col.label }}</span>
-                                    <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key" class="ff-icon ff-icon-sm" />
-                                    <SortAscendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'" class="ff-icon ff-icon-sm icon-sorted" />
-                                    <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'" class="ff-icon ff-icon-sm icon-sorted" />
-                                </div>
-                            </ff-data-table-cell>
 
-                            <ff-data-table-cell v-if="hasRowActions" />
-                            <ff-data-table-cell v-if="hasContextMenu" />
-                        </ff-data-table-row>
-                    </slot>
-                </thead>
-                <tbody>
-                    <!-- ROWS -->
-                    <slot name="rows">
-                        <ff-data-table-row v-if="loading">
-                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ loadingMessage }}</ff-data-table-cell>
-                        </ff-data-table-row>
-                        <template v-if="!loading">
-                            <ff-data-table-row
-                                v-for="(r, $index) in filteredRows" :key="$index" :data="r" :columns="columns"
-                                :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn" @selected="rowClick(r, $event)"
-                            >
-                                <template v-if="showRowCheckboxes" #row-prepend="{row}">
-                                    <ff-checkbox v-model="checks[row[checkKeyProp]]" />
-                                </template>
-                                <template v-if="hasRowActions" #row-actions="{row}">
-                                    <slot name="row-actions" :row="row" />
-                                </template>
-                                <template v-if="hasContextMenu" #context-menu="{row}">
-                                    <slot name="context-menu" :row="row" />
-                                </template>
+        <div class="flex-1 overflow-auto">
+            <table class="ff-data-table--data" :class="tableClass ?? ''">
+                <slot name="table">
+                    <thead>
+                        <!-- HEADERS -->
+                        <slot v-if="showHeader" name="header">
+                            <ff-data-table-row>
+                                <ff-data-table-cell v-if="collapsibleRow" class="w-5" />
+                                <ff-data-table-cell v-if="showRowCheckboxes" class="w-5">
+                                    <ff-checkbox v-model="allChecked" data-action="check-all" @click="toggleAllChecks" />
+                                </ff-data-table-cell>
+                                <ff-data-table-cell
+                                    v-for="(col, $index) in columns" :key="$index"
+                                    :class="[sort.key === col.key ? 'sorted' : '', col.sortable ? 'sortable' : '', col.headerClass ?? ''].concat(col.class)"
+                                    :style="col.headerStyle ?? col.style"
+                                    @click="sortBy(col, $index)"
+                                >
+                                    <!-- Internal div required to have flex w/sorting icons -->
+                                    <div :class="col.tableCellClass ?? ''">
+                                        <!-- eslint-disable-next-line vue/no-v-html -->
+                                        <span v-if="col.html" :class="col.tableLabelClass ?? ''" v-html="col.html"> </span>
+                                        <span v-else :class="col.tableLabelClass ?? ''">{{ col.label }}</span>
+                                        <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key"
+                                                            class="ff-icon ff-icon-sm"
+                                        />
+                                        <SortAscendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'"
+                                                           class="ff-icon ff-icon-sm icon-sorted"
+                                        />
+                                        <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'"
+                                                            class="ff-icon ff-icon-sm icon-sorted"
+                                        />
+                                    </div>
+                                </ff-data-table-cell>
+
+                                <ff-data-table-cell v-if="hasRowActions" />
+                                <ff-data-table-cell v-if="hasContextMenu" />
                             </ff-data-table-row>
-                        </template>
-                        <ff-data-table-row v-if="!loading && rows?.length > 0 && filteredRows?.length === 0">
-                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">No Data Found. Try Another Search.</ff-data-table-cell>
-                        </ff-data-table-row>
-                        <ff-data-table-row v-else-if="!loading && filteredRows?.length === 0">
-                            <ff-data-table-cell class="status-message" :colspan="messageColSpan">{{ noDataMessage }}</ff-data-table-cell>
-                        </ff-data-table-row>
-                    </slot>
-                </tbody>
-            </slot>
-        </table>
+                        </slot>
+                    </thead>
+
+                    <tbody>
+                        <!-- ROWS -->
+                        <slot name="rows">
+                            <ff-data-table-row v-if="loading">
+                                <ff-data-table-cell class="status-message" :colspan="messageColSpan">
+                                    {{ loadingMessage }}
+                                </ff-data-table-cell>
+                            </ff-data-table-row>
+
+                            <template v-if="!loading">
+                                <template v-for="(r, $index) in filteredRows" :key="$index">
+                                    <ff-data-table-row
+                                        :data="r" :columns="columns"
+                                        :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn"
+                                        :data-el="slugify('row-' + (r.name || r.id || r.label || 'na'))"
+                                        @selected="rowClick(r, $event)"
+                                    >
+                                        <template v-if="collapsibleRow" #row-prepend>
+                                            <span data-el="collapsible-row-toggle">
+                                                <ChevronRightIcon
+                                                    class="ff-icon ff-icon-sm cursor-pointer hover:text-indigo-500 transition-transform"
+                                                    :class="{'rotate-90': visibleCollapsibleRows.includes($index)}"
+                                                    @click="toggleCollapsibleRowVisibility($index)"
+                                                />
+                                            </span>
+                                        </template>
+                                        <template v-else-if="showRowCheckboxes" #row-prepend="{row}">
+                                            <ff-checkbox v-model="checks[row[checkKeyProp]]" />
+                                        </template>
+                                        <template v-if="hasRowActions" #row-actions="{row}">
+                                            <slot name="row-actions" :row="row" />
+                                        </template>
+                                        <template v-if="hasContextMenu" #context-menu="{row}">
+                                            <slot name="context-menu" :row="row" />
+                                        </template>
+                                    </ff-data-table-row>
+                                    <ff-data-table-row v-if="collapsibleRow" class="collapsible">
+                                        <template #default>
+                                            <component :is="collapsibleRow.is"
+                                                       class="collapsible"
+                                                       :data="r"
+                                                       :collapsed="!visibleCollapsibleRows.includes($index)"
+                                                       v-bind="collapsibleRow.props"
+                                                       v-on="collapsibleRow.on"
+                                            />
+                                        </template>
+                                    </ff-data-table-row>
+                                </template>
+                            </template>
+
+                            <ff-data-table-row v-if="noDataToDisplay">
+                                <ff-data-table-cell class="status-message" :colspan="messageColSpan">
+                                    {{ emptyStateMessage }}
+                                </ff-data-table-cell>
+                            </ff-data-table-row>
+                        </slot>
+                    </tbody>
+                </slot>
+            </table>
+        </div>
+
         <div v-if="showLoadMore" class="ff-loadmore">
             <span data-action="load-more" @click="$emit('load-more')">Load More...</span>
         </div>
@@ -83,7 +126,17 @@
 <script>
 
 // icons
-import { SearchIcon, SortAscendingIcon, SortDescendingIcon, SwitchVerticalIcon } from '@heroicons/vue/outline'
+import {
+    ChevronRightIcon,
+    SearchIcon,
+    SortAscendingIcon,
+    SortDescendingIcon,
+    SwitchVerticalIcon
+} from '@heroicons/vue/outline'
+
+import { slugify } from '../../../composables/String.js'
+
+import FfDataTableRow from './DataTableRow.vue'
 
 function searchObjectProps (object, searchTerm, searchProps = []) {
     const searchPropsMap = searchProps
@@ -138,10 +191,12 @@ function searchObjectProps (object, searchTerm, searchProps = []) {
 export default {
     name: 'ff-data-table',
     components: {
+        FfDataTableRow,
         SearchIcon,
         SwitchVerticalIcon,
         SortAscendingIcon,
-        SortDescendingIcon
+        SortDescendingIcon,
+        ChevronRightIcon
     },
     props: {
         columns: {
@@ -167,6 +222,10 @@ export default {
         showSearch: {
             type: Boolean,
             default: false
+        },
+        showHeader: {
+            type: Boolean,
+            default: true
         },
         searchPlaceholder: {
             type: String,
@@ -213,9 +272,16 @@ export default {
             required: false,
             default: '',
             type: String
+        },
+        collapsibleRow: {
+            type: Object,
+            default: null
         }
     },
     emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked'],
+    setup () {
+        return { slugify }
+    },
     data () {
         return {
             checks: {},
@@ -226,7 +292,8 @@ export default {
                 key: '',
                 order: 'desc'
             },
-            orders: ['desc', 'asc']
+            orders: ['desc', 'asc'],
+            visibleCollapsibleRows: []
         }
     },
     computed: {
@@ -263,6 +330,10 @@ export default {
                 colspan++
             }
             return colspan
+        },
+        noDataToDisplay () {
+            return (!this.loading && this.rows?.length > 0 && this.filteredRows?.length === 0) ||
+                (!this.loading && this.filteredRows?.length === 0)
         },
         filteredRows: function () {
             const rows = this.filterRows([...this.rows])
@@ -308,6 +379,17 @@ export default {
         },
         checkedRows: function () {
             return this.filteredRows.filter((row) => this.checks[row[this.checkKeyProp]])
+        },
+        emptyStateMessage () {
+            if (!this.loading && this.rows?.length > 0 && this.filteredRows?.length === 0) {
+                return 'No Data Found. Try Another Search.'
+            }
+
+            if (!this.loading && this.filteredRows?.length === 0) {
+                return this.noDataMessage
+            }
+
+            return ''
         }
     },
     watch: {
@@ -336,6 +418,14 @@ export default {
             this.filteredRows.forEach((row) => {
                 this.checks[row[this.checkKeyProp]] = true
             })
+        },
+        extendedRows () {
+            if (this.collapsibleRow) {
+                return this.rows.map((row) => {
+                    return row
+                })
+            }
+            return this.rows
         },
         filterRows (rows) {
             const search = this.internalSearch
@@ -395,6 +485,15 @@ export default {
                 }
             }
             return obj
+        },
+        toggleCollapsibleRowVisibility (rowKey) {
+            const index = this.visibleCollapsibleRows.indexOf(rowKey)
+
+            if (index > -1) {
+                this.visibleCollapsibleRows.splice(index, 1)
+            } else {
+                this.visibleCollapsibleRows.push(rowKey)
+            }
         }
     }
 }

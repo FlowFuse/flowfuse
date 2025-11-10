@@ -196,7 +196,8 @@ module.exports = {
 
         return {
             ...(filters.status ? { state: filters.status } : null),
-            ...(filters.lastseen ? { lastseen: filters.lastseen } : null)
+            ...(filters.lastseen ? { lastseen: filters.lastseen } : null),
+            ...(filters.mode ? { mode: filters.mode } : null)
         }
     },
 
@@ -243,8 +244,9 @@ module.exports = {
      * @param {*} team - User's team
      * @param {Array<string>} deviceIds - Array of device hashids
      * @param {*} user - User performing the deletion (required for audit logging)
+     * @param {*} teamMembership - Team membership of the user performing the deletion (required for rbac checks)
      */
-    bulkDelete: async function (app, team, deviceIds, user) {
+    bulkDelete: async function (app, team, deviceIds, user, teamMembership) {
         if (!deviceIds || !Array.isArray(deviceIds) || deviceIds.length === 0) {
             throw new ControllerError('invalid_input', 'No devices specified', 400)
         }
@@ -254,9 +256,32 @@ module.exports = {
         const ids = idsDecoded.map(id => id && Array.isArray(id) ? id[0] : null).filter(id => id)
 
         // find all where id in ids
-        const devices = await app.db.models.Device.findAll({ where: { id: ids } })
+        const devices = await app.db.models.Device.findAll({
+            where: { id: ids },
+            include: {
+                model: app.db.models.Project,
+                attributes: ['id', 'ApplicationId']
+            }
+        })
         if (devices.length === 0) {
             throw new ControllerError('not_found', 'No devices found', 404)
+        }
+
+        if (!user.admin && teamMembership && teamMembership.permissions?.applications) {
+            // The requesting user has granular application permissions - we need to check that they have
+            // permission to delete all devices
+            const applicationIds = new Set()
+            devices.forEach(d => {
+                if (d.ApplicationId) {
+                    applicationIds.add(d.ApplicationId)
+                } else if (d.Project && d.Project.ApplicationId) {
+                    applicationIds.add(d.Project.ApplicationId)
+                }
+            })
+            const applicationBlocked = Array.from(applicationIds).some(id => !app.hasPermission(teamMembership, 'team:device:bulk-delete', { applicationId: app.db.models.Application.encodeHashid(id) }))
+            if (applicationBlocked) {
+                throw new ControllerError('invalid_input', 'Invalid input', 400)
+            }
         }
 
         // ensure all devices are part of the same team
@@ -279,7 +304,7 @@ module.exports = {
         teamLogger.team.device.bulkDeleted(user, null, team, devices)
     },
 
-    moveDevices: async function (app, deviceIds, targetApplicationId, targetInstanceId, user) {
+    moveDevices: async function (app, deviceIds, targetApplicationId, targetInstanceId, user, teamMembership) {
         // target is either a project or an application
         if (targetApplicationId && targetInstanceId) {
             throw new ControllerError('invalid_input', 'Target must be either an application or an instance', 400)
@@ -317,6 +342,29 @@ module.exports = {
         }
         if (devices.some(d => d.TeamId !== team.id)) {
             throw new ControllerError('invalid_input', 'All devices must belong to the same team', 400)
+        }
+
+        // Perform RBAC check if enabled
+        if (!user.admin && teamMembership && teamMembership.permissions?.applications) {
+            // Get the list of affected appliction ids
+            const applicationIds = new Set()
+            if (assignToApplication) {
+                applicationIds.add(assignToApplication.id)
+            }
+            if (assignToProject) {
+                applicationIds.add(assignToProject.ApplicationId)
+            }
+            devices.forEach(d => {
+                if (d.ApplicationId) {
+                    applicationIds.add(d.ApplicationId)
+                } else if (d.Project && d.Project.ApplicationId) {
+                    applicationIds.add(d.Project.ApplicationId)
+                }
+            })
+            const applicationBlocked = Array.from(applicationIds).some(id => !app.hasPermission(teamMembership, 'team:device:bulk-edit', { applicationId: app.db.models.Application.encodeHashid(id) }))
+            if (applicationBlocked) {
+                throw new ControllerError('invalid_input', 'Invalid input', 400)
+            }
         }
 
         // Prepare the updates

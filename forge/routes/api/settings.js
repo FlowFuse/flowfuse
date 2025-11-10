@@ -1,3 +1,8 @@
+const {
+    DEFAULT_WEB_SESSION_EXPIRY,
+    DEFAULT_WEB_SESSION_IDLE_TIMEOUT
+} = require('../../lib/auth')
+
 module.exports = async function (app) {
     app.get('/', {
         config: { allowAnonymous: true, allowUnverifiedEmail: true },
@@ -89,11 +94,11 @@ module.exports = async function (app) {
                     }
                 })
                 response['platform:stats:token'] = app.settings.get('platform:stats:token')
-                if (app.config.features.enabled('certifiedNodes')) {
-                    response['platform:certifiedNodes:npmRegistryURL'] = app.settings.get('platform:certifiedNodes:npmRegistryURL')
-                    response['platform:certifiedNodes:token'] = app.settings.get('platform:certifiedNodes:token')
-                    response['platform:certifiedNodes:catalogueURL'] = app.settings.get('platform:certifiedNodes:catalogueURL')
+                if (app.config.features.enabled('certifiedNodes') || app.config.features.enabled('ffNodes')) {
+                    response['platform:ff-npm-registry:enabled'] = !!app.settings.get('platform:ff-npm-registry:token')
                 }
+                response['platform:session:expiry'] = app.config.sessions?.maxDuration || DEFAULT_WEB_SESSION_EXPIRY
+                response['platform:session:idle'] = app.config.sessions?.maxIdleDuration || DEFAULT_WEB_SESSION_IDLE_TIMEOUT
             }
             if (app.config.features.enabled('sso') && app.settings.get('platform:sso:google') && app.settings.get('platform:sso:google:clientId')) {
                 response['platform:sso:google'] = true

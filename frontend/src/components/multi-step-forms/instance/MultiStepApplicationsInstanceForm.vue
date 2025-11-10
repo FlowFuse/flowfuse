@@ -26,12 +26,14 @@ import Alerts from '../../../services/alerts.js'
 import MultiStepForm from '../MultiStepForm.vue'
 
 import ApplicationStep from './steps/ApplicationStep.vue'
-import BlueprintStep from './steps/BlueprintStep.vue'
 import InstanceStep from './steps/InstanceStep.vue'
+import TeamStep from './steps/TeamStep.vue'
+import FlowsStep from './steps/flows-step/index.vue'
 
+const TEAM_STEP_SLUG = 'team'
 const APPLICATION_SLUG = 'application'
 const INSTANCE_SLUG = 'instance'
-const BLUEPRINT_SLUG = 'blueprint'
+const FLOWS_SLUG = 'flows'
 
 export default {
     name: 'MultiStepApplicationsInstanceForm',
@@ -50,6 +52,16 @@ export default {
             required: false,
             type: String,
             default: 'Create Instance'
+        },
+        hasTeamStep: {
+            required: false,
+            type: Boolean,
+            default: false
+        },
+        deployingBlueprint: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     emits: ['form-success', 'previous-step-state-changed', 'next-step-state-changed', 'next-step-label-changed'],
@@ -58,9 +70,10 @@ export default {
 
         return {
             form: {
+                [TEAM_STEP_SLUG]: {},
                 [APPLICATION_SLUG]: {},
                 [INSTANCE_SLUG]: {},
-                [BLUEPRINT_SLUG]: {}
+                [FLOWS_SLUG]: {}
             },
             formLoading: false,
             loadingText: '',
@@ -72,10 +85,19 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState('account', ['team', 'teams']),
         ...mapGetters('account', ['isFreeTeamType']),
         formSteps () {
             return [
+                {
+                    sliderTitle: 'Team',
+                    component: TeamStep,
+                    hidden: this.hasTeamStep ? this.teams.length === 1 : true,
+                    bindings: {
+                        slug: TEAM_STEP_SLUG,
+                        state: this.form[TEAM_STEP_SLUG]
+                    }
+                },
                 {
                     sliderTitle: 'Application',
                     component: ApplicationStep,
@@ -98,16 +120,17 @@ export default {
                     }
                 },
                 {
-                    sliderTitle: 'Blueprint',
-                    component: BlueprintStep,
-                    hidden: this.shouldHideInstanceSteps || this.hasNoBlueprints,
+                    sliderTitle: this.deployingBlueprint && !this.hasNoBlueprints ? 'Blueprint' : 'Flows',
+                    component: FlowsStep,
+                    hidden: this.shouldHideInstanceSteps,
                     bindings: {
-                        slug: BLUEPRINT_SLUG,
-                        state: this.form[BLUEPRINT_SLUG],
-                        blueprints: this.blueprints
+                        slug: FLOWS_SLUG,
+                        state: this.form[FLOWS_SLUG],
+                        blueprints: this.blueprints,
+                        deployingBlueprint: this.deployingBlueprint
                     }
                 }
-            ]
+            ].filter(step => !step.hidden)
         },
         hasNoBlueprints () {
             return this.blueprints.length === 0
@@ -210,14 +233,22 @@ export default {
                 })
                 .then((application) => {
                     if (this.instanceFollowUp && !this.shouldHideInstanceSteps) {
-                        return instanceApi.create({
+                        const payload = {
                             applicationId: application.id,
                             name: this.form[INSTANCE_SLUG].input.name,
                             projectType: this.form[INSTANCE_SLUG].input.instanceType,
                             stack: this.form[INSTANCE_SLUG].input.nodeREDVersion,
-                            template: this.form[INSTANCE_SLUG].input.template,
-                            flowBlueprintId: this.form[BLUEPRINT_SLUG].blueprint?.id ?? ''
-                        })
+                            template: this.form[INSTANCE_SLUG].input.template
+                        }
+
+                        if (this.form[FLOWS_SLUG].blueprint?.id) {
+                            payload.flowBlueprintId = this.form[FLOWS_SLUG].blueprint?.id
+                        }
+
+                        if (this.form[FLOWS_SLUG].flows) {
+                            payload.flows = this.form[FLOWS_SLUG].flows
+                        }
+                        return instanceApi.create(payload)
                     }
                 })
                 .catch(err => {

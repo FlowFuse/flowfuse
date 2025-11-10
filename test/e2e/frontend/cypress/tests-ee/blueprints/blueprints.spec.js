@@ -92,7 +92,7 @@ describe('FlowFuse - Blueprints', () => {
 
         prefillMultiStepForm()
 
-        cy.get('[data-step="blueprint"]').contains('Select Your Blueprint')
+        cy.get('[data-step="flows"]').contains('Select a Blueprint')
         cy.get('[data-el="blueprints-wrapper"]').should('exist')
 
         // check we have two blueprint groups

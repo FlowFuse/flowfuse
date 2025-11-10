@@ -180,6 +180,18 @@ describe('Broker Auth API', async function () {
                     topic: 'ff/v1/abc/d/ghi/command'
                 })
             })
+            it('allows plaform to publish to platform settings sync topic', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/platform/sync'
+                })
+            })
+            it('allows plaform to subscribe to platform settings sync topic', async function () {
+                await allowRead({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/platform/sync'
+                })
+            })
         })
 
         describe('Project', async function () {

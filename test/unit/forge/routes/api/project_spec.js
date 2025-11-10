@@ -19,11 +19,8 @@ describe('Project API', function () {
     const generateProjectName = () => 'test-project' + (projectInstanceCount++)
     const TestObjects = {}
 
-    async function setupApp (license) {
-        const setupConfig = { limits: { instances: 50 }, domain: 'flowforge.dev' }
-        if (license) {
-            setupConfig.license = license
-        }
+    async function setupApp (options) {
+        const setupConfig = { limits: { instances: 50 }, domain: 'flowforge.dev', ...options }
         app = await setup(setupConfig)
 
         TestObjects.project1 = app.project
@@ -865,7 +862,17 @@ describe('Project API', function () {
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
-                await setupApp(license)
+                await setupApp({
+                    license,
+                    'ff-npm-registry': {
+                        url: 'https://localhost:1234',
+                        catalogue: {
+                            certifiedNodes: 'https://localhost/cert-nodes-catalogue.json',
+                            ffNodes: 'https://localhost/ff-nodes-catalogue.json'
+                        }
+                    }
+
+                })
             })
             after(async function () {
                 // After this set of tests, close the app and recreate (ie remove the license)
@@ -978,10 +985,18 @@ describe('Project API', function () {
                 runtimeSettings.settings.palette.should.not.have.property('npmrc')
                 runtimeSettings.settings.palette.should.not.have.property('catalogue')
             })
+            async function setTeamFlags (certifiedNodes, ffNodes) {
+                const defaultTeamTypeProperties = app.defaultTeamType.properties
+                defaultTeamTypeProperties.features = defaultTeamTypeProperties.features || {}
+                defaultTeamTypeProperties.features.certifiedNodes = certifiedNodes
+                defaultTeamTypeProperties.features.ffNodes = ffNodes
+                app.defaultTeamType.properties = defaultTeamTypeProperties
+                await app.defaultTeamType.save()
+            }
             it('Should include certified nodes', async function () {
-                await app.settings.set('platform:certifiedNodes:npmRegistryURL', 'https://localhost')
-                await app.settings.set('platform:certifiedNodes:token', 'verySecret')
-                await app.settings.set('platform:certifiedNodes:catalogueURL', 'https://localhost/catalogue.json')
+                await app.settings.set('platform:ff-npm-registry:token', 'verySecret')
+
+                await setTeamFlags(true, true)
 
                 const projectName = generateProjectName()
                 const response = await app.inject({
@@ -1013,9 +1028,15 @@ describe('Project API', function () {
                 settings.should.have.property('palette')
                 settings.palette.should.have.property('npmrc')
                 settings.palette.should.have.property('catalogue')
-                settings.palette.catalogue.should.containEql('https://localhost/catalogue.json')
+                settings.palette.catalogue.should.containEql('https://localhost/cert-nodes-catalogue.json')
+                settings.palette.catalogue.should.containEql('https://localhost/ff-nodes-catalogue.json')
                 settings.palette.should.have.property('npmrc')
-                settings.palette.npmrc.should.equal('@flowfuse-certified-nodes:registry=https://localhost/\n@flowfuse-nodes:registry=https://localhost/\n//localhost:_auth="verySecret"\n')
+                settings.palette.npmrc.should.equal(`@flowfuse-certified-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="verySecret"
+
+@flowfuse-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="verySecret"
+`)
             })
         })
 
@@ -1024,7 +1045,7 @@ describe('Project API', function () {
             before(async function () {
                 const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A'
                 await app.close()
-                await setupApp(license)
+                await setupApp({ license })
                 flowBlueprint = await app.db.models.FlowTemplate.create({ name: 'Test Blueprint', description: 'This is a test blueprint\\n - with markdown\\n - formatted *description*', category: 'blueprint', active: true, flows: { flows: [{ id: '0959734f594cf1b7', type: 'tab', label: 'Example Flow', disabled: false, info: '', env: [] }, { id: '99a085239a033276', type: 'inject', z: '0959734f594cf1b7', name: '', props: [{ p: 'payload' }, { p: 'topic', vt: 'str' }], repeat: '', crontab: '', once: false, onceDelay: 0.1, topic: '', payload: '', payloadType: 'date', x: 160, y: 100, wires: [['5fbc411997c05334']] }, { id: '5fbc411997c05334', type: 'debug', z: '0959734f594cf1b7', name: 'debug 1', active: true, tosidebar: true, console: false, tostatus: false, complete: 'false', statusVal: '', statusType: 'auto', x: 410, y: 120, wires: [] }] }, modules: { '@flowforge/node-red-dashboard': '0.6.1' } })
             })
             after(async function () {
@@ -1195,7 +1216,7 @@ describe('Project API', function () {
 
                 // Project has been stopped but is presented as "starting"
                 project.state.should.equal('suspended')
-                app.db.controllers.Project.getInflightState(project).should.equal('starting')
+                should(await app.db.controllers.Project.getInflightState(project)).equal('starting')
 
                 // Wait for at least start delay as set in stub driver
                 await sleep(START_DELAY + 100)
@@ -1209,7 +1230,7 @@ describe('Project API', function () {
 
                 // Project is re-running
                 project.state.should.equal('running')
-                should(app.db.controllers.Project.getInflightState(project)).equal(undefined)
+                should(await app.db.controllers.Project.getInflightState(project)).equal(undefined)
 
                 // Type and stack updated
                 project.ProjectType.id.should.equal(projectType.id)
@@ -1262,7 +1283,7 @@ describe('Project API', function () {
 
                 // Project has been stopped but is presented as "starting"
                 project.state.should.equal('suspended')
-                app.db.controllers.Project.getInflightState(project).should.equal('starting')
+                should(await app.db.controllers.Project.getInflightState(project)).equal('starting')
 
                 // Wait for at least start delay as set in stub driver
                 await sleep(START_DELAY + 100)
@@ -1276,7 +1297,7 @@ describe('Project API', function () {
 
                 // Project is re-running
                 project.state.should.equal('running')
-                should(app.db.controllers.Project.getInflightState(project)).equal(undefined)
+                should(await app.db.controllers.Project.getInflightState(project)).equal(undefined)
 
                 // Stack has been updated
                 project.ProjectType.id.should.equal(projectType.id)

@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-2" data-el="devices-section">
+    <div class="space-y-2 overflow-auto flex flex-col" data-el="devices-section">
         <ff-loading
             v-if="loadingStatuses || loadingDevices"
             message="Loading Remote Instances..."
@@ -7,8 +7,10 @@
         <template v-else-if="team">
             <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the limit for Remote Instances in this team." :class="{'mt-0': displayingTeam }" />
             <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the limit for Instances in this team." :class="{'mt-0': displayingTeam }" />
-            <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
-            <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(allDeviceStatuses.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
+            <div class="devices-status-bars-container">
+                <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-lastseen" label="Last Seen" :devices="Array.from(allDeviceStatuses.values())" property="lastseen" :filter="filter" @filter-selected="applyFilter" />
+                <DevicesStatusBar v-if="allDeviceStatuses.size > 0" data-el="devicestatus-status" label="Last Known Status" :devices="Array.from(allDeviceStatuses.values())" property="status" :filter="filter" @filter-selected="applyFilter" />
+            </div>
             <ff-data-table
                 v-if="allDeviceStatuses.size > 0"
                 data-el="devices-browser"
@@ -18,16 +20,48 @@
                 search-placeholder="Search Remote Instances"
                 :show-load-more="moreThanOnePage"
                 :check-key="row => row.id"
-                :show-row-checkboxes="true"
+                :show-row-checkboxes="hasPermission('team:device:bulk-edit', applicationContext)"
                 @rows-checked="checkedDevices = $event"
                 @load-more="loadMoreDevices"
                 @update:search="updateSearch"
                 @update:sort="updateSort"
             >
                 <template #actions>
-                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete') || hasPermission('team:device:bulk-edit')" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary" :options="bulkActionsDropdownOptions">Actions</DropdownMenu>
+                    <ff-popover button-text="Filters" button-kind="secondary">
+                        <template #panel="{ close }">
+                            <section>
+                                <popover-item
+                                    title="Fleet Mode"
+                                    @click="onFilterClick('fleetMode', close)"
+                                >
+                                    <template #icon>
+                                        <ff-checkbox
+                                            v-model="deviceModeFilters.fleetMode" style="top: -8px;"
+                                            @click.stop.prevent="onFilterClick('fleetMode', close)"
+                                        />
+                                    </template>
+                                </popover-item>
+                                <popover-item
+                                    title="Developer Mode"
+                                    @click="onFilterClick('developerMode', close)"
+                                >
+                                    <template #icon>
+                                        <ff-checkbox
+                                            v-model="deviceModeFilters.developerMode" style="top: -8px;"
+                                            @click.stop.prevent="onFilterClick('developerMode', close)"
+                                        />
+                                    </template>
+                                </popover-item>
+                            </section>
+                        </template>
+                    </ff-popover>
+                    <DropdownMenu v-if="hasPermission('team:device:bulk-delete', applicationContext) || hasPermission('team:device:bulk-edit', applicationContext)" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary ff-btn-icon" :options="bulkActionsDropdownOptions">
+                        <CogIcon class="ff-btn--icon ff-btn--icon-left" />
+                        <span class="hidden sm:inline bulk-actions-text">Actions</span>
+                    </DropdownMenu>
                     <ff-button
-                        v-if="displayingInstance && hasPermission('project:snapshot:create')"
+                        v-if="displayingInstance && hasPermission('project:snapshot:create', applicationContext)"
+                        class="ff-btn-icon"
                         data-action="change-target-snapshot"
                         kind="secondary"
                         @click="showSelectTargetSnapshotDialog"
@@ -35,28 +69,25 @@
                         <template #icon-left>
                             <ClockIcon />
                         </template>
-                        <span class="font-normal">
+                        <span class="hidden sm:inline target-snapshot-text font-normal">
                             Target Snapshot: <b>{{ instance.targetSnapshot?.name || 'none' }}</b>
                         </span>
                     </ff-button>
                     <ff-button
-                        v-if="hasPermission('device:create')"
-                        class="font-normal"
+                        v-ff-tooltip:left="!hasPermission('device:create', applicationContext) && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                        class="font-normal ff-btn-icon"
                         data-action="register-device"
                         kind="primary"
-                        :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                        :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                         @click="showCreateDeviceDialog"
                     >
                         <template #icon-left>
                             <PlusSmIcon />
                         </template>
-                        Add Remote Instance
+                        <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                     </ff-button>
                 </template>
-                <template
-                    v-if="hasPermission('device:edit')"
-                    #context-menu="{row}"
-                >
+                <template #context-menu="{row}">
                     <ff-list-item
                         label="Edit Details"
                         @click="deviceAction('edit', row.id)"
@@ -91,7 +122,7 @@
                         @click="deviceAction('updateCredentials', row.id)"
                     />
                     <ff-list-item
-                        v-if="hasPermission('device:delete')"
+                        v-if="hasPermission('device:delete', applicationContext)"
                         kind="danger"
                         label="Delete Device"
                         @click="deviceAction('delete', row.id)"
@@ -120,17 +151,17 @@
                         </template>
                         <template #actions>
                             <ff-button
-                                v-if="hasPermission('device:create')"
-                                class="font-normal"
+                                v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                class="font-normal ff-btn-icon"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Remote Instance
+                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -159,17 +190,17 @@
                         </template>
                         <template #actions>
                             <ff-button
-                                v-if="hasPermission('device:create')"
-                                class="font-normal"
+                                v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                class="font-normal ff-btn-icon"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Remote Instance
+                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -198,17 +229,17 @@
                         </template>
                         <template #actions>
                             <ff-button
-                                v-if="hasPermission('device:create')"
-                                class="font-normal"
+                                v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
+                                class="font-normal ff-btn-icon"
                                 kind="primary"
-                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached"
+                                :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
                                 data-action="register-device"
                                 @click="showCreateDeviceDialog"
                             >
                                 <template #icon-left>
                                     <PlusSmIcon />
                                 </template>
-                                Add Remote Instance
+                                <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
                         </template>
                     </EmptyState>
@@ -311,7 +342,7 @@
 
 <script>
 import { ClockIcon } from '@heroicons/vue/outline'
-import { PlusSmIcon } from '@heroicons/vue/solid'
+import { CogIcon, PlusSmIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
 import { mapGetters, mapState } from 'vuex'
@@ -327,7 +358,9 @@ import DeviceAssignedToLink from '../pages/application/components/cells/DeviceAs
 import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
 
+import DeviceCreatedAtCell from '../pages/device/DeviceCreatedAtCell.vue'
 import DeviceLastSeenCell from '../pages/device/components/DeviceLastSeenCell.vue'
+import DeviceModeBadge from '../pages/device/components/DeviceModeBadge.vue'
 import SnapshotAssignDialog from '../pages/instance/VersionHistory/Snapshots/dialogs/SnapshotAssignDialog.vue'
 import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
 import DeviceAssignApplicationDialog from '../pages/team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
@@ -336,6 +369,10 @@ import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredent
 import TeamDeviceCreateDialog from '../pages/team/Devices/dialogs/TeamDeviceCreateDialog.vue'
 
 import Alerts from '../services/alerts.js'
+import Dialog from '../services/dialog.js'
+import FfPopover from '../ui-components/components/Popover.vue'
+import PopoverItem from '../ui-components/components/PopoverItem.vue'
+import FfCheckbox from '../ui-components/components/form/Checkbox.vue'
 
 import { debounce } from '../utils/eventHandling.js'
 import { createPollTimer } from '../utils/timers.js'
@@ -343,13 +380,18 @@ import { createPollTimer } from '../utils/timers.js'
 import EmptyState from './EmptyState.vue'
 import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
+import AddDeviceToGroupDialog from './dialogs/_addDeviceToGroupDialog.vue'
 
 const POLL_TIME = 10000
 
 export default {
     name: 'DevicesBrowser',
     components: {
+        FfCheckbox,
+        PopoverItem,
+        FfPopover,
         ClockIcon,
+        CogIcon,
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
@@ -404,7 +446,11 @@ export default {
             },
             /** @type { import('../utils/timers.js').PollTimer } */
             pollTimer: null,
-            deviceEditModalOpened: false
+            deviceEditModalOpened: false,
+            deviceModeFilters: {
+                fleetMode: false,
+                developerMode: false
+            }
         }
     },
     computed: {
@@ -415,7 +461,9 @@ export default {
             const columns = [
                 { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
+                { label: 'Created', key: 'createdAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceCreatedAtCell) } },
                 { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenCell) } },
+                { label: 'Mode', key: 'mode', class: ['w-30'], sortable: true, component: { is: markRaw(DeviceModeBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge), map: { instanceId: 'id' }, extraProps: { instanceType: 'device' } } }
             ]
 
@@ -430,11 +478,24 @@ export default {
                         is: markRaw(DeviceAssignedToLink)
                     }
                 })
+                if (this.featuresCheck.isDeviceGroupsFeatureEnabled) {
+                    columns.push({
+                        label: 'Group',
+                        key: 'deviceGroup.name',
+                        sortable: !this.moreThanOnePage
+                    })
+                }
             } else if (this.displayingInstance) {
                 // Show snapshot info when looking at devices owned by an instance
                 columns.push(
                     { label: 'Deployed Snapshot', class: ['w-48'], component: { is: markRaw(Snapshot) } }
                 )
+            } else if (this.displayingApplication && this.featuresCheck.isDeviceGroupsFeatureEnabled) {
+                columns.push({
+                    label: 'Group',
+                    key: 'deviceGroup.name',
+                    sortable: !this.moreThanOnePage
+                })
             }
 
             return columns
@@ -454,11 +515,13 @@ export default {
             const output = this.filteredDevices.map(device => {
                 const statusObject = this.allDeviceStatuses.get(device.id)
                 const ownerKey = this.getOwnerSortKeyForDevice(device)
-
+                const context = device.application?.id ? { applicationId: device.application?.id } : {}
                 return {
+                    hideContextMenu: !this.hasPermission('device:edit', context),
                     ...device,
                     ...statusObject,
-                    ...(ownerKey ? { _ownerSortKey: ownerKey } : { _ownerSortKey: undefined })
+                    ...(ownerKey ? { _ownerSortKey: ownerKey } : { _ownerSortKey: undefined }),
+                    deviceGroup: device.deviceGroup || { name: 'Ungrouped' }
                 }
             })
 
@@ -494,8 +557,8 @@ export default {
         },
         bulkActionsDropdownOptions () {
             const actionsEnabled = this.checkedDevices?.length > 0
-            const enableDelete = actionsEnabled && this.hasPermission('team:device:bulk-delete')
-            const enableMove = actionsEnabled && this.hasPermission('team:device:bulk-edit')
+            const enableDelete = actionsEnabled && this.hasPermission('team:device:bulk-delete', this.applicationContext)
+            const enableMove = actionsEnabled && this.hasPermission('team:device:bulk-edit', this.applicationContext)
             const showRemoveFromInstance = this.displayingInstance || this.displayingTeam
             const showRemoveFromApplication = this.displayingApplication || this.displayingTeam
             const menu = []
@@ -508,8 +571,21 @@ export default {
             } else if (this.displayingTeam && (showRemoveFromInstance || showRemoveFromApplication)) {
                 menu.push({ name: 'Unassign', action: this.showTeamBulkDeviceUnassignDialog, disabled: !enableMove })
             }
+
+            if (enableMove && !this.displayingInstance && this.featuresCheck.isDeviceGroupsFeatureEnabled) {
+                menu.push(null)
+                menu.push({ name: 'Assign to Group', action: this.showBulkGroupAssignDialog, disabled: !enableMove })
+                menu.push({ name: 'Unassign from Group', action: this.showBulkGroupUnassignDialog, disabled: !enableMove })
+            }
+
+            menu.push(null)
             menu.push({ name: 'Delete', class: ['!text-red-600'], action: this.showTeamBulkDeviceDeleteDialog, disabled: !enableDelete })
             return menu
+        },
+        applicationContext () {
+            return {
+                application: this.application || this.instance?.application
+            }
         }
     },
     watch: {
@@ -545,11 +621,18 @@ export default {
          *  - property: which filter row is being applied, e.g. status or lastseen
          *  - bucket: which value of this property are we filtering on from the buckets in the status bar
          */
-        applyFilter (filter) {
+        applyFilter (filter, shouldClearDeviceModeFilters = true) {
             this.filter = filter
 
             if (this.unfilteredHasMoreThanOnePage) {
                 this.doFilterServerSide()
+            }
+
+            if (shouldClearDeviceModeFilters) {
+                this.deviceModeFilters = {
+                    fleetMode: false,
+                    developerMode: false
+                }
             }
         },
 
@@ -626,6 +709,53 @@ export default {
             this.$refs.deviceAssignApplicationDialog.show(this.checkedDevices)
         },
 
+        showBulkGroupUnassignDialog () {
+            Dialog.show({
+                header: 'Remove selected Remote Instances from their respective groups?',
+                kind: 'danger',
+                html: `
+                    <p>These Remote Instances will be cleared of any active pipeline snapshot.</p>
+                    <p>Are you sure you want to continue?</p>
+                `,
+                confirmLabel: 'Confirm'
+            }, () => teamApi.bulkDeviceMove(this.team.id, this.checkedDevices.map(device => device.id), 'group', '')
+                .then(() => this.fullReloadOfData())
+                .catch(e => e)
+            )
+        },
+
+        showBulkGroupAssignDialog () {
+            let selectedDeviceGroup
+
+            Dialog.show({
+                header: 'Add devices to a group',
+                kind: 'danger',
+                is: {
+                    component: markRaw(AddDeviceToGroupDialog),
+                    payload: {
+                        devices: this.checkedDevices
+                    },
+                    on: {
+                        selected (selection) {
+                            selectedDeviceGroup = selection
+                        }
+                    }
+                },
+                confirmLabel: 'Confirm'
+            }, async () => {
+                return teamApi.bulkDeviceMove(this.team.id, this.checkedDevices.map(device => device.id), 'group', selectedDeviceGroup)
+                    .then(() => Alerts.emit('Successfully assigned devices.', 'confirmation'))
+                    .catch(e => {
+                        if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
+                            Alerts.emit(e.response.data.error, 'warning')
+                        } else Alerts.emit('Something went wrong.', 'warning')
+
+                        console.error(e)
+                    })
+                    .finally(() => this.fullReloadOfData())
+            })
+        },
+
         showSelectTargetSnapshotDialog () {
             this.$refs.snapshotAssignDialog.show()
         },
@@ -670,16 +800,16 @@ export default {
          */
         async moveDevicesToApplication (devices, application) {
             const deviceIds = devices.map(device => device.id)
-            const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'application', application)
-            if (data?.devices.length) {
-                Alerts.emit('Devices successfully moved.', 'confirmation')
-                data.devices.forEach(updatedDevice => {
-                    const device = this.devices.get(updatedDevice.id)
-                    // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
-                    const ensureProps = { instance: updatedDevice.instance || null, application: updatedDevice.application || null }
-                    this.updateLocalCopyOfDevice({ ...device, ...updatedDevice, ...ensureProps })
+            teamApi.bulkDeviceMove(this.team.id, deviceIds, 'application', application)
+                .then(() => Alerts.emit('Devices successfully moved.', 'confirmation'))
+                .catch((e) => {
+                    if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
+                        Alerts.emit(e.response.data.error, 'warning')
+                    } else Alerts.emit('Something went wrong.', 'warning')
+
+                    console.error(e)
                 })
-            }
+                .finally(() => this.fullReloadOfData())
         },
 
         /**
@@ -687,16 +817,16 @@ export default {
          */
         async moveDevicesToUnassigned (devices) {
             const deviceIds = devices.map(device => device.id)
-            const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'unassigned')
-            if (data?.devices.length) {
-                Alerts.emit('Devices successfully unassigned.', 'confirmation')
-                data.devices.forEach(updatedDevice => {
-                    const device = this.devices.get(updatedDevice.id)
-                    // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
-                    const ensureProps = { instance: updatedDevice.instance || null, application: updatedDevice.application || null }
-                    this.updateLocalCopyOfDevice({ ...device, ...updatedDevice, ...ensureProps })
+            teamApi.bulkDeviceMove(this.team.id, deviceIds, 'unassigned')
+                .then(() => Alerts.emit('Devices successfully unassigned.', 'confirmation'))
+                .catch((e) => {
+                    if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
+                        Alerts.emit(e.response.data.error, 'warning')
+                    } else Alerts.emit('Something went wrong.', 'warning')
+
+                    console.error(e)
                 })
-            }
+                .finally(() => this.fullReloadOfData())
         },
 
         // Device loading
@@ -786,12 +916,36 @@ export default {
             }
 
             return 'Unassigned'
+        },
+
+        onFilterClick (filter, closeCallback) {
+            const compare = filter === 'fleetMode' ? 'autonomous' : 'developer'
+            this.deviceModeFilters[filter] = !this.deviceModeFilters[filter]
+
+            this.applyFilter(
+                {
+                    devices: Array.from(this.devices.values())
+                        .filter((device) => !this.deviceModeFilters[filter] ? true : device.mode === compare)
+                        .map(device => device.id),
+                    property: 'mode',
+                    bucket: compare
+                },
+                false
+            )
+
+            // resetting filters because we can't have multiple filters applied at once
+            const filters = {
+                fleetMode: false,
+                developerMode: false
+            }
+            filters[filter] = this.deviceModeFilters[filter]
+            this.deviceModeFilters = filters
         }
     }
 }
 </script>
 
-<style>
+<style scoped lang="scss">
 .ff-dialog-content .ff-devices-ul {
     list-style-type: disc;
     list-style-position: inside;
@@ -801,5 +955,92 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+// Viewport-based responsive behavior (matches Tailwind sm: breakpoint)
+// Hide button text on narrow viewports (< 640px)
+@media (max-width: 639px) {
+  .target-snapshot-text,
+  .add-remote-instance-text,
+  .bulk-actions-text {
+    display: none;
+  }
+}
+
+// Show button text on wider viewports (>= 640px)
+@media (min-width: 640px) {
+  .target-snapshot-text,
+  .add-remote-instance-text,
+  .bulk-actions-text {
+    display: inline;
+  }
+}
+
+// Container query for drawer context - responsive button behavior
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
+// These override viewport-based rules when inside the drawer
+@container drawer (max-width: 639px) {
+  // Hide text when drawer is narrow - icon-only mode
+  .target-snapshot-text,
+  .add-remote-instance-text,
+  .bulk-actions-text {
+    display: none;
+  }
+
+  // Adjust button padding for icon-only mode to prevent excessive spacing
+  .ff-btn[data-action="change-target-snapshot"],
+  .ff-btn[data-action="register-device"] {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+@container drawer (min-width: 640px) {
+  // Show text when drawer is wide enough
+  .target-snapshot-text,
+  .add-remote-instance-text,
+  .bulk-actions-text {
+    display: inline;
+  }
+}
+
+// Status bars layout - responsive to both viewport and container
+.devices-status-bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+// On wider viewports (>= 640px), show side-by-side
+@media (min-width: 640px) {
+  .devices-status-bars-container {
+    flex-direction: row;
+
+    > * {
+      flex: 1;
+    }
+  }
+}
+
+// Container query for drawer context
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
+@container drawer (max-width: 639px) {
+  .devices-status-bars-container {
+    flex-direction: column;
+
+    > * {
+      flex: none;
+    }
+  }
+}
+
+@container drawer (min-width: 640px) {
+  .devices-status-bars-container {
+    flex-direction: row;
+
+    > * {
+      flex: 1;
+    }
+  }
 }
 </style>

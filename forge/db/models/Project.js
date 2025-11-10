@@ -328,8 +328,8 @@ module.exports = {
                 async liveState ({ omitStorageFlows = false } = { }) {
                     const result = {}
 
-                    const inflightState = Controllers.Project.getInflightState(this)
-                    const isDeploying = Controllers.Project.isDeploying(this)
+                    const inflightState = await Controllers.Project.getInflightState(this)
+                    const isDeploying = await Controllers.Project.isDeploying(this)
 
                     if (!omitStorageFlows) {
                         let storageFlow = this.StorageFlow
@@ -353,7 +353,7 @@ module.exports = {
                         result.meta = await app.containers.details(this) || { state: 'unknown' }
 
                         if (result.meta.state !== this.state) {
-                            Controllers.Project.setLatestProjectState(this.id, result.meta.state)
+                            await Controllers.Project.setLatestProjectState(this.id, result.meta.state)
                         }
 
                         if (result.meta.versions) {
@@ -543,7 +543,8 @@ module.exports = {
                     includeSettings = false,
                     includeMeta = false,
                     limit = null,
-                    orderByMostRecentFlows = false
+                    orderByMostRecentFlows = false,
+                    excludeApplications = null
                 } = {}) => {
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
@@ -620,6 +621,16 @@ module.exports = {
                             { [Op.like]: `%${query.toLowerCase()}%` }
                         )
                     }
+                    if (excludeApplications) {
+                        const excludeQuery = {
+                            ApplicationId: { [Op.notIn]: excludeApplications }
+                        }
+                        if (queryObject.where) {
+                            queryObject.where = { [Op.and]: [queryObject.where, excludeQuery] }
+                        } else {
+                            queryObject.where = excludeQuery
+                        }
+                    }
 
                     return this.findAll(queryObject)
                 },
@@ -658,7 +669,8 @@ module.exports = {
                         ]
                     })
                 },
-                countByState: async (states, teamId, applicationId) => {
+                countByState: async (states, team, applicationId, membership) => {
+                    let teamId = team.id
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
 
@@ -677,6 +689,12 @@ module.exports = {
 
                     const statesMap = {}
                     const results = await this.findAll({
+                        include: [
+                            {
+                                model: M.Application,
+                                attributes: ['hashid', 'id']
+                            }
+                        ],
                         where: states.length > 0
                             ? {
                                 [Op.or]: states.map(state => ({
@@ -691,10 +709,18 @@ module.exports = {
                             }
                     })
 
-                    results.forEach(res => {
-                        const state = Controllers.Project.getLatestProjectState(res.id) ?? res.state
+                    const platformRbacEnabled = app.config.features.enabled('rbacApplication')
+                    const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false)
+                    const rbacEnabled = platformRbacEnabled && teamRbacEnabled
+
+                    for (const project of results) {
+                        if (rbacEnabled && !app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid })) {
+                            // This instance is not accessible to this user, do not include in states map
+                            continue
+                        }
+                        const state = await Controllers.Project.getLatestProjectState(project.id) ?? project.state
                         statesMap[state] = (statesMap[state] || 0) + 1
-                    })
+                    }
 
                     return Object.entries(statesMap).map(([state, count]) => ({ state, count }))
                 },

@@ -1,5 +1,5 @@
 <template>
-    <div v-if="device.ownerType == 'application'">
+    <div v-if="device.ownerType == 'application'" data-el="device-palette">
         <form class="space-y-6 max-w-2xl" @submit.prevent>
             <FormHeading>
                 <template #default>
@@ -64,6 +64,7 @@ import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import UndoIcon from '../../../components/icons/Undo.js'
+import usePermissions from '../../../composables/Permissions.js'
 import alerts from '../../../services/alerts.js'
 
 export default {
@@ -82,6 +83,11 @@ export default {
         }
     },
     emits: ['device-updated'],
+    setup () {
+        const { hasPermission } = usePermissions()
+
+        return { hasPermission }
+    },
     data () {
         return {
             readOnly: false,
@@ -113,6 +119,9 @@ export default {
         }
     },
     mounted () {
+        if (!this.hasPermission('device:edit', { application: this.device.application })) {
+            return this.$router.replace({ name: 'device-settings' })
+        }
         this.getSettings()
     },
     methods: {

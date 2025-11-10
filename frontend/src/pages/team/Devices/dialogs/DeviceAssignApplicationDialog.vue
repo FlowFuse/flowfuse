@@ -38,6 +38,7 @@ import { mapState } from 'vuex'
 
 import TeamAPI from '../../../../api/team.js'
 import FormRow from '../../../../components/FormRow.vue'
+import usePermissions from '../../../../composables/Permissions.js'
 
 export default {
     name: 'DeviceAssignApplicationDialog',
@@ -46,7 +47,9 @@ export default {
     },
     emits: ['assignDevice', 'moveDevices'],
     setup () {
+        const { hasPermission } = usePermissions()
         return {
+            hasPermission,
             async show (selection) {
                 this.$refs.dialog.show()
                 this.selection = selection
@@ -89,7 +92,7 @@ export default {
         loadApplications () {
             this.loading.applications = true
             TeamAPI.getTeamApplications(this.team.id).then((data) => {
-                this.options.applications = data.applications.map(application => { return { value: application, label: application.name } })
+                this.options.applications = data.applications.filter(application => this.hasPermission('device:edit', { application })).map(application => { return { value: application, label: application.name } })
                 this.loading.applications = false
             }).catch((error) => {
                 console.error(error)

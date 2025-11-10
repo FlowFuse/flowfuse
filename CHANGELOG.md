@@ -1,3 +1,60 @@
+#### 2.23.1: Release
+
+ - Hide plain view tables credential password (#6178) @cstns
+ - Upgrade to nodemailer 7.0.x (#6177) @hardillb
+ - docs: Add docker self-hosted network requirements (#6168) @ppawlowski
+
+#### 2.23.0: Release
+
+ - ci: Use OIDC when authenticating to AWS in the `Create pre-staging environment` workflow (#6161)
+ - Add note on FF Assistant for self-hosted (#6166) @knolleary
+ - Shared Cache implementation (#6115) @hardillb
+ - Add 4.1.x NR versions to device Settings (#6155) @hardillb
+ - Add "next" to snapshot NR version revert (#6158) @hardillb
+ - Add device group management to Device settings and overview pages (#6129) @cstns
+ - Import flows on instance creation (#6137) @cstns
+ - Allows Teams without billing to reduce team members (#6153) @hardillb
+ - Bump vite from 6.3.6 to 6.4.1 (#6154) @app/dependabot
+ - Use latest flow renderer (#6150) @Steve-Mcl
+ - Bump actions/setup-node from 5.0.0 to 6.0.0 (#6152) @app/dependabot
+ - Fix flow viewer resizing (#6147) @cstns
+ - Add caching to MQTT Agent Topic insertion (#6144) @hardillb
+ - Add caching to TeamBroker topic logging (#6142) @hardillb
+ - Notify team owners of trial suspension via housekeeper trial task (#6136) @cstns
+ - Allow Forge instances to signal settings changes (#6128) @hardillb
+ - Improve trial no billing setup banner language (#6133) @cstns
+
+#### 2.22.1: Release
+
+ - Bump aws-actions/configure-aws-credentials from 5.0.0 to 5.1.0 (#6130)
+ - Add EMQX Operator to kube install pre-reqs (#6087)
+ - Bump docker/login-action from 3.5.0 to 3.6.0 (#6084)
+ - Bump actions/cache from 4.2.4 to 4.3.0 (#6083)
+ - Bump JS-DevTools/npm-publish from 4.0.1 to 4.1.1 (#6082)
+ - docs: Add disk error solution to the device agent installer page (#6073)
+ - Validate google sso token audience (#6132) @knolleary
+ - Wrap device names in router-link for navigation to DeviceOverview page (#6127) @cstns
+ - Expose and display remote instance device group (#6125) @cstns
+ - Add device mode filters and badge to DevicesBrowser component (#6122) @cstns
+ - Use the UserCell component in the User Access table to improve user identification (#6121) @cstns
+ - Conditionally render permission overrides based on RBAC application feature flag (#6120) @cstns
+ - Add FF exclusive nodes feature flag (#6105) @knolleary
+ - Home: "Add Instance" button for Hosted & Remote Instances (#6089) @joepavitt
+ - Allow SSO Group lists longer than 255 characters (#6103) @hardillb
+ - Add a team selection step when deploying blueprints (#6099) @cstns
+ - Application-level RBAC - backend (#5987) @knolleary
+ - fix: added missing loading state in AuditLogs (#6035) @harshrajeevsingh
+ - Set 30second SQL timeout (#6092) @hardillb
+ - docs: Add `Check the Device Agent service status` paragraph (#6081) @ppawlowski
+ - Account: Make it easier/clearer to delete account (#6054) @joepavitt
+ - Docs: Agent Networking Requirements (#6078) @joepavitt
+ - Show a disabled "Add Instance" & "Create Instance" button for Members (#6062) @harshrajeevsingh
+ - Bump tar-fs from 2.1.3 to 2.1.4 (#6075) @app/dependabot
+ - Clarify that Device Agent installs Node-RED (#6066) @dimitrieh
+ - Remote Instance: Add Audit Log to Overview (#6070) @joepavitt
+ - Remote Instance Logs: Add placeholder & connected status for NR logs (#6069) @joepavitt
+ - Fix polling when team broker not enabled (#6067) @knolleary
+
 #### 2.22.0: Release
 
  - docs: Rearrange Device Agent documentation (#5977)

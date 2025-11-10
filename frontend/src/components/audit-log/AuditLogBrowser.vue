@@ -2,7 +2,7 @@
     <div class="ff-admin-audit">
         <div data-el="audit-log">
             <slot name="title" />
-            <AuditLog :entries="logEntries" :associations="associations" />
+            <AuditLog :entries="logEntries" :associations="associations" :loading="loading" />
         </div>
         <div>
             <SectionTopMenu hero="Filters" />
@@ -56,6 +56,10 @@ export default {
             type: Array,
             required: true
         },
+        loading: {
+            type: Boolean,
+            required: true
+        },
         associations: {
             type: Object,
             default: () => {}
@@ -68,8 +72,6 @@ export default {
     emits: ['load-entries'],
     data () {
         return {
-            loading: true,
-            gettingEntries: false,
             auditFilters: {
                 event: '',
                 types: [],
@@ -99,13 +101,13 @@ export default {
     },
     watch: {
         'auditFilters.username': function () {
-            if (this.loading || this.gettingEntries) {
+            if (this.loading) {
                 return // skip if we're already loading entries
             }
             this.loadEntries()
         },
         'auditFilters.event': function () {
-            if (this.loading || this.gettingEntries) {
+            if (this.loading) {
                 return // skip if we're already loading entries
             }
             this.loadEntries()
@@ -113,15 +115,14 @@ export default {
         users: function (users) {
             this.auditFilters.users = users
         }
+
     },
     created () {
-        this.loading = true
         this.auditFilters.scope = this.logType // init the scope to the logType set in the component's props
         this.auditFilters.logType = this.logType // init the scope to the logType
         this.auditFilters.users = this.users
         this.loadEventTypes()
         this.loadEntries()
-        this.loading = false
     },
     methods: {
         /**
@@ -132,7 +133,6 @@ export default {
          * @param {string} [logType] The log type to load event type dropdown for
          */
         loadEntries (scope, includeChildren, logType) {
-            this.gettingEntries = true
             logType = logType || this.auditFilters.logType
             if (this.auditFilters.logType !== logType) {
                 this.auditFilters.logType = logType // store the scope for later queries
@@ -153,7 +153,6 @@ export default {
                 params.append('includeChildren', includeChildren)
             }
             this.$emit('load-entries', params)
-            this.gettingEntries = false
         },
         loadEventTypes (scope) {
             scope = scope || this.auditFilters.scope

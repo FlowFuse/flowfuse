@@ -19,7 +19,7 @@
                     You trial instances will be added to your billing subscription at the end of your trial.
                 </span>
                 <span v-else>
-                    Click here to upgrade your team and keep your instances running.
+                    Click here to setup billing
                 </span>
             </span>
             <span v-else>

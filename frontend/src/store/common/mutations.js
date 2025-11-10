@@ -19,5 +19,13 @@ export default {
             .forEach(property => {
                 current[property] = initialState[property]
             })
+    },
+    initializeStore (state) {
+        // Mark store as hydrated after initialization
+        state._hydrated = true
+    },
+
+    HYDRATE_COMPLETE (state) {
+        state._hydrated = true
     }
 }

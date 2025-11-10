@@ -1,22 +1,23 @@
 <template>
-    <div :data-type="`${isImmersiveEditor ? 'immersive' : 'standard'}-editor`" @mouseup.stop.prevent="openEditor">
+    <div
+        :data-type="`${isImmersiveEditor ? 'immersive' : 'standard'}-editor`"
+        @click.stop.prevent="openEditor"
+        @click.middle.stop.prevent="openEditor"
+    >
         <slot name="default">
             <ff-button
                 v-ff-tooltip:left="(editorDisabled || disabled) ? disabledReason : undefined"
                 :kind="minimalView ? 'tertiary' : 'secondary'"
                 data-action="open-editor"
                 :disabled="buttonDisabled"
-                class="whitespace-nowrap"
+                class="whitespace-nowrap ff-btn-icon"
                 :emit-instead-of-navigate="true"
             >
-                <template v-if="showText" #icon-left>
+                <template #icon-left>
                     <ProjectIcon />
                 </template>
-                <template v-else #icon>
-                    <ProjectIcon />
-                </template>
-                <template v-if="showText && !minimalView">
-                    {{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}
+                <template v-if="!minimalView">
+                    <span class="hidden sm:inline editor-link-text">{{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}</span>
                 </template>
             </ff-button>
         </slot>
@@ -103,9 +104,31 @@ export default {
             if (!this.isImmersiveEditor) {
                 return this.openInANewTab(this.editorURL, target)
             } else {
-                return this.openInANewTab(this.url, target)
+                if (evt.button === 1) {
+                    // open in a new tab when using the middle mouse button
+                    return this.openInANewTab(this.url, target)
+                } else {
+                    return this.$router.push({ name: 'instance-editor', params: { id: this.instance.id } })
+                }
             }
         }
     }
 }
 </script>
+
+<style scoped lang="scss">
+// Container query for drawer context - responsive button behavior
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
+// When inside drawer, respond to drawer width instead of viewport
+@container drawer (min-width: 640px) {
+  .editor-link-text {
+    display: inline;
+  }
+}
+
+@container drawer (max-width: 639px) {
+  .editor-link-text {
+    display: none;
+  }
+}
+</style>
