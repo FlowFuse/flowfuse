@@ -109,6 +109,11 @@ export default {
                     hidden: !canEditProject ||
                         !!this.features?.emailAlerts === false ||
                         !!this.team?.type?.properties?.features?.emailAlerts === false
+                },
+                {
+                    name: 'Maintenance',
+                    path: { name: 'instance-settings-maintenance' },
+                    hidden: !canEditProject
                 }
             ]
             return routes.map(route => {
