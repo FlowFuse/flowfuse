@@ -72,7 +72,7 @@ module.exports = {
                     })
                     return count !== 0 || this.isHostnameUsed(hostname)
                 },
-                upgradeStack: async (hour, day) => {
+                getProjectsToUpgrade: async (hour, day) => {
                     return await this.findAll({
                         where: {
                             key: KEY_STACK_UPGRADE_HOUR, value: `${JSON.stringify({ hour, day })}`
