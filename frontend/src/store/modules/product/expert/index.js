@@ -9,6 +9,7 @@ const initialState = () => ({
     context: null,
     sessionId: null,
     shouldPromptAssistant: false,
+    shouldHydrate: false,
 
     // Conversation state
     messages: [],
@@ -38,6 +39,9 @@ const meta = {
             storage: 'localStorage'
         },
         shouldPromptAssistant: {
+            storage: 'localStorage'
+        },
+        shouldHydrate: {
             storage: 'localStorage'
         }
     }
@@ -200,11 +204,14 @@ const mutations = {
     // todo this should be moved into a dedicated context store
     UPDATE_ROUTE (state, route) {
         state.route = route
+    },
+    SET_SHOULD_HYDRATE (state, shouldHydrate) {
+        state.shouldHydrate = shouldHydrate
     }
 }
 
 const actions = {
-    // Context actions (for PR #6231 integration)
+    // Context actions and hydration
     setContext (
         { commit, dispatch, state, rootState, rootGetters },
         { data, sessionId }
@@ -239,6 +246,44 @@ const actions = {
                 .then(() => commit('SET_SHOULD_PROMPT_ASSISTANT', false))
                 .catch((error) => error)
         }
+    },
+    hydrateClient ({ dispatch, state, rootGetters }) {
+        if (
+            rootGetters['account/featuresCheck']
+                .isExpertAssistantFeatureEnabled === false
+        ) {
+            return Promise.resolve()
+        }
+
+        return expertApi
+            .chat({
+                history: state.context,
+                context: {},
+                sessionId: state.sessionId
+            })
+            .then((response) => {
+                return dispatch('removeLoadingIndicator').then(() =>
+                    dispatch('handleMessageResponse', {
+                        success: true,
+                        answer: response.answer || []
+                    })
+                )
+            })
+    },
+    handleUserAuth ({ dispatch, commit, state }, { shouldHydrateMessages = false }) {
+        if (state.shouldPromptAssistant) {
+            if (shouldHydrateMessages) {
+                commit('HYDRATE_MESSAGES', state.context)
+            }
+
+            return dispatch('openAssistantDrawer')
+                .then(() => dispatch('disableAssistantPrompt'))
+                .then(() => dispatch('hydrateClient'))
+                .then(() => dispatch('setShouldHydrate', false))
+        }
+    },
+    setShouldHydrate ({ commit }, shouldHydrate) {
+        commit('SET_SHOULD_HYDRATE', shouldHydrate)
     },
 
     // Main message sending action
@@ -405,30 +450,6 @@ const actions = {
         commit('RESET')
     },
 
-    hydrateClient ({ dispatch, state, rootGetters }) {
-        if (
-            rootGetters['account/featuresCheck']
-                .isExpertAssistantFeatureEnabled === false
-        ) {
-            return Promise.resolve()
-        }
-
-        return expertApi
-            .chat({
-                history: state.context,
-                context: {},
-                sessionId: state.sessionId
-            })
-            .then((response) => {
-                return dispatch('removeLoadingIndicator').then(() =>
-                    dispatch('handleMessageResponse', {
-                        success: true,
-                        answer: response.answer || []
-                    })
-                )
-            })
-    },
-
     sendQuery ({ commit, state, getters }, { query }) {
         return expertApi.chat({
             query,
@@ -533,24 +554,6 @@ const actions = {
     // todo this should be moved into a dedicated context store
     updateRoute ({ commit }, route) {
         commit('UPDATE_ROUTE', route)
-    },
-
-    handleLogin ({ dispatch, state }) {
-        if (state.shouldPromptAssistant) {
-            return dispatch('openAssistantDrawer')
-                .then(() => dispatch('disableAssistantPrompt'))
-                .then(() => dispatch('hydrateClient'))
-        }
-    },
-
-    handleSignUp ({ dispatch, commit, state }) {
-        if (state.shouldPromptAssistant) {
-            commit('HYDRATE_MESSAGES', state.context)
-
-            return dispatch('openAssistantDrawer')
-                .then(() => dispatch('disableAssistantPrompt'))
-                .then(() => dispatch('hydrateClient'))
-        }
     },
 
     // Session timing actions

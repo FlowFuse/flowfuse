@@ -49,7 +49,7 @@ export default {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
         ...mapGetters('account', ['requiresBilling', 'isAdminUser']),
         ...mapState('ux/tours', ['shouldPresentTour']),
-        ...mapState('product/expert', ['shouldPromptAssistant']),
+        ...mapState('product/expert', ['shouldPromptAssistant', 'shouldHydrate']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -86,12 +86,18 @@ export default {
             // given we've loaded resources, check for tour status
             this.dispatchTour()
         }
+
+        if (this.shouldHydrate) {
+            this.expertAssistantHandleAuth({ shouldHydrateMessages: true })
+        }
     },
     async beforeMount () {
         this.checkRoute(this.$route)
     },
     methods: {
-        ...mapActions('product/expert', ['handleSignUp']),
+        ...mapActions('product/expert', {
+            expertAssistantHandleAuth: 'handleUserAuth'
+        }),
         checkRoute: async function (route) {
             const allowedRoutes = []
 
@@ -122,7 +128,7 @@ export default {
                 'ux/tours/setWelcomeTour',
                 () => {
                     if (this.shouldPromptAssistant) {
-                        this.handleSignUp()
+                        this.expertAssistantHandleAuth({ shouldHydrateMessages: true })
                     } else {
                         this.$store.dispatch('ux/tours/openModal', 'education')
                     }
