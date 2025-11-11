@@ -437,7 +437,7 @@ module.exports = {
                         : [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended', 'properties']
                             },
                             {
                                 model: M.Application,

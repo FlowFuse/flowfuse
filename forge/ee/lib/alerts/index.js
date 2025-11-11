@@ -11,7 +11,6 @@ module.exports = {
                 if (app.postoffice.enabled) {
                     const project = await app.db.models.Project.byId(projectId)
                     const settings = await app.db.controllers.Project.getRuntimeSettings(project)
-                    const teamType = await app.db.models.TeamType.byId(project.Team.TeamTypeId)
                     const emailAlerts = settings.emailAlerts
                     let template
                     if (emailAlerts?.crash && event === 'crashed') {
@@ -42,7 +41,7 @@ module.exports = {
                     } else if (emailAlerts?.resource?.memory && event === 'resource.memory') {
                         template = 'InstanceResourceMemoryExceeded'
                     }
-                    if (!template || (!teamType.getFeatureProperty('emailAlerts', false) || project.Team.properties?.feature?.emailAlerts)) {
+                    if (!template || !project.Team.getFeatureProperty('email')) {
                         return
                     }
                     const where = {

@@ -839,7 +839,7 @@ module.exports = async function (app) {
         settings.fileStore = app.config.fileStore ? { ...app.config.fileStore } : null
 
         await request.project.Team.ensureTeamTypeExists()
-        const team = await request.project.Team
+        const team = request.project.Team
         const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         settings.assistant = {
             enabled: app.config.assistant?.enabled || false,
