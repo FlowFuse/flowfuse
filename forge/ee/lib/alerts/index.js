@@ -10,6 +10,7 @@ module.exports = {
             app.auditLog.alerts.generate = async function (projectId, event, data) {
                 if (app.postoffice.enabled) {
                     const project = await app.db.models.Project.byId(projectId)
+                    await project.Team.ensureTeamTypeExists()
                     const settings = await app.db.controllers.Project.getRuntimeSettings(project)
                     const emailAlerts = settings.emailAlerts
                     let template
@@ -41,7 +42,7 @@ module.exports = {
                     } else if (emailAlerts?.resource?.memory && event === 'resource.memory') {
                         template = 'InstanceResourceMemoryExceeded'
                     }
-                    if (!template || !project.Team.getFeatureProperty('email', false)) {
+                    if (!template || !project.Team.getFeatureProperty('emailAlerts', false)) {
                         return
                     }
                     const where = {
