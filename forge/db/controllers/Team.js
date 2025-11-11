@@ -24,46 +24,53 @@ module.exports = {
     },
 
     changeUserRole: async function (app, teamHashId, userHashId, role) {
-        const user = await app.db.models.User.byId(userHashId)
-        const team = await app.db.models.Team.byId(teamHashId)
-        if (!user) {
-            throw new Error('User not found')
-        }
-        if (!team) {
-            throw new Error('Team not found')
-        }
-        if (!RoleNames[role] || role === Roles.Admin || role === Roles.None) {
-            throw new Error('Invalid role')
-        }
-
-        const existingRole = await user.getTeamMembership(team.id)
-        if (!existingRole) {
-            throw new Error('User not in team')
-        }
-        const oldRole = existingRole.role
-        if (oldRole === role) {
-            return { user, team, oldRole, role }
-        }
-        if (oldRole === Roles.Owner && role === Roles.Member) {
-            const ownerCount = await team.ownerCount()
-            if (ownerCount === 1) {
-                throw new Error('Cannot remove last owner')
+        const transaction = await app.db.sequelize.transaction()
+        try {
+            const user = await app.db.models.User.byId(userHashId)
+            const team = await app.db.models.Team.byId(teamHashId)
+            if (!user) {
+                throw new Error('User not found')
             }
-            if (role < Roles.Member) {
-                const token = await app.db.models.AccessToken.findOne({
-                    where: {
-                        ownerType: 'npm',
-                        ownerId: `${userHashId}@${teamHashId}`
+            if (!team) {
+                throw new Error('Team not found')
+            }
+            if (!RoleNames[role] || role === Roles.Admin || role === Roles.None) {
+                throw new Error('Invalid role')
+            }
+
+            const existingRole = await user.getTeamMembership(team.id)
+            if (!existingRole) {
+                throw new Error('User not in team')
+            }
+            const oldRole = existingRole.role
+            if (oldRole === role) {
+                return { user, team, oldRole, role }
+            }
+            if (oldRole === Roles.Owner && role === Roles.Member) {
+                const ownerCount = await team.ownerCount(transaction)
+                if (ownerCount === 1) {
+                    throw new Error('Cannot remove last owner')
+                }
+                if (role < Roles.Member) {
+                    const token = await app.db.models.AccessToken.findOne({
+                        where: {
+                            ownerType: 'npm',
+                            ownerId: `${userHashId}@${teamHashId}`
+                        }
+                    })
+                    if (token) {
+                        await token.destroy()
                     }
-                })
-                if (token) {
-                    await token.destroy()
                 }
             }
+            existingRole.role = role
+            await existingRole.save({ transaction })
+            await transaction.commit()
+            return { user, team, oldRole, role }
+        } catch (err) {
+            transaction.rollback()
+            throw err
         }
-        existingRole.role = role
-        await existingRole.save()
-        return { user, team, oldRole, role }
     },
 
     changeUserTeamPermissions: async function (app, teamHashId, userHashId, permissions) {

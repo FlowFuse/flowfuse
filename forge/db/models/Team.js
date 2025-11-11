@@ -360,18 +360,18 @@ module.exports = {
                     }
                     return (await M.TeamMember.findAll({ where, include: M.User })).filter(tm => tm && tm.User).map(tm => tm.User)
                 },
-                memberCount: async function (role) {
+                memberCount: async function (role, transaction) {
                     const where = {
                         TeamId: this.id
                     }
                     if (role !== undefined) {
                         where.role = role
                     }
-                    return await M.TeamMember.count({ where })
+                    return await M.TeamMember.count({ where }, { transaction })
                 },
-                ownerCount: async function () {
+                ownerCount: async function (transaction) {
                     // All Team owners
-                    return this.memberCount(Roles.Owner)
+                    return this.memberCount(Roles.Owner, transaction)
                 },
                 instanceCount: async function (projectTypeId, transaction) {
                     const where = { TeamId: this.id }
