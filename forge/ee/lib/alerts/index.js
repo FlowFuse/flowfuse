@@ -41,7 +41,7 @@ module.exports = {
                     } else if (emailAlerts?.resource?.memory && event === 'resource.memory') {
                         template = 'InstanceResourceMemoryExceeded'
                     }
-                    if (!template || !project.Team.getFeatureProperty('email')) {
+                    if (!template || !project.Team.getFeatureProperty('email', false)) {
                         return
                     }
                     const where = {
