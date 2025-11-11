@@ -266,7 +266,7 @@
         @apply p-2;
     }
     .uneditable {
-        @apply border-opacity-0;
+        @apply border-transparent;
     }
 
     input[type="text"]:focus,
