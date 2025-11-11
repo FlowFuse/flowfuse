@@ -10,7 +10,7 @@ module.exports = {
     text:
 `Hello {{{username}}},
 
-Just to let you know, your free trial on team '{{{teamName}}}' ends in {{{endingInDuration}}}.
+Just to let you know, your free trial on team '{{{teamname}}}' ends in {{{endingInDuration}}}.
 
 {{#if billingSetup}}
 We can see you have already setup billing on the team - that's great. When
@@ -36,7 +36,7 @@ Your friendly FlowFuse Team
     html:
 `<p>Hello {{{username}}},</p>
 
-<p>Just to let you know, your free trial on team '{{{teamName}}}' ends in {{{endingInDuration}}}.</p>
+<p>Just to let you know, your free trial on team '{{{teamname}}}' ends in {{{endingInDuration}}}.</p>
 
 {{#if billingSetup}}
 <p>We can see you have already setup billing on the team - that's great. When

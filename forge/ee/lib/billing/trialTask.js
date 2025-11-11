@@ -106,7 +106,7 @@ module.exports.init = function (app) {
                     template,
                     {
                         username: user.name,
-                        teamName: team.name,
+                        teamname: team.name,
                         ...inserts
                     }
                 )
