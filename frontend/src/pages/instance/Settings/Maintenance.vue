@@ -157,9 +157,10 @@ export default {
                 hour: '2-digit',
                 minute: '2-digit'
             }
+
             const startTime = new Date(Date.UTC(1970, 0, 1, date.getUTCHours(), 0, 0, 0))
                 .toLocaleTimeString([], format)
-            const endTime = new Date(1970, 0, 1, date.getUTCHours() + 1, 0, 0)
+            const endTime = new Date(Date.UTC(1970, 0, 1, date.getUTCHours() + 1, 0, 0))
                 .toLocaleTimeString([], format)
 
             return `Between ${startTime} and ${endTime}`
