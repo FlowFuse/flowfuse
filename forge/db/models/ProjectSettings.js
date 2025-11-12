@@ -76,7 +76,7 @@ module.exports = {
                 getProjectsToUpgrade: async (hour, day) => {
                     return await this.findAll({
                         where: {
-                            key: KEY_STACK_UPGRADE_HOUR, value: `${JSON.stringify({ hour, day })}`
+                            key: `${KEY_STACK_UPGRADE_HOUR}_${day}`, value: `${JSON.stringify({ hour })}`
                         },
                         include: {
                             model: M.Project,

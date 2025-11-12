@@ -113,7 +113,7 @@ export default {
                 {
                     name: 'Maintenance',
                     path: { name: 'instance-settings-maintenance' },
-                    hidden: !canEditProject
+                    hidden: !canEditProject || !this.features?.autoStackUpdate
                 }
             ]
             return routes.map(route => {

@@ -1,8 +1,6 @@
 const { KEY_STACK_UPGRADE_HOUR } = require('../../../db/models/ProjectSettings')
 
 module.exports = async function (app) {
-    app.config.features.register('autoStackUpdate', true, true)
-
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.projectId) {
@@ -49,10 +47,13 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    type: 'object',
-                    properties: {
-                        hour: { type: 'number' },
-                        day: { type: 'number' }
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            hour: { type: 'number' },
+                            day: { type: 'number' }
+                        }
                     }
                 },
                 '4xx': {
@@ -61,9 +62,15 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        const schedule = await request.project.getSetting(KEY_STACK_UPGRADE_HOUR)
-        if (schedule) {
-            reply.send(schedule)
+        const list = []
+        for (let i = 0; i < 7; i++) {
+            const conf = await request.project.getSetting(`${KEY_STACK_UPGRADE_HOUR}_${i}`)
+            if (conf) {
+                list.push(conf)
+            }
+        }
+        if (list.length > 0) {
+            reply.send(list)
             return
         }
         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -86,23 +93,29 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                type: 'object',
-                properties: {
-                    schedule: {
-                        type: 'object',
-                        properties: {
-                            hour: { type: 'number' },
-                            day: { type: 'number' }
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        schedule: {
+                            type: 'object',
+                            properties: {
+                                hour: { type: 'number' },
+                                day: { type: 'number' }
+                            }
                         }
                     }
                 }
             },
             response: {
                 200: {
-                    type: 'object',
-                    properties: {
-                        hour: { type: 'number' },
-                        day: { type: 'number' }
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            hour: { type: 'number' },
+                            day: { type: 'number' }
+                        }
                     }
                 },
                 '4xx': {
@@ -112,16 +125,21 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         if (request.body.schedule) {
-            try {
-                await request.project.updateSetting(KEY_STACK_UPGRADE_HOUR, request.body.schedule)
-                reply.send(request.body.schedule)
-            } catch (err) {
-                return reply
-                    .code(err.statusCode || 400)
-                    .send({
-                        code: err.code || 'unexpected_error',
-                        error: err.error || err.message
-                    })
+            for (let i = 0; i < 7; i++) {
+                await request.project.removeSetting(`${KEY_STACK_UPGRADE_HOUR}_${i}`)
+            }
+            for (const d of request.body.schedule) {
+                try {
+                    await request.project.updateSetting(`${KEY_STACK_UPGRADE_HOUR}_${d.day}`, { hour: d.hour })
+                    reply.send(request.body.schedule)
+                } catch (err) {
+                    return reply
+                        .code(err.statusCode || 400)
+                        .send({
+                            code: err.code || 'unexpected_error',
+                            error: err.error || err.message
+                        })
+                }
             }
         }
     })

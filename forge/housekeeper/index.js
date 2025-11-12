@@ -135,7 +135,6 @@ module.exports = fp(async function (app, _opts) {
     await registerTask(require('./tasks/inviteReminder'))
     await registerTask(require('./tasks/blueprintImport'))
     await registerTask(require('./tasks/deviceUnusedReminder'))
-    await registerTask(require('./tasks/upgrade-stack'))
 
     app.addHook('onReady', async () => {
         let promise = Promise.resolve()
