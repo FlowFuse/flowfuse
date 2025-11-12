@@ -1,6 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+    --color-teal-50: #E4FBFC;
+    --color-teal-100: #C4F3F5;
+    --color-teal-200: #B2EBEE;
+    --color-teal-300: #8CE2E7;
+    --color-teal-400: #74D4D9;
+    --color-teal-500: #50C3C9;
+    --color-teal-600: #35AAB0;
+    --color-teal-700: #31959A;
+    --color-teal-800: #397B7E;
+    --color-teal-900: #406466;
+}
 
 @layer base {
     /* .forge-block {
@@ -51,48 +62,127 @@
     }
 
     .forge-button-secondary {
-        @apply forge-button;
+        @apply px-3;
+        @apply py-1;
         @apply bg-gray-100;
+        @apply border;
         @apply border-gray-300;
         @apply hover:bg-gray-300;
         @apply hover:border-gray-300;
         @apply text-gray-500;
         @apply hover:text-gray-600;
         @apply focus:text-gray-700;
+        @apply rounded-md;
+        @apply inline-flex;
+        @apply items-center;
+        @apply text-sm;
+        @apply focus:outline-none;
+        @apply focus:ring-2;
+        @apply focus:ring-offset-2;
+        @apply focus:ring-offset-gray-600;
+        @apply focus:ring-gray-400;
+        @apply disabled:opacity-30;
+        @apply disabled:cursor-not-allowed;
     }
 
     .forge-button-tertiary {
-        @apply forge-button-secondary;
+        @apply px-3;
+        @apply py-1;
         @apply bg-white;
+        @apply border;
+        @apply border-gray-300;
         @apply hover:bg-gray-100;
+        @apply hover:border-gray-300;
+        @apply text-gray-500;
+        @apply hover:text-gray-600;
+        @apply focus:text-gray-700;
+        @apply rounded-md;
+        @apply inline-flex;
+        @apply items-center;
+        @apply text-sm;
+        @apply focus:outline-none;
+        @apply focus:ring-2;
+        @apply focus:ring-offset-2;
+        @apply focus:ring-offset-gray-600;
+        @apply focus:ring-gray-400;
+        @apply disabled:opacity-30;
+        @apply disabled:cursor-not-allowed;
     }
 
     .forge-button-inline {
-        @apply forge-button-secondary;
-        @apply border-transparent;
+        @apply px-3;
+        @apply py-1;
         @apply bg-white;
+        @apply border;
+        @apply border-transparent;
         @apply hover:bg-gray-100;
+        @apply hover:border-gray-300;
+        @apply text-gray-500;
+        @apply hover:text-gray-600;
+        @apply focus:text-gray-700;
+        @apply rounded-md;
+        @apply inline-flex;
+        @apply items-center;
+        @apply text-sm;
+        @apply focus:outline-none;
+        @apply focus:ring-2;
+        @apply focus:ring-offset-2;
+        @apply focus:ring-offset-gray-600;
+        @apply focus:ring-gray-400;
+        @apply disabled:opacity-30;
+        @apply disabled:cursor-not-allowed;
     }
 
     .forge-button-inline-inactive {
-        @apply forge-button-inline;
+        @apply px-3;
+        @apply py-1;
+        @apply bg-white;
+        @apply border;
+        @apply border-transparent;
+        @apply hover:bg-gray-100;
+        @apply hover:border-gray-300;
+        @apply text-gray-500;
+        @apply hover:text-gray-600;
+        @apply focus:text-gray-700;
+        @apply rounded-md;
+        @apply inline-flex;
+        @apply items-center;
+        @apply text-sm;
+        @apply focus:outline-none;
+        @apply focus:ring-2;
+        @apply focus:ring-offset-2;
+        @apply focus:ring-offset-gray-600;
+        @apply focus:ring-gray-400;
+        @apply disabled:opacity-30;
+        @apply disabled:cursor-not-allowed;
         pointer-events: none;
     }
 
     .forge-button-danger {
-        @apply forge-button;
+        @apply px-3;
+        @apply py-1;
         @apply bg-white;
+        @apply border;
         @apply border-red-700;
         @apply hover:bg-red-700;
         @apply text-red-700;
         @apply hover:text-white;
         @apply focus:text-white;
         @apply focus:bg-red-700;
-
+        @apply rounded-md;
+        @apply inline-flex;
+        @apply items-center;
+        @apply text-sm;
+        @apply focus:outline-none;
+        @apply focus:ring-2;
+        @apply focus:ring-offset-2;
+        @apply focus:ring-offset-gray-600;
+        @apply focus:ring-gray-400;
+        @apply disabled:opacity-30;
+        @apply disabled:cursor-not-allowed;
         @apply disabled:border-gray-500;
         @apply disabled:text-gray-600;
         @apply disabled:bg-white;
-        @apply disabled:cursor-not-allowed;
     }
 
     .forge-button-small {
@@ -149,9 +239,9 @@
         @apply text-red-600;
     }
     .forge-status-suspended {
-        @apply bg-red-200;
-        @apply border-red-400;
-        @apply text-red-600;
+        @apply bg-transparent;
+        @apply border-gray-200;
+        @apply text-gray-500;
     }
     .forge-status-stopped {
         @apply bg-gray-100;

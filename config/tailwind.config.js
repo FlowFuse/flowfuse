@@ -1,9 +1,7 @@
+// Tailwind CSS v4 uses CSS-first configuration via @theme directive
+// This file is kept for safelist support if needed
+// Content paths are auto-detected in v4
 module.exports = {
-    content: [
-        'frontend/public/index.html',
-        'frontend/src/**/*.js',
-        'frontend/src/**/*.vue'
-    ],
     safelist: [
         'forge-status-stopped',
         'forge-status-error',
@@ -40,23 +38,5 @@ module.exports = {
         'forge-minimal-status-updating',
         'text-green-400',
         'bg-green-50'
-    ],
-    theme: {
-        extend: {
-            colors: {
-                teal: {
-                    50: '#E4FBFC',
-                    100: '#C4F3F5',
-                    200: '#B2EBEE',
-                    300: '#8CE2E7',
-                    400: '#74D4D9',
-                    500: '#50C3C9',
-                    600: '#35AAB0',
-                    700: '#31959A',
-                    800: '#397B7E',
-                    900: '#406466'
-                }
-            }
-        }
-    }
+    ]
 }
