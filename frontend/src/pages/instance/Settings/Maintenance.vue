@@ -141,7 +141,11 @@ export default {
                 this.scheduledUpgrade.selectedWeekday = null
             } else if (value && this.scheduledUpgrade.initialValue) {
                 if (this.scheduledUpgrade.initialValue?.hour) {
-                    this.scheduledUpgrade.startHour = { hours: this.scheduledUpgrade.initialValue.hour, minutes: 0, seconds: 0 }
+                    this.scheduledUpgrade.startHour = {
+                        hours: this.scheduledUpgrade.initialValue.hour,
+                        minutes: 0,
+                        seconds: 0
+                    }
                 }
                 this.scheduledUpgrade.selectedWeekday = this.scheduledUpgrade.initialValue?.day
             }
@@ -156,7 +160,8 @@ export default {
 
             const format = {
                 hour: '2-digit',
-                minute: '2-digit'
+                minute: '2-digit',
+                timeZone: 'UTC'
             }
 
             const startTime = new Date(Date.UTC(1970, 0, 1, date.getUTCHours(), 0, 0, 0))
