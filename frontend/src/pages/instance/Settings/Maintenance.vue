@@ -40,6 +40,7 @@
                         hoursGridIncrement
                         :enableMinutes="false"
                         placeholder="Time Range"
+                        timezone="utc"
                         :format="format"
                         :min-time="{ hours: 0, minutes: 0, seconds: 0 }"
                         :start-time="{ hours: 0, minutes: 0, seconds: 0 }"
