@@ -50,6 +50,14 @@ You can save the configuration at any time by clicking the `Update configuration
 button. The configuration will only be enabled when you tick the `active` checkbox
 and save the changes.
 
+### Session Length Overrides
+
+Each SSO configuration can override the platform default Max Session life an Max Session Idle time.
+
+These are Controlled by the "Custom Session Expiry (hours)" and "Custom Session Idle Time (hours)" respectively.
+
+![Settings for Custom Session lifetime](./images/edit-sso-custom-session.png)
+_Settings for Custom Session lifetime_
 
 #### User Search Filter
 

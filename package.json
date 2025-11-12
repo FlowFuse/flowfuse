@@ -174,9 +174,6 @@
         "webpack-dev-server": "^5.2.1",
         "ws": "^8.14.0"
     },
-    "overrides": {
-        "rollup": "4.52.5"
-    },
     "engines": {
         "node": ">=18.x"
     },
