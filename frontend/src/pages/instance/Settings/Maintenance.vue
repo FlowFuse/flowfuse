@@ -40,7 +40,7 @@
                         hoursGridIncrement
                         :enableMinutes="false"
                         placeholder="Time Range"
-                        timezone="utc"
+                        timezone="UTC"
                         :format="format"
                         :min-time="{ hours: 0, minutes: 0, seconds: 0 }"
                         :start-time="{ hours: 0, minutes: 0, seconds: 0 }"
@@ -158,16 +158,19 @@ export default {
         format (date) {
             if (!date) return ''
 
-            const format = {
-                hour: '2-digit',
-                minute: '2-digit',
-                timeZone: 'UTC'
-            }
+            const utc = new Date(Date.UTC(
+                date.getFullYear(),
+                date.getMonth(),
+                date.getDate(),
+                date.getHours(),
+                date.getMinutes()
+            ))
 
-            const startTime = new Date(Date.UTC(1970, 0, 1, date.getUTCHours(), 0, 0, 0))
-                .toLocaleTimeString([], format)
-            const endTime = new Date(Date.UTC(1970, 0, 1, date.getUTCHours() + 1, 0, 0))
-                .toLocaleTimeString([], format)
+            const startHours = utc.getUTCHours()
+            const endHours = (startHours + 1) % 24
+
+            const startTime = `${String(startHours).padStart(2, '0')}:00`
+            const endTime = `${String(endHours).padStart(2, '0')}:00`
 
             return `Between ${startTime} and ${endTime}`
         },
