@@ -9,6 +9,7 @@
                         Select the day of the week and the hour during which the automatic upgrade will occur. The
                         upgrade will start at a random time within the selected hour.
                     </p>
+                    <p class="my-3"><span class="font-bold">Note:</span> All times are stated in UTC.</p>
                 </template>
             </FormRow>
             <div class="my-5 flex flex-col gap-5 max-w-xl">
@@ -158,7 +159,7 @@ export default {
             }
             const startTime = new Date(Date.UTC(1970, 0, 1, date.getUTCHours(), 0, 0, 0))
                 .toLocaleTimeString([], format)
-            const endTime = new Date(1970, 0, 1, date.getHours() + 1, 0, 0)
+            const endTime = new Date(1970, 0, 1, date.getUTCHours() + 1, 0, 0)
                 .toLocaleTimeString([], format)
 
             return `Between ${startTime} and ${endTime}`
