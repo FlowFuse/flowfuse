@@ -38,32 +38,20 @@ async function collect (app) {
                 ]
             })
 
-            const instancePromise = new Promise((resolve, reject) => {
-                // uses getRuntimeSettings to include template merge
-                let instanceOffset = 0
-                const instanceInterval = setInterval(async () => {
-                    for (let i = 0; i < 20; i++) {
-                        const project = runningProjects[instanceOffset++]
-                        const settings = await app.db.controllers.Project.getRuntimeSettings(project)
-                        if (settings?.palette?.modules) {
-                            for (const mod of Object.keys(settings.palette.modules)) {
-                                if (mod.startsWith(SCOPE_CERTIFIED) || mod.startsWith(SCOPE_NODES)) {
-                                    if (payload.certifiedNodes[mod]) {
-                                        payload.certifiedNodes[mod]++
-                                    } else {
-                                        payload.certifiedNodes[mod] = 1
-                                    }
-                                }
+            for (const project of runningProjects) {
+                const settings = await app.db.controllers.Project.getRuntimeSettings(project)
+                if (settings.palette?.modules) {
+                    for (const mod of Object.keys(settings.palette.modules)) {
+                        if (mod.startsWith(SCOPE_CERTIFIED) || mod.startsWith(SCOPE_NODES)) {
+                            if (payload.certifiedNodes[mod]) {
+                                payload.certifiedNodes[mod]++
+                            } else {
+                                payload.certifiedNodes[mod] = 1
                             }
                         }
-                        if (instanceOffset === runningProjects.length) {
-                            clearInterval(instanceInterval)
-                            resolve()
-                            break
-                        }
                     }
-                }, 1000)
-            })
+                }
+            }
 
             const now = Date.now()
             const runningDevices = await app.db.models.Device.findAll({
@@ -73,52 +61,37 @@ async function collect (app) {
                 }
             })
 
-            const devicePromise = new Promise((resolve, reject) => {
-                // all running devices seen in the last 24hrs
-                let deviceOffset = 0
-                const deviceInterval = setInterval(async () => {
-                    for (let i = 0; i < 20; i++) {
-                        const dev = runningDevices[deviceOffset++]
-                        const activeSnapshot = dev.activeSnapshotId
-                        if (activeSnapshot !== undefined) {
-                            if (snapshots[activeSnapshot]) {
-                                const cache = snapshots[activeSnapshot]
-                                for (const mod of cache) {
+            for (const dev of runningDevices) {
+                const activeSnapshot = dev.activeSnapshotId
+                if (activeSnapshot !== undefined) {
+                    if (snapshots[activeSnapshot]) {
+                        const cache = snapshots[activeSnapshot]
+                        for (const mod of cache) {
+                            if (payload.certifiedNodes[mod]) {
+                                payload.certifiedNodes[mod]++
+                            } else {
+                                payload.certifiedNodes[mod] = 1
+                            }
+                        }
+                    } else {
+                        const snapshot = await app.db.models.ProjectSnapshot.byId(activeSnapshot)
+                        if (snapshot.settings.modules) {
+                            const cache = []
+                            for (const mod of Object.keys(snapshot.settings.modules)) {
+                                if (mod.startsWith(SCOPE_CERTIFIED) || mod.startsWith(SCOPE_NODES)) {
+                                    cache.push(mod)
                                     if (payload.certifiedNodes[mod]) {
                                         payload.certifiedNodes[mod]++
                                     } else {
                                         payload.certifiedNodes[mod] = 1
                                     }
                                 }
-                            } else {
-                                const snapshot = await app.db.models.ProjectSnapshot.byId(activeSnapshot)
-                                if (snapshot?.settings?.modules) {
-                                    const cache = []
-                                    for (const mod of Object.keys(snapshot.settings.modules)) {
-                                        if (mod.startsWith(SCOPE_CERTIFIED) || mod.startsWith(SCOPE_NODES)) {
-                                            cache.push(mod)
-                                            if (payload.certifiedNodes[mod]) {
-                                                payload.certifiedNodes[mod]++
-                                            } else {
-                                                payload.certifiedNodes[mod] = 1
-                                            }
-                                        }
-                                    }
-                                    snapshots[activeSnapshot] = cache
-                                }
                             }
-                        }
-
-                        if (deviceOffset === runningDevices.length) {
-                            clearInterval(deviceInterval)
-                            resolve()
-                            break
+                            snapshots[activeSnapshot] = cache
                         }
                     }
-                }, 1000)
-            })
-            // wait for everything to finish
-            await Promise.all([instancePromise, devicePromise])
+                }
+            }
         } catch (err) {
             app.log.error(`Failed to gather Certified Nodes usage ${err}`)
         }
