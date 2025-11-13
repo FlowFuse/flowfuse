@@ -13,12 +13,13 @@
                 </template>
             </FormRow>
             <div class="my-5 flex flex-col gap-5 max-w-xl">
+                <pre>{{ scheduledUpgrade }}</pre>
                 <ul class="days-selector flex flex-row flex-wrap justify-start gap-3">
                     <li
                         v-for="weekDay in weekDays"
                         :key="weekDay.id"
                         class="day-selector"
-                        :class="{disabled: !scheduledUpgrade.enabled, selected: scheduledUpgrade.selectedWeekday === weekDay.id}"
+                        :class="{disabled: !scheduledUpgrade.enabled, selected: (scheduledUpgrade.selectedWeekdays ?? []).includes(weekDay.id)}"
                         :title="weekDay.label"
                         @click="onScheduledUpgradeDaySelected(weekDay.id)"
                     >
@@ -32,7 +33,7 @@
                         v-model="scheduledUpgrade.startHour"
                         :disabled="!scheduledUpgrade.enabled"
                         :class="{disabled: !scheduledUpgrade.enabled}"
-                        :time-config="{ noHoursOverlay: false, minutesIncrement: 60, secondsIncrement: 60}"
+                        :time-config="timeConfig"
                         is24
                         time-picker
                         vertical
@@ -77,7 +78,7 @@ export default {
             scheduledUpgrade: {
                 enabled: false,
                 startHour: null,
-                selectedWeekday: null,
+                selectedWeekdays: [],
                 initialValue: null
             },
             weekDays: [
@@ -110,7 +111,16 @@ export default {
                     label: 'Saturday'
                 }
             ],
-            unsavedChanges: false
+            unsavedChanges: false,
+            timeConfig: {
+                noHoursOverlay: false,
+                minutesIncrement: 60,
+                secondsIncrement: 60,
+                startTime: {
+                    hours: 0,
+                    minutes: 0
+                }
+            }
         }
     },
     computed: {
@@ -138,7 +148,7 @@ export default {
             // resetting values if toggling feature on/off
             if (!value) {
                 this.scheduledUpgrade.startHour = null
-                this.scheduledUpgrade.selectedWeekday = null
+                this.scheduledUpgrade.selectedWeekdays = []
             } else if (value && this.scheduledUpgrade.initialValue) {
                 if (this.scheduledUpgrade.initialValue?.hour) {
                     this.scheduledUpgrade.startHour = {
@@ -147,7 +157,14 @@ export default {
                         seconds: 0
                     }
                 }
-                this.scheduledUpgrade.selectedWeekday = this.scheduledUpgrade.initialValue?.day
+                this.scheduledUpgrade.selectedWeekdays = [...this.scheduledUpgrade.initialValue?.days] ?? []
+                if (Object.prototype.hasOwnProperty.call(this.scheduledUpgrade.initialValue, 'hour')) {
+                    this.scheduledUpgrade.startHour = {
+                        hours: this.scheduledUpgrade.initialValue.hour ?? 14,
+                        minutes: 0,
+                        seconds: 0
+                    }
+                }
             }
         }
     },
@@ -157,6 +174,8 @@ export default {
     methods: {
         format (date) {
             if (!date) return ''
+
+            if (!this.scheduledUpgrade.startHour) return 'Select a time range'
 
             const utc = new Date(Date.UTC(
                 date.getFullYear(),
@@ -175,26 +194,38 @@ export default {
             return `Between ${startTime} and ${endTime}`
         },
         onScheduledUpgradeDaySelected (id) {
-            if (this.scheduledUpgrade.selectedWeekday === id) {
-                this.scheduledUpgrade.selectedWeekday = null
+            if (!this.scheduledUpgrade.enabled) return
+
+            if (this.scheduledUpgrade.selectedWeekdays.includes(id)) {
+                const index = this.scheduledUpgrade.selectedWeekdays.indexOf(id)
+                this.scheduledUpgrade.selectedWeekdays.splice(index, 1)
             } else {
-                this.scheduledUpgrade.selectedWeekday = id
+                this.scheduledUpgrade.selectedWeekdays.push(id)
             }
         },
         getUpdateSchedule () {
             return instanceApi.getUpdateSchedule(this.project.id)
                 .then(response => {
-                    this.scheduledUpgrade.initialValue = response
+                    this.scheduledUpgrade.initialValue = {
+                        days: response.map(entry => entry.day),
+                        hour: response[0].hour // use the first entry hour, they should all be the same
+                    }
                     this.scheduledUpgrade.initialValue.enabled = true
 
-                    this.scheduledUpgrade.selectedWeekday = response.day
-                    this.scheduledUpgrade.startHour = { hours: response.hour, minutes: 0, seconds: 0 }
+                    this.scheduledUpgrade.selectedWeekdays = response.map(entry => entry.day)
+                    this.scheduledUpgrade.startHour = {
+                        hours: response[0].hour, // use the first entry hour, they should all be the same
+                        minutes: 0,
+                        seconds: 0
+                    }
                     this.scheduledUpgrade.enabled = true
                 }).catch(error => {
                     if (error.response.status === 404) {
                         this.scheduledUpgrade.initialValue = {
-                            enabled: false
+                            enabled: false,
+                            days: []
                         }
+                        this.scheduledUpgrade.startHour = null
                         return
                     }
                     throw error
@@ -203,13 +234,12 @@ export default {
         evaluateChanges () {
             const changes = []
 
-            const dayChanged = this.scheduledUpgrade.initialValue?.day !== this.scheduledUpgrade.selectedWeekday
+            const daysChanged = !this.scheduledUpgrade.initialValue?.days?.every(day => this.scheduledUpgrade.selectedWeekdays.includes(day)) || this.scheduledUpgrade.initialValue?.days?.length !== this.scheduledUpgrade.selectedWeekdays.length
             const hoursChanged = this.scheduledUpgrade.initialValue?.hour !== this.scheduledUpgrade.startHour?.hours
-            const mandatoryValues = this.scheduledUpgrade.selectedWeekday === null || this.scheduledUpgrade.startHour === null
+            const mandatoryValues = this.scheduledUpgrade.selectedWeekdays.length === 0 || this.scheduledUpgrade.startHour === null
 
-            changes.push(dayChanged)
+            changes.push(daysChanged)
             changes.push(hoursChanged)
-
             if (this.scheduledUpgrade.initialValue?.enabled && this.scheduledUpgrade?.enabled === false) {
                 // allow users to disable the schedule
                 this.unsavedChanges = true
@@ -226,14 +256,15 @@ export default {
         },
         saveSettings () {
             if (this.scheduledUpgrade.enabled) {
-                return instanceApi.setUpdateSchedule(this.project.id, {
+                const schedule = this.scheduledUpgrade.selectedWeekdays.map(day => ({
                     hour: this.scheduledUpgrade.startHour.hours,
-                    day: this.scheduledUpgrade.selectedWeekday
-                })
+                    day
+                }))
+                return instanceApi.setUpdateSchedule(this.project.id, schedule)
                     .then(() => {
                         this.scheduledUpgrade.initialValue = {
-                            day: parseInt(this.scheduledUpgrade.selectedWeekday),
-                            hour: parseInt(this.scheduledUpgrade.startHour.hours)
+                            days: [...this.scheduledUpgrade.selectedWeekdays],
+                            hour: this.scheduledUpgrade.startHour.hours
                         }
                         Alerts.emit('Schedule updated', 'confirmation')
                     }).catch(error => {
@@ -244,7 +275,7 @@ export default {
                 return instanceApi.removeUpdateSchedule(this.project.id)
                     .then(() => {
                         this.scheduledUpgrade.initialValue = null
-                        this.scheduledUpgrade.selectedWeekday = null
+                        this.scheduledUpgrade.selectedWeekdays = null
                         this.scheduledUpgrade.startHour = null
                         Alerts.emit('Schedule removed', 'confirmation')
                     }).catch(error => {

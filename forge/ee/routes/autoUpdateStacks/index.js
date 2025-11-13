@@ -66,7 +66,7 @@ module.exports = async function (app) {
         for (let i = 0; i < 7; i++) {
             const conf = await request.project.getSetting(`${KEY_STACK_UPGRADE_HOUR}_${i}`)
             if (conf) {
-                list.push(conf)
+                list.push({ ...conf, day: i })
             }
         }
         if (list.length > 0) {
@@ -93,11 +93,11 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                type: 'array',
-                items: {
-                    type: 'object',
-                    properties: {
-                        schedule: {
+                type: 'object',
+                properties: {
+                    schedule: {
+                        type: 'array',
+                        items: {
                             type: 'object',
                             properties: {
                                 hour: { type: 'number' },
@@ -149,35 +149,37 @@ module.exports = async function (app) {
      * @name /apu/v1/projects/:id/autoUpdateStack
      * @memberof forge.routes.api.project
      */
-    // app.delete('/', {
-    //     preHandler: app.needsPermission('project:edit'),
-    //     schema: {
-    //         summary: 'Clears when an Instance can be restarted',
-    //         tags: ['Instances'],
-    //         params: {
-    //             type: 'object',
-    //             properties: {
-    //                 projectId: { type: 'string' }
-    //             }
-    //         },
-    //         response: {
-    //             200: {},
-    //             '4xx': {
-    //                 $ref: 'APIError'
-    //             }
-    //         }
-    //     }
-    // }, async (request, reply) => {
-    //     try {
-    //         await request.project.removeSetting(KEY_STACK_UPGRADE_HOUR)
-    //         reply.code(201).send()
-    //     } catch (err) {
-    //         return reply
-    //             .code(err.statusCode || 400)
-    //             .send({
-    //                 code: err.code || 'unexpected_error',
-    //                 error: err.error || err.message
-    //             })
-    //     }
-    // })
+    app.delete('/', {
+        preHandler: app.needsPermission('project:edit'),
+        schema: {
+            summary: 'Clears when an Instance can be restarted',
+            tags: ['Instances'],
+            params: {
+                type: 'object',
+                properties: {
+                    projectId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {},
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            for (let i = 0; i < 7; i++) {
+                await request.project.removeSetting(`${KEY_STACK_UPGRADE_HOUR}_${i}`)
+            }
+            reply.code(201).send()
+        } catch (err) {
+            return reply
+                .code(err.statusCode || 400)
+                .send({
+                    code: err.code || 'unexpected_error',
+                    error: err.error || err.message
+                })
+        }
+    })
 }
