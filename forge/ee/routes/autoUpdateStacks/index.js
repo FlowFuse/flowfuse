@@ -66,7 +66,7 @@ module.exports = async function (app) {
         for (let i = 0; i < 7; i++) {
             const conf = await request.project.getSetting(`${KEY_STACK_UPGRADE_HOUR}_${i}`)
             if (conf) {
-                list.push(conf)
+                list.push({ ...conf, day: i })
             }
         }
         if (list.length > 0) {
@@ -93,11 +93,11 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                type: 'array',
-                items: {
-                    type: 'object',
-                    properties: {
-                        schedule: {
+                type: 'object',
+                properties: {
+                    schedule: {
+                        type: 'array',
+                        items: {
                             type: 'object',
                             properties: {
                                 hour: { type: 'number' },
@@ -128,18 +128,19 @@ module.exports = async function (app) {
             for (let i = 0; i < 7; i++) {
                 await request.project.removeSetting(`${KEY_STACK_UPGRADE_HOUR}_${i}`)
             }
-            for (const d of request.body.schedule) {
-                try {
+            try {
+                for (const d of request.body.schedule) {
                     await request.project.updateSetting(`${KEY_STACK_UPGRADE_HOUR}_${d.day}`, { hour: d.hour })
-                    reply.send(request.body.schedule)
-                } catch (err) {
-                    return reply
-                        .code(err.statusCode || 400)
-                        .send({
-                            code: err.code || 'unexpected_error',
-                            error: err.error || err.message
-                        })
                 }
+
+                reply.send(request.body.schedule)
+            } catch (err) {
+                return reply
+                    .code(err.statusCode || 400)
+                    .send({
+                        code: err.code || 'unexpected_error',
+                        error: err.error || err.message
+                    })
             }
         }
     })
@@ -169,7 +170,9 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            await request.project.removeSetting(KEY_STACK_UPGRADE_HOUR)
+            for (let i = 0; i < 7; i++) {
+                await request.project.removeSetting(`${KEY_STACK_UPGRADE_HOUR}_${i}`)
+            }
             reply.code(201).send()
         } catch (err) {
             return reply
