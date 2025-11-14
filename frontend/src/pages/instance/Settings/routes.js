@@ -5,6 +5,7 @@ import InstanceSettingsEnvVar from './Environment.vue'
 import InstanceSettingsGeneral from './General.vue'
 import InstanceSettingsHA from './HighAvailability.vue'
 import InstanceSettingsLauncher from './LauncherSettings.vue'
+import InstanceSettingsMaintenance from './Maintenance.vue'
 import InstanceSettingsPalette from './Palette.vue'
 import InstanceSettingsProtect from './ProtectInstance.vue'
 import InstanceSettingsSecurity from './Security.vue'
@@ -26,5 +27,6 @@ export default [
         }
     },
     { path: 'launcher', name: 'instance-settings-launcher', component: InstanceSettingsLauncher },
-    { path: 'alerts', name: 'instance-settings-alerts', component: InstanceSettingsAlerts }
+    { path: 'alerts', name: 'instance-settings-alerts', component: InstanceSettingsAlerts },
+    { path: 'maintenance', name: 'instance-settings-maintenance', component: InstanceSettingsMaintenance }
 ]

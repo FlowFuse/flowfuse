@@ -221,6 +221,24 @@ const generateSnapshotDescription = async (instanceId, { target }) => {
         })
 }
 
+const getUpdateSchedule = async (projectId) => {
+    return client.get(`/api/v1/projects/${projectId}/autoUpdateStack`).then((response) => {
+        return response.data
+    })
+}
+
+const removeUpdateSchedule = async (projectId) => {
+    return client.delete(`/api/v1/projects/${projectId}/autoUpdateStack`).then((response) => {
+        return response.data
+    })
+}
+
+const setUpdateSchedule = async (projectId, schedule) => {
+    return client.put(`/api/v1/projects/${projectId}/autoUpdateStack`, { schedule }).then((response) => {
+        return response.data
+    })
+}
+
 export default {
     create,
     getInstance,
@@ -251,5 +269,8 @@ export default {
     nameCheck,
     getResources,
     getStatus,
-    generateSnapshotDescription
+    generateSnapshotDescription,
+    getUpdateSchedule,
+    removeUpdateSchedule,
+    setUpdateSchedule
 }

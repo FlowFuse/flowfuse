@@ -39,6 +39,7 @@ module.exports = async function (app) {
         if (app.config.tables?.enabled) {
             await app.register(require('./tables'), { prefix: '/api/v1/teams/:teamId/databases', logLevel: app.config.logging.http })
         }
+        await app.register(require('./autoUpdateStacks'), { prefix: '/api/v1/projects/:projectId/autoUpdateStack', logLevel: app.config.logging.http })
 
         // Important: keep SSO last to avoid its error handling polluting other routes.
         await app.register(require('./sso'), { logLevel: app.config.logging.http })

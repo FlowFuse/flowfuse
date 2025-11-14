@@ -33,6 +33,7 @@ module.exports = fp(async function (app, opts) {
         app.config.features.register('certifiedNodes', true, true)
         app.config.features.register('ffNodes', true, true)
         app.config.features.register('rbacApplication', true, true)
+        require('./autoUpdateStacks').init(app)
     }
 
     // Set the Team Library Feature Flag
