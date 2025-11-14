@@ -237,7 +237,9 @@ export default {
             this.$refs['login-mfa-token'].focus()
         },
         async ggCallback (response) {
+            await this.$store.dispatch('product/expert/setShouldHydrate', true)
             const result = await SSOApi.googleSSOCallback(response.access_token)
+
             if (result.url) {
                 window.location = result.url
             } else if (result.error) {

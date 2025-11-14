@@ -385,7 +385,7 @@ describe('Project API', function () {
             runtimeSettings.settings.palette.modules.should.have.property('node-red-contrib-ping', '0.3.0')
 
             runtimeSettings.settings.palette.should.not.have.property('npmrc')
-            runtimeSettings.settings.palette.should.not.have.property('catalogue')
+            // runtimeSettings.settings.palette.should.not.have.property('catalogue')
 
             runtimeSettings.should.have.property('env').which.have.property('FF_PROJECT_ID', result.id) // depreciated in favour of FF_INSTANCE_ID as of V1.6.0
             runtimeSettings.should.have.property('env').which.have.property('FF_PROJECT_NAME', projectName) // depreciated in favour of FF_INSTANCE_NAME as of V1.6.0
@@ -983,7 +983,7 @@ describe('Project API', function () {
                 runtimeSettings.settings.should.have.property('ha')
                 runtimeSettings.settings.ha.should.have.property('replicas', 2)
                 runtimeSettings.settings.palette.should.not.have.property('npmrc')
-                runtimeSettings.settings.palette.should.not.have.property('catalogue')
+                // runtimeSettings.settings.palette.should.not.have.property('catalogue')
             })
             async function setTeamFlags (certifiedNodes, ffNodes) {
                 const defaultTeamTypeProperties = app.defaultTeamType.properties

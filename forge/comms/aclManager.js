@@ -118,7 +118,9 @@ module.exports = function (app) {
                 // ff/v1/<team>/d/<device>/resources/heartbeat
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/resources\/heartbeat$/ },
                 // ff/v1/platform/sync
-                { topic: /^ff\/v1\/platform\/sync$/ }
+                { topic: /^ff\/v1\/platform\/sync$/ },
+                // ff/v1/platform/leader
+                { topic: /^ff\/v1\/platform\/leader$/ }
             ],
             pub: [
                 // Send commands to project launchers
@@ -134,7 +136,9 @@ module.exports = function (app) {
                 // - ff/v1/+/a/+/command
                 { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/command$/ },
                 // ff/v1/platform/sync
-                { topic: /^ff\/v1\/platform\/sync$/ }
+                { topic: /^ff\/v1\/platform\/sync$/ },
+                // ff/v1/platform/leader
+                { topic: /^ff\/v1\/platform\/leader$/ }
             ]
         },
         project: {
