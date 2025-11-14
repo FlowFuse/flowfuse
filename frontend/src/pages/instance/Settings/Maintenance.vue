@@ -13,7 +13,7 @@
                 </template>
             </FormRow>
             <div class="my-5 flex flex-col gap-5 max-w-xl">
-                <pre>{{ scheduledUpgrade }}</pre>
+                <!-- <pre>{{ scheduledUpgrade }}</pre> -->
                 <ul class="days-selector flex flex-row flex-wrap justify-start gap-3">
                     <li
                         v-for="weekDay in weekDays"
