@@ -488,7 +488,6 @@ const actions = {
             }
             commit('setPending', true)
             dispatch('checkState', getters.redirectUrlAfterLogin)
-            dispatch('product/expert/handleUserAuth', { }, { root: true })
         } catch (err) {
             if (err.response?.status >= 401) {
                 commit('loginFailed', err.response.data)
