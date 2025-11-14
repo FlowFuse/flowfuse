@@ -617,6 +617,7 @@ const actions = {
 export default {
     namespaced: true,
     meta,
+    initialState: initialState(),
     state,
     getters,
     mutations,
