@@ -888,7 +888,8 @@ module.exports = async function (app) {
         const customCatalogsEnabledForTeam = app.config.features.enabled('customCatalogs') && teamType.getFeatureProperty('customCatalogs', false)
         if (!customCatalogsEnabledForTeam) {
             delete settings.settings?.palette?.npmrc
-            delete settings.settings?.palette?.catalogue
+            // Do not delete palette.catalogue as that will remove anything provided by the Template
+            // delete settings.settings?.palette?.catalogue
         }
 
         const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)

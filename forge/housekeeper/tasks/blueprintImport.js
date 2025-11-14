@@ -40,7 +40,7 @@ async function fetch (app) {
 
 module.exports = {
     name: 'blueprintImport',
-    startup: 30000,
+    startup: 60000,
     // Pick a random hour/minute for this task to run at. If the application is
     // horizontal scaled, this will avoid two instances running at the same time
     // and on a random day of the week.
