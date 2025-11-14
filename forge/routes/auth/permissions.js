@@ -11,7 +11,8 @@ const IMPLICIT_TOKEN_SCOPES = {
         'library:entry:create', // permit a device being edited via a tunnel in developer mode to create library entries
         'library:entry:list', // permit a device being edited via a tunnel in developer mode to list library entries
         'broker:clients:list', // permit ff-mqtt nodes to list broker clients
-        'broker:clients:link' // permit ff-mqtt nodes to link broker clients
+        'broker:clients:link', // permit ff-mqtt nodes to link broker clients
+        'assistant:call' // permit access to assistant
     ],
     project: [
         'user:read',
@@ -21,7 +22,8 @@ const IMPLICIT_TOKEN_SCOPES = {
         'library:entry:create',
         'library:entry:list',
         'broker:clients:list',
-        'broker:clients:link'
+        'broker:clients:link',
+        'assistant:call' // permit access to assistant
     ]
 }
 
