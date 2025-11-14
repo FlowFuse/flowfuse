@@ -31,26 +31,21 @@ module.exports = async function (app) {
     const requestTimeout = app.config.assistant?.service?.requestTimeout || 60000
 
     app.addHook('preHandler', app.verifySession)
+    app.addHook('preHandler', app.needsPermission('assistant:call'))
+
     app.addHook('preHandler', async (request, reply) => {
         if (!serviceEnabled) {
             return reply.code(501).send({ code: 'service_disabled', error: 'Assistant service is not enabled' })
         }
-        // Only permit requests made by a valid device or instance token
-        if (!request.session || request.session.provisioning) {
-            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
-        } else if (request.session.ownerType !== 'device' && request.session.ownerType !== 'project') {
-            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
-        } else {
-            // get the owner object and team
-            if (request.session.ownerType === 'device') {
-                request.owner = await app.db.models.Device.byId(+request.session.ownerId)
-                request.ownerType = 'device'
-                request.ownerId = request.owner.hashid
-            } else {
-                request.owner = await app.db.models.Project.byId(request.session.ownerId)
-                request.ownerType = 'project'
-                request.ownerId = request.owner.id
-            }
+        if (request.session.ownerType === 'device') {
+            request.owner = await app.db.models.Device.byId(+request.session.ownerId)
+            request.ownerType = 'device'
+            request.ownerId = request.owner.hashid
+            request.team = await app.db.models.Team.byId(request.owner.Team.id)
+        } else if (request.session.ownerType === 'project') {
+            request.owner = await app.db.models.Project.byId(request.session.ownerId)
+            request.ownerType = 'project'
+            request.ownerId = request.owner.id
             request.team = await app.db.models.Team.byId(request.owner.Team.id)
         }
     })
