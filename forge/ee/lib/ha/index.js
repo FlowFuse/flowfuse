@@ -16,8 +16,8 @@ module.exports.init = function (app) {
             // For initial beta release, we will support 1-2 replicas.
             // 1 replica is equivalent to no HA
             // In the future this will need to take into account the team type
-            const teamType = await team.getTeamType()
-            if (!teamType.getFeatureProperty('ha', true)) {
+            await team.ensureTeamTypeExists()
+            if (!team.getFeatureProperty('ha', true)) {
                 return false
             }
             return (haConfig.replicas > 0 && haConfig.replicas < 3)

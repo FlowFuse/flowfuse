@@ -30,7 +30,23 @@ describe('TeamBrokerClient', function () {
             return {
                 ownerType,
                 ownerId,
-                Team: { id: teamId, hashid: teamHash, suspended, TeamType: { properties: { features: { teamBroker: featureEnabled } }, hashid: teamHash } },
+                Team: {
+                    id: teamId,
+                    hashid: teamHash,
+                    suspended,
+                    TeamType: {
+                        properties: {
+                            features: {
+                                teamBroker: featureEnabled
+                            }
+                        },
+                        hashid: teamHash
+                    },
+                    getFeatureProperty: function (key, defaultValue) {
+                        return this.TeamType.properties.features[key] || defaultValue
+                    },
+                    ensureTeamTypeExists: async function () { }
+                },
                 password: hash(password)
             }
         }
@@ -85,7 +101,23 @@ describe('TeamBrokerClient', function () {
             return {
                 ownerType,
                 ownerId,
-                Team: { id: teamId, hashid: teamHash, suspended, TeamType: { properties: { features: { teamBroker: featureEnabled } }, hashid: teamHash } },
+                Team: {
+                    id: teamId,
+                    hashid: teamHash,
+                    suspended,
+                    TeamType: {
+                        properties: {
+                            features: {
+                                teamBroker: featureEnabled
+                            }
+                        },
+                        hashid: teamHash
+                    },
+                    getFeatureProperty: function (key, defaultValue) {
+                        return this.TeamType.properties.features[key] || defaultValue
+                    },
+                    ensureTeamTypeExists: async function () { }
+                },
                 Device: ownerType === 'device' ? { hashid: ownerId, id: 1, name: 'Device Name', type: 'deviceType' } : null,
                 Project: ownerType === 'project' ? { id: ownerId, name: 'Project Name' } : null,
                 password: hash(password)

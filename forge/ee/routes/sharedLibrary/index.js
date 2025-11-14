@@ -10,7 +10,7 @@ module.exports = async function (app) {
         if (team) {
             request.team = team
             // Check this feature is enabled for this team type.
-            if (team.TeamType.getFeatureProperty('shared-library', true)) {
+            if (team.getFeatureProperty('shared-library', true)) {
                 // If this is a session token, verify the project or device is in the team
                 if (request.session.ownerType === 'project') {
                     const project = await app.db.models.Project.byId(request.session.ownerId)

@@ -149,6 +149,36 @@
                         </div>
                     </td>
                 </tr>
+                <tr>
+                    <th>Features</th>
+                </tr>
+                <tr v-for="(feature, index) in featureList" :key="index">
+                    <th>{{ featureNames[feature] }}:</th>
+                    <td v-if="!editingLimits"><div>{{ getTeamProperty(`features_${feature}`) || false }}</div></td>
+                    <td v-else>
+                        <div class="grid grid-cols-2 gap-2 my-2">
+                            <FormRow v-model="editableLimits.features[feature]" type="checkbox" />
+                        </div>
+                    </td>
+                </tr>
+                <!-- <tr>
+                    <th>Persistent File storage limit (mb):</th>
+                    <td v-if="!editingLimits"><div>{{ getTeamProperty(`features_fileStorageLimit`) }}</div></td>
+                    <td v-else>
+                        <div class="grid grid-cols-2 gap-2 my-2">
+                            <FormRow v-model="editableLimits.features['fileStorageLimit']" type="number" />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Persistent Context storage limit (mb):</th>
+                    <td v-if="!editingLimits"><div>{{ getTeamProperty(`features_contextLimit`) }}</div></td>
+                    <td v-else>
+                        <div class="grid grid-cols-2 gap-2 my-2">
+                            <FormRow v-model="editableLimits.features['contextLimit']" type="number" />
+                        </div>
+                    </td>
+                </tr> -->
             </table>
         </div>
     </div>
@@ -159,6 +189,7 @@
 <script>
 import { mapState } from 'vuex'
 
+import { featureList, featureNames } from '../../../../../forge/lib/features.js'
 import billingApi from '../../../api/billing.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import teamApi from '../../../api/team.js'
@@ -191,11 +222,14 @@ export default {
     },
     data () {
         return {
+            featureList,
+            featureNames,
             instanceTypes: [],
             deviceFreeOptions: [],
             editingLimits: false,
             editableLimits: {
-                users: {}
+                users: {},
+                features: {}
             }
         }
     },
@@ -325,6 +359,10 @@ export default {
             this.editableLimits.teamBroker = {
                 clients: { limit: this.getTeamProperty('teamBroker_clients_limit') ?? '' }
             }
+            this.featureList.forEach(feature => {
+                this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
+            })
+
             this.editingLimits = true
         },
         async saveOverrides () {
@@ -346,7 +384,8 @@ export default {
                 users: { ...this.editableLimits.users },
                 instances: {},
                 devices: { ...this.editableLimits.devices },
-                teamBroker: { clients: { ...this.editableLimits.teamBroker.clients } }
+                teamBroker: { clients: { ...this.editableLimits.teamBroker.clients } },
+                features: {}
             }
             Object.keys(this.editableLimits.instances).forEach(instanceTypeId => {
                 properties.instances[instanceTypeId] = { ...this.editableLimits.instances[instanceTypeId] }
@@ -380,6 +419,15 @@ export default {
                 // Have selected own limit, or same as the team type - delete the override
                 delete properties.devices.combinedFreeType
             }
+
+            Object.keys(this.editableLimits.features).forEach(feature => {
+                // only store the delta from the TeamType
+                if (this.team.type.properties.features[feature] !== this.editableLimits.features[feature]) {
+                    properties.features[feature] = this.editableLimits.features[feature]
+                } else {
+                    delete properties.features[feature]
+                }
+            })
 
             await teamApi.updateTeam(this.team.id, { properties })
             await this.$store.dispatch('account/refreshTeam')

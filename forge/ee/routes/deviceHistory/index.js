@@ -8,7 +8,7 @@ module.exports = async function (app) {
         if (team) {
             request.team = team
             // Check this feature is enabled for this team type.
-            if (team.TeamType.getFeatureProperty('projectHistory', true)) {
+            if (team.getFeatureProperty('projectHistory', true)) {
                 return
             }
         }
