@@ -5,7 +5,7 @@
                 <div class="logo-container">
                     <img src="/ff-logo--wordmark--light.svg" alt="FlowFuse" class="logo">
                 </div>
-                <h2 class="title">Expert Assistant</h2>
+                <h2 class="title">Expert</h2>
             </div>
         </div>
         <ExpertPanel />
