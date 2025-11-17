@@ -290,11 +290,7 @@ const actions = {
     async handleMessage ({ commit, state, dispatch }, { query }) {
         // Auto-initialize session ID if not set
         if (!state.sessionId) {
-            const { default: ExpertAPI } = await import(
-                '../../../../api/expert.js'
-            )
-            const newSessionId = ExpertAPI.initSession()
-            commit('SET_SESSION_ID', newSessionId)
+            commit('SET_SESSION_ID', uuidv4())
 
             // Start session timing
             dispatch('startSessionTimer')
@@ -454,7 +450,8 @@ const actions = {
         return expertApi.chat({
             query,
             context: getters.context,
-            sessionId: state.sessionId
+            sessionId: state.sessionId,
+            abortController: state.abortController
         })
     },
 
