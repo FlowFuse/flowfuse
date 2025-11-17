@@ -1,8 +1,9 @@
 <template>
     <div class="maintenance">
         <section data-el="scheduled-upgrade" class="scheduled-upgrade">
+            <FeatureUnavailableToTeam v-if="!scheduleStackUpgradeAvailable" featureName="Schedule Stack Upgrades" />
             <FormHeading>Scheduled Upgrades</FormHeading>
-            <FormRow v-model="scheduledUpgrade.enabled" type="checkbox" class="mt-5" container-class="max-w-xl">
+            <FormRow v-model="scheduledUpgrade.enabled" :disabled="!allowDisable" type="checkbox" class="mt-5" container-class="max-w-xl">
                 Apply Node-RED upgrades when available
                 <template #description>
                     <p>
@@ -53,9 +54,12 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import instanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import Alerts from '../../../services/alerts.js'
 import DateTimePicker from '../../../ui-components/components/form/DateTime.vue'
 
@@ -63,6 +67,7 @@ export default {
     name: 'InstanceSettingsMaintenance',
     components: {
         DateTimePicker,
+        FeatureUnavailableToTeam,
         FormRow,
         FormHeading
     },
@@ -124,11 +129,18 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['features', 'team', 'settings']),
         saveButton () {
             return {
                 visible: true,
                 disabled: !this.unsavedChanges
             }
+        },
+        scheduleStackUpgradeAvailable () {
+            return this.team.type.properties?.autoStackUpdate?.enabled
+        },
+        allowDisable () {
+            return this.team.type.properties?.autoStackUpdate?.allowDisable
         }
     },
     watch: {
