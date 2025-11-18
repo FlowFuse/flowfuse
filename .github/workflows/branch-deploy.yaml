@@ -266,10 +266,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Pull from GHCR
+        run: |
+          docker pull ${{ needs.build-node-red.outputs.image }}
+          docker image ls -a
+
       - name: Push to ECR
         id: image-push
         run: |
-          docker pull ${{ needs.build-node-red.outputs.image }}
+          # docker pull ${{ needs.build-node-red.outputs.image }}
           docker tag ${{ needs.build-node-red.outputs.image }} ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
           docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
           
