@@ -234,7 +234,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      packages: read
+      # packages: read
     steps:
       - name: Set variables
         run: | 
