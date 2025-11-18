@@ -355,6 +355,7 @@ export default defineComponent({
 <style scoped lang="scss">
 #snapshot-details-drawer {
     flex: 1;
+    padding: 10px;
 
     &, .container {
         display: flex;
