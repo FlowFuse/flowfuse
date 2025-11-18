@@ -191,6 +191,18 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
 
 <div class="ff-offering-tiles grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
    <div class="ff-tile ff-offering-tile">
+      <label>FlowFuse Node-RED Nodes</label>
+      <p>A complete set of FlowFuse-maintained nodes for data sharing between instances, MQTT messaging, AI/ONNX models, MCP agent integrations, and enterprise data features.<p>
+      <ul>
+         <li><a href="/docs/user/projectnodes/">FlowFuse Project Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="https://flowfuse.com/node-red/flowfuse/mcp/">FlowFuse MCP Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="https://flowfuse.com/node-red/flowfuse/flowfuse-tables/">FlowFuse Tables Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="https://flowfuse.com/node-red/flowfuse/ai/">FlowFuse AI Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="/docs/user/mqtt-nodes/">FlowFuse MQTT Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="https://flowfuse.com/node-red/flowfuse/">See all the Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+      </ul>
+   </div>
+   <div class="ff-tile ff-offering-tile">
       <label>FlowFuse Dashboard</label>
       <p>Create interactive, responsive and secure Dashboards in Node-RED.<p>
       <ul>
@@ -214,34 +226,6 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
       <p>AI in the Node-RED Editor to help build your flows.<p>
       <ul>
          <li><a href="/docs/user/assistant/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-      </ul>
-   </div>
-   <div class="ff-tile ff-offering-tile">
-      <label>FlowFuse Project Nodes</label>
-      <p>Seamlessly pass data between your Node-RED Instances.<p>
-      <ul>
-         <li><a href="/docs/user/projectnodes/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-      </ul>
-   </div>
-   <div class="ff-tile ff-offering-tile">
-      <label>FlowFuse MQTT Nodes</label>
-      <p>Integrate seamlessly with your <a href="/docs/user/teambroker/">Team Broker</a> to pass data between your Node-RED Instances and connected clients.</p>
-      <ul>
-         <li><a href="/docs/user/mqtt-nodes/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-      </ul>
-   </div>
-   <div class="ff-tile ff-offering-tile">
-      <label>FlowFuse MCP Nodes</label>
-      <p>Connect your flows with AI Agents using our MCP Server nodes.</p>
-      <ul>
-         <li><a href="https://flowfuse.com/node-red/flowfuse/mcp/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-      </ul>
-   </div>
-   <div class="ff-tile ff-offering-tile">
-      <label>FlowFuse AI Nodes</label>
-      <p>Make use of <a href="https://onnx.ai/">ONNX AI models</a> within your flows to bring machine learning and AI to your fingertips.</p>
-      <ul>
-         <li><a href="https://flowfuse.com/node-red/flowfuse/ai/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
       </ul>
    </div>
 </div>
