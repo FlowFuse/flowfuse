@@ -36,6 +36,23 @@ describe('MCP Server Registration', function () {
         mcpServer.protocol.should.equal('http')
         mcpServer.endpointRoute.should.equal('/mcp')
     })
+    it('should list MCP entries', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        const response = await app.inject({
+            method: 'GET',
+            url: `/api/v1/teams/${app.team.hashid}/mcp`,
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        response.statusCode.should.equal(200)
+        const result = response.json()
+        result.should.have.a.lengthOf(1)
+        result[0].should.have.property('name', 'foo')
+        result[0].should.have.property('endpointRoute', '/mcp')
+        result[0].should.have.property('protocol', 'http')
+        
+    })
     it('should delete MCP entry', async function () {
         const { token } = await app.instance.refreshAuthTokens()
         const response = await app.inject({

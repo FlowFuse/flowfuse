@@ -18,8 +18,35 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.mcp
      */
     app.get('/', {
-        schema: {}
+        schema: {
+            summary: '',
+            tags: ['MCP'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'array'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
+            }
+        }
     }, async (request, reply) => {
+        try {
+            const mcpServers = await app.db.models.MCPRegistration.byTeam(request.params.teamId)
+            reply.send(mcpServers)
+        } catch (err) {
+            console.log(err)
+            reply.status(500).send({ code: 'unexpected_error', error: 'Failed to find mcp entries for team' })
+        }
     })
 
     app.post('/:type/:id', {
@@ -48,18 +75,33 @@ module.exports = async function (app) {
                     endpointRoute: { type: 'string' },
                     protocol: { type: 'string' }
                 }
+            },
+            response: {
+                200: {
+                    type: 'object'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
             }
         }
     }, async (request, reply) => {
-        await app.db.models.MCPRegistration.upsert({
-            targetType: request.params.type,
-            targetId: request.params.id,
-            ...request.body,
-            TeamId: request.team.id
-        }, {
-            fields: ['name', 'endpointRoute'],
-            conflictFields: ['TeamId', 'targetType', 'targetId']
-        })
+        try {
+            await app.db.models.MCPRegistration.upsert({
+                targetType: request.params.type,
+                targetId: request.params.id,
+                ...request.body,
+                TeamId: request.team.id
+            }, {
+                fields: ['name', 'endpointRoute'],
+                conflictFields: ['TeamId', 'targetType', 'targetId']
+            })
+        } catch (err) {
+            app.log.error(`register MCP Server ${err.toString()}`)
+            reply.status(500).send({ code: 'unexpected_error', error: 'Failed to create mcp entry' })
+            return
+        }
+        reply.send({})
     })
 
     app.delete('/:type/:id', {
@@ -80,12 +122,31 @@ module.exports = async function (app) {
                     type: { type: 'string' },
                     id: { type: 'string' }
                 }
+            },
+            response: {
+                200: {
+                    type: 'object'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                },
+                500: {
+                    $ref: 'APIError'
+                }
             }
         }
     }, async (request, reply) => {
-        const mcpServer = await app.db.models.MCPRegistration.byTypeAndID(request.params.type, request.params.id)
-        if (mcpServer) {
-            await mcpServer.destroy()
+        try {
+            const mcpServer = await app.db.models.MCPRegistration.byTypeAndID(request.params.type, request.params.id)
+            if (mcpServer) {
+                await mcpServer.destroy()
+                reply.send({})
+            } else {
+                reply.status(404).send({ code: 'not_found', error: 'MCP server not found' })
+            }
+        } catch (err) {
+            app.log.error(`delete MCP Server ${err.toString()}`)
+            reply.status(500).send({ code: 'unexpected_error', error: 'Failed to delete mcp entry' })
         }
     })
 }
