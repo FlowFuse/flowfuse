@@ -172,7 +172,7 @@ module.exports = async function (app) {
     async (request, reply) => {
         const inlineDisabled = app.config.assistant?.completions?.inlineEnabled === false
         const featureEnabled = app.config.features.enabled('assistantInlineCompletions')
-        const featureEnabledForTeam = request.team.TeamType.getFeatureProperty('assistantInlineCompletions', false)
+        const featureEnabledForTeam = request.team?.TeamType.getFeatureProperty('assistantInlineCompletions', false)
         if (inlineDisabled || !featureEnabled || !featureEnabledForTeam) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found - feature not enabled for team' })
             return
@@ -193,7 +193,7 @@ module.exports = async function (app) {
         // if this is a `flowfuse-tables-query` lets see if tables are enabled and try to get the schema hints
         let tablesCacheKey = null
         if (nodeModule === '@flowfuse/nr-tables-nodes' && nodeType === 'tables-query') {
-            const tablesFeatureEnabled = app.config.features.enabled('tables') && request.team.TeamType.getFeatureProperty('tables', false)
+            const tablesFeatureEnabled = app.config.features.enabled('tables') && request.team?.TeamType.getFeatureProperty('tables', false)
             tablesCacheKey = tablesFeatureEnabled && request.team.hashid + '/tables/schema'
             if (tablesCacheKey) {
                 if (!tablesSchemaCache.has(tablesCacheKey)) {
@@ -291,9 +291,9 @@ module.exports = async function (app) {
         }
 
         // if this is a `flowfuse-tables-query` lets see if tables are enabled and try to get the schema hints
-        const tablesFeatureEnabled = app.config.features.enabled('tables') && request.team.TeamType.getFeatureProperty('tables', false)
+        const tablesFeatureEnabled = app.config.features.enabled('tables') && request.team?.TeamType.getFeatureProperty('tables', false)
         const isTablesQuery = tablesFeatureEnabled && method === 'flowfuse-tables-query'
-        const tablesCacheKey = request.team.hashid + '/tables/schema'
+        const tablesCacheKey = request.team?.hashid + '/tables/schema'
         if (isTablesQuery) {
             const { getTablesHints } = require('../../lib/assistant.js')
             if (!tablesSchemaCache.has(tablesCacheKey)) {
@@ -314,7 +314,7 @@ module.exports = async function (app) {
         // post to the assistant service
         try {
             let isTeamOnTrial
-            if (app.billing && request.team.getSubscription) {
+            if (app.billing && request.team?.getSubscription) {
                 const subscription = await request.team.getSubscription()
                 isTeamOnTrial = subscription ? subscription.isTrial() : null
             }
@@ -326,7 +326,7 @@ module.exports = async function (app) {
 
             const response = await app.db.controllers.Assistant.invokeLLM(
                 method, data, {
-                    teamHashId: request.team.hashid,
+                    teamHashId: request.team?.hashid,
                     instanceType: request.ownerType,
                     instanceId: request.ownerId,
                     additionalHeaders: request.headers,
@@ -343,7 +343,7 @@ module.exports = async function (app) {
         const headers = {
             'ff-owner-type': request.ownerType,
             'ff-owner-id': request.ownerId,
-            'ff-team-id': request.team.hashid
+            'ff-team-id': request.team?.hashid
         }
         // include license information, team id and trial status so that we can make decisions in the assistant service
         const isLicensed = app.license?.active() || false
@@ -352,7 +352,7 @@ module.exports = async function (app) {
         headers['ff-license-active'] = isLicensed
         headers['ff-license-type'] = licenseType
         headers['ff-license-tier'] = tier
-        if (app.billing && request.team.getSubscription) {
+        if (app.billing && request.team?.getSubscription) {
             const subscription = await request.team.getSubscription()
             headers['ff-team-trial'] = subscription ? subscription.isTrial() : null
         }
