@@ -3,8 +3,14 @@
         id="right-drawer"
         v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}"
         :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed}"
+        :style="drawerStyle"
         data-el="right-drawer"
     >
+        <div
+            v-if="rightDrawer.fixed"
+            class="resize-bar"
+            @mousedown="startResize"
+        />
         <div v-if="rightDrawer?.header" class="header flex items-center justify-between p-4 border-b gap-2">
             <div class="title clipped-overflow" data-el="right-drawer-header-title">
                 <h1 class="text-xl font-semibold mb-0" :title="rightDrawer.header.title">{{ rightDrawer.header.title }}</h1>
@@ -38,8 +44,19 @@
 <script>
 import { mapActions, mapState } from 'vuex'
 
+const DRAWER_MIN_WIDTH = 310
+const DRAWER_DEFAULT_WIDTH = 400
+const DRAWER_MAX_VIEWPORT_MARGIN = 200
+const DRAWER_MAX_WIDTH_RATIO = 0.9
+
 export default {
     name: 'RightDrawer',
+    data () {
+        return {
+            drawerWidth: DRAWER_DEFAULT_WIDTH,
+            isResizing: false
+        }
+    },
     computed: {
         ...mapState('ux/drawers', ['rightDrawer']),
         actions () {
@@ -51,13 +68,34 @@ export default {
 
                     return !action.hidden
                 })
+        },
+        drawerStyle () {
+            if (this.rightDrawer.fixed && this.rightDrawer.state) {
+                return {
+                    width: `${this.drawerWidth}px`
+                }
+            }
+            return {}
         }
     },
     watch: {
         'rightDrawer.state': {
             handler (isOpen) {
-                const onEsc = (e) => e.key === 'Escape' && this.closeRightDrawer()
+                const onEsc = (e) => {
+                    // Don't close on ESC if drawer is pinned
+                    if (e.key === 'Escape' && !this.rightDrawer.pinned) {
+                        this.closeRightDrawer()
+                    }
+                }
                 isOpen ? window.addEventListener('keydown', onEsc) : window.removeEventListener('keydown', onEsc)
+            }
+        },
+        'rightDrawer.fixed': {
+            handler (isFixed) {
+                // Reset to default width when toggling fixed mode
+                if (!isFixed) {
+                    this.drawerWidth = DRAWER_DEFAULT_WIDTH
+                }
             }
         }
     },
@@ -67,7 +105,41 @@ export default {
             if (this.rightDrawer.state && this.rightDrawer.closeOnClickOutside) {
                 this.closeRightDrawer()
             }
+        },
+        startResize (event) {
+            this.isResizing = true
+            document.addEventListener('mousemove', this.handleResize)
+            document.addEventListener('mouseup', this.stopResize)
+            event.preventDefault()
+        },
+        handleResize (event) {
+            if (!this.isResizing) return
+
+            const viewportWidth = window.innerWidth
+            const newWidth = viewportWidth - event.clientX
+
+            // Calculate constraints
+            const maxWidth = Math.min(
+                viewportWidth * DRAWER_MAX_WIDTH_RATIO,
+                viewportWidth - DRAWER_MAX_VIEWPORT_MARGIN
+            )
+
+            // Apply constraints
+            this.drawerWidth = Math.max(
+                DRAWER_MIN_WIDTH,
+                Math.min(newWidth, maxWidth)
+            )
+        },
+        stopResize () {
+            this.isResizing = false
+            document.removeEventListener('mousemove', this.handleResize)
+            document.removeEventListener('mouseup', this.stopResize)
         }
+    },
+    beforeUnmount () {
+        // Clean up resize listeners
+        document.removeEventListener('mousemove', this.handleResize)
+        document.removeEventListener('mouseup', this.stopResize)
     }
 }
 </script>
@@ -89,6 +161,27 @@ export default {
     display: flex;
     flex-direction: column;
     overflow: hidden; // Changed from auto to hidden - let child components handle their own scrolling
+
+    .resize-bar {
+        position: absolute;
+        left: -3px;
+        top: 0;
+        bottom: 0;
+        width: 6px;
+        cursor: ew-resize;
+        background: $ff-grey-400;
+        z-index: 1001;
+
+        &:hover {
+            background: $ff-grey-600;
+            width: 8px;
+            left: -4px;
+        }
+
+        &:active {
+            background: $ff-indigo-600;
+        }
+    }
 
     .header {
         background: white;
@@ -117,6 +210,8 @@ export default {
     &.fixed {
         position: initial;
         height: 100%;
+        transition: none; // Disable transition in fixed mode for smooth resizing
+        box-shadow: none; // Remove shadow when pinned
     }
 }
 </style>

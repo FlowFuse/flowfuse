@@ -19,6 +19,7 @@ const initialState = () => ({
         wider: false,
         fixed: false,
         closeOnClickOutside: true,
+        pinned: false,
         props: {},
         on: {},
         bind: {}
@@ -53,8 +54,10 @@ const mutations = {
     closeRightDrawer (state) {
         state.rightDrawer.state = false
         state.rightDrawer.wider = false
+        state.rightDrawer.fixed = false
         state.rightDrawer.component = null
         state.rightDrawer.header = null
+        state.rightDrawer.pinned = false
         state.rightDrawer.props = {}
         state.rightDrawer.on = {}
         state.rightDrawer.bind = {}
@@ -76,6 +79,12 @@ const mutations = {
                 title
             }
         }
+    },
+    setPinnedDrawer (state, fixed) {
+        state.rightDrawer.fixed = fixed
+        state.rightDrawer.pinned = fixed
+        // When fixed, prevent close on click outside
+        state.rightDrawer.closeOnClickOutside = !fixed
     },
     openLeftDrawer (state) {
         state.leftDrawer.state = true
@@ -116,7 +125,8 @@ const actions = {
                 on,
                 bind
             })
-            if (overlay) {
+            // Only show overlay if requested and drawer is not pinned
+            if (overlay && !state.rightDrawer.pinned) {
                 commit('ux/openOverlay', null, { root: true })
             }
         }
@@ -182,6 +192,27 @@ const actions = {
      */
     setRightDrawerActions ({ commit }, actions) {
         commit('setRightDrawerActions', actions)
+    },
+
+    /**
+     * Toggles the fixed state of the right drawer.
+     * When fixed, the drawer becomes part of the page layout (position: initial) and stays open.
+     *
+     * @param {Object} context - The Vuex action context object.
+     * @param {Function} context.commit - The commit function to call mutations.
+     * @param {Object} context.state - The current state.
+     * @param {Object} context.rootState - The root state.
+     *
+     * @return {void}
+     */
+    togglePinDrawer ({ commit, state, rootState }) {
+        const newFixedState = !state.rightDrawer.fixed
+        commit('setPinnedDrawer', newFixedState)
+
+        // Always close overlay when toggling (whether fixing or unfixing)
+        if (rootState.ux.overlay) {
+            commit('ux/closeOverlay', null, { root: true })
+        }
     },
 
     openLeftDrawer ({ commit }) {

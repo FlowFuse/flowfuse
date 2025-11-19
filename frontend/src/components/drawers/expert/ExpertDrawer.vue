@@ -7,22 +7,53 @@
                 </div>
                 <h2 class="title">Expert</h2>
             </div>
+            <div class="header-actions">
+                <button
+                    class="header-button pin-button"
+                    :class="{ 'is-pinned': isPinned }"
+                    :title="isPinned ? 'Unpin drawer' : 'Pin drawer open'"
+                    data-el="expert-drawer-pin-button"
+                    @click="togglePin"
+                >
+                    <LockClosedIcon v-if="isPinned" class="ff-icon" />
+                    <LockOpenIcon v-else class="ff-icon" />
+                </button>
+                <button
+                    class="header-button"
+                    :title="'Close Expert'"
+                    data-el="expert-drawer-close-button"
+                    @click="closeDrawer"
+                >
+                    <XIcon class="ff-icon" />
+                </button>
+            </div>
         </div>
         <ExpertPanel />
     </div>
 </template>
 
 <script>
+import { XIcon, LockClosedIcon, LockOpenIcon } from '@heroicons/vue/solid'
+import { mapActions, mapState } from 'vuex'
 import ExpertPanel from '../../expert/Expert.vue'
 
 export default {
     name: 'ExpertDrawer',
     components: {
-        ExpertPanel
+        ExpertPanel,
+        XIcon,
+        LockClosedIcon,
+        LockOpenIcon
     },
     data () {
         return {
             // Future: Add expert state here
+        }
+    },
+    computed: {
+        ...mapState('ux/drawers', ['rightDrawer']),
+        isPinned () {
+            return this.rightDrawer.fixed
         }
     },
     mounted () {
@@ -34,6 +65,13 @@ export default {
         // Example: document.removeEventListener('expert:open', this.handleOpenEvent)
     },
     methods: {
+        ...mapActions('ux/drawers', ['closeRightDrawer', 'togglePinDrawer']),
+        closeDrawer () {
+            this.closeRightDrawer()
+        },
+        togglePin () {
+            this.togglePinDrawer()
+        }
         // Future: Handle event-based triggers
         // handleOpenEvent(event) {
         //     const context = event.detail
@@ -55,6 +93,9 @@ export default {
         border-bottom: 1px solid $ff-grey-200;
         background: white;
         flex-shrink: 0; // Prevent header from shrinking
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
 
         .flex {
             display: flex;
@@ -87,6 +128,42 @@ export default {
             color: #374151; // text-gray-700
             margin: 0;
             line-height: 1.5rem; // Match logo height for proper alignment
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+
+            .header-button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                padding: 0;
+                background: none;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                color: inherit;
+                font: inherit;
+                transition: background-color 0.15s ease;
+
+                &:hover {
+                    cursor: pointer;
+                    background: $ff-grey-100;
+                }
+
+                &.pin-button.is-pinned {
+                    background: $ff-indigo-800;
+                    color: white;
+
+                    &:hover {
+                        background: $ff-indigo-900;
+                    }
+                }
+            }
         }
     }
 
