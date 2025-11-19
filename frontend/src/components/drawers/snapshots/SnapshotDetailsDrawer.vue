@@ -1,5 +1,5 @@
 <template>
-    <div id="snapshot-details-drawer" data-el="snapshot-details-drawer">
+    <div id="snapshot-details-drawer" data-el="snapshot-details-drawer" class="p-4">
         <div class="container">
             <section v-if="hasPermission('snapshot:full', applicationContext)" class="flow-viewer flex flex-1 flex-col overflow-auto">
                 <div class="header flex flex-row justify-between">
