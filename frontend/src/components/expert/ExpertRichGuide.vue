@@ -25,29 +25,31 @@
             </ol>
         </div>
 
-        <!-- Node Packages Section -->
-        <div v-if="guide.nodePackages && guide.nodePackages.length > 0" class="guide-packages">
-            <h4 class="section-title">Required Node Packages</h4>
-            <div class="packages-grid">
-                <PackageResourceCard v-for="(pkg, index) in guide.nodePackages" :key="index" :nodePackage="pkg" />>
+        <section class="flex flex-col gap-4">
+            <!-- Node Packages Section -->
+            <div v-if="guide.nodePackages && guide.nodePackages.length > 0" class="guide-packages">
+                <h4 class="section-title">Required Node Packages</h4>
+                <div class="packages-grid">
+                    <PackageResourceCard v-for="(pkg, index) in guide.nodePackages" :key="index" :nodePackage="pkg" />
+                </div>
             </div>
-        </div>
 
-        <!-- Resources Section -->
-        <div v-if="guide.resources && guide.resources.length > 0" class="guide-resources">
-            <h4 class="section-title">Related Resources</h4>
-            <div class="resources-grid">
-                <StandardResourceCard v-for="(resource, index) in guide.resources" :key="index" :resource="resource" />
+            <!-- Resources Section -->
+            <div v-if="guide.resources && guide.resources.length > 0" class="guide-resources">
+                <h4 class="section-title">Related Resources</h4>
+                <div class="resources-grid">
+                    <StandardResourceCard v-for="(resource, index) in guide.resources" :key="index" :resource="resource" />
+                </div>
             </div>
-        </div>
 
-        <!-- Resources Section -->
-        <div v-if="guide.flows && guide.flows.length > 0" class="guide-flows">
-            <h4 class="section-title">Related Flows</h4>
-            <div class="resources-grid">
-                <FlowResourceCard v-for="(flow, index) in guide.flows" :key="index" :flow="flow" />
+            <!-- Resources Section -->
+            <div v-if="guide.flows && guide.flows.length > 0" class="guide-flows">
+                <h4 class="section-title">Related Flows</h4>
+                <div class="resources-grid">
+                    <FlowResourceCard v-for="(flow, index) in guide.flows" :key="index" :flow="flow" />
+                </div>
             </div>
-        </div>
+        </section>
     </div>
 </template>
 
