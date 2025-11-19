@@ -111,6 +111,7 @@ module.exports = async function (app) {
                 conflictFields: ['TeamId', 'targetType', 'targetId']
             })
         } catch (err) {
+            console.log(err) // eslint-disable-line
             app.log.error(`register MCP Server ${err.toString()}`)
             reply.status(500).send({ code: 'unexpected_error', error: 'Failed to create mcp entry' })
             return
