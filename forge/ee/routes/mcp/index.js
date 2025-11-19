@@ -18,6 +18,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.mcp
      */
     app.get('/', {
+        preHandler: app.needsPermission('team:mcp:list'),
         schema: {
             summary: '',
             tags: ['MCP'],
@@ -44,7 +45,6 @@ module.exports = async function (app) {
             const mcpServers = await app.db.models.MCPRegistration.byTeam(request.params.teamId)
             reply.send(mcpServers)
         } catch (err) {
-            console.log(err)
             reply.status(500).send({ code: 'unexpected_error', error: 'Failed to find mcp entries for team' })
         }
     })

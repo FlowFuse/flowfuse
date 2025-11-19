@@ -51,7 +51,6 @@ describe('MCP Server Registration', function () {
         result[0].should.have.property('name', 'foo')
         result[0].should.have.property('endpointRoute', '/mcp')
         result[0].should.have.property('protocol', 'http')
-        
     })
     it('should delete MCP entry', async function () {
         const { token } = await app.instance.refreshAuthTokens()
