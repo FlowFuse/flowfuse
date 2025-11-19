@@ -13,7 +13,7 @@ module.exports = {
         endpointRoute: { type: DataTypes.STRING, allowNull: false }
     },
     indexes: [
-        { name: 'mcp_team_type_unique', fields: ['targetId', 'targetId', 'TeamId'], unique: true }
+        { name: 'mcp_team_type_unique', fields: ['targetId', 'targetType', 'TeamId'], unique: true }
     ],
     associations: function (M) {
         this.belongsTo(M.Team, { foreignKey: { allowNull: false } })

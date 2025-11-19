@@ -46,7 +46,7 @@ module.exports = {
             }
         })
 
-        await context.addIndex('MCPRegistrations', { name: 'mcp_team_type_unique', fields: ['targetId', 'targetId', 'TeamId'], unique: true })
+        await context.addIndex('MCPRegistrations', { name: 'mcp_team_type_unique', fields: ['targetId', 'targetType', 'TeamId'], unique: true })
     },
     down: async (context, Sequelize) => { }
 }
