@@ -8,8 +8,7 @@ const initialState = () => ({
     // Context from PR #6231 postMessage integration
     context: null,
     sessionId: null,
-    shouldPromptAssistant: false,
-    shouldHydrate: false,
+    shouldWakeUpAssistant: false,
 
     // Conversation state
     messages: [],
@@ -36,13 +35,16 @@ const initialState = () => ({
 const meta = {
     persistence: {
         context: {
-            storage: 'localStorage'
+            storage: 'localStorage',
+            clearOnLogout: true
         },
-        shouldPromptAssistant: {
-            storage: 'localStorage'
+        shouldWakeUpAssistant: {
+            storage: 'localStorage',
+            clearOnLogout: true
         },
-        shouldHydrate: {
-            storage: 'localStorage'
+        sessionId: {
+            storage: 'localStorage',
+            clearOnLogout: true
         }
     }
 }
@@ -91,7 +93,6 @@ const getters = {
 }
 
 const mutations = {
-    // Context mutations (for PR #6231 integration)
     SET_CONTEXT (state, context) {
         state.context = context
     },
@@ -125,8 +126,8 @@ const mutations = {
     SET_ABORT_CONTROLLER (state, controller) {
         state.abortController = controller
     },
-    SET_SHOULD_PROMPT_ASSISTANT (state, shouldPromptAssistant) {
-        state.shouldPromptAssistant = shouldPromptAssistant
+    SET_SHOULD_WAKE_UP_ASSISTANT (state, shouldWakeUpAssistant) {
+        state.shouldWakeUpAssistant = shouldWakeUpAssistant
     },
     SET_STREAMING_WORDS (state, words) {
         state.streamingWords = words
@@ -151,9 +152,6 @@ const mutations = {
     },
     RESET (state) {
         Object.assign(state, initialState())
-    },
-    UPDATE_CONTEXT (state, message) {
-        state.context.push(message)
     },
     HYDRATE_MESSAGES (state, messages) {
         messages.forEach((message) => {
@@ -204,22 +202,25 @@ const mutations = {
     // todo this should be moved into a dedicated context store
     UPDATE_ROUTE (state, route) {
         state.route = route
-    },
-    SET_SHOULD_HYDRATE (state, shouldHydrate) {
-        state.shouldHydrate = shouldHydrate
     }
 }
 
 const actions = {
-    // Context actions and hydration
-    setContext (
-        { commit, dispatch, state, rootState, rootGetters },
-        { data, sessionId }
+    // Context actions and lifecycle
+    async setContext (
+        {
+            commit,
+            dispatch,
+            state,
+            rootState,
+            rootGetters
+        },
+        {
+            data,
+            sessionId
+        }
     ) {
-        if (
-            rootGetters['account/featuresCheck']
-                .isExpertAssistantFeatureEnabled === false
-        ) {
+        if (rootGetters['account/featuresCheck'].isExpertAssistantFeatureEnabled === false) {
             return
         }
 
@@ -231,23 +232,20 @@ const actions = {
             dispatch('startSessionTimer')
         }
 
-        commit('SET_SHOULD_PROMPT_ASSISTANT', true)
-        commit('HYDRATE_MESSAGES', data)
-        // Add loading message with transfer variant to indicate syncing from website
-        commit('ADD_MESSAGE', {
-            type: 'loading',
-            variant: 'transfer',
-            timestamp: Date.now()
-        })
+        commit('SET_SHOULD_WAKE_UP_ASSISTANT', true)
 
         if (rootState.account?.user) {
-            dispatch('openAssistantDrawer')
-                .then(() => dispatch('hydrateClient'))
-                .then(() => commit('SET_SHOULD_PROMPT_ASSISTANT', false))
-                .catch((error) => error)
+            await dispatch('wakeUpAssistant', {
+                shouldHydrateMessages: true,
+                shouldAddTransferLoadingIndicator: true
+            })
         }
     },
-    hydrateClient ({ dispatch, state, rootGetters }) {
+    hydrateClient ({
+        dispatch,
+        state,
+        rootGetters
+    }) {
         if (
             rootGetters['account/featuresCheck']
                 .isExpertAssistantFeatureEnabled === false
@@ -270,24 +268,38 @@ const actions = {
                 )
             })
     },
-    handleUserAuth ({ dispatch, commit, state }, { shouldHydrateMessages = false }) {
-        if (state.shouldPromptAssistant) {
+    wakeUpAssistant ({
+        dispatch,
+        commit,
+        state
+    }, {
+        shouldHydrateMessages = false
+    }) {
+        if (state.shouldWakeUpAssistant) {
+            dispatch('setAssistantWakeUp', false)
+
             if (shouldHydrateMessages) {
                 commit('HYDRATE_MESSAGES', state.context)
             }
 
+            // Add loading message with transfer variant to indicate syncing from website
+            commit('ADD_MESSAGE', {
+                type: 'loading',
+                variant: 'transfer',
+                timestamp: Date.now()
+            })
+
             return dispatch('openAssistantDrawer')
-                .then(() => dispatch('disableAssistantPrompt'))
                 .then(() => dispatch('hydrateClient'))
-                .then(() => dispatch('setShouldHydrate', false))
         }
-    },
-    setShouldHydrate ({ commit }, shouldHydrate) {
-        commit('SET_SHOULD_HYDRATE', shouldHydrate)
     },
 
     // Main message sending action
-    async handleMessage ({ commit, state, dispatch }, { query }) {
+    async handleMessage ({
+        commit,
+        state,
+        dispatch
+    }, { query }) {
         // Auto-initialize session ID if not set
         if (!state.sessionId) {
             commit('SET_SESSION_ID', uuidv4())
@@ -470,8 +482,8 @@ const actions = {
         )
     },
 
-    disableAssistantPrompt ({ commit }) {
-        commit('SET_SHOULD_PROMPT_ASSISTANT', false)
+    setAssistantWakeUp ({ commit }, shouldWakeUp) {
+        commit('SET_SHOULD_WAKE_UP_ASSISTANT', shouldWakeUp)
     },
 
     async streamMessage ({ commit, state, getters }, content) {
