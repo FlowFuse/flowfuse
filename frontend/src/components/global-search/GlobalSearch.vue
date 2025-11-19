@@ -260,6 +260,12 @@ export default {
             }
         },
         bindKeyNavigation (event) {
+            // Only handle arrow keys if focus is within global search
+            const globalSearch = document.getElementById('global-search')
+            if (!globalSearch || !globalSearch.contains(document.activeElement)) {
+                return
+            }
+
             const anchors = document.querySelectorAll('#global-search .iterable')
             const anchorsArray = Array.from(anchors)
             const currentIndex = anchorsArray.findIndex(anchor => anchor === document.activeElement)
