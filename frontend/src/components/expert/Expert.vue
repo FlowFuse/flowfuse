@@ -31,7 +31,6 @@
                 >
                     <!-- Rich resources content slot -->
                     <template v-if="richContentComponentMap[message.kind]" #rich-content>
-                        {{ message.kind }}
                         <component
                             :is="richContentComponentMap[message.kind]"
                             :message="message"
