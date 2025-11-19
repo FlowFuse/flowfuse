@@ -1,10 +1,10 @@
 <template>
     <div class="maintenance">
         <section data-el="scheduled-upgrade" class="scheduled-upgrade">
-            <FeatureUnavailableToTeam v-if="!scheduleStackUpgradeAvailable" featureName="Schedule Stack Upgrades" />
+            <FeatureUnavailable v-if="!isInstanceAutoStackUpdateFeatureEnabledForPlatform" />
             <FormHeading>Scheduled Upgrades</FormHeading>
             <FormRow v-model="scheduledUpgrade.enabled" :disabled="!allowDisable" type="checkbox" class="mt-5" container-class="max-w-xl">
-                Apply Node-RED upgrades when available
+                Apply upgrades when available
                 <template #description>
                     <p>
                         Select the day of the week and the hour during which the automatic upgrade will occur. The
@@ -59,7 +59,8 @@ import { mapState } from 'vuex'
 import instanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
-import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
+import featuresMixin from '../../../mixins/Features.js'
 import Alerts from '../../../services/alerts.js'
 import DateTimePicker from '../../../ui-components/components/form/DateTime.vue'
 
@@ -67,10 +68,11 @@ export default {
     name: 'InstanceSettingsMaintenance',
     components: {
         DateTimePicker,
-        FeatureUnavailableToTeam,
+        FeatureUnavailable,
         FormRow,
         FormHeading
     },
+    mixins: [featuresMixin],
     props: {
         project: {
             type: Object,
@@ -136,11 +138,9 @@ export default {
                 disabled: !this.unsavedChanges
             }
         },
-        scheduleStackUpgradeAvailable () {
-            return this.team.type.properties?.autoStackUpdate?.enabled
-        },
         allowDisable () {
-            return this.team.type.properties?.autoStackUpdate?.allowDisable
+            // Team can disable if the autoStackUpdate flag is not explicitly false
+            return !this.scheduledUpgrade.enabled || this.team.type.properties?.autoStackUpdate?.allowDisable !== false
         }
     },
     watch: {
@@ -159,8 +159,8 @@ export default {
         'scheduledUpgrade.enabled': function (value) {
             // resetting values if toggling feature on/off
             if (!value) {
-                this.scheduledUpgrade.startHour = null
-                this.scheduledUpgrade.selectedWeekdays = []
+                // this.scheduledUpgrade.startHour = null
+                // this.scheduledUpgrade.selectedWeekdays = []
             } else if (value && this.scheduledUpgrade.initialValue) {
                 if (this.scheduledUpgrade.initialValue?.hour) {
                     this.scheduledUpgrade.startHour = {
@@ -233,11 +233,22 @@ export default {
                     this.scheduledUpgrade.enabled = true
                 }).catch(error => {
                     if (error.response.status === 404) {
-                        this.scheduledUpgrade.initialValue = {
-                            enabled: false,
-                            days: []
+                        // Apply any defaults from the team type
+                        if (this.team.type.properties.autoStackUpdate?.days?.length > 0 && this.team.type.properties.autoStackUpdate?.hours?.length > 0) {
+                            this.scheduledUpgrade.initialValue = { enabled: false }
+                            this.scheduledUpgrade.selectedWeekdays = [...this.team.type.properties.autoStackUpdate.days]
+                            this.scheduledUpgrade.startHour = {
+                                hours: this.team.type.properties.autoStackUpdate.hours[Math.round(this.team.type.properties.autoStackUpdate.hours.length * Math.random())],
+                                minutes: 0,
+                                seconds: 0
+                            }
+                        } else {
+                            this.scheduledUpgrade.initialValue = {
+                                enabled: false,
+                                days: []
+                            }
+                            this.scheduledUpgrade.startHour = null
                         }
-                        this.scheduledUpgrade.startHour = null
                         return
                     }
                     throw error

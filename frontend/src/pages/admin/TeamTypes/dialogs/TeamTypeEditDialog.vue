@@ -118,16 +118,15 @@
                     <FormHeading>Auto Stack Update</FormHeading>
                     <div class="grid gap-3 grid-cols-2">
                         <FormRow v-model="input.properties.autoStackUpdate.enabled" type="checkbox">
-                            Enabled
-                            <template #description>Instances will be forced to update to new Stack Version</template>
+                            Apply default schedule to instances
+                            <template #description>Instances will be scheduled to update to new Stack Versions</template>
                         </FormRow>
-                        <FormRow :disabled="!autoStackUpdateEnforced" v-model="input.properties.autoStackUpdate.allowDisable" type="checkbox">
-                            Allow Team to disable
-                            <template #description>Team can enable/disable this feature</template>
+                        <FormRow v-model="input.properties.autoStackUpdate.allowDisable" :disabled="!autoStackUpdateEnforced" type="checkbox">
+                            Allow Team to disable for individual instances
                         </FormRow>
                     </div>
-                    <div v-if="autoStackUpdateEnforced">
-                        Default range days
+                    <div v-if="autoStackUpdateEnforced" class="space-y-2 pl-6 mt-2">
+                        <div>Default range days</div>
                         <div class="grid gap-3 grid-cols-7">
                             <FormRow v-model="input.autoStack.days.sun" type="checkbox">Sun</FormRow>
                             <FormRow v-model="input.autoStack.days.mon" type="checkbox">Mon</FormRow>
@@ -137,7 +136,7 @@
                             <FormRow v-model="input.autoStack.days.fri" type="checkbox">Fri</FormRow>
                             <FormRow v-model="input.autoStack.days.sat" type="checkbox">Sat</FormRow>
                         </div>
-                        Default range hours
+                        <div>Default range hours (UTC)</div>
                         <div class="grid gap-3 grid-cols-12">
                             <FormRow v-model="input.autoStack.hours['0']" type="checkbox">0</FormRow>
                             <FormRow v-model="input.autoStack.hours['1']" type="checkbox">1</FormRow>
