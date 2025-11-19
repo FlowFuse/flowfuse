@@ -10,10 +10,11 @@ module.exports = {
         protocol: { type: DataTypes.STRING },
         targetType: { type: DataTypes.STRING, allowNull: false },
         targetId: { type: DataTypes.STRING, allowNull: false },
+        nodeId: { type: DataTypes.STRING, allowNull: false },
         endpointRoute: { type: DataTypes.STRING, allowNull: false }
     },
     indexes: [
-        { name: 'mcp_team_type_unique', fields: ['targetId', 'targetType', 'TeamId'], unique: true }
+        { name: 'mcp_team_type_unique', fields: ['targetId', 'targetType', 'nodeId', 'TeamId'], unique: true }
     ],
     associations: function (M) {
         this.belongsTo(M.Team, { foreignKey: { allowNull: false } })
@@ -29,11 +30,12 @@ module.exports = {
                         where: { TeamId: teamId }
                     })
                 },
-                byTypeAndID: async (targetType, targetId) => {
+                byTypeAndIDs: async (targetType, targetId, nodeId) => {
                     return this.findOne({
                         where: {
                             targetType,
-                            targetId
+                            targetId,
+                            nodeId
                         }
                     })
                 }

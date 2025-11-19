@@ -63,7 +63,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/:type/:id', {
+    app.post('/:type/:typeId/:nodeId', {
         preHandler: async (request, reply) => {
             if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
                 // all good
@@ -79,7 +79,8 @@ module.exports = async function (app) {
                 properties: {
                     teamId: { type: 'string' },
                     type: { type: 'string' },
-                    id: { type: 'string' }
+                    typeId: { type: 'string' },
+                    nodeId: { type: 'string' }
                 }
             },
             body: {
@@ -103,12 +104,13 @@ module.exports = async function (app) {
         try {
             await app.db.models.MCPRegistration.upsert({
                 targetType: request.params.type,
-                targetId: request.params.id,
+                targetId: request.params.typeId,
+                nodeId: request.params.nodeId,
                 ...request.body,
                 TeamId: request.team.id
             }, {
                 fields: ['name', 'endpointRoute'],
-                conflictFields: ['TeamId', 'targetType', 'targetId']
+                conflictFields: ['TeamId', 'targetType', 'nodeId', 'targetId']
             })
         } catch (err) {
             app.log.error(`register MCP Server ${err.toString()}`)
@@ -118,7 +120,7 @@ module.exports = async function (app) {
         reply.send({})
     })
 
-    app.delete('/:type/:id', {
+    app.delete('/:type/:typeId/:nodeId', {
         preHandler: async (request, reply) => {
             if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
                 // all good
@@ -134,7 +136,8 @@ module.exports = async function (app) {
                 properties: {
                     teamId: { type: 'string' },
                     type: { type: 'string' },
-                    id: { type: 'string' }
+                    typeId: { type: 'string' },
+                    nodeId: { type: 'string' }
                 }
             },
             response: {
@@ -151,7 +154,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const mcpServer = await app.db.models.MCPRegistration.byTypeAndID(request.params.type, request.params.id)
+            const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs(request.params.type, request.params.typeId, request.params.nodeId)
             if (mcpServer) {
                 await mcpServer.destroy()
                 reply.send({})

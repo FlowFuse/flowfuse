@@ -26,6 +26,10 @@ module.exports = {
                 type: DataTypes.STRING,
                 allowNull: false
             },
+            nodeId: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
             endpointRoute: {
                 type: DataTypes.STRING,
                 allowNull: false
@@ -46,7 +50,7 @@ module.exports = {
             }
         })
 
-        await context.addIndex('MCPRegistrations', { name: 'mcp_team_type_unique', fields: ['targetId', 'targetType', 'TeamId'], unique: true })
+        await context.addIndex('MCPRegistrations', { name: 'mcp_team_type_unique', fields: ['targetId', 'targetType', 'nodeId', 'TeamId'], unique: true })
     },
     down: async (context, Sequelize) => { }
 }
