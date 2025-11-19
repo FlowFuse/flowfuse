@@ -7,47 +7,104 @@
         </div>
 
         <!-- Resources List -->
-        <div v-if="resources.resources && resources.resources.length > 0" class="resources-list">
+        <div v-if="hasAdditionalResources" class="resources-list">
             <div class="resources-grid">
                 <a
-                    v-for="(resource, index) in resources.resources"
+                    v-for="(resource, index) in additionalResources"
                     :key="index"
-                    :href="addUTMTracking(resource.url)"
+                    :href="addUTMTracking(resource.metadata.source)"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="resource-card"
                 >
                     <img
-                        :src="getFaviconUrl(resource.url)"
+                        :src="getFaviconUrl(resource.metadata.source)"
                         :alt="resource.type"
                         class="resource-icon"
                         @error="handleImageError"
                     >
                     <div class="resource-info">
                         <div class="resource-title">{{ resource.title }}</div>
-                        <div class="resource-url">{{ resource.url }}</div>
+                        <div class="resource-url">{{ resource.metadata.source }}</div>
                     </div>
                 </a>
             </div>
+        </div>
+
+        <!-- nodePackages List -->
+        <div v-if="hasNodePackages" class="resources-list">
+            <div class="resources-grid">
+                <a
+                    v-for="(node, index) in nodePackages"
+                    :key="index"
+                    :href="addUTMTracking(node.metadata?.source)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="resource-card"
+                >
+                    <img
+                        :src="getFaviconUrl(node.metadata?.source)"
+                        :alt="node?.type"
+                        class="resource-icon"
+                        @error="handleImageError"
+                    >
+                    <div class="resource-info">
+                        <div class="resource-title">{{ node.title }}</div>
+                        <div class="resource-url">{{ node.metadata?.source }}</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Flows List -->
+        <div v-if="hasFlows" class="flows-list">
+            <ul class="flows-list flex flex-col gap-2">
+                <li v-for="flow in flows" :key="flow.id">
+                    <ExpertRichResourceFlow :flow="flow" />
+                </li>
+            </ul>
         </div>
     </div>
 </template>
 
 <script>
+
+import ExpertRichResourceFlow from './ExpertRichResourceFlow.vue'
+
 export default {
     name: 'ExpertRichResources',
+    components: { ExpertRichResourceFlow },
     props: {
         message: {
             type: Object,
             required: true,
             validator: (message) => {
-                return message.resources.title !== undefined && message.resources.resources !== undefined
+                return message.resources.title !== undefined &&
+                    (message.resources.resources !== undefined || message.resources.flows)
             }
         }
     },
     computed: {
+        additionalResources () {
+            return this.resources.resources
+        },
+        hasAdditionalResources () {
+            return this.resources.resources && this.resources.resources.length > 0
+        },
+        hasNodePackages () {
+            return this.resources.nodePackages && this.resources.nodePackages.length > 0
+        },
+        hasFlows () {
+            return this.resources.flows && this.resources.flows.length > 0
+        },
         resources () {
             return this.message.resources
+        },
+        flows () {
+            return this.resources.flows
+        },
+        nodePackages () {
+            return this.resources.nodePackages
         }
     },
     methods: {
