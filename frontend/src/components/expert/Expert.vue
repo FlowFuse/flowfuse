@@ -30,10 +30,10 @@
                     :is-streaming="isStreaming(index)"
                 >
                     <!-- Rich resources content slot -->
-                    <template v-if="responseTypeComponentMap[message.kind]" #rich-content>
+                    <template v-if="richContentComponentMap[message.kind]" #rich-content>
                         {{ message.kind }}
                         <component
-                            :is="responseTypeComponentMap[message.kind]"
+                            :is="richContentComponentMap[message.kind]"
                             :message="message"
                         />
                     </template>
@@ -78,7 +78,7 @@ export default {
     data () {
         return {
             scrollCheckDebounce: null,
-            responseTypeComponentMap: {
+            richContentComponentMap: {
                 guide: markRaw(ExpertRichGuide),
                 resources: markRaw(ExpertRichResources)
             }
