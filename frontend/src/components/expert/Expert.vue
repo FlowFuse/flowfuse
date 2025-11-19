@@ -29,15 +29,13 @@
                     :message="message"
                     :is-streaming="isStreaming(index)"
                 >
-                    <!-- Rich guide content slot -->
-                    <template v-if="message.kind === 'guide'" #rich-content>
-                        <expert-rich-guide :guide="message.guide" />
-                    </template>
-
                     <!-- Rich resources content slot -->
-                    <!-- eslint-disable vue/valid-v-slot-->
-                    <template v-if="message.kind === 'resources'" #rich-content>
-                        <expert-rich-resources :resources="message.resources" />
+                    <template v-if="responseTypeComponentMap[message.kind]" #rich-content>
+                        {{ message.kind }}
+                        <component
+                            :is="responseTypeComponentMap[message.kind]"
+                            :message="message"
+                        />
                     </template>
                 </expert-chat-message>
             </div>
@@ -59,6 +57,7 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
 import ExpertChatInput from './ExpertChatInput.vue'
@@ -78,7 +77,11 @@ export default {
     },
     data () {
         return {
-            scrollCheckDebounce: null
+            scrollCheckDebounce: null,
+            responseTypeComponentMap: {
+                guide: markRaw(ExpertRichGuide),
+                resources: markRaw(ExpertRichResources)
+            }
         }
     },
     computed: {

@@ -37,12 +37,17 @@
 export default {
     name: 'ExpertRichResources',
     props: {
-        resources: {
+        message: {
             type: Object,
             required: true,
-            validator: (resources) => {
-                return resources.title !== undefined && resources.resources !== undefined
+            validator: (message) => {
+                return message.resources.title !== undefined && message.resources.resources !== undefined
             }
+        }
+    },
+    computed: {
+        resources () {
+            return this.message.resources
         }
     },
     methods: {

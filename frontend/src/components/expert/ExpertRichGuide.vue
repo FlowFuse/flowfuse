@@ -83,12 +83,17 @@
 export default {
     name: 'ExpertRichGuide',
     props: {
-        guide: {
+        message: {
             type: Object,
             required: true,
-            validator: (guide) => {
-                return guide.title !== undefined
+            validator: (message) => {
+                return message.guide?.title !== undefined
             }
+        }
+    },
+    computed: {
+        guide () {
+            return this.message.guide
         }
     },
     methods: {
