@@ -9,6 +9,20 @@ module.exports = async function (app) {
                 }
             }
         }
+        if (request.session.User) {
+            request.sessionUser = true
+            request.instanceTokenReq = false
+            if (!request.teamMembership) {
+                request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
+            }
+        } else if (request.session.ownerType === 'project' || request.session.ownerType === 'device') {
+            // this is a request from a project or device
+            request.sessionUserReq = false
+            request.instanceTokenReq = true
+        } else {
+            reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+            throw new Error('Unauthorized')
+        }
     })
 
     /**
