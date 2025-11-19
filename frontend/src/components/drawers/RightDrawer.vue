@@ -164,7 +164,7 @@ export default {
 
     .resize-bar {
         position: absolute;
-        left: -3px;
+        left: 0;
         top: 0;
         bottom: 0;
         width: 6px;
@@ -175,7 +175,7 @@ export default {
         &:hover {
             background: $ff-grey-600;
             width: 8px;
-            left: -4px;
+            left: 0;
         }
 
         &:active {
