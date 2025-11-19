@@ -5,19 +5,21 @@
                 <span class="text">{{ text }}</span>
             </slot>
         </span>
-        <DuplicateIcon v-if="text.length" class="ff-icon" @click="copyPath" @click.prevent.stop />
-        <span ref="copied" class="ff-copied" :class="{ 'ff-copied-left': promptPosition === 'left'}">Copied!</span>
+        <transition v-if="text.length" name="fade" mode="out-in">
+            <DuplicateIcon v-if="!copied" class="ff-icon" @click="copyPath" @click.prevent.stop />
+            <CheckIcon v-else class="ff-icon" />
+        </transition>
     </span>
 </template>
 
 <script>
-import { DuplicateIcon } from '@heroicons/vue/outline'
+import { CheckIcon, DuplicateIcon } from '@heroicons/vue/outline'
 
 import Alert from '../services/alerts.js'
 
 export default {
     name: 'TextCopier',
-    components: { DuplicateIcon },
+    components: { DuplicateIcon, CheckIcon },
     props: {
         text: {
             required: true,
@@ -46,6 +48,11 @@ export default {
         }
     },
     emits: ['copied'],
+    data () {
+        return {
+            copied: false
+        }
+    },
     methods: {
         copyPath () {
             navigator.clipboard.writeText(this.text)
@@ -53,12 +60,8 @@ export default {
             if (this.confirmationType === 'alert') {
                 Alert.emit('Copied to Clipboard', 'confirmation')
             } else {
-                // show "Copied" notification
-                this.$refs.copied.style.display = 'inline'
-                // hide after 500ms
-                setTimeout(() => {
-                    this.$refs.copied.style.display = 'none'
-                }, 500)
+                this.copied = true
+                setTimeout(() => { this.copied = false }, 2000)
                 this.$emit('copied')
             }
         }
