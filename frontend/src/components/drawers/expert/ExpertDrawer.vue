@@ -45,6 +45,7 @@ export default {
         LockClosedIcon,
         LockOpenIcon
     },
+    inject: ['togglePinWithWidth'],
     data () {
         return {
             // Future: Add expert state here
@@ -65,12 +66,12 @@ export default {
         // Example: document.removeEventListener('expert:open', this.handleOpenEvent)
     },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer', 'togglePinDrawer']),
+        ...mapActions('ux/drawers', ['closeRightDrawer']),
         closeDrawer () {
             this.closeRightDrawer()
         },
         togglePin () {
-            this.togglePinDrawer()
+            this.togglePinWithWidth()
         }
         // Future: Handle event-based triggers
         // handleOpenEvent(event) {

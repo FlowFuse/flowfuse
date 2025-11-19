@@ -51,6 +51,11 @@ const DRAWER_MAX_WIDTH_RATIO = 0.9
 
 export default {
     name: 'RightDrawer',
+    provide () {
+        return {
+            togglePinWithWidth: this.togglePinWithWidth
+        }
+    },
     data () {
         return {
             drawerWidth: DRAWER_DEFAULT_WIDTH,
@@ -92,19 +97,35 @@ export default {
         },
         'rightDrawer.fixed': {
             handler (isFixed) {
-                // Reset to default width when toggling fixed mode
                 if (!isFixed) {
+                    // Reset to default width when unpinning
                     this.drawerWidth = DRAWER_DEFAULT_WIDTH
                 }
+                // When pinning, width is captured in togglePinWithWidth method
             }
         }
     },
+    beforeUnmount () {
+        // Clean up resize listeners
+        document.removeEventListener('mousemove', this.handleResize)
+        document.removeEventListener('mouseup', this.stopResize)
+    },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer']),
+        ...mapActions('ux/drawers', ['closeRightDrawer', 'togglePinDrawer']),
         closeDrawer () {
             if (this.rightDrawer.state && this.rightDrawer.closeOnClickOutside) {
                 this.closeRightDrawer()
             }
+        },
+        togglePinWithWidth () {
+            // Capture current width before toggling
+            if (!this.rightDrawer.fixed && this.$el) {
+                const currentWidth = this.$el.getBoundingClientRect().width
+                if (currentWidth > 0) {
+                    this.drawerWidth = currentWidth
+                }
+            }
+            this.togglePinDrawer()
         },
         startResize (event) {
             this.isResizing = true
@@ -135,11 +156,6 @@ export default {
             document.removeEventListener('mousemove', this.handleResize)
             document.removeEventListener('mouseup', this.stopResize)
         }
-    },
-    beforeUnmount () {
-        // Clean up resize listeners
-        document.removeEventListener('mousemove', this.handleResize)
-        document.removeEventListener('mouseup', this.stopResize)
     }
 }
 </script>
@@ -212,6 +228,9 @@ export default {
         height: 100%;
         transition: none; // Disable transition in fixed mode for smooth resizing
         box-shadow: none; // Remove shadow when pinned
+        flex-shrink: 0; // Prevent flex from shrinking the drawer below its set width
+        min-width: unset; // Remove responsive min-width constraint
+        max-width: none; // Remove responsive max-width constraint
     }
 }
 </style>
