@@ -9,50 +9,14 @@
         <!-- Resources List -->
         <div v-if="hasAdditionalResources" class="resources-list">
             <div class="resources-grid">
-                <a
-                    v-for="(resource, index) in additionalResources"
-                    :key="index"
-                    :href="addUTMTracking(resource.metadata.source)"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="resource-card"
-                >
-                    <img
-                        :src="getFaviconUrl(resource.metadata.source)"
-                        :alt="resource.type"
-                        class="resource-icon"
-                        @error="handleImageError"
-                    >
-                    <div class="resource-info">
-                        <div class="resource-title">{{ resource.title }}</div>
-                        <div class="resource-url">{{ resource.metadata.source }}</div>
-                    </div>
-                </a>
+                <StandardResourceCard v-for="(resource, index) in additionalResources" :key="index" :resource="resource" />
             </div>
         </div>
 
         <!-- nodePackages List -->
         <div v-if="hasNodePackages" class="resources-list">
             <div class="resources-grid">
-                <a
-                    v-for="(node, index) in nodePackages"
-                    :key="index"
-                    :href="addUTMTracking(node.metadata?.source)"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="resource-card"
-                >
-                    <img
-                        :src="getFaviconUrl(node.metadata?.source)"
-                        :alt="node?.type"
-                        class="resource-icon"
-                        @error="handleImageError"
-                    >
-                    <div class="resource-info">
-                        <div class="resource-title">{{ node.title }}</div>
-                        <div class="resource-url">{{ node.metadata?.source }}</div>
-                    </div>
-                </a>
+                <StandardResourceCard v-for="(node, index) in nodePackages" :key="index" :resource="node" />
             </div>
         </div>
 
@@ -60,7 +24,7 @@
         <div v-if="hasFlows" class="flows-list">
             <ul class="flows-list flex flex-col gap-2">
                 <li v-for="flow in flows" :key="flow.id">
-                    <ExpertRichResourceFlow :flow="flow" />
+                    <FlowResourceCard :flow="flow" />
                 </li>
             </ul>
         </div>
@@ -69,11 +33,12 @@
 
 <script>
 
-import ExpertRichResourceFlow from './ExpertRichResourceFlow.vue'
+import FlowResourceCard from './resources/FlowResourceCard.vue'
+import StandardResourceCard from './resources/StandardResourceCard.vue'
 
 export default {
     name: 'ExpertRichResources',
-    components: { ExpertRichResourceFlow },
+    components: { StandardResourceCard, FlowResourceCard },
     props: {
         message: {
             type: Object,
@@ -105,33 +70,6 @@ export default {
         },
         nodePackages () {
             return this.resources.nodePackages
-        }
-    },
-    methods: {
-        getFaviconUrl (url) {
-            try {
-                const urlObj = new URL(url)
-                return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`
-            } catch (e) {
-                // If URL parsing fails, return empty string to trigger error handler
-                return ''
-            }
-        },
-        addUTMTracking (url) {
-            try {
-                const urlObj = new URL(url)
-                urlObj.searchParams.set('utm_source', 'flowfuse-expert')
-                urlObj.searchParams.set('utm_medium', 'assistant')
-                urlObj.searchParams.set('utm_campaign', 'expert-chat')
-                return urlObj.toString()
-            } catch (e) {
-                // If URL parsing fails, return original
-                return url
-            }
-        },
-        handleImageError (event) {
-            // Hide broken image icon
-            event.target.style.display = 'none'
         }
     }
 }

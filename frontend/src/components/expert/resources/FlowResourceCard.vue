@@ -50,10 +50,10 @@
 <script>
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/solid'
 
-import FlowViewer from '../flow-viewer/FlowViewer.vue'
+import FlowViewer from '../../flow-viewer/FlowViewer.vue'
 
 export default {
-    name: 'ExpertRichResourceFlow',
+    name: 'StandardResourceCard',
     components: { FlowViewer, ChevronUpIcon, ChevronDownIcon },
     props: {
         flow: {
