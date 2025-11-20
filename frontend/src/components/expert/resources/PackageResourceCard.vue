@@ -68,7 +68,6 @@ export default {
     text-decoration: none;
     color: $ff-grey-900;
     transition: all 0.2s ease;
-    height: 4rem;
 
     &:hover {
         border-color: $ff-indigo-300;

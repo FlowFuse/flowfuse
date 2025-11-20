@@ -188,4 +188,12 @@ export default {
         gap: 0.5rem;
     }
 }
+
+.guide-flows {
+    .resources-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
 </style>
