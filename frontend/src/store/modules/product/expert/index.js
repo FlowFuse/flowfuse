@@ -29,7 +29,10 @@ const initialState = () => ({
     streamingTimer: null,
 
     // todo this should be moved into a dedicated context store
-    route: null
+    route: null,
+
+    // Drawer width management
+    hasWidenedForFlows: false
 })
 
 const meta = {
@@ -149,6 +152,9 @@ const mutations = {
     },
     SET_SESSION_CHECK_TIMER (state, timer) {
         state.sessionCheckTimer = timer
+    },
+    SET_HAS_WIDENED_FOR_FLOWS (state, value) {
+        state.hasWidenedForFlows = value
     },
     RESET (state) {
         Object.assign(state, initialState())
@@ -375,13 +381,18 @@ const actions = {
         }
     },
 
-    async handleMessageResponse ({ commit, dispatch }, response) {
+    async handleMessageResponse ({ commit, dispatch, state }, response) {
         // Handle UI-specific processing if successful
         if (
             response.success &&
             response.answer &&
             Array.isArray(response.answer)
         ) {
+            // Check if any item has non-empty flows
+            const hasFlows = response.answer.some(item =>
+                item.flows && Array.isArray(item.flows) && item.flows.length > 0
+            )
+
             for (const item of response.answer) {
                 if (item.kind === 'guide') {
                     // Add rich guide message
@@ -405,6 +416,12 @@ const actions = {
                     // Add chat message with streaming effect
                     await dispatch('streamMessage', item.content)
                 }
+            }
+
+            // Auto-widen drawer if flows detected and not already widened
+            if (hasFlows && !state.hasWidenedForFlows) {
+                commit('SET_HAS_WIDENED_FOR_FLOWS', true)
+                await dispatch('ux/drawers/setRightDrawerWider', true, { root: true })
             }
         } else if (
             response.success &&

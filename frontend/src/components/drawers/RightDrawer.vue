@@ -107,6 +107,17 @@ export default {
                 }
                 // When pinning, width is captured in togglePinWithWidth method
             }
+        },
+        'rightDrawer.wider': {
+            handler (shouldBeWider) {
+                // Only auto-widen if user hasn't manually resized
+                if (shouldBeWider && !this.hasManuallyResized) {
+                    this.$nextTick(() => {
+                        this.autoWidenDrawer()
+                    })
+                }
+            },
+            immediate: true
         }
     },
     beforeUnmount () {
@@ -130,6 +141,24 @@ export default {
                 }
             }
             this.togglePinDrawer()
+        },
+        autoWidenDrawer () {
+            const viewportWidth = window.innerWidth
+
+            // Calculate target width (45vw, same as CSS .wider class)
+            const targetWidth = viewportWidth * 0.45
+
+            // Calculate max allowed width
+            const maxWidth = Math.min(
+                viewportWidth * DRAWER_MAX_WIDTH_RATIO, // 90%
+                viewportWidth - DRAWER_MAX_VIEWPORT_MARGIN // viewport - 200px
+            )
+
+            // Only widen if current width is less than target
+            const newWidth = Math.min(targetWidth, maxWidth)
+            if (this.drawerWidth < newWidth) {
+                this.drawerWidth = newWidth
+            }
         },
         startResize (event) {
             this.isResizing = true

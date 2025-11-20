@@ -92,6 +92,9 @@ const mutations = {
         // When fixed, prevent close on click outside
         state.rightDrawer.closeOnClickOutside = !fixed
     },
+    setRightDrawerWider (state, wider) {
+        state.rightDrawer.wider = wider
+    },
     openLeftDrawer (state) {
         state.leftDrawer.state = true
     },
@@ -215,6 +218,19 @@ const actions = {
      */
     setRightDrawerActions ({ commit }, actions) {
         commit('setRightDrawerActions', actions)
+    },
+
+    /**
+     * Sets the wider state for the right drawer.
+     *
+     * @param {Object} context - The Vuex action context object.
+     * @param {Function} context.commit - The commit function to call mutations.
+     * @param {boolean} wider - Whether the drawer should be wider.
+     *
+     * @return {void}
+     */
+    setRightDrawerWider ({ commit }, wider) {
+        commit('setRightDrawerWider', wider)
     },
 
     /**
