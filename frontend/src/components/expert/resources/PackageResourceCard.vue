@@ -59,7 +59,7 @@ export default {
 <style scoped lang="scss">
 .package-card {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.5rem;
     padding: 0.75rem;
     background-color: white;
@@ -80,6 +80,7 @@ export default {
     flex-shrink: 0;
     width: 1rem;
     height: 1rem;
+    margin-top: 0.125rem;
 }
 
 .package-info {
