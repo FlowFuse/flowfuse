@@ -1,5 +1,5 @@
 <template>
-    <div class="expert-button-wrapper flex items-center justify-center h-full px-3" style="height: 60px;">
+    <div v-if="!isExpertDrawerOpen" class="expert-button-wrapper flex items-center justify-center h-full px-3" style="height: 60px;">
         <button
             class="expert-button flex items-center gap-1.5 justify-center rounded-md px-[9px] py-[6px] font-bold text-[0.85rem] leading-[20px] text-gray-800 whitespace-nowrap transition-colors"
             data-el="expert-button"
@@ -19,7 +19,10 @@ export default {
     name: 'ExpertButton',
     components: {},
     computed: {
-        ...mapState('ux/drawers', ['rightDrawer'])
+        ...mapState('ux/drawers', ['rightDrawer']),
+        isExpertDrawerOpen () {
+            return this.rightDrawer.state && this.rightDrawer.component?.name === 'ExpertDrawer'
+        }
     },
     methods: {
         ...mapActions('ux/drawers', ['closeRightDrawer']),
