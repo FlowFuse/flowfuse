@@ -9,6 +9,7 @@
             </div>
             <div class="header-actions">
                 <button
+                    v-if="shouldAllowPinning()"
                     class="header-button pin-button"
                     :class="{ 'is-pinned': isPinned }"
                     :title="isPinned ? 'Unpin drawer' : 'Pin drawer open'"
@@ -46,7 +47,7 @@ export default {
         LockClosedIcon,
         LockOpenIcon
     },
-    inject: ['togglePinWithWidth'],
+    inject: ['togglePinWithWidth', 'shouldAllowPinning'],
     data () {
         return {
             // Future: Add expert state here

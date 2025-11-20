@@ -47,23 +47,31 @@ const DRAWER_MIN_WIDTH = 310
 const DRAWER_DEFAULT_WIDTH = 400
 const DRAWER_MAX_VIEWPORT_MARGIN = 200
 const DRAWER_MAX_WIDTH_RATIO = 0.9
+const DRAWER_MAX_PINNED_WIDTH_RATIO = 0.5
+const VIEWPORT_PIN_THRESHOLD = 768
 
 export default {
     name: 'RightDrawer',
     provide () {
         return {
-            togglePinWithWidth: this.togglePinWithWidth
+            togglePinWithWidth: this.togglePinWithWidth,
+            shouldAllowPinning: () => this.shouldAllowPinning
         }
     },
     data () {
         return {
             drawerWidth: DRAWER_DEFAULT_WIDTH,
             isResizing: false,
-            hasManuallyResized: false
+            hasManuallyResized: false,
+            viewportWidth: window.innerWidth,
+            resizeDebounceTimer: null
         }
     },
     computed: {
         ...mapState('ux/drawers', ['rightDrawer']),
+        shouldAllowPinning () {
+            return this.viewportWidth >= VIEWPORT_PIN_THRESHOLD
+        },
         actions () {
             return (this.rightDrawer?.header?.actions ?? [])
                 .filter(action => {
@@ -119,16 +127,50 @@ export default {
             immediate: true
         }
     },
+    mounted () {
+        // Add viewport resize listener
+        window.addEventListener('resize', this.onViewportResize)
+    },
     beforeUnmount () {
         // Clean up resize listeners
+        window.removeEventListener('resize', this.onViewportResize)
         document.removeEventListener('mousemove', this.handleResize)
         document.removeEventListener('mouseup', this.stopResize)
+        if (this.resizeDebounceTimer) {
+            clearTimeout(this.resizeDebounceTimer)
+        }
     },
     methods: {
         ...mapActions('ux/drawers', ['closeRightDrawer', 'togglePinDrawer']),
         closeDrawer () {
             if (this.rightDrawer.state && this.rightDrawer.closeOnClickOutside) {
                 this.closeRightDrawer()
+            }
+        },
+        onViewportResize () {
+            // Debounce resize events
+            if (this.resizeDebounceTimer) {
+                clearTimeout(this.resizeDebounceTimer)
+            }
+            this.resizeDebounceTimer = setTimeout(() => {
+                this.handleViewportResize()
+            }, 300)
+        },
+        handleViewportResize () {
+            this.viewportWidth = window.innerWidth
+
+            // If viewport is too small and drawer is pinned, auto-unpin
+            if (this.viewportWidth < VIEWPORT_PIN_THRESHOLD && this.rightDrawer.fixed) {
+                this.togglePinDrawer()
+                return
+            }
+
+            // If drawer is pinned, enforce 50% max width constraint
+            if (this.rightDrawer.fixed) {
+                const maxPinnedWidth = this.viewportWidth * DRAWER_MAX_PINNED_WIDTH_RATIO
+                if (this.drawerWidth > maxPinnedWidth) {
+                    this.drawerWidth = maxPinnedWidth
+                }
             }
         },
         togglePinWithWidth () {
@@ -173,10 +215,16 @@ export default {
             const newWidth = viewportWidth - event.clientX
 
             // Calculate constraints
-            const maxWidth = Math.min(
+            let maxWidth = Math.min(
                 viewportWidth * DRAWER_MAX_WIDTH_RATIO,
                 viewportWidth - DRAWER_MAX_VIEWPORT_MARGIN
             )
+
+            // If drawer is pinned, enforce 50% max width constraint
+            if (this.rightDrawer.fixed) {
+                const maxPinnedWidth = viewportWidth * DRAWER_MAX_PINNED_WIDTH_RATIO
+                maxWidth = Math.min(maxWidth, maxPinnedWidth)
+            }
 
             // Apply constraints
             this.drawerWidth = Math.max(
