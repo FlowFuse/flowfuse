@@ -138,18 +138,12 @@ const actions = {
             openDrawer()
         }
     },
-    closeRightDrawer ({ commit, state, rootState }) {
-        // Immediately set state to false to hide the drawer
-        state.rightDrawer.state = false
+    closeRightDrawer ({ commit, rootState }) {
+        commit('closeRightDrawer')
 
-        // Then wait before full cleanup to allow transition
-        setTimeout(() => {
-            commit('closeRightDrawer')
-
-            if (rootState.ux.overlay) {
-                commit('ux/closeOverlay', null, { root: true })
-            }
-        }, 100)
+        if (rootState.ux.overlay) {
+            commit('ux/closeOverlay', null, { root: true })
+        }
     },
 
     /**
