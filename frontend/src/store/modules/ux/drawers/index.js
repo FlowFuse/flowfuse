@@ -53,9 +53,11 @@ const mutations = {
         state.rightDrawer.bind = bind
     },
     closeRightDrawerImmediate (state) {
-        // ONLY set state to false - keep everything else for CSS transition
-        // This matches the original working version from commit 49beb5cec
+        // Set state, fixed, and pinned to false immediately to prevent
+        // mid-transition class changes that cause width to expand
         state.rightDrawer.state = false
+        state.rightDrawer.fixed = false
+        state.rightDrawer.pinned = false
     },
     closeRightDrawer (state) {
         state.rightDrawer.state = false
@@ -163,7 +165,6 @@ const actions = {
         }
 
         // Wait for CSS transition (300ms) before full cleanup
-        // This allows .fixed:not(.open) CSS rule to apply for pinned drawers
         setTimeout(() => {
             // Only do full cleanup if drawer is still closed
             if (!state.rightDrawer.state) {

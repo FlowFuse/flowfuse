@@ -93,7 +93,12 @@ export default {
     },
     watch: {
         'rightDrawer.state': {
-            handler (isOpen) {
+            handler (isOpen, wasOpen) {
+                // Reset manual resize flag when drawer closes to prevent width expansion
+                if (!isOpen) {
+                    this.hasManuallyResized = false
+                }
+
                 const onEsc = (e) => {
                     // Don't close on ESC if drawer is pinned
                     if (e.key === 'Escape' && !this.rightDrawer.pinned) {
@@ -108,7 +113,7 @@ export default {
             }
         },
         'rightDrawer.fixed': {
-            handler (isFixed) {
+            handler (isFixed, wasFixed) {
                 if (!isFixed) {
                     // Reset to default width when unpinning
                     this.drawerWidth = DRAWER_DEFAULT_WIDTH
@@ -232,10 +237,12 @@ export default {
             }
 
             // Apply constraints
-            this.drawerWidth = Math.max(
+            const constrainedWidth = Math.max(
                 DRAWER_MIN_WIDTH,
                 Math.min(newWidth, maxWidth)
             )
+
+            this.drawerWidth = constrainedWidth
         },
         stopResize () {
             this.isResizing = false
