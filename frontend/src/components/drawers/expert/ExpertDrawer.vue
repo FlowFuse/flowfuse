@@ -7,22 +7,56 @@
                 </div>
                 <h2 class="title">Expert</h2>
             </div>
+            <div class="header-actions">
+                <button
+                    v-if="shouldAllowPinning()"
+                    class="header-button pin-button"
+                    :class="{ 'is-pinned': isPinned }"
+                    :title="isPinned ? 'Unpin drawer' : 'Pin drawer open'"
+                    data-el="expert-drawer-pin-button"
+                    @click="togglePin"
+                >
+                    <LockClosedIcon v-if="isPinned" class="ff-icon" />
+                    <LockOpenIcon v-else class="ff-icon" />
+                </button>
+                <button
+                    class="header-button"
+                    :title="'Close Expert'"
+                    data-el="expert-drawer-close-button"
+                    @click="closeDrawer"
+                >
+                    <XIcon class="ff-icon" />
+                </button>
+            </div>
         </div>
         <ExpertPanel />
     </div>
 </template>
 
 <script>
+import { LockClosedIcon, LockOpenIcon, XIcon } from '@heroicons/vue/solid'
+import { mapActions, mapState } from 'vuex'
+
 import ExpertPanel from '../../expert/Expert.vue'
 
 export default {
     name: 'ExpertDrawer',
     components: {
-        ExpertPanel
+        ExpertPanel,
+        XIcon,
+        LockClosedIcon,
+        LockOpenIcon
     },
+    inject: ['togglePinWithWidth', 'shouldAllowPinning'],
     data () {
         return {
             // Future: Add expert state here
+        }
+    },
+    computed: {
+        ...mapState('ux/drawers', ['rightDrawer']),
+        isPinned () {
+            return this.rightDrawer.fixed
         }
     },
     mounted () {
@@ -34,6 +68,13 @@ export default {
         // Example: document.removeEventListener('expert:open', this.handleOpenEvent)
     },
     methods: {
+        ...mapActions('ux/drawers', ['closeRightDrawer']),
+        closeDrawer () {
+            this.closeRightDrawer()
+        },
+        togglePin () {
+            this.togglePinWithWidth()
+        }
         // Future: Handle event-based triggers
         // handleOpenEvent(event) {
         //     const context = event.detail
@@ -52,9 +93,16 @@ export default {
 
     .header {
         padding: 1rem 1.5rem;
-        border-bottom: 1px solid $ff-grey-200;
-        background: white;
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(90deg, $ff-red-600, #5048e5, $ff-red-600, #5048e5, $ff-red-600) border-box;
+        border: none;
+        border-bottom: 1px solid transparent;
+        background-size: 200% 100%;
+        animation: gradient-flow-lr 4s linear infinite;
         flex-shrink: 0; // Prevent header from shrinking
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
 
         .flex {
             display: flex;
@@ -88,6 +136,42 @@ export default {
             margin: 0;
             line-height: 1.5rem; // Match logo height for proper alignment
         }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+
+            .header-button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                padding: 0;
+                background: none;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                color: inherit;
+                font: inherit;
+                transition: background-color 0.15s ease;
+
+                &:hover {
+                    cursor: pointer;
+                    background: $ff-grey-100;
+                }
+
+                &.pin-button.is-pinned {
+                    background: $ff-indigo-800;
+                    color: white;
+
+                    &:hover {
+                        background: $ff-indigo-900;
+                    }
+                }
+            }
+        }
     }
 
     // Ensure ExpertPanel fills remaining space
@@ -96,6 +180,15 @@ export default {
             flex: 1;
             min-height: 0; // Important for flex child overflow
         }
+    }
+}
+
+@keyframes gradient-flow-lr {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 100% 0%;
     }
 }
 </style>

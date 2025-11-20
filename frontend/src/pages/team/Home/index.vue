@@ -13,7 +13,7 @@
                 <ff-loading v-if="loading || pendingTeamChange" message="Loading Dashboard..." />
 
                 <div v-else class="ff-team-dashboard">
-                    <section class="flex gap-3 mb-3 flex-wrap md:flex-nowrap">
+                    <section class="instances-section flex gap-3 mb-3 flex-wrap">
                         <DashboardSection title="Hosted Instances" type="hosted">
                             <template #icon>
                                 <ProjectsIcon class="ff-icon-lg" />
@@ -286,6 +286,16 @@ export default {
     flex: 1;
     flex-direction: column;
     overflow: auto;
+    container-type: inline-size;
+    container-name: team-dashboard;
+}
+
+.instances-section {
+    // Default: stacked (flex-wrap)
+    // When container is 640px+ wide, display side-by-side
+    @container team-dashboard (min-width: 640px) {
+        flex-wrap: nowrap;
+    }
 }
 </style>
 

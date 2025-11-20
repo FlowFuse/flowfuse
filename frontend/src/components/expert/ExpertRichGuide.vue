@@ -25,105 +25,54 @@
             </ol>
         </div>
 
-        <!-- Node Packages Section -->
-        <div v-if="guide.nodePackages && guide.nodePackages.length > 0" class="guide-packages">
-            <h4 class="section-title">Required Node Packages</h4>
-            <div class="packages-grid">
-                <a
-                    v-for="(pkg, index) in guide.nodePackages"
-                    :key="index"
-                    :href="addUTMTracking(getPackageUrl(pkg))"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="package-card"
-                >
-                    <img
-                        :src="'https://www.google.com/s2/favicons?domain=flows.nodered.org'"
-                        alt="Node-RED"
-                        class="package-favicon"
-                        @error="handleImageError"
-                    >
-                    <div class="package-info">
-                        <div class="package-name">{{ getPackageName(pkg) }}</div>
-                        <div class="package-url">{{ getPackageUrl(pkg) }}</div>
-                    </div>
-                </a>
+        <section class="flex flex-col gap-4">
+            <!-- Node Packages Section -->
+            <div v-if="guide.nodePackages && guide.nodePackages.length > 0" class="guide-packages">
+                <h4 class="section-title">Required Node Packages</h4>
+                <div class="packages-grid">
+                    <PackageResourceCard v-for="(pkg, index) in guide.nodePackages" :key="index" :nodePackage="pkg" />
+                </div>
             </div>
-        </div>
 
-        <!-- Resources Section -->
-        <div v-if="guide.resources && guide.resources.length > 0" class="guide-resources">
-            <h4 class="section-title">Related Resources</h4>
-            <div class="resources-grid">
-                <a
-                    v-for="(resource, index) in guide.resources"
-                    :key="index"
-                    :href="addUTMTracking(resource.url)"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="resource-card"
-                >
-                    <img
-                        :src="getFaviconUrl(resource.url)"
-                        :alt="resource.type"
-                        class="resource-icon"
-                        @error="handleImageError"
-                    >
-                    <div class="resource-info">
-                        <div class="resource-title">{{ resource.title }}</div>
-                        <div class="resource-url">{{ resource.url }}</div>
-                    </div>
-                </a>
+            <!-- Resources Section -->
+            <div v-if="guide.resources && guide.resources.length > 0" class="guide-resources">
+                <h4 class="section-title">Related Resources</h4>
+                <div class="resources-grid">
+                    <StandardResourceCard v-for="(resource, index) in guide.resources" :key="index" :resource="resource" />
+                </div>
             </div>
-        </div>
+
+            <!-- Resources Section -->
+            <div v-if="guide.flows && guide.flows.length > 0" class="guide-flows">
+                <h4 class="section-title">Related Flows</h4>
+                <div class="resources-grid">
+                    <FlowResourceCard v-for="(flow, index) in guide.flows" :key="index" :flow="flow" />
+                </div>
+            </div>
+        </section>
     </div>
 </template>
 
 <script>
+import FlowResourceCard from './resources/FlowResourceCard.vue'
+import PackageResourceCard from './resources/PackageResourceCard.vue'
+import StandardResourceCard from './resources/StandardResourceCard.vue'
+
 export default {
     name: 'ExpertRichGuide',
+    components: { StandardResourceCard, PackageResourceCard, FlowResourceCard },
     props: {
-        guide: {
+        message: {
             type: Object,
             required: true,
-            validator: (guide) => {
-                return guide.title !== undefined
+            validator: (message) => {
+                return message.guide?.title !== undefined
             }
         }
     },
-    methods: {
-        getPackageName (pkg) {
-            // Handle both object format {name: "..."} and string format
-            return typeof pkg === 'object' ? pkg.name : pkg
-        },
-        getPackageUrl (pkg) {
-            const packageName = this.getPackageName(pkg)
-            return `https://flows.nodered.org/node/${packageName}`
-        },
-        getFaviconUrl (url) {
-            try {
-                const urlObj = new URL(url)
-                return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`
-            } catch (e) {
-                // If URL parsing fails, return empty string to trigger error handler
-                return ''
-            }
-        },
-        addUTMTracking (url) {
-            try {
-                const urlObj = new URL(url)
-                urlObj.searchParams.set('utm_source', 'flowfuse-expert')
-                urlObj.searchParams.set('utm_medium', 'assistant')
-                urlObj.searchParams.set('utm_campaign', 'expert-chat')
-                return urlObj.toString()
-            } catch (e) {
-                // If URL parsing fails, return original
-                return url
-            }
-        },
-        handleImageError (event) {
-            // Hide broken image icon
-            event.target.style.display = 'none'
+    computed: {
+        guide () {
+            return this.message.guide
         }
     }
 }
@@ -144,8 +93,8 @@ export default {
     span {
         display: inline-block;
         padding: 0.5rem 0.75rem; // py-2 px-3
-        background-color: #EEF2FF; // bg-indigo-100
-        color: #4338CA; // text-indigo-700
+        background-color: $ff-indigo-100;
+        color: $ff-indigo-700;
         font-size: 0.875rem; // text-sm
         border-radius: 9999px; // rounded-full
     }
@@ -230,58 +179,6 @@ export default {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 0.5rem;
     }
-
-    .package-card {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem;
-        background-color: white;
-        border: 1px solid $ff-grey-200;
-        border-radius: 0.5rem;
-        text-decoration: none;
-        color: $ff-grey-900;
-        transition: all 0.2s ease;
-        height: 4rem;
-
-        &:hover {
-            border-color: $ff-indigo-300;
-            background-color: $ff-grey-50;
-        }
-    }
-
-    .package-favicon {
-        flex-shrink: 0;
-        width: 1rem;
-        height: 1rem;
-    }
-
-    .package-info {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .package-name {
-        font-size: 0.875rem;
-        font-weight: 500;
-        font-family: monospace;
-        color: $ff-grey-900;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .package-url {
-        font-size: 0.75rem;
-        color: $ff-grey-500;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        margin: 0;
-    }
 }
 
 .guide-resources {
@@ -290,57 +187,13 @@ export default {
         flex-direction: column;
         gap: 0.5rem;
     }
+}
 
-    .resource-card {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.5rem;
-        padding: 0.75rem;
-        background-color: white;
-        border: 1px solid $ff-grey-200;
-        border-radius: 0.5rem;
-        text-decoration: none;
-        color: $ff-grey-900;
-        transition: all 0.2s ease;
-
-        &:hover {
-            border-color: $ff-indigo-300;
-            background-color: $ff-grey-50;
-        }
-    }
-
-    .resource-icon {
-        flex-shrink: 0;
-        width: 1rem;
-        height: 1rem;
-        margin-top: 0.125rem;
-        object-fit: contain;
-    }
-
-    .resource-info {
-        flex: 1;
+.guide-flows {
+    .resources-grid {
         display: flex;
         flex-direction: column;
-        gap: 0.25rem;
-        min-width: 0;
-    }
-
-    .resource-title {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: $ff-grey-900;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .resource-url {
-        font-size: 0.75rem;
-        color: $ff-grey-500;
-        margin: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        gap: 0.5rem;
     }
 }
 </style>

@@ -19,6 +19,8 @@ const initialState = () => ({
         wider: false,
         fixed: false,
         closeOnClickOutside: true,
+        pinned: false,
+        closing: false,
         props: {},
         on: {},
         bind: {}
@@ -50,11 +52,20 @@ const mutations = {
         state.rightDrawer.on = on
         state.rightDrawer.bind = bind
     },
+    closeRightDrawerImmediate (state) {
+        // Set state, fixed, and pinned to false immediately to prevent
+        // mid-transition class changes that cause width to expand
+        state.rightDrawer.state = false
+        state.rightDrawer.fixed = false
+        state.rightDrawer.pinned = false
+    },
     closeRightDrawer (state) {
         state.rightDrawer.state = false
         state.rightDrawer.wider = false
+        state.rightDrawer.fixed = false
         state.rightDrawer.component = null
         state.rightDrawer.header = null
+        state.rightDrawer.pinned = false
         state.rightDrawer.props = {}
         state.rightDrawer.on = {}
         state.rightDrawer.bind = {}
@@ -76,6 +87,15 @@ const mutations = {
                 title
             }
         }
+    },
+    setPinnedDrawer (state, fixed) {
+        state.rightDrawer.fixed = fixed
+        state.rightDrawer.pinned = fixed
+        // When fixed, prevent close on click outside
+        state.rightDrawer.closeOnClickOutside = !fixed
+    },
+    setRightDrawerWider (state, wider) {
+        state.rightDrawer.wider = wider
     },
     openLeftDrawer (state) {
         state.leftDrawer.state = true
@@ -103,6 +123,9 @@ const actions = {
         bind = {},
         overlay = false
     }) {
+        // Don't allow opening while drawer is currently closing
+        if (state.rightDrawer.closing) return
+
         if (state.rightDrawer.state && component.name === state.rightDrawer.component.name) return
 
         const openDrawer = () => {
@@ -116,7 +139,8 @@ const actions = {
                 on,
                 bind
             })
-            if (overlay) {
+            // Only show overlay if requested and drawer is not pinned
+            if (overlay && !state.rightDrawer.pinned) {
                 commit('ux/openOverlay', null, { root: true })
             }
         }
@@ -128,14 +152,27 @@ const actions = {
             openDrawer()
         }
     },
-    closeRightDrawer ({ commit, rootState }) {
-        setTimeout(() => {
-            commit('closeRightDrawer')
+    closeRightDrawer ({ commit, state, rootState }) {
+        // Set closing flag to prevent reopens during transition
+        state.rightDrawer.closing = true
 
-            if (rootState.ux.overlay) {
-                commit('ux/closeOverlay', null, { root: true })
+        // Immediately hide drawer by removing .open class
+        commit('closeRightDrawerImmediate')
+
+        // Close overlay if present
+        if (rootState.ux.overlay) {
+            commit('ux/closeOverlay', null, { root: true })
+        }
+
+        // Wait for CSS transition (300ms) before full cleanup
+        setTimeout(() => {
+            // Only do full cleanup if drawer is still closed
+            if (!state.rightDrawer.state) {
+                commit('closeRightDrawer')
             }
-        }, 100)
+            // Clear closing flag
+            state.rightDrawer.closing = false
+        }, 300)
     },
 
     /**
@@ -182,6 +219,40 @@ const actions = {
      */
     setRightDrawerActions ({ commit }, actions) {
         commit('setRightDrawerActions', actions)
+    },
+
+    /**
+     * Sets the wider state for the right drawer.
+     *
+     * @param {Object} context - The Vuex action context object.
+     * @param {Function} context.commit - The commit function to call mutations.
+     * @param {boolean} wider - Whether the drawer should be wider.
+     *
+     * @return {void}
+     */
+    setRightDrawerWider ({ commit }, wider) {
+        commit('setRightDrawerWider', wider)
+    },
+
+    /**
+     * Toggles the fixed state of the right drawer.
+     * When fixed, the drawer becomes part of the page layout (position: initial) and stays open.
+     *
+     * @param {Object} context - The Vuex action context object.
+     * @param {Function} context.commit - The commit function to call mutations.
+     * @param {Object} context.state - The current state.
+     * @param {Object} context.rootState - The root state.
+     *
+     * @return {void}
+     */
+    togglePinDrawer ({ commit, state, rootState }) {
+        const newFixedState = !state.rightDrawer.fixed
+        commit('setPinnedDrawer', newFixedState)
+
+        // Always close overlay when toggling (whether fixing or unfixing)
+        if (rootState.ux.overlay) {
+            commit('ux/closeOverlay', null, { root: true })
+        }
     },
 
     openLeftDrawer ({ commit }) {
