@@ -2,7 +2,7 @@
     <section
         id="right-drawer"
         v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}"
-        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed, resizing: isResizing, 'manually-resized': hasManuallyResized}"
+        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed, resizing: isResizing, 'manually-resized': hasManuallyResized, pinning: isPinning, opening: isOpening, closing: isClosing}"
         :style="drawerStyle"
         data-el="right-drawer"
     >
@@ -64,7 +64,12 @@ export default {
             isResizing: false,
             hasManuallyResized: false,
             viewportWidth: window.innerWidth,
-            resizeDebounceTimer: null
+            resizeDebounceTimer: null,
+            isPinning: false,
+            isOpening: false,
+            isClosing: false,
+            resizeStartX: 0,
+            resizeStartWidth: 0
         }
     },
     computed: {
@@ -83,7 +88,10 @@ export default {
                 })
         },
         drawerStyle () {
-            if (this.rightDrawer.state) {
+            // Only apply inline width on larger viewports or when manually resized/pinned
+            // On small viewports (< 480px), let CSS handle the width for responsiveness
+            // Also apply during closing to maintain width during slide-out animation
+            if ((this.rightDrawer.state || this.isClosing) && (this.viewportWidth >= 480 || this.hasManuallyResized || this.rightDrawer.fixed)) {
                 return {
                     width: `${this.drawerWidth}px`
                 }
@@ -94,9 +102,29 @@ export default {
     watch: {
         'rightDrawer.state': {
             handler (isOpen, wasOpen) {
+                // Set opening flag when drawer opens
+                if (isOpen && !wasOpen) {
+                    this.isOpening = true
+                    this.isClosing = false
+                    // Clear opening flag after slide animation completes
+                    setTimeout(() => {
+                        this.isOpening = false
+                    }, 350)
+                }
+
+                // Set closing flag when drawer closes
+                if (!isOpen && wasOpen) {
+                    this.isClosing = true
+                    // Clear closing flag after slide animation completes
+                    setTimeout(() => {
+                        this.isClosing = false
+                    }, 350)
+                }
+
                 // Reset manual resize flag when drawer closes to prevent width expansion
                 if (!isOpen) {
                     this.hasManuallyResized = false
+                    this.isOpening = false
                 }
 
                 const onEsc = (e) => {
@@ -165,8 +193,9 @@ export default {
             this.viewportWidth = window.innerWidth
 
             // Reset manual resize flag on small viewports where CSS should control width
-            if (this.viewportWidth < VIEWPORT_PIN_THRESHOLD) {
+            if (this.viewportWidth < 480) {
                 this.hasManuallyResized = false
+                this.drawerWidth = DRAWER_DEFAULT_WIDTH
             }
 
             // If viewport is too small and drawer is pinned, auto-unpin
@@ -184,14 +213,53 @@ export default {
             }
         },
         togglePinWithWidth () {
-            // Capture current width before toggling
             if (!this.rightDrawer.fixed && this.$el) {
-                const currentWidth = this.$el.getBoundingClientRect().width
-                if (currentWidth > 0) {
-                    this.drawerWidth = currentWidth
+                // Capture the current actual width to maintain visual continuity
+                const actualWidth = this.$el.getBoundingClientRect().width
+
+                // Apply pinned mode constraint (50% max width)
+                const maxPinnedWidth = this.viewportWidth * DRAWER_MAX_PINNED_WIDTH_RATIO
+                const constrainedWidth = Math.min(actualWidth, maxPinnedWidth)
+                const needsResize = actualWidth > maxPinnedWidth
+
+                if (needsResize) {
+                    // Drawer needs to shrink - animate the resize first
+                    this.drawerWidth = constrainedWidth
+
+                    // Wait for resize animation to complete (~300ms based on CSS transition)
+                    setTimeout(() => {
+                        // Now disable transitions briefly for the pin state change
+                        this.isPinning = true
+
+                        this.$nextTick(() => {
+                            this.togglePinDrawer()
+
+                            // Re-enable transitions
+                            setTimeout(() => {
+                                this.isPinning = false
+                            }, 50)
+                        })
+                    }, 300)
+                } else {
+                    // No resize needed - use original logic
+                    this.drawerWidth = constrainedWidth
+
+                    // Disable transitions temporarily to prevent jump
+                    this.isPinning = true
+
+                    // Wait a frame for the width to be applied
+                    this.$nextTick(() => {
+                        this.togglePinDrawer()
+
+                        // Re-enable transitions after a brief delay
+                        setTimeout(() => {
+                            this.isPinning = false
+                        }, 50)
+                    })
                 }
+            } else {
+                this.togglePinDrawer()
             }
-            this.togglePinDrawer()
         },
         autoWidenDrawer () {
             const viewportWidth = window.innerWidth
@@ -212,37 +280,69 @@ export default {
             }
         },
         startResize (event) {
-            this.isResizing = true
-            this.hasManuallyResized = true
-            document.addEventListener('mousemove', this.handleResize)
-            document.addEventListener('mouseup', this.stopResize)
             event.preventDefault()
+
+            // Capture the current actual displayed width and mouse position
+            if (this.$el) {
+                const actualWidth = this.$el.getBoundingClientRect().width
+                this.drawerWidth = actualWidth
+                this.resizeStartWidth = actualWidth
+                this.resizeStartX = event.clientX
+            }
+
+            // Wait for Vue to apply the new width before changing the class
+            // This prevents jumping when CSS constraints are removed
+            this.$nextTick(() => {
+                this.isResizing = true
+                this.hasManuallyResized = true
+                document.addEventListener('mousemove', this.handleResize)
+                document.addEventListener('mouseup', this.stopResize)
+            })
         },
         handleResize (event) {
             if (!this.isResizing) return
 
             const viewportWidth = window.innerWidth
-            const newWidth = viewportWidth - event.clientX
+
+            // Calculate drag delta (negative because dragging left increases width)
+            const delta = this.resizeStartX - event.clientX
+            const newWidth = this.resizeStartWidth + delta
 
             // Calculate constraints
-            let maxWidth = Math.min(
-                viewportWidth * DRAWER_MAX_WIDTH_RATIO,
-                viewportWidth - DRAWER_MAX_VIEWPORT_MARGIN
-            )
+            let maxWidth
 
-            // If viewport >= 768px, enforce 50% max width constraint
             if (viewportWidth >= VIEWPORT_PIN_THRESHOLD) {
-                const maxPinnedWidth = viewportWidth * DRAWER_MAX_PINNED_WIDTH_RATIO
-                maxWidth = Math.min(maxWidth, maxPinnedWidth)
+                // On large viewports (>= 768px): different constraints for overlay vs pinned
+                if (this.rightDrawer.fixed) {
+                    // Pinned mode: apply 50% max width
+                    maxWidth = Math.min(
+                        viewportWidth * DRAWER_MAX_WIDTH_RATIO,
+                        viewportWidth - DRAWER_MAX_VIEWPORT_MARGIN,
+                        viewportWidth * DRAWER_MAX_PINNED_WIDTH_RATIO
+                    )
+                } else {
+                    // Overlay mode: apply 90% max width with viewport margin
+                    maxWidth = Math.min(
+                        viewportWidth * DRAWER_MAX_WIDTH_RATIO,
+                        viewportWidth - DRAWER_MAX_VIEWPORT_MARGIN
+                    )
+                }
+            } else {
+                // On small viewports (< 768px): only apply 90% max width, no margin constraint
+                maxWidth = viewportWidth * DRAWER_MAX_WIDTH_RATIO
             }
 
+            // Use responsive minimum: smaller viewports allow smaller drawers
+            // This prevents min-width from conflicting with max-width in small viewports
+            const minWidth = Math.min(DRAWER_MIN_WIDTH, maxWidth * 0.8)
+
             // Apply constraints
-            const constrainedWidth = Math.max(
-                DRAWER_MIN_WIDTH,
+            const finalWidth = Math.max(
+                minWidth,
                 Math.min(newWidth, maxWidth)
             )
 
-            this.drawerWidth = constrainedWidth
+            this.drawerWidth = finalWidth
         },
         stopResize () {
             this.isResizing = false
@@ -276,19 +376,24 @@ export default {
         border-left-color: transparent;
     }
 
+    // Hide border on small viewports where drawer is full-width
+    @media (max-width: 479px) {
+        border-left: none;
+    }
+
     .resize-bar {
         position: absolute;
-        left: 0;
+        left: -4px; // Center on border (50% of 8px width)
         top: 0;
         bottom: 0;
-        width: 6px;
+        width: 8px;
         cursor: ew-resize;
         background: transparent;
         z-index: 1001;
 
-        &:hover {
-            width: 8px;
-            left: 0;
+        // Hide resize bar on small viewports where drawer is full-width
+        @media (max-width: 479px) {
+            display: none;
         }
     }
 
@@ -305,13 +410,20 @@ export default {
         max-width: 100vw;
         min-width: 0;
 
-        // On viewports >= 480px: use 30vw with 480px minimum
-        @media (min-width: 480px) {
-            max-width: 30vw;
+        // On viewports 480-767px: use 480px minimum but no max-width constraint
+        // (pinning is disabled, so let JS control the width)
+        @media (min-width: 480px) and (max-width: 767px) {
+            min-width: 480px;
+            max-width: none;
+        }
+
+        // On viewports >= 768px: apply max-width constraints (pinning is enabled)
+        @media (min-width: 768px) {
+            max-width: 90vw;
             min-width: 480px;
 
             &.wider {
-                max-width: 45vw;
+                max-width: 90vw;
             }
         }
     }
@@ -345,6 +457,25 @@ export default {
     &.manually-resized {
         max-width: none !important; // Keep custom width after manual resize
         min-width: unset !important; // Keep custom width after manual resize
+    }
+
+    &.pinning {
+        transition: none !important; // Disable all transitions while pinning to prevent visual jump
+    }
+
+    &.opening {
+        // Only animate position during open, not width changes
+        transition: right .3s ease-in-out, box-shadow .3s ease-in-out, border-color .3s ease-in-out !important;
+    }
+
+    &.closing {
+        // Only animate position during close, not width changes
+        transition: right .3s ease-in-out, box-shadow .3s ease-in-out, border-color .3s ease-in-out !important;
+
+        // Maintain current width/max-width/min-width during slide-out to prevent shrinking animation
+        // These will be overridden by inline styles from drawerStyle
+        max-width: none !important;
+        min-width: unset !important;
     }
 }
 </style>
