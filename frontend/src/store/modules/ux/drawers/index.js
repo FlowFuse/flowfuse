@@ -20,6 +20,7 @@ const initialState = () => ({
         fixed: false,
         closeOnClickOutside: true,
         pinned: false,
+        closing: false,
         props: {},
         on: {},
         bind: {}
@@ -50,6 +51,11 @@ const mutations = {
         state.rightDrawer.props = props
         state.rightDrawer.on = on
         state.rightDrawer.bind = bind
+    },
+    closeRightDrawerImmediate (state) {
+        // ONLY set state to false - keep everything else for CSS transition
+        // This matches the original working version from commit 49beb5cec
+        state.rightDrawer.state = false
     },
     closeRightDrawer (state) {
         state.rightDrawer.state = false
@@ -112,6 +118,9 @@ const actions = {
         bind = {},
         overlay = false
     }) {
+        // Don't allow opening while drawer is currently closing
+        if (state.rightDrawer.closing) return
+
         if (state.rightDrawer.state && component.name === state.rightDrawer.component.name) return
 
         const openDrawer = () => {
@@ -138,12 +147,28 @@ const actions = {
             openDrawer()
         }
     },
-    closeRightDrawer ({ commit, rootState }) {
-        commit('closeRightDrawer')
+    closeRightDrawer ({ commit, state, rootState }) {
+        // Set closing flag to prevent reopens during transition
+        state.rightDrawer.closing = true
 
+        // Immediately hide drawer by removing .open class
+        commit('closeRightDrawerImmediate')
+
+        // Close overlay if present
         if (rootState.ux.overlay) {
             commit('ux/closeOverlay', null, { root: true })
         }
+
+        // Wait for CSS transition (300ms) before full cleanup
+        // This allows .fixed:not(.open) CSS rule to apply for pinned drawers
+        setTimeout(() => {
+            // Only do full cleanup if drawer is still closed
+            if (!state.rightDrawer.state) {
+                commit('closeRightDrawer')
+            }
+            // Clear closing flag
+            state.rightDrawer.closing = false
+        }, 300)
     },
 
     /**
