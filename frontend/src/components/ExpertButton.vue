@@ -45,8 +45,8 @@ export default {
     animation: gradient-border-rotate 4s linear infinite;
 
     &:hover {
-        background: linear-gradient($ff-grey-100, $ff-grey-100) padding-box,
-                    linear-gradient(135deg, $ff-red-700, #4038d5, $ff-red-700) border-box;
+        border: 2px solid transparent;
+        margin: -1px;
     }
 }
 
