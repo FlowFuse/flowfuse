@@ -260,7 +260,6 @@ export default {
         position: relative; // Changed from initial to relative for resize bar positioning
         height: 100%;
         top: 0; // Reset top offset to prevent gap at top
-        transition: none; // Disable transition in fixed mode for smooth resizing
         box-shadow: none; // Remove shadow when pinned
         flex-shrink: 0; // Prevent flex from shrinking the drawer below its set width
         min-width: unset; // Remove responsive min-width constraint
