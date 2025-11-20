@@ -255,7 +255,10 @@ const getters = {
             isApplicationsRBACFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.rbacApplication,
 
             // Expert Assistant
-            isExpertAssistantFeatureEnabledForPlatform: !!state.features.expertAssistant
+            isExpertAssistantFeatureEnabledForPlatform: !!state.features.expertAssistant,
+
+            // Instance Maintenance
+            isInstanceAutoStackUpdateFeatureEnabledForPlatform: !!state.features.autoStackUpdate
         }
         return {
             ...preCheck,

@@ -1,7 +1,7 @@
 const crypto = require('crypto')
 
 const { ControllerError } = require('../../lib/errors')
-const { KEY_SETTINGS } = require('../models/ProjectSettings')
+const { KEY_SETTINGS, KEY_STACK_UPGRADE_HOUR } = require('../models/ProjectSettings')
 
 /**
  * inflightProjectState - when projects are transitioning between states, there
@@ -476,6 +476,22 @@ module.exports = {
             await instance.updateSetting('credentialSecret', app.db.models.Project.generateCredentialSecret())
             if (flowBlueprint) {
                 await app.db.controllers.Project.applyFlowBlueprint(instance, flowBlueprint)
+            }
+        }
+
+        if (app.config.features.enabled('autoStackUpdate')) {
+            // need to check TeamType flag, commented out code ready for Team Overrides
+            await team.ensureTeamTypeExists()
+            if (team.TeamType.getProperty('autoStackUpdate')) {
+                const autoStackUpdate = team.TeamType.getProperty('autoStackUpdate')
+                if (autoStackUpdate.enabled && !autoStackUpdate.allowDisable) {
+                    const days = autoStackUpdate.days
+                    const hours = autoStackUpdate.hours
+                    // generate random day and hour in ranges
+                    const day = days[Math.round(days.length * Math.random())]
+                    const hour = hours[Math.round(hours.length * Math.random())]
+                    await instance.updateSetting(`${KEY_STACK_UPGRADE_HOUR}_${day}`, { hour })
+                }
             }
         }
 

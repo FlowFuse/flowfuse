@@ -114,6 +114,58 @@
                     </div>
                 </template>
 
+                <div>
+                    <FormHeading>Auto Stack Update</FormHeading>
+                    <div class="grid gap-3 grid-cols-2">
+                        <FormRow v-model="input.properties.autoStackUpdate.enabled" type="checkbox">
+                            Apply default schedule to instances
+                            <template #description>Instances will be scheduled to update to new Stack Versions</template>
+                        </FormRow>
+                        <FormRow v-model="input.properties.autoStackUpdate.allowDisable" :disabled="!autoStackUpdateEnforced" type="checkbox">
+                            Allow Team to disable for individual instances
+                        </FormRow>
+                    </div>
+                    <div v-if="autoStackUpdateEnforced" class="space-y-2 pl-6 mt-2">
+                        <div>Default range days</div>
+                        <div class="grid gap-3 grid-cols-7">
+                            <FormRow v-model="input.autoStack.days.sun" type="checkbox">Sun</FormRow>
+                            <FormRow v-model="input.autoStack.days.mon" type="checkbox">Mon</FormRow>
+                            <FormRow v-model="input.autoStack.days.tue" type="checkbox">Tue</FormRow>
+                            <FormRow v-model="input.autoStack.days.wed" type="checkbox">Wed</FormRow>
+                            <FormRow v-model="input.autoStack.days.thur" type="checkbox">Thur</FormRow>
+                            <FormRow v-model="input.autoStack.days.fri" type="checkbox">Fri</FormRow>
+                            <FormRow v-model="input.autoStack.days.sat" type="checkbox">Sat</FormRow>
+                        </div>
+                        <div>Default range hours (UTC)</div>
+                        <div class="grid gap-3 grid-cols-12">
+                            <FormRow v-model="input.autoStack.hours['0']" type="checkbox">0</FormRow>
+                            <FormRow v-model="input.autoStack.hours['1']" type="checkbox">1</FormRow>
+                            <FormRow v-model="input.autoStack.hours['2']" type="checkbox">2</FormRow>
+                            <FormRow v-model="input.autoStack.hours['3']" type="checkbox">3</FormRow>
+                            <FormRow v-model="input.autoStack.hours['4']" type="checkbox">4</FormRow>
+                            <FormRow v-model="input.autoStack.hours['5']" type="checkbox">5</FormRow>
+                            <FormRow v-model="input.autoStack.hours['7']" type="checkbox">6</FormRow>
+                            <FormRow v-model="input.autoStack.hours['7']" type="checkbox">7</FormRow>
+                            <FormRow v-model="input.autoStack.hours['8']" type="checkbox">8</FormRow>
+                            <FormRow v-model="input.autoStack.hours['9']" type="checkbox">9</FormRow>
+                            <FormRow v-model="input.autoStack.hours['10']" type="checkbox">10</FormRow>
+                            <FormRow v-model="input.autoStack.hours['11']" type="checkbox">11</FormRow>
+                            <FormRow v-model="input.autoStack.hours['12']" type="checkbox">12</FormRow>
+                            <FormRow v-model="input.autoStack.hours['13']" type="checkbox">13</FormRow>
+                            <FormRow v-model="input.autoStack.hours['14']" type="checkbox">14</FormRow>
+                            <FormRow v-model="input.autoStack.hours['15']" type="checkbox">15</FormRow>
+                            <FormRow v-model="input.autoStack.hours['16']" type="checkbox">16</FormRow>
+                            <FormRow v-model="input.autoStack.hours['17']" type="checkbox">17</FormRow>
+                            <FormRow v-model="input.autoStack.hours['18']" type="checkbox">18</FormRow>
+                            <FormRow v-model="input.autoStack.hours['19']" type="checkbox">19</FormRow>
+                            <FormRow v-model="input.autoStack.hours['20']" type="checkbox">20</FormRow>
+                            <FormRow v-model="input.autoStack.hours['21']" type="checkbox">21</FormRow>
+                            <FormRow v-model="input.autoStack.hours['22']" type="checkbox">22</FormRow>
+                            <FormRow v-model="input.autoStack.hours['23']" type="checkbox">23</FormRow>
+                        </div>
+                    </div>
+                </div>
+
                 <FormHeading>Features</FormHeading>
                 <div class="grid gap-3 grid-cols-2">
                     <FormRow v-model="input.properties.features['shared-library']" type="checkbox">Team Library</FormRow>
@@ -171,6 +223,9 @@ import teamTypesApi from '../../../../api/teamTypes.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 
+const days = ['sun', 'mon', 'tue', 'wed', 'thur', 'fri', 'sat']
+const hours = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
 export default {
     name: 'TeamTypeCreateDialog',
     components: {
@@ -215,6 +270,7 @@ export default {
                     this.input.properties.features = teamType.properties?.features || {}
                     this.input.properties.billing = teamType.properties?.billing || {}
                     this.input.properties.trial = teamType.properties?.trial || {}
+                    this.input.properties.autoStackUpdate = teamType.properties?.autoStackUpdate || { enabled: false, days: [], hours: [] }
                     if (this.input.properties.trial.active && !this.input.properties.trial.instanceType) {
                         this.input.properties.trial.instanceType = '_'
                     }
@@ -268,6 +324,21 @@ export default {
                     if (this.input.properties.features.instanceResources === undefined) {
                         this.input.properties.features.instanceResources = false
                     }
+                    if (!this.input.autoStack) {
+                        this.input.autoStack = {}
+                    }
+                    this.input.autoStack.days = { }
+                    if (teamType.properties?.autoStackUpdate?.days?.length > 0) {
+                        for (const d of teamType.properties.autoStackUpdate.days) {
+                            this.input.autoStack.days[days[d]] = true
+                        }
+                    }
+                    this.input.autoStack.hours = { }
+                    if (teamType.properties?.autoStackUpdate?.hours?.length > 0) {
+                        for (const d of teamType.properties.autoStackUpdate.hours) {
+                            this.input.autoStack.hours[`${hours[d]}`] = true
+                        }
+                    }
                 } else {
                     this.editDisabled = false
                     this.input = {
@@ -285,7 +356,17 @@ export default {
                             features: {},
                             teamBroker: {
                                 clients: {}
+                            },
+                            autoStackUpdate: {
+                                enabled: false,
+                                allowDisable: true,
+                                days: [],
+                                hours: []
                             }
+                        },
+                        autoStack: {
+                            days: {},
+                            hours: {}
                         }
                     }
                 }
@@ -331,7 +412,17 @@ export default {
                     instances: {},
                     features: {},
                     trial: {},
-                    teamBroker: {}
+                    teamBroker: {},
+                    autoStackUpdate: {
+                        enabled: false,
+                        allowDisable: false,
+                        days: [],
+                        hours: []
+                    },
+                    autoStack: {
+                        days: {},
+                        hours: {}
+                    }
                 }
             },
             errors: {},
@@ -358,6 +449,9 @@ export default {
         },
         teamBrokerEnabled () {
             return !!this.input.properties.features.teamBroker
+        },
+        autoStackUpdateEnforced () {
+            return !!this.input.properties.autoStackUpdate?.enabled
         }
     },
     methods: {
@@ -374,7 +468,8 @@ export default {
                         devices: { ...this.input.properties.devices },
                         instances: { ...this.input.properties.instances },
                         features: { ...this.input.properties.features },
-                        teamBroker: { ...this.input.properties.teamBroker }
+                        teamBroker: { ...this.input.properties.teamBroker },
+                        autoStackUpdate: { ...this.input.properties.autoStackUpdate }
                     }
                 }
                 // Utility function that ensures the specific property is
@@ -423,6 +518,19 @@ export default {
                 formatNumber(opts.properties.features, 'contextLimit')
                 if (opts.properties.teamBroker?.clients?.limit) {
                     formatNumber(opts.properties.teamBroker.clients, 'limit')
+                }
+
+                opts.properties.autoStackUpdate.days = []
+                for (const d in days) {
+                    if (this.input.autoStack.days[days[d]]) {
+                        opts.properties.autoStackUpdate.days.push(parseInt(d))
+                    }
+                }
+                opts.properties.autoStackUpdate.hours = []
+                for (const h in hours) {
+                    if (this.input.autoStack.hours[`${hours[h]}`]) {
+                        opts.properties.autoStackUpdate.hours.push(parseInt(h))
+                    }
                 }
 
                 if (this.teamType) {
