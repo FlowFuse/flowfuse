@@ -210,6 +210,25 @@ export default {
                 if (this.drawerWidth > maxPinnedWidth) {
                     this.drawerWidth = maxPinnedWidth
                 }
+            } else if (this.viewportWidth >= 480) {
+                // For overlay mode on viewports >= 480px, enforce max width constraint
+                // (Below 480px, CSS handles the width)
+                let maxWidth
+
+                if (this.viewportWidth >= VIEWPORT_PIN_THRESHOLD) {
+                    // Large viewports: apply both 90% and viewport margin constraints
+                    maxWidth = Math.min(
+                        this.viewportWidth * DRAWER_MAX_WIDTH_RATIO,
+                        this.viewportWidth - DRAWER_MAX_VIEWPORT_MARGIN
+                    )
+                } else {
+                    // Medium viewports (480-767px): only apply 90% constraint
+                    maxWidth = this.viewportWidth * DRAWER_MAX_WIDTH_RATIO
+                }
+
+                if (this.drawerWidth > maxWidth) {
+                    this.drawerWidth = maxWidth
+                }
             }
         },
         togglePinWithWidth () {
