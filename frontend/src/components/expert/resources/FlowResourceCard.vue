@@ -1,5 +1,5 @@
 <template>
-    <div class="expert-flow-tile flex flex-col gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-gray-50 transition-colors overflow-auto">
+    <div class="expert-flow-tile flex flex-col gap-3 p-3 bg-white border border-gray-200 rounded-lg overflow-auto">
         <div class="content flex gap-3">
             <div class="icon content-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -19,8 +19,8 @@
             <div class="flex flex-1 flex-col overflow-auto">
                 <div class="flex items-start justify-between gap-2">
                     <h6>{{ flow.title }}</h6>
-                    <div class="actions flex items-start gap-4">
-                        <button class="text-gray-600 expand flex items-center" @click="flowsExpanded = !flowsExpanded">
+                    <div class="actions flex items-start gap-2">
+                        <button class="text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 expand flex items-center transition-colors duration-200 rounded px-2 py-1" @click="flowsExpanded = !flowsExpanded">
                             <span>Preview</span>
                             <chevron-down-icon v-if="flowsExpanded" class="h-4 w-4" />
                             <chevron-up-icon v-if="!flowsExpanded" class="h-4 w-4" />
