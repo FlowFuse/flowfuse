@@ -93,8 +93,8 @@ export default {
     span {
         display: inline-block;
         padding: 0.5rem 0.75rem; // py-2 px-3
-        background-color: #EEF2FF; // bg-indigo-100
-        color: #4338CA; // text-indigo-700
+        background-color: $ff-indigo-100;
+        color: $ff-indigo-700;
         font-size: 0.875rem; // text-sm
         border-radius: 9999px; // rounded-full
     }
