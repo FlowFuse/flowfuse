@@ -225,8 +225,8 @@ export default {
                 viewportWidth - DRAWER_MAX_VIEWPORT_MARGIN
             )
 
-            // If drawer is pinned, enforce 50% max width constraint
-            if (this.rightDrawer.fixed) {
+            // If viewport >= 768px, enforce 50% max width constraint
+            if (viewportWidth >= VIEWPORT_PIN_THRESHOLD) {
                 const maxPinnedWidth = viewportWidth * DRAWER_MAX_PINNED_WIDTH_RATIO
                 maxWidth = Math.min(maxWidth, maxPinnedWidth)
             }
