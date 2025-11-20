@@ -34,7 +34,7 @@
                 </p>
             </div>
         </div>
-        <div class="flow--viewer-wrapper flex overflow-auto rounded-md ml-8" :class="{hidden: flowsExpanded}">
+        <div class="flow--viewer-wrapper flex overflow-auto ml-8" :class="{hidden: flowsExpanded}">
             <flow-viewer v-if="!flowsExpanded" :flow="flow.metadata.flows" />
         </div>
     </div>
