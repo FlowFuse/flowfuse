@@ -31,7 +31,8 @@ module.exports = function (app) {
                     devices: { type: 'object', additionalProperties: true },
                     features: { type: 'object', additionalProperties: true },
                     instances: { type: 'object', additionalProperties: true },
-                    billing: { type: 'object', additionalProperties: true }
+                    billing: { type: 'object', additionalProperties: true },
+                    autoStackUpdate: { type: 'object', additionalProperties: true }
                 },
                 additionalProperties: true
             }
@@ -39,7 +40,8 @@ module.exports = function (app) {
     })
 
     function removeAdminOnlyProps (obj) {
-        const result = {}
+        // Handle both array and object properties - ensure the result is the right shape of thing
+        const result = Array.isArray(obj) ? [] : {}
         for (const [key, value] of Object.entries(obj)) {
             if (/^(price|product)Id$/.test(key)) {
                 continue

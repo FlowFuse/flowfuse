@@ -17,6 +17,7 @@ const KEY_HEALTH_CHECK_INTERVAL = 'healthCheckInterval'
 const KEY_CUSTOM_HOSTNAME = 'customHostname'
 const KEY_SHARED_ASSETS = 'sharedAssets'
 const KEY_DISABLE_AUTO_SAFE_MODE = 'disableAutoSafeMode'
+const KEY_STACK_UPGRADE_HOUR = 'stackUpgradeHour'
 
 module.exports = {
     KEY_SETTINGS,
@@ -27,6 +28,7 @@ module.exports = {
     KEY_CUSTOM_HOSTNAME,
     KEY_SHARED_ASSETS,
     KEY_DISABLE_AUTO_SAFE_MODE,
+    KEY_STACK_UPGRADE_HOUR,
     name: 'ProjectSettings',
     schema: {
         ProjectId: { type: DataTypes.UUID, unique: 'pk_settings' },
@@ -70,6 +72,20 @@ module.exports = {
                         where: { key: KEY_CUSTOM_HOSTNAME, value: hostname.toLowerCase() }
                     })
                     return count !== 0 || this.isHostnameUsed(hostname)
+                },
+                getProjectsToUpgrade: async (hour, day) => {
+                    return await this.findAll({
+                        where: {
+                            key: `${KEY_STACK_UPGRADE_HOUR}_${day}`, value: `${JSON.stringify({ hour })}`
+                        },
+                        include: {
+                            model: M.Project,
+                            include: [
+                                { model: M.ProjectStack },
+                                { model: M.Team }
+                            ]
+                        }
+                    })
                 }
             }
         }
