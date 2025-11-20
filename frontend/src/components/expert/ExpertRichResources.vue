@@ -18,7 +18,7 @@
         <div v-if="hasNodePackages" class="resources-list">
             <h4 v-if="hasFlows || hasAdditionalResources" class="section-title">Required Node Packages</h4>
             <div class="resources-grid">
-                <StandardResourceCard v-for="(node, index) in nodePackages" :key="index" :resource="node" />
+                <PackageResourceCard v-for="(node, index) in nodePackages" :key="index" :nodePackage="node" />
             </div>
         </div>
 
@@ -37,11 +37,12 @@
 <script>
 
 import FlowResourceCard from './resources/FlowResourceCard.vue'
+import PackageResourceCard from './resources/PackageResourceCard.vue'
 import StandardResourceCard from './resources/StandardResourceCard.vue'
 
 export default {
     name: 'ExpertRichResources',
-    components: { StandardResourceCard, FlowResourceCard },
+    components: { StandardResourceCard, FlowResourceCard, PackageResourceCard },
     props: {
         message: {
             type: Object,

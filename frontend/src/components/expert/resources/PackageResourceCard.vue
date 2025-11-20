@@ -29,12 +29,12 @@ export default {
     },
     methods: {
         getPackageName (pkg) {
-            // Handle both object format {name: "..."} and string format
-            return typeof pkg === 'object' ? pkg.name : pkg
+            // Handle both object format {id: "..." or name: "..."} and string format
+            return typeof pkg === 'object' ? (pkg.id || pkg.name) : pkg
         },
         getPackageUrl (pkg) {
             const packageName = this.getPackageName(pkg)
-            return `https://flows.nodered.org/node/${packageName}`
+            return `https://flows.nodered.org/package/${packageName}`
         },
         addUTMTracking (url) {
             try {
