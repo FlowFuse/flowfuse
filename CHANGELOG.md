@@ -1,3 +1,63 @@
+#### 2.24.0: Release
+
+ - Enable expert feature on pre-staging (#6273)
+ - ci: Update list of test to check before publish (#6229)
+ - ci: Run UI OS and EE tests in parallel (#6218)
+ - Switch to legacy bitnami image in the pre-staging init script (#6210)
+ - Bump cypress-io/github-action from 6.10.2 to 6.10.3 (#6192)
+ - Bump flowfuse/github-actions-workflows from 0.42.0 to 0.43.0 (#6195)
+ - Bump actions/upload-artifact from 4.6.2 to 5.0.0 (#6196)
+ - Add MCP registration Endpoints (#6306) @hardillb
+ - Scheduled maintenance for instances (#6079) @hardillb
+ - build(deps-dev): bump js-yaml from 3.14.1 to 3.14.2 (#6303) @app/dependabot
+ - fix(housekeeper): add optional chaining for broker availability check (#6311) @dimitrieh
+ - fix(ui): add padding to `SnapshotDetailsDrawer` component (#6305) @cstns
+ - ci: Add packages read permission to the `upload-node-red` job in `Create pre-staging environment` workflow (#6307) @ppawlowski
+ - Add FlowFuse Nodes Section (#6302) @Yndira-E
+ - Update FlowFuse expert name in UI (#6299) @dimitrieh
+ - Certified Nodes usage telemetry (#6017) @hardillb
+ - fix(expert): content ingestion after sso/mfa auth (#6296) @cstns
+ - Fix Team name in trial emails (#6292) @hardillb
+ - fix(expert): add `initialState` to store module export (#6298) @cstns
+ - Update README.md (#6208) @PabloFilomeno83
+ - First attempt at leadership vote for housekeeper (#6239) @hardillb
+ - Fix starter team catalogue settings (#6295) @knolleary
+ - Docs update Node.js requirement to v20 (#6291) @cstns
+ - fix(expert): correct store reference dispatch call (#6293) @cstns
+ - fix(expert): implement hydration logic for assistant after SSO login (#6288) @cstns
+ - Add Transaction to Team Owner removal (#6279) @hardillb
+ - build(deps): bump docker/setup-qemu-action from 3.6.0 to 3.7.0 (#6284) @app/dependabot
+ - build(deps): bump cypress-io/github-action from 6.10.3 to 6.10.4 (#6283) @app/dependabot
+ - Add docs about Custom Session lifetime (#6282) @hardillb
+ - Remove rollup override (#6280) @hardillb
+ - Temp patch to fix broken rollup package (#6275) @hardillb
+ - Flowfuse Expert Assistant feature (#6253) @cstns
+ - Fix SAMLProvider lookup by correctly accessing `user.email` (#6251) @cstns
+ - Ingest flowfuse expert context (#6231) @cstns
+ - Allow SSO Configuration to set Session Expiry/Idle (#6215) @hardillb
+ - Update docs with FlowFuse MCP and AI Nodes links (#6244) @knolleary
+ - Add Transaction to Instance/Device Creation (#6148) @hardillb
+ - Extend click propagation to device filter checkboxes (#6242) @cstns
+ - Add "expert" module to product store (#6226) @cstns
+ - Add support for backend mode filtering (#6236) @cstns
+ - Update deployment instructions for Device Agent (#6216) @hardillb
+ - Fix google sso button (#6228) @cstns
+ - Extend right side drawer (#6224) @cstns
+ - Add a created column on the remote instances lists (#6202) @cstns
+ - Duplicate instances in other applications (#6209) @cstns
+ - Handle pending team changes in Brokers page (#6211) @cstns
+ - Common messaging on al devicel group dialogs (#6205) @cstns
+ - Strip transfer-encoding from proxied editor response (#6204) @hardillb
+ - Bump validator from 13.9.0 to 13.15.20 (#6197) @app/dependabot
+ - Revert to click event handler and support middle mouse click for button actions and editor link navigation (#6199) @cstns
+ - Ensure community catalogue available to remote instances (#6201) @hardillb
+ - Use `mousedown` instead of `click` for `ClickOutside` directive event listeners to prevent click and drag events (#6182) @cstns
+ - Reduce the size of the Flows Step title (#6198) @cstns
+ - Bulk manage remote instance device groups (#6157) @cstns
+ - Bump actions/download-artifact from 5.0.0 to 6.0.0 (#6186) @app/dependabot
+ - Change Device Group Snapshot name gate (#6193) @hardillb
+ - Stop automatically clearing device group target when empty (#6175) @hardillb
+
 #### 2.23.1: Release
 
  - Hide plain view tables credential password (#6178) @cstns
