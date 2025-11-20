@@ -21,7 +21,7 @@
                     <h6>{{ flow.title }}</h6>
                     <div class="actions flex items-start gap-4">
                         <button class="text-gray-600 expand flex items-center" @click="flowsExpanded = !flowsExpanded">
-                            <span>Flows</span>
+                            <span>Preview</span>
                             <chevron-down-icon v-if="flowsExpanded" class="h-4 w-4" />
                             <chevron-up-icon v-if="!flowsExpanded" class="h-4 w-4" />
                         </button>
