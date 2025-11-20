@@ -80,9 +80,10 @@ module.exports = {
                         },
                         include: {
                             model: M.Project,
-                            include: {
-                                model: M.ProjectStack
-                            }
+                            include: [
+                                { model: M.ProjectStack },
+                                { model: M.Team }
+                            ]
                         }
                     })
                 }
