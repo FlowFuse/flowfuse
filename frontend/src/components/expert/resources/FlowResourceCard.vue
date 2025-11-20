@@ -72,6 +72,14 @@ export default {
 .expert-flow-tile {
     .content {}
 
+    h6 {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+        flex: 1;
+    }
+
     .flow--viewer-wrapper {
         max-height: 500px;
         flex: 1 1 auto;
