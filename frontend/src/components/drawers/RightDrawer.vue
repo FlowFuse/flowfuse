@@ -178,7 +178,7 @@ export default {
     max-width: 0;
     min-width: 0;
     transition: right .3s ease-in-out, width .3s ease-in-out, max-width .3s ease-in-out, min-width .3s ease-in-out, box-shadow .3s ease-in-out;
-    box-shadow: -5px 0px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: -5px 4px 8px -4px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     overflow: hidden; // Changed from auto to hidden - let child components handle their own scrolling
