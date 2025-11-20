@@ -144,7 +144,7 @@
                             <FormRow v-model="input.autoStack.hours['3']" type="checkbox">3</FormRow>
                             <FormRow v-model="input.autoStack.hours['4']" type="checkbox">4</FormRow>
                             <FormRow v-model="input.autoStack.hours['5']" type="checkbox">5</FormRow>
-                            <FormRow v-model="input.autoStack.hours['7']" type="checkbox">6</FormRow>
+                            <FormRow v-model="input.autoStack.hours['6']" type="checkbox">6</FormRow>
                             <FormRow v-model="input.autoStack.hours['7']" type="checkbox">7</FormRow>
                             <FormRow v-model="input.autoStack.hours['8']" type="checkbox">8</FormRow>
                             <FormRow v-model="input.autoStack.hours['9']" type="checkbox">9</FormRow>
