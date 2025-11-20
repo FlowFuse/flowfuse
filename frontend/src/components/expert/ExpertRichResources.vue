@@ -8,6 +8,7 @@
 
         <!-- Resources List -->
         <div v-if="hasAdditionalResources" class="resources-list">
+            <h4 v-if="hasFlows" class="section-title">Related Resources</h4>
             <div class="resources-grid">
                 <StandardResourceCard v-for="(resource, index) in additionalResources" :key="index" :resource="resource" />
             </div>
@@ -15,6 +16,7 @@
 
         <!-- nodePackages List -->
         <div v-if="hasNodePackages" class="resources-list">
+            <h4 v-if="hasFlows || hasAdditionalResources" class="section-title">Required Node Packages</h4>
             <div class="resources-grid">
                 <StandardResourceCard v-for="(node, index) in nodePackages" :key="index" :resource="node" />
             </div>
@@ -22,6 +24,7 @@
 
         <!-- Flows List -->
         <div v-if="hasFlows" class="flows-list">
+            <h4 v-if="hasAdditionalResources || hasNodePackages" class="section-title">Example Flows</h4>
             <ul class="flows-list flex flex-col gap-2">
                 <li v-for="flow in flows" :key="flow.id">
                     <FlowResourceCard :flow="flow" />
@@ -99,6 +102,13 @@ export default {
         line-height: 1.5;
         font-size: 1rem;
     }
+}
+
+.section-title {
+    font-size: 1rem; // text-base
+    font-weight: 500; // font-medium
+    color: #111827; // text-gray-900
+    margin: 0.5rem 0 0.75rem 0; // mt-2 mb-3
 }
 
 .resources-list {
