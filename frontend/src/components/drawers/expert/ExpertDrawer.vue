@@ -33,8 +33,9 @@
 </template>
 
 <script>
-import { XIcon, LockClosedIcon, LockOpenIcon } from '@heroicons/vue/solid'
+import { LockClosedIcon, LockOpenIcon, XIcon } from '@heroicons/vue/solid'
 import { mapActions, mapState } from 'vuex'
+
 import ExpertPanel from '../../expert/Expert.vue'
 
 export default {
