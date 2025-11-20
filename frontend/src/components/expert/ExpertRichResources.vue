@@ -79,7 +79,7 @@ export default {
 .ff-expert-rich-resources {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 0.5rem;
 }
 
 .resources-header {
