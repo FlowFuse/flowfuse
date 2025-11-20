@@ -92,8 +92,12 @@ export default {
 
     .header {
         padding: 1rem 1.5rem;
-        border-bottom: 1px solid $ff-grey-200;
-        background: white;
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(90deg, $ff-red-600, #5048e5, $ff-red-600, #5048e5, $ff-red-600) border-box;
+        border: none;
+        border-bottom: 1px solid transparent;
+        background-size: 200% 100%;
+        animation: gradient-flow-lr 4s linear infinite;
         flex-shrink: 0; // Prevent header from shrinking
         display: flex;
         align-items: center;
@@ -175,6 +179,15 @@ export default {
             flex: 1;
             min-height: 0; // Important for flex child overflow
         }
+    }
+}
+
+@keyframes gradient-flow-lr {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 100% 0%;
     }
 }
 </style>
