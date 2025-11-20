@@ -2,12 +2,11 @@
     <section
         id="right-drawer"
         v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}"
-        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed}"
+        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed, resizing: isResizing}"
         :style="drawerStyle"
         data-el="right-drawer"
     >
         <div
-            v-if="rightDrawer.fixed"
             class="resize-bar"
             @mousedown="startResize"
         />
@@ -75,7 +74,7 @@ export default {
                 })
         },
         drawerStyle () {
-            if (this.rightDrawer.fixed && this.rightDrawer.state) {
+            if (this.rightDrawer.state) {
                 return {
                     width: `${this.drawerWidth}px`
                 }
@@ -224,13 +223,20 @@ export default {
     }
 
     &.fixed {
-        position: initial;
+        position: relative; // Changed from initial to relative for resize bar positioning
         height: 100%;
+        top: 0; // Reset top offset to prevent gap at top
         transition: none; // Disable transition in fixed mode for smooth resizing
         box-shadow: none; // Remove shadow when pinned
         flex-shrink: 0; // Prevent flex from shrinking the drawer below its set width
         min-width: unset; // Remove responsive min-width constraint
         max-width: none; // Remove responsive max-width constraint
+    }
+
+    &.resizing {
+        transition: none; // Disable transition while actively resizing for smooth dragging
+        max-width: none !important; // Remove max-width constraint to allow free resizing
+        min-width: unset !important; // Remove min-width constraint to allow free resizing
     }
 }
 </style>
