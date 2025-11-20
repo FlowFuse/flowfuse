@@ -298,10 +298,10 @@ export default {
         max-width: 100vw;
         min-width: 0;
 
-        // On viewports >= 400px: use 30vw with 400px minimum
-        @media (min-width: 400px) {
+        // On viewports >= 480px: use 30vw with 480px minimum
+        @media (min-width: 480px) {
             max-width: 30vw;
-            min-width: 400px;
+            min-width: 480px;
 
             &.wider {
                 max-width: 45vw;
