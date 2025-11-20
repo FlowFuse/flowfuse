@@ -177,7 +177,7 @@ export default {
     width: 100%;
     max-width: 0;
     min-width: 0;
-    transition: ease-in-out .3s;
+    transition: right .3s ease-in-out, width .3s ease-in-out, max-width .3s ease-in-out, min-width .3s ease-in-out, box-shadow .3s ease-in-out;
     box-shadow: -5px 0px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
