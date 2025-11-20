@@ -74,7 +74,12 @@ export default {
         ExpertRichGuide,
         ExpertRichResources
     },
-    inject: ['togglePinWithWidth'],
+    inject: {
+        togglePinWithWidth: {
+            from: 'togglePinWithWidth',
+            default: () => () => {} // No-op function when not provided
+        }
+    },
     data () {
         return {
             scrollCheckDebounce: null,
