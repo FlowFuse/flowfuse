@@ -74,6 +74,7 @@ export default {
         ExpertRichGuide,
         ExpertRichResources
     },
+    inject: ['togglePinWithWidth'],
     data () {
         return {
             scrollCheckDebounce: null,
@@ -98,7 +99,10 @@ export default {
             'hasMessages',
             'lastMessage',
             'isSessionExpired'
-        ])
+        ]),
+        isPinned () {
+            return this.$store.state.ux.drawers.rightDrawer.fixed
+        }
     },
     watch: {
         messages: {
@@ -146,6 +150,11 @@ export default {
 
         async handleSendMessage (query) {
             if (!query.trim()) return
+
+            // Auto-pin drawer on first message
+            if (!this.isPinned && this.messages.length === 0) {
+                this.togglePinWithWidth()
+            }
 
             // Call Vuex action to handle API logic
             const result = await this.handleMessage({

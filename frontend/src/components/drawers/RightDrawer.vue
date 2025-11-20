@@ -110,8 +110,7 @@ export default {
         },
         'rightDrawer.wider': {
             handler (shouldBeWider) {
-                // Only auto-widen if user hasn't manually resized
-                if (shouldBeWider && !this.hasManuallyResized) {
+                if (shouldBeWider) {
                     this.$nextTick(() => {
                         this.autoWidenDrawer()
                     })

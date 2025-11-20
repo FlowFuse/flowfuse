@@ -418,9 +418,8 @@ const actions = {
                 }
             }
 
-            // Auto-widen drawer if flows detected and not already widened
-            if (hasFlows && !state.hasWidenedForFlows) {
-                commit('SET_HAS_WIDENED_FOR_FLOWS', true)
+            // Auto-widen drawer if flows detected
+            if (hasFlows) {
                 await dispatch('ux/drawers/setRightDrawerWider', true, { root: true })
             }
         } else if (
