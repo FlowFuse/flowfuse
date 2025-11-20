@@ -2,7 +2,7 @@
     <section
         id="right-drawer"
         v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}"
-        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed, resizing: isResizing}"
+        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed, resizing: isResizing, 'manually-resized': hasManuallyResized}"
         :style="drawerStyle"
         data-el="right-drawer"
     >
@@ -58,7 +58,8 @@ export default {
     data () {
         return {
             drawerWidth: DRAWER_DEFAULT_WIDTH,
-            isResizing: false
+            isResizing: false,
+            hasManuallyResized: false
         }
     },
     computed: {
@@ -91,7 +92,11 @@ export default {
                         this.closeRightDrawer()
                     }
                 }
-                isOpen ? window.addEventListener('keydown', onEsc) : window.removeEventListener('keydown', onEsc)
+                if (isOpen) {
+                    window.addEventListener('keydown', onEsc)
+                } else {
+                    window.removeEventListener('keydown', onEsc)
+                }
             }
         },
         'rightDrawer.fixed': {
@@ -128,6 +133,7 @@ export default {
         },
         startResize (event) {
             this.isResizing = true
+            this.hasManuallyResized = true
             document.addEventListener('mousemove', this.handleResize)
             document.addEventListener('mouseup', this.stopResize)
             event.preventDefault()
@@ -184,17 +190,12 @@ export default {
         bottom: 0;
         width: 6px;
         cursor: ew-resize;
-        background: $ff-grey-400;
+        background: transparent;
         z-index: 1001;
 
         &:hover {
-            background: $ff-grey-600;
             width: 8px;
             left: 0;
-        }
-
-        &:active {
-            background: $ff-indigo-600;
         }
     }
 
@@ -237,6 +238,11 @@ export default {
         transition: none; // Disable transition while actively resizing for smooth dragging
         max-width: none !important; // Remove max-width constraint to allow free resizing
         min-width: unset !important; // Remove min-width constraint to allow free resizing
+    }
+
+    &.manually-resized {
+        max-width: none !important; // Keep custom width after manual resize
+        min-width: unset !important; // Keep custom width after manual resize
     }
 }
 </style>
