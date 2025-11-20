@@ -159,6 +159,11 @@ export default {
         handleViewportResize () {
             this.viewportWidth = window.innerWidth
 
+            // Reset manual resize flag on small viewports where CSS should control width
+            if (this.viewportWidth < VIEWPORT_PIN_THRESHOLD) {
+                this.hasManuallyResized = false
+            }
+
             // If viewport is too small and drawer is pinned, auto-unpin
             if (this.viewportWidth < VIEWPORT_PIN_THRESHOLD && this.rightDrawer.fixed) {
                 this.togglePinDrawer()
