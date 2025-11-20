@@ -105,7 +105,8 @@ export default {
 .editor-wrapper {
   height: 100%;
   width: 100%;
-  position: absolute;
+  position: relative;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-content: center;
