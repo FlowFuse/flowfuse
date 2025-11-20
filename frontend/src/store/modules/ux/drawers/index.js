@@ -138,7 +138,11 @@ const actions = {
             openDrawer()
         }
     },
-    closeRightDrawer ({ commit, rootState }) {
+    closeRightDrawer ({ commit, state, rootState }) {
+        // Immediately set state to false to hide the drawer
+        state.rightDrawer.state = false
+
+        // Then wait before full cleanup to allow transition
         setTimeout(() => {
             commit('closeRightDrawer')
 

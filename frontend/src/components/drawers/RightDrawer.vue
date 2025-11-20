@@ -177,11 +177,16 @@ export default {
     width: 100%;
     max-width: 0;
     min-width: 0;
-    transition: right .3s ease-in-out, width .3s ease-in-out, max-width .3s ease-in-out, min-width .3s ease-in-out, box-shadow .3s ease-in-out;
+    transition: right .3s ease-in-out, width .3s ease-in-out, max-width .3s ease-in-out, min-width .3s ease-in-out, box-shadow .3s ease-in-out, border-color .3s ease-in-out;
     box-shadow: -5px 4px 8px -4px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     overflow: hidden; // Changed from auto to hidden - let child components handle their own scrolling
+
+    // Hide border when closed to prevent visible grey line
+    &:not(.open) {
+        border-left-color: transparent;
+    }
 
     .resize-bar {
         position: absolute;
@@ -232,6 +237,16 @@ export default {
         flex-shrink: 0; // Prevent flex from shrinking the drawer below its set width
         min-width: unset; // Remove responsive min-width constraint
         max-width: none; // Remove responsive max-width constraint
+
+        // Hide drawer when pinned but closed to prevent grey block
+        &:not(.open) {
+            width: 0 !important;
+            min-width: 0 !important;
+            max-width: 0 !important;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+        }
     }
 
     &.resizing {
