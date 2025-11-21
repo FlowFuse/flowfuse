@@ -52,7 +52,7 @@
                 </template>
                 <template #rows>
                     <ff-data-table-row v-for="(item) in filteredRows" :key="item.index" :data-row="'row-' + item.name">
-                        <td class="ff-data-table--cell !pl-1 !pr-0 !py-1 border min-w-max max-w-sm align-top">
+                        <td class="ff-data-table--cell pl-1! pr-0! py-1! border min-w-max max-w-sm align-top">
                             <FormRow
                                 v-model="item.name"
                                 v-ff-tooltip:left="'Cannot be renamed'"
@@ -66,7 +66,7 @@
                                 :type="(!readOnly && (editTemplate || item.policy === undefined)) ? 'text' : 'uneditable'"
                             />
                         </td>
-                        <td class="ff-data-table--cell !p-1 border w-3/5 max-w-xl" :class="{'align-middle':item.encrypted, 'align-top': !item.hidden}">
+                        <td class="ff-data-table--cell p-1! border w-3/5 max-w-xl" :class="{'align-middle':item.encrypted, 'align-top': !item.hidden}">
                             <div v-if="!item.encrypted" class="w-full">
                                 <template v-if="(!readOnly && (editTemplate || item.policy === undefined || item.policy))">
                                     <textarea
@@ -92,7 +92,7 @@
                             </div>
                             <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> encrypted</div>
                         </td>
-                        <td class="ff-data-table--cell !p-1 border w-16 align-top">
+                        <td class="ff-data-table--cell p-1! border w-16 align-top">
                             <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center mt-1 items-center gap-3">
                                 <ff-button kind="tertiary" size="small" data-el="remove" @click="removeEnv(item.index)">
                                     <template #icon>
@@ -147,7 +147,7 @@
                                 <LockClosedIcon class="inline w-4" />
                             </div>
                         </td>
-                        <td v-if="!readOnly && editTemplate" class="ff-data-table--cell !p-1 align-top">
+                        <td v-if="!readOnly && editTemplate" class="ff-data-table--cell p-1! align-top">
                             <LockSetting v-model="item.policy" :editTemplate="editTemplate" />
                         </td>
                     </ff-data-table-row>

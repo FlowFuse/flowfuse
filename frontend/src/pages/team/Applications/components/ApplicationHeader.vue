@@ -9,7 +9,7 @@
                 <TemplateIcon class="ff-icon text-gray-600" />
                 {{ application.name }}
             </span>
-            <span class="!inline-block !shrink !grow italic text-gray-500 dark:text-gray-400 truncate">
+            <span class="inline-block! shrink! grow! italic text-gray-500 dark:text-gray-400 truncate">
                 {{ application.description }}
             </span>
         </div>

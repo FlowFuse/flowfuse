@@ -2,12 +2,12 @@
     <div>
         <FormHeading>
             NPM configuration file
-            <ChangeIndicator class="!inline-block ml-4 mt-0" :value="editable.changed.settings.palette_npmrc" />
+            <ChangeIndicator class="inline-block! ml-4 mt-0" :value="editable.changed.settings.palette_npmrc" />
         </FormHeading>
 
-        <FeatureUnavailable v-if="!isCustomCatalogsFeatureEnabledForPlatform" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
+        <FeatureUnavailable v-if="!isCustomCatalogsFeatureEnabledForPlatform" :minimal="true" class="my-5! mx-0! p-0! justify-start!" />
 
-        <FeatureUnavailableToTeam v-if="!isCustomCatalogsFeatureEnabledForTeam" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
+        <FeatureUnavailableToTeam v-if="!isCustomCatalogsFeatureEnabledForTeam" :minimal="true" class="my-5! mx-0! p-0! justify-start!" />
 
         <form class="space-y-4 max-w-2xl" @submit.prevent>
             <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">

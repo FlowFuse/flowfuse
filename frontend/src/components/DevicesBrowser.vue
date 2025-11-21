@@ -579,7 +579,7 @@ export default {
             }
 
             menu.push(null)
-            menu.push({ name: 'Delete', class: ['!text-red-600'], action: this.showTeamBulkDeviceDeleteDialog, disabled: !enableDelete })
+            menu.push({ name: 'Delete', class: ['text-red-600!'], action: this.showTeamBulkDeviceDeleteDialog, disabled: !enableDelete })
             return menu
         },
         applicationContext () {

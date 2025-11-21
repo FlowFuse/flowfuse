@@ -1,7 +1,7 @@
 <template>
     <ff-dialog
         ref="dialog" :header="header" confirm-label="Close" :closeOnConfirm="true" data-el="flow-view-dialog"
-        boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]" contentClass="overflow-hidden grow"
+        boxClass="min-w-[80%]! min-h-[80%]! w-[80%]! h-[80%]!" contentClass="overflow-hidden grow"
         @confirm="confirm()"
     >
         <template #default>

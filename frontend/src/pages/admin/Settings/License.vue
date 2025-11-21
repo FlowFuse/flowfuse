@@ -13,7 +13,7 @@
                     <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ license.tier }}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{ license.expires }}<br><span class="text-xs">{{ license.expiresAt }}</span></td></tr>
                 </table>
-                <details><pre class="break-words">{{ license }}</pre></details>
+                <details><pre class="wrap-break-word">{{ license }}</pre></details>
             </template>
             <template v-else>
                 <table>
@@ -42,7 +42,7 @@
                     <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ inspectedLicense.tier }}</td></tr>
                     <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{ inspectedLicense.expires }}<br><span class="text-xs">{{ inspectedLicense.expiresAt }}</span></td></tr>
                 </table>
-                <details><pre class="break-words">{{ inspectedLicense }}</pre></details>
+                <details><pre class="wrap-break-word">{{ inspectedLicense }}</pre></details>
                 <div class="space-x-4 whitespace-nowrap flex">
                     <ff-button kind="secondary" @click="cancelEditLicense">Cancel</ff-button>
                     <ff-button kind="primary" data-form="submit" @click="applyLicense">Apply license</ff-button>
