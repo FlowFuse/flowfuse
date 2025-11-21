@@ -19,7 +19,7 @@
         <div class="flex-1 overflow-auto">
             <table class="ff-data-table--data" :class="tableClass ?? ''">
                 <slot name="table">
-                    <thead>
+                    <thead class="sticky top-0 z-10">
                         <!-- HEADERS -->
                         <slot v-if="showHeader" name="header">
                             <ff-data-table-row>
