@@ -29,7 +29,7 @@
             <div class="min-w-fit shrink-0">
                 <ff-button class="warning" kind="danger" data-action="delete-account" :disabled="!canDeleteAccount" @click="deleteAccount">Delete Account</ff-button>
             </div>
-            <div v-if="!canDeleteAccount" class="flex-grow text-gray-500">
+            <div v-if="!canDeleteAccount" class="grow text-gray-500">
                 <div class="max-w-sm text-sm">
                     Before you can delete your account, teams you own must be deleted or have at least 1 other owner.
                 </div>

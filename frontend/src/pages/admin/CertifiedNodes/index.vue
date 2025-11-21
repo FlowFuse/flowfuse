@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="FlowFuse Nodes" :tabs="sideNavigation" />
         </template>
-        <div class="flex-grow">
+        <div class="grow">
             <ff-loading v-if="loading" message="Saving Settings..." />
             <FormRow v-model="input.registryToken" type="password" :label="'FlowFuse Registry Token'">
                 Access token for the FlowFuse NPM registry

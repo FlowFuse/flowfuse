@@ -8,7 +8,7 @@
             </ff-page-header>
         </template>
         <div class="flex flex-col sm:flex-row">
-            <div class="flex-grow pt-4">
+            <div class="grow pt-4">
                 <router-view />
             </div>
         </div>

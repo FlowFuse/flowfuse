@@ -209,7 +209,7 @@ export default {
             loading: false,
             instancesMap: new Map(),
             columns: [
-                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName) } },
+                { label: 'Name', class: ['grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName) } },
                 {
                     label: 'Status',
                     class: ['w-44'],

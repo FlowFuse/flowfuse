@@ -2,7 +2,7 @@
     <ff-dialog
         ref="dialog" :header="header" :sub-header="`Node-RED Version: ${nrVersion}`" confirm-label="Close" :closeOnConfirm="true"
         data-el="flow-view-dialog" boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]"
-        contentClass="overflow-hidden flex-grow" @confirm="confirm()"
+        contentClass="overflow-hidden grow" @confirm="confirm()"
     >
         <template #default>
             <div ref="viewer" data-el="ff-flow-previewer" class="ff-flow-viewer" @click.stop.prevent>

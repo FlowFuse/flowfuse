@@ -19,7 +19,7 @@
                     <tr class="border-b">
                         <td class="w-40 font-medium">Type</td>
                         <td class="flex flex-row items-center">
-                            <span class="flex-grow">{{ input.teamType }} </span>
+                            <span class="grow">{{ input.teamType }} </span>
                             <ff-button v-if="!team.suspended" kind="secondary" size="small" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
                         </td>
                     </tr>

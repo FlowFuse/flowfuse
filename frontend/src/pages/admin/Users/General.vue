@@ -55,7 +55,7 @@ export default {
             loading: false,
             nextCursor: null,
             columns: [
-                { label: 'User', class: ['flex-grow'], key: 'name', component: { is: markRaw(UserCell) }, sortable: true },
+                { label: 'User', class: ['grow'], key: 'name', component: { is: markRaw(UserCell) }, sortable: true },
                 { label: 'Password Expired', class: ['w-32', 'text-center'], key: 'password_expired', sortable: true },
                 { label: 'Email Verified', class: ['w-32', 'text-center'], key: 'email_verified', sortable: true },
                 { label: 'SSO', class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true },

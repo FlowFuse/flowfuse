@@ -1,7 +1,7 @@
 <template>
     <ff-dialog
         ref="dialog" :header="header" confirm-label="Close" :closeOnConfirm="true" data-el="flow-view-dialog"
-        boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]" contentClass="overflow-hidden flex-grow"
+        boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]" contentClass="overflow-hidden grow"
         @confirm="confirm()"
     >
         <template #default>
@@ -12,7 +12,7 @@
                     data-el="snapshots-list"
                     label-key="label"
                     option-title-key="description"
-                    class="flex-grow"
+                    class="grow"
                 />
                 <ff-button
                     v-if="true"
@@ -28,14 +28,14 @@
             </div>
             <div v-if="changes.length" class="flex justify-between items-center gap-2 mt-2 ml-2">
                 <div class="whitespace-nowrap">Change {{ changeIndex + 1 }} of {{ changes.length }}:</div>
-                <div class="text-sm text-gray-500 flex-grow truncate text-ellipsis">
+                <div class="text-sm text-gray-500 grow truncate text-ellipsis">
                     {{ changes[changeIndex].toString() }}
                 </div>
                 <ff-button kind="secondary" size="small" class="w-14" @click="gotoPreviousDifference">Prev</ff-button>
                 <ff-button kind="secondary" size="small" class="w-14" @click="gotoNextDifference">Next</ff-button>
             </div>
             <div v-else class="mt-2">
-                <div class="text-sm text-gray-500 flex-grow truncate text-ellipsis ml-2">No differences found</div>
+                <div class="text-sm text-gray-500 grow truncate text-ellipsis ml-2">No differences found</div>
             </div>
             <div ref="compareViewer" data-el="ff-flow-compare-view" class="ff-flow-compare-viewer pt-4" @click.stop.prevent>
               &nbsp;

@@ -28,7 +28,7 @@
         <section v-if="hasPermission('application:device-group:update', { application })" data-el="target-snapshot">
             <FormHeading class="text-red-700">Clear Target Snapshot</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
+                <div class="grow">
                     <div class="max-w-sm pr-2">Clearing the groups target snapshot will reset the target of all devices in the group.</div>
                 </div>
                 <div class="min-w-fit shrink-0">
@@ -40,7 +40,7 @@
         <section v-if="hasPermission('application:device-group:delete', { application })" data-el="delete-device-group">
             <FormHeading class="text-red-700">Delete Device Group</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
+                <div class="grow">
                     <div class="max-w-sm pr-2">Deleting the device group will reset all devices in the group. This action cannot be undone.</div>
                 </div>
                 <div class="min-w-fit shrink-0">

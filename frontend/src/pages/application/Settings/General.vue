@@ -37,7 +37,7 @@
         <template v-if="hasPermission('project:delete', { application })">
             <FormHeading class="text-red-700">Delete Application</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl" data-el="application-delete">
-                <div class="flex-grow">
+                <div class="grow">
                     <div class="max-w-sm">
                         {{ getDeleteApplicationText }}
                     </div>

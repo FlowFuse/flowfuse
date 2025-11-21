@@ -33,7 +33,7 @@
         </FormHeading>
 
         <div ref="updateStack" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
+            <div class="grow">
                 <p class="max-w-sm">
                     Changing the Remote Instance Node-RED Version requires the remote instance to be restarted.
                     The flows will not be running while this happens.

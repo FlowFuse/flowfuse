@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header>
                 <template #breadcrumbs>
-                    <div class="flex-grow">
+                    <div class="grow">
                         <div class="text-gray-800 text-xl">
                             <router-link class="ff-link font-bold" :to="{name: 'admin-users'}">Users</router-link>
                             <!-- <nav-item :icon="icons.breadcrumbSeparator" label="sss"></nav-item> -->

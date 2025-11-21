@@ -70,7 +70,7 @@
                         <div class="flex text-center">
                             <img class="h-16 w-16" src="../../images/pictograms/cloud_teal.png">
                         </div>
-                        <div class="flex-grow m-4">
+                        <div class="grow m-4">
                             <div class="w-full">
                                 <div class="h-1 w-full bg-teal-200 overflow-hidden">
                                     <div kind="secondary" class="progress w-full h-full bg-teal-800 left-right" />

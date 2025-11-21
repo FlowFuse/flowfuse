@@ -129,7 +129,7 @@ export default {
             loading: false,
             applications: new Map(),
             columns: [
-                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
+                { label: 'Name', class: ['grow'], key: 'name', sortable: true }
             ],
             filterTerm: '',
             isSearching: false

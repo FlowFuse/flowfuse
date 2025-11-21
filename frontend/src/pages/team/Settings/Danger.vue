@@ -3,7 +3,7 @@
         <template v-if="teamTypes.length > 1 && !team.suspended">
             <FormHeading>Change Team Type</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
+                <div class="grow">
                     <div class="max-w-sm pr-2">Change to a different team type</div>
                 </div>
                 <div class="min-w-fit shrink-0">
@@ -14,7 +14,7 @@
         <template v-if="!team.suspended">
             <FormHeading class="text-red-700">Suspend Team</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
+                <div class="grow">
                     <div class="max-w-sm pr-2">Suspending the team will suspend all instances and prevent any further activity on the team.</div>
                 </div>
                 <div class="min-w-fit shrink-0">
@@ -26,7 +26,7 @@
         <template v-else>
             <FormHeading class="text-red-700">Reactivate Team</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
+                <div class="grow">
                     <div class="max-w-sm pr-2">This team is currently suspended.</div>
                 </div>
                 <div class="min-w-fit shrink-0">
@@ -36,7 +36,7 @@
         </template>
         <FormHeading class="text-red-700">Delete Team</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
+            <div class="grow">
                 <div class="max-w-sm pr-2">Deleting the team cannot be undone. Take care.</div>
             </div>
             <div class="min-w-fit shrink-0">

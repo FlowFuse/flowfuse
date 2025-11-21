@@ -15,7 +15,7 @@
             </table>
         </div>
         <div v-if="!isUnmanaged && trialMode" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
+            <div class="grow">
                 <table class="table-fixed max-w-sm">
                     <tr v-if="!trialHasEnded">
                         <td class="font-medium font-bold pr-4">Trial Ends:</td>
@@ -31,7 +31,7 @@
             </div>
         </div>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
+            <div class="grow">
                 <div class="max-w-sm pr-2">
                     <template v-if="team.suspended">
                         <b>This team is suspended.</b><br>
@@ -69,7 +69,7 @@
             </div>
         </div>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="font-bold flex-grow">Usage Limits</div>
+            <div class="font-bold grow">Usage Limits</div>
             <div class="min-w-fit shrink-0">
                 <template v-if="!editingLimits">
                     <ff-button kind="primary" @click="editOverrides">Edit usage limits</ff-button>

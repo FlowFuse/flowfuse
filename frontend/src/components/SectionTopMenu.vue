@@ -1,7 +1,7 @@
 <template>
     <div class="ff-section-header flex border-b border-gray-400 mb-4 sm:mb-2 text-gray-500 justify-between min-h-12">
         <div class="w-full flex flex-nowrap justify-between mb-2 items-center gap-2">
-            <div class="flex-shrink flex-grow flex-wrap max-w-full flex gap-x-2 items-baseline min-w-0">
+            <div class="shrink grow flex-wrap max-w-full flex gap-x-2 items-baseline min-w-0">
                 <div class="flex gap-2 items-center">
                     <slot name="hero">
                         <div class="flex" :data-hero="hero">
@@ -19,7 +19,7 @@
                     </li>
                 </ul>
                 <ul v-if="hasTools" class="shrink-0">
-                    <li class="w-full md:w-auto flex-grow text-right">
+                    <li class="w-full md:w-auto grow text-right">
                         <slot name="tools" />
                     </li>
                 </ul>

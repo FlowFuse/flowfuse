@@ -3,7 +3,7 @@
     <form v-else class="space-y-6">
         <FormHeading>Two-factor Authentication</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
+            <div class="grow">
                 <div class="max-w-sm">
                     Two-factor authentication helps to secure your account by requiring a second
                     layer of identification.
