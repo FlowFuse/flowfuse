@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
     /* Tailwind teal overrides */
     --color-teal-50: #E4FBFC;
     --color-teal-100: #C4F3F5;
@@ -127,15 +127,20 @@
     --ff-funit-lg: 1.5rem;
     --ff-funit-xl: 2rem;
 
-    /* Semantic/Theme colors - must be in same @theme inline block */
-    --ff-color-action: var(--ff-indigo-800);
-    --ff-color-highlight: var(--ff-indigo-600);
-    --ff-color-highlight-light: var(--ff-grey-100);
-    --ff-color-danger: var(--ff-red-500);
-    --ff-color-danger-dark: var(--ff-red-600);
-    --ff-color-disabled: var(--ff-grey-400);
-    --ff-color-border: var(--ff-grey-200);
-    --ff-color-context-menu: var(--ff-white);
+}
+
+@layer theme {
+    :root {
+        /* Semantic/Theme colors - always output as CSS variables */
+        --ff-color-action: var(--ff-indigo-800);
+        --ff-color-highlight: var(--ff-indigo-600);
+        --ff-color-highlight-light: var(--ff-grey-100);
+        --ff-color-danger: var(--ff-red-500);
+        --ff-color-danger-dark: var(--ff-red-600);
+        --ff-color-disabled: var(--ff-grey-400);
+        --ff-color-border: var(--ff-grey-200);
+        --ff-color-context-menu: var(--ff-white);
+    }
 }
 
 @layer base {
