@@ -23,32 +23,34 @@ body {
     color: $ff-grey-800;
 }
 
-h1 {
-    font-weight: bold;
-    font-size: $ff-funit-xl;
-    line-height: 1.45 * $ff-funit-xl;
-    margin-bottom: $ff-unit-lg;
-}
+@layer base {
+    h1 {
+        font-weight: bold;
+        font-size: $ff-funit-xl;
+        line-height: 1.45 * $ff-funit-xl;
+        margin-bottom: $ff-unit-lg;
+    }
 
-h2 {
-    font-weight: bold;
-    font-size: $ff-funit-lg;
-    line-height: 1.45 * $ff-funit-lg;
-    margin-bottom: $ff-unit-sm;
-}
+    h2 {
+        font-weight: bold;
+        font-size: $ff-funit-lg;
+        line-height: 1.45 * $ff-funit-lg;
+        margin-bottom: $ff-unit-sm;
+    }
 
-h3 {
-    font-size: $ff-funit-md;
-    line-height: 1.45 * $ff-funit-md;
-    margin-bottom: $ff-unit-sm;
-    font-weight: bold;
-}
+    h3 {
+        font-size: $ff-funit-md;
+        line-height: 1.45 * $ff-funit-md;
+        margin-bottom: $ff-unit-sm;
+        font-weight: bold;
+    }
 
-h4 {
-    font-size: $ff-funit-md;
-    line-height: 1.45 * $ff-funit-sm;
-    margin-bottom: $ff-unit-sm;
-    font-weight: 500;
+    h4 {
+        font-size: $ff-funit-md;
+        line-height: 1.45 * $ff-funit-sm;
+        margin-bottom: $ff-unit-sm;
+        font-weight: 500;
+    }
 }
 
 code {
